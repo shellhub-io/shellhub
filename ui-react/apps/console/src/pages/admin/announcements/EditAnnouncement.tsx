@@ -11,6 +11,7 @@ import AnnouncementEditor from "./AnnouncementEditor";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const TITLE_MAX = 90;
 
@@ -55,9 +56,7 @@ export default function EditAnnouncement() {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" aria-label="Loading announcement" />
-      </div>
+      <PageLoader label="Loading announcement" />
     );
   }
 

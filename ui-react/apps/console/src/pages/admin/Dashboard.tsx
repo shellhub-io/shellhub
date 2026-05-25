@@ -20,7 +20,7 @@ import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatDate } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 export default function AdminDashboard() {
   const {
@@ -36,15 +36,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   if (statsLoading) {
-    return (
-      <div
-        className="flex-1 flex items-center justify-center"
-        role="status"
-        aria-label="Loading dashboard statistics"
-      >
-        <Spinner size="lg" />
-      </div>
-    );
+    return <PageLoader label="Loading dashboard statistics" padding="fill" />;
   }
 
   if (statsError) {

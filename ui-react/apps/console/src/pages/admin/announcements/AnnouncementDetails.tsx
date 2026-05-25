@@ -12,7 +12,7 @@ import CopyButton from "@/components/common/CopyButton";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
 import { formatDateFull } from "@/utils/date";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -29,9 +29,7 @@ export default function AnnouncementDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" aria-label="Loading announcement details" />
-      </div>
+      <PageLoader label="Loading announcement details" />
     );
   }
 

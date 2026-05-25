@@ -38,7 +38,7 @@ import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -341,11 +341,7 @@ export default function ContainerDetails() {
   if (!uid) return <Navigate to="/containers" replace />;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <PageLoader label="Loading container details" />;
   }
 
   if (error || !container) {

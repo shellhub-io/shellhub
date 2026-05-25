@@ -7,6 +7,7 @@ import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const MAX_LENGTH = 4096;
 
@@ -130,9 +131,7 @@ export default function BannerEdit() {
 
   if (!ns) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <Spinner size="lg" />
-      </div>
+      <PageLoader label="Loading banner" padding="lg" />
     );
   }
 

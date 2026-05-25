@@ -11,6 +11,7 @@ import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 export default function PendingDevices() {
   const navigate = useNavigate();
@@ -22,7 +23,11 @@ export default function PendingDevices() {
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { devices, totalCount: count, isLoading: loading } = useDevices({
+  const {
+    devices,
+    totalCount: count,
+    isLoading: loading,
+  } = useDevices({
     page: 1,
     perPage: 5,
     status: "pending",
@@ -95,9 +100,7 @@ export default function PendingDevices() {
           {/* Body */}
           <div className="max-h-[280px] overflow-y-auto">
             {loading && devices.length === 0 ? (
-              <div className="flex items-center justify-center py-10">
-                <Spinner />
-              </div>
+              <PageLoader label="Loading..." showLabel padding="sm" />
             ) : devices.length === 0 ? (
               <div className="py-10 text-center">
                 <CheckCircleIcon
@@ -144,52 +147,56 @@ export default function PendingDevices() {
                         </div>
 
                         {/* Actions */}
-                        {isFlashed
-                          ? (
-                            <span
-                              className={`text-2xs font-mono font-semibold ${
-                                flash.action === "accepted"
-                                  ? "text-accent-green"
-                                  : "text-accent-red"
-                              }`}
+                        {isFlashed ? (
+                          <span
+                            className={`text-2xs font-mono font-semibold ${
+                              flash.action === "accepted"
+                                ? "text-accent-green"
+                                : "text-accent-red"
+                            }`}
+                          >
+                            {flash.action === "accepted"
+                              ? "Accepted"
+                              : "Rejected"}
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() =>
+                                void handleAction(d.uid, "accepted")
+                              }
+                              disabled={isActing}
+                              className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
+                              title="Accept"
                             >
-                              {flash.action === "accepted"
-                                ? "Accepted"
-                                : "Rejected"}
-                            </span>
-                          )
-                          : (
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => void handleAction(d.uid, "accepted")}
-                                disabled={isActing}
-                                className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
-                                title="Accept"
-                              >
-                                {isActing
-                                  ? (
-                                    <Spinner size="sm" tone="subtle" className="block" />
-                                  )
-                                  : (
-                                    <CheckIcon
-                                      className="w-3.5 h-3.5"
-                                      strokeWidth={2.5}
-                                    />
-                                  )}
-                              </button>
-                              <button
-                                onClick={() => void handleAction(d.uid, "rejected")}
-                                disabled={isActing}
-                                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
-                                title="Reject"
-                              >
-                                <XMarkIcon
+                              {isActing ? (
+                                <Spinner
+                                  size="sm"
+                                  tone="subtle"
+                                  className="block"
+                                />
+                              ) : (
+                                <CheckIcon
                                   className="w-3.5 h-3.5"
                                   strokeWidth={2.5}
                                 />
-                              </button>
-                            </div>
-                          )}
+                              )}
+                            </button>
+                            <button
+                              onClick={() =>
+                                void handleAction(d.uid, "rejected")
+                              }
+                              disabled={isActing}
+                              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
+                              title="Reject"
+                            >
+                              <XMarkIcon
+                                className="w-3.5 h-3.5"
+                                strokeWidth={2.5}
+                              />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

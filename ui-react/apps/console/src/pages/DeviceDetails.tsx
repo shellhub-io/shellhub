@@ -41,7 +41,7 @@ import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
 import { getConfig } from "../env";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -451,9 +451,7 @@ export default function DeviceDetails() {
 
   if (isLoading || !device) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" />
-      </div>
+      <PageLoader label="Loading device details" />
     );
   }
 

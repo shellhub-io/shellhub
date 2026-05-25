@@ -26,6 +26,7 @@ import {
 } from "@/utils/license";
 import type { GetLicenseResponse } from "@/client/types.gen";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -370,13 +371,7 @@ export default function AdminLicense() {
 
   if (isLoading) {
     return (
-      <div
-        className="flex-1 flex items-center justify-center"
-        role="status"
-        aria-label="Loading license information"
-      >
-        <Spinner size="lg" />
-      </div>
+      <PageLoader label="Loading license information" padding="fill" />
     );
   }
 

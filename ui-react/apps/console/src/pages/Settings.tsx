@@ -34,6 +34,7 @@ import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Settings Card ─── */
 
@@ -444,11 +445,7 @@ export default function Settings() {
   };
 
   if (!ns) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <PageLoader label="Loading settings" padding="lg" />;
   }
 
   return (
