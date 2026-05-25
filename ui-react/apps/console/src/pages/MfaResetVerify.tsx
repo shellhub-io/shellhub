@@ -4,6 +4,7 @@ import { ShieldCheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outl
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import Spinner from "@/components/common/Spinner";
 
 export default function MfaResetVerify() {
   const { completeMfaReset, mfaResetUserId, mfaResetIdentifier, loading, error } = useAuthStore();
@@ -129,13 +130,13 @@ export default function MfaResetVerify() {
           <button
             type="submit"
             disabled={!otpMain.isComplete || !otpRecovery.isComplete || loading}
-            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Verifying...</span>
-              </span>
+              <>
+                <Spinner size="sm" tone="onPrimary" />
+                Verifying...
+              </>
             ) : (
               "Verify and Reset MFA"
             )}

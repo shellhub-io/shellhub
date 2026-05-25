@@ -14,6 +14,7 @@ import { isSdkError } from "../../../api/errors";
 import PageHeader from "../../../components/common/PageHeader";
 import CopyButton from "../../../components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
+import Spinner from "@/components/common/Spinner";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
@@ -141,7 +142,7 @@ export default function AdminAuthentication() {
           description="Control how users authenticate to ShellHub, including local credentials and SAML SSO."
         />
         <div className="flex items-center gap-3 mt-8" role="status">
-          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <Spinner />
           <span className="text-xs font-mono text-text-muted">Loading settings...</span>
         </div>
       </div>

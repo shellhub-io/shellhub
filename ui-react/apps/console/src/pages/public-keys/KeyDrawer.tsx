@@ -18,6 +18,7 @@ import TagsSelector from "@/components/common/fields/TagsSelector";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import KeyDataInput from "./KeyDataInput";
+import Spinner from "@/components/common/Spinner";
 
 /* --- Drawer --- */
 function KeyDrawer({
@@ -180,13 +181,13 @@ function KeyDrawer({
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <>
+                <Spinner size="sm" tone="onPrimary" />
                 Saving...
-              </span>
+              </>
             ) : isEdit ? (
               "Save Changes"
             ) : (

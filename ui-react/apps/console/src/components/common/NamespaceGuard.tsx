@@ -9,6 +9,7 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
+import Spinner from "@/components/common/Spinner";
 
 function MinimalHeader() {
   return (
@@ -100,7 +101,7 @@ export default function NamespaceGuard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3">
-          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <Spinner />
           <span className="text-xs font-mono text-text-muted">Loading…</span>
         </div>
       </div>

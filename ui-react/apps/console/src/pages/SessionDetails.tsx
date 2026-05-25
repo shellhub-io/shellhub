@@ -22,7 +22,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSession } from "../hooks/useSession";
-import { useCloseSession, useDeleteSessionRecording } from "../hooks/useSessionMutations";
+import {
+  useCloseSession,
+  useDeleteSessionRecording,
+} from "../hooks/useSessionMutations";
 import { useSessionRecording } from "../hooks/useSessionRecording";
 import SessionPlayerDialog from "./sessions/SessionPlayerDialog";
 import CopyButton from "../components/common/CopyButton";
@@ -31,6 +34,7 @@ import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
 import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
+import Spinner from "@/components/common/Spinner";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -163,8 +167,8 @@ const NODE_COLORS: Record<EventStatus, string> = {
   muted: "text-text-muted border-border bg-surface",
 };
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ── Info Row ── */
@@ -295,7 +299,13 @@ export default function SessionDetails() {
   const { session, isLoading, error } = useSession(uid!);
   const closeSession = useCloseSession();
   const deleteRecording = useDeleteSessionRecording();
-  const { logs: sessionLogs, isLoading: logsLoading, error: logsError, fetchLogs, clearLogs } = useSessionRecording();
+  const {
+    logs: sessionLogs,
+    isLoading: logsLoading,
+    error: logsError,
+    fetchLogs,
+    clearLogs,
+  } = useSessionRecording();
   const [showClose, setShowClose] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [showDeleteLogs, setShowDeleteLogs] = useState(false);
@@ -332,7 +342,7 @@ export default function SessionDetails() {
   if (isLoading || !session) {
     return (
       <div className="flex items-center justify-center py-24">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" aria-label="Loading session" />
       </div>
     );
   }
@@ -541,7 +551,8 @@ export default function SessionDetails() {
                 <DeviceChip
                   uid={session.device.uid}
                   name={
-                    session.device.name ?? (session.device_uid ?? "").substring(0, 8)
+                    session.device.name ??
+                    (session.device_uid ?? "").substring(0, 8)
                   }
                   online={session.device.online}
                   osId={session.device.info?.id}
@@ -588,7 +599,10 @@ export default function SessionDetails() {
           <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shrink-0">
-                <TrashIcon className="w-5 h-5 text-accent-red" strokeWidth={2} />
+                <TrashIcon
+                  className="w-5 h-5 text-accent-red"
+                  strokeWidth={2}
+                />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-text-primary">
@@ -658,7 +672,8 @@ export default function SessionDetails() {
               </span>{" "}
               on{" "}
               <span className="font-medium text-text-primary">
-                {session.device?.name ?? (session.device_uid ?? "").substring(0, 8)}
+                {session.device?.name ??
+                  (session.device_uid ?? "").substring(0, 8)}
               </span>
               ?
             </p>
@@ -697,7 +712,10 @@ export default function SessionDetails() {
       {showPlayer && sessionLogs && (
         <SessionPlayerDialog
           open={showPlayer}
-          onClose={() => { setShowPlayer(false); clearLogs(); }}
+          onClose={() => {
+            setShowPlayer(false);
+            clearLogs();
+          }}
           logs={sessionLogs}
         />
       )}

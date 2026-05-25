@@ -15,6 +15,7 @@ import Drawer from "@/components/common/Drawer";
 import CopyButton from "@/components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import Spinner from "@/components/common/Spinner";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
 import { LABEL } from "@/utils/styles";
@@ -154,7 +155,7 @@ function InvitationDrawer({
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {submitting ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Spinner tone="onPrimary" />
               ) : wantLink ? (
                 <LinkIcon className="w-4 h-4" strokeWidth={2} />
               ) : (

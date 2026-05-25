@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@/utils/cn";
 import Pagination from "./Pagination";
+import Spinner from "@/components/common/Spinner";
 
 const TH_CLASS =
   "px-4 py-3 text-left text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted whitespace-nowrap";
@@ -169,7 +170,7 @@ export default function DataTable<T>({
                   role="status"
                   aria-live="polite"
                 >
-                  <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <Spinner />
                   <span className="text-xs font-mono text-text-muted">
                     {loadingMessage}
                   </span>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import Spinner from "@/components/common/Spinner";
 
 export default function AdminRoute() {
   const fetchUser = useAuthStore((s) => s.fetchUser);
@@ -14,7 +15,7 @@ export default function AdminRoute() {
   if (!verified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }

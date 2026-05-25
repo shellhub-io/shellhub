@@ -18,6 +18,7 @@ import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
+import Spinner from "@/components/common/Spinner";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -128,10 +129,7 @@ export default function AdminUsers() {
             aria-label={`Login as ${user.name}`}
           >
             {loginAsId === user.id ? (
-              <span
-                aria-hidden="true"
-                className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin block"
-              />
+              <Spinner className="block" />
             ) : (
               <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
             )}

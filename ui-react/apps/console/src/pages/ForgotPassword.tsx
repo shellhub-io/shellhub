@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { recoverPassword } from "../client";
 import InputField from "@/components/common/fields/InputField";
+import Spinner from "@/components/common/Spinner";
 
 export default function ForgotPassword() {
   const [account, setAccount] = useState("");
@@ -101,7 +102,7 @@ export default function ForgotPassword() {
             >
               {loading ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <Spinner size="sm" tone="onPrimary" />
                   <span className="font-mono text-xs">Sending...</span>
                 </>
               ) : (

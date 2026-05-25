@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useInvitationMutations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import Spinner from "@/components/common/Spinner";
 
 type Branch =
   | { kind: "loading" }
@@ -177,7 +178,7 @@ export default function AcceptInvite() {
             role="status"
             aria-live="polite"
           >
-            <span className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <Spinner size="2xl" />
             <p className="text-sm text-text-muted">Checking invitation...</p>
           </div>
         )}

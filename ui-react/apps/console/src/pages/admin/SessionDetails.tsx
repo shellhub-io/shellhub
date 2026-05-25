@@ -9,6 +9,7 @@ import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import PageHeader from "@/components/common/PageHeader";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
+import Spinner from "@/components/common/Spinner";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -38,8 +39,8 @@ export default function AdminSessionDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center" role="status" aria-label="Loading session">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" aria-hidden="true" />
+      <div className="flex-1 flex items-center justify-center">
+        <Spinner size="lg" aria-label="Loading session" />
       </div>
     );
   }

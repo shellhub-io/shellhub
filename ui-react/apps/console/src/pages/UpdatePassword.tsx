@@ -7,6 +7,7 @@ import {
 import { updateRecoverPassword } from "../client";
 import { validatePassword } from "../utils/validation";
 import PasswordField from "@/components/common/fields/PasswordField";
+import Spinner from "@/components/common/Spinner";
 
 export default function UpdatePassword() {
   const [searchParams] = useSearchParams();
@@ -146,13 +147,13 @@ export default function UpdatePassword() {
           <button
             type="submit"
             disabled={loading || !isValid}
-            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Updating...</span>
-              </span>
+              <>
+                <Spinner size="sm" tone="onPrimary" />
+                Updating...
+              </>
             ) : (
               "Update Password"
             )}

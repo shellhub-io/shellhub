@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { getInfo } from "@/client";
 import { getConfig } from "@/env";
+import Spinner from "@/components/common/Spinner";
 
 export default function SetupGuard() {
   const isCloud = getConfig().cloud;
@@ -22,7 +23,7 @@ export default function SetupGuard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3">
-          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <Spinner />
           <span className="text-xs font-mono text-text-muted">Loading...</span>
         </div>
       </div>

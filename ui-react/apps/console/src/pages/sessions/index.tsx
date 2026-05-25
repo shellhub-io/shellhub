@@ -18,6 +18,7 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
+import Spinner from "@/components/common/Spinner";
 
 const PER_PAGE = 10;
 
@@ -185,7 +186,7 @@ export default function Sessions() {
                 className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-2xs font-semibold rounded-md hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-dim"
               >
                 {logsLoading && playTarget === s.uid ? (
-                  <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin" />
+                  <Spinner size="xs" tone="onSurface" />
                 ) : (
                   <PlayIcon className="w-3 h-3" />
                 )}

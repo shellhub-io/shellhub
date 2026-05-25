@@ -3,6 +3,7 @@ import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/ou
 import { disableMfa } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
+import Spinner from "@/components/common/Spinner";
 
 interface MfaDisableDialogProps {
   open: boolean;
@@ -225,7 +226,7 @@ export default function MfaDisableDialog({
                     className="w-full px-4 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-dim disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {requestingEmail && (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <Spinner tone="onPrimary" />
                     )}
                     Send Verification Codes
                   </button>
@@ -291,7 +292,7 @@ export default function MfaDisableDialog({
                 className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 {submitting && (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <Spinner tone="onPrimary" />
                 )}
                 Disable MFA
               </button>

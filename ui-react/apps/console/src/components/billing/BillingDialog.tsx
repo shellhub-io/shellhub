@@ -11,6 +11,7 @@ import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
 import BillingSuccessful from "./BillingSuccessful";
+import Spinner from "@/components/common/Spinner";
 
 const STEPS = ["Overview", "Payment method", "Review", "Success"] as const;
 const TOTAL_STEPS = STEPS.length;
@@ -248,10 +249,7 @@ function PrimaryButton({
         disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
     >
       {loading && (
-        <span
-          aria-hidden="true"
-          className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"
-        />
+        <Spinner size="sm" tone="onPrimary" />
       )}
       {children}
     </button>

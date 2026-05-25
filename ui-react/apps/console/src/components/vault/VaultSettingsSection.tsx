@@ -10,6 +10,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
+import Spinner from "@/components/common/Spinner";
 
 function ChangePasswordDrawer({
   open,
@@ -78,7 +79,7 @@ function ChangePasswordDrawer({
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {loading && (
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <Spinner size="sm" tone="onPrimary" />
             )}
             Update Password
           </button>

@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
+import Spinner from "@/components/common/Spinner";
 
 export default function ConfirmAccount() {
   const [searchParams] = useSearchParams();
@@ -60,14 +61,14 @@ export default function ConfirmAccount() {
           type="button"
           onClick={() => void handleResend()}
           disabled={resendLoading || resendCooldown > 0}
-          className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mb-5"
+          className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mb-5 flex items-center justify-center gap-2"
         >
           {resendLoading
             ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Sending...</span>
-              </span>
+              <>
+                <Spinner size="sm" tone="onPrimary" />
+                Sending...
+              </>
             ) : resendCooldown > 0 ? (
               `Resend Email (${resendCooldown}s)`
             )

@@ -5,6 +5,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "../components/common/AmbientBackground";
+import Spinner from "@/components/common/Spinner";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 
@@ -124,7 +125,7 @@ export default function MigrationPage() {
 
         {(status === "running" || status === "unknown") && (
           <div className="flex items-center gap-2.5 bg-card/80 border border-border rounded-lg px-4 py-2.5 backdrop-blur-sm">
-            <span className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <Spinner size="xs" />
             <span className="text-xs font-mono text-text-secondary">
               Migrating data…
             </span>

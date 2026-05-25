@@ -10,6 +10,7 @@ import {
 import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import Spinner from "@/components/common/Spinner";
 
 export default function PendingDevices() {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ export default function PendingDevices() {
           <div className="max-h-[280px] overflow-y-auto">
             {loading && devices.length === 0 ? (
               <div className="flex items-center justify-center py-10">
-                <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <Spinner />
               </div>
             ) : devices.length === 0 ? (
               <div className="py-10 text-center">
@@ -167,7 +168,7 @@ export default function PendingDevices() {
                               >
                                 {isActing
                                   ? (
-                                    <span className="block w-3.5 h-3.5 border-2 border-text-muted/30 border-t-text-muted rounded-full animate-spin" />
+                                    <Spinner size="sm" tone="subtle" className="block" />
                                   )
                                   : (
                                     <CheckIcon

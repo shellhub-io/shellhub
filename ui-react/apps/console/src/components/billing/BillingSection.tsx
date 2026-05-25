@@ -15,6 +15,7 @@ import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
 import type { BillingStatus } from "@/client/types.gen";
+import Spinner from "@/components/common/Spinner";
 
 const BillingDialog = lazy(() => import("./BillingDialog"));
 
@@ -352,10 +353,7 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-card hover:bg-hover-medium border border-border hover:border-border-light text-text-primary rounded-lg text-sm font-medium transition-all disabled:opacity-dim disabled:cursor-not-allowed"
                     >
                       {openPortal.isPending ? (
-                        <span
-                          aria-hidden="true"
-                          className="w-4 h-4 border-2 border-text-muted/30 border-t-text-primary rounded-full animate-spin"
-                        />
+                        <Spinner tone="subtle" />
                       ) : (
                         <ArrowTopRightOnSquareIcon
                           className="w-4 h-4"

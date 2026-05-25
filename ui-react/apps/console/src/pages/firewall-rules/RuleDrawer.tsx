@@ -24,6 +24,7 @@ import {
 import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
 import NumericInput from "@/components/common/fields/NumericInput";
 import { LABEL } from "@/utils/styles";
+import Spinner from "@/components/common/Spinner";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;
@@ -190,13 +191,13 @@ export default function RuleDrawer({
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <>
+                <Spinner size="sm" tone="onPrimary" />
                 Saving...
-              </span>
+              </>
             ) : isEdit ? (
               "Save Changes"
             ) : (
