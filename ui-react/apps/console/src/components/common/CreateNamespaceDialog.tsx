@@ -168,6 +168,7 @@ export default function CreateNamespaceDialog({
         </div>
 
         <button
+          type="button"
           onClick={onClose}
           className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all"
           aria-label="Close dialog"
@@ -206,6 +207,7 @@ export default function CreateNamespaceDialog({
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-hover-medium transition-all"
           >

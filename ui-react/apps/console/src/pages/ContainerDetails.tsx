@@ -170,7 +170,6 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               }}
               placeholder="Add tag..."
               aria-label="Add tag"
-              pattern="^[a-zA-Z0-9]+$"
               className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
             />
             <button

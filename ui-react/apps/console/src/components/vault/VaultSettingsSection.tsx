@@ -150,6 +150,7 @@ export default function VaultSettingsSection() {
         </h3>
         <div className="bg-card border border-border rounded-lg divide-y divide-border">
           <button
+            type="button"
             onClick={() => setChangeOpen(true)}
             className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors rounded-t-lg"
           >
@@ -165,6 +166,7 @@ export default function VaultSettingsSection() {
           </button>
 
           <button
+            type="button"
             onClick={lock}
             className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors"
           >
@@ -180,6 +182,7 @@ export default function VaultSettingsSection() {
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setResetConfirmText("");
               setResetOpen(true);

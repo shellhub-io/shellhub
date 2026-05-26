@@ -4,6 +4,7 @@ import { disableMfa } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import Spinner from "@/components/common/Spinner";
+import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaDisableDialogProps {
   open: boolean;
@@ -28,8 +29,6 @@ export default function MfaDisableDialog({
   const otpMainEmail = useOtpInput(5, true);
   const otpRecoveryEmail = useOtpInput(5, true);
   const { user, username, requestMfaReset } = useAuthStore();
-
-  if (!open) return null;
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
@@ -104,12 +103,13 @@ export default function MfaDisableDialog({
         : otpMainEmail.isComplete && otpRecoveryEmail.isComplete;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      size="sm"
+      aria-label="Disable MFA"
+    >
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-red/15 border border-accent-red/25 flex items-center justify-center">
@@ -300,6 +300,6 @@ export default function MfaDisableDialog({
           )}
         </form>
       </div>
-    </div>
+    </BaseDialog>
   );
 }

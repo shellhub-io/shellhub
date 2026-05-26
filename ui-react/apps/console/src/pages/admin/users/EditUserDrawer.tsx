@@ -71,6 +71,7 @@ export default function EditUserDrawer({
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => void handleSubmit()}
             disabled={!form.isSubmittable || updateUser.isPending}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"

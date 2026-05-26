@@ -5,6 +5,7 @@ import { useNamespaces } from "../hooks/useNamespaces";
 import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import BaseDialog from "../components/common/BaseDialog";
 import CopyButton from "../components/common/CopyButton";
 import { isSdkError } from "../api/errors";
 import { validatePassword } from "../utils/validation";
@@ -207,15 +208,14 @@ function DeleteAccountWarningDialog({
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
   const deleteCommand = `./bin/cli user delete ${username ?? ""}`;
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      size="md"
+      aria-label="Account Deletion"
+    >
+      <div className="p-6">
         <div className="flex items-start gap-3 mb-5">
           <span className="w-9 h-9 rounded-lg bg-hover-medium border border-border flex items-center justify-center shrink-0">
             {isCommunity ? (
@@ -296,6 +296,7 @@ function DeleteAccountWarningDialog({
 
         <div className="flex justify-end mt-6">
           <button
+            type="button"
             onClick={onClose}
             data-test="close-btn"
             className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
@@ -304,7 +305,7 @@ function DeleteAccountWarningDialog({
           </button>
         </div>
       </div>
-    </div>
+    </BaseDialog>
   );
 }
 
@@ -409,6 +410,7 @@ export function EditProfileDrawer({
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -547,6 +549,7 @@ function ChangePasswordDrawer({
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -633,6 +636,7 @@ export default function Profile() {
         description="Manage your account details and security settings"
       >
         <button
+          type="button"
           onClick={openEdit}
           className="px-4 py-2.5 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all flex items-center gap-2"
         >
@@ -702,6 +706,7 @@ export default function Profile() {
             description="Credentials used to authenticate into your account"
           >
             <button
+              type="button"
               onClick={() => setPwDrawerOpen(true)}
               className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
             >
@@ -724,6 +729,7 @@ export default function Profile() {
             >
               {mfaEnabled ? (
                 <button
+                  type="button"
                   onClick={() => setMfaDisableOpen(true)}
                   className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
                 >
@@ -731,6 +737,7 @@ export default function Profile() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setMfaEnableOpen(true)}
                   className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
                 >
@@ -773,6 +780,7 @@ export default function Profile() {
             }
           >
             <button
+              type="button"
               onClick={() => setDeleteDialogOpen(true)}
               data-test="delete-account-btn"
               className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 hover:border-accent-red/40 rounded-lg text-sm font-medium transition-all"

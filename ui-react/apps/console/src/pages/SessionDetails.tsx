@@ -35,6 +35,7 @@ import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
 import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -309,6 +310,8 @@ export default function SessionDetails() {
   const [showClose, setShowClose] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [showDeleteLogs, setShowDeleteLogs] = useState(false);
+  const [deleteLogsError, setDeleteLogsError] = useState<string | null>(null);
+  const [closeError, setCloseError] = useState<string | null>(null);
 
   const handlePlayRecording = async () => {
     const ok = await fetchLogs(uid!);
@@ -318,16 +321,18 @@ export default function SessionDetails() {
   };
 
   const handleDeleteLogs = async () => {
+    setDeleteLogsError(null);
     try {
       await deleteRecording.mutateAsync(uid!);
       setShowDeleteLogs(false);
     } catch {
-      // error surfaced via deleteRecording.error
+      setDeleteLogsError("Failed to delete recording. Check your permissions.");
     }
   };
 
   const handleClose = async () => {
     if (!uid || !session) return;
+    setCloseError(null);
     try {
       await closeSession.mutateAsync({
         path: { uid },
@@ -335,7 +340,7 @@ export default function SessionDetails() {
       });
       setShowClose(false);
     } catch {
-      // error is available via closeSession.error
+      setCloseError("Failed to close session. Check your permissions.");
     }
   };
 
@@ -349,6 +354,7 @@ export default function SessionDetails() {
         <XCircleIcon className="w-8 h-8 text-accent-red/60" />
         <p className="text-sm font-mono text-text-muted">{error.message}</p>
         <button
+          type="button"
           onClick={() => void navigate("/sessions")}
           className="text-xs font-mono text-primary hover:underline"
         >
@@ -421,6 +427,7 @@ export default function SessionDetails() {
               {session.active && (
                 <RestrictedAction action="session:close">
                   <button
+                    type="button"
                     onClick={() => setShowClose(true)}
                     className="flex items-center gap-1.5 px-2.5 py-1 border border-accent-red/30 text-accent-red hover:bg-accent-red/10 rounded-md text-2xs font-mono font-medium transition-all"
                   >
@@ -439,6 +446,7 @@ export default function SessionDetails() {
             <>
               <RestrictedAction action="session:play">
                 <button
+                  type="button"
                   onClick={() => void handlePlayRecording()}
                   disabled={logsLoading}
                   className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
@@ -449,6 +457,7 @@ export default function SessionDetails() {
               </RestrictedAction>
               <RestrictedAction action="session:removeRecord">
                 <button
+                  type="button"
                   onClick={() => setShowDeleteLogs(true)}
                   className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
                   title="Delete recording"
@@ -461,6 +470,7 @@ export default function SessionDetails() {
           {session.active && (
             <RestrictedAction action="session:close">
               <button
+                type="button"
                 onClick={() => setShowClose(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-hover-subtle text-accent-red border border-accent-red/30 rounded-lg text-sm font-semibold transition-all"
               >
@@ -576,116 +586,46 @@ export default function SessionDetails() {
       </div>
 
       {/* Delete Recording Dialog */}
-      {showDeleteLogs && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowDeleteLogs(false)}
-          />
-          <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shrink-0">
-                <TrashIcon
-                  className="w-5 h-5 text-accent-red"
-                  strokeWidth={2}
-                />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-text-primary">
-                  Delete Recording
-                </h2>
-                <p className="text-xs text-text-muted mt-0.5">
-                  This action cannot be undone
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to delete the session recording? The
-              recording will be permanently removed.
-            </p>
-            {deleteRecording.error != null && (
-              <p className="text-xs text-accent-red mb-4 font-mono">
-                Failed to delete recording. Check your permissions.
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteLogs(false)}
-                className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-card transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => void handleDeleteLogs()}
-                disabled={deleteRecording.isPending}
-                className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-all"
-              >
-                {deleteRecording.isPending ? "Deleting…" : "Delete Recording"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteLogs}
+        onClose={() => {
+          setShowDeleteLogs(false);
+          setDeleteLogsError(null);
+        }}
+        onConfirm={handleDeleteLogs}
+        title="Delete Recording"
+        description="Are you sure you want to delete the session recording? The recording will be permanently removed."
+        confirmLabel="Delete Recording"
+        variant="danger"
+        errorMessage={deleteLogsError}
+      />
 
       {/* Close Session Dialog */}
-      {showClose && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowClose(false)}
-          />
-          <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shrink-0">
-                <XCircleIcon
-                  className="w-5 h-5 text-accent-red"
-                  strokeWidth={2}
-                />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-text-primary">
-                  Close Session
-                </h2>
-                <p className="text-xs text-text-muted mt-0.5">
-                  This will terminate the SSH connection
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to close the session for{" "}
-              <span className="font-medium text-text-primary">
-                {session.username}
-              </span>{" "}
-              on{" "}
-              <span className="font-medium text-text-primary">
-                {session.device?.name ??
-                  (session.device_uid ?? "").substring(0, 8)}
-              </span>
-              ?
-            </p>
-            {closeSession.error != null && (
-              <p className="text-xs text-accent-red mb-4 font-mono">
-                Failed to close session. Check your permissions.
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowClose(false)}
-                className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => void handleClose()}
-                disabled={closeSession.isPending}
-                className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
-              >
-                {closeSession.isPending ? "Closing…" : "Close Session"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showClose}
+        onClose={() => {
+          setShowClose(false);
+          setCloseError(null);
+        }}
+        onConfirm={handleClose}
+        title="Close Session"
+        description={
+          <>
+            Are you sure you want to close the session for{" "}
+            <span className="font-medium text-text-primary">
+              {session.username}
+            </span>{" "}
+            on{" "}
+            <span className="font-medium text-text-primary">
+              {session.device?.name ?? (session.device_uid ?? "").substring(0, 8)}
+            </span>
+            ?
+          </>
+        }
+        confirmLabel="Close Session"
+        variant="danger"
+        errorMessage={closeError}
+      />
 
       {/* Recording error banner */}
       {logsError && (
