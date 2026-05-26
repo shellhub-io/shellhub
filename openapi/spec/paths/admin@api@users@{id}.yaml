@@ -46,7 +46,7 @@ put:
               name: example_new
               email: example@example.com
               username: example
-              password: ''
+              password: example
               confirmed: true
           update_password:
             value:
