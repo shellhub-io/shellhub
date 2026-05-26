@@ -9,7 +9,8 @@ properties:
   password:
     description: User's password.
     type: string
-    maxLength: 30
+    minLength: 5
+    maxLength: 32
     example: example
   confirmed:
     $ref: userConfirmedEmail.yaml
