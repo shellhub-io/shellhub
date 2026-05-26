@@ -91,6 +91,7 @@ function CopyBlock({ command }: { command: string }) {
       <span className="text-primary/60">$ </span>
       {command}
       <button
+        type="button"
         onClick={handleCopy}
         className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
         title="Copy command"
@@ -169,6 +170,7 @@ function CommunityInstructions() {
       </div>
 
       <button
+        type="button"
         disabled={!ready}
         onClick={handleContinue}
         className={`w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${

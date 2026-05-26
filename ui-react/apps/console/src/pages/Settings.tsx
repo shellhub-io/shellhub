@@ -152,6 +152,7 @@ function EditNameDrawer({
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -473,6 +474,7 @@ export default function Settings() {
               </span>
               {canRename && (
                 <button
+                  type="button"
                   onClick={() => setEditNameOpen(true)}
                   className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
                   title="Rename"
@@ -611,6 +613,7 @@ export default function Settings() {
               description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
             >
               <button
+                type="button"
                 onClick={() => setDeleteOpen(true)}
                 className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
@@ -626,6 +629,7 @@ export default function Settings() {
               description="You will lose access immediately. To rejoin, someone will need to invite you again."
             >
               <button
+                type="button"
                 onClick={() => setLeaveOpen(true)}
                 className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
