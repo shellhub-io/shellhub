@@ -6,11 +6,6 @@ import {
   Link,
 } from "react-router-dom";
 import {
-  TagIcon,
-  XMarkIcon,
-  PlusIcon,
-  PencilSquareIcon,
-  CheckIcon,
   ChevronRightIcon,
   TrashIcon,
   InformationCircleIcon,
@@ -20,385 +15,29 @@ import {
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
-import {
-  useRenameDevice,
-  useAddDeviceTag,
-  useRemoveDeviceTag,
-  useRemoveDevice,
-  useSetDeviceCustomField,
-  useDeleteDeviceCustomField,
-} from "../hooks/useDeviceMutations";
+import { useRemoveDevice } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import DeviceActionDialog from "./devices/DeviceActionDialog";
 import BillingWarning from "../components/billing/BillingWarning";
 import ConnectDrawer from "../components/ConnectDrawer";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
-import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
 import { getConfig } from "../env";
+import InfoItem from "./devices/InfoItem";
+import TagsSection from "./devices/TagsSection";
+import RenameSection from "./devices/RenameSection";
+import CustomFieldsSection from "./devices/CustomFieldsSection";
 
 /* ─── Shared styles ─── */
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
-
-/* ─── Info Row ─── */
-function InfoItem({
-  label,
-  value,
-  mono,
-  copyable,
-  truncate,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  copyable?: boolean;
-  truncate?: number;
-}) {
-  const display = truncate && value ? value.slice(0, truncate) : value;
-
-  return (
-    <div>
-      <dt className={LABEL}>{label}</dt>
-      <dd className="flex items-center gap-1 mt-0.5">
-        <span
-          className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
-        >
-          {display || "—"}
-        </span>
-        {copyable && value && <CopyButton text={value} />}
-      </dd>
-    </div>
-  );
-}
-
-/* ─── Tags Section ─── */
-function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
-  const addTagMutation = useAddDeviceTag();
-  const removeTagMutation = useRemoveDeviceTag();
-  const canEditTags = useHasPermission("tag:edit");
-  const [input, setInput] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAdd = async () => {
-    const tag = input.trim();
-    if (!tag) return;
-    setError(null);
-
-    if (tags && tags.includes(tag)) {
-      setError("This tag is already added.");
-      return;
-    }
-    if (tags && tags.length >= 3) return;
-    if (tag.length < 3) {
-      setError("Tag must be at least 3 characters.");
-      return;
-    }
-    if (tag.length > 255) {
-      setError("Tag must be at most 255 characters.");
-      return;
-    }
-    if (!/^[a-zA-Z0-9]+$/.test(tag)) {
-      setError("Tag must contain only letters and numbers.");
-      return;
-    }
-
-    setAdding(true);
-    try {
-      await addTagMutation.mutateAsync({ path: { uid, name: tag } });
-      setInput("");
-    } catch {
-      setError("Failed to add tag.");
-    }
-    setAdding(false);
-  };
-
-  const handleRemove = async (tag: string) => {
-    try {
-      await removeTagMutation.mutateAsync({ path: { uid, name: tag } });
-    } catch {
-      /* invalidation handles UI update */
-    }
-  };
-
-  return (
-    <div>
-      <h3 className={LABEL + " mb-2"}>Tags</h3>
-      <div className="flex flex-wrap items-center gap-2">
-        {tags &&
-          tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium"
-            >
-              <TagIcon className="w-3 h-3" strokeWidth={2} />
-              {tag}
-              {canEditTags && (
-                <button
-                  onClick={() => void handleRemove(tag)}
-                  className="hover:text-white transition-colors"
-                >
-                  <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-                </button>
-              )}
-            </span>
-          ))}
-        {canEditTags && (!tags || tags.length < 3) && (
-          <div className="flex items-center gap-1.5">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setError(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void handleAdd();
-                }
-              }}
-              placeholder="Add tag..."
-              pattern="^[a-zA-Z0-9]+$"
-              className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-            />
-            <button
-              onClick={() => void handleAdd()}
-              disabled={adding || !input.trim()}
-              className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
-          </div>
-        )}
-      </div>
-      {tags && tags.length >= 3 && (
-        <p className="text-2xs text-text-muted mt-1.5">
-          Maximum of 3 tags reached.
-        </p>
-      )}
-      {error && <p className="text-2xs text-accent-red mt-1.5">{error}</p>}
-    </div>
-  );
-}
-
-/* ─── Rename Inline ─── */
-function RenameSection({
-  uid,
-  currentName,
-}: {
-  uid: string;
-  currentName: string;
-}) {
-  const renameMutation = useRenameDevice();
-  const canRename = useHasPermission("device:rename");
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(currentName);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSave = async () => {
-    if (!name.trim() || name.trim() === currentName) {
-      setEditing(false);
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await renameMutation.mutateAsync({
-        path: { uid },
-        body: { name: name.trim() },
-      });
-      setEditing(false);
-    } catch {
-      setError("Failed to rename device.");
-    }
-    setSaving(false);
-  };
-
-  if (!editing) {
-    return (
-      <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
-        {canRename && (
-          <button
-            onClick={() => {
-              setName(currentName);
-              setEditing(true);
-            }}
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-            title="Rename"
-          >
-            <PencilSquareIcon className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") void handleSave();
-            if (e.key === "Escape") setEditing(false);
-          }}
-          autoFocus
-          className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
-        />
-        <button
-          onClick={() => void handleSave()}
-          disabled={saving}
-          className="p-1.5 rounded-md text-accent-green hover:bg-accent-green/10 transition-all"
-        >
-          <CheckIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
-        <button
-          onClick={() => setEditing(false)}
-          className="p-1.5 rounded-md text-text-muted hover:bg-hover-medium transition-all"
-        >
-          <XMarkIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
-      </div>
-      {error && <p className="text-2xs text-accent-red mt-1">{error}</p>}
-    </div>
-  );
-}
-
-/* ─── Custom Fields Section ─── */
-function CustomFieldsSection({
-  uid,
-  customFields,
-}: {
-  uid: string;
-  customFields: Record<string, string>;
-}) {
-  const setMutation = useSetDeviceCustomField();
-  const deleteMutation = useDeleteDeviceCustomField();
-  const canEdit = useHasPermission("device:customField:update");
-  const [keyInput, setKeyInput] = useState("");
-  const [valueInput, setValueInput] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [confirmKey, setConfirmKey] = useState<string | null>(null);
-
-  const handleAdd = async () => {
-    const key = keyInput.trim();
-    const value = valueInput.trim();
-    if (!key || !value) return;
-    if (key in customFields) {
-      setError("This key already exists.");
-      return;
-    }
-    setError(null);
-    setAdding(true);
-    try {
-      await setMutation.mutateAsync({
-        path: { uid, key },
-        body: { value },
-      });
-      setKeyInput("");
-      setValueInput("");
-    } catch {
-      setError("Failed to add custom field.");
-    }
-    setAdding(false);
-  };
-
-  const handleRemove = async (key: string) => {
-    try {
-      await deleteMutation.mutateAsync({
-        path: { uid, key },
-      });
-    } catch {
-      /* invalidation handles UI update */
-    }
-  };
-
-  return (
-    <div>
-      <h3 className={LABEL + " mb-3"}>Custom Fields</h3>
-      <dl className="space-y-2 mb-3">
-        {Object.entries(customFields).map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs font-mono text-text-muted shrink-0">{key}:</span>
-              <span className="text-sm text-text-primary font-medium truncate">{value}</span>
-            </div>
-            {canEdit && (
-              confirmKey === key
-                ? (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-2xs text-text-muted">Remove?</span>
-                    <button
-                      onClick={() => { void handleRemove(key); setConfirmKey(null); }}
-                      className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => setConfirmKey(null)}
-                      className="px-1.5 py-0.5 rounded text-2xs font-semibold text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-all"
-                    >
-                      No
-                    </button>
-                  </div>
-                )
-                : (
-                  <button
-                    onClick={() => setConfirmKey(key)}
-                    className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-                  >
-                    <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-                  </button>
-                )
-            )}
-          </div>
-        ))}
-      </dl>
-      {canEdit && (
-        <div className="flex items-center gap-1.5">
-          <input
-            type="text"
-            value={keyInput}
-            onChange={(e) => { setKeyInput(e.target.value); setError(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
-            placeholder="key"
-            className="w-24 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-          />
-          <span className="text-text-muted text-xs">:</span>
-          <input
-            type="text"
-            value={valueInput}
-            onChange={(e) => { setValueInput(e.target.value); setError(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
-            placeholder="value"
-            className="w-32 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-          />
-          <button
-            onClick={() => void handleAdd()}
-            disabled={adding || !keyInput.trim() || !valueInput.trim()}
-            className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
-          >
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
-        </div>
-      )}
-      {error && <p className="text-2xs text-accent-red mt-1.5">{error}</p>}
-    </div>
-  );
-}
 
 /* ─── Page ─── */
 export default function DeviceDetails() {
@@ -415,7 +54,7 @@ export default function DeviceDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [operation, setOperation] = useState<{
     device: { uid: string; name: string };
     action: "accept" | "reject" | "remove";
@@ -466,19 +105,18 @@ export default function DeviceDetails() {
     : [];
 
   const handleDelete = async () => {
-    setDeleting(true);
+    setDeleteError(null);
     try {
       await removeMutation.mutateAsync({ path: { uid: device.uid } });
       setShowDelete(false);
       void navigate("/devices");
     } catch {
-      setDeleting(false);
+      setDeleteError("Failed to delete device. Please try again.");
     }
   };
 
   const handleDeviceActionSuccess = () => {
     if (!operation) return;
-
     if (operation.action === "remove") void navigate("/devices");
   };
 
@@ -554,6 +192,7 @@ export default function DeviceDetails() {
             <>
               <RestrictedAction action="device:connect">
                 <button
+                  type="button"
                   onClick={() => {
                     if (existingSession) {
                       restoreTerminal(existingSession.id);
@@ -570,8 +209,10 @@ export default function DeviceDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:remove">
                 <button
+                  type="button"
                   onClick={() => setShowDelete(true)}
                   className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+                  aria-label="Delete device"
                   title="Delete device"
                 >
                   <TrashIcon className="w-4 h-4" />
@@ -583,6 +224,7 @@ export default function DeviceDetails() {
             <>
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={() => setOperation({ device, action: "accept" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -591,6 +233,7 @@ export default function DeviceDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:reject">
                 <button
+                  type="button"
                   onClick={() => setOperation({ device, action: "reject" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -603,6 +246,7 @@ export default function DeviceDetails() {
             <>
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={() => setOperation({ device, action: "accept" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -611,6 +255,7 @@ export default function DeviceDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:remove">
                 <button
+                  type="button"
                   onClick={() => setOperation({ device, action: "remove" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -742,41 +387,25 @@ export default function DeviceDetails() {
       </div>
 
       {/* Delete Dialog */}
-      {showDelete && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowDelete(false)}
-          />
-          <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
-            <h2 className="text-base font-semibold text-text-primary mb-2">
-              Delete Device
-            </h2>
-            <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to delete{" "}
-              <span className="font-medium text-text-primary">
-                {device.name}
-              </span>
-              ? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDelete(false)}
-                className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => void handleDelete()}
-                disabled={deleting}
-                className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDelete}
+        onClose={() => {
+          setShowDelete(false);
+          setDeleteError(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Device"
+        description={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-medium text-text-primary">{device.name}</span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        variant="danger"
+        errorMessage={deleteError}
+      />
 
       {/* Connect Drawer */}
       <ConnectDrawer
