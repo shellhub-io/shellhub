@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "@/hooks/useCountdown";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaRecoveryTimeoutModalProps {
   open: boolean;
@@ -20,8 +21,6 @@ export default function MfaRecoveryTimeoutModal({
   const [disabling, setDisabling] = useState(false);
   const { timeLeft, isExpired } = useCountdown(expiresAt);
 
-  if (!open) return null;
-
   const handleDisable = async () => {
     setDisabling(true);
     try {
@@ -32,11 +31,14 @@ export default function MfaRecoveryTimeoutModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center">
-      {/* Non-dismissible backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      canClose={() => false}
+      size="md"
+      aria-label="Recovery Window Active"
+    >
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-yellow/15 border border-accent-yellow/25 flex items-center justify-center">
@@ -82,12 +84,14 @@ export default function MfaRecoveryTimeoutModal({
         {/* Actions */}
         <div className="flex justify-end gap-2">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
           >
             Close
           </button>
           <button
+            type="button"
             onClick={() => void handleDisable()}
             disabled={hasAccess || disabling || isExpired}
             className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -109,6 +113,6 @@ export default function MfaRecoveryTimeoutModal({
           </p>
         </div>
       </div>
-    </div>
+    </BaseDialog>
   );
 }

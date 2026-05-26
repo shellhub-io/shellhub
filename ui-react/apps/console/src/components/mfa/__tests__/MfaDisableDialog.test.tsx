@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaDisableDialog from "../MfaDisableDialog";
 
 vi.mock("@/client", () => ({
   disableMfa: vi.fn(),
 }));
+
+vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
 
 import { disableMfa } from "@/client";
 
@@ -249,20 +251,15 @@ describe("MfaDisableDialog", () => {
       expect(onSuccess).not.toHaveBeenCalled();
     });
 
-    it("closes when clicking outside (backdrop)", async () => {
-      const user = userEvent.setup();
+    it("closes when clicking outside (backdrop)", () => {
       render(
         <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
-      // Get the backdrop (absolute positioned div before the dialog card)
-      const dialog = screen.getByRole("heading", { name: /Disable MFA/i }).closest(".relative");
-      const backdrop = dialog?.previousElementSibling;
-
-      if (backdrop) {
-        await user.click(backdrop);
-        expect(onClose).toHaveBeenCalled();
-      }
+      const dialog = document.querySelector("dialog") as HTMLElement;
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
+      expect(onClose).toHaveBeenCalled();
     });
 
     it("does not render when open is false", () => {

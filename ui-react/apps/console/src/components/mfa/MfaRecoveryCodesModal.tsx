@@ -2,6 +2,7 @@ import {
   KeyIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaRecoveryCodesModalProps {
   open: boolean;
@@ -12,15 +13,14 @@ export default function MfaRecoveryCodesModal({
   open,
   onClose,
 }: MfaRecoveryCodesModalProps) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      size="md"
+      aria-label="Recovery Codes"
+    >
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-yellow/15 border border-accent-yellow/25 flex items-center justify-center">
@@ -56,6 +56,7 @@ export default function MfaRecoveryCodesModal({
 
           <div className="flex justify-end pt-2">
             <button
+              type="button"
               onClick={onClose}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
             >
@@ -64,6 +65,6 @@ export default function MfaRecoveryCodesModal({
           </div>
         </div>
       </div>
-    </div>
+    </BaseDialog>
   );
 }
