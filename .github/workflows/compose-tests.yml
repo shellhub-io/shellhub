@@ -31,7 +31,7 @@ jobs:
 
       - name: Install bats
         if: steps.filter.outputs.wrapper == 'true'
-        uses: bats-core/bats-action@3.0.0
+        uses: bats-core/bats-action@4.0.0
 
       - name: Run wrapper.bats (no-cloud scenarios + guard)
         if: steps.filter.outputs.wrapper == 'true'
