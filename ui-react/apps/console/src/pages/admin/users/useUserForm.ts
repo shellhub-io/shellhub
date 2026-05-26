@@ -1,5 +1,9 @@
 import { useState } from "react";
-import type { UserAdminRequest, UserAdminResponse } from "@/client";
+import type {
+  UserAdminCreateRequest,
+  UserAdminResponse,
+  UserAdminUpdateRequest,
+} from "@/client";
 import {
   MAX_NAMESPACES_ERROR,
   isMaxNamespacesValid,
@@ -10,6 +14,10 @@ import {
 } from "@/utils/validation";
 
 export type UserFormMode = "create" | "edit";
+
+export type UserFormPayload<M extends UserFormMode> = M extends "create"
+  ? UserAdminCreateRequest
+  : UserAdminUpdateRequest;
 
 export interface UserFormValues {
   name: string;
@@ -32,12 +40,12 @@ export type UserFormErrorKey =
 
 export type UserFormErrors = Partial<Record<UserFormErrorKey, string>>;
 
-export interface UseUserFormOptions {
-  mode: UserFormMode;
+export interface UseUserFormOptions<M extends UserFormMode> {
+  mode: M;
 }
 
-export interface UserFormApi {
-  mode: UserFormMode;
+export interface UserFormApi<M extends UserFormMode> {
+  mode: M;
   values: UserFormValues;
   errors: UserFormErrors;
   setField: <K extends keyof UserFormValues>(
@@ -47,7 +55,7 @@ export interface UserFormApi {
   validateField: (key: UserFormErrorKey) => void;
   validateAll: () => boolean;
   isSubmittable: boolean;
-  buildPayload: (initial?: UserAdminResponse | null) => UserAdminRequest;
+  buildPayload: (initial?: UserAdminResponse | null) => UserFormPayload<M>;
   reset: (next?: UserAdminResponse | null) => void;
 }
 
@@ -82,11 +90,13 @@ function valuesFromUser(user: UserAdminResponse): UserFormValues {
   };
 }
 
-export function useUserForm({ mode }: UseUserFormOptions): UserFormApi {
+export function useUserForm<M extends UserFormMode>({
+  mode,
+}: UseUserFormOptions<M>): UserFormApi<M> {
   const [values, setValues] = useState<UserFormValues>(blankValues);
   const [errors, setErrors] = useState<UserFormErrors>({});
 
-  const setField: UserFormApi["setField"] = (key, value) => {
+  const setField: UserFormApi<M>["setField"] = (key, value) => {
     setValues((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
       if (!(key in prev) && !isNamespaceLimitKey(key)) return prev;
@@ -172,22 +182,33 @@ export function useUserForm({ mode }: UseUserFormOptions): UserFormApi {
     return parseInt(values.maxNamespaces, 10);
   };
 
-  const buildPayload: UserFormApi["buildPayload"] = (initial) => {
-    // Always send `password`. On edit, an empty string signals "no change" to
-    // the backend (preserves the pre-refactor wire behavior and keeps the
-    // generated `UserAdminRequest.password: string` contract honest).
-    return {
+  const buildPayload: UserFormApi<M>["buildPayload"] = (initial) => {
+    const base = {
       name: values.name.trim(),
       username: values.username.trim(),
       email: values.email.trim(),
-      password: values.password,
       admin: values.admin,
       max_namespaces: computeMaxNamespaces(initial),
-      ...(mode === "edit" && { confirmed: values.confirmed }),
     };
+
+    if (mode === "create") {
+      const payload: UserAdminCreateRequest = {
+        ...base,
+        password: values.password,
+      };
+      return payload;
+    }
+
+    const payload: UserAdminUpdateRequest = {
+      ...base,
+      confirmed: values.confirmed,
+      // Omit when blank so the backend keeps the current password.
+      ...(values.password !== "" && { password: values.password }),
+    };
+    return payload as UserFormPayload<M>;
   };
 
-  const reset: UserFormApi["reset"] = (next) => {
+  const reset: UserFormApi<M>["reset"] = (next) => {
     setValues(next ? valuesFromUser(next) : blankValues());
     setErrors({});
   };

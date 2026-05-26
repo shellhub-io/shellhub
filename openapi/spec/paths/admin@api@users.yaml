@@ -13,7 +13,7 @@ post:
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/userAdminRequest.yaml
+          $ref: ../components/schemas/userAdminCreateRequest.yaml
         example:
           name: example
           email: example@example.com

@@ -39,21 +39,19 @@ put:
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/userAdminRequest.yaml
+          $ref: ../components/schemas/userAdminUpdateRequest.yaml
         examples:
           update_name:
+            summary: Rename a user
             value:
               name: example_new
-              email: example@example.com
-              username: example
-              password: example
-              confirmed: true
           update_password:
+            summary: Change the password
             value:
-              name: example
-              email: example_new@example.com
-              username: example
               password: example_new
+          confirm_user:
+            summary: Mark a user as confirmed
+            value:
               confirmed: true
   responses:
     '200':
