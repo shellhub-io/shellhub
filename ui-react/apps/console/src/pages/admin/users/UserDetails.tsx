@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
-  ChevronRightIcon,
   UsersIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -11,6 +10,7 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminUser } from "@/hooks/useAdminUsers";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import CopyButton from "@/components/common/CopyButton";
 import UserStatusChip from "./UserStatusChip";
@@ -21,8 +21,8 @@ import { formatDateFull } from "@/utils/date";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 const ZERO_DATE = "0001-01-01T00:00:00Z";
 
@@ -97,30 +97,20 @@ export default function UserDetails() {
     );
   }
 
-  const isSamlOnly
-    = user.preferences.auth_methods.length === 1
-      && user.preferences.auth_methods[0] === "saml";
+  const isSamlOnly =
+    user.preferences.auth_methods.length === 1 &&
+    user.preferences.auth_methods[0] === "saml";
   const userStatus = user.status;
   const lastLogin = user.last_login === ZERO_DATE ? null : user.last_login;
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/users"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Users
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {user.username}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Users", to: "/admin/users" },
+          { label: user.username },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">

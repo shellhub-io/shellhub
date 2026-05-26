@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
-  ChevronRightIcon,
   ServerStackIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -9,6 +8,7 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
@@ -17,12 +17,14 @@ import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import PageLoader from "@/components/common/PageLoader";
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 const ZERO_DATE = "0001-01-01T00:00:00Z";
 
-type Member = NonNullable<NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]>[number];
+type Member = NonNullable<
+  NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]
+>[number];
 
 export default function NamespaceDetails() {
   const { id } = useParams<{ id: string }>();
@@ -58,10 +60,10 @@ export default function NamespaceDetails() {
 
   const ownerMember = namespace.members?.find((m) => m.id === namespace.owner);
   const ownerLabel = ownerMember?.email || namespace.owner;
-  const totalDevices
-    = (namespace.devices_accepted_count || 0)
-      + (namespace.devices_pending_count || 0)
-      + (namespace.devices_rejected_count || 0);
+  const totalDevices =
+    (namespace.devices_accepted_count || 0) +
+    (namespace.devices_pending_count || 0) +
+    (namespace.devices_rejected_count || 0);
 
   const memberColumns: Column<Member>[] = [
     {
@@ -105,22 +107,12 @@ export default function NamespaceDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/namespaces"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Namespaces
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {namespace.name}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Namespaces", to: "/admin/namespaces" },
+          { label: namespace.name },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
@@ -231,7 +223,9 @@ export default function NamespaceDetails() {
                       : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20"
                   }`}
                 >
-                  {namespace.settings?.device_auto_accept ? "Enabled" : "Disabled"}
+                  {namespace.settings?.device_auto_accept
+                    ? "Enabled"
+                    : "Disabled"}
                 </span>
               </dd>
             </div>

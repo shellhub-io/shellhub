@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import {
-  ChevronRightIcon,
   CpuChipIcon,
   InformationCircleIcon,
   ComputerDesktopIcon,
@@ -9,6 +8,7 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminDevice } from "@/hooks/useAdminDevices";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import DistroIcon from "@/components/common/DistroIcon";
 import PlatformBadge from "@/components/common/PlatformBadge";
@@ -16,8 +16,8 @@ import DeviceStatusChip from "./DeviceStatusChip";
 import { formatDateFull, formatRelative } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 export default function AdminDeviceDetails() {
@@ -52,22 +52,12 @@ export default function AdminDeviceDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/devices"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Devices
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {device.name}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Devices", to: "/admin/devices" },
+          { label: device.name },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">

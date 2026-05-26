@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ChevronRightIcon,
   ExclamationCircleIcon,
   MegaphoneIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
 import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import Spinner from "@/components/common/Spinner";
@@ -80,24 +80,13 @@ export default function EditAnnouncement() {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/announcements"
-          className="text-2xs font-mono text-text-muted hover:text-primary"
-        >
-          Announcements
-        </Link>
-        <ChevronRightIcon className="w-3 h-3 text-text-muted/40" />
-        <Link
-          to={`/admin/announcements/${uuid}`}
-          className="text-2xs font-mono text-text-muted hover:text-primary truncate max-w-[200px]"
-        >
-          {announcement.title}
-        </Link>
-        <ChevronRightIcon className="w-3 h-3 text-text-muted/40" />
-        <span className="text-2xs font-mono text-text-secondary">Edit</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Announcements", to: "/admin/announcements" },
+          { label: announcement.title, to: `/admin/announcements/${uuid}` },
+          { label: "Edit" },
+        ]}
+      />
 
       {/* Header */}
       <h1 className="text-xl font-semibold text-text-primary mb-6">

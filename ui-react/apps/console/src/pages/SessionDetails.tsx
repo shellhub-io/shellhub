@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import {
-  ChevronRightIcon,
   ClockIcon,
   ShieldExclamationIcon,
   ShieldCheckIcon,
@@ -362,22 +362,12 @@ export default function SessionDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/sessions"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Sessions
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {session.uid.slice(0, 8)}
-        </span>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Sessions", to: "/sessions" },
+          { label: session.uid.slice(0, 8), title: session.uid },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">

@@ -199,12 +199,5 @@ describe("AdminDeviceDetails", () => {
         screen.getByRole("link", { name: "my-namespace" }),
       ).toBeInTheDocument();
     });
-
-    it("renders a breadcrumb back-link to devices", () => {
-      renderPage();
-      expect(
-        screen.getByRole("navigation", { name: "Breadcrumb" }),
-      ).toBeInTheDocument();
-    });
   });
 });

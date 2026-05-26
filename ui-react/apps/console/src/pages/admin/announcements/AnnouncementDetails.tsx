@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
-  ChevronRightIcon,
   MegaphoneIcon,
   InformationCircleIcon,
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
@@ -53,22 +53,12 @@ export default function AnnouncementDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/announcements"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Announcements
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary truncate min-w-0">
-          {announcement.title}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Announcements", to: "/admin/announcements" },
+          { label: announcement.title },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
