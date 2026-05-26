@@ -9,10 +9,10 @@ import {
   USERNAME_HINT,
   USERNAME_MAX_LENGTH,
 } from "@/utils/validation";
-import type { UserFormApi } from "./useUserForm";
+import type { UserFormApi, UserFormMode } from "./useUserForm";
 
 interface UserFormFieldsProps {
-  form: UserFormApi;
+  form: UserFormApi<UserFormMode>;
   idPrefix: string;
   autoFocus?: boolean;
   /** Edit only: false when the user is already confirmed (cannot un-confirm). */

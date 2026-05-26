@@ -1,0 +1,25 @@
+type: object
+description: |
+  Partial admin user update. All fields are optional; omit any field to
+  keep its current value. When a field is provided, it must satisfy the
+  validation constraints of its underlying schema.
+properties:
+  name:
+    $ref: userName.yaml
+  email:
+    $ref: userEmail.yaml
+  username:
+    $ref: userUsername.yaml
+  password:
+    description: User's password.
+    type: string
+    minLength: 5
+    maxLength: 32
+    example: example
+  confirmed:
+    $ref: userConfirmedEmail.yaml
+  admin:
+    description: User's admin status.
+    type: boolean
+  max_namespaces:
+    $ref: maxNamespaces.yaml
