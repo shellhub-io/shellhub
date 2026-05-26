@@ -4,15 +4,14 @@ import {
   useNavigate,
   useSearchParams,
   Navigate,
-  Link,
 } from "react-router-dom";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import {
   TagIcon,
   XMarkIcon,
   PlusIcon,
   PencilSquareIcon,
   CheckIcon,
-  ChevronRightIcon,
   TrashIcon,
   InformationCircleIcon,
   ServerIcon,
@@ -359,22 +358,12 @@ export default function ContainerDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/containers"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Containers
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {container.name}
-        </span>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Containers", to: "/containers" },
+          { label: container.name },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">

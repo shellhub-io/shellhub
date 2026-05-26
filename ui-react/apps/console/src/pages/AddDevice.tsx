@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import { useAuthStore } from "../stores/authStore";
 import {
   ArchiveBoxIcon,
@@ -168,22 +169,9 @@ export default function AddDevice() {
 
   return (
     <div className="max-w-2xl animate-fade-in">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/devices"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Devices
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          Add Device
-        </span>
-      </div>
+      <Breadcrumb
+        items={[{ label: "Devices", to: "/devices" }, { label: "Add Device" }]}
+      />
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">

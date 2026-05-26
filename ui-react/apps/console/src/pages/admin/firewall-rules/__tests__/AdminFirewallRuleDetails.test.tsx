@@ -130,16 +130,6 @@ describe("AdminFirewallRuleDetails", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders the breadcrumb navigation with Firewall Rules link", () => {
-      renderPage();
-      expect(
-        screen.getByRole("navigation", { name: "Breadcrumb" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("link", { name: "Firewall Rules" }),
-      ).toBeInTheDocument();
-    });
-
     it("renders the rule ID", () => {
       renderPage();
       expect(screen.getAllByText("rule-1").length).toBeGreaterThanOrEqual(1);

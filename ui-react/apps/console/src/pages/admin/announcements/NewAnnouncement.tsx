@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  ChevronRightIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useAdminCreateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import Spinner from "@/components/common/Spinner";
@@ -41,17 +39,12 @@ export default function NewAnnouncement() {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/announcements"
-          className="text-2xs font-mono text-text-muted hover:text-primary"
-        >
-          Announcements
-        </Link>
-        <ChevronRightIcon className="w-3 h-3 text-text-muted/40" />
-        <span className="text-2xs font-mono text-text-secondary">New</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Announcements", to: "/admin/announcements" },
+          { label: "New" },
+        ]}
+      />
 
       {/* Header */}
       <h1 className="text-xl font-semibold text-text-primary mb-6">

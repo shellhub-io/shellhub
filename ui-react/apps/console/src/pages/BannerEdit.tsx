@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import { useNamespace } from "../hooks/useNamespaces";
 import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace } from "../hooks/useNamespaceMutations";
@@ -32,7 +33,13 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     try {
       await editNs.mutateAsync({
         path: { tenant: ns.tenant_id },
-        body: { settings: { connection_announcement: text, session_record: ns.settings?.session_record ?? false, device_auto_accept: ns.settings?.device_auto_accept ?? false } },
+        body: {
+          settings: {
+            connection_announcement: text,
+            session_record: ns.settings?.session_record ?? false,
+            device_auto_accept: ns.settings?.device_auto_accept ?? false,
+          },
+        },
       });
       void navigate("/settings");
     } catch {
@@ -68,9 +75,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
           <span
             className={`text-2xs font-mono ${overLimit ? "text-accent-red font-semibold" : "text-text-muted/50"}`}
           >
-            {text.length.toLocaleString()}
-            /
-            {MAX_LENGTH.toLocaleString()}
+            {text.length.toLocaleString()}/{MAX_LENGTH.toLocaleString()}
           </span>
           {overLimit && (
             <span className="text-2xs text-accent-red">
@@ -139,26 +144,19 @@ export default function BannerEdit() {
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="relative -mx-8 -mt-8 px-8 py-6 mb-8 border-b border-border bg-surface shrink-0">
-        <div className="flex items-start gap-4">
-          <Link
-            to="/settings"
-            className="w-12 h-12 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-light transition-all shrink-0"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </Link>
-          <div>
-            <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary mb-1">
-              Settings
-            </p>
-            <h1 className="text-xl font-semibold text-text-primary leading-tight">
-              SSH Banner
-            </h1>
-            <p className="text-sm text-text-muted mt-1 max-w-xl">
-              This message is displayed when users connect to any device in this
-              namespace via SSH.
-            </p>
-          </div>
-        </div>
+        <Breadcrumb
+          items={[
+            { label: "Settings", to: "/settings" },
+            { label: "SSH Banner" },
+          ]}
+        />
+        <h1 className="text-xl font-semibold text-text-primary leading-tight">
+          SSH Banner
+        </h1>
+        <p className="text-sm text-text-muted mt-1 max-w-xl">
+          This message is displayed when users connect to any device in this
+          namespace via SSH.
+        </p>
       </div>
 
       <BannerEditor ns={ns} canEdit={canEdit} />

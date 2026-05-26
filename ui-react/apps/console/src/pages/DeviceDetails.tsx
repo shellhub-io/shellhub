@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  useParams,
-  useNavigate,
-  useSearchParams,
-  Link,
-} from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import {
   TagIcon,
   XMarkIcon,
   PlusIcon,
   PencilSquareIcon,
   CheckIcon,
-  ChevronRightIcon,
   TrashIcon,
   InformationCircleIcon,
   ComputerDesktopIcon,
@@ -334,37 +329,41 @@ function CustomFieldsSection({
         {Object.entries(customFields).map(([key, value]) => (
           <div key={key} className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs font-mono text-text-muted shrink-0">{key}:</span>
-              <span className="text-sm text-text-primary font-medium truncate">{value}</span>
+              <span className="text-xs font-mono text-text-muted shrink-0">
+                {key}:
+              </span>
+              <span className="text-sm text-text-primary font-medium truncate">
+                {value}
+              </span>
             </div>
-            {canEdit && (
-              confirmKey === key
-                ? (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-2xs text-text-muted">Remove?</span>
-                    <button
-                      onClick={() => { void handleRemove(key); setConfirmKey(null); }}
-                      className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => setConfirmKey(null)}
-                      className="px-1.5 py-0.5 rounded text-2xs font-semibold text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-all"
-                    >
-                      No
-                    </button>
-                  </div>
-                )
-                : (
+            {canEdit &&
+              (confirmKey === key ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-2xs text-text-muted">Remove?</span>
                   <button
-                    onClick={() => setConfirmKey(key)}
-                    className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+                    onClick={() => {
+                      void handleRemove(key);
+                      setConfirmKey(null);
+                    }}
+                    className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"
                   >
-                    <XMarkIcon className="w-3 h-3" strokeWidth={2} />
+                    Yes
                   </button>
-                )
-            )}
+                  <button
+                    onClick={() => setConfirmKey(null)}
+                    className="px-1.5 py-0.5 rounded text-2xs font-semibold text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-all"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmKey(key)}
+                  className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+                >
+                  <XMarkIcon className="w-3 h-3" strokeWidth={2} />
+                </button>
+              ))}
           </div>
         ))}
       </dl>
@@ -373,8 +372,16 @@ function CustomFieldsSection({
           <input
             type="text"
             value={keyInput}
-            onChange={(e) => { setKeyInput(e.target.value); setError(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
+            onChange={(e) => {
+              setKeyInput(e.target.value);
+              setError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleAdd();
+              }
+            }}
             placeholder="key"
             className="w-24 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
           />
@@ -382,8 +389,16 @@ function CustomFieldsSection({
           <input
             type="text"
             value={valueInput}
-            onChange={(e) => { setValueInput(e.target.value); setError(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
+            onChange={(e) => {
+              setValueInput(e.target.value);
+              setError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleAdd();
+              }
+            }}
             placeholder="value"
             className="w-32 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
           />
@@ -483,22 +498,9 @@ export default function DeviceDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/devices"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Devices
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary">
-          {device.name}
-        </span>
-      </div>
+      <Breadcrumb
+        items={[{ label: "Devices", to: "/devices" }, { label: device.name }]}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">

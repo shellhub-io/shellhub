@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import {
-  ChevronRightIcon,
   ShieldExclamationIcon,
   InformationCircleIcon,
   FunnelIcon,
@@ -8,12 +7,13 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageLoader from "@/components/common/PageLoader";
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 export default function AdminFirewallRuleDetails() {
@@ -48,22 +48,12 @@ export default function AdminFirewallRuleDetails() {
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-        <Link
-          to="/admin/firewall-rules"
-          className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
-        >
-          Firewall Rules
-        </Link>
-        <ChevronRightIcon
-          className="w-3 h-3 text-text-muted/40"
-          strokeWidth={2}
-        />
-        <span className="text-2xs font-mono text-text-secondary truncate min-w-0">
-          {rule.id}
-        </span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Firewall Rules", to: "/admin/firewall-rules" },
+          { label: rule.id },
+        ]}
+      />
 
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
