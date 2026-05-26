@@ -133,6 +133,7 @@ export default function ManageTagsDrawer({
         bodyClassName="flex-1 flex flex-col overflow-hidden"
         footer={(
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
           >
@@ -190,6 +191,7 @@ export default function ManageTagsDrawer({
                 {error}
               </p>
               <button
+                type="button"
                 onClick={() => setError(null)}
                 className="p-0.5 rounded text-accent-red/60 hover:text-accent-red transition-colors shrink-0"
               >
@@ -276,6 +278,7 @@ export default function ManageTagsDrawer({
                       {editingTag !== tag.name && (
                         <div className="flex items-center gap-0.5 shrink-0">
                           <button
+                            type="button"
                             onClick={() => {
                               setEditingTag(tag.name);
                               setEditName(tag.name);
@@ -286,6 +289,7 @@ export default function ManageTagsDrawer({
                             <PencilSquareIcon className="w-3.5 h-3.5" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => setDeletingTag(tag.name)}
                             className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
                             title="Delete"

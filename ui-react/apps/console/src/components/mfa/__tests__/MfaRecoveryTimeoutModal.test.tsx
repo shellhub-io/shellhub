@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, waitFor } from "@testing-library/react";
+import { render, screen, act, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaRecoveryTimeoutModal from "../MfaRecoveryTimeoutModal";
+
+vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
 
 describe("MfaRecoveryTimeoutModal", () => {
   const onClose = vi.fn();
@@ -244,8 +246,7 @@ describe("MfaRecoveryTimeoutModal", () => {
       expect(onClose).toHaveBeenCalled();
     });
 
-    it("does not dismiss when clicking the backdrop (non-dismissible)", async () => {
-      const user = userEvent.setup();
+    it("does not dismiss when clicking the backdrop (non-dismissible)", () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
       render(
@@ -257,17 +258,11 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // The backdrop is intentionally non-dismissible (no onClick handler)
-      // Modal has no role="dialog"; find inner container via heading
-      const heading = screen.getByText(/recovery window active/i);
-      const dialog = heading.closest(".relative");
-      const backdrop = dialog?.previousElementSibling as HTMLElement | null;
-
-      if (backdrop) {
-        await user.click(backdrop);
-        // onClose should NOT be called — user must explicitly use the Close button
-        expect(onClose).not.toHaveBeenCalled();
-      }
+      // BaseDialog with canClose={() => false} intercepts the cancel event and blocks it
+      const dialog = document.querySelector("dialog") as HTMLElement;
+      fireEvent(dialog, new Event("cancel"));
+      // onClose should NOT be called — user must explicitly use the Close button
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 

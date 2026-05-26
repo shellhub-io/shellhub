@@ -8,6 +8,8 @@ vi.mock("@/client", () => ({
   disableMfa: vi.fn(),
 }));
 
+vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
+
 import { disableMfa } from "@/client";
 const mockedDisableMfa = vi.mocked(disableMfa);
 
