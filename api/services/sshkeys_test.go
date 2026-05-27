@@ -197,11 +197,15 @@ func TestListPublicKeys(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
 				storeMock.
-					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -220,11 +224,15 @@ func TestListPublicKeys(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
 				storeMock.
-					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(keys, len(keys), nil).
 					Once()
 			},

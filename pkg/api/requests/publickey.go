@@ -10,6 +10,7 @@ type FingerprintParam struct {
 type ListPublicKeys struct {
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
+	query.Filters
 }
 
 // PublicKeyGet is the structure to represent the request data for get public key endpoint.

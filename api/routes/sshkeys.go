@@ -5,7 +5,9 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -33,6 +35,14 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 
 	if err := c.Validate(req); err != nil {
 		return err
+	}
+
+	if err := req.Filters.Unmarshal(); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.PublicKeyFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	// TODO: normalize is not required when request is privileged
