@@ -14,6 +14,7 @@ import PlatformBadge from "@/components/common/PlatformBadge";
 import OnlineDot from "@/components/common/OnlineDot";
 import LastSeenCell from "@/components/common/LastSeenCell";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "./TagsPopover";
@@ -22,7 +23,6 @@ import BillingWarning from "@/components/billing/BillingWarning";
 import { getConfig } from "@/env";
 import {
   PlusIcon,
-  MagnifyingGlassIcon,
   TagIcon,
   XMarkIcon,
   ExclamationCircleIcon,
@@ -362,22 +362,15 @@ export default function Devices() {
             onManageTags={() => setManageTagsOpen(true)}
           />
 
-          <div className="relative h-8">
-            <MagnifyingGlassIcon
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-              strokeWidth={2}
-            />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search devices..."
-              className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
-            />
-          </div>
+          <SearchField
+            value={searchInput}
+            onChange={(next) => {
+              setSearchInput(next);
+              setPage(1);
+            }}
+            placeholder="Search by hostname..."
+            aria-label="Search devices by hostname"
+          />
         </div>
       </div>
 

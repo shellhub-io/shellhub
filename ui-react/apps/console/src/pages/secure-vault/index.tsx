@@ -4,7 +4,6 @@ import {
   LockClosedIcon,
   KeyIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
   FingerPrintIcon,
@@ -16,6 +15,7 @@ import VaultSetupDialog from "@/components/vault/VaultSetupDialog";
 import VaultUnlockDialog from "@/components/vault/VaultUnlockDialog";
 import VaultSettingsSection from "@/components/vault/VaultSettingsSection";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatDate } from "@/utils/date";
@@ -335,18 +335,13 @@ export default function SecureVault() {
             </button>
           </PageHeader>
 
-          <div className="mb-4 animate-fade-in">
-            <div className="relative max-w-sm">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or fingerprint..."
-                className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
+          <SearchField
+            className="mb-4"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by name or fingerprint..."
+            aria-label="Search vault keys by name or fingerprint"
+          />
 
           <DataTable
             columns={columns}

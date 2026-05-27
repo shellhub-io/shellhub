@@ -28,6 +28,7 @@ type Props = InputProps & {
   errorRole?: "alert" | "status";
   hint?: string;
   appendIcon?: ReactNode;
+  prependIcon?: ReactNode;
   variant?: "default" | "mono";
 };
 
@@ -43,6 +44,7 @@ export default function InputField({
   hint,
   appendIcon,
   variant = "default",
+  prependIcon,
   type = "text",
   className,
   ...rest
@@ -57,6 +59,7 @@ export default function InputField({
   const inputClassNames = [
     baseByVariant[variant],
     appendIcon && "pr-10",
+    prependIcon && "pl-10",
     rest.readOnly && INPUT_READONLY,
     className,
   ]
@@ -68,7 +71,12 @@ export default function InputField({
       <FieldLabel htmlFor={id} hideLabel={hideLabel} adornment={labelAdornment}>
         {label}
       </FieldLabel>
-      <div className={appendIcon ? "relative" : undefined}>
+      <div className={appendIcon || prependIcon ? "relative" : undefined}>
+        {prependIcon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            {prependIcon}
+          </div>
+        )}
         <input
           {...rest}
           id={id}

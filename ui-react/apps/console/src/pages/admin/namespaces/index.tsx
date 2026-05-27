@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ServerStackIcon,
-  MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { Namespace } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateShort } from "@/utils/date";
@@ -28,17 +29,9 @@ export default function AdminNamespaces() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const [editTarget, setEditTarget] = useState<Namespace | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Namespace | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   const { namespaces, totalCount, isLoading, error } = useAdminNamespaces({
     page,
@@ -62,9 +55,7 @@ export default function AdminNamespaces() {
       key: "owner",
       header: "Owner",
       render: (ns) => (
-        <span className="text-xs text-text-secondary">
-          {getOwnerEmail(ns)}
-        </span>
+        <span className="text-xs text-text-secondary">{getOwnerEmail(ns)}</span>
       ),
     },
     {
@@ -136,21 +127,16 @@ export default function AdminNamespaces() {
         description="Manage all namespaces in the instance"
       />
 
-      {/* Search */}
-      <div className="relative h-8 ml-auto mb-5 animate-fade-in">
-        <MagnifyingGlassIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-          strokeWidth={2}
-        />
-        <input
-          type="text"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search by name..."
-          aria-label="Search namespaces by name"
-          className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
-        />
-      </div>
+      <SearchField
+        className="mb-5"
+        value={searchInput}
+        onChange={(next) => {
+          setSearchInput(next);
+          setPage(1);
+        }}
+        placeholder="Search by name..."
+        aria-label="Search namespaces by name"
+      />
 
       {error && (
         <div

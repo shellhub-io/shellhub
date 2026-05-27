@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useWebEndpoints } from "@/hooks/useWebEndpoints";
 import {
   useCreateWebEndpoint,
@@ -9,6 +10,7 @@ import {
 import type { Webendpoint } from "@/client";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
+import SearchField from "@/components/common/fields/SearchField";
 import Drawer from "@/components/common/Drawer";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import NumericInput from "@/components/common/fields/NumericInput";
@@ -30,7 +32,6 @@ import {
   LinkIcon,
   ClockIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import Spinner from "@/components/common/Spinner";
@@ -816,15 +817,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 function WebEndpointsContent() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
   const { webEndpoints, totalCount, isLoading } = useWebEndpoints({
     page,
@@ -1000,31 +993,16 @@ function WebEndpointsContent() {
             </RestrictedAction>
           </PageHeader>
 
-          {/* Search bar */}
-          <form
-            role="search"
-            aria-label="Web endpoints"
+          <SearchField
             className="mb-4 animate-fade-in"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div className="relative max-w-sm">
-              <label htmlFor="web-endpoints-search" className="sr-only">
-                Search web endpoints by address
-              </label>
-              <MagnifyingGlassIcon
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
-                aria-hidden="true"
-              />
-              <input
-                id="web-endpoints-search"
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by address..."
-                className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </form>
+            value={search}
+            onChange={(next) => {
+              setSearch(next);
+              setPage(1);
+            }}
+            placeholder="Search by address..."
+            aria-label="Search web endpoints by address"
+          />
 
           {isNoResults ? (
             <div

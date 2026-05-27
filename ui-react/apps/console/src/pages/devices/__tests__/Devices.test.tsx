@@ -36,8 +36,17 @@ vi.mock("@/components/common/CopyButton", () => ({
 }));
 
 vi.mock("@/components/common/PageHeader", () => ({
-  default: ({ title, children }: { title: string; children?: React.ReactNode }) => (
-    <div><h1>{title}</h1>{children}</div>
+  default: ({
+    title,
+    children,
+  }: {
+    title: string;
+    children?: React.ReactNode;
+  }) => (
+    <div>
+      <h1>{title}</h1>
+      {children}
+    </div>
   ),
 }));
 
@@ -50,7 +59,11 @@ vi.mock("@/components/common/DataTable", () => ({
     onRowClick,
     emptyState,
   }: {
-    columns: { key: string; header: string; render: (row: unknown) => React.ReactNode }[];
+    columns: {
+      key: string;
+      header: string;
+      render: (row: unknown) => React.ReactNode;
+    }[];
     data: unknown[];
     isLoading: boolean;
     loadingMessage: string;
@@ -62,12 +75,18 @@ vi.mock("@/components/common/DataTable", () => ({
     return (
       <table>
         <thead>
-          <tr>{columns.map((c) => <th key={c.key}>{c.header}</th>)}</tr>
+          <tr>
+            {columns.map((c) => (
+              <th key={c.key}>{c.header}</th>
+            ))}
+          </tr>
         </thead>
         <tbody>
           {data.map((row, i) => (
             <tr key={i} onClick={() => onRowClick(row)}>
-              {columns.map((c) => <td key={c.key}>{c.render(row)}</td>)}
+              {columns.map((c) => (
+                <td key={c.key}>{c.render(row)}</td>
+              ))}
             </tr>
           ))}
         </tbody>
@@ -137,7 +156,9 @@ const defaultHookState = {
   refetch: vi.fn(),
 };
 
-function makeDevice(overrides: Partial<NormalizedDevice> = {}): NormalizedDevice {
+function makeDevice(
+  overrides: Partial<NormalizedDevice> = {},
+): NormalizedDevice {
   return {
     uid: "device-uid-1",
     name: "my-device",
@@ -179,19 +200,29 @@ describe("Devices list", () => {
   describe("rendering", () => {
     it("renders the page heading", () => {
       renderPage();
-      expect(screen.getByRole("heading", { name: "Devices" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Devices" }),
+      ).toBeInTheDocument();
     });
 
     it("renders all status filter tabs", () => {
       renderPage();
-      expect(screen.getByRole("button", { name: "Accepted" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Pending" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Rejected" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Accepted" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Pending" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Rejected" }),
+      ).toBeInTheDocument();
     });
 
     it("renders the search input", () => {
       renderPage();
-      expect(screen.getByPlaceholderText("Search devices...")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Search by hostname..."),
+      ).toBeInTheDocument();
     });
 
     it('renders the "Custom Fields" column header', () => {
@@ -201,13 +232,18 @@ describe("Devices list", () => {
         totalCount: 1,
       });
       renderPage();
-      expect(screen.getByRole("columnheader", { name: "Custom Fields" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("columnheader", { name: "Custom Fields" }),
+      ).toBeInTheDocument();
     });
   });
 
   describe("loading state", () => {
     it("renders the loading message", () => {
-      vi.mocked(useDevices).mockReturnValue({ ...defaultHookState, isLoading: true });
+      vi.mocked(useDevices).mockReturnValue({
+        ...defaultHookState,
+        isLoading: true,
+      });
       renderPage();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
     });
@@ -262,7 +298,9 @@ describe("Devices list", () => {
     it("renders key and value badges for each custom field", () => {
       vi.mocked(useDevices).mockReturnValue({
         ...defaultHookState,
-        devices: [makeDevice({ custom_fields: { env: "production", owner: "team-a" } })],
+        devices: [
+          makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
+        ],
         totalCount: 1,
       });
       renderPage();

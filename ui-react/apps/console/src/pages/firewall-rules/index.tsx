@@ -4,6 +4,7 @@ import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import PageHeader from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import FilterBadge from "@/components/common/FilterBadge";
 import RuleDrawer from "./RuleDrawer";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -11,7 +12,6 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   NoSymbolIcon,
-  MagnifyingGlassIcon,
   PlusIcon,
   UsersIcon,
   Bars3Icon,
@@ -273,7 +273,11 @@ export default function FirewallRules() {
                     onClick={openNew}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+                    <PlusIcon
+                      className="w-4 h-4"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
                     Add your first rule
                   </button>
                 </RestrictedAction>
@@ -315,30 +319,13 @@ export default function FirewallRules() {
         </RestrictedAction>
       </PageHeader>
 
-      <form
-        role="search"
-        aria-label="Firewall rules"
-        className="mb-4 animate-fade-in"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <div className="relative max-w-sm">
-          <label htmlFor="firewall-rules-search" className="sr-only">
-            Search firewall rules by action, priority, IP, or username
-          </label>
-          <MagnifyingGlassIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
-            aria-hidden="true"
-          />
-          <input
-            id="firewall-rules-search"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by action, priority, IP, or username..."
-            className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-          />
-        </div>
-      </form>
+      <SearchField
+        className="mb-4"
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by action, priority, IP, or username..."
+        aria-label="Search firewall rules by action, priority, IP, or username"
+      />
 
       <DataTable
         columns={columns}

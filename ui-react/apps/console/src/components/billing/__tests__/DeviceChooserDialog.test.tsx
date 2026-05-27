@@ -539,7 +539,7 @@ describe("DeviceChooserDialog", () => {
       const user = userEvent.setup();
       renderDialog();
       await user.click(screen.getByRole("tab", { name: "All" }));
-      const searchInput = screen.getByRole("textbox");
+      const searchInput = screen.getByRole("searchbox");
       await user.type(searchInput, "prod");
       await waitFor(() => {
         const lastCall =
