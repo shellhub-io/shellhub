@@ -10,12 +10,20 @@ import (
 	"slices"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"golang.org/x/crypto/ssh"
 )
+
+// PublicKeyFilterFields maps each filter field the public key list endpoint
+// accepts to the set of operators valid for it.
+var PublicKeyFilterFields = query.NewFieldConstraints(map[string][]string{
+	"name":        {"contains", "eq", "ne"},
+	"fingerprint": {"contains", "eq", "ne"},
+})
 
 type SSHKeysService interface {
 	EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error)
@@ -159,6 +167,7 @@ func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKe
 	return s.store.PublicKeyList(
 		ctx,
 		s.store.Options().InNamespace(req.TenantID),
+		s.store.Options().Match(&req.Filters),
 		s.store.Options().Paginate(&req.Paginator),
 	)
 }
