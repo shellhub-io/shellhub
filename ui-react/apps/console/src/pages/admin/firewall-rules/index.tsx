@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ShieldExclamationIcon,
-  MagnifyingGlassIcon,
   ExclamationCircleIcon,
   CheckCircleIcon,
   NoSymbolIcon,
@@ -10,6 +9,7 @@ import {
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import FilterBadge from "@/components/common/FilterBadge";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
 
@@ -30,10 +30,10 @@ export default function AdminFirewallRules() {
     const q = search.toLowerCase();
     return rules.filter(
       (r) =>
-        r.action.toLowerCase().includes(q)
-        || r.source_ip.toLowerCase().includes(q)
-        || r.username.toLowerCase().includes(q)
-        || String(r.priority).includes(q),
+        r.action.toLowerCase().includes(q) ||
+        r.source_ip.toLowerCase().includes(q) ||
+        r.username.toLowerCase().includes(q) ||
+        String(r.priority).includes(q),
     );
   }, [rules, search]);
 
@@ -57,7 +57,9 @@ export default function AdminFirewallRules() {
           {rule.action === "allow" ? (
             <>
               <CheckCircleIcon className="w-4 h-4 text-accent-green" />
-              <span className="text-xs font-medium text-accent-green">Allow</span>
+              <span className="text-xs font-medium text-accent-green">
+                Allow
+              </span>
             </>
           ) : (
             <>
@@ -75,7 +77,9 @@ export default function AdminFirewallRules() {
         rule.source_ip === ".*" ? (
           <span className="text-xs text-text-secondary">Any IP</span>
         ) : (
-          <span className="text-xs font-mono text-text-primary">{rule.source_ip}</span>
+          <span className="text-xs font-mono text-text-primary">
+            {rule.source_ip}
+          </span>
         ),
     },
     {
@@ -85,7 +89,9 @@ export default function AdminFirewallRules() {
         rule.username === ".*" ? (
           <span className="text-xs text-text-secondary">All users</span>
         ) : (
-          <span className="text-xs font-mono text-text-primary">{rule.username}</span>
+          <span className="text-xs font-mono text-text-primary">
+            {rule.username}
+          </span>
         ),
     },
     {
@@ -132,26 +138,16 @@ export default function AdminFirewallRules() {
         description="View all firewall rules configured across the instance"
       />
 
-      {/* Search bar */}
-      <div className="flex items-center mb-5 animate-fade-in">
-        <div className="relative h-8 w-72 max-w-full sm:w-96">
-          <MagnifyingGlassIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-            strokeWidth={2}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search by action, priority, IP, or username..."
-            aria-label="Search firewall rules"
-            className="h-full w-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary text-ellipsis overflow-hidden focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200"
-          />
-        </div>
-      </div>
+      <SearchField
+        className="mb-5"
+        value={search}
+        onChange={(next) => {
+          setSearch(next);
+          setPage(1);
+        }}
+        placeholder="Search by action, priority, IP, or username..."
+        aria-label="Search firewall rules by action, priority, IP, or username"
+      />
 
       {error && (
         <div

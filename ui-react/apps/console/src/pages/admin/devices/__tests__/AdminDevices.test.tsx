@@ -84,7 +84,7 @@ describe("AdminDevices", () => {
     it("renders the search input with correct aria-label", () => {
       renderPage();
       expect(
-        screen.getByRole("textbox", { name: "Search devices by hostname" }),
+        screen.getByRole("searchbox", { name: "Search devices by hostname" }),
       ).toBeInTheDocument();
     });
 
@@ -177,7 +177,7 @@ describe("AdminDevices", () => {
       await user.click(screen.getByRole("tab", { name: "Accepted" }));
       // After clicking a tab the hook is still called; the page should still render
       expect(
-        screen.getByRole("textbox", { name: "Search devices by hostname" }),
+        screen.getByRole("searchbox", { name: "Search devices by hostname" }),
       ).toBeInTheDocument();
     });
   });

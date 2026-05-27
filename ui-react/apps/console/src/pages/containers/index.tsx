@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { DeviceStatus } from "@/client";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -10,6 +11,7 @@ import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
@@ -20,7 +22,6 @@ import { getConfig } from "@/env";
 import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
 import {
   PlusIcon,
-  MagnifyingGlassIcon,
   TagIcon,
   XMarkIcon,
   ExclamationCircleIcon,
@@ -50,7 +51,10 @@ export default function Containers() {
   );
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(
+    searchInput.trim(),
+    SEARCH_DEBOUNCE_MS,
+  );
   const [actionTarget, setActionTarget] = useState<{
     container: NormalizedContainer;
     action: "accept" | "reject" | "remove";
@@ -63,13 +67,6 @@ export default function Containers() {
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   const { containers, totalCount, isLoading, error, refetch } = useContainers({
     page,
@@ -350,23 +347,15 @@ export default function Containers() {
             onManageTags={() => setManageTagsOpen(true)}
           />
 
-          <div className="relative h-8">
-            <MagnifyingGlassIcon
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-              strokeWidth={2}
-            />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search containers..."
-              aria-label="Search containers"
-              className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
-            />
-          </div>
+          <SearchField
+            value={searchInput}
+            onChange={(next) => {
+              setSearchInput(next);
+              setPage(1);
+            }}
+            placeholder="Search by hostname..."
+            aria-label="Search containers by hostname"
+          />
         </div>
       </div>
 

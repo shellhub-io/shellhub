@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   UsersIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
@@ -11,9 +10,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
@@ -27,7 +28,7 @@ export default function AdminUsers() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<UserAdminResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserAdminResponse | null>(
@@ -38,14 +39,6 @@ export default function AdminUsers() {
     loadingId: loginAsId,
     errorId: loginAsError,
   } = useLoginAsUser();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   const { users, totalCount, isLoading, error } = useAdminUsers({
     page,
@@ -167,21 +160,16 @@ export default function AdminUsers() {
         </button>
       </PageHeader>
 
-      {/* Search */}
-      <div className="relative h-8 ml-auto mb-5 animate-fade-in">
-        <MagnifyingGlassIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-          strokeWidth={2}
-        />
-        <input
-          type="text"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search by username..."
-          aria-label="Search users by username"
-          className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
-        />
-      </div>
+      <SearchField
+        className="mb-5"
+        value={searchInput}
+        onChange={(next) => {
+          setSearchInput(next);
+          setPage(1);
+        }}
+        placeholder="Search by username..."
+        aria-label="Search users by username"
+      />
 
       {error && (
         <div

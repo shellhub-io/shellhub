@@ -31,7 +31,9 @@ const defaultHookState = {
   error: null,
 };
 
-function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
+function makeRule(
+  overrides: Partial<FirewallRulesResponse> = {},
+): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -72,7 +74,9 @@ describe("AdminFirewallRules", () => {
     it("renders the search input with correct aria-label", () => {
       renderPage();
       expect(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
       ).toBeInTheDocument();
     });
   });
@@ -268,7 +272,9 @@ describe("AdminFirewallRules", () => {
       renderPage();
 
       await user.type(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
         "deny",
       );
 
@@ -283,7 +289,9 @@ describe("AdminFirewallRules", () => {
       renderPage();
 
       await user.type(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
         "172.16.0.1",
       );
 
@@ -298,7 +306,9 @@ describe("AdminFirewallRules", () => {
       renderPage();
 
       await user.type(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
         "zara",
       );
 
@@ -313,7 +323,9 @@ describe("AdminFirewallRules", () => {
       renderPage();
 
       await user.type(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
         "777",
       );
 
@@ -328,7 +340,9 @@ describe("AdminFirewallRules", () => {
       renderPage();
 
       await user.type(
-        screen.getByRole("textbox", { name: "Search firewall rules" }),
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
         "zzz-no-match",
       );
 

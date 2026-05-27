@@ -7,16 +7,13 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ExclamationCircleIcon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
 import DataTable, { type Column } from "../common/DataTable";
 import DistroIcon from "../common/DistroIcon";
 import OnlineDot from "../common/OnlineDot";
 import LastSeenCell from "../common/LastSeenCell";
+import SearchField from "@/components/common/fields/SearchField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -226,7 +223,13 @@ export default function DeviceChooserDialog({
             aria-labelledby={allTabId}
             className="py-4 space-y-4"
           >
-            <SearchInput value={search} onChange={handleSearchChange} />
+            <SearchField
+              full
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search by hostname..."
+              aria-label="Search devices by hostname"
+            />
             <AllTab
               devices={allDevices}
               isLoading={allLoading}
@@ -286,9 +289,7 @@ export default function DeviceChooserDialog({
           aria-disabled={acceptDisabled}
           className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all bg-primary text-white hover:bg-primary-600 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
         >
-          {choice.isPending && (
-            <Spinner size="sm" tone="onPrimary" />
-          )}
+          {choice.isPending && <Spinner size="sm" tone="onPrimary" />}
           {choice.isPending ? "Saving…" : "Accept"}
         </button>
       </footer>
@@ -416,31 +417,6 @@ const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
     );
   },
 );
-
-function SearchInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  return (
-    <label className="relative block">
-      <span className="sr-only">Search by hostname</span>
-      <MagnifyingGlassIcon
-        aria-hidden="true"
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
-      />
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Search by hostname"
-        className="w-full pl-9 pr-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 transition-colors"
-      />
-    </label>
-  );
-}
 
 function SuggestedTab({
   devices,

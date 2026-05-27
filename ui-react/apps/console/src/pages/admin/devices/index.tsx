@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   CpuChipIcon,
-  MagnifyingGlassIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -12,7 +11,9 @@ import {
 import type { DeviceStatus } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import SearchField from "@/components/common/fields/SearchField";
 import DistroIcon from "@/components/common/DistroIcon";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatRelative } from "@/utils/date";
 
@@ -55,18 +56,10 @@ export default function AdminDevices() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState<DeviceStatus | "">("");
   const [sortBy, setSortBy] = useState<SortField>("last_seen");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   const { devices, totalCount, isLoading, error } = useAdminDevices({
     page,
@@ -210,20 +203,15 @@ export default function AdminDevices() {
           ))}
         </div>
 
-        <div className="relative h-8">
-          <MagnifyingGlassIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted"
-            strokeWidth={2}
-          />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search by hostname..."
-            aria-label="Search devices by hostname"
-            className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
-          />
-        </div>
+        <SearchField
+          value={searchInput}
+          onChange={(next) => {
+            setSearchInput(next);
+            setPage(1);
+          }}
+          placeholder="Search by hostname..."
+          aria-label="Search devices by hostname"
+        />
       </div>
 
       {error && (
