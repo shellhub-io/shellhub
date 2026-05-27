@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePublicKeys } from "@/hooks/usePublicKeys";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PageHeader from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -86,9 +87,16 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
 
 /* ── page ────────────────────────────────────────── */
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 export default function PublicKeys() {
   const [page, setPage] = useState(1);
-  const { publicKeys, totalCount, isLoading } = usePublicKeys({ page });
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const { publicKeys, totalCount, isLoading } = usePublicKeys({
+    page,
+    search: debouncedSearch,
+  });
   const deleteKey = useDeletePublicKey();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
@@ -97,7 +105,6 @@ export default function PublicKeys() {
     name: string;
   } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
 
   const closeDelete = () => {
     setDeleteError(null);
@@ -134,13 +141,6 @@ export default function PublicKeys() {
   };
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
-  const filtered = search
-    ? publicKeys.filter(
-        (k) =>
-          k.name.toLowerCase().includes(search.toLowerCase()) ||
-          k.fingerprint.toLowerCase().includes(search.toLowerCase()),
-      )
-    : publicKeys;
 
   const columns: Column<PublicKey>[] = [
     {
@@ -214,7 +214,7 @@ export default function PublicKeys() {
   ];
 
   /* Full-page onboarding empty state (no keys at all) */
-  if (!isLoading && publicKeys.length === 0) {
+  if (!isLoading && publicKeys.length === 0 && !debouncedSearch) {
     return (
       <div>
         <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
@@ -334,14 +334,17 @@ export default function PublicKeys() {
       <SearchField
         className="mb-4"
         value={search}
-        onChange={setSearch}
+        onChange={(next) => {
+          setSearch(next);
+          setPage(1);
+        }}
         placeholder="Search by name or fingerprint..."
         aria-label="Search public keys by name or fingerprint"
       />
 
       <DataTable
         columns={columns}
-        data={filtered}
+        data={publicKeys}
         rowKey={(pk) => pk.fingerprint}
         isLoading={isLoading}
         loadingMessage="Loading public keys..."
@@ -351,8 +354,8 @@ export default function PublicKeys() {
         itemLabel="key"
         onPageChange={setPage}
         emptyMessage={
-          search
-            ? `No keys matching \u201C${search}\u201D`
+          debouncedSearch
+            ? `No keys matching \u201C${debouncedSearch}\u201D`
             : "No public keys found"
         }
       />
