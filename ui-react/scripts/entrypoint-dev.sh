@@ -9,10 +9,12 @@ SCRIPTS_DIR="$(dirname "$(readlink -f "$0")")"
 mkdir -p apps/console/public
 "$SCRIPTS_DIR/gen-config.sh" apps/console/public/config.json
 
-# Generate OpenAPI client from the combined spec (all editions)
-echo "Bundling OpenAPI spec..."
-npx @redocly/cli@1.0.0-beta.100 bundle /openapi/spec/openapi.yaml -o /tmp/openapi.json --force
-echo "Generating OpenAPI client..."
-OPENAPI_SPEC_PATH=/tmp/openapi.json npx -w @shellhub/console openapi-ts
+# Generate the OpenAPI client from the combined spec, then keep regenerating
+# it whenever any spec file changes so Vite HMR picks up the new types
+# without needing to recreate the container.
+npm run generate -w @shellhub/console
+# chokidar-cli shells out to $SHELL, which isn't set in this alpine image.
+SHELL=/bin/sh npx -y chokidar-cli@3.0.0 '/openapi/spec/**/*.yaml' --debounce 500 \
+  -c 'npm run generate -w @shellhub/console' &
 
 npm run dev:console
