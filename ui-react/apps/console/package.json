@@ -10,7 +10,7 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate": "openapi-ts"
+    "generate": "../../scripts/generate-client.sh"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
