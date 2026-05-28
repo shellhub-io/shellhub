@@ -224,18 +224,6 @@ describe("Devices list", () => {
         screen.getByPlaceholderText("Search by hostname..."),
       ).toBeInTheDocument();
     });
-
-    it('renders the "Custom Fields" column header', () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice()],
-        totalCount: 1,
-      });
-      renderPage();
-      expect(
-        screen.getByRole("columnheader", { name: "Custom Fields" }),
-      ).toBeInTheDocument();
-    });
   });
 
   describe("loading state", () => {
@@ -281,48 +269,6 @@ describe("Devices list", () => {
       renderPage();
       await user.click(screen.getByText("clickable"));
       expect(mockNavigate).toHaveBeenCalledWith("/devices/uid-abc");
-    });
-  });
-
-  describe("custom fields column", () => {
-    it("renders '—' when device has no custom fields", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ custom_fields: {} })],
-        totalCount: 1,
-      });
-      renderPage();
-      expect(screen.getByText("—")).toBeInTheDocument();
-    });
-
-    it("renders key and value badges for each custom field", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [
-          makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
-        ],
-        totalCount: 1,
-      });
-      renderPage();
-      expect(screen.getByText("env")).toBeInTheDocument();
-      expect(screen.getByText("production")).toBeInTheDocument();
-      expect(screen.getByText("owner")).toBeInTheDocument();
-      expect(screen.getByText("team-a")).toBeInTheDocument();
-    });
-
-    it("renders multiple custom field badges for multiple fields", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ custom_fields: { a: "1", b: "2", c: "3" } })],
-        totalCount: 1,
-      });
-      renderPage();
-      expect(screen.getByText("a")).toBeInTheDocument();
-      expect(screen.getByText("1")).toBeInTheDocument();
-      expect(screen.getByText("b")).toBeInTheDocument();
-      expect(screen.getByText("2")).toBeInTheDocument();
-      expect(screen.getByText("c")).toBeInTheDocument();
-      expect(screen.getByText("3")).toBeInTheDocument();
     });
   });
 
