@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { ShieldCheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
@@ -107,12 +108,7 @@ export default function MfaResetComplete() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          {error && (
-            <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-              <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-              {error}
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
           {/* Main Email Code */}
           <div>

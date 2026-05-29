@@ -1,14 +1,12 @@
 import { FormEvent, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import {
-  ExclamationCircleIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import Spinner from "@/components/common/Spinner";
+import Alert from "@/components/common/Alert";
 
 export default function MfaLogin() {
   const otp = useOtpInput(6);
@@ -73,15 +71,7 @@ export default function MfaLogin() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          {error && (
-            <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
-              {error}
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
           <div>
             <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">

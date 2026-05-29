@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { disableMfa } from "@/client";
+import Alert from "@/components/common/Alert";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import Spinner from "@/components/common/Spinner";
@@ -129,15 +130,7 @@ export default function MfaDisableDialog({
         </div>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          {error && (
-            <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono">
-              <ExclamationTriangleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
-              {error}
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
           {mode === "totp" ? (
             <>

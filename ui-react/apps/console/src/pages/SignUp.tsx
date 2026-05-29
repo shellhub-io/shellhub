@@ -1,10 +1,7 @@
 import { useState, useMemo, FormEvent, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  UserPlusIcon,
-  ExclamationCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { validate, type FormErrors } from "./setup/validate";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
@@ -176,17 +173,9 @@ export default function SignUp() {
       <div className="w-full max-w-sm space-y-4">
         {/* Invite alert */}
         {isInvite && (
-          <div
-            className="flex items-start gap-2.5 bg-accent-yellow/8 border border-accent-yellow/20 text-accent-yellow px-3.5 py-3 rounded-lg text-xs font-mono animate-slide-down"
-            role="alert"
-          >
-            <ExclamationTriangleIcon
-              className="w-4 h-4 shrink-0 mt-0.5"
-              strokeWidth={2}
-            />
-            Please create your account before accepting the namespace
-            invitation.
-          </div>
+          <Alert variant="warning">
+            Please create your account before accepting the namespace invitation.
+          </Alert>
         )}
 
         {/* Form card */}
@@ -195,16 +184,9 @@ export default function SignUp() {
           style={{ animationDelay: "150ms" }}
         >
           {signUpError && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down mb-5"
-            >
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
+            <Alert variant="error" className="mb-5">
               {signUpError}
-            </div>
+            </Alert>
           )}
 
           <form

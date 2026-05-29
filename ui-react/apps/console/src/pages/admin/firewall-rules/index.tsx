@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ShieldExclamationIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -150,16 +150,9 @@ export default function AdminFirewallRules() {
       />
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono mb-4 animate-slide-down"
-        >
-          <ExclamationCircleIcon
-            className="w-3.5 h-3.5 shrink-0"
-            strokeWidth={2}
-          />
+        <Alert variant="error" className="mb-4">
           {error.message}
-        </div>
+        </Alert>
       )}
 
       <DataTable
