@@ -7,6 +7,7 @@ import {
 import type { Device, DeviceStatus } from "../client";
 import { getContainersQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 
 export type NormalizedContainer = Omit<Device, "tags"> & { tags: string[] };
 
@@ -24,7 +25,7 @@ function buildFilter(search: string, tags: string[]): string {
       params: { name: "tags.name", operator: "contains", value: tags },
     });
   }
-  return btoa(JSON.stringify(filters));
+  return toBase64Json(filters);
 }
 
 export function normalizeContainer(container: Device): NormalizedContainer {

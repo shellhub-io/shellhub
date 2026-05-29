@@ -11,6 +11,7 @@ import {
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
+import { toBase64Json } from "@/utils/encoding";
 
 function buildNameFilter(search: string): string {
   const filter = [
@@ -19,7 +20,7 @@ function buildNameFilter(search: string): string {
       params: { name: "name", operator: "contains", value: search },
     },
   ];
-  return btoa(JSON.stringify(filter));
+  return toBase64Json(filter);
 }
 
 interface UseAdminNamespacesParams {
