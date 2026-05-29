@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   KeyIcon,
-  ExclamationCircleIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import {
   getAuthenticationSettings,
   configureLocalAuthentication,
@@ -162,13 +162,9 @@ export default function AdminAuthentication() {
       />
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono mb-5 animate-slide-down"
-        >
-          <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+        <Alert variant="error" className="mb-5">
           {error}
-        </div>
+        </Alert>
       )}
 
       <div className="space-y-4">

@@ -7,11 +7,10 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import {
-  ExclamationCircleIcon,
-  CheckCircleIcon,
   LockClosedIcon,
   ArrowRightEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { useAuthStore } from "../stores/authStore";
 import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
@@ -234,55 +233,26 @@ export default function Login() {
         (!!error && !lockoutExpired)) && (
         <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
           {lockoutExpired && (
-            <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-              <CheckCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
+            <Alert variant="success">
               Your timeout has finished. Please try to log back in.
-            </div>
+            </Alert>
           )}
-          {notice && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
-            >
-              <CheckCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
-              {notice}
-            </div>
-          )}
+          {notice && <Alert variant="success">{notice}</Alert>}
           {missingAssertions && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
-            >
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
+            <Alert variant="error">
               The SSO configuration is incomplete due to missing required
               mappings. Please contact your administrator.
-            </div>
+            </Alert>
           )}
           {error && !lockoutExpired && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
-            >
-              <ExclamationCircleIcon
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-              />
+            <Alert variant="error">
               <span>
                 {error}
                 {countdownDisplay && (
                   <span className="font-semibold"> ({countdownDisplay})</span>
                 )}
               </span>
-            </div>
+            </Alert>
           )}
         </div>
       )}

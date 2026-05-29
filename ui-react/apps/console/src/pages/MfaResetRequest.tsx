@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { EnvelopeIcon, ExclamationCircleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { useAuthStore } from "../stores/authStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import Spinner from "@/components/common/Spinner";
@@ -67,12 +68,7 @@ export default function MfaResetRequest() {
       >
         {!emailsSent ? (
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            {error && (
-              <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-                <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                {error}
-              </div>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
 
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-xs text-text-muted text-center">

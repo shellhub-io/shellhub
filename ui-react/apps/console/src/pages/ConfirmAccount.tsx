@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import {
-  EnvelopeIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { EnvelopeIcon } from "@heroicons/react/24/outline";
+import Alert from "@/components/common/Alert";
 import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
 import Spinner from "@/components/common/Spinner";
@@ -44,17 +41,15 @@ export default function ConfirmAccount() {
         </p>
 
         {resendSuccess && (
-          <div role="status" className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down mb-4">
-            <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+          <Alert variant="success" className="mb-4">
             Confirmation email sent successfully.
-          </div>
+          </Alert>
         )}
 
         {resendError && (
-          <div role="alert" className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down mb-4">
-            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+          <Alert variant="error" className="mb-4">
             {resendError}
-          </div>
+          </Alert>
         )}
 
         <button
