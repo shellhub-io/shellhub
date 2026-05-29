@@ -7,6 +7,7 @@ import {
 } from "../client";
 import { getPublicKeysQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 
 export function buildPublicKeyFilter(search: string): string {
   const filters = [
@@ -21,7 +22,7 @@ export function buildPublicKeyFilter(search: string): string {
       params: { name: "fingerprint", operator: "contains", value: search },
     },
   ];
-  return btoa(JSON.stringify(filters));
+  return toBase64Json(filters);
 }
 
 interface UsePublicKeysParams {

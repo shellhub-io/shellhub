@@ -13,6 +13,7 @@ import {
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
+import { toBase64Json } from "@/utils/encoding";
 
 export type NormalizedDevice = Omit<Device, "tags"> & { tags: string[] };
 
@@ -21,9 +22,9 @@ function normalizeDevice(device: Device): NormalizedDevice {
     ...device,
     tags: Array.isArray(device.tags)
       ? device.tags.map((t) => {
-        if (typeof t === "object" && t !== null && "name" in t) return t.name;
-        return String(t);
-      })
+          if (typeof t === "object" && t !== null && "name" in t) return t.name;
+          return String(t);
+        })
       : [],
   };
 }
@@ -35,7 +36,7 @@ function buildNameFilter(search: string): string {
       params: { name: "name", operator: "contains", value: search },
     },
   ];
-  return btoa(JSON.stringify(filter));
+  return toBase64Json(filter);
 }
 
 interface UseAdminDevicesParams {

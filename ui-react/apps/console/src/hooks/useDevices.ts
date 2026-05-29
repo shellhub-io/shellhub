@@ -8,6 +8,7 @@ import {
 import { getDevicesQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import type { Device as GeneratedDevice } from "../client";
+import { toBase64Json } from "@/utils/encoding";
 
 export type NormalizedDevice = Omit<GeneratedDevice, "tags"> & {
   tags: string[];
@@ -35,7 +36,7 @@ export function buildFilter(search: string, tags: string[]): string {
       params: { name: "tags.name", operator: "contains", value: tags },
     });
   }
-  return btoa(JSON.stringify(filters));
+  return toBase64Json(filters);
 }
 
 export function normalizeDevice(device: GeneratedDevice): NormalizedDevice {

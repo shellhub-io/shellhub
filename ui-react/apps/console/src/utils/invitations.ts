@@ -1,4 +1,5 @@
 import type { MembershipInvitation } from "@/client";
+import { toBase64Json } from "@/utils/encoding";
 
 export type InvitationStatus = MembershipInvitation["status"];
 
@@ -13,7 +14,7 @@ export function invitationStatusFilter(status: InvitationStatus): string {
       params: { name: "status", operator: "eq", value: status },
     },
   ];
-  return btoa(JSON.stringify(filter));
+  return toBase64Json(filter);
 }
 
 export function isInvitationExpired(expiresAt: string | null): boolean {

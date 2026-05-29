@@ -6,6 +6,7 @@ import {
 } from "../client";
 import { listWebEndpointsQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { toBase64Json } from "@/utils/encoding";
 
 interface UseWebEndpointsParams {
   page?: number;
@@ -24,7 +25,7 @@ function encodeAddressFilter(value: string): string {
       params: { name: "address", operator: "contains", value },
     },
   ];
-  return btoa(JSON.stringify(clauses));
+  return toBase64Json(clauses);
 }
 
 export function useWebEndpoints({
