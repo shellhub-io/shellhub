@@ -2,19 +2,12 @@ openapi: 3.0.3
 info:
   title: ShellHub OpenAPI
   description: |
-    > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
-
-    This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for
-    performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH,
-    sessions, etc.
-
-    These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each
-    request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login`
-    route, fulfilling its request body to return that token with some essential information about the user whom logged 
-    in.
+    Full OpenAPI specification for ShellHub, covering every edition and surface.
+    This is the internal reference; the customer-facing documentation is a
+    filtered build of the per-edition specs.
   contact:
-    name: ShellHub contact address.
-    email: contato@ossystems.com.br
+    name: ShellHub
+    email: contact@shellhub.io
   license:
     name: Apache License 2.0
     url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
@@ -83,7 +76,7 @@ tags:
     description: Routes related to stats resource.
   - name: license
     description: Routes related to license resource.
-  - name: rules
+  - name: firewall
     description: Routes related to firewall rules resource.
   - name: tunnels
     description: Routes related to tunnels resource.
@@ -119,8 +112,6 @@ paths:
     $ref: paths/api@users@{id}@password.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
-  /api/users/security:
-    $ref: paths/api@users@security.yaml
   /api/namespaces/device-auto-accept/{tenant}:
     $ref: paths/api@namespaces@device-auto-accept@{tenant}.yaml
   /api/devices:
@@ -135,6 +126,8 @@ paths:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
+  /internal/sessions/{uid}:
+    $ref: paths/internal@sessions@{uid}.yaml
   /api/sessions:
     $ref: paths/api@sessions.yaml
   /api/sessions/{uid}:

@@ -13,6 +13,7 @@ post:
     - cloud
     - mfa
     - users
+  security: []
   requestBody:
     content:
       application/json:

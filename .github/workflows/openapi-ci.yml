@@ -31,7 +31,15 @@ jobs:
         run: prettier -c openapi/spec/**/*.yaml
 
       - name: Setup Redocly
-        run: npm install -g @redocly/cli@1.0.0-beta.100
+        run: npm install -g @redocly/cli@2.31.5
 
       - name: Run Redocly lint
-        run: redocly lint openapi/spec/openapi.yaml
+        working-directory: openapi
+        run: redocly lint spec/openapi.yaml spec/community-openapi.yaml spec/cloud-openapi.yaml spec/enterprise-openapi.yaml
+
+      - name: Bundle customer specs (exercise the customer-filter plugin)
+        working-directory: openapi
+        run: |
+          for edition in community cloud enterprise; do
+            redocly bundle "${edition}-customer@v1" -o "/tmp/${edition}-customer.json"
+          done

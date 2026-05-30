@@ -1,7 +1,7 @@
 post:
   operationId: pushTagToDeviceDeprecated
   deprecated: true
-  summary: Associate a tag with a device
+  summary: Add a tag to a device
   description: '**Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.'
   tags:
     - community

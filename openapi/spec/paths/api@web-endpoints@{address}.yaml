@@ -2,8 +2,8 @@ parameters:
   - $ref: ../components/parameters/path/tunnelAddressPath.yaml
 delete:
   operationId: deleteWebEndpoint
-  summary: Delete a web-endpoint
-  description: Deletes a web-endpoint by address.
+  summary: Delete a web endpoint
+  description: Delete a web endpoint.
   tags:
     - cloud
     - web-endpoints

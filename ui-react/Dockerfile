@@ -28,9 +28,10 @@ CMD ["/scripts/entrypoint-dev.sh"]
 
 # Bundle OpenAPI spec from YAML sources
 FROM node:24.16.0-alpine3.22 AS spec-bundler
-RUN npm install -g @redocly/cli@1.0.0-beta.100
+RUN npm install -g @redocly/cli@2.31.5
 WORKDIR /spec
 COPY openapi/spec ./spec
+COPY openapi/plugins ./plugins
 COPY openapi/redocly.yaml .
 RUN redocly bundle spec/openapi.yaml -o openapi.json
 

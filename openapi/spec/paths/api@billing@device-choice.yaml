@@ -4,7 +4,6 @@ post:
   description: Choice devices when device's limit is rechead.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
 

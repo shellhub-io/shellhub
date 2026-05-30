@@ -4,7 +4,6 @@ post:
   description: creates a new customer defining, optionaly, the default payment method.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing
@@ -31,7 +30,6 @@ get:
   description: Get the customer.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

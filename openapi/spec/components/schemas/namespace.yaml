@@ -27,6 +27,7 @@ properties:
           description: Member's email.
           example: john.doe@test.com
   settings:
+    type: object
     nullable: true
     allOf:
       - $ref: namespaceSettings.yaml
@@ -41,6 +42,7 @@ properties:
     format: date-time
     example: 2020-05-01T00:00:00.000Z
   billing:
+    type: object
     nullable: true
     allOf:
       - $ref: namespaceBilling.yaml

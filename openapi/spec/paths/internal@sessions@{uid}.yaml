@@ -1,0 +1,30 @@
+parameters:
+  - $ref: ../components/parameters/path/sessionUIDPath.yaml
+patch:
+  operationId: setSessionAuthenticationStatus
+  summary: Set session authentication status
+  description: |
+    Internal route used by the SSH service to set a session's authentication
+    status (UpdateSession).
+  tags:
+    - community
+    - sessions
+    - internal
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            authenticated:
+              description: Session's authentication status.
+              type: boolean
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

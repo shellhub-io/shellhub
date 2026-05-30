@@ -1,7 +1,7 @@
 post:
   operationId: pushTagToDevice
-  summary: Associate a tag with a device
-  description: Associates a tag with a device in the authenticated namespace.
+  summary: Add a tag to a device
+  description: Add a tag to a device.
   tags:
     - community
     - tags
@@ -27,7 +27,7 @@ post:
 delete:
   operationId: pullTagFromDevice
   summary: Remove a tag from a device
-  description: Removes a tag from a device in the authenticated namespace.
+  description: Remove a tag from a device.
   tags:
     - community
     - tags

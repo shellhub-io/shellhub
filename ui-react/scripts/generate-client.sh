@@ -5,7 +5,7 @@ set -e
 # client. The Dockerfile builder stage sets OPENAPI_SPEC_PATH to a spec
 # it bundled in an earlier stage; skip the bundle step in that case.
 if [ -z "$OPENAPI_SPEC_PATH" ]; then
-  npx @redocly/cli@1.0.0-beta.100 bundle /openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+  npx @redocly/cli@2.31.5 bundle /openapi/spec/openapi.yaml -o /tmp/openapi.json --force
   OPENAPI_SPEC_PATH=/tmp/openapi.json
   export OPENAPI_SPEC_PATH
 fi

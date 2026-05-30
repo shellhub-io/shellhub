@@ -2,8 +2,8 @@ parameters:
   - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
 get:
   operationId: getNamespace
-  summary: Get a namespace
-  description: Get a namespace.
+  summary: Get the current namespace
+  description: Get the current namespace.
   tags:
     - community
     - namespaces
@@ -27,8 +27,8 @@ get:
       $ref: ../components/responses/500.yaml
 put:
   operationId: editNamespace
-  summary: Edit namespace
-  description: Edit a namespace.
+  summary: Update the current namespace
+  description: Update the current namespace.
   tags:
     - community
     - namespaces
@@ -66,14 +66,13 @@ put:
       $ref: ../components/responses/500.yaml
 delete:
   operationId: deleteNamespace
-  summary: Delete namespace
-  description: Delete a namespace.
+  summary: Delete the current namespace
+  description: Delete the current namespace.
   tags:
     - community
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   responses:
     '200':
       description: Success to delete a namespace.

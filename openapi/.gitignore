@@ -4,3 +4,4 @@
 bundled/
 .env
 openapi.json
+customer.json

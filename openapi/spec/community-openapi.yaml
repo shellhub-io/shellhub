@@ -2,19 +2,14 @@ openapi: 3.0.3
 info:
   title: ShellHub OpenAPI
   description: |
-    > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
-
-    This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for
-    performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH,
-    sessions, etc.
-
-    These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each
-    request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login`
-    route, fulfilling its request body to return that token with some essential information about the user whom logged 
-    in.
+    Full reference for the ShellHub Community API, covering public, internal,
+    and service-to-service routes. This is the internal source of truth used for
+    client generation and response validation; the customer-facing documentation
+    is a filtered build that exposes only the namespace-scoped, API-key usable
+    surface.
   contact:
-    name: ShellHub contact address.
-    email: contato@ossystems.com.br
+    name: ShellHub
+    email: contact@shellhub.io
   license:
     name: Apache License 2.0
     url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
@@ -26,18 +21,36 @@ components:
   securitySchemes:
     $ref: ./components/schemas/security.yaml
 tags:
+  - name: devices
+    x-displayName: Devices
+    description: List, inspect, accept, reject, rename, and delete devices, and manage their custom fields.
+  - name: containers
+    x-displayName: Containers
+    description: List and manage containers, which are devices running inside containers.
+  - name: sessions
+    x-displayName: Sessions
+    description: List and inspect SSH sessions.
+  - name: public-keys
+    x-displayName: SSH Public Keys
+    description: Register and manage SSH public keys.
+  - name: tags
+    x-displayName: Tags
+    description: Create tags and attach them to devices.
+  - name: namespaces
+    x-displayName: Namespace
+    description: Inspect the namespace and manage its settings.
+  - name: stats
+    x-displayName: Statistics
+    description: Aggregate statistics for the namespace, such as device and session counts.
+  - name: users
+    x-displayName: Users
+    description: User-scoped namespace security settings.
   - name: internal
     description: Requests executed internally by ShellHub server.
   - name: external
     description: Requests executed by the ShellHub user.
-  - name: users
-    description: Routes related to user resource.
-  - name: devices
-    description: Routes related to device resource.
-  - name: containers
-    description: Routes related to containers resource.
-  - name: ssh
-    description: Routes related to SSH resource.
+  - name: system
+    description: Routes related to running instance.
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -51,8 +64,6 @@ tags:
 
       Except for `GET` endpoints, API key-related routes cannot be
       authenticated with an API key.
-  - name: system
-    description: Routes related to running instance.
 
 paths:
   /info:
@@ -77,8 +88,6 @@ paths:
     $ref: paths/api@users@{id}@password.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
-  /api/users/security:
-    $ref: paths/api@users@security.yaml
   /api/devices:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:
@@ -91,6 +100,8 @@ paths:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
+  /internal/sessions/{uid}:
+    $ref: paths/internal@sessions@{uid}.yaml
   /api/sessions:
     $ref: paths/api@sessions.yaml
   /api/sessions/{uid}:

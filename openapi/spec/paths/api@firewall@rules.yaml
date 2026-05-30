@@ -1,11 +1,11 @@
 post:
   operationId: createFirewallRule
-  summary: Create firewall rule
+  summary: Create a firewall rule
   description: Create a firewall rule.
   tags:
     - cloud
 
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -33,12 +33,12 @@ post:
       $ref: ../components/responses/500.yaml
 get:
   operationId: getFirewallRules
-  summary: Get firewall rules
-  description: Get a list of firewall rules.
+  summary: List firewall rules
+  description: List firewall rules.
   tags:
     - cloud
 
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []

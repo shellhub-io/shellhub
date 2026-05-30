@@ -2,13 +2,14 @@ parameters:
   - $ref: ../components/parameters/path/publicKeyFingerprintPath.yaml
 put:
   operationId: updatePublicKey
-  summary: Update public key
-  description: Update a public key.
+  summary: Update an SSH public key
+  description: Update an SSH public key.
   tags:
     - community
-    - ssh
+    - public-keys
   security:
     - jwt: []
+    - api-key: []
   requestBody:
     content:
       application/json:
@@ -48,13 +49,14 @@ put:
       $ref: ../components/responses/500.yaml
 delete:
   operationId: deletePublicKey
-  summary: Delete public key
-  description: Delete a public key.
+  summary: Delete an SSH public key
+  description: Delete an SSH public key.
   tags:
     - community
-    - ssh
+    - public-keys
   security:
     - jwt: []
+    - api-key: []
   responses:
     '200':
       description: Success to delete a public key.

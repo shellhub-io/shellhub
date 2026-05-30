@@ -6,6 +6,7 @@ properties:
   device_uid:
     $ref: deviceUID.yaml
   device:
+    type: object
     nullable: true
     allOf:
       - $ref: device.yaml

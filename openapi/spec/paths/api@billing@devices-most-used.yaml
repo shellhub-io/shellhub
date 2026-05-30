@@ -4,7 +4,6 @@ get:
   description: Get the most used devices.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

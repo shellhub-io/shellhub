@@ -4,7 +4,6 @@ post:
   description: evaluate the namespace capabilities.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

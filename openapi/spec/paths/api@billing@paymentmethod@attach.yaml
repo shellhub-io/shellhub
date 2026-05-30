@@ -4,7 +4,6 @@ post:
   description: Attachs a payment method to a customer.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

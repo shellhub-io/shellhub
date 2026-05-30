@@ -1,13 +1,9 @@
 get:
   operationId: resolveDevice
-  summary: Resolve Device
+  summary: Resolve a device
   description: |
-    Retrieve a device using flexible resolution methods. The device can be
-    identified by either its unique identifier (UID) or hostname. The endpoint
-    automatically scopes results to the authenticated tenant's namespace for
-    security isolation.
-
-    When both UID and hostname are provided, UID takes precedence over hostname.
+    Resolve a device by UID or hostname. If both are provided, UID takes
+    precedence.
   tags:
     - community
     - devices

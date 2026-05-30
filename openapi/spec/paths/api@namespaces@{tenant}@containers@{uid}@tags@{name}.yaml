@@ -1,7 +1,7 @@
 post:
   operationId: pushTagToContainerDeprecated
   deprecated: true
-  summary: Associate a tag with a container
+  summary: Add a tag to a container
   description: '**Deprecated**: Use `POST /api/containers/{uid}/tags/{name}` instead.'
   tags:
     - community

@@ -1,13 +1,5 @@
-# This is the Redocly configuration file, and it is used by Redocly CLI and other Redocly apps to control their behavior
-# — from the strictness of the lint command, to how Redocly renders your docs.
-#
-#   - Workflows uses it in the API registry to manage your APIs and control advanced features like region and link resolution.
-#   - Workflows and on-premise tools use it to apply your features and theme when building API docs.
-#   - Redocly's VS Code extension uses it for linting criteria, to apply custom settings for live documentation previews,
-#   and to identify the path API definition root files.
-#
-#   https://redocly.com/docs/cli/configuration/
-organization: shellhub
+# Redocly configuration. Controls linting and how the OpenAPI specs are bundled
+# and rendered. https://redocly.com/docs/cli/configuration/
 
 # This extends the recommended configuration values.
 # https://redocly.com/docs/cli/rules/#recommended-config
@@ -17,7 +9,12 @@ extends:
 rules:
   no-ambiguous-paths: off
 
+plugins:
+  - ./plugins/customer-filter.js
+
 apis:
+  # Full specs: the internal source of truth, consumed by the frontend codegen
+  # and the dev-mode response validator. No filtering applied.
   community@v1:
     root: ./spec/community-openapi.yaml
   cloud@v1:
@@ -25,9 +22,20 @@ apis:
   enterprise@v1:
     root: ./spec/enterprise-openapi.yaml
 
-features.openapi:
-  schemaExpansionLevel: 2
-  generateCodeSamples:
-    languages:
-      - lang: curl
-      - lang: Go
+  # Customer specs: the published documentation. The drop-non-customer decorator
+  # keeps only the namespace-scoped, api-key usable surface.
+  community-customer@v1:
+    root: ./spec/community-openapi.yaml
+    decorators:
+      customer-filter/drop-non-customer: on
+      remove-unused-components: on
+  cloud-customer@v1:
+    root: ./spec/cloud-openapi.yaml
+    decorators:
+      customer-filter/drop-non-customer: on
+      remove-unused-components: on
+  enterprise-customer@v1:
+    root: ./spec/enterprise-openapi.yaml
+    decorators:
+      customer-filter/drop-non-customer: on
+      remove-unused-components: on

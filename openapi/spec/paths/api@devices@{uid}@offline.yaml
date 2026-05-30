@@ -8,7 +8,6 @@ post:
     - internal
   security:
     - jwt: []
-    - api-key: []
   parameters:
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
   responses:

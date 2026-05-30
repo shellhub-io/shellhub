@@ -1,7 +1,7 @@
 get:
   operationId: getDevices
-  summary: Get devices
-  description: Get a list of devices.
+  summary: List devices
+  description: List devices.
   tags:
     - community
     - devices

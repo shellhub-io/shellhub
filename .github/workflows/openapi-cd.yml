@@ -21,11 +21,15 @@ jobs:
 
       - name: Setup bundler
         run: |
-          npm install -g @redocly/cli@1.0.0-beta.100
+          npm install -g @redocly/cli@2.31.5
           mkdir bundled/
 
-      - name: Bundle
-        run: redocly bundle openapi/spec/openapi.yaml -o bundled/openapi.yaml
+      - name: Bundle customer documentation
+        working-directory: openapi
+        run: |
+          redocly bundle community-customer@v1 -o ../bundled/community-openapi.yaml
+          redocly bundle cloud-customer@v1 -o ../bundled/cloud-openapi.yaml
+          redocly bundle enterprise-customer@v1 -o ../bundled/enterprise-openapi.yaml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7

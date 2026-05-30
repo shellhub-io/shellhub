@@ -7,7 +7,7 @@ RUN apk add --no-cache openssl nodejs npm openjdk11-jre git
 
 RUN npm install -g @openapitools/openapi-generator-cli
 
-RUN npm install -g @redocly/cli@1.0.0-beta.100
+RUN npm install -g @redocly/cli@2.31.5
 
 RUN npm install -g @stoplight/prism-cli@4.6.1
 

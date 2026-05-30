@@ -4,7 +4,6 @@ post:
   description: Detachs a payment method from a customer.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

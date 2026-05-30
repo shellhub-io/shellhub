@@ -4,7 +4,6 @@ post:
   description: Report an action.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

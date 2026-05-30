@@ -1,7 +1,7 @@
 get:
   operationId: getTags
-  summary: Retrieve all tags associated with the namespace
-  description: Retrieves all tags for the authenticated namespace.
+  summary: List tags
+  description: List all tags.
   tags:
     - community
     - tags
@@ -34,8 +34,8 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createTag
-  summary: Create a new tag in the namespace
-  description: Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
+  summary: Create a tag
+  description: Create a tag. Tag names must be unique.
   tags:
     - community
     - tags

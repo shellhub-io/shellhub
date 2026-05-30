@@ -1,7 +1,7 @@
 patch:
   operationId: updateDeviceStatus
-  summary: Update device status
-  description: Update device's status.
+  summary: Update a device's status
+  description: Update a device's status.
   tags:
     - community
     - devices

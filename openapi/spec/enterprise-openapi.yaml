@@ -2,13 +2,14 @@ openapi: 3.0.3
 info:
   title: ShellHub Enterprise OpenAPI
   description: |
-    > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
-
-    ShellHub Enterprise OpenAPI specification.
-
-    It documents all routes provided by ShellHub Enterprise.
+    Full reference for the ShellHub Enterprise API, covering public, internal,
+    and service-to-service routes. This is the internal source of truth used for
+    client generation and response validation; the customer-facing documentation
+    is a filtered build that exposes only the namespace-scoped, API-key usable
+    surface.
   contact:
-    email: contato@ossystems.com.br
+    name: ShellHub
+    email: contact@shellhub.io
   license:
     name: Apache License 2.0
     url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
@@ -17,27 +18,50 @@ servers:
   - url: /
     description: ShellHub server as a Enterprise instance.
 tags:
+  - name: devices
+    x-displayName: Devices
+    description: List, inspect, accept, reject, rename, and delete devices, and manage their custom fields.
+  - name: containers
+    x-displayName: Containers
+    description: List and manage containers, which are devices running inside containers.
+  - name: sessions
+    x-displayName: Sessions
+    description: List and inspect SSH sessions and their recordings.
+  - name: public-keys
+    x-displayName: SSH Public Keys
+    description: Register and manage SSH public keys.
+  - name: tags
+    x-displayName: Tags
+    description: Create tags and attach them to devices.
+  - name: namespaces
+    x-displayName: Namespace
+    description: Inspect the namespace and manage its settings.
+  - name: stats
+    x-displayName: Statistics
+    description: Aggregate statistics for the namespace, such as device and session counts.
+  - name: firewall
+    x-displayName: Firewall Rules
+    description: Manage firewall rules.
+  - name: tunnels
+    x-displayName: Tunnels
+    description: Create and manage device tunnels.
+  - name: web-endpoints
+    x-displayName: Web Endpoints
+    description: Create and manage web endpoints.
+  - name: users
+    x-displayName: Users
+    description: User-scoped namespace security settings.
   - name: cloud
     description: Routes provided by ShellHub Cloud API.
   - name: authentication-settings
     description: |
       Defines the routes to configure and retrieve the ShellHub authentication
-      settings. Currently, ShellHub supports both local authentication (email 
+      settings. Currently, ShellHub supports both local authentication (email
       and password) and SAML-based authentication (Single Sign-On).
   - name: admin
     description: Routes provide by ShellHub Admin API.
-  - name: users
-    description: Routes related to user resource.
-  - name: stats
-    description: Routes related to stats resource.
   - name: license
     description: Routes related to license resource.
-  - name: sessions
-    description: Routes related to session resource.
-  - name: users
-    description: Routes related to users resource.
-  - name: rules
-    description: Routes related to firewall rules resource.
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -51,16 +75,47 @@ tags:
 
       Except for `GET` endpoints, API key-related routes cannot be
       authenticated with an API key.
-  - name: tunnels
-    description: Routes related to tunnels resource.
-  - name: web-endpoints
-    description: Routes related to web-endpoints resource.
 
 components:
   securitySchemes:
     $ref: ./components/schemas/security.yaml
 paths:
-  $ref: cloud-openapi.yaml#/paths
+  $ref: community-openapi.yaml#/paths
+  # Shared surface (cloud and enterprise)
+  /api/sessions/{uid}/close:
+    $ref: paths/api@sessions@{uid}@close.yaml
+  /api/sessions/{uid}/records/{seat}:
+    $ref: paths/api@sessions@{uid}@records@{seat}.yaml
+  /api/firewall/rules:
+    $ref: paths/api@firewall@rules.yaml
+  /api/firewall/rules/{id}:
+    $ref: paths/api@firewall@rules@{id}.yaml
+  /api/user/mfa/auth:
+    $ref: paths/api@user@mfa@auth.yaml
+  /api/user/mfa/recover:
+    $ref: paths/api@user@mfa@recovery.yaml
+  /api/user/mfa/reset:
+    $ref: paths/api@user@mfa@reset.yaml
+  /api/user/mfa/generate:
+    $ref: paths/api@user@mfa@generate.yaml
+  /api/user/mfa/enable:
+    $ref: paths/api@user@mfa@enable.yaml
+  /api/user/mfa/disable:
+    $ref: paths/api@user@mfa@disable.yaml
+  /api/user/mfa/reset/{user-id}:
+    $ref: paths/api@user@mfa@reset@{user-id}.yaml
+  /api/web-endpoints:
+    $ref: paths/api@web-endpoints.yaml
+  /api/web-endpoints/{address}:
+    $ref: paths/api@web-endpoints@{address}.yaml
+  /api/devices/{uid}/tunnels:
+    $ref: paths/api@devices@{uid}@tunnels.yaml
+  /api/devices/{uid}/tunnels/{address}:
+    $ref: paths/api@devices@{uid}@tunnels@{address}.yaml
+  # Enterprise only
+  /api/user/saml/auth:
+    $ref: paths/api@user@saml@auth.yaml
+  # Admin (cloud and enterprise)
   /admin/api/authentication:
     $ref: paths/admin@api@authentication.yaml
   /admin/api/authentication/local:
