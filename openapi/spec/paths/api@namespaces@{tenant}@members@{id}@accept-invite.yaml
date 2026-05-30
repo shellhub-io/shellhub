@@ -9,6 +9,7 @@ get:
     - namespaces
     - members
     - namespaces
+  security: []
   parameters:
     - name: tenant
       in: path

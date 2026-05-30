@@ -1,7 +1,7 @@
 get:
   operationId: getTagsDeprecated
   deprecated: true
-  summary: Retrieve all tags associated with a namespace
+  summary: List tags
   description: '**Deprecated**: Use `GET /api/tags` instead.'
   tags:
     - community
@@ -37,8 +37,8 @@ get:
 post:
   operationId: createTagDeprecated
   deprecated: true
-  summary: Create a new tag in the namespace
-  description: '**Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.'
+  summary: Create a tag
+  description: '**Deprecated**: Use `POST /api/tags` instead. Tag names must be unique.'
   tags:
     - community
     - tags

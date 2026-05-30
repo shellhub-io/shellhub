@@ -14,7 +14,6 @@ get:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
   responses:

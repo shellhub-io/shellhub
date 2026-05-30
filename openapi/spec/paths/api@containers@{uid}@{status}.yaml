@@ -1,7 +1,7 @@
 patch:
   operationId: updateContainerStatus
-  summary: Update container status
-  description: Update container's status.
+  summary: Update a container's status
+  description: Update a container's status.
   tags:
     - community
     - containers

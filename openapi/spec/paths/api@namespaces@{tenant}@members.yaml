@@ -1,5 +1,6 @@
 delete:
   operationId: leaveNamespace
+  x-internal: true
   summary: Leave Namespace
   description: |
     Allows the authenticated user to leave the specified namespace. Owners

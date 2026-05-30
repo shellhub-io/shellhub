@@ -1,5 +1,6 @@
 get:
   operationId: getNamespaces
+  x-internal: true
   summary: Get namespaces list
   description: Returns a list of namespaces.
   tags:
@@ -61,6 +62,7 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createNamespace
+  x-internal: true
   summary: Create namespace
   description: Create a namespace.
   tags:

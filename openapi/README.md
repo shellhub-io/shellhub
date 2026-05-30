@@ -22,7 +22,25 @@ OpenAPI](http://localhost/openapi/) in any OpenAPI file after a page reload.
 Its usage is simple too, you just need `up` the `shellhub-io/shellhub` containers in development
 mode and access the URL.
 
-- Access the URL [http://localhost/openapi/preview](http://localhost/openapi) to check the preview.
+- Access the URL [http://localhost/openapi/](http://localhost/openapi/) to check the preview.
+
+### Full spec vs customer docs
+
+There are two builds of every edition spec, from the same source:
+
+- **Full spec** — the internal source of truth, documenting every route (public,
+  internal, and admin). It backs the frontend client generation and the
+  dev-mode response validator. This is what the preview above serves.
+- **Customer docs** — the published, customer-facing documentation. A
+  `drop-non-customer` decorator (`plugins/customer-filter.js`) keeps only the
+  namespace-scoped, API-key usable surface: it drops `/admin` and `/internal`
+  routes, operations that do not accept an API key, and anything flagged
+  `x-internal: true`; it also strips the `jwt` scheme so the docs show api-key
+  only. These are the `*-customer` API entries in `redocly.yaml`, published on
+  release by `openapi-cd.yml`.
+
+Preview the customer docs locally at
+[http://localhost/openapi/customer.html](http://localhost/openapi/customer.html).
 
 ### Lint
 

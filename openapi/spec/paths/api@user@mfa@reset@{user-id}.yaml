@@ -9,6 +9,7 @@ put:
     - cloud
     - mfa
     - users
+  security: []
   parameters:
     - in: path
       name: user-id

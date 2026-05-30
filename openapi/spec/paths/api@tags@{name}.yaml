@@ -1,7 +1,7 @@
 patch:
   operationId: updateTag
   summary: Update a tag
-  description: Updates a tag in the authenticated namespace.
+  description: Update a tag.
   tags:
     - community
     - tags
@@ -43,7 +43,7 @@ patch:
 delete:
   operationId: deleteTag
   summary: Delete a tag
-  description: Removes a tag and all its associations from the authenticated namespace.
+  description: Delete a tag and remove it from all devices and containers.
   tags:
     - community
     - tags

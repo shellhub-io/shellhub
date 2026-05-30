@@ -2,8 +2,8 @@ parameters:
   - $ref: ../components/parameters/path/deviceUIDPath.yaml
 get:
   operationId: listTunnels
-  summary: List tunnels
-  description: List the tunnels per devices.
+  summary: List device tunnels
+  description: List device tunnels.
   deprecated: true
   tags:
     - cloud
@@ -37,8 +37,8 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createTunnel
-  summary: Create a tunnel
-  description: Creates a new tunnel for a device.
+  summary: Create a device tunnel
+  description: Create a device tunnel.
   deprecated: true
   tags:
     - cloud

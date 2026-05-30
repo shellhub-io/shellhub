@@ -1,7 +1,7 @@
 patch:
   operationId: acceptDevice
-  summary: Accept device
-  description: Change device status to `accepted`.
+  summary: Accept a device
+  description: Accept a pending device.
   tags:
     - community
     - devices

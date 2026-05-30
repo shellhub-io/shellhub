@@ -1,7 +1,7 @@
 get:
   operationId: listWebEndpoints
-  summary: List web-endpoints
-  description: List all web-endpoints in the namespace.
+  summary: List web endpoints
+  description: List web endpoints.
   tags:
     - cloud
     - web-endpoints
@@ -45,8 +45,8 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createWebEndpoint
-  summary: Create a web-endpoint
-  description: Creates a new web-endpoint for a device.
+  summary: Create a web endpoint
+  description: Create a web endpoint for a device.
   tags:
     - cloud
     - web-endpoints

@@ -1,7 +1,7 @@
 get:
   operationId: getSessions
-  summary: Get sessions
-  description: Get a list sessions.
+  summary: List sessions
+  description: List sessions.
   tags:
     - community
     - sessions

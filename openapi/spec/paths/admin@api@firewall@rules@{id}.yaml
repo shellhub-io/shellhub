@@ -12,7 +12,7 @@ get:
   tags:
     - admin
     - enterprise
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -34,7 +34,7 @@ put:
   tags:
     - admin
     - enterprise
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -67,7 +67,7 @@ delete:
   tags:
     - admin
     - enterprise
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []

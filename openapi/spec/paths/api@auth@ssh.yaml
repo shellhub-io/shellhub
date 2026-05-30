@@ -4,7 +4,6 @@ post:
   description: Authenticate a SSH public key to ShellHub server.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - community
     - internal

@@ -1,7 +1,7 @@
 get:
   operationId: getContainers
-  summary: Get containers
-  description: Get a list of containers.
+  summary: List containers
+  description: List containers.
   tags:
     - community
     - containers

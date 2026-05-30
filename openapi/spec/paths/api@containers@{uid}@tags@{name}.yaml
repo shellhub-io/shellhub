@@ -1,7 +1,7 @@
 post:
   operationId: pushTagToContainer
-  summary: Associate a tag with a container
-  description: Associates a tag with a container in the authenticated namespace.
+  summary: Add a tag to a container
+  description: Add a tag to a container.
   tags:
     - community
     - tags
@@ -27,7 +27,7 @@ post:
 delete:
   operationId: pullTagFromContainer
   summary: Remove a tag from a container
-  description: Removes a tag from a container in the authenticated namespace.
+  description: Remove a tag from a container.
   tags:
     - community
     - tags

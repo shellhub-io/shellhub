@@ -10,6 +10,7 @@ get:
     - cloud
     - enterprise
     - system
+  security: []
   responses:
     '200':
       description: Service is healthy and responding

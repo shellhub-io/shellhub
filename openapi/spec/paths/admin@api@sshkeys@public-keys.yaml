@@ -4,7 +4,7 @@ get:
   description: Get a list from all public keys.
   tags:
     - enterprise
-    - ssh
+    - public-keys
   security:
     - jwt: []
     - api-key: []
@@ -32,7 +32,7 @@ post:
   description: Create a new public key.
   tags:
     - enterprise
-    - ssh
+    - public-keys
   security:
     - jwt: []
     - api-key: []

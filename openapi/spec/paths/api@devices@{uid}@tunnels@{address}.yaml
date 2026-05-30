@@ -4,7 +4,7 @@ parameters:
 delete:
   operationId: deleteTunnel
   summary: Delete a tunnel
-  description: Deletes a tunnel for a specific device and port.
+  description: Delete a device tunnel.
   deprecated: true
   tags:
     - cloud

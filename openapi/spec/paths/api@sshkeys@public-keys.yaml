@@ -1,10 +1,10 @@
 get:
   operationId: getPublicKeys
-  summary: Get public keys
-  description: Get a list from all public keys.
+  summary: List SSH public keys
+  description: List SSH public keys.
   tags:
     - community
-    - ssh
+    - public-keys
   security:
     - jwt: []
     - api-key: []
@@ -30,13 +30,14 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createPublicKey
-  summary: Create public key
-  description: Create a new public key.
+  summary: Create an SSH public key
+  description: Create an SSH public key.
   tags:
     - community
-    - ssh
+    - public-keys
   security:
     - jwt: []
+    - api-key: []
   requestBody:
     content:
       application/json:

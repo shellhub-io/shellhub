@@ -11,7 +11,6 @@ post:
   description: Add a new payment method.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing
@@ -70,7 +69,6 @@ patch:
   description: Update the payment method.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing
@@ -114,7 +112,6 @@ delete:
   description: Deattach a payment method.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing

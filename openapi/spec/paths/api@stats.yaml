@@ -1,10 +1,10 @@
 get:
   operationId: getStatusDevices
-  summary: Get stats ShellHub instance
-  description: Get stats ShellHub instance.
+  summary: Get namespace statistics
+  description: Get namespace statistics.
   tags:
     - community
-    - devices
+    - stats
   security:
     - jwt: []
     - api-key: []

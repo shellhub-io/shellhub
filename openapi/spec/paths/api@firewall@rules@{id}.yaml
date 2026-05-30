@@ -7,11 +7,11 @@ parameters:
     required: true
 get:
   operationId: getFirewallRule
-  summary: Get firewall rule
+  summary: Get a firewall rule
   description: Get a firewall rule.
   tags:
     - cloud
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -28,11 +28,11 @@ get:
       $ref: ../components/responses/500.yaml
 put:
   operationId: updateFirewallRule
-  summary: Update firewall rule
+  summary: Update a firewall rule
   description: Update a firewall rule.
   tags:
     - cloud
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -60,11 +60,11 @@ put:
       $ref: ../components/responses/500.yaml
 delete:
   operationId: deleteFirewallRule
-  summary: Delete firewall rule
+  summary: Delete a firewall rule
   description: Delete a firewall rule.
   tags:
     - cloud
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []

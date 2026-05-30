@@ -5,7 +5,7 @@ post:
   tags:
     - admin
     - enterprise
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []
@@ -38,7 +38,7 @@ get:
   tags:
     - admin
     - enterprise
-    - rules
+    - firewall
   security:
     - jwt: []
     - api-key: []

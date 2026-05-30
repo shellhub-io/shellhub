@@ -4,7 +4,6 @@ post:
   description: Set default payment method to the customer.
   security:
     - jwt: []
-    - api-key: []
   tags:
     - cloud
     - billing
