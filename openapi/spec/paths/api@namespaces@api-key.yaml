@@ -34,7 +34,6 @@ post:
       $ref: ../components/responses/500.yaml
 get:
   operationId: apiKeyList
-  x-internal: true
   summary: List API Keys
   tags:
     - api-keys
@@ -42,7 +41,6 @@ get:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   parameters:
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml

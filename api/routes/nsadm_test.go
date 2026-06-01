@@ -514,6 +514,16 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		expected      int
 	}{
 		{
+			description: "fails with api key",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			headers: map[string]string{
+				"X-API-KEY":   "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
+				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {},
+			expected:      http.StatusForbidden,
+		},
+		{
 			description: "fails to leave the namespace",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			headers: map[string]string{
@@ -673,29 +683,31 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 	}
 }
 
-// TestListNamespacesAPIKeyScope ensures a caller without a user ID (API key
-// path) cannot enumerate namespaces across tenants: the list is scoped to the
-// caller's own tenant. Covers the regression described in GHSA-vwx9-7qcf-gg7f.
-func TestListNamespacesAPIKeyScope(t *testing.T) {
-	const callerTenant = "00000000-0000-4000-0000-000000000000"
-
+func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 	mock := new(mocks.Service)
-	scopedNS := &models.Namespace{TenantID: callerTenant, Name: "dev"}
-	mock.
-		On("ListNamespaces", gomock.Anything, gomock.MatchedBy(func(req *requests.NamespaceList) bool {
-			return req.UserID == "" && req.TenantID == callerTenant && !req.IsAdmin
-		})).
-		Return([]models.Namespace{*scopedNS}, 1, nil).
-		Once()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
-	req.Header.Set("X-Role", authorizer.RoleOwner.String())
-	req.Header.Set("X-Tenant-ID", callerTenant)
-	// No X-ID set: this simulates an API key caller.
+	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
+	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 	rec := httptest.NewRecorder()
 	NewRouter(mock).ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
+	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
+	mock.AssertExpectations(t)
+}
+
+func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
+	mock := new(mocks.Service)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
+	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+	rec := httptest.NewRecorder()
+	NewRouter(mock).ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
 	mock.AssertExpectations(t)
 }
