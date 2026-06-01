@@ -3,6 +3,7 @@ import { usePublicKeys } from "@/hooks/usePublicKeys";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PageHeader from "@/components/common/PageHeader";
+import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -216,99 +217,51 @@ export default function PublicKeys() {
   /* Full-page onboarding empty state (no keys at all) */
   if (!isLoading && publicKeys.length === 0 && !debouncedSearch) {
     return (
-      <div>
-        <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse-subtle" />
-            <div
-              className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent-blue/5 rounded-full blur-[100px] animate-pulse-subtle"
-              style={{ animationDelay: "1s" }}
-            />
-            <div className="absolute inset-0 grid-bg opacity-30" />
-          </div>
-          <div className="flex-1 flex items-center justify-center px-8 py-12">
-            <div className="w-full max-w-2xl animate-fade-in">
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
-                  <KeyIcon className="w-8 h-8 text-primary" />
-                </div>
-                <span className="inline-block text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-                  SSH Authentication
-                </span>
-                <h1 className="text-3xl font-bold text-text-primary mb-3">
-                  Public Keys
-                </h1>
-                <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-                  Set up SSH public keys to enable secure, passwordless
-                  authentication to your devices. Manage access by user,
-                  hostname, or device tags.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                {[
-                  {
-                    icon: <ShieldCheckIcon className="w-5 h-5" />,
-                    title: "Passwordless Access",
-                    description:
-                      "Authenticate via SSH keys instead of passwords for stronger security.",
-                  },
-                  {
-                    icon: <UsersIcon className="w-5 h-5" />,
-                    title: "User Control",
-                    description:
-                      "Restrict which usernames can connect with each public key.",
-                  },
-                  {
-                    icon: <TagIcon className="w-5 h-5" />,
-                    title: "Device Filtering",
-                    description:
-                      "Scope keys to specific devices using hostname patterns or tags.",
-                  },
-                ].map((h, idx) => (
-                  <div
-                    key={h.title}
-                    className="bg-card/60 border border-border rounded-xl p-5 text-center animate-slide-up"
-                    style={{ animationDelay: `${150 + idx * 100}ms` }}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3 text-primary">
-                      {h.icon}
-                    </div>
-                    <h3 className="text-sm font-semibold text-text-primary mb-1">
-                      {h.title}
-                    </h3>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      {h.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="text-center animate-slide-up"
-                style={{ animationDelay: "450ms" }}
-              >
-                <RestrictedAction action="publicKey:create">
-                  <button
-                    onClick={openNew}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20"
-                  >
-                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                    Add your first key
-                  </button>
-                </RestrictedAction>
-                <p className="mt-4 text-2xs text-text-muted">
-                  Supports RSA, DSA, ECDSA, and ED25519 key types.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <>
+        <EmptyState
+          icon={<KeyIcon className="w-8 h-8" />}
+          overline="SSH Authentication"
+          title="Public Keys"
+          description="Set up SSH public keys to enable secure, passwordless authentication to your devices. Manage access by user, hostname, or device tags."
+          features={[
+            {
+              icon: <ShieldCheckIcon className="w-5 h-5" />,
+              title: "Passwordless Access",
+              description:
+                "Authenticate via SSH keys instead of passwords for stronger security.",
+            },
+            {
+              icon: <UsersIcon className="w-5 h-5" />,
+              title: "User Control",
+              description:
+                "Restrict which usernames can connect with each public key.",
+            },
+            {
+              icon: <TagIcon className="w-5 h-5" />,
+              title: "Device Filtering",
+              description:
+                "Scope keys to specific devices using hostname patterns or tags.",
+            },
+          ]}
+          footnote="Supports RSA, DSA, ECDSA, and ED25519 key types."
+        >
+          <RestrictedAction action="publicKey:create">
+            <button
+              onClick={openNew}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <PlusIcon className="w-4 h-4" strokeWidth={2} />
+              Add your first key
+            </button>
+          </RestrictedAction>
+        </EmptyState>
 
         <KeyDrawer
           open={drawerOpen}
           editKey={editTarget}
           onClose={closeDrawer}
         />
-      </div>
+      </>
     );
   }
 
