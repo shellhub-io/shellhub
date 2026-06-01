@@ -18,7 +18,6 @@ const (
 	AddNamespaceMemberURL      = "/namespaces/:tenant/members"
 	RemoveNamespaceMemberURL   = "/namespaces/:tenant/members/:uid"
 	EditNamespaceMemberURL     = "/namespaces/:tenant/members/:uid"
-	GetSessionRecordURL        = "/users/security"
 	EditSessionRecordStatusURL = "/users/security/:tenant"
 	EditDeviceAutoAcceptURL    = "/namespaces/device-auto-accept/:tenant"
 )
@@ -248,18 +247,4 @@ func (h *Handler) EditSessionRecordStatus(c gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) GetSessionRecord(c gateway.Context) error {
-	var tenant string
-	if v := c.Tenant(); v != nil {
-		tenant = v.ID
-	}
-
-	status, err := h.service.GetSessionRecord(c.Ctx(), tenant)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, status)
 }
