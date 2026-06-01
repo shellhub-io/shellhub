@@ -34,7 +34,7 @@ export default function PageLoader({
   padding = "md",
 }: PageLoaderProps) {
   const resolvedSize = size ?? (showLabel ? "md" : "lg");
-  const wrapper = ["flex items-center justify-center", PADDING[padding]]
+  const wrapper = ["flex h-full items-center justify-center", PADDING[padding]]
     .filter(Boolean)
     .join(" ");
 

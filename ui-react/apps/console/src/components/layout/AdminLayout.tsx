@@ -6,11 +6,12 @@ import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
-  const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
+  const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
+    useSidebarLayout();
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {isDesktop ? (
           <div
             onMouseEnter={handlers.onMouseEnter}
@@ -18,7 +19,11 @@ export default function AdminLayout() {
             onFocus={handlers.onFocus}
             onBlur={handlers.onBlur}
           >
-            <AdminSidebar expanded={isOpen} pinned={pinned} onToggle={handlers.onToggle} />
+            <AdminSidebar
+              expanded={isOpen}
+              pinned={pinned}
+              onToggle={handlers.onToggle}
+            />
           </div>
         ) : (
           <SidebarMobileDrawer
@@ -35,17 +40,19 @@ export default function AdminLayout() {
             />
           </SidebarMobileDrawer>
         )}
-        <div className="flex-1 flex flex-col min-w-0">
-          <AdminAppBar onMenuToggle={isDesktop ? undefined : handlers.toggleDrawer} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 relative">
+        <div className="flex flex-col size-full">
+          <AdminAppBar
+            onMenuToggle={isDesktop ? undefined : handlers.toggleDrawer}
+          />
+          <div className="relative size-full">
             <div className="grid-bg scanline absolute inset-0 -z-10" />
-            <div
+            <main
               key={pathname}
-              className="page-enter flex-1 flex flex-col"
+              className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto"
             >
               <Outlet />
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
       </div>
     </div>

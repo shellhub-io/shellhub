@@ -123,9 +123,9 @@ const steps = [
 
 export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
   return (
-    <div className="-m-8 flex-1 relative overflow-hidden">
+    <div className="min-h-full relative overflow-hidden px-4 pb-12">
       {/* Hero */}
-      <div className="relative px-8 pt-16 pb-12 overflow-hidden">
+      <div className="relative pt-16 pb-12 overflow-hidden">
         <ConnectionGrid />
         <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent" />
         <div className="absolute top-10 left-1/4 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
@@ -174,7 +174,7 @@ export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
       </div>
 
       {/* Steps */}
-      <div className="px-8 pb-12">
+      <>
         <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {steps.map((step, idx) => (
             <li
@@ -249,7 +249,7 @@ export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
             Community
           </a>
         </div>
-      </div>
+      </>
     </div>
   );
 }

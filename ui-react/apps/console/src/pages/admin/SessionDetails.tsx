@@ -61,7 +61,7 @@ export default function AdminSessionDetails() {
 
   if (error || !session) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <div className="text-center" role="alert">
           <ExclamationCircleIcon className="w-10 h-10 text-accent-red mx-auto mb-3" />
           <p className="text-sm font-medium text-text-primary">
