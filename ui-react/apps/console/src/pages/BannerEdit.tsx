@@ -141,7 +141,7 @@ export default function BannerEdit() {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="min-h-full flex flex-col">
       {/* Header */}
       <div className="relative -mx-8 -mt-8 px-8 py-6 mb-8 border-b border-border bg-surface shrink-0">
         <Breadcrumb

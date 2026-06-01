@@ -62,21 +62,21 @@ export default function AppLayout() {
               />
             </SidebarMobileDrawer>
           )}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex flex-col size-full">
             <AppBar
               onMenuToggle={
                 showSidebar && !isDesktop ? handlers.toggleDrawer : undefined
               }
             />
-            <main className="flex-1 flex flex-col p-8 relative min-h-0 overflow-y-auto">
+            <div className="relative size-full">
               <div className="grid-bg scanline absolute inset-0 -z-10" />
-              <div
+              <main
                 key={pathname}
-                className="page-enter flex-1 flex flex-col min-h-0"
+                className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto"
               >
                 <Outlet />
-              </div>
-            </main>
+              </main>
+            </div>
           </div>
         </div>
         <TerminalManager sidebarOffset={sidebarOffset} />
