@@ -20,7 +20,6 @@ type NamespaceService interface {
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
-	GetSessionRecord(ctx context.Context, tenantID string) (bool, error)
 	EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error
 }
 
@@ -247,19 +246,4 @@ func (s *service) EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept boo
 	}
 
 	return nil
-}
-
-// GetSessionRecord gets the session record data.
-//
-// It receives a context, used to "control" the request flow, the tenant ID from models.Namespace.
-//
-// GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
-// the boolean is false.
-func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil {
-		return false, NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	return n.Settings.SessionRecord, nil
 }

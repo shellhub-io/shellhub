@@ -244,53 +244,6 @@ func TestDeleteNamespace(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestGetSessionRecord(t *testing.T) {
-	mock := new(mocks.Service)
-
-	cases := []struct {
-		name           string
-		tenant         string
-		requiredMocks  func()
-		expectedStatus int
-	}{
-		{
-			name:   "fails when try to get a session record of a non-existing session",
-			tenant: "tenant",
-			requiredMocks: func() {
-				mock.On("GetSessionRecord", gomock.Anything, "tenant").Return(false, svc.ErrNotFound).Once()
-			},
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			name:   "success when try to get a  session record of a existing session",
-			tenant: "tenant",
-			requiredMocks: func() {
-				mock.On("GetSessionRecord", gomock.Anything, "tenant").Return(true, nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.requiredMocks()
-
-			req := httptest.NewRequest(http.MethodGet, "/api/users/security", nil)
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", tc.tenant)
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
 func TestEditNamespace(t *testing.T) {
 	svcMock := new(mocks.Service)
 

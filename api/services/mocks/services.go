@@ -855,34 +855,6 @@ func (_m *Service) GetSession(ctx context.Context, uid models.UID) (*models.Sess
 	return r0, r1
 }
 
-// GetSessionRecord provides a mock function with given fields: ctx, tenantID
-func (_m *Service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	ret := _m.Called(ctx, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetSessionRecord")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, tenantID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, tenantID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetStats provides a mock function with given fields: ctx, req
 func (_m *Service) GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error) {
 	ret := _m.Called(ctx, req)
