@@ -289,6 +289,21 @@ func TestListAPIKey(t *testing.T) {
 		expected      Expected
 	}{
 		{
+			description: "fails with api key",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-API-KEY":    "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+			},
+			query: func() string {
+				return ""
+			},
+			requiredMocks: func() {
+			},
+			expected: Expected{body: nil, status: http.StatusForbidden},
+		},
+		{
 			description: "success",
 			headers: map[string]string{
 				"Content-Type": "application/json",

@@ -1,6 +1,5 @@
 get:
   operationId: getNamespaces
-  x-internal: true
   summary: Get namespaces list
   description: Returns a list of namespaces.
   tags:
@@ -8,7 +7,6 @@ get:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   parameters:
     - name: filter
       description: |
@@ -62,7 +60,6 @@ get:
       $ref: ../components/responses/500.yaml
 post:
   operationId: createNamespace
-  x-internal: true
   summary: Create namespace
   description: Create a namespace.
   tags:
@@ -70,7 +67,6 @@ post:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   requestBody:
     content:
       application/json:

@@ -1,6 +1,5 @@
 delete:
   operationId: leaveNamespace
-  x-internal: true
   summary: Leave Namespace
   description: |
     Allows the authenticated user to leave the specified namespace. Owners
@@ -13,7 +12,6 @@ delete:
     - namespaces
   security:
     - jwt: []
-    - api-key: []
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
   responses:
