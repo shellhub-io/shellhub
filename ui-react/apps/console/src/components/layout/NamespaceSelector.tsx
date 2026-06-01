@@ -143,7 +143,7 @@ export default function NamespaceSelector({
 
           {/* Namespace list */}
           {availableNamespaces.length > 0 && (
-            <div className="p-2">
+            <div className="p-2 overflow-y-auto max-h-72">
               <p className="px-2 py-1.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
                 {isAdminContext ? "Available Namespaces" : "Switch Namespace"}
               </p>
