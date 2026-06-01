@@ -10,6 +10,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
 import PageHeader from "@/components/common/PageHeader";
+import EmptyState, {
+  type EmptyStateFeature,
+} from "@/components/common/EmptyState";
 import CopyButton from "@/components/common/CopyButton";
 import VaultSetupDialog from "@/components/vault/VaultSetupDialog";
 import VaultUnlockDialog from "@/components/vault/VaultUnlockDialog";
@@ -20,6 +23,27 @@ import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatDate } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
+
+const VAULT_FEATURES: EmptyStateFeature[] = [
+  {
+    icon: <LockClosedIcon className="w-5 h-5" />,
+    title: "AES-256 Encryption",
+    description:
+      "Keys are encrypted with AES-256-GCM, derived from your master password.",
+  },
+  {
+    icon: <FingerPrintIcon className="w-5 h-5" />,
+    title: "Zero Knowledge",
+    description:
+      "Your master password is never stored — only you can unlock the vault.",
+  },
+  {
+    icon: <KeyIcon className="w-5 h-5" />,
+    title: "Quick Connect",
+    description:
+      "Select stored keys when connecting to devices — no more copy-pasting.",
+  },
+];
 
 export default function SecureVault() {
   const status = useVaultStore((s) => s.status);
@@ -60,86 +84,21 @@ export default function SecureVault() {
   if (status === "uninitialized") {
     return (
       <>
-        <div className="relative -m-8 flex-1 flex flex-col overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse-subtle" />
-            <div
-              className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent-blue/5 rounded-full blur-[100px] animate-pulse-subtle"
-              style={{ animationDelay: "1s" }}
-            />
-            <div className="absolute inset-0 grid-bg opacity-30" />
-          </div>
-          <div className="flex-1 flex items-center justify-center px-8 py-12">
-            <div className="w-full max-w-2xl animate-fade-in">
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
-                  <ShieldCheckIcon className="w-8 h-8 text-primary" />
-                </div>
-                <span className="inline-block text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-                  Encrypted Key Storage
-                </span>
-                <h1 className="text-3xl font-bold text-text-primary mb-3">
-                  Secure Vault
-                </h1>
-                <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-                  Store and encrypt your SSH private keys with a master
-                  password. Your keys never leave your browser and are protected
-                  at rest.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                {[
-                  {
-                    icon: <LockClosedIcon className="w-5 h-5" />,
-                    title: "AES-256 Encryption",
-                    description:
-                      "Keys are encrypted with AES-256-GCM, derived from your master password.",
-                  },
-                  {
-                    icon: <FingerPrintIcon className="w-5 h-5" />,
-                    title: "Zero Knowledge",
-                    description:
-                      "Your master password is never stored — only you can unlock the vault.",
-                  },
-                  {
-                    icon: <KeyIcon className="w-5 h-5" />,
-                    title: "Quick Connect",
-                    description:
-                      "Select stored keys when connecting to devices — no more copy-pasting.",
-                  },
-                ].map((h, idx) => (
-                  <div
-                    key={h.title}
-                    className="bg-card/60 border border-border rounded-xl p-5 text-center animate-slide-up"
-                    style={{ animationDelay: `${150 + idx * 100}ms` }}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3 text-primary">
-                      {h.icon}
-                    </div>
-                    <h3 className="text-sm font-semibold text-text-primary mb-1">
-                      {h.title}
-                    </h3>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      {h.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="text-center animate-slide-up"
-                style={{ animationDelay: "450ms" }}
-              >
-                <button
-                  onClick={() => setSetupOpen(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20"
-                >
-                  <ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />
-                  Set Up Secure Vault
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmptyState
+          icon={<ShieldCheckIcon className="w-8 h-8" />}
+          overline="Encrypted Key Storage"
+          title="Secure Vault"
+          description="Store and encrypt your SSH private keys with a master password. Your keys never leave your browser and are protected at rest."
+          features={VAULT_FEATURES}
+        >
+          <button
+            onClick={() => setSetupOpen(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />
+            Set Up Secure Vault
+          </button>
+        </EmptyState>
         <VaultSetupDialog
           open={setupOpen}
           onClose={() => setSetupOpen(false)}
@@ -151,85 +110,22 @@ export default function SecureVault() {
   if (status === "locked") {
     return (
       <>
-        <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-accent-yellow/5 rounded-full blur-[120px] animate-pulse-subtle" />
-            <div
-              className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] animate-pulse-subtle"
-              style={{ animationDelay: "1s" }}
-            />
-            <div className="absolute inset-0 grid-bg opacity-30" />
-          </div>
-          <div className="flex-1 flex items-center justify-center px-8 py-12">
-            <div className="w-full max-w-2xl animate-fade-in">
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 rounded-2xl bg-accent-yellow/10 border border-accent-yellow/20 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-accent-yellow/5">
-                  <LockClosedIcon className="w-8 h-8 text-accent-yellow" />
-                </div>
-                <span className="inline-block text-2xs font-mono font-semibold uppercase tracking-wide text-accent-yellow/80 mb-2">
-                  Vault Locked
-                </span>
-                <h1 className="text-3xl font-bold text-text-primary mb-3">
-                  Your vault is locked
-                </h1>
-                <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-                  Enter your master password to access your SSH keys and connect
-                  to devices.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                {[
-                  {
-                    icon: <LockClosedIcon className="w-5 h-5" />,
-                    title: "AES-256 Encryption",
-                    description:
-                      "Keys are encrypted with AES-256-GCM, derived from your master password.",
-                  },
-                  {
-                    icon: <FingerPrintIcon className="w-5 h-5" />,
-                    title: "Zero Knowledge",
-                    description:
-                      "Your master password is never stored — only you can unlock the vault.",
-                  },
-                  {
-                    icon: <KeyIcon className="w-5 h-5" />,
-                    title: "Quick Connect",
-                    description:
-                      "Select stored keys when connecting to devices — no more copy-pasting.",
-                  },
-                ].map((h, idx) => (
-                  <div
-                    key={h.title}
-                    className="bg-card/60 border border-border rounded-xl p-5 text-center animate-slide-up"
-                    style={{ animationDelay: `${150 + idx * 100}ms` }}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3 text-primary">
-                      {h.icon}
-                    </div>
-                    <h3 className="text-sm font-semibold text-text-primary mb-1">
-                      {h.title}
-                    </h3>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      {h.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="text-center animate-slide-up"
-                style={{ animationDelay: "450ms" }}
-              >
-                <button
-                  onClick={() => setUnlockOpen(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
-                >
-                  <LockClosedIcon className="w-4 h-4" strokeWidth={2} />
-                  Unlock Vault
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmptyState
+          accent="yellow"
+          icon={<LockClosedIcon className="w-8 h-8" />}
+          overline="Vault Locked"
+          title="Your vault is locked"
+          description="Enter your master password to access your SSH keys and connect to devices."
+          features={VAULT_FEATURES}
+        >
+          <button
+            onClick={() => setUnlockOpen(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <LockClosedIcon className="w-4 h-4" strokeWidth={2} />
+            Unlock Vault
+          </button>
+        </EmptyState>
         <VaultUnlockDialog
           open={unlockOpen}
           onClose={() => setUnlockOpen(false)}
