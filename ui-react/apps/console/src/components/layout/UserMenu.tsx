@@ -32,12 +32,15 @@ export default function UserMenu() {
     <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
+        aria-label={`Account menu for ${user}`}
+        aria-haspopup="true"
+        aria-expanded={open}
         className="flex items-center gap-2 h-8 pl-1 pr-2.5 rounded-lg border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
         <span className="w-6 h-6 rounded-md bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
           {getInitials(user)}
         </span>
-        <span className="text-xs font-medium text-text-secondary max-w-[120px] truncate">
+        <span className="hidden sm:inline text-xs font-medium text-text-secondary max-w-[120px] truncate">
           {user}
         </span>
         <ChevronDownIcon
