@@ -145,7 +145,7 @@ export default function InvitationsMenu() {
 
   return (
     <>
-      <div ref={containerRef} className="relative">
+      <div ref={containerRef} className="sm:relative">
         <button
           type="button"
           onClick={() => setOpen(!open)}
@@ -172,7 +172,7 @@ export default function InvitationsMenu() {
           <div
             role="menu"
             aria-label="Pending invitations"
-            className="absolute top-full right-0 mt-1.5 w-80 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down"
+            className="absolute top-full right-0 mt-1.5 w-80 max-w-full sm:max-w-none bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down"
           >
             <div className="flex items-center justify-between px-3.5 py-3 border-b border-border">
               <div>
