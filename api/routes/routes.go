@@ -197,7 +197,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	}
 
 	// MCP server (Model Context Protocol) for AI assistants.
-	SetupMCPRoutes(router, service)
+	SetupMCPRoutes(router)
 
 	// Apply route extensions (enterprise/cloud features)
 	if err := applyExtensions(router, service); err != nil {
