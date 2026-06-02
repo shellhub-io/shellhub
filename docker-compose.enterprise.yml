@@ -53,7 +53,7 @@ services:
     image: registry.infra.ossystems.io/cache/shellhubio/cli:${SHELLHUB_VERSION}
 
   redis:
-    image: registry.infra.ossystems.io/cache/redis
+    image: registry.infra.ossystems.io/cache/valkey/valkey:9.1-alpine
 
   ssh:
     image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
