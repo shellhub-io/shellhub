@@ -64,6 +64,9 @@ export default function NamespaceSelector({
     <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
+        aria-label={isAdminContext ? "Admin Console" : currentNamespace?.name ?? "Select Namespace"}
+        aria-haspopup="true"
+        aria-expanded={open}
         className="flex items-center gap-2.5 h-9 px-3 rounded-md border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
         {isAdminContext
@@ -81,7 +84,7 @@ export default function NamespaceSelector({
                 <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
                   {getInitials(currentNamespace.name)}
                 </span>
-                <span className="text-sm font-medium text-text-primary max-w-[180px] truncate">
+                <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
                   {currentNamespace.name}
                 </span>
               </>
