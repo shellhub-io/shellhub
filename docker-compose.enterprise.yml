@@ -31,12 +31,6 @@ services:
     networks:
       - shellhub
 
-  ui:
-    image: registry.infra.ossystems.io/cache/shellhubio/ui:${SHELLHUB_VERSION}
-    environment:
-      - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
-      - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}
-
   ui-react:
     image: registry.infra.ossystems.io/cache/shellhubio/ui-react:${SHELLHUB_VERSION}
     environment:

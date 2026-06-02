@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, agent, pkg, ssh, ui, cli]
+        project: [api, agent, pkg, ssh, cli]
         database: ['']  # Empty by default
         include:
           - project: api
@@ -31,9 +31,6 @@ jobs:
           - project: ssh
             extra_args: "-tags internal_api"
             lint_args: "--build-tags internal_api"
-          - project: ui
-            extra_args: ""
-            lint_args: ""
           - project: cli
             extra_args: ""
             lint_args: ""
@@ -73,8 +70,6 @@ jobs:
         with:
           # inline YAML or path to separate file (e.g.: .github/filters.yaml)
           filters: |
-            ui:
-              - 'ui/**'
             go:
               - 'api/**'
               - 'agent/**'
@@ -84,19 +79,19 @@ jobs:
               - 'tests/**'
 
       - name: Set up Go 1.x [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
         id: go
 
       - name: Get Go dependencies [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go mod download
 
       - name: Ensure Go dependencies are complete [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: |
           ../devscripts/prepare-release
@@ -110,7 +105,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && github.event.pull_request.draft == false
 
       - name: Code linting [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         uses: golangci/golangci-lint-action@v9
         with:
           working-directory: ${{ matrix.project }}
@@ -126,49 +121,16 @@ jobs:
           echo "Running integration tests with database: ${{ matrix.database }}"
 
       - name: Unit test [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go test ${{ matrix.extra_args }} -timeout 25m ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
       - name: Go build [Go]
-        if: matrix.project != 'ui' && matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        if: matrix.project != 'tests' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go build -v ${{ matrix.extra_args }} ./...
-
-      - name: Set up Node.JS 21.4.0 [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        uses: actions/setup-node@v6.4.0
-        with:
-          node-version: "21.4.0"
-
-      - name: Cache node modules [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        uses: actions/cache@v5
-        with:
-          path: ui/node_modules
-          key: ${{ runner.OS }}-ui-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install Node Dependencies [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: npm install
-
-      - name: Unit test [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: npm run test
-
-      - name: Save Code Linting Report JSON [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: npm run lint
-
-      - name: Build [UI]
-        if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        working-directory: ${{ matrix.project }}
-        run: npm run build
 
       - name: Save Docker images to cache
         if: always()
