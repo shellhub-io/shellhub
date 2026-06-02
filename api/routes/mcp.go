@@ -1,32 +1,45 @@
 package routes
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
-	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/errors"
-	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type mcpContextKey string
 
 const (
 	mcpKeyTenantID mcpContextKey = "mcp_tenant_id"
-	mcpKeyRole     mcpContextKey = "mcp_role"
+	mcpKeyHeaders  mcpContextKey = "mcp_headers"
 )
 
+// mcpAuthHeaders are the headers the API gateway injects to identify an API-key
+// caller. They are captured from the incoming /mcp request and replayed on the
+// in-process API calls the tools make, so the same authentication and
+// authorization the gateway performed for the MCP request flows through to the
+// REST middleware (BlockAPIKey, RequiresPermission, RequiresTenant). MCP auth
+// is API-key-only, so the user-identity headers (X-ID, X-Admin, X-Username)
+// never apply and are intentionally omitted.
+var mcpAuthHeaders = []string{
+	"X-Tenant-ID",
+	"X-Role",
+	"X-Api-Key",
+}
+
 // SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp.
-func SetupMCPRoutes(router *echo.Echo, service services.Service) {
-	s := buildMCPServer(service)
+func SetupMCPRoutes(router *echo.Echo) {
+	s := buildMCPServer(router)
 
 	httpCtxFn := func(ctx context.Context, r *http.Request) context.Context {
 		tenantID := r.Header.Get("X-Tenant-ID")
@@ -37,12 +50,16 @@ func SetupMCPRoutes(router *echo.Echo, service services.Service) {
 		}
 
 		ctx = context.WithValue(ctx, mcpKeyTenantID, tenantID)
-		ctx = context.WithValue(ctx, mcpKeyRole, role)
 
-		// Mirror tenant into the key gateway.TenantFromContext looks up so
-		// service methods (GetDevice, GetSession, …) automatically scope
-		// queries to this namespace.
-		ctx = context.WithValue(ctx, "tenant", tenantID) //nolint:staticcheck // SA1029: matches gateway.TenantFromContext key
+		// Capture the gateway-injected auth headers so tools can replay them
+		// on in-process API calls and inherit the REST middleware.
+		headers := http.Header{}
+		for _, key := range mcpAuthHeaders {
+			if value := r.Header.Get(key); value != "" {
+				headers.Set(key, value)
+			}
+		}
+		ctx = context.WithValue(ctx, mcpKeyHeaders, headers)
 
 		return ctx
 	}
@@ -55,47 +72,99 @@ func SetupMCPRoutes(router *echo.Echo, service services.Service) {
 	router.Any("/mcp/*", echo.WrapHandler(streamable))
 }
 
-func buildMCPServer(svc services.Service) *mcpserver.MCPServer {
+func buildMCPServer(router http.Handler) *mcpserver.MCPServer {
 	s := mcpserver.NewMCPServer("shellhub", "1.0.0",
 		mcpserver.WithToolCapabilities(true),
 	)
 
-	addDeviceTools(s, svc)
-	addSessionTools(s, svc)
-	addNamespaceTools(s, svc)
+	addDeviceTools(s, router)
+	addSessionTools(s, router)
+	addNamespaceTools(s, router)
 
 	return s
 }
 
 // --- helpers ---
 
-func mcpForbidden() *mcp.CallToolResult {
-	return mcp.NewToolResultError("forbidden: insufficient permissions")
+// mcpAPICall replays the caller's request against the API's own Echo router
+// in-process, so the full middleware chain (BlockAPIKey, RequiresPermission,
+// RequiresTenant) runs exactly as it would for a REST caller. The MCP server
+// is an in-binary client of the API, not a shortcut past it -- no network hop,
+// but the same authorization path. body may be nil.
+func mcpAPICall(ctx context.Context, router http.Handler, method, target string, body io.Reader) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(method, target, body)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	if headers, ok := ctx.Value(mcpKeyHeaders).(http.Header); ok {
+		for key, values := range headers {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+	}
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	return rec
 }
 
-// mcpServiceError maps known service errors to fixed user-facing messages,
-// hiding internal store details from MCP clients.
-func mcpServiceError(err error) *mcp.CallToolResult {
-	switch {
-	case errors.Is(err, services.ErrDeviceNotFound):
-		return mcp.NewToolResultError("device not found")
-	case errors.Is(err, services.ErrSessionNotFound):
-		return mcp.NewToolResultError("session not found")
-	case errors.Is(err, services.ErrNamespaceNotFound):
-		return mcp.NewToolResultError("namespace not found")
+// mcpAPIResult turns an in-process API response into a tool result: a 2xx
+// forwards the JSON body verbatim, anything else maps the status code to a
+// fixed message so internal store details never leak to MCP clients.
+func mcpAPIResult(rec *httptest.ResponseRecorder) *mcp.CallToolResult {
+	if rec.Code >= http.StatusOK && rec.Code < http.StatusMultipleChoices {
+		return mcp.NewToolResultText(rec.Body.String())
+	}
+
+	switch rec.Code {
+	case http.StatusUnauthorized:
+		return mcpUnauth()
+	case http.StatusForbidden:
+		return mcpForbidden()
+	case http.StatusNotFound:
+		return mcp.NewToolResultError("not found")
 	default:
 		return mcp.NewToolResultError("internal error")
 	}
 }
 
-func mcpUnauth() *mcp.CallToolResult {
-	return mcp.NewToolResultError("unauthorized: missing or invalid token")
+// mcpAPIListResult wraps a paginated list response as {total, <key>: [...]},
+// reading the count from the X-Total-Count header the list handlers set and
+// forwarding the body array verbatim. Non-2xx responses fall back to the
+// shared error mapping.
+func mcpAPIListResult(rec *httptest.ResponseRecorder, key string) *mcp.CallToolResult {
+	if rec.Code < http.StatusOK || rec.Code >= http.StatusMultipleChoices {
+		return mcpAPIResult(rec)
+	}
+
+	total, _ := strconv.Atoi(rec.Header().Get("X-Total-Count"))
+
+	return mcp.NewToolResultText(toJSON(map[string]any{
+		"total": total,
+		key:     json.RawMessage(rec.Body.Bytes()),
+	}))
 }
 
-func roleFromCtx(ctx context.Context) (authorizer.Role, bool) {
-	r, ok := ctx.Value(mcpKeyRole).(authorizer.Role)
+// mcpAPIOK returns a fixed success message for write operations whose REST
+// response body isn't useful to forward. Non-2xx responses fall back to the
+// shared error mapping.
+func mcpAPIOK(rec *httptest.ResponseRecorder, msg string) *mcp.CallToolResult {
+	if rec.Code >= http.StatusOK && rec.Code < http.StatusMultipleChoices {
+		return mcp.NewToolResultText(msg)
+	}
 
-	return r, ok
+	return mcpAPIResult(rec)
+}
+
+func mcpForbidden() *mcp.CallToolResult {
+	return mcp.NewToolResultError("forbidden: insufficient permissions")
+}
+
+func mcpUnauth() *mcp.CallToolResult {
+	return mcp.NewToolResultError("unauthorized: missing or invalid token")
 }
 
 func tenantFromCtx(ctx context.Context) string {
@@ -121,7 +190,7 @@ func toJSON(v any) string {
 
 // --- Device tools ---
 
-func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
+func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 	s.AddTool(
 		mcp.NewTool("shellhub_list_devices",
 			mcp.WithDescription("List devices in the ShellHub namespace. Filter by status and paginate results."),
@@ -130,35 +199,18 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithInteger("per_page", mcp.Description("Results per page (max 100). Default: 20.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.DeviceDetails) {
-				return mcpForbidden(), nil
-			}
-
 			args := req.GetArguments()
-			status, _ := args["status"].(string)
-			page := intArg(args, "page", 1)
-			perPage := intArg(args, "per_page", 20)
 
-			r := &requests.DeviceList{
-				TenantID:     tenantFromCtx(ctx),
-				DeviceStatus: models.DeviceStatus(status),
-				Paginator:    query.Paginator{Page: page, PerPage: perPage},
+			q := url.Values{}
+			if status, _ := args["status"].(string); status != "" {
+				q.Set("status", status)
 			}
-			r.Paginator.Normalize()
+			q.Set("page", strconv.Itoa(intArg(args, "page", 1)))
+			q.Set("per_page", strconv.Itoa(intArg(args, "per_page", 20)))
 
-			devices, count, err := svc.ListDevices(ctx, r)
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/devices?"+q.Encode(), nil)
 
-			return mcp.NewToolResultText(toJSON(map[string]any{
-				"total":   count,
-				"devices": devices,
-			})), nil
+			return mcpAPIListResult(rec, "devices"), nil
 		},
 	)
 
@@ -168,22 +220,11 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithString("uid", mcp.Required(), mcp.Description("Device UID.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.DeviceDetails) {
-				return mcpForbidden(), nil
-			}
+			uid, _ := req.GetArguments()["uid"].(string)
 
-			args := req.GetArguments()
-			uid, _ := args["uid"].(string)
-			device, err := svc.GetDevice(ctx, models.UID(uid))
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/devices/"+url.PathEscape(uid), nil)
 
-			return mcp.NewToolResultText(toJSON(device)), nil
+			return mcpAPIResult(rec), nil
 		},
 	)
 
@@ -194,39 +235,20 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithString("status", mcp.Required(), mcp.Description("New status: accepted or rejected.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-
 			args := req.GetArguments()
 			uid, _ := args["uid"].(string)
 			status, _ := args["status"].(string)
 
-			switch status {
-			case "accepted":
-				if !role.HasPermission(authorizer.DeviceAccept) {
-					return mcpForbidden(), nil
-				}
-			case "rejected":
-				if !role.HasPermission(authorizer.DeviceReject) {
-					return mcpForbidden(), nil
-				}
-			default:
+			// The REST route expects the legacy short form in the path param.
+			pathStatus := map[string]string{"accepted": "accept", "rejected": "reject"}[status]
+			if pathStatus == "" {
 				return mcp.NewToolResultError("status must be 'accepted' or 'rejected'"), nil
 			}
 
-			r := &requests.DeviceUpdateStatus{
-				TenantID: tenantFromCtx(ctx),
-				UID:      uid,
-				Status:   status,
-			}
+			rec := mcpAPICall(ctx, router, http.MethodPatch,
+				"/api/devices/"+url.PathEscape(uid)+"/"+pathStatus, nil)
 
-			if err := svc.UpdateDeviceStatus(ctx, r); err != nil {
-				return mcpServiceError(err), nil
-			}
-
-			return mcp.NewToolResultText(fmt.Sprintf("device %s status updated to %s", uid, status)), nil
+			return mcpAPIOK(rec, fmt.Sprintf("device %s status updated to %s", uid, status)), nil
 		},
 	)
 
@@ -236,23 +258,11 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithString("uid", mcp.Required(), mcp.Description("Device UID.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.DeviceRemove) {
-				return mcpForbidden(), nil
-			}
+			uid, _ := req.GetArguments()["uid"].(string)
 
-			args := req.GetArguments()
-			uid, _ := args["uid"].(string)
-			tenant := tenantFromCtx(ctx)
+			rec := mcpAPICall(ctx, router, http.MethodDelete, "/api/devices/"+url.PathEscape(uid), nil)
 
-			if err := svc.DeleteDevice(ctx, models.UID(uid), tenant); err != nil {
-				return mcpServiceError(err), nil
-			}
-
-			return mcp.NewToolResultText(fmt.Sprintf("device %s deleted", uid)), nil
+			return mcpAPIOK(rec, fmt.Sprintf("device %s deleted", uid)), nil
 		},
 	)
 
@@ -263,24 +273,15 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithString("name", mcp.Required(), mcp.Description("New device name (hostname format).")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.DeviceRename) {
-				return mcpForbidden(), nil
-			}
-
 			args := req.GetArguments()
 			uid, _ := args["uid"].(string)
 			name, _ := args["name"].(string)
-			tenant := tenantFromCtx(ctx)
 
-			if err := svc.RenameDevice(ctx, models.UID(uid), name, tenant); err != nil {
-				return mcpServiceError(err), nil
-			}
+			body, _ := json.Marshal(map[string]string{"name": name})
+			rec := mcpAPICall(ctx, router, http.MethodPatch,
+				"/api/devices/"+url.PathEscape(uid), bytes.NewReader(body))
 
-			return mcp.NewToolResultText(fmt.Sprintf("device %s renamed to %s", uid, name)), nil
+			return mcpAPIOK(rec, fmt.Sprintf("device %s renamed to %s", uid, name)), nil
 		},
 	)
 
@@ -289,30 +290,16 @@ func addDeviceTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithDescription("Get ShellHub instance statistics: registered/online/pending/rejected devices and active sessions."),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			_, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/stats", nil)
 
-			tenant := tenantFromCtx(ctx)
-			if tenant == "" {
-				return mcpForbidden(), nil
-			}
-
-			r := &requests.GetStats{TenantID: tenant}
-			stats, err := svc.GetStats(ctx, r)
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
-
-			return mcp.NewToolResultText(toJSON(stats)), nil
+			return mcpAPIResult(rec), nil
 		},
 	)
 }
 
 // --- Session tools ---
 
-func addSessionTools(s *mcpserver.MCPServer, svc services.Service) {
+func addSessionTools(s *mcpserver.MCPServer, router http.Handler) {
 	s.AddTool(
 		mcp.NewTool("shellhub_list_sessions",
 			mcp.WithDescription("List SSH sessions in the namespace. Returns active and historical sessions."),
@@ -320,33 +307,15 @@ func addSessionTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithInteger("per_page", mcp.Description("Results per page (max 100). Default: 20.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.SessionDetails) {
-				return mcpForbidden(), nil
-			}
-
 			args := req.GetArguments()
-			page := intArg(args, "page", 1)
-			perPage := intArg(args, "per_page", 20)
 
-			r := &requests.ListSessions{
-				TenantID:  tenantFromCtx(ctx),
-				Paginator: query.Paginator{Page: page, PerPage: perPage},
-			}
-			r.Paginator.Normalize()
+			q := url.Values{}
+			q.Set("page", strconv.Itoa(intArg(args, "page", 1)))
+			q.Set("per_page", strconv.Itoa(intArg(args, "per_page", 20)))
 
-			sessions, count, err := svc.ListSessions(ctx, r)
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/sessions?"+q.Encode(), nil)
 
-			return mcp.NewToolResultText(toJSON(map[string]any{
-				"total":    count,
-				"sessions": sessions,
-			})), nil
+			return mcpAPIListResult(rec, "sessions"), nil
 		},
 	)
 
@@ -356,89 +325,39 @@ func addSessionTools(s *mcpserver.MCPServer, svc services.Service) {
 			mcp.WithString("uid", mcp.Required(), mcp.Description("Session UID.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			role, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-			if !role.HasPermission(authorizer.SessionDetails) {
-				return mcpForbidden(), nil
-			}
+			uid, _ := req.GetArguments()["uid"].(string)
 
-			args := req.GetArguments()
-			uid, _ := args["uid"].(string)
-			session, err := svc.GetSession(ctx, models.UID(uid))
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/sessions/"+url.PathEscape(uid), nil)
 
-			return mcp.NewToolResultText(toJSON(session)), nil
+			return mcpAPIResult(rec), nil
 		},
 	)
 }
 
 // --- Namespace tools ---
 
-func addNamespaceTools(s *mcpserver.MCPServer, svc services.Service) {
-	s.AddTool(
-		mcp.NewTool("shellhub_list_namespaces",
-			mcp.WithDescription("List ShellHub namespaces accessible to the authenticated user."),
-			mcp.WithInteger("page", mcp.Description("Page number (1-based). Default: 1.")),
-			mcp.WithInteger("per_page", mcp.Description("Results per page. Default: 20.")),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			_, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-
-			args := req.GetArguments()
-			page := intArg(args, "page", 1)
-			perPage := intArg(args, "per_page", 20)
-
-			r := &requests.NamespaceList{
-				TenantID:  tenantFromCtx(ctx),
-				Paginator: query.Paginator{Page: page, PerPage: perPage},
-			}
-			r.Paginator.Normalize()
-
-			namespaces, count, err := svc.ListNamespaces(ctx, r)
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
-
-			return mcp.NewToolResultText(toJSON(map[string]any{
-				"total":      count,
-				"namespaces": namespaces,
-			})), nil
-		},
-	)
-
+func addNamespaceTools(s *mcpserver.MCPServer, router http.Handler) {
+	// No "list namespaces" tool: an API key is scoped to one namespace, and
+	// listing namespaces is an account-level action the REST API blocks for
+	// API keys (BlockAPIKey on GetNamespaceList). get_namespace reads the
+	// caller's own namespace.
 	s.AddTool(
 		mcp.NewTool("shellhub_get_namespace",
-			mcp.WithDescription("Get details and settings of a ShellHub namespace by its tenant ID."),
-			mcp.WithString("tenant_id", mcp.Required(), mcp.Description("Namespace tenant ID (UUID).")),
+			mcp.WithDescription("Get details and settings of the caller's ShellHub namespace."),
+			mcp.WithString("tenant_id", mcp.Description("Namespace tenant ID (UUID). Defaults to the caller's own namespace; any other value is rejected.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			_, ok := roleFromCtx(ctx)
-			if !ok {
-				return mcpUnauth(), nil
-			}
-
 			args := req.GetArguments()
 			tenantID, _ := args["tenant_id"].(string)
-
-			// GetNamespace performs no membership check — only fetch the
-			// namespace the caller already belongs to.
-			if tenantID != tenantFromCtx(ctx) {
-				return mcpForbidden(), nil
+			if tenantID == "" {
+				tenantID = tenantFromCtx(ctx)
 			}
 
-			namespace, err := svc.GetNamespace(ctx, tenantID)
-			if err != nil {
-				return mcpServiceError(err), nil
-			}
+			// Cross-tenant access is rejected by RequiresTenant on the route;
+			// no manual guard needed here.
+			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/namespaces/"+url.PathEscape(tenantID), nil)
 
-			return mcp.NewToolResultText(toJSON(namespace)), nil
+			return mcpAPIResult(rec), nil
 		},
 	)
 }
