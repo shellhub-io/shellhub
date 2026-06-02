@@ -172,9 +172,9 @@ services:
     networks:
       - shellhub
   redis:
-    image: redis
+    image: valkey/valkey:9.1-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "no", "--save", "\"\""]
+    command: ["valkey-server", "--appendonly", "no", "--save", "\"\""]
     networks:
       - shellhub
 

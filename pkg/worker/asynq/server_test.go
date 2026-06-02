@@ -15,7 +15,7 @@ func TestServer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	redisContainer, err := redis.Run(ctx, "docker.io/redis:7")
+	redisContainer, err := redis.Run(ctx, "docker.io/valkey/valkey:9.1-alpine")
 	require.NoError(t, err)
 
 	redisConnStr, err := redisContainer.ConnectionString(ctx)
