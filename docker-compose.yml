@@ -77,26 +77,6 @@ services:
       test: "curl -f http://api:8080/api/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
-  ui:
-    image: shellhubio/ui:${SHELLHUB_VERSION}
-    restart: unless-stopped
-    environment:
-      - SHELLHUB_CHATWOOT_WEBSITE_TOKEN=${SHELLHUB_CHATWOOT_WEBSITE_TOKEN-}
-      - SHELLHUB_CHATWOOT_BASEURL=${SHELLHUB_CHATWOOT_BASEURL-}
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
-      - SHELLHUB_ANNOUNCEMENTS=${SHELLHUB_ANNOUNCEMENTS}
-      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
-      - SHELLHUB_SENTRY_DSN=${SHELLHUB_SENTRY_DSN}
-      - SHELLHUB_PAYWALL=${SHELLHUB_PAYWALL}
-      - SHELLHUB_CONNECTOR=${SHELLHUB_CONNECTOR}
-      - SHELLHUB_ONBOARDING_URL=${SHELLHUB_ONBOARDING_URL}
-    networks:
-      - shellhub
-    healthcheck:
-      test: "curl -f http://ui:8080/healthcheck || exit 1"
-      interval: 30s
-      start_period: 10s
   ui-react:
     image: shellhubio/ui-react:${SHELLHUB_VERSION}
     restart: unless-stopped
@@ -137,7 +117,6 @@ services:
       - SHELLHUB_DATABASE=${SHELLHUB_DATABASE}
     depends_on:
       - api
-      - ui
       - ui-react
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80

@@ -9,8 +9,7 @@ Usage:
 
 Mode:
     go    Run golang lint utilities
-    vue   Run vue lint utilities
-    all   Run both golang and vue lints
+    all   Run all lint utilities
 EOF
     exit 1
 }
@@ -53,21 +52,6 @@ go() {
 	    exec api sh -c "(cd ../pkg; golangci-lint run $EXTRA_ARGS ./... )"
 }
 
-vue() {
-    local fix=$1
-
-    [ ! -d ui ] && echo "ERROR: Run the script from the project root." && exit 1
-
-    [ "$fix" = "true" ] && EXTRA_ARGS=" -- --fix" || EXTRA_ARGS=":no-fix"
-
-    echo "Running UI lints"
-
-    # Run linter on a running container
-    docker-compose \
-        -f docker-compose.yml -f docker-compose.dev.yml \
-        exec ui npm run lint$EXTRA_ARGS
-}
-
 mode=$1
 arg=$2
 
@@ -81,12 +65,8 @@ case "$mode" in
     "go")
         go $fix
         ;;
-    "vue")
-        vue $fix
-        ;;
     "all")
         go $fix
-        vue $fix
         ;;
     *)
         usage

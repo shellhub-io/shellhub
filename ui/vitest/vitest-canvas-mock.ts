@@ -1,1 +1,0 @@
-import "vi-canvas-mock";

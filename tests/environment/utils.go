@@ -20,7 +20,6 @@ const (
 	ServiceAgent   Service = "agent"
 	ServiceAPI     Service = "api"
 	ServiceSSH     Service = "ssh"
-	ServiceUI      Service = "ui"
 )
 
 var freePortController []string

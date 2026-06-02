@@ -36,18 +36,6 @@ services:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
-  ui:
-    image: ui
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-      target: development
-      network: host
-      args:
-        - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
-    volumes:
-      - ./ui:/src
-      - ui_node_modules:/src/node_modules
   ui-react:
     image: ui-react
     build:
@@ -108,5 +96,4 @@ services:
       - shellhub
 
 volumes:
-  ui_node_modules:
   ui_react_node_modules:
