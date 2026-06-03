@@ -9,6 +9,7 @@ import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger"
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
 import { SidebarMobileDrawer } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
+import CommandPalette from "@/components/commandPalette/CommandPalette";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
@@ -81,6 +82,7 @@ export default function AppLayout() {
           </div>
         </div>
         <TerminalManager sidebarOffset={sidebarOffset} />
+        <CommandPalette />
         <WelcomeWizardTrigger />
         <AnnouncementModalTrigger />
         <DeviceChooserTrigger />
