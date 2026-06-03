@@ -22,6 +22,7 @@ export default function PaletteFooter() {
     <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border bg-card/30 shrink-0">
       <KeyHint keys={["↑", "↓"]} label="navigate" />
       <KeyHint keys={["↵"]} label="select" />
+      <KeyHint keys={[">"]} label="commands" />
       <div className="ml-auto">
         <KeyHint keys={["⌘K"]} label="toggle" />
       </div>

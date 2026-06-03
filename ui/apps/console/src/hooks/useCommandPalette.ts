@@ -4,9 +4,12 @@ import { useDevices } from "@/hooks/useDevices";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import {
-  buildItems,
+  buildConnectionItems,
+  buildCommandItems,
   fuzzyMatch,
+  NO_CONNECT_PERMISSION,
   type CommandItem,
 } from "@/components/commandPalette/items";
 
@@ -17,11 +20,15 @@ export interface CommandPaletteViewModel {
   listRef: React.RefObject<HTMLDivElement>;
   // Derived view data (computed during render).
   query: string;
+  commandMode: boolean;
   sections: Map<string, CommandItem[]>;
   hasResults: boolean;
   indexById: Map<string, number>;
   safeIndex: number;
   activeItem: CommandItem | undefined;
+  // Inline rejection feedback: an assertive message + the id of the row to shake.
+  rejectMessage: string | null;
+  shakeId: string | null;
   // Handlers.
   onQueryChange: (value: string) => void;
   setActiveIndex: (index: number) => void;
@@ -39,6 +46,13 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const closePalette = useCommandPaletteStore((s) => s.closePalette);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  /* Inline rejection feedback (e.g. connecting to an offline device): an
+   * assertive (role="alert") message plus the id of the row to shake. Both are
+   * cleared on close and on new input; the shake also self-clears on a timer
+   * (see the effect below) so it resets even under prefers-reduced-motion,
+   * where the animation — and thus animationend — never fires. */
+  const [rejectMessage, setRejectMessage] = useState<string | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -46,6 +60,18 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const terminalSessions = useTerminalStore((s) => s.sessions);
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const logout = useAuthStore((s) => s.logout);
+  const canConnect = useHasPermission("device:connect");
+
+  /* Self-clear the shake once its animation would have finished. Driven by a
+   * timer rather than onAnimationEnd so it also fires under
+   * prefers-reduced-motion (no animation → no animationend). A repeat reject on
+   * the same row within this window keeps the existing timer — the alert above
+   * is the primary signal — and a reject on a different row reschedules it. */
+  useEffect(() => {
+    if (!shakeId) return undefined;
+    const timer = setTimeout(() => setShakeId(null), 450);
+    return () => clearTimeout(timer);
+  }, [shakeId]);
 
   /* Single dismissal path: clears the local query/highlight and flips the
    * shared open-state, so every way of closing (Escape via BaseDialog, the
@@ -53,6 +79,8 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const close = useCallback(() => {
     setQuery("");
     setActiveIndex(0);
+    setRejectMessage(null);
+    setShakeId(null);
     closePalette();
   }, [closePalette]);
 
@@ -70,6 +98,42 @@ export function useCommandPalette(): CommandPaletteViewModel {
     void navigate("/login");
   }, [close, logout, navigate]);
 
+  /* Reject an action inline: shake the row and show the assertive message; the
+   * palette stays open. Backs both the permission and offline guards below. */
+  const rejectRow = useCallback((rowId: string, message: string) => {
+    setRejectMessage(message);
+    setShakeId(rowId);
+  }, []);
+
+  /* Restore an open terminal for this device, else open the ConnectDrawer for
+   * it (TerminalManager owns that drawer and reacts to reconnectTarget). Reads
+   * fresh session state via getState(), mirroring the Devices page — including
+   * its `device:connect` gate, which covers both connecting and restoring. An
+   * offline device with no session can't be connected; an existing session
+   * still restores when permitted. */
+  const connectOrRestore = useCallback(
+    (uid: string, name: string, online: boolean) => {
+      if (!canConnect) {
+        rejectRow(`device-${uid}`, NO_CONNECT_PERMISSION);
+        return;
+      }
+      const store = useTerminalStore.getState();
+      const existing = store.sessions.find((s) => s.deviceUid === uid);
+      if (existing) {
+        close();
+        store.restore(existing.id);
+        return;
+      }
+      if (!online) {
+        rejectRow(`device-${uid}`, `${name} is offline — start it to connect`);
+        return;
+      }
+      close();
+      store.requestConnect(uid, name);
+    },
+    [canConnect, rejectRow, close],
+  );
+
   /* Cmd/Ctrl+K toggles the palette. The store also backs the visible Sidebar
    * trigger; closing routes through close() so the query resets. */
   useEffect(() => {
@@ -85,28 +149,51 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => window.removeEventListener("keydown", handler);
   }, [close]);
 
-  const items = useMemo(
+  /* Default (connection-first) view: devices to connect/restore + open sessions. */
+  const connectionItems = useMemo(
     () =>
-      buildItems({
+      buildConnectionItems({
         devices,
         terminalSessions,
-        go,
-        close,
+        canConnect,
+        connectOrRestore,
         restoreTerminal,
-        onLogout,
+        rejectRow,
+        close,
       }),
-    [devices, terminalSessions, go, close, restoreTerminal, onLogout],
+    [
+      devices,
+      terminalSessions,
+      canConnect,
+      connectOrRestore,
+      restoreTerminal,
+      rejectRow,
+      close,
+    ],
   );
 
+  /* Command mode (">" prefix): page navigation + account actions. */
+  const commandItems = useMemo(
+    () => buildCommandItems({ go, onLogout }),
+    [go, onLogout],
+  );
+
+  /* ">" gates the page navigation behind command mode; the default view stays
+   * connection-first. Derived during render — no extra state. */
+  const trimmedQuery = query.trimStart();
+  const commandMode = trimmedQuery.startsWith(">");
+  const term = commandMode ? trimmedQuery.slice(1).trim() : query.trim();
+  const activeItems = commandMode ? commandItems : connectionItems;
+
   const filtered = useMemo(() => {
-    if (!query.trim()) return items;
-    return items.filter(
+    if (!term) return activeItems;
+    return activeItems.filter(
       (item) =>
-        fuzzyMatch(query, item.label) ||
-        (item.sublabel && fuzzyMatch(query, item.sublabel)) ||
-        fuzzyMatch(query, item.section),
+        fuzzyMatch(term, item.label) ||
+        (item.sublabel && fuzzyMatch(term, item.sublabel)) ||
+        fuzzyMatch(term, item.section),
     );
-  }, [items, query]);
+  }, [activeItems, term]);
 
   const sections = useMemo(() => {
     const map = new Map<string, CommandItem[]>();
@@ -181,10 +268,13 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [flatList, safeIndex],
   );
 
-  /* Composite input handler: update the query and reset the highlight. */
+  /* Composite input handler: update the query, reset the highlight, and clear
+   * any standing rejection feedback. */
   const onQueryChange = useCallback((value: string) => {
     setQuery(value);
     setActiveIndex(0);
+    setRejectMessage(null);
+    setShakeId(null);
   }, []);
 
   const hasResults = flatList.length > 0;
@@ -193,11 +283,14 @@ export function useCommandPalette(): CommandPaletteViewModel {
     open,
     listRef,
     query,
+    commandMode,
     sections,
     hasResults,
     indexById,
     safeIndex,
     activeItem,
+    rejectMessage,
+    shakeId,
     onQueryChange,
     setActiveIndex,
     handleKeyDown,

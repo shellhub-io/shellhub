@@ -24,6 +24,11 @@ export interface ReconnectTarget {
 
 interface TerminalState {
   sessions: TerminalSession[];
+  /**
+   * Device whose ConnectDrawer should open — set for a fresh connect
+   * (`requestConnect`) or a post-close reconnect (`closeAndReconnect`).
+   * Consumed by TerminalManager, which builds the sshid and opens the drawer.
+   */
   reconnectTarget: ReconnectTarget | null;
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
@@ -34,6 +39,7 @@ interface TerminalState {
   toggleFullscreen: (id: string) => void;
   close: (id: string) => void;
   closeAndReconnect: (id: string) => void;
+  requestConnect: (deviceUid: string, deviceName: string) => void;
   clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
   clearSensitiveData: (id: string) => void;
@@ -122,6 +128,10 @@ export const useTerminalStore = create<TerminalState>((set) => ({
         },
       };
     });
+  },
+
+  requestConnect: (deviceUid, deviceName) => {
+    set({ reconnectTarget: { deviceUid, deviceName } });
   },
 
   clearReconnect: () => {
