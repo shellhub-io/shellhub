@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/pg/internal"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -156,6 +157,14 @@ func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
+		}
+
+		// namespace_id is a uuid-typed column in Postgres. Passing a non-UUID
+		// string would produce SQLSTATE 22P02 ("invalid input syntax for type
+		// uuid") and a misleading SQL error in the logs. Return ErrNoDocuments
+		// early so the caller gets a clean not-found result. See #6406.
+		if _, err := uuid.Parse(namespaceID); err != nil {
+			return store.ErrNoDocuments
 		}
 
 		col := "namespace_id"
