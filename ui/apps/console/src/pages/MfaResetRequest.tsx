@@ -3,11 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
 import { useAuthStore } from "../stores/authStore";
+import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import Spinner from "@/components/common/Spinner";
 
 export default function MfaResetRequest() {
-  const { requestMfaReset, loading, error, user, username, mfaToken } = useAuthStore();
+  const { user, username, mfaToken } = useAuthStore();
+  const { requestMfaReset, loading, error } = useMfaResetStore();
   const navigate = useNavigate();
   const [emailsSent, setEmailsSent] = useState(false);
 
@@ -15,7 +17,7 @@ export default function MfaResetRequest() {
 
   // Clear stale error from previous session
   useEffect(() => {
-    useAuthStore.setState({ error: null });
+    useMfaResetStore.setState({ error: null });
   }, []);
 
   // Redirect to login if no identifier available (but only if not in active MFA session)

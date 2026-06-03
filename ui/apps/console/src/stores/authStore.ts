@@ -8,8 +8,6 @@ import {
   deleteUser as deleteUserSdk,
   authMfa,
   mfaRecover,
-  requestResetMfa,
-  resetMfa,
 } from "../client";
 import { queryClient } from "../api/queryClient";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
@@ -31,8 +29,6 @@ interface AuthState {
   mfaEnabled: boolean;
   mfaToken: string | null;
   mfaRecoveryExpiry: number | null;
-  mfaResetUserId: string | null;
-  mfaResetIdentifier: string | null;
   login: (username: string, password: string) => Promise<void>;
   loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
@@ -51,11 +47,6 @@ interface AuthState {
   deleteUser: () => Promise<void>;
   loginWithMfa: (code: string) => Promise<void>;
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
-  requestMfaReset: (identifier: string) => Promise<void>;
-  completeMfaReset: (
-    mainEmailCode: string,
-    recoveryEmailCode: string,
-  ) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
 }
@@ -76,8 +67,6 @@ const initialState = {
   mfaEnabled: false,
   mfaToken: null,
   mfaRecoveryExpiry: null,
-  mfaResetUserId: null,
-  mfaResetIdentifier: null,
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -289,72 +278,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      requestMfaReset: async (identifier: string) => {
-        set({ loading: true, error: null });
-        try {
-          await requestResetMfa({
-            body: { identifier },
-            throwOnError: true,
-          });
-          set({
-            mfaResetUserId: identifier,
-            mfaResetIdentifier: identifier,
-            loading: false,
-          });
-        } catch {
-          set({
-            loading: false,
-            error: "Unable to send reset emails. Please check your identifier.",
-          });
-          throw new Error("Reset request failed");
-        }
-      },
-
-      completeMfaReset: async (
-        mainEmailCode: string,
-        recoveryEmailCode: string,
-      ) => {
-        const { mfaResetUserId } = get();
-        if (!mfaResetUserId) {
-          set({ error: "Invalid reset session. Please start over." });
-          throw new Error("No user ID available");
-        }
-
-        set({ loading: true, error: null });
-        try {
-          const { data } = await resetMfa({
-            path: { "user-id": mfaResetUserId },
-            body: {
-              main_email_code: mainEmailCode,
-              recovery_email_code: recoveryEmailCode,
-            },
-            throwOnError: true,
-          });
-
-          const userData = data;
-          // Successful reset = authenticated, same as login
-          set({
-            token: userData.token,
-            user: userData.user,
-            userId: userData.id,
-            email: userData.email,
-            tenant: userData.tenant,
-            name: userData.name,
-            isAdmin: userData.admin ?? false,
-            mfaEnabled: userData.mfa || false,
-            mfaResetUserId: null,
-            mfaResetIdentifier: null,
-            loading: false,
-          });
-        } catch {
-          set({
-            loading: false,
-            error: "Invalid verification codes. Please check and try again.",
-          });
-          throw new Error("Invalid codes");
-        }
-      },
-
       updateMfaStatus: (enabled: boolean) => {
         set({ mfaEnabled: enabled });
       },
@@ -378,7 +301,7 @@ export const useAuthStore = create<AuthState>()(
         name: state.name,
         mfaEnabled: state.mfaEnabled,
         // Do NOT persist: username, recoveryEmail (fetched fresh via fetchUser)
-        // Do NOT persist: mfaToken, mfaRecoveryExpiry, mfaResetUserId, mfaResetIdentifier
+        // Do NOT persist: mfaToken, mfaRecoveryExpiry (transient MFA session state)
       }),
     },
   ),

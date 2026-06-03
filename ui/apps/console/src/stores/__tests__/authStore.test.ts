@@ -9,8 +9,6 @@ vi.mock("@/client", () => ({
   deleteUser: vi.fn(),
   authMfa: vi.fn(),
   mfaRecover: vi.fn(),
-  requestResetMfa: vi.fn(),
-  resetMfa: vi.fn(),
 }));
 
 import { login as loginSdk, getUserInfo, authMfa, mfaRecover } from "@/client";
@@ -71,6 +69,7 @@ beforeEach(() => {
     mfaEnabled: false,
     mfaToken: null,
     mfaRecoveryExpiry: null,
+    isAdmin: false,
   });
   vi.clearAllMocks();
 });
@@ -324,7 +323,6 @@ describe("authStore", () => {
         mfaEnabled: true,
         mfaToken: "mfa-temp-token",
         mfaRecoveryExpiry: "1234567890",
-        mfaResetUserId: "some-user-id",
       };
 
       const persisted = partialize(full) as Record<string, unknown>;
@@ -345,10 +343,9 @@ describe("authStore", () => {
       expect(persisted).not.toHaveProperty("username");
       expect(persisted).not.toHaveProperty("recoveryEmail");
 
-      // Should NOT persist sensitive MFA session/flow state
+      // Should NOT persist transient MFA session state
       expect(persisted).not.toHaveProperty("mfaToken");
       expect(persisted).not.toHaveProperty("mfaRecoveryExpiry");
-      expect(persisted).not.toHaveProperty("mfaResetUserId");
     });
   });
 

@@ -4,6 +4,7 @@ import { disableMfa } from "@/client";
 import Alert from "@/components/common/Alert";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
+import { useMfaResetStore } from "@/stores/mfaResetStore";
 import Spinner from "@/components/common/Spinner";
 import BaseDialog from "@/components/common/BaseDialog";
 
@@ -29,7 +30,8 @@ export default function MfaDisableDialog({
   const [requestingEmail, setRequestingEmail] = useState(false);
   const otpMainEmail = useOtpInput(5, true);
   const otpRecoveryEmail = useOtpInput(5, true);
-  const { user, username, requestMfaReset } = useAuthStore();
+  const { user, username } = useAuthStore();
+  const { requestMfaReset } = useMfaResetStore();
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
