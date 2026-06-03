@@ -116,6 +116,8 @@ interface SidebarShellProps {
   ariaLabel: string;
   footerLabel: string;
   logoHref: string;
+  /** Optional fixed band rendered between the logo and the scrollable nav. */
+  headerSlot?: ReactNode;
   children: ReactNode;
 }
 
@@ -129,10 +131,13 @@ export default function SidebarShell({
   ariaLabel,
   footerLabel,
   logoHref,
+  headerSlot,
   children,
 }: SidebarShellProps) {
-  const toggleLabel = toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar");
-  const toggleTitle = toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar open");
+  const toggleLabel =
+    toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar");
+  const toggleTitle =
+    toggleLabelOverride ?? (pinned ? "Unpin sidebar" : "Pin sidebar open");
 
   return (
     <aside
@@ -159,6 +164,12 @@ export default function SidebarShell({
           />
         </NavLink>
       </div>
+
+      {/* Optional fixed header band (e.g. command-palette trigger). Skipped
+          when the shell is hidden so its control isn't focusable off-screen. */}
+      {headerSlot && !hidden && (
+        <div className="px-2 py-2.5 border-b border-border">{headerSlot}</div>
+      )}
 
       {/* Navigation (caller provides content) */}
       <nav
