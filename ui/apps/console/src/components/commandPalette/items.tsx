@@ -9,6 +9,7 @@ import {
   CommandLineIcon,
   PlusIcon,
   ChevronDoubleRightIcon,
+  ChevronRightIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import type { NormalizedDevice } from "@/hooks/useDevices";
@@ -29,8 +30,14 @@ export interface CommandItem {
 export const LISTBOX_ID = "cmdk-listbox";
 export const optionId = (itemId: string) => `cmdk-opt-${itemId}`;
 
+/* Shown when a user without `device:connect` tries to connect or restore —
+ * mirrors the Devices page, which gates the whole Connect button behind it. */
+export const NO_CONNECT_PERMISSION =
+  "You don't have permission to connect to devices";
+
 export const icons = {
   search: <MagnifyingGlassIcon className="w-5 h-5" />,
+  command: <ChevronRightIcon className="w-5 h-5" />,
   dashboard: <HomeIcon className="w-4 h-4" />,
   devices: <CpuChipIcon className="w-4 h-4" />,
   sessions: <CommandLineIcon className="w-4 h-4" />,
@@ -54,57 +61,42 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-/* All palette entries in one flat list: page navigation, accepted devices,
- * open terminal sessions, and account actions. */
-export function buildItems(deps: {
+/* Default (connection-first) view: devices to connect/restore + open sessions. */
+export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
   terminalSessions: TerminalSession[];
-  go: (path: string) => void;
-  close: () => void;
+  canConnect: boolean;
+  connectOrRestore: (uid: string, name: string, online: boolean) => void;
   restoreTerminal: (id: string) => void;
-  onLogout: () => void;
+  rejectRow: (rowId: string, message: string) => void;
+  close: () => void;
 }): CommandItem[] {
-  const { devices, terminalSessions, go, close, restoreTerminal, onLogout } =
-    deps;
+  const {
+    devices,
+    terminalSessions,
+    canConnect,
+    connectOrRestore,
+    restoreTerminal,
+    rejectRow,
+    close,
+  } = deps;
   const list: CommandItem[] = [];
 
-  const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
-    { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
-    { label: "Devices", path: "/devices", icon: icons.devices },
-    { label: "Sessions", path: "/sessions", icon: icons.sessions },
-    { label: "Public Keys", path: "/sshkeys/public-keys", icon: icons.keys },
-    { label: "Secure Vault", path: "/secure-vault", icon: icons.vault },
-    { label: "Team", path: "/team", icon: icons.team },
-    { label: "Settings", path: "/settings", icon: icons.settings },
-    { label: "Add Device", path: "/devices/add", icon: icons.add },
-  ];
-
-  nav.forEach((n) => {
+  // useDevices is called with status: "accepted", so the API already scopes
+  // this list — no client-side status filter needed.
+  devices.forEach((d) => {
     list.push({
-      id: `nav-${n.path}`,
-      label: n.label,
-      sublabel: n.path,
-      section: "Navigation",
-      icon: n.icon,
-      onSelect: () => go(n.path),
+      id: `device-${d.uid}`,
+      label: d.name,
+      sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
+      section: "Devices",
+      icon: icons.devices,
+      badge: d.online
+        ? { text: "Online", variant: "green" }
+        : { text: "Offline", variant: "muted" },
+      onSelect: () => connectOrRestore(d.uid, d.name, d.online),
     });
   });
-
-  devices
-    .filter((d) => d.status === "accepted")
-    .forEach((d) => {
-      list.push({
-        id: `device-${d.uid}`,
-        label: d.name,
-        sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
-        section: "Devices",
-        icon: icons.devices,
-        badge: d.online
-          ? { text: "Online", variant: "green" }
-          : { text: "Offline", variant: "muted" },
-        onSelect: () => go(`/devices/${d.uid}`),
-      });
-    });
 
   terminalSessions.forEach((s) => {
     const statusLabel =
@@ -132,11 +124,44 @@ export function buildItems(deps: {
       icon: icons.terminal,
       badge: { text: statusLabel, variant: statusVariant },
       onSelect: () => {
+        if (!canConnect) {
+          rejectRow(`term-${s.id}`, NO_CONNECT_PERMISSION);
+          return;
+        }
         close();
         restoreTerminal(s.id);
       },
     });
   });
+
+  return list;
+}
+
+/* Command mode (">" prefix): page navigation + account actions. */
+export function buildCommandItems(deps: {
+  go: (path: string) => void;
+  onLogout: () => void;
+}): CommandItem[] {
+  const { go, onLogout } = deps;
+  const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
+    { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
+    { label: "Devices", path: "/devices", icon: icons.devices },
+    { label: "Sessions", path: "/sessions", icon: icons.sessions },
+    { label: "Public Keys", path: "/sshkeys/public-keys", icon: icons.keys },
+    { label: "Secure Vault", path: "/secure-vault", icon: icons.vault },
+    { label: "Team", path: "/team", icon: icons.team },
+    { label: "Settings", path: "/settings", icon: icons.settings },
+    { label: "Add Device", path: "/devices/add", icon: icons.add },
+  ];
+
+  const list: CommandItem[] = nav.map((n) => ({
+    id: `nav-${n.path}`,
+    label: n.label,
+    sublabel: n.path,
+    section: "Navigation",
+    icon: n.icon,
+    onSelect: () => go(n.path),
+  }));
 
   list.push({
     id: "action-logout",

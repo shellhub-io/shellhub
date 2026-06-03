@@ -59,6 +59,7 @@ export default {
         "slide-up": "slideUp 0.35s ease-out",
         "slide-down": "slideDown 0.2s ease-out",
         "pulse-subtle": "pulseSubtle 2s ease-in-out infinite",
+        shake: "shake 0.4s ease-in-out",
       },
       keyframes: {
         fadeIn: {
@@ -76,6 +77,11 @@ export default {
         pulseSubtle: {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },
+        },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%, 60%": { transform: "translateX(-4px)" },
+          "40%, 80%": { transform: "translateX(4px)" },
         },
       },
     },

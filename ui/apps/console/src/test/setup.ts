@@ -11,3 +11,7 @@ HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
 HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
   this.removeAttribute("open");
 };
+
+// jsdom does not implement scrollIntoView; components that scroll active items
+// into view (e.g. the command palette) call it inside effects.
+Element.prototype.scrollIntoView = function () {};

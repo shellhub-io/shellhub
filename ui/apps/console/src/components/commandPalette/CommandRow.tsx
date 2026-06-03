@@ -10,14 +10,17 @@ const badgeStyles: Record<BadgeVariant, string> = {
 interface CommandRowProps {
   item: CommandItem;
   isActive: boolean;
+  shaking: boolean;
   onActivate: () => void;
 }
 
 /** A single combobox option row. Non-focusable (`tabIndex={-1}`); the input
- *  owns focus via `aria-activedescendant`. */
+ *  owns focus via `aria-activedescendant`. Shakes when an action it triggers is
+ *  rejected (offline/permission). */
 export default function CommandRow({
   item,
   isActive,
+  shaking,
   onActivate,
 }: CommandRowProps) {
   return (
@@ -32,7 +35,7 @@ export default function CommandRow({
       onMouseEnter={onActivate}
       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75 ${
         isActive ? "bg-primary/10" : "hover:bg-hover-subtle"
-      }`}
+      } ${shaking ? "motion-safe:animate-shake" : ""}`}
     >
       <span
         className={`shrink-0 ${isActive ? "text-primary" : "text-text-muted"} transition-colors duration-75`}
