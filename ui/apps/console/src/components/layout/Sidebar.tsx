@@ -14,6 +14,7 @@ import {
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
+import CommandPaletteTrigger from "./CommandPaletteTrigger";
 
 interface NavItem {
   to: string;
@@ -172,6 +173,9 @@ export default function Sidebar({
       ariaLabel="Main navigation"
       footerLabel="Console"
       logoHref="/dashboard"
+      headerSlot={
+        <CommandPaletteTrigger expanded={expanded} onActivate={onClose} />
+      }
     >
       {sections.map((section, idx) => (
         <div

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDevices } from "@/hooks/useDevices";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import {
   buildItems,
   fuzzyMatch,
@@ -34,7 +35,8 @@ export interface CommandPaletteViewModel {
  * and its parts free of logic.
  */
 export function useCommandPalette(): CommandPaletteViewModel {
-  const [open, setOpen] = useState(false);
+  const open = useCommandPaletteStore((s) => s.open);
+  const closePalette = useCommandPaletteStore((s) => s.closePalette);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -45,11 +47,14 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const logout = useAuthStore((s) => s.logout);
 
+  /* Single dismissal path: clears the local query/highlight and flips the
+   * shared open-state, so every way of closing (Escape via BaseDialog, the
+   * shortcut) resets uniformly. */
   const close = useCallback(() => {
-    setOpen(false);
     setQuery("");
     setActiveIndex(0);
-  }, []);
+    closePalette();
+  }, [closePalette]);
 
   const go = useCallback(
     (path: string) => {
@@ -65,23 +70,20 @@ export function useCommandPalette(): CommandPaletteViewModel {
     void navigate("/login");
   }, [close, logout, navigate]);
 
+  /* Cmd/Ctrl+K toggles the palette. The store also backs the visible Sidebar
+   * trigger; closing routes through close() so the query resets. */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setOpen((prev) => {
-          if (prev) {
-            setQuery("");
-            setActiveIndex(0);
-            return false;
-          }
-          return true;
-        });
+        const store = useCommandPaletteStore.getState();
+        if (store.open) close();
+        else store.openPalette();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [close]);
 
   const items = useMemo(
     () =>
