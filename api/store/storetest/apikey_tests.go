@@ -100,6 +100,19 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		assert.Nil(t, apiKey)
 	})
 
+	// namespace_id is uuid-typed; a malformed tenant ID must return ErrNoDocuments
+	// without reaching the database (avoids SQLSTATE 22P02 on Postgres). See #6406.
+	t.Run("fails with malformed (non-UUID) namespace ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// 'l' in position 13 makes this an invalid UUID (not a hex digit).
+		malformedTenantID := "83176492-e6cl-43d7-922e-ee01c3693e26"
+
+		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, "any-key-id", st.Options().InNamespace(malformedTenantID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, apiKey)
+	})
+
 	t.Run("succeeds resolving API key by ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
