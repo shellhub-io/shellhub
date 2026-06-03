@@ -167,6 +167,18 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 		assert.Nil(t, ns)
 	})
 
+	t.Run("returns ErrNoDocuments for malformed tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// A tenant_id that is not a valid UUID (letter 'l' instead of digit '1').
+		// Must resolve to not-found on both stores rather than erroring (see #6404).
+		malformedID := "83176492-e6cl-43d7-922e-ee01c3693e26"
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, malformedID)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, ns)
+	})
+
 	t.Run("returns error for non-existent name", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

@@ -104,6 +104,15 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 		return nil, err
 	}
 
+	// namespaces.id is a uuid-typed column; a malformed value would otherwise reach
+	// Postgres and fail with SQLSTATE 22P02. Treat it as not-found to match the prior
+	// Mongo behavior and avoid logging a misleading SQL error (see #6404).
+	if resolver == store.NamespaceTenantIDResolver {
+		if _, err := uuid.Parse(val); err != nil {
+			return nil, store.ErrNoDocuments
+		}
+	}
+
 	ns := new(entity.Namespace)
 	query := db.NewSelect().Model(ns).Relation("Memberships.User").Where("? = ?", bun.Ident(column), val)
 	if err := query.Scan(ctx); err != nil {
