@@ -34,8 +34,6 @@ const baseState = {
   mfaEnabled: false,
   mfaToken: null,
   mfaRecoveryExpiry: null,
-  mfaResetUserId: null,
-  mfaResetIdentifier: null,
 };
 
 beforeEach(() => {

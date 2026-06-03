@@ -2,13 +2,13 @@ import { FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
-import { useAuthStore } from "../stores/authStore";
+import { useMfaResetStore } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import Spinner from "@/components/common/Spinner";
 
 export default function MfaResetVerify() {
-  const { completeMfaReset, mfaResetUserId, mfaResetIdentifier, loading, error } = useAuthStore();
+  const { completeMfaReset, mfaResetUserId, mfaResetIdentifier, loading, error } = useMfaResetStore();
   const navigate = useNavigate();
 
   const otpMain = useOtpInput(5, true);
@@ -16,7 +16,7 @@ export default function MfaResetVerify() {
 
   // Clear stale error from previous session
   useEffect(() => {
-    useAuthStore.setState({ error: null });
+    useMfaResetStore.setState({ error: null });
   }, []);
 
   // State guard: redirect if no reset session
