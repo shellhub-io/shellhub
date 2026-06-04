@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        project: [api, ssh, gateway, ui-react, cli]
+        project: [api, ssh, gateway, ui, cli]
 
     runs-on: ubuntu-24.04
 

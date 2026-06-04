@@ -7,9 +7,9 @@ RUN apk add --update build-base python3 curl git
 WORKDIR /app
 
 # Copy workspace package files for npm install
-COPY ui-react/package.json ui-react/package-lock.json ./
-COPY ui-react/packages/design-system/package.json ./packages/design-system/
-COPY ui-react/apps/console/package.json ./apps/console/
+COPY ui/package.json ui/package-lock.json ./
+COPY ui/packages/design-system/package.json ./packages/design-system/
+COPY ui/apps/console/package.json ./apps/console/
 
 RUN npm install
 
@@ -22,7 +22,7 @@ WORKDIR /src
 
 COPY --from=base /app/node_modules /node_modules
 
-COPY ui-react/scripts /scripts
+COPY ui/scripts /scripts
 
 CMD ["/scripts/entrypoint-dev.sh"]
 
@@ -41,7 +41,7 @@ ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app
 
-COPY ui-react/. .
+COPY ui/. .
 
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
@@ -54,10 +54,10 @@ FROM nginx:1.31.1-alpine AS production
 RUN apk add curl
 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY ui-react/nginx.conf /etc/nginx/conf.d
+COPY ui/nginx.conf /etc/nginx/conf.d
 
 COPY --from=builder /app/apps/console/dist /usr/share/nginx/html/ui
 
-COPY ui-react/scripts /scripts
+COPY ui/scripts /scripts
 
 CMD ["/scripts/entrypoint.sh"]

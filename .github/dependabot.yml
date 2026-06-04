@@ -33,11 +33,11 @@ updates:
     - dependency-name: "golang"
       update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: docker
-  directory: "/ui-react"
+  directory: "/ui"
   schedule:
     interval: weekly
   commit-message:
-    prefix: "docker: ui-react"
+    prefix: "docker: ui"
   ignore:
     - dependency-name: "node"
       update-types: ["version-update:semver-major"]
@@ -61,11 +61,11 @@ updates:
     - dependency-name: "golang"
       update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: npm
-  directory: "/ui-react"
+  directory: "/ui"
   schedule:
     interval: weekly
   commit-message:
-    prefix: "ui-react"
+    prefix: "ui"
   versioning-strategy: lockfile-only
   groups:
     tiptap:
