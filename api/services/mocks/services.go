@@ -252,6 +252,34 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 	return r0
 }
 
+// ConnectionStatus provides a mock function with given fields: ctx, req
+func (_m *Service) ConnectionStatus(ctx context.Context, req *requests.ConnectionGet) (bool, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionStatus")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) (bool, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) bool); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionGet) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateAPIKey provides a mock function with given fields: ctx, req
 func (_m *Service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
 	ret := _m.Called(ctx, req)
@@ -274,6 +302,36 @@ func (_m *Service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *requests.CreateAPIKey) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateConnection provides a mock function with given fields: ctx, req
+func (_m *Service) CreateConnection(ctx context.Context, req *requests.ConnectionCreate) (*models.Connection, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionCreate) (*models.Connection, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionCreate) *models.Connection); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionCreate) error); ok {
 		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -497,6 +555,24 @@ func (_m *Service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeleteAPIKey) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteConnection provides a mock function with given fields: ctx, req
+func (_m *Service) DeleteConnection(ctx context.Context, req *requests.ConnectionDelete) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteConnection")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionDelete) error); ok {
 		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
@@ -733,6 +809,36 @@ func (_m *Service) EventSession(ctx context.Context, uid models.UID, event *mode
 	}
 
 	return r0
+}
+
+// GetConnection provides a mock function with given fields: ctx, req
+func (_m *Service) GetConnection(ctx context.Context, req *requests.ConnectionGet) (*models.Connection, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) (*models.Connection, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) *models.Connection); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionGet) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetDevice provides a mock function with given fields: ctx, uid
@@ -1028,6 +1134,43 @@ func (_m *Service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([
 	return r0, r1, r2
 }
 
+// ListConnections provides a mock function with given fields: ctx, req
+func (_m *Service) ListConnections(ctx context.Context, req *requests.ConnectionList) ([]models.Connection, int, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListConnections")
+	}
+
+	var r0 []models.Connection
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionList) ([]models.Connection, int, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionList) []models.Connection); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionList) int); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.ConnectionList) error); ok {
+		r2 = rf(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // ListDevices provides a mock function with given fields: ctx, req
 func (_m *Service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	ret := _m.Called(ctx, req)
@@ -1259,6 +1402,34 @@ func (_m *Service) OfflineDevice(ctx context.Context, uid models.UID) error {
 	}
 
 	return r0
+}
+
+// ProbeReachability provides a mock function with given fields: ctx, req
+func (_m *Service) ProbeReachability(ctx context.Context, req *requests.ConnectionProbe) (bool, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ProbeReachability")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionProbe) (bool, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionProbe) bool); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionProbe) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // PublicKey provides a mock function with no fields
@@ -1495,6 +1666,36 @@ func (_m *Service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey)
 	}
 
 	return r0
+}
+
+// UpdateConnection provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateConnection(ctx context.Context, req *requests.ConnectionUpdate) (*models.Connection, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionUpdate) (*models.Connection, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ConnectionUpdate) *models.Connection); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ConnectionUpdate) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateDevice provides a mock function with given fields: ctx, req

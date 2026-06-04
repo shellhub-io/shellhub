@@ -12,6 +12,7 @@ import {
   CubeIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
+  ServerStackIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 import CommandPaletteTrigger from "./CommandPaletteTrigger";
@@ -37,6 +38,11 @@ function buildSections(): NavSection[] {
       to: "/devices",
       label: "Devices",
       icon: <CpuChipIcon className={navIcon} />,
+    },
+    {
+      to: "/connections",
+      label: "Connections",
+      icon: <ServerStackIcon className={navIcon} />,
     },
     {
       to: "/containers",

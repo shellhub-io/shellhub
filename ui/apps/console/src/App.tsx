@@ -26,6 +26,7 @@ const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
+const Connections = lazy(() => import("./pages/connections"));
 const Containers = lazy(() => import("./pages/containers"));
 const ContainerDetails = lazy(() => import("./pages/ContainerDetails"));
 const Sessions = lazy(() => import("./pages/sessions"));
@@ -194,36 +195,40 @@ export default function App() {
                   />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/devices" element={<Devices />} />
+                  <Route path="/connections" element={<Connections />} />
                   <Route path="/devices/add" element={<AddDevice />} />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
                   <Route path="/containers" element={<Containers />} />
-                  <Route path="/containers/:uid" element={<ContainerDetails />} />
+                  <Route
+                    path="/containers/:uid"
+                    element={<ContainerDetails />}
+                  />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/secure-vault" element={<SecureVault />} />
                   <Route
                     path="/firewall-rules"
-                    element={(
+                    element={
                       <FeatureGate
                         feature="Firewall Rules"
                         description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
                       >
                         <FirewallRules />
                       </FeatureGate>
-                    )}
+                    }
                   />
                   {getConfig().webEndpoints && (
                     <Route
                       path="/web-endpoints"
-                      element={(
+                      element={
                         <FeatureGate
                           feature="Web Endpoints"
                           description="Tunnel HTTP traffic to services running on your devices through unique URLs."
                         >
                           <WebEndpoints />
                         </FeatureGate>
-                      )}
+                      }
                     />
                   )}
                   <Route path="/team" element={<Team />} />

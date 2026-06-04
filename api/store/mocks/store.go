@@ -284,6 +284,151 @@ func (_m *Store) ActiveSessionUpdate(ctx context.Context, activeSession *models.
 	return r0
 }
 
+// ConnectionCreate provides a mock function with given fields: ctx, connection
+func (_m *Store) ConnectionCreate(ctx context.Context, connection *models.Connection) (string, error) {
+	ret := _m.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Connection) (string, error)); ok {
+		return rf(ctx, connection)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Connection) string); ok {
+		r0 = rf(ctx, connection)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *models.Connection) error); ok {
+		r1 = rf(ctx, connection)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConnectionDelete provides a mock function with given fields: ctx, connection
+func (_m *Store) ConnectionDelete(ctx context.Context, connection *models.Connection) error {
+	ret := _m.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Connection) error); ok {
+		r0 = rf(ctx, connection)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ConnectionList provides a mock function with given fields: ctx, opts
+func (_m *Store) ConnectionList(ctx context.Context, opts ...store.QueryOption) ([]models.Connection, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionList")
+	}
+
+	var r0 []models.Connection
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Connection, int, error)); ok {
+		return rf(ctx, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Connection); ok {
+		r0 = rf(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// ConnectionResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) ConnectionResolve(ctx context.Context, resolver store.ConnectionResolver, value string, opts ...store.QueryOption) (*models.Connection, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionResolve")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) (*models.Connection, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) *models.Connection); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConnectionUpdate provides a mock function with given fields: ctx, connection
+func (_m *Store) ConnectionUpdate(ctx context.Context, connection *models.Connection) error {
+	ret := _m.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionUpdate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Connection) error); ok {
+		r0 = rf(ctx, connection)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)

@@ -60,20 +60,30 @@ export default function TerminalInstance({
     async function connect() {
       updateStatus("connecting");
 
-      // Build POST body: for private key auth, send fingerprint; for password auth, send password
-      const body: Record<string, string> = {
-        device: session.deviceUid,
-        username: session.username,
-      };
-      if (session.fingerprint) {
-        body.fingerprint = session.fingerprint;
-      } else {
-        body.password = session.password;
+      // Direct connections dial an external host via /ws/connect; device
+      // sessions route through the agent via /ws/ssh.
+      const isConnect = session.kind === "connect";
+      const endpoint = isConnect ? "/ws/connect" : "/ws/ssh";
+
+      const body: Record<string, string | number> = isConnect
+        ? {
+            host: session.host ?? "",
+            port: session.port ?? 22,
+            username: session.username,
+            password: session.password,
+          }
+        : { device: session.deviceUid, username: session.username };
+      if (!isConnect) {
+        if (session.fingerprint) {
+          body.fingerprint = session.fingerprint;
+        } else {
+          body.password = session.password;
+        }
       }
 
       let token: string;
       try {
-        const res = await apiClient.post<{ token: string }>("/ws/ssh", body);
+        const res = await apiClient.post<{ token: string }>(endpoint, body);
         token = res.data.token;
       } catch {
         if (cancelled) return;
@@ -111,7 +121,7 @@ export default function TerminalInstance({
       const { cols, rows } = term;
 
       const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${proto}//${window.location.host}/ws/ssh?token=${token}&cols=${cols}&rows=${rows}`;
+      const wsUrl = `${proto}//${window.location.host}${endpoint}?token=${token}&cols=${cols}&rows=${rows}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       resizeRegisteredRef.current = false;
@@ -164,9 +174,13 @@ export default function TerminalInstance({
                   challengeBuffer,
                   keyPassphrase,
                 );
-                ws.send(JSON.stringify({ kind: WS_KIND.SIGNATURE, data: signature }));
+                ws.send(
+                  JSON.stringify({ kind: WS_KIND.SIGNATURE, data: signature }),
+                );
               } catch {
-                term.write("\r\n\x1b[1;31mFailed to sign authentication challenge.\x1b[0m\r\n");
+                term.write(
+                  "\r\n\x1b[1;31mFailed to sign authentication challenge.\x1b[0m\r\n",
+                );
                 keyMaterial = undefined;
                 keyPassphrase = undefined;
                 useTerminalStore.getState().clearSensitiveData(session.id);
