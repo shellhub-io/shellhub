@@ -36,17 +36,17 @@ services:
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
-  ui-react:
-    image: ui-react
+  ui:
+    image: ui
     build:
       context: .
-      dockerfile: ui-react/Dockerfile
+      dockerfile: ui/Dockerfile
       target: development
       network: host
       args:
         - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
     volumes:
-      - ./ui-react:/src
+      - ./ui:/src
       - ./openapi:/openapi:ro
   gateway:
     image: gateway

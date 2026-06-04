@@ -1,4 +1,4 @@
-name: UI React
+name: UI
 
 on:
   push:
@@ -31,11 +31,11 @@ jobs:
         with:
           filters: |
             console:
-              - 'ui-react/apps/console/**'
-              - 'ui-react/packages/**'
-              - 'ui-react/package.json'
-              - 'ui-react/package-lock.json'
-              - 'ui-react/eslint.config.js'
+              - 'ui/apps/console/**'
+              - 'ui/packages/**'
+              - 'ui/package.json'
+              - 'ui/package-lock.json'
+              - 'ui/eslint.config.js'
               - 'openapi/spec/**'
 
       - name: Set up Node.JS 24.13.0 [${{ matrix.app }}]
@@ -48,32 +48,32 @@ jobs:
         if: steps.filter.outputs[matrix.app] == 'true'
         uses: actions/cache@v5
         with:
-          path: ui-react/node_modules
-          key: ${{ runner.OS }}-ui-react-${{ hashFiles('ui-react/package-lock.json') }}
+          path: ui/node_modules
+          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
 
       - name: Install Node Dependencies [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        working-directory: ui-react
+        working-directory: ui
         run: npm install
 
       - name: Generate OpenAPI client [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        working-directory: ui-react
+        working-directory: ui
         run: |
           npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w ${{ matrix.workspace }}
 
       - name: Unit test [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        working-directory: ui-react
+        working-directory: ui
         run: npm run test -w ${{ matrix.workspace }}
 
       - name: Code linting [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        working-directory: ui-react
+        working-directory: ui
         run: npm run lint -w ${{ matrix.workspace }}
 
       - name: Build [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        working-directory: ui-react
+        working-directory: ui
         run: npm run build -w ${{ matrix.workspace }}
