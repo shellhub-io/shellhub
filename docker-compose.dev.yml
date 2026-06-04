@@ -94,6 +94,3 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     networks:
       - shellhub
-
-volumes:
-  ui_react_node_modules:
