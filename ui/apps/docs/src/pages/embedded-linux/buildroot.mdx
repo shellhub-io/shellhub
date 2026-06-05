@@ -1,0 +1,79 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Buildroot
+description: Embed the ShellHub agent into custom Linux images with Buildroot
+---
+
+# Buildroot
+
+Embed the ShellHub agent into custom Linux images using the Buildroot external tree.
+
+## Prerequisites
+
+- Buildroot 2021.02 or later
+- Internet access to download the agent source and Go toolchain
+
+## Setup
+
+### 1. Clone the ShellHub Buildroot package
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub-buildroot.git
+```
+
+### 2. Add as BR2_EXTERNAL
+
+When building your Buildroot image, reference the ShellHub external tree:
+
+```bash
+$ make BR2_EXTERNAL=/path/to/shellhub-buildroot menuconfig
+```
+
+Enable the ShellHub agent package in the menuconfig interface.
+
+### 3. Configure the agent
+
+Create a root filesystem overlay to set the agent's environment variables. For example, create the file `board/your-board/rootfs_overlay/etc/shellhub-agent.env`:
+
+```bash
+SERVER_ADDRESS=https://cloud.shellhub.io
+TENANT_ID=YOUR_TENANT_ID
+```
+
+Then set `BR2_ROOTFS_OVERLAY="board/your-board/rootfs_overlay"` in your Buildroot config.
+
+The agent reads these variables at boot:
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `SERVER_ADDRESS` | Yes | ShellHub server URL |
+| `TENANT_ID` | Yes | Your namespace's tenant ID |
+| `PRIVATE_KEY` | No | Path to the agent's private key file |
+
+### 4. Build
+
+```bash
+$ make
+```
+
+The resulting image includes the ShellHub agent, which starts automatically on boot.
+
+## Testing with QEMU
+
+Test your image locally before flashing:
+
+```bash
+$ make run
+```
+
+Or run the image directly with QEMU. The agent connects to the configured ShellHub server on startup, and the device appears in the dashboard.
+
+## Verifying
+
+After booting the image, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+## Next steps
+
+- [Embedded Linux Overview](/v2/docs/embedded-linux/overview) — Why embed the agent and how it works
+- [Yocto Project](/v2/docs/embedded-linux/yocto) — Alternative build system integration
+- [Agent Overview](/v2/docs/agent/overview) — Agent configuration reference

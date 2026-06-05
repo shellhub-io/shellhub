@@ -1,0 +1,120 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Firewall Rules
+description: Control SSH connections to your devices with fine-grained allow and deny rules
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Firewall Rules
+
+<EditionBanner />
+
+Define rules that allow or deny SSH connections based on source IP, username, and target device. Rules are evaluated before the connection reaches the device.
+
+## How it works
+
+When an SSH connection comes in, ShellHub evaluates your firewall rules before granting access:
+
+1. Rules are sorted by priority (highest number first)
+2. Each active rule checks the connection against its conditions — source IP, username, and device filter
+3. The first matching rule wins, and its action (allow or deny) is applied
+4. If no rule matches, the connection proceeds normally
+
+This gives you centralized network-level access control without touching individual device configurations.
+
+## Creating a rule
+
+1. Go to **Firewall Rules** in the sidebar
+2. Click **Add Rule**
+3. Set the rule's priority, policy, and status
+4. Configure source IP, username, and device filters
+5. Save
+
+The rule takes effect immediately for new connections.
+
+## Rule fields
+
+### Status
+
+Toggle a rule **Active** or **Inactive**. Inactive rules are skipped during evaluation, letting you disable a rule temporarily without deleting it.
+
+### Priority
+
+An integer that determines evaluation order. Higher values are evaluated first. Priority cannot be 0.
+
+If two rules could match the same connection, the one with the higher priority wins. Use this to layer broad defaults with specific overrides.
+
+### Policy
+
+The action to take when the rule matches:
+
+- **Allow** — Permit the connection
+- **Deny** — Block the connection
+
+### Source IP
+
+Which client IPs the rule applies to:
+
+- **All devices** — Matches any source IP
+- **Restrict with regexp** — A Go-compatible regex tested against the client's IP address
+
+### Username
+
+Which SSH usernames the rule applies to:
+
+- **All users** — Matches any username
+- **Restrict with regexp** — A Go-compatible regex tested against the username in the SSH connection
+
+### Device filter
+
+Which devices the rule applies to. Choose one:
+
+- **All devices** — Matches every device (hostname pattern `.*`)
+- **Restrict by hostname regexp** — A regex tested against the device hostname
+- **Restrict by tags** — Up to 3 tags. The rule applies to devices that have those tags.
+
+## Matching patterns
+
+Filters use Go regex syntax. Common patterns:
+
+| Pattern | Matches | Use case |
+|---------|---------|----------|
+| `.*` | Everything | Wildcard, match all |
+| `root` | Exactly `root` | Single username |
+| `192\.168\.1\..*` | `192.168.1.0/24` range | Local subnet |
+| `10\.0\..*` | Any IP starting with `10.0.` | VPN range |
+| `web-.*` | `web-01`, `web-prod`, etc. | Hostname prefix |
+| `.*-staging` | `app-staging`, `db-staging` | Hostname suffix |
+
+Note: Dots in IP addresses must be escaped with `\` since `.` matches any character in regex.
+
+## Examples
+
+| Priority | Policy | Source IP | Username | Device filter | Effect |
+|----------|--------|-----------|----------|---------------|--------|
+| 100 | Deny | `.*` | `root` | Hostname: `.*` | Block root access from everywhere |
+| 200 | Allow | `192\.168\.1\..*` | `root` | Hostname: `.*` | Allow root from local network (overrides rule above) |
+| 50 | Deny | `.*` | `.*` | Tags: `production` | Block all access to production devices |
+| 150 | Allow | `10\.0\.0\..*` | `deploy` | Tags: `production` | Allow deploy user from VPN to production |
+| 10 | Deny | `.*` | `guest` | Hostname: `.*` | Block guest user everywhere |
+
+**How these rules interact:**
+
+- `deploy` user at `10.0.0.5` → production device: Rule 200 doesn't match (wrong username), rule 150 matches → **allowed**
+- `root` at `192.168.1.10` → any device: Rule 200 matches → **allowed** (never reaches rule 100's deny)
+- `root` at `203.0.113.50` → any device: Rule 200 doesn't match (wrong IP), rule 100 matches → **denied**
+- `guest` from anywhere → any device: Rule 10 matches → **denied**
+
+## Managing rules
+
+From the **Firewall Rules** page, you can edit any field of a rule or delete it. Changes take effect immediately for new connections. Active connections are not affected by rule changes.
+
+## Best practices
+
+- **Start with deny rules at low priority** — Set broad deny policies as a baseline, then add targeted allow rules at higher priorities
+- **Use tags for group-based rules** — Easier to maintain than hostname patterns as your fleet changes
+- **Escape dots in IP patterns** — Write `192\.168\.1\..*` not `192.168.1..*` to avoid matching unintended IPs
+- **Keep priorities spaced out** — Use increments of 10 or 100 so you can insert rules later without renumbering
+- **Disable before deleting** — Toggle a rule inactive first to verify the change before removing it permanently
+- **Document your rules** — Use consistent priority ranges (e.g., 1-99 for defaults, 100-199 for team rules, 200+ for exceptions)

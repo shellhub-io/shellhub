@@ -1,0 +1,79 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Session Recording
+description: Record and replay SSH sessions for auditing and compliance
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Session Recording
+
+<EditionBanner />
+
+ShellHub can record all terminal I/O during SSH sessions. Every keystroke, command output, and timing is captured — then you can replay sessions in the dashboard exactly as they happened.
+
+## Enabling recording
+
+Session recording is configured per namespace:
+
+1. Go to **Settings** in the dashboard
+2. Toggle **Session Recording** on
+3. All new SSH sessions in this namespace will be recorded
+
+Existing sessions are not affected. Recording starts from the moment you enable it.
+
+## Viewing recordings
+
+Recorded sessions display a play icon on the **Sessions** page. Click it to open the player.
+
+The player replays terminal output in real time — you see exactly what the user saw, including:
+
+- Commands typed
+- Command output and responses
+- Timing between keystrokes
+- Terminal resizing
+
+You can pause, resume, and scrub through the recording timeline.
+
+## What gets recorded
+
+| Recorded | Not recorded |
+|----------|-------------|
+| All terminal output (stdout/stderr) | File transfer content (SCP/SFTP payloads) |
+| Commands typed (stdin) | Port forwarding traffic |
+| Terminal resize events | |
+| Session start/end timestamps | |
+
+## Use cases
+
+### Security audit
+
+Review commands executed on sensitive systems. If an incident occurs, you have a complete record of what happened during every session.
+
+### Compliance
+
+Maintain access records for regulatory requirements like SOC 2, HIPAA, or PCI-DSS. Session recordings provide evidence that access was authorized and appropriate.
+
+### Training
+
+Record standard operating procedures and share the recordings with team members. New engineers can see exactly how experienced operators handle common tasks.
+
+### Incident response
+
+When something goes wrong, replay the session to understand the sequence of events. No more guessing what commands were run or relying on shell history.
+
+## Storage
+
+Recordings are stored on the ShellHub server. Storage usage depends on session activity — text-based terminal sessions are compact, but long or high-output sessions (e.g., compiling, streaming logs) generate more data.
+
+For self-hosted deployments, monitor your storage usage and consider retention policies for old recordings.
+
+## Privacy considerations
+
+Session recording captures everything displayed in the terminal. This may include sensitive data like passwords typed in interactive prompts, environment variables, or file contents viewed with `cat`.
+
+Make sure your team knows recording is enabled. Consider:
+
+- Enabling recording only for namespaces that require it
+- Using [connection announcements](/v2/docs/guides/settings#connection-announcement) to notify users
+- Defining data retention policies that align with your compliance requirements

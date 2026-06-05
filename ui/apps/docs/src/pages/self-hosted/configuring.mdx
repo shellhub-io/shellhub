@@ -1,0 +1,161 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Configuration
+description: Configure your self-hosted ShellHub instance — ports, domain, SSL, database, and environment variables
+---
+
+# Configuration
+
+Configure ShellHub through environment variables in a `.env.override` file in the project root. This file is not tracked by git and persists across updates. Create it and add variables one per line:
+
+```bash
+$ touch .env.override
+```
+
+Changes take effect after restarting:
+
+```bash
+$ make restart
+```
+
+## Environment variables
+
+### Network
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_HTTP_PORT` | `80` | HTTP port for the web dashboard and API |
+| `SHELLHUB_HTTPS_PORT` | `443` | HTTPS port (when auto-SSL is enabled) |
+| `SHELLHUB_SSH_PORT` | `22` | SSH port for native SSH connections |
+| `SHELLHUB_BIND_ADDRESS` | `0.0.0.0` | Address to bind all services |
+
+### Domain and SSL
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_DOMAIN` | `localhost` | Public domain name for your instance |
+| `SHELLHUB_AUTO_SSL` | `false` | Enable automatic Let's Encrypt certificates |
+| `SHELLHUB_PROXY` | `false` | Enable PROXY protocol support on nginx listen directives |
+
+> **Note:** `SHELLHUB_PROXY` is for Layer 4 / TCP load balancers (AWS NLB, HAProxy in TCP mode) that send PROXY protocol headers. This lets ShellHub read the real client IP. If you terminate SSL at a reverse proxy (nginx, Caddy, Traefik), you don't need this flag.
+
+### Database
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_DATABASE` | `mongo` | Database backend: `mongo` or `postgres` |
+| `SHELLHUB_POSTGRES_HOST` | `postgres` | PostgreSQL host (when using `postgres` backend) |
+| `SHELLHUB_POSTGRES_PORT` | `5432` | PostgreSQL port |
+| `SHELLHUB_POSTGRES_USER` | `shellhub` | PostgreSQL username |
+| `SHELLHUB_POSTGRES_PASSWORD` | `shellhub` | PostgreSQL password |
+| `SHELLHUB_POSTGRES_DB` | `shellhub` | PostgreSQL database name |
+
+### Logging
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_LOG_LEVEL` | `info` | Log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal` |
+| `SHELLHUB_LOG_FORMAT` | `text` | Log format: `text` or `json` |
+| `SHELLHUB_GATEWAY_ACCESS_LOGS` | `true` | Enable nginx access logs |
+
+### Features
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_CONNECTOR` | `true` | Enable the ShellHub Connector service |
+| `SHELLHUB_ENTERPRISE` | `false` | Enable Enterprise edition features (web admin panel, SAML/LDAP authentication, and more) |
+| `SHELLHUB_METRICS` | `false` | Enable metrics endpoint |
+| `SHELLHUB_WEB_ENDPOINTS` | `false` | Enable web endpoints feature |
+| `SHELLHUB_ANNOUNCEMENTS` | `false` | Show release announcements in the dashboard |
+| `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Allow SSH connections with empty passwords |
+
+### Performance
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_API_RATE_LIMIT` | `1000r/s` | API rate limit |
+| `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | Redis connection pool size (0 = default) |
+| `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Account lockout duration in minutes after failed logins |
+
+### Version
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_VERSION` | *(set in .env)* | Docker image version tag. Controls which version of ShellHub services are pulled |
+
+### Advanced
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change this when running multiple ShellHub instances on the same host |
+
+## Override files
+
+ShellHub supports two override mechanisms:
+
+### Environment overrides (`.env.override`)
+
+Use this for most configuration changes.
+
+### Docker Compose overrides (`docker-compose.override.yml`)
+
+For changes to the Docker Compose setup itself — custom volumes, extra services, resource limits, or network configuration:
+
+```yaml
+# docker-compose.override.yml
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+```
+
+If this file exists, it is automatically loaded by the Docker Compose wrapper.
+
+## Example configurations
+
+### Custom ports
+
+```bash
+# .env.override
+SHELLHUB_HTTP_PORT=8080
+SHELLHUB_SSH_PORT=2222
+```
+
+### Production with auto-SSL
+
+```bash
+# .env.override
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_AUTO_SSL=true
+```
+
+### Behind a Layer 4 load balancer
+
+```bash
+# .env.override
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_PROXY=true
+```
+
+### PostgreSQL instead of MongoDB
+
+```bash
+# .env.override
+SHELLHUB_DATABASE=postgres
+SHELLHUB_POSTGRES_PASSWORD=a-strong-password
+```
+
+### Debug logging
+
+```bash
+# .env.override
+SHELLHUB_LOG_LEVEL=debug
+SHELLHUB_LOG_FORMAT=json
+```
+
+## Next steps
+
+- [Administration](/v2/docs/self-hosted/administration) — Manage users, namespaces, and backups
+- [Upgrade](/v2/docs/self-hosted/upgrading) — Update to a new ShellHub version

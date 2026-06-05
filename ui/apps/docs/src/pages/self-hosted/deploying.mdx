@@ -1,0 +1,110 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Setup
+description: Set up a self-hosted ShellHub instance with Docker Compose
+---
+
+# Setup
+
+Run ShellHub on your own infrastructure using Docker Compose. This guide covers the full setup — for a quick overview, see the [Quick Start](/v2/docs/getting-started/quick-start#self-hosted).
+
+## Requirements
+
+- **Docker Engine** 20.10 or later
+- **Docker Compose** v2
+- **Linux host** with at least 1 GB of RAM
+- **Ports** TCP 80 and TCP 22 available (both configurable)
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub
+```
+
+### 2. Generate cryptographic keys
+
+ShellHub uses RSA keys for device authentication and API signing:
+
+```bash
+$ make keygen
+```
+
+This creates the key files in the project root. Run this once — the keys persist across restarts.
+
+### 3. Start the services
+
+```bash
+$ make start
+```
+
+The first run downloads all container images — expect a few minutes depending on your connection. Once complete, verify all services are running:
+
+```bash
+$ ./bin/docker-compose ps
+```
+
+All services should show `Up` status. ShellHub is now accessible at `http://localhost`.
+
+### 4. Create your admin account
+
+Print a one-time setup URL:
+
+```bash
+$ ./bin/setup
+```
+
+Open the URL in your browser. Create your admin account and choose a namespace name.
+
+> **Note:** The setup URL includes a cryptographic signature and is single-use. If you need to re-run setup, execute `./bin/setup` again.
+
+Default settings are in `.env`. To customize ports, domain, or other options, see [Configuration](/v2/docs/self-hosted/configuring).
+
+## HTTPS configuration
+
+ShellHub supports two approaches for HTTPS:
+
+### Automatic SSL (Let's Encrypt)
+
+The simplest option. ShellHub obtains and renews certificates automatically:
+
+```bash
+# .env.override
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_AUTO_SSL=true
+```
+
+Requires ports 80 and 443 to be accessible from the internet for the ACME challenge.
+
+### Reverse proxy or load balancer
+
+If you run ShellHub behind a reverse proxy (nginx, Caddy, Traefik), terminate SSL at the proxy and forward traffic to ShellHub on port 80.
+
+For Layer 4 / TCP load balancers that speak PROXY protocol (AWS NLB, HAProxy in TCP mode), see [`SHELLHUB_PROXY`](/v2/docs/self-hosted/configuring#domain-and-ssl) in the Configuration reference.
+
+## Data persistence
+
+All data is stored in Docker volumes:
+
+- **MongoDB** — Device registrations, users, namespaces, sessions
+- **Redis** — Cache and session state (ephemeral, rebuilt on restart)
+
+Back up the MongoDB volume regularly. See [Administration](/v2/docs/self-hosted/administration#backups) for backup instructions.
+
+## Stopping and restarting
+
+```bash
+$ make stop      # Stop all services
+$ make start     # Start all services
+$ make restart   # Restart all services
+```
+
+Data persists across stops and restarts.
+
+## Next steps
+
+- [Configuration](/v2/docs/self-hosted/configuring) — Customize ports, domain, and environment variables
+- [Administration](/v2/docs/self-hosted/administration) — Manage users, namespaces, and backups
+- [Upgrade](/v2/docs/self-hosted/upgrading) — Update to a new ShellHub version

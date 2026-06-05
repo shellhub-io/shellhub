@@ -1,0 +1,56 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Embedded Linux
+description: Integrate the ShellHub agent into embedded Linux firmware with Buildroot and Yocto
+---
+
+# Embedded Linux
+
+ShellHub provides first-class support for embedded Linux platforms. Instead of installing the agent after deployment, you embed it directly into your firmware image — the agent starts automatically on boot and connects to ShellHub without manual setup on each device.
+
+## Why embed the agent?
+
+Embedded devices are typically deployed at scale with no direct console access. Embedding the agent into the firmware image means:
+
+- **Zero-touch provisioning** — Every device connects to ShellHub the moment it boots
+- **No runtime dependencies** — The agent is part of the rootfs, no Docker or package manager needed
+- **Reproducible builds** — The agent version and configuration are locked into the image
+- **Fleet-wide updates** — Update the agent by rebuilding and deploying new firmware (or use [UpdateHub](https://updatehub.io) for OTA updates)
+
+## Supported build systems
+
+| Build system | Integration method | Repository |
+|---|---|---|
+| [Buildroot](/v2/docs/embedded-linux/buildroot) | BR2_EXTERNAL package | [shellhub-io/shellhub-buildroot](https://github.com/shellhub-io/shellhub-buildroot) |
+| [Yocto Project](/v2/docs/embedded-linux/yocto) | meta layer | [shellhub-io/meta-shellhub](https://github.com/shellhub-io/meta-shellhub) |
+
+Both integrations build the agent from source and include it in the root filesystem. Configuration (server address, tenant ID) is baked into the image at build time.
+
+## How it works
+
+1. Add the ShellHub package/layer to your build system
+2. Set configuration variables (server address and tenant ID)
+3. Build the image
+4. Flash and boot — the device appears in the ShellHub dashboard as **Pending**
+
+The agent generates a unique identity key on first boot and stores it on the device's persistent storage. Subsequent boots reuse the same identity, so the device doesn't re-register.
+
+## Agent configuration
+
+Both Buildroot and Yocto accept the same core settings:
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| Server address | Yes | ShellHub server URL (defaults to `https://cloud.shellhub.io`) |
+| Tenant ID | Yes | Your namespace's tenant ID |
+| Private key path | No | Where to store the agent's identity key |
+| Preferred hostname | No | Override the device hostname reported to ShellHub |
+
+The exact variable names differ by build system. See the [Buildroot](/v2/docs/embedded-linux/buildroot) and [Yocto](/v2/docs/embedded-linux/yocto) pages for specifics.
+
+## Next steps
+
+- [Buildroot](/v2/docs/embedded-linux/buildroot) — BR2_EXTERNAL setup and QEMU testing
+- [Yocto Project](/v2/docs/embedded-linux/yocto) — meta-shellhub layer configuration
+- [Agent Overview](/v2/docs/agent/overview) — How the agent works under the hood
+- [Agent Development](/v2/docs/developers/agent-development) — Build the agent from source for custom platforms

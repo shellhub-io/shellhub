@@ -1,0 +1,125 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Port Forwarding
+description: Access remote services through SSH tunnels via ShellHub
+---
+
+# Port Forwarding
+
+SSH port forwarding lets you access services running on remote devices as if they were local. ShellHub supports standard SSH tunneling — local forwarding, remote forwarding, and SOCKS proxies all work through the gateway.
+
+## Local port forwarding
+
+Forward a port from a remote device to your local machine. This is the most common use case: accessing a database, web app, or admin panel that's only listening on the device's localhost.
+
+```bash
+$ ssh -L <local-port>:localhost:<remote-port> <sshid>
+```
+
+### Access a remote database
+
+Forward PostgreSQL from a device to your workstation:
+
+```bash
+$ ssh -L 5432:localhost:5432 root@myteam.db-server.shellhub.example.com
+```
+
+Now connect your database client to `localhost:5432` — traffic flows through the ShellHub tunnel to the device.
+
+### Access a web admin panel
+
+Forward a web interface running on port 8080:
+
+```bash
+$ ssh -L 8080:localhost:8080 root@myteam.monitoring.shellhub.example.com
+```
+
+Open `http://localhost:8080` in your browser.
+
+### Forward to a different host
+
+The device can forward to other hosts on its local network:
+
+```bash
+$ ssh -L 3306:192.168.1.50:3306 root@myteam.gateway.shellhub.example.com
+```
+
+This reaches a MySQL server at `192.168.1.50` through the ShellHub-connected device.
+
+## Remote port forwarding
+
+Expose a local service through the remote device:
+
+```bash
+$ ssh -R <remote-port>:localhost:<local-port> <sshid>
+```
+
+Example — make your local dev server available on the device:
+
+```bash
+$ ssh -R 3000:localhost:3000 root@myteam.web-server.shellhub.example.com
+```
+
+## Dynamic port forwarding (SOCKS proxy)
+
+Create a SOCKS proxy that routes all traffic through the remote device:
+
+```bash
+$ ssh -D 1080 root@myteam.web-server.shellhub.example.com
+```
+
+Configure your browser or application to use `localhost:1080` as a SOCKS5 proxy. All traffic exits from the device's network — useful for accessing internal services or testing from the device's network perspective.
+
+## Multiple tunnels
+
+Combine multiple `-L` flags in one command:
+
+```bash
+$ ssh -L 5432:localhost:5432 -L 6379:localhost:6379 -L 8080:localhost:8080 root@myteam.app-server.shellhub.example.com
+```
+
+## SSH config
+
+Add forwarding rules to `~/.ssh/config` for convenience:
+
+```
+Host myteam-db
+    HostName shellhub.example.com
+    User root@myteam.db-server
+    LocalForward 5432 localhost:5432
+    LocalForward 6379 localhost:6379
+```
+
+Then just:
+
+```bash
+$ ssh myteam-db
+```
+
+## Background tunnels
+
+Run a tunnel in the background without opening an interactive shell:
+
+```bash
+$ ssh -fNL 5432:localhost:5432 root@myteam.db-server.shellhub.example.com
+```
+
+| Flag | Purpose |
+|------|---------|
+| `-f` | Go to background after authentication |
+| `-N` | Don't execute a remote command |
+| `-L` | Local port forwarding |
+
+## Troubleshooting
+
+**Address already in use** — Another process is using the local port. Pick a different local port: `-L 15432:localhost:5432`.
+
+**Channel open failed** — The target service isn't running on the device, or it's not listening on the expected port. SSH into the device and verify with `ss -tlnp`.
+
+**Connection drops after idle** — Add keepalive to your SSH config:
+
+```
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+```

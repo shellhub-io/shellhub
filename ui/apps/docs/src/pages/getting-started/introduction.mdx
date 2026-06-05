@@ -1,0 +1,61 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Introduction
+description: ShellHub is a centralized SSH gateway for remote access to Linux devices — no VPN, no public IP, no firewall changes
+---
+
+import DiagramReverseConnectivity from '../../components/DiagramReverseConnectivity.astro';
+
+# Introduction
+
+ShellHub is a centralized SSH gateway that gives you remote access to Linux devices over the internet. No public IPs, no VPNs, no firewall changes.
+
+## The problem
+
+Managing SSH access to remote Linux devices is painful. Traditional setups require public IPs, open firewall ports, VPN tunnels, or jump hosts. That works for a handful of servers in a data center — it falls apart when you're dealing with devices behind NAT, CGNAT, or strict corporate firewalls.
+
+If you manage edge devices, IoT gateways, or distributed servers, you've likely dealt with at least one of these:
+
+- Devices behind carrier-grade NAT with no inbound connectivity
+- VPN configurations that break when networks change
+- Firewall rules that need to be maintained per device
+- Jump hosts that become single points of failure
+- No visibility into who connected to what, and when
+
+## How ShellHub solves it
+
+ShellHub reverses the connection model. Instead of opening inbound ports on each device, you install a lightweight agent that connects **outbound** to the ShellHub server over HTTPS (port 443). You then access your devices through the ShellHub gateway using a web terminal or your standard SSH client.
+
+<DiagramReverseConnectivity />
+
+The agent initiates the connection from the device side, so it works behind any network topology — NAT, CGNAT, firewalls, proxies. The device never needs a public IP or an open inbound port.
+
+The result:
+
+- **No inbound ports** — Devices connect outbound, so no firewall rules needed
+- **No VPN** — Access devices directly through the gateway
+- **No public IPs** — Works behind NAT, CGNAT, and corporate firewalls
+- **One entry point** — A single URL to reach all your devices
+- **Full audit trail** — Every connection is logged with user, device, and timestamp
+
+## What you can do
+
+For details on each feature, see the [Features](/v2/docs/getting-started/features) page.
+
+- **Web terminal** — Open an SSH session from your browser, no client needed
+- **Native SSH** — Use OpenSSH, PuTTY, or any SSH client with the device's SSHID
+- **SCP and SFTP** — Transfer files to and from devices
+- **Public key auth** — Manage SSH keys centrally with per-device and per-user control
+- **Firewall rules** — Define who can connect to which devices, from which IPs
+- **Session recording** — Record and replay terminal sessions for auditing
+- **Device tagging** — Organize devices with labels and filter by tag
+- **Multi-tenant** — Isolate devices and teams into namespaces with role-based access
+- **Container access** — SSH into Docker containers running on your devices
+- **MFA** — Add a second factor to user authentication
+
+## Next steps
+
+- [How it Works](/v2/docs/getting-started/how-it-works) — Understand the core concepts: Server, Agent, Namespace, and SSHID
+- [Features](/v2/docs/getting-started/features) — Detailed look at what ShellHub offers
+- [Editions](/v2/docs/getting-started/editions) — Compare Community, Cloud, and Enterprise
+- [Quick Start](/v2/docs/getting-started/quick-start) — Get ShellHub running and connect your first device
