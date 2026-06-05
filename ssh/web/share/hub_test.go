@@ -56,6 +56,21 @@ func TestHubLateJoinerReceivesRingAndResize(t *testing.T) {
 	assert.Equal(t, []byte("scrollback"), msgs[1].data)
 }
 
+func TestHubRingResetsOnScreenClear(t *testing.T) {
+	hub := newHub()
+
+	hub.Output([]byte("stale content from before the clear"))
+	hub.Output([]byte("\x1b[2Jcurrent screen"))
+
+	late := hub.Subscribe()
+	msgs := drain(t, late)
+
+	// The snapshot must start at the clear, dropping the stale pre-clear content.
+	require.Len(t, msgs, 1)
+	assert.Equal(t, websocket.BinaryMessage, msgs[0].typ)
+	assert.Equal(t, []byte("\x1b[2Jcurrent screen"), msgs[0].data)
+}
+
 func TestHubDropsSlowConsumer(t *testing.T) {
 	hub := newHub()
 
