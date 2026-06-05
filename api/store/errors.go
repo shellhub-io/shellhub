@@ -10,6 +10,7 @@ const (
 	ErrCodeNoDocument = iota + 1
 	ErrCodeDuplicated
 	ErrCodeInvalid
+	ErrCodeInternal
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 	ErrNoDocuments      = errors.New("no documents", ErrLayer, ErrCodeNoDocument)
 	ErrInvalidHex       = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
 	ErrResolverNotFound = errors.New("resolver not found", ErrLayer, ErrCodeInvalid)
+	ErrInternal         = errors.New("internal store error", ErrLayer, ErrCodeInternal)
 )
 
 // Errors used by Cloud.

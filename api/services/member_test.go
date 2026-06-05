@@ -985,6 +985,56 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				err: nil,
 			},
 		},
+		// The absent-member check must be caught by FindMember in RemoveNamespaceMember,
+		// never by a store-layer sentinel inside removeMember. When NamespaceDeleteMembership
+		// unexpectedly returns a store error the error must propagate unchanged so callers
+		// can distinguish it from a not-found-namespace response.
+		{
+			description: "[community|enterprise|cloud] propagates unexpected store error from NamespaceDeleteMembership unchanged",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+				// Simulate an unexpected store error from NamespaceDeleteMembership (e.g.
+				// TOCTOU: member disappeared after the FindMember precheck). The service
+				// must propagate it unchanged — the default branch must not remap it.
+				storeMock.
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					Return(store.ErrInternal).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       store.ErrInternal,
+			},
+		},
 	}
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
@@ -1147,6 +1197,42 @@ func TestService_LeaveNamespace(t *testing.T) {
 			expected: Expected{
 				res: nil,
 				err: nil,
+			},
+		},
+		// The absent-member check is performed by FindMember (before removeMember is ever
+		// called). If NamespaceDeleteMembership unexpectedly returns a store error it must
+		// NOT be remapped to NewErrNamespaceMemberNotFound — that conversion was a dead
+		// branch that leaked store internals into the service layer.
+		{
+			description: "propagates unexpected store error from NamespaceDeleteMembership unchanged",
+			req: &requests.LeaveNamespace{
+				UserID:                "000000000000000000000000",
+				TenantID:              "00000000-0000-4000-0000-000000000000",
+				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					Return(store.ErrInternal).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: store.ErrInternal,
 			},
 		},
 		{

@@ -37,16 +37,10 @@ load helpers
     [[ "$out" != *".env.enterprise"* ]]
 }
 
-@test "mongo database: COMPOSE_FILE includes mongo overlay (and not postgres)" {
-    out=$(capture_with SHELLHUB_DATABASE=mongo)
-    [[ "$out" == *"docker-compose.mongo.yml"* ]]
-    [[ "$out" != *"docker-compose.postgres.yml"* ]]
-}
-
-@test "migrate database: includes both mongo and postgres overlays" {
-    out=$(capture_with SHELLHUB_DATABASE=migrate)
-    [[ "$out" == *"docker-compose.mongo.yml"* ]]
+@test "unknown database: warns and defaults to postgres" {
+    out=$(capture_with SHELLHUB_DATABASE=unknown 2>&1)
     [[ "$out" == *"docker-compose.postgres.yml"* ]]
+    [[ "$out" != *"docker-compose.mongo.yml"* ]]
 }
 
 @test "autossl: COMPOSE_FILE includes autossl overlay" {

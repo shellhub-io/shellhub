@@ -21,7 +21,7 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 	// MCP transport, internal jobs). Setting the "tenant" string key on the
 	// context is enough to scope service-level queries by namespace.
 	if value, ok := ctx.Value("tenant").(string); ok && value != "" {
-		return &models.Tenant{value}
+		return &models.Tenant{ID: value}
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func UsernameFromContext(ctx context.Context) *models.Username {
 	}
 
 	if value, ok := ctx.Value("username").(string); ok && value != "" {
-		return &models.Username{value}
+		return &models.Username{ID: value}
 	}
 
 	return nil
@@ -49,7 +49,7 @@ func IDFromContext(ctx context.Context) *models.ID {
 	}
 
 	if value, ok := ctx.Value("ID").(string); ok && value != "" {
-		return &models.ID{value}
+		return &models.ID{ID: value}
 	}
 
 	return nil

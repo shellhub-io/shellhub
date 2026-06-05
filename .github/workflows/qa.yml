@@ -34,11 +34,6 @@ jobs:
           - project: cli
             extra_args: ""
             lint_args: ""
-          # Integration tests with MongoDB
-          - project: tests
-            extra_args: ""
-            lint_args: ""
-            database: mongo
           # Integration tests with PostgreSQL
           - project: tests
             extra_args: ""
