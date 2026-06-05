@@ -8,26 +8,29 @@ import PaletteFooter from "./PaletteFooter";
 
 /**
  * Cmd/Ctrl+K command palette. A thin presentational shell over
- * `useCommandPalette()` — connection-first by default (connect/restore a
- * device), with a ">"-prefixed command mode for page navigation.
+ * `useCommandPalette()` — connection-first by default, with a per-device action
+ * menu (drill-in) and a ">"-prefixed command mode for navigation.
  */
 export default function CommandPalette() {
   const {
     open,
+    inputRef,
     listRef,
     query,
+    drillDevice,
     commandMode,
     sections,
     hasResults,
     indexById,
     safeIndex,
     activeItem,
-    rejectMessage,
+    feedback,
     shakeId,
     onQueryChange,
     setActiveIndex,
     handleKeyDown,
-    close,
+    handleDismiss,
+    exitDrillIn,
   } = useCommandPalette();
 
   if (!open) return null;
@@ -35,21 +38,24 @@ export default function CommandPalette() {
   return (
     <BaseDialog
       open={open}
-      onClose={close}
+      onClose={handleDismiss}
       size="xl"
       aria-label="Command palette"
       className="overflow-hidden sm:max-h-[85vh]"
     >
       <PaletteHeader
+        inputRef={inputRef}
         query={query}
+        drillDevice={drillDevice}
         commandMode={commandMode}
         hasResults={hasResults}
         activeOptionId={activeItem ? optionId(activeItem.id) : undefined}
         onQueryChange={onQueryChange}
         onKeyDown={handleKeyDown}
+        onBack={exitDrillIn}
       />
 
-      <FeedbackBanner key={rejectMessage} message={rejectMessage} />
+      <FeedbackBanner key={feedback?.text} feedback={feedback} />
 
       <div
         ref={listRef}
@@ -58,10 +64,18 @@ export default function CommandPalette() {
         {!hasResults ? (
           <div className="px-4 py-10 text-center" role="status">
             <p className="text-sm text-text-muted">
-              {commandMode ? "No commands match" : "No devices match"}
+              {drillDevice
+                ? "No actions match"
+                : commandMode
+                  ? "No commands match"
+                  : "No devices match"}
             </p>
             <p className="text-2xs text-text-muted/50 mt-1">
-              {commandMode ? "Try a different command" : "Type > for commands"}
+              {drillDevice
+                ? "Try a different action"
+                : commandMode
+                  ? "Try a different command"
+                  : "Type > for commands"}
             </p>
           </div>
         ) : (
@@ -91,7 +105,7 @@ export default function CommandPalette() {
         )}
       </div>
 
-      <PaletteFooter />
+      <PaletteFooter drillDevice={drillDevice} commandMode={commandMode} />
     </BaseDialog>
   );
 }

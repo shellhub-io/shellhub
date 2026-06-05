@@ -3,16 +3,16 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../AppLayout";
+import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 
-const mockUseNamespaces =
-  vi.fn<
-    () => {
-      namespaces: Array<{ tenant_id: string; name: string }>;
-      isLoading: boolean;
-      error: Error | null;
-      refetch: () => void;
-    }
-  >();
+const mockUseNamespaces = vi.fn<
+  () => {
+    namespaces: Array<{ tenant_id: string; name: string }>;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  }
+>();
 
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
@@ -74,7 +74,9 @@ function renderLayout() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <AppLayout />
+        <ClipboardProvider>
+          <AppLayout />
+        </ClipboardProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );

@@ -1,39 +1,46 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDevices } from "@/hooks/useDevices";
+import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { useCopy } from "@/hooks/useCopy";
 import {
   buildConnectionItems,
   buildCommandItems,
+  buildDeviceActionItems,
   fuzzyMatch,
   NO_CONNECT_PERMISSION,
   type CommandItem,
+  type Feedback,
 } from "@/components/commandPalette/items";
 
 /** The view-model the palette shell and its presentational parts consume. */
 export interface CommandPaletteViewModel {
   open: boolean;
-  // Ref the JSX attaches; the hook reads `.current` only inside effects.
+  // Refs the JSX attaches; the hook reads `.current` only inside effects.
+  inputRef: React.RefObject<HTMLInputElement>;
   listRef: React.RefObject<HTMLDivElement>;
   // Derived view data (computed during render).
   query: string;
+  drillDevice: NormalizedDevice | null;
   commandMode: boolean;
   sections: Map<string, CommandItem[]>;
   hasResults: boolean;
   indexById: Map<string, number>;
   safeIndex: number;
   activeItem: CommandItem | undefined;
-  // Inline rejection feedback: an assertive message + the id of the row to shake.
-  rejectMessage: string | null;
+  feedback: Feedback | null;
   shakeId: string | null;
   // Handlers.
   onQueryChange: (value: string) => void;
   setActiveIndex: (index: number) => void;
-  handleKeyDown: (e: React.KeyboardEvent) => void;
-  close: () => void;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleDismiss: () => void;
+  exitDrillIn: () => void;
 }
 
 /**
@@ -46,41 +53,67 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const closePalette = useCommandPaletteStore((s) => s.closePalette);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  /* Inline rejection feedback (e.g. connecting to an offline device): an
-   * assertive (role="alert") message plus the id of the row to shake. Both are
-   * cleared on close and on new input; the shake also self-clears on a timer
-   * (see the effect below) so it resets even under prefers-reduced-motion,
-   * where the animation — and thus animationend — never fires. */
-  const [rejectMessage, setRejectMessage] = useState<string | null>(null);
+  /* Drilled-in device whose action menu is showing (null = the normal list). */
+  const [drillInUid, setDrillInUid] = useState<string | null>(null);
+  /* Inline banner feedback. An "error" (offline/permission) is assertive and
+   * shakes the row keyed by `shakeId`; a "success" (copy) is polite. Both clear
+   * on close, on new input, and on entering/leaving the drill-in. The shake
+   * also self-clears on a timer (effect below) so it resets under
+   * prefers-reduced-motion, where the animation — and animationend — never fire. */
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const { devices } = useDevices({ page: 1, perPage: 50, status: "accepted" });
   const terminalSessions = useTerminalStore((s) => s.sessions);
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const logout = useAuthStore((s) => s.logout);
+  const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("device:connect");
+  const { namespace } = useNamespace(tenant ?? "");
+  const nsName = namespace?.name ?? "";
+  // The green banner is our copy confirmation, so useCopy's own `copied` flag
+  // (its per-button "Copied!" affordance) is intentionally unused here.
+  const { copy } = useCopy();
+
+  /* The drilled-in device, resolved from the live list. Deriving drill-in state
+   * from the *resolved* device means a drillInUid whose device left the list
+   * (e.g. a refetch) transparently falls back to the device list — no
+   * self-healing effect needed. */
+  const drillDevice = drillInUid
+    ? (devices.find((d) => d.uid === drillInUid) ?? null)
+    : null;
+  const isDrilledIn = drillDevice !== null;
+
+  /* Keep focus on the input across drill-in transitions — a mouse click on the
+   * chevron or back button moves focus to that control, which then unmounts.
+   * (Initial open focus is owned by BaseDialog's focus trap; this only fires on
+   * drillInUid changes.) */
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [drillInUid]);
 
   /* Self-clear the shake once its animation would have finished. Driven by a
    * timer rather than onAnimationEnd so it also fires under
    * prefers-reduced-motion (no animation → no animationend). A repeat reject on
-   * the same row within this window keeps the existing timer — the alert above
-   * is the primary signal — and a reject on a different row reschedules it. */
+   * the same row within this window keeps the existing timer — the banner is
+   * the primary signal — and a reject on a different row reschedules it. */
   useEffect(() => {
     if (!shakeId) return undefined;
     const timer = setTimeout(() => setShakeId(null), 450);
     return () => clearTimeout(timer);
   }, [shakeId]);
 
-  /* Single dismissal path: clears the local query/highlight and flips the
-   * shared open-state, so every way of closing (Escape via BaseDialog, the
-   * shortcut) resets uniformly. */
+  /* Single dismissal path: clears local state and flips the shared open-state,
+   * so every way of fully closing resets uniformly. */
   const close = useCallback(() => {
     setQuery("");
     setActiveIndex(0);
-    setRejectMessage(null);
+    setFeedback(null);
     setShakeId(null);
+    setDrillInUid(null);
     closePalette();
   }, [closePalette]);
 
@@ -101,9 +134,46 @@ export function useCommandPalette(): CommandPaletteViewModel {
   /* Reject an action inline: shake the row and show the assertive message; the
    * palette stays open. Backs both the permission and offline guards below. */
   const rejectRow = useCallback((rowId: string, message: string) => {
-    setRejectMessage(message);
+    setFeedback({ kind: "error", text: message });
     setShakeId(rowId);
   }, []);
+
+  /* Copy to clipboard and confirm inline; the palette stays open. The banner is
+   * optimistic — useCopy is fire-and-forget and surfaces failures (insecure
+   * context, denied permission) through its own warning dialog rather than a
+   * return value, so we can't gate the banner on the outcome here. */
+  const copyAction = useCallback(
+    (value: string, label: string) => {
+      copy(value);
+      setFeedback({ kind: "success", text: `Copied ${label} to clipboard` });
+    },
+    [copy],
+  );
+
+  /* Enter/leave a device's action menu. Both reset the filter and highlight so
+   * the secondary list starts clean. */
+  const enterDrillIn = useCallback((uid: string) => {
+    setDrillInUid(uid);
+    setQuery("");
+    setActiveIndex(0);
+    setFeedback(null);
+    setShakeId(null);
+  }, []);
+
+  const exitDrillIn = useCallback(() => {
+    setDrillInUid(null);
+    setQuery("");
+    setActiveIndex(0);
+    setFeedback(null);
+    setShakeId(null);
+  }, []);
+
+  /* BaseDialog routes Escape (native cancel) and backdrop clicks here. When
+   * drilled in, that means "go back one level"; otherwise close. */
+  const handleDismiss = useCallback(() => {
+    if (isDrilledIn) exitDrillIn();
+    else close();
+  }, [isDrilledIn, exitDrillIn, close]);
 
   /* Restore an open terminal for this device, else open the ConnectDrawer for
    * it (TerminalManager owns that drawer and reacts to reconnectTarget). Reads
@@ -149,7 +219,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => window.removeEventListener("keydown", handler);
   }, [close]);
 
-  /* Default (connection-first) view: devices to connect/restore + open sessions. */
   const connectionItems = useMemo(
     () =>
       buildConnectionItems({
@@ -159,6 +228,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
         connectOrRestore,
         restoreTerminal,
         rejectRow,
+        enterDrillIn,
         close,
       }),
     [
@@ -168,22 +238,55 @@ export function useCommandPalette(): CommandPaletteViewModel {
       connectOrRestore,
       restoreTerminal,
       rejectRow,
+      enterDrillIn,
       close,
     ],
   );
 
-  /* Command mode (">" prefix): page navigation + account actions. */
   const commandItems = useMemo(
     () => buildCommandItems({ go, onLogout }),
     [go, onLogout],
   );
 
-  /* ">" gates the page navigation behind command mode; the default view stays
-   * connection-first. Derived during render — no extra state. */
+  /* Whether the drilled-in device has an open session to restore — lets its
+   * action-menu Connect stay enabled even when the device is offline. */
+  const hasOpenSession = drillDevice
+    ? terminalSessions.some((s) => s.deviceUid === drillDevice.uid)
+    : false;
+
+  const deviceActionItems = useMemo(
+    () =>
+      buildDeviceActionItems({
+        drillDevice,
+        nsName,
+        canConnect,
+        hasOpenSession,
+        connectOrRestore,
+        copyAction,
+        go,
+      }),
+    [
+      drillDevice,
+      nsName,
+      canConnect,
+      hasOpenSession,
+      connectOrRestore,
+      copyAction,
+      go,
+    ],
+  );
+
+  /* While drilled in, the device's actions take over and ">" is inert. Else ">"
+   * gates page navigation; the default stays connection-first. Derived during
+   * render — no extra state. */
   const trimmedQuery = query.trimStart();
-  const commandMode = trimmedQuery.startsWith(">");
+  const commandMode = !drillDevice && trimmedQuery.startsWith(">");
   const term = commandMode ? trimmedQuery.slice(1).trim() : query.trim();
-  const activeItems = commandMode ? commandItems : connectionItems;
+  const activeItems = drillDevice
+    ? deviceActionItems
+    : commandMode
+      ? commandItems
+      : connectionItems;
 
   const filtered = useMemo(() => {
     if (!term) return activeItems;
@@ -233,12 +336,20 @@ export function useCommandPalette(): CommandPaletteViewModel {
 
   /* List navigation + selection. Escape, Tab, and backdrop dismissal are owned
    * by BaseDialog (native <dialog>). Focus stays on the input (combobox), so
-   * this handler lives on the input. */
+   * this handler lives on the input. →/← drill in and out, but only when the
+   * caret is at the matching edge so text editing still works. */
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
       const len = flatList.length;
       const move = (delta: number) =>
         setActiveIndex((prev) => (Math.min(prev, len - 1) + delta + len) % len);
+      const input = e.currentTarget;
+      const caretAtEnd =
+        input.selectionStart === input.selectionEnd &&
+        input.selectionStart === input.value.length;
+      const caretAtStart =
+        input.selectionStart === input.selectionEnd &&
+        input.selectionStart === 0;
 
       switch (e.key) {
         case "ArrowDown":
@@ -248,6 +359,20 @@ export function useCommandPalette(): CommandPaletteViewModel {
         case "ArrowUp":
           e.preventDefault();
           if (len) move(-1);
+          break;
+        case "ArrowRight": {
+          const item = flatList[safeIndex];
+          if (caretAtEnd && !isDrilledIn && item?.onDrillIn) {
+            e.preventDefault();
+            item.onDrillIn();
+          }
+          break;
+        }
+        case "ArrowLeft":
+          if (caretAtStart && isDrilledIn) {
+            e.preventDefault();
+            exitDrillIn();
+          }
           break;
         case "Home":
           if (!len) break;
@@ -259,21 +384,22 @@ export function useCommandPalette(): CommandPaletteViewModel {
           e.preventDefault();
           setActiveIndex(len - 1);
           break;
-        case "Enter":
+        case "Enter": {
           e.preventDefault();
-          if (safeIndex >= 0) flatList[safeIndex]?.onSelect();
+          const active = safeIndex >= 0 ? flatList[safeIndex] : undefined;
+          if (active && !active.disabled) active.onSelect();
           break;
+        }
       }
     },
-    [flatList, safeIndex],
+    [flatList, safeIndex, isDrilledIn, exitDrillIn],
   );
 
-  /* Composite input handler: update the query, reset the highlight, and clear
-   * any standing rejection feedback. */
+  /* Composite input handler: update the query and reset highlight + feedback. */
   const onQueryChange = useCallback((value: string) => {
     setQuery(value);
     setActiveIndex(0);
-    setRejectMessage(null);
+    setFeedback(null);
     setShakeId(null);
   }, []);
 
@@ -281,19 +407,22 @@ export function useCommandPalette(): CommandPaletteViewModel {
 
   return {
     open,
+    inputRef,
     listRef,
     query,
+    drillDevice,
     commandMode,
     sections,
     hasResults,
     indexById,
     safeIndex,
     activeItem,
-    rejectMessage,
+    feedback,
     shakeId,
     onQueryChange,
     setActiveIndex,
     handleKeyDown,
-    close,
+    handleDismiss,
+    exitDrillIn,
   };
 }

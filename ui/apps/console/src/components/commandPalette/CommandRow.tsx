@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { optionId, type BadgeVariant, type CommandItem } from "./items";
 
 const badgeStyles: Record<BadgeVariant, string> = {
@@ -14,9 +15,9 @@ interface CommandRowProps {
   onActivate: () => void;
 }
 
-/** A single combobox option row. Non-focusable (`tabIndex={-1}`); the input
- *  owns focus via `aria-activedescendant`. Shakes when an action it triggers is
- *  rejected (offline/permission). */
+/** A single combobox option row. Non-focusable (`role="option"`); the input
+ *  owns focus via `aria-activedescendant`. Hosts an optional drill-in chevron.
+ *  Dimmed and inert (no click/Enter) when `item.disabled`. */
 export default function CommandRow({
   item,
   isActive,
@@ -24,18 +25,23 @@ export default function CommandRow({
   onActivate,
 }: CommandRowProps) {
   return (
-    <button
-      type="button"
+    <div
       id={optionId(item.id)}
       role="option"
       aria-selected={isActive}
-      tabIndex={-1}
+      aria-disabled={item.disabled || undefined}
       data-active={isActive}
-      onClick={item.onSelect}
+      onClick={item.disabled ? undefined : item.onSelect}
       onMouseEnter={onActivate}
       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75 ${
-        isActive ? "bg-primary/10" : "hover:bg-hover-subtle"
-      } ${shaking ? "motion-safe:animate-shake" : ""}`}
+        isActive
+          ? "bg-primary/10"
+          : item.disabled
+            ? ""
+            : "hover:bg-hover-subtle"
+      } ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${
+        shaking ? "motion-safe:animate-shake" : ""
+      }`}
     >
       <span
         className={`shrink-0 ${isActive ? "text-primary" : "text-text-muted"} transition-colors duration-75`}
@@ -62,7 +68,7 @@ export default function CommandRow({
           {item.badge.text}
         </span>
       )}
-      {isActive && (
+      {isActive && !item.disabled && (
         <kbd
           className="shrink-0 px-1.5 py-0.5 text-2xs font-mono text-text-muted/40 bg-hover-subtle border border-border/50 rounded"
           aria-hidden="true"
@@ -70,6 +76,22 @@ export default function CommandRow({
           ↵
         </kbd>
       )}
-    </button>
+      {item.onDrillIn && (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`Show actions for ${item.label}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            item.onDrillIn?.();
+          }}
+          className={`shrink-0 p-0.5 rounded transition-colors hover:text-primary hover:bg-hover-medium ${
+            isActive ? "text-primary" : "text-text-muted/40"
+          }`}
+        >
+          <ChevronRightIcon className="w-4 h-4" />
+        </button>
+      )}
+    </div>
   );
 }
