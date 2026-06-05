@@ -1,0 +1,129 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: API Reference
+description: ShellHub REST API — authentication, endpoints, and usage examples
+---
+
+# API Reference
+
+ShellHub exposes a REST API for managing devices, namespaces, users, SSH keys, and sessions programmatically.
+
+## Base URL
+
+| Environment | Base URL |
+|-------------|----------|
+| Cloud | `https://cloud.shellhub.io/api` |
+| Self-hosted | `https://your-server.com/api` |
+
+## Authentication
+
+### API keys
+
+The recommended method for automation. Generate an API key in the dashboard under **Settings > Namespace > API Keys**.
+
+Include the key in every request:
+
+```bash
+$ curl -H "X-API-Key: YOUR_API_KEY" \
+    https://cloud.shellhub.io/api/devices
+```
+
+API keys are scoped to a namespace and role. The key inherits the permissions of the role assigned at creation (owner, administrator, operator, or observer).
+
+### JWT tokens
+
+For user-facing applications. Authenticate with username and password to get a token:
+
+```bash
+$ curl -X POST https://cloud.shellhub.io/api/login \
+    -H "Content-Type: application/json" \
+    -d '{"username": "your-user", "password": "your-pass"}'
+```
+
+The response includes a JWT token. Use it in subsequent requests:
+
+```bash
+$ curl -H "Authorization: Bearer YOUR_TOKEN" \
+    https://cloud.shellhub.io/api/devices
+```
+
+## Common endpoints
+
+### Devices
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/devices` | List all devices in the namespace |
+| `GET` | `/api/devices/:uid` | Get a single device by UID |
+| `DELETE` | `/api/devices/:uid` | Remove a device |
+| `PATCH` | `/api/devices/:uid` | Update device properties |
+| `POST` | `/api/devices/:uid/accept` | Accept a pending device |
+| `POST` | `/api/devices/:uid/reject` | Reject a pending device |
+
+### Sessions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/sessions` | List all sessions |
+| `GET` | `/api/sessions/:uid` | Get session details |
+
+### Public keys
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/sshkeys/public-keys` | List all public keys |
+| `POST` | `/api/sshkeys/public-keys` | Add a public key |
+| `DELETE` | `/api/sshkeys/public-keys/:fingerprint` | Remove a public key |
+
+### Namespaces
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/namespaces` | List namespaces the user belongs to |
+| `GET` | `/api/namespaces/:tenant` | Get namespace details |
+
+## Pagination
+
+List endpoints support pagination via query parameters:
+
+```bash
+$ curl -H "X-API-Key: YOUR_KEY" \
+    "https://cloud.shellhub.io/api/devices?page=1&per_page=25"
+```
+
+The response includes pagination headers:
+
+- `X-Total-Count` — Total number of items
+
+## Error responses
+
+Errors return JSON with a `message` field:
+
+```json
+{
+  "message": "unauthorized"
+}
+```
+
+Common HTTP status codes:
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `400` | Bad request — check your parameters |
+| `401` | Unauthorized — invalid or missing API key/token |
+| `403` | Forbidden — insufficient permissions |
+| `404` | Not found |
+| `409` | Conflict — resource already exists |
+| `500` | Server error |
+
+## OpenAPI specification
+
+The full API specification is available in OpenAPI (Swagger) format. You can use it with tools like Swagger UI, Postman, or any OpenAPI-compatible client.
+
+> **Note:** The OpenAPI spec may have minor inconsistencies with the current API. When in doubt, test against the live API.
+
+## Next steps
+
+- [Agent Development](/v2/docs/developers/agent-development) — Build and modify the ShellHub agent
+- [Development Environment](/v2/docs/developers/development-environment) — Set up a local instance for testing

@@ -1,0 +1,207 @@
+---
+---
+
+<div class="flow-container">
+  <div class="flow-pipeline">
+    <!-- SSH Client -->
+    <div class="flow-step">
+      <div class="flow-node">
+        <svg class="flow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      </div>
+      <span class="flow-label">SSH Client</span>
+    </div>
+
+    <!-- Arrow -->
+    <div class="flow-connector">
+      <div class="flow-line"></div>
+      <span class="flow-conn-label">SSH</span>
+      <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Gateway -->
+    <div class="flow-step">
+      <div class="flow-node flow-node--accent">
+        <svg class="flow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A8.966 8.966 0 0 1 3 12c0-1.264.26-2.466.733-3.559" />
+        </svg>
+      </div>
+      <span class="flow-label">Gateway</span>
+    </div>
+
+    <!-- Arrow -->
+    <div class="flow-connector">
+      <div class="flow-line"></div>
+      <span class="flow-conn-label">route</span>
+      <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- SSH Service -->
+    <div class="flow-step">
+      <div class="flow-node flow-node--accent">
+        <svg class="flow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      </div>
+      <span class="flow-label">SSH Service</span>
+    </div>
+
+    <!-- Arrow -->
+    <div class="flow-connector">
+      <div class="flow-line flow-line--dashed"></div>
+      <span class="flow-conn-label">reverse tunnel</span>
+      <svg class="flow-chevron" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Agent -->
+    <div class="flow-step">
+      <div class="flow-node flow-node--accent">
+        <svg class="flow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" />
+        </svg>
+      </div>
+      <span class="flow-label">Agent</span>
+    </div>
+
+    <!-- Arrow -->
+    <div class="flow-connector">
+      <div class="flow-line flow-line--green"></div>
+      <span class="flow-conn-label">exec</span>
+      <svg class="flow-chevron flow-chevron--green" viewBox="0 0 8 12" fill="currentColor"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Shell -->
+    <div class="flow-step">
+      <div class="flow-node flow-node--green">
+        <svg class="flow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      </div>
+      <span class="flow-label flow-label--green">Shell</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .flow-container {
+    background: #1E2127;
+    border: 1px solid #2C2F36;
+    border-radius: 12px;
+    padding: 28px 24px;
+    margin: 12px 0 24px;
+    overflow-x: auto;
+  }
+
+  .flow-pipeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    min-width: 560px;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .flow-node {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #22252B;
+    border: 1px solid #2C2F36;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flow-node--accent {
+    border-color: rgba(102, 122, 204, 0.3);
+    background: rgba(102, 122, 204, 0.06);
+  }
+
+  .flow-node--green {
+    border-color: rgba(130, 165, 104, 0.3);
+    background: rgba(130, 165, 104, 0.06);
+  }
+
+  .flow-icon {
+    width: 22px;
+    height: 22px;
+    color: #8B8F99;
+  }
+
+  .flow-node--accent .flow-icon {
+    color: #667ACC;
+  }
+
+  .flow-node--green .flow-icon {
+    color: #82a568;
+  }
+
+  .flow-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #8B8F99;
+    white-space: nowrap;
+  }
+
+  .flow-label--green {
+    color: #82a568;
+  }
+
+  .flow-connector {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 48px;
+    position: relative;
+    padding-top: 10px;
+    gap: 0;
+  }
+
+  .flow-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(102, 122, 204, 0.25);
+  }
+
+  .flow-line--dashed {
+    background: none;
+    border-top: 1px dashed rgba(102, 122, 204, 0.25);
+  }
+
+  .flow-line--green {
+    background: rgba(130, 165, 104, 0.25);
+  }
+
+  .flow-chevron {
+    width: 8px;
+    height: 12px;
+    color: rgba(102, 122, 204, 0.4);
+    flex-shrink: 0;
+  }
+
+  .flow-chevron--green {
+    color: rgba(130, 165, 104, 0.4);
+  }
+
+  .flow-conn-label {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #5C6070;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .flow-container { padding: 20px 16px; }
+  }
+</style>

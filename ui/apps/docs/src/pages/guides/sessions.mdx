@@ -1,0 +1,33 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Sessions
+description: Monitor and audit SSH sessions
+---
+
+# Sessions
+
+Every SSH connection through ShellHub is tracked as a session. You get visibility into who connected to which device, when, and for how long.
+
+## Viewing sessions
+
+The **Sessions** page lists all sessions in the current namespace:
+
+| Column | Description |
+|--------|-------------|
+| **Device** | Target device name |
+| **Username** | Linux user used to authenticate |
+| **IP address** | Client's source IP |
+| **Started** | Session start time |
+| **Last seen** | Last activity timestamp |
+| **Status** | Active or closed |
+
+## Active vs. closed
+
+- **Active** — Connection is open, user is connected
+- **Closed** — Session ended (user disconnected or connection dropped)
+
+## Session recording
+
+Sessions can be recorded for auditing and compliance. When enabled, ShellHub captures all terminal I/O and lets you replay sessions in the dashboard.
+
+See [Session Recording](/v2/docs/guides/session-recording) for setup and details.

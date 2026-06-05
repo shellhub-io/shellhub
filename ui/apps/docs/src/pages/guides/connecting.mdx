@@ -1,0 +1,75 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Connecting via SSH
+description: Access devices using the web terminal or native SSH clients
+---
+
+# Connecting via SSH
+
+ShellHub gives you two ways to reach your devices: a web terminal in the dashboard and native SSH client support.
+
+## Web terminal
+
+From the **Devices** page, click the terminal icon next to any online device. A browser-based terminal opens with full shell access — no software to install on your workstation.
+
+Supports copy/paste, terminal resizing, and multiple simultaneous tabs.
+
+## Native SSH
+
+Connect with any standard SSH client using the device's SSHID — a virtual address that routes your connection through ShellHub to the right device.
+
+> **New to SSHID?** It's ShellHub's virtual addressing system for SSH. [See how it works →](/v2/docs/getting-started/how-it-works#sshid--virtual-hosting-for-ssh)
+
+### SSHID format
+
+```
+<username>@<namespace>.<device-name>.<server>
+```
+
+### OpenSSH
+
+```bash
+$ ssh root@myteam.web-server.shellhub.example.com
+```
+
+If your server uses a non-default SSH port:
+
+```bash
+$ ssh -p 2222 root@myteam.web-server.shellhub.example.com
+```
+
+### SSH config
+
+Add devices to `~/.ssh/config` for quicker access:
+
+```
+Host web-server
+    HostName shellhub.example.com
+    User root@myteam.web-server
+    Port 22
+```
+
+Then:
+
+```bash
+$ ssh web-server
+```
+
+## Authentication
+
+**Password** — Enter the device's local user password when prompted. Works for any user account on the device.
+
+**Public key** — If you've uploaded your SSH key to ShellHub, authentication happens without a password. See [Public Keys](/v2/docs/guides/public-keys).
+
+## Next steps
+
+- [File Transfer](/v2/docs/guides/file-transfer) — SCP, SFTP, and rsync through ShellHub
+- [Port Forwarding](/v2/docs/guides/port-forwarding) — SSH tunnels to access remote services locally
+
+## Troubleshooting
+
+**Connection refused** — Check that the device is online in the dashboard and the SSH port matches your server config.
+
+**Permission denied** — Verify the username and password. For public keys, check the key is uploaded and its filters allow access to this device.
+
+**Timeout** — Make sure the ShellHub server is reachable and the SSH port isn't blocked on the client side.

@@ -1,0 +1,207 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Install Script
+description: How the ShellHub install script works — detection order, environment variables, auto-update, and what each method does
+---
+
+# Install Script
+
+The ShellHub server provides an install script at `/install.sh` that auto-detects your system and installs the agent using the best available method. This is the command you get when you click **Add Device** in the dashboard.
+
+## Usage
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+For self-hosted instances, replace the URL with your server address:
+
+```bash
+$ curl -sSf "https://your-server.example.com/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+The `TENANT_ID` and `SERVER_ADDRESS` are passed as inline environment variables to `sh`. The server serves the script as a static file — it does not inject values into the script content.
+
+## What happens when you run it
+
+The script follows this sequence:
+
+1. **Checks for FreeBSD** — exits early with a link to the [FreeBSD guide](/v2/docs/agent/freebsd) (not supported by the script)
+2. **Validates** that `TENANT_ID` is set (exits if missing)
+3. **Detects architecture** from `uname -m`
+4. **Queries the server** at `/info` to determine the agent version to install
+5. **Probes for install methods** in priority order (see below)
+6. **Installs and starts** the agent using the selected method
+
+## Detection order
+
+The script tries each method in order and uses the first one that works:
+
+| Priority | Method | Detection |
+|:--------:|--------|-----------|
+| 1 | **Docker** | `docker` command exists and daemon is accessible in rootful mode |
+| 2 | **Podman** | `podman` command exists and daemon is accessible in rootful mode |
+| 3 | **Snap** | `snap` command is available |
+| 4 | **Standalone** | Fallback — requires systemd and root |
+
+If neither Docker nor Podman is found, the script prints a warning recommending them before falling back.
+
+> **Note:** On WSL systems, the script **overrides** any previously detected method. If the kernel reports "Microsoft" in `/proc/version`, the script forces the WSL install path — even if Docker is available. On non-Ubuntu WSL, this causes an error exit. See the [WSL guide](/v2/docs/agent/wsl) for details.
+
+You can skip auto-detection by setting `INSTALL_METHOD` explicitly:
+
+```bash
+$ INSTALL_METHOD=standalone curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+## What each method does
+
+### Docker / Podman
+
+Pulls the `shellhubio/agent` container image and runs it with host-level access:
+
+```bash
+docker run -d \
+    --name shellhub \
+    --restart on-failure \
+    --privileged \
+    --net=host \
+    --pid=host \
+    -v /:/host \
+    -v /dev:/dev \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /etc/resolv.conf:/etc/resolv.conf \
+    -v /var/run:/var/run \
+    -v /var/log:/var/log \
+    -v /tmp:/tmp \
+    shellhubio/agent
+```
+
+Why these flags are needed:
+
+| Flag | Reason |
+|------|--------|
+| `--privileged` | The agent manages SSH sessions, allocates PTYs, switches user credentials, and accesses host devices |
+| `--net=host` | Shares the host network namespace so the agent can bind ports and communicate as the host |
+| `--pid=host` | Shares the host PID namespace so the agent can see and manage host processes (e.g., spawn shells) |
+| `-v /:/host` | The agent reads host users, keys, shells, and OS info from the host filesystem |
+| `-v /var/run/docker.sock:...` | Required for connector mode to discover and manage Docker containers |
+| `--restart=on-failure` | Automatically restarts the agent if it crashes |
+
+Podman uses the same approach with minor differences: `--replace` (replaces existing container), `--security-opt label=disable` (disables SELinux label separation), and maps the Podman socket to the Docker socket path for compatibility.
+
+The container name defaults to `shellhub` (configurable via `CONTAINER_NAME`).
+
+### Snap
+
+Installs the ShellHub snap package in classic confinement:
+
+```bash
+snap install --classic --channel=latest/stable shellhub
+```
+
+The `--classic` flag is required because the agent needs full access to the host's network and filesystem — the same level of access as the Docker method, but without container isolation.
+
+Configures the agent via `snap set shellhub ...` and starts the service with `snap start shellhub`.
+
+> **Note:** Snap does not support [connector mode](#connector-mode).
+
+### Standalone
+
+The fallback method for systems without Docker, Podman, or Snap. Requires root and systemd.
+
+Downloads four files from GitHub releases:
+1. **runc** binary (v1.1.3) — lightweight OCI container runtime
+2. **config.json** — OCI runtime spec (patched with your server address and tenant ID)
+3. **shellhub-agent.service** — systemd unit file
+4. **rootfs tarball** — the agent filesystem image
+
+Extracts everything to `/opt/shellhub/`, installs the systemd service, and starts it. The script then monitors `journalctl` for up to 15 seconds, watching for:
+
+- `"Listening for connections"` — success, installation complete
+- `"fatal"` — failure, auto-uninstalls and exits
+
+If verification times out, the script removes everything it installed and exits with an error.
+
+> **Note:** Standalone does not support [connector mode](#connector-mode) or [auto-update](#auto-update).
+
+## Auto-update
+
+When installed via **Docker or Podman**, the agent checks the server version every 24 hours. If a newer version is available, it:
+
+1. Pulls the new Docker image
+2. Creates a new container with the updated image
+3. Stops the old container
+
+This happens transparently — no manual intervention needed. The device keeps its identity (private key) across updates.
+
+Auto-update is **not available** for Snap, standalone, or [native builds](/v2/docs/agent/building-from-source). For Snap, use `snap refresh shellhub`. For standalone, re-run the install script.
+
+## Environment variables
+
+Override any of these before running the script:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TENANT_ID` | *(required)* | Namespace tenant ID |
+| `SERVER_ADDRESS` | `https://cloud.shellhub.io` | ShellHub server URL |
+| `INSTALL_METHOD` | auto-detected | Force a method: `docker`, `podman`, `snap`, `wsl`, `standalone` |
+| `AGENT_VERSION` | from server `/info` | Pin a specific agent version |
+| `AGENT_ARCH` | from `uname -m` | Override architecture detection |
+| `PREFERRED_HOSTNAME` | *(none)* | Override the device hostname reported to the server |
+| `PREFERRED_IDENTITY` | *(none)* | Override the device identity (default: MAC address) |
+| `KEEPALIVE_INTERVAL` | *(none)* | Interval between keepalive pings |
+| `PRIVATE_KEY` | `/host/etc/shellhub.key` | Path to the agent's private key |
+| `CONTAINER_NAME` | `shellhub` | Container name (Docker/Podman only) |
+| `INSTALL_DIR` | `/opt/shellhub` | Install directory (standalone only) |
+
+Example — force standalone install with a custom hostname:
+
+```bash
+$ INSTALL_METHOD=standalone PREFERRED_HOSTNAME=edge-gateway-01 \
+    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+## Supported architectures
+
+The script auto-detects the CPU architecture from `uname -m`:
+
+| `uname -m` | Agent arch | Platforms |
+|-------------|------------|-----------|
+| `x86_64` | `amd64` | Standard servers, VMs, most cloud instances |
+| `aarch64` | `arm64v8` | Raspberry Pi 3/4/5 (64-bit OS), AWS Graviton |
+| `armv7l` | `arm32v7` | Raspberry Pi 2/3/4 (32-bit OS), BeagleBone |
+| `armv6l` | `arm32v6` | Raspberry Pi Zero, older ARM boards |
+
+## Connector mode
+
+The script can install the agent in connector mode, which registers Docker containers running on the host as individual ShellHub devices:
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh -s -- connector
+```
+
+In connector mode:
+
+- Each running container appears as a separate device in the dashboard
+- The container name becomes the device hostname
+- Each container gets its own private key (stored in `/etc/shellhub/connector/keys/`)
+- SSH sessions run inside the target container via Docker exec
+- The container name defaults to `shellhub-connector`
+
+You can filter which containers are managed with `CONNECTOR_LABEL`:
+
+```bash
+$ CONNECTOR_LABEL=shellhub.io/managed \
+    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh -s -- connector
+```
+
+Only containers with that Docker label are registered as devices.
+
+> **Note:** Connector mode requires Docker or Podman. It is not supported by Snap or standalone.
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — How the agent works and full configuration reference
+- [Docker](/v2/docs/agent/docker) — Manual Docker installation and advanced options
+- [Connecting](/v2/docs/guides/connecting) — Connect to your device after installation

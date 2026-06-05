@@ -1,0 +1,69 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Building from Source
+description: Build and run the ShellHub agent from source for custom integrations or unsupported platforms
+---
+
+# Building from Source
+
+Build the ShellHub agent from source for platforms without a pre-built package, custom integrations, or development.
+
+## Prerequisites
+
+- Go 1.24+
+- Git
+
+## Building
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub/agent
+$ go build -o shellhub-agent
+```
+
+This produces a single binary: `shellhub-agent`.
+
+## Running
+
+Configure the agent with environment variables and run it:
+
+```bash
+$ export SHELLHUB_SERVER_ADDRESS=https://cloud.shellhub.io
+$ export SHELLHUB_TENANT_ID=YOUR_TENANT_ID
+$ export SHELLHUB_PRIVATE_KEY=/etc/shellhub.key
+$ ./shellhub-agent
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+For local development against a [development instance](/v2/docs/developers/development-environment):
+
+```bash
+$ export SHELLHUB_SERVER_ADDRESS=http://localhost
+$ export SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
+$ export SHELLHUB_PRIVATE_KEY=/tmp/shellhub-dev.key
+$ ./shellhub-agent
+```
+
+## Supported architectures
+
+The agent compiles on any platform supported by Go:
+
+- `amd64` (x86_64)
+- `arm64` (aarch64)
+- `arm` (32-bit ARM)
+- `386` (32-bit x86)
+- `riscv64`
+
+## Limitations
+
+The native binary does **not** support:
+
+- **Auto-update** — only the Docker install method auto-updates the agent when the server version changes
+- **Connector mode** — requires Docker to manage containers
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — Configuration reference and how the agent works
+- [Install Script](/v2/docs/agent/install-script) — Automatic installation for supported platforms
+- [Agent Development](/v2/docs/developers/agent-development) — Architecture, tests, and contributing

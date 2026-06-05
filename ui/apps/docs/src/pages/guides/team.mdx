@@ -1,0 +1,96 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Team
+description: Manage namespace members, roles, and API keys
+---
+
+# Team
+
+The Team page is where you manage who has access to your namespace and what they can do. It has two sections: **Members** and **API Keys**.
+
+## Members
+
+Members are users who have access to the current namespace. Each member has a role that determines their permissions.
+
+### Adding a member
+
+1. Go to **Team** in the sidebar
+2. Click **Add Member**
+3. Enter the user's username (they need an existing ShellHub account)
+4. Select a role
+5. Click **Add Member**
+
+The user gets access immediately — no invitation flow, no email confirmation.
+
+### Roles
+
+| Role | Devices | Sessions | Keys & Rules | Members | Settings |
+|------|---------|----------|--------------|---------|----------|
+| **Owner** | Full | Full | Full | Full | Full |
+| **Administrator** | Full | Full | Full | Add/Remove | Edit |
+| **Operator** | Connect | View | View | — | — |
+| **Observer** | View only | View | View | — | — |
+
+**Owner** — Full control over the namespace, including deleting it. Each namespace has exactly one owner. Ownership cannot be transferred through the UI.
+
+**Administrator** — Can manage devices, keys, firewall rules, and members. Cannot delete the namespace or change the owner.
+
+**Operator** — Can connect to devices and view resources. Cannot create, edit, or delete anything.
+
+**Observer** — Read-only access. Can view devices, sessions, and keys but cannot connect or modify anything.
+
+### Editing a member's role
+
+Hover over a member row and click the edit icon. Select the new role and save. Role changes take effect immediately.
+
+### Removing a member
+
+Hover over a member row and click the delete icon. The member loses access to the namespace immediately. This does not delete their ShellHub account — they can still access other namespaces they belong to.
+
+> You cannot edit or remove the namespace owner, and you cannot edit or remove yourself.
+
+## API Keys
+
+API keys let you authenticate with the ShellHub REST API without using your personal credentials. Use them for CI/CD pipelines, automation scripts, Terraform, Ansible, and other integrations.
+
+### Generating a key
+
+1. Switch to the **API Keys** tab
+2. Click **Generate Key**
+3. Enter a name (e.g. `ci-pipeline`, `terraform-prod`)
+4. Select a role — the key inherits the same permissions as that role
+5. Set an expiration (30 days, 60 days, 90 days, 1 year, or never)
+6. Click **Generate Key**
+
+> Copy the key immediately. You won't be able to see it again after closing the drawer.
+
+### Using a key
+
+Pass the API key in the `Authorization` header:
+
+```bash
+$ curl -H "Authorization: Bearer <your-api-key>" \
+  https://shellhub.example.com/api/devices
+```
+
+Or with the ShellHub CLI and integrations that accept an API key.
+
+### Key roles
+
+API keys follow the same role permissions as members:
+
+- **Administrator** — Full API access (create, update, delete resources)
+- **Operator** — Read access plus connect
+- **Observer** — Read-only API access
+
+Choose the least privilege needed for your use case. A CI pipeline that only reads device status needs Observer, not Administrator.
+
+### Expiration
+
+Expired keys stop working immediately. The Team page shows an **Expired** badge on keys past their expiration date.
+
+Set shorter expirations for keys used in less trusted environments. Use "Never" only for long-lived infrastructure automation where rotating keys is impractical.
+
+### Editing and deleting keys
+
+You can rename a key or change its role at any time. Deleting a key revokes it immediately — any integration using it will get authentication errors.

@@ -1,0 +1,75 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Public Keys
+description: Manage SSH keys centrally with fine-grained access control
+---
+
+# Public Keys
+
+Upload your SSH public key once to ShellHub and use it to authenticate across all your devices. No need to copy keys to each machine.
+
+## How it works
+
+Traditional SSH key management requires placing your public key in `~/.ssh/authorized_keys` on every device. With ShellHub, keys are stored on the server and checked during connection:
+
+1. You upload your public key to ShellHub
+2. When you connect via SSH, the server checks your key against the stored keys
+3. If a match is found and the filters allow access, authentication succeeds
+
+No keys are copied to the devices themselves.
+
+## Adding a key
+
+1. Go to **Public Keys** in the sidebar
+2. Click **Add Key**
+3. Paste your public key (contents of `~/.ssh/id_ed25519.pub` or similar)
+4. Give it a descriptive name
+5. Configure access filters
+6. Save
+
+Supported types: Ed25519 (recommended), RSA, ECDSA.
+
+## Access filters
+
+Each key has two filters that control where it works:
+
+### Username filter
+
+Which device username the key can authenticate as:
+
+- **All users** (`.*`) — Works for any username
+- **Specific user** (e.g., `root`) — Only works when connecting as that user
+
+### Device filter
+
+Which devices the key can access. Choose one:
+
+- **Hostname pattern** — A regex matching device names (e.g., `web-.*` matches `web-01`, `web-02`)
+- **Tags** — One or more tags. The key only works on devices with those tags.
+
+### Examples
+
+| Key name | Username | Device filter | Effect |
+|----------|----------|---------------|--------|
+| Deploy key | `deploy` | Tags: `production` | `deploy` user on production devices only |
+| Admin key | `.*` | Hostname: `.*` | Full access everywhere |
+| Web team | `root` | Tags: `web` | Root on web-tagged devices only |
+
+## Managing keys
+
+From the **Public Keys** page, you can edit a key's name and filters or delete it. Deleting a key takes effect immediately — the next connection attempt with that key is denied.
+
+## Generating a key pair
+
+```bash
+$ ssh-keygen -t ed25519 -C "your-email@example.com"
+```
+
+This creates `~/.ssh/id_ed25519` (private, keep secret) and `~/.ssh/id_ed25519.pub` (public, upload to ShellHub).
+
+## Best practices
+
+- **Use Ed25519 keys** — Smaller, faster, more secure than RSA
+- **One key per person** — Simplifies revocation
+- **Use tag-based filters** — Easier to maintain as your fleet grows
+- **Name keys descriptively** — Include owner and purpose (e.g., "alice-deploy")

@@ -1,0 +1,136 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Administration
+description: Manage users, namespaces, and backups on a self-hosted ShellHub instance
+---
+
+# Administration
+
+In the Community Edition, you manage users, passwords, and namespaces through the CLI tool `./bin/cli`.
+
+> **Tip:** [ShellHub Enterprise](https://www.shellhub.io) replaces the CLI with a web-based admin panel for full instance management — users, namespaces, roles, authentication, and system settings.
+
+## User management
+
+### Create a user
+
+```bash
+$ ./bin/cli user create <username> <password> <email>
+```
+
+To grant admin privileges:
+
+```bash
+$ ./bin/cli user create <username> <password> <email> --admin
+```
+
+### Delete a user
+
+```bash
+$ ./bin/cli user delete <username>
+```
+
+### Reset a password
+
+```bash
+$ ./bin/cli user password <username> <new-password>
+```
+
+> **Note:** Users can change their own password at **Settings > Profile** in the dashboard. This command is for resetting other users' passwords.
+
+## Namespace management
+
+Namespaces can also be managed through the dashboard. The CLI is useful for scripting and automation.
+
+### Create a namespace
+
+```bash
+$ ./bin/cli namespace create <namespace> <owner-username>
+```
+
+An optional third argument sets the tenant ID. The `--type` flag sets the namespace type (`team` or `personal`, default: `team`).
+
+### Delete a namespace
+
+```bash
+$ ./bin/cli namespace delete <namespace>
+```
+
+### Add a member
+
+```bash
+$ ./bin/cli namespace member add <username> <namespace> <role>
+```
+
+### Remove a member
+
+```bash
+$ ./bin/cli namespace member remove <username> <namespace>
+```
+
+### Roles
+
+| Role | Description |
+|------|-------------|
+| `owner` | Full permissions, including namespace deletion |
+| `administrator` | Same as owner, but cannot delete the namespace |
+| `operator` | Device-related permissions: connect, view details, manage devices (except removal) |
+| `observer` | Read-only: connect to devices and view device/session details |
+
+## Backups
+
+### MongoDB
+
+Back up MongoDB:
+
+```bash
+$ ./bin/docker-compose exec mongo mongodump --archive --gzip > backup.gz
+```
+
+Restore from backup:
+
+```bash
+$ ./bin/docker-compose exec -T mongo mongorestore --archive --gzip < backup.gz
+```
+
+### PostgreSQL
+
+If you use the PostgreSQL backend (`SHELLHUB_DATABASE=postgres`), back up with `pg_dump`:
+
+```bash
+$ ./bin/docker-compose exec postgres pg_dump -U shellhub shellhub | gzip > backup.gz
+```
+
+Restore from backup:
+
+```bash
+$ gunzip -c backup.gz | ./bin/docker-compose exec -T postgres psql -U shellhub shellhub
+```
+
+> **Warning:** Schedule regular backups. Docker volumes are not backed up automatically.
+
+## Reference
+
+### Docker Compose wrapper
+
+Use `./bin/docker-compose` for all Docker Compose operations. It loads the correct configuration files and environment variables automatically:
+
+```bash
+$ ./bin/docker-compose ps          # List running services
+$ ./bin/docker-compose logs -f     # Follow all service logs
+$ ./bin/docker-compose exec api sh # Shell into the API container
+```
+
+### Makefile commands
+
+| Command | Description |
+|---------|-------------|
+| `make start` | Start all services |
+| `make stop` | Stop all services |
+| `make restart` | Restart all services |
+| `make keygen` | Generate cryptographic keys |
+
+## Next steps
+
+- [Upgrade](/v2/docs/self-hosted/upgrading) — Update to a new ShellHub version
+- [Troubleshooting](/v2/docs/self-hosted/troubleshooting) — Fix common issues

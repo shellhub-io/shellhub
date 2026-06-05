@@ -47,7 +47,7 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
 
 RUN OPENAPI_SPEC_PATH=./openapi.json npm run generate -w @shellhub/console
-RUN npm run build
+RUN npm run build -w @shellhub/console
 
 FROM nginx:1.31.1-alpine AS production
 

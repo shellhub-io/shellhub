@@ -1,0 +1,106 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Development Environment
+description: Set up a local ShellHub development environment with hot reload
+---
+
+# Development Environment
+
+Set up a local ShellHub instance for development with hot reload on all services.
+
+## Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose v2
+- Git
+
+## Setup
+
+### 1. Clone the repository
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub
+```
+
+### 2. Generate cryptographic keys
+
+```bash
+$ make keygen
+```
+
+### 3. Start in development mode
+
+```bash
+$ make start ARGS="SHELLHUB_ENV=development"
+```
+
+This starts all services with hot reload enabled. Code changes in Go services trigger automatic rebuilds, and frontend changes are picked up by Vite's HMR.
+
+### 4. Create a user and namespace
+
+Use the CLI to create your development account:
+
+```bash
+$ ./bin/cli user create dev password123 dev@example.com
+$ ./bin/cli namespace create dev-namespace dev
+```
+
+### 5. Access the dashboard
+
+Open `http://localhost` in your browser and log in with the credentials you just created.
+
+## Development tenant ID
+
+For local development, use the hardcoded tenant ID:
+
+```
+00000000-0000-4000-0000-000000000000
+```
+
+This is the default tenant ID used by the development namespace. You'll need it when configuring a local agent.
+
+## Connecting a local agent
+
+To test the agent locally, run it against your development instance:
+
+```bash
+$ curl -sSf "http://localhost/install.sh?tenant_id=00000000-0000-4000-0000-000000000000" | sh
+```
+
+Or run the agent from source (see [Agent Development](/v2/docs/developers/agent-development)).
+
+## Project structure
+
+```
+shellhub/
+├── agent/       # Device agent (Go)
+├── api/         # REST API service (Go)
+├── cli/         # CLI tool (Go)
+├── gateway/     # Nginx gateway with Go templates
+├── pkg/         # Shared Go packages
+├── ssh/         # SSH service (Go)
+├── ui/          # Web dashboard (Vue.js)
+├── ui-react/    # New React UI (in development)
+├── bin/         # Helper scripts (setup, cli, docker-compose)
+├── docker-compose.yml      # Production config
+└── docker-compose.dev.yml  # Development overrides
+```
+
+## Useful commands
+
+| Command | Description |
+|---------|-------------|
+| `make start` | Start in production mode |
+| `make start ARGS="SHELLHUB_ENV=development"` | Start in development mode |
+| `make stop` | Stop all services |
+| `make restart` | Restart all services |
+| `make keygen` | Generate cryptographic keys |
+| `./bin/docker-compose logs -f api` | Follow API logs |
+| `./bin/cli user create <user> <pass> <email>` | Create a user |
+| `./bin/cli namespace create <ns> <owner>` | Create a namespace |
+
+## Next steps
+
+- [API Reference](/v2/docs/developers/api-reference) — Explore the REST API
+- [Agent Development](/v2/docs/developers/agent-development) — Build and modify the agent

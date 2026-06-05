@@ -1,0 +1,142 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Terraform
+description: Provision infrastructure with the ShellHub agent pre-installed using Terraform
+---
+
+# Terraform
+
+Provision cloud instances, VMs, or bare-metal servers with the ShellHub agent pre-installed using Terraform. Every new machine connects to ShellHub automatically — no manual setup after deployment.
+
+## How it works
+
+Use Terraform's `user_data` (cloud-init) or provisioners to run the ShellHub agent install command during instance creation. The agent starts immediately, and the device appears in your ShellHub dashboard as soon as it boots.
+
+## Cloud-init (recommended)
+
+The simplest approach. Pass the agent install command as `user_data` in your resource definition. This works with AWS, GCP, Azure, DigitalOcean, Hetzner, and any provider that supports cloud-init.
+
+### AWS EC2
+
+```hcl
+resource "aws_instance" "device" {
+  ami           = "ami-xxxxxxxxxxxxxxxxx" # Ubuntu 24.04 LTS
+  instance_type = "t3.micro"
+
+  user_data = <<-EOF
+    #!/bin/bash
+    curl -fsSL https://get.docker.com | sh
+    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
+  EOF
+
+  tags = {
+    Name = "web-server"
+  }
+}
+
+variable "shellhub_tenant_id" {
+  description = "ShellHub namespace tenant ID"
+  type        = string
+  sensitive   = true
+}
+```
+
+### DigitalOcean
+
+```hcl
+resource "digitalocean_droplet" "device" {
+  image  = "ubuntu-24-04-x64"
+  name   = "edge-node"
+  region = "nyc3"
+  size   = "s-1vcpu-1gb"
+
+  user_data = <<-EOF
+    #!/bin/bash
+    curl -fsSL https://get.docker.com | sh
+    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
+  EOF
+}
+```
+
+### Hetzner Cloud
+
+```hcl
+resource "hcloud_server" "device" {
+  name        = "gateway"
+  server_type = "cx22"
+  image       = "ubuntu-24.04"
+
+  user_data = <<-EOF
+    #!/bin/bash
+    curl -fsSL https://get.docker.com | sh
+    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
+  EOF
+}
+```
+
+## Using provisioners
+
+For cases where cloud-init isn't available, use Terraform's `remote-exec` provisioner:
+
+```hcl
+resource "aws_instance" "device" {
+  ami           = "ami-xxxxxxxxxxxxxxxxx" # Ubuntu 24.04 LTS
+  instance_type = "t3.micro"
+  key_name      = aws_key_pair.deploy.key_name
+
+  provisioner "remote-exec" {
+    inline = [
+      "curl -fsSL https://get.docker.com | sh",
+      "curl -sSf 'https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}' | sh",
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("~/.ssh/id_ed25519")
+      host        = self.public_ip
+    }
+  }
+}
+```
+
+> **Note:** Provisioners require network access to the instance during creation. Cloud-init runs without this requirement and is the preferred approach.
+
+## Self-hosted ShellHub
+
+For self-hosted instances, replace the server address in the install command:
+
+```hcl
+user_data = <<-EOF
+  #!/bin/bash
+  curl -fsSL https://get.docker.com | sh
+  curl -sSf "https://${var.shellhub_server}/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
+EOF
+```
+
+## Setting the hostname
+
+Use `SHELLHUB_PREFERRED_HOSTNAME` to give each device a predictable name in the dashboard:
+
+```hcl
+user_data = <<-EOF
+  #!/bin/bash
+  curl -fsSL https://get.docker.com | sh
+  export SHELLHUB_PREFERRED_HOSTNAME="${var.device_name}"
+  curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
+EOF
+```
+
+## Best practices
+
+- **Store tenant ID as a variable** — Mark it `sensitive = true` to keep it out of plan output and state files
+- **Use cloud-init over provisioners** — Cloud-init runs without needing SSH access to the instance during creation
+- **Set preferred hostname** — Use Terraform resource names or IDs as hostnames for traceability between your infra code and ShellHub dashboard
+- **Accept devices via API** — For large fleets, use the [ShellHub API](/v2/docs/developers/api-reference) to accept devices programmatically after provisioning
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — How the agent works
+- [Docker](/v2/docs/agent/docker) — Agent Docker image details
+- [CI/CD Pipelines](/v2/docs/integration/ci-cd) — Automate deployments after provisioning
+- [API Reference](/v2/docs/developers/api-reference) — Auto-accept devices via the API
