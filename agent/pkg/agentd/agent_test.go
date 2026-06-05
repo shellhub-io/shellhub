@@ -1,4 +1,4 @@
-package main
+package agentd
 
 import (
 	"testing"
@@ -251,15 +251,14 @@ func TestNewAgentWithConfig(t *testing.T) {
 func TestAgent_GetInfo(t *testing.T) {
 	clientMocks := new(client_mocks.Client)
 
-	AgentVersion = "latest"
-
 	type expected struct {
 		info *models.Info
 		err  error
 	}
 
 	agent := &Agent{
-		cli: clientMocks,
+		cli:    clientMocks,
+		config: &Config{Version: "latest"},
 	}
 
 	err := errors.New("")

@@ -1,4 +1,4 @@
-package main
+package agentd
 
 import (
 	"context"
@@ -42,7 +42,7 @@ func (m *HostMode) Serve(agent *Agent) {
 		agent.cli,
 		&host.Mode{
 			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
-			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd)),
+			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd), agent.config.SFTPServerCommand),
 		},
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,

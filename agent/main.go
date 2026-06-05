@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
+	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
@@ -25,10 +26,13 @@ func main() {
 		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
-			cfg, fields, err := LoadConfigFromEnv()
+			cfg, fields, err := agentd.LoadConfigFromEnv()
 			if err != nil {
 				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
 			}
+
+			cfg.Version = AgentVersion
+			cfg.Platform = AgentPlatform
 
 			if os.Geteuid() == 0 && cfg.SingleUserPassword != "" {
 				log.Error("ShellHub agent cannot run as root when single-user mode is enabled.")
@@ -76,7 +80,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := NewAgentWithConfig(cfg, new(HostMode))
+			ag, err := agentd.NewAgentWithConfig(cfg, new(agentd.HostMode))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
@@ -272,12 +276,15 @@ func main() {
 		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
-			cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
+			cfg, err := envs.ParseWithPrefix[agentd.Config]("SHELLHUB_")
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			info, err := GetInfo(cfg)
+			cfg.Version = AgentVersion
+			cfg.Platform = AgentPlatform
+
+			info, err := agentd.GetInfo(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
