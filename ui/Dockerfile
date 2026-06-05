@@ -10,6 +10,8 @@ WORKDIR /app
 COPY ui/package.json ui/package-lock.json ./
 COPY ui/packages/design-system/package.json ./packages/design-system/
 COPY ui/apps/console/package.json ./apps/console/
+COPY ui/apps/website/package.json ./apps/website/
+COPY ui/apps/docs/package.json ./apps/docs/
 
 RUN npm install
 

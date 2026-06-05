@@ -6,8 +6,5 @@ import react from "@astrojs/react";
 export default defineConfig({
   server: { port: 8083, host: true, allowedHosts: true },
   devToolbar: { enabled: false },
-  vite: {
-    base: "/v2/docs/",
-  },
   integrations: [mdx(), tailwind(), react()],
 });

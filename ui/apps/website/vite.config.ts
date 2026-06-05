@@ -4,24 +4,10 @@ import * as path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/v2/",
+  base: "/",
   server: {
-    port: 8080,
+    port: 8082,
     allowedHosts: true,
-    proxy: {
-      "/v2/docs": {
-        target: "http://localhost:8083",
-        ws: true,
-      },
-      "/v2/blog": {
-        target: "http://localhost:8084",
-        ws: true,
-      },
-      "/v2/ui": {
-        target: "http://localhost:8082",
-        ws: true,
-      },
-    },
   },
   resolve: {
     alias: {

@@ -8,7 +8,7 @@ description: Frequently asked questions about ShellHub — security, pricing, su
 
 ## What is ShellHub?
 
-ShellHub is a centralized SSH gateway for remote access to Linux devices. See the [Introduction](/v2/docs/getting-started/introduction) for a full overview of what it does and how it works.
+ShellHub is a centralized SSH gateway for remote access to Linux devices. See the [Introduction](/getting-started/introduction) for a full overview of what it does and how it works.
 
 ## Is ShellHub free?
 
@@ -37,7 +37,7 @@ Native packages are available for:
 - **Yocto** — Custom embedded Linux images via meta-shellhub layer
 - **WSL** — Windows Subsystem for Linux
 
-You can also [build from source](/v2/docs/developers/agent-development) for any platform with Go 1.24+.
+You can also [build from source](/developers/agent-development) for any platform with Go 1.24+.
 
 ## Which architectures does the agent support?
 
@@ -49,13 +49,13 @@ The Docker-based agent supports:
 
 ## Can I self-host ShellHub?
 
-Yes. The Community Edition is fully self-hosted using Docker Compose. See the [Quick Start](/v2/docs/getting-started/quick-start#self-hosted) for setup instructions.
+Yes. The Community Edition is fully self-hosted using Docker Compose. See the [Quick Start](/getting-started/quick-start#self-hosted) for setup instructions.
 
 The Enterprise Edition can also be self-hosted with additional features and support.
 
 ## What ports does ShellHub need?
 
-Server: TCP 80/443 (web + API) and TCP 22 (SSH, configurable). Device agent: outbound HTTPS only, no inbound ports. See [Network requirements](/v2/docs/getting-started/how-it-works#network-requirements) for details.
+Server: TCP 80/443 (web + API) and TCP 22 (SSH, configurable). Device agent: outbound HTTPS only, no inbound ports. See [Network requirements](/getting-started/how-it-works#network-requirements) for details.
 
 ## Can I use my existing SSH keys?
 
@@ -85,7 +85,7 @@ ShellHub is not a replacement for a VPN if you need full network-level access. I
 
 If you installed the agent via Docker (the default method), the agent container updates automatically when you re-run the install command. For Snap installations, use `sudo snap refresh shellhub`. For other methods, pull the latest source and rebuild.
 
-For self-hosted server updates, see the [Upgrading](/v2/docs/self-hosted/upgrading) guide.
+For self-hosted server updates, see the [Upgrading](/self-hosted/upgrading) guide.
 
 ## Where can I get help?
 

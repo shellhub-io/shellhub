@@ -17,4 +17,10 @@ npm run generate -w @shellhub/console
 SHELL=/bin/sh npx -y chokidar-cli@3.0.0 '/openapi/spec/**/*.yaml' --debounce 500 \
   -c 'npm run generate -w @shellhub/console' &
 
+# Serve the marketing website (port 8082) and the docs site (port 8083)
+# alongside the console. They share the workspace node_modules installed above
+# and are routed by the gateway via the website.* and docs.* subdomains in dev.
+npm run dev -w @shellhub/website &
+npm run dev -w @shellhub/docs &
+
 npm run dev:console
