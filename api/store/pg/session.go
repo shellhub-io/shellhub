@@ -33,7 +33,7 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 		return nil, 0, fromSQLError(err)
 	}
 
-	query = SessionSelectQuery(db.NewSelect().Model(&entities), "")
+	query = SessionSelectQuery(db.NewSelect().Model(&entities))
 
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {
@@ -73,7 +73,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 	}
 
 	e := &entity.Session{}
-	query := SessionSelectQuery(db.NewSelect().Model(e), sessionID).
+	query := SessionSelectQuery(db.NewSelect().Model(e)).
 		Where("session.id = ?", sessionID)
 
 	var err error
@@ -317,46 +317,32 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 }
 
 // SessionSelectQuery applies the standard session SELECT decorations: relations,
-// computed columns (active, event_types, event_seats), and LEFT JOINs.
-// If sessionID is non-empty, event subqueries are filtered for performance.
+// computed columns (active, event_types, event_seats), and the active_sessions JOIN.
 // The caller provides the base query with the desired model (core or cloud entity).
-func SessionSelectQuery(q *bun.SelectQuery, sessionID string) *bun.SelectQuery {
-	q = q.
+//
+// event_types and event_seats are computed with correlated subqueries scoped to each
+// session row instead of aggregating the whole session_events table. The previous
+// derived-table form (string_agg ... GROUP BY session_id with no filter) forced
+// Postgres to scan and group every row in session_events on each call, even for the
+// list path that only returns a page. As session_events grows, that turns into a
+// multi-second full scan whose cost scales with the total event count rather than the
+// page size. The correlated form runs only for the page's sessions and uses
+// session_events_session_id_created_at_idx, keeping the query bounded.
+func SessionSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
+	return q.
 		Relation("Device").
 		Relation("Device.Namespace").
 		ColumnExpr("session.*").
 		ColumnExpr("CASE WHEN active_session.session_id IS NOT NULL THEN true ELSE false END AS active").
-		ColumnExpr("COALESCE(event_types.types, '') AS event_types").
-		ColumnExpr("COALESCE(event_seats.seats, '') AS event_seats").
+		ColumnExpr(`COALESCE((
+			SELECT string_agg(DISTINCT type::text, ',')
+			FROM session_events
+			WHERE session_id = session.id
+		), '') AS event_types`).
+		ColumnExpr(`COALESCE((
+			SELECT string_agg(DISTINCT seat::text, ',')
+			FROM session_events
+			WHERE session_id = session.id
+		), '') AS event_seats`).
 		Join("LEFT JOIN active_sessions AS active_session ON session.id = active_session.session_id")
-
-	if sessionID != "" {
-		q = q.
-			Join(`LEFT JOIN (
-				SELECT session_id, string_agg(DISTINCT type::text, ',') as types
-				FROM session_events
-				WHERE session_id = ?
-				GROUP BY session_id
-			) event_types ON session.id = event_types.session_id`, sessionID).
-			Join(`LEFT JOIN (
-				SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
-				FROM session_events
-				WHERE session_id = ?
-				GROUP BY session_id
-			) event_seats ON session.id = event_seats.session_id`, sessionID)
-	} else {
-		q = q.
-			Join(`LEFT JOIN (
-				SELECT session_id, string_agg(DISTINCT type::text, ',') as types
-				FROM session_events
-				GROUP BY session_id
-			) event_types ON session.id = event_types.session_id`).
-			Join(`LEFT JOIN (
-				SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
-				FROM session_events
-				GROUP BY session_id
-			) event_seats ON session.id = event_seats.session_id`)
-	}
-
-	return q
 }
