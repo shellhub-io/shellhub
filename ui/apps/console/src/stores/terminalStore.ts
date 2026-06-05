@@ -16,6 +16,17 @@ export interface TerminalSession {
   passphrase?: string;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
+  // pendingShare carries a share request from the UI to the live TerminalInstance, which sends it
+  // over the session websocket. shareToken holds the token returned once the share is active.
+  pendingShare?: ShareOptions | null;
+  shareToken?: string | null;
+}
+
+export interface ShareOptions {
+  name: string;
+  writable: boolean;
+  // ttl in seconds: 0 = server default, negative = no expiry, positive = custom.
+  ttl: number;
 }
 
 export interface ReconnectTarget {
@@ -44,6 +55,9 @@ interface TerminalState {
   clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
   clearSensitiveData: (id: string) => void;
+  requestShare: (id: string, opts: ShareOptions) => void;
+  clearPendingShare: (id: string) => void;
+  setShareToken: (id: string, token: string) => void;
 }
 
 function demoteOthers(
@@ -158,6 +172,30 @@ export const useTerminalStore = create<TerminalState>((set) => ({
         s.id === id
           ? { ...s, privateKey: undefined, passphrase: undefined, password: "" }
           : s,
+      ),
+    }));
+  },
+
+  requestShare: (id, opts) => {
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === id ? { ...s, pendingShare: opts } : s,
+      ),
+    }));
+  },
+
+  clearPendingShare: (id) => {
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === id ? { ...s, pendingShare: null } : s,
+      ),
+    }));
+  },
+
+  setShareToken: (id, token) => {
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === id ? { ...s, shareToken: token } : s,
       ),
     }));
   },

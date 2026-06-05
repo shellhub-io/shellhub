@@ -96,7 +96,13 @@ const errorMap: Record<string, ErrorEntry> = {
 };
 
 // Values match ssh/web/messages.go messageKind iota.
-export const WS_KIND = { INPUT: 1, RESIZE: 2, SIGNATURE: 3, ERROR: 4 } as const;
+export const WS_KIND = {
+  INPUT: 1,
+  RESIZE: 2,
+  SIGNATURE: 3,
+  ERROR: 4,
+  SHARE: 5,
+} as const;
 
 export const HTTP_CONNECT_ERROR: TerminalError = {
   title: "Connection failed",

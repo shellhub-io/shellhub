@@ -31,6 +31,8 @@ const ContainerDetails = lazy(() => import("./pages/ContainerDetails"));
 const Sessions = lazy(() => import("./pages/sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SharedTerminal = lazy(() => import("./pages/SharedTerminal"));
+const SharedTerminals = lazy(() => import("./pages/SharedTerminals"));
 const PublicKeys = lazy(() => import("./pages/public-keys"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
@@ -200,6 +202,7 @@ export default function App() {
                   <Route path="/containers/:uid" element={<ContainerDetails />} />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
+                  <Route path="/shared-terminals" element={<SharedTerminals />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/secure-vault" element={<SecureVault />} />
                   <Route
@@ -239,6 +242,8 @@ export default function App() {
             </Route>
           </Route>
         </Route>
+        {/* Public, read-only shared terminal — intentionally outside every auth/setup guard. */}
+        <Route path="/share/:token" element={<SharedTerminal />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

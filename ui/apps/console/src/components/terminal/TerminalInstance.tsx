@@ -40,6 +40,11 @@ export default function TerminalInstance({
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
 
+  // A share request set by the toolbar; sent over this session's websocket when it arrives.
+  const pendingShare = useTerminalStore(
+    (s) => s.sessions.find((ss) => ss.id === session.id)?.pendingShare,
+  );
+
   const updateStatus = useCallback(
     (s: "connecting" | "connected" | "disconnected") => {
       useTerminalStore.getState().setConnectionStatus(session.id, s);
@@ -186,6 +191,11 @@ export default function TerminalInstance({
               setError(resolveError(msg.data, session.deviceUid));
               break;
             }
+            case WS_KIND.SHARE: {
+              // Server returned the share token for this session.
+              useTerminalStore.getState().setShareToken(session.id, msg.data);
+              break;
+            }
             default:
               break;
           }
@@ -266,6 +276,16 @@ export default function TerminalInstance({
     term.options.fontSize = fontSize;
     fitRef.current?.fit();
   }, [fontSize]);
+
+  // Forward a pending share request over this session's websocket.
+  useEffect(() => {
+    if (!pendingShare) return;
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ kind: WS_KIND.SHARE, data: pendingShare }));
+      useTerminalStore.getState().clearPendingShare(session.id);
+    }
+  }, [pendingShare, session.id]);
 
   // Hide cursor on error
   useEffect(() => {

@@ -4,10 +4,12 @@ import {
   XMarkIcon,
   Cog6ToothIcon,
   MinusIcon,
+  ShareIcon,
 } from "@heroicons/react/24/outline";
 import { useTerminalStore } from "@/stores/terminalStore";
 import type { TerminalSession } from "@/stores/terminalStore";
 import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
+import TerminalShareDialog from "./TerminalShareDialog";
 
 /** Terminal info shown on the left side of the AppBar */
 export function TerminalInfo({ session }: { session: TerminalSession }) {
@@ -43,6 +45,7 @@ export function TerminalInfo({ session }: { session: TerminalSession }) {
 export function TerminalActions({ session }: { session: TerminalSession }) {
   const { minimize, toggleFullscreen, close } = useTerminalStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const isFullscreen = session.state === "fullscreen";
 
   return (
@@ -93,6 +96,15 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
           </button>
         </div>
 
+        {/* Share */}
+        <button
+          onClick={() => setShareOpen(true)}
+          className="p-1.5 rounded-md text-white/30 hover:text-white/60 transition-colors"
+          title="Share terminal"
+        >
+          <ShareIcon className="w-4 h-4" />
+        </button>
+
         {/* Settings */}
         <button
           onClick={() => setSettingsOpen(true)}
@@ -102,6 +114,12 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
           <Cog6ToothIcon className="w-4 h-4" />
         </button>
       </div>
+
+      <TerminalShareDialog
+        session={session}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
 
       {createPortal(
         <TerminalSettingsDrawer
