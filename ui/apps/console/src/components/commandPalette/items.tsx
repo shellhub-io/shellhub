@@ -13,8 +13,10 @@ import {
   LockClosedIcon,
   DocumentDuplicateIcon,
   InformationCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import { buildSshid } from "@/utils/sshid";
+import { formatRelative } from "@/utils/date";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
@@ -25,7 +27,7 @@ export interface CommandItem {
   label: string;
   sublabel?: string;
   section: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   badge?: { text: string; variant: BadgeVariant };
   onSelect: () => void;
   /** When set, the row exposes a drill-in affordance (trailing chevron / "→")
@@ -61,6 +63,7 @@ export const icons = {
   add: <PlusIcon className="w-4 h-4" />,
   terminal: <ChevronDoubleRightIcon className="w-4 h-4" />,
   connect: <ChevronDoubleRightIcon className="w-4 h-4" />,
+  recent: <ClockIcon className="w-4 h-4" />,
   copy: <DocumentDuplicateIcon className="w-4 h-4" />,
   details: <InformationCircleIcon className="w-4 h-4" />,
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
@@ -79,14 +82,20 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-/* Default (connection-first) view: open terminal sessions lead so you can jump
- * straight back in (restore), followed by devices to connect/restore. Device
- * rows also expose a drill-in (→) into their action menu. */
+/* Default (connection-first) view: open terminal sessions lead (quick restore),
+ * then recently-connected devices, then the full device list. Device and recent
+ * rows both connect/restore and expose a drill-in (→) into the action menu. */
 export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
   terminalSessions: TerminalSession[];
+  recentDevices: { device: NormalizedDevice; connectedAt: string }[];
   canConnect: boolean;
-  connectOrRestore: (uid: string, name: string, online: boolean) => void;
+  connectOrRestore: (
+    uid: string,
+    name: string,
+    online: boolean,
+    rowId: string,
+  ) => void;
   restoreTerminal: (id: string) => void;
   rejectRow: (rowId: string, message: string) => void;
   enterDrillIn: (uid: string) => void;
@@ -95,6 +104,7 @@ export function buildConnectionItems(deps: {
   const {
     devices,
     terminalSessions,
+    recentDevices,
     canConnect,
     connectOrRestore,
     restoreTerminal,
@@ -103,6 +113,31 @@ export function buildConnectionItems(deps: {
     close,
   } = deps;
   const list: CommandItem[] = [];
+
+  /* A device row (connect/restore + drill-in). Shared by the Recent and Devices
+   * sections, which differ only in id, section, sublabel, and icon. */
+  const deviceRow = (
+    d: NormalizedDevice,
+    overrides: {
+      id: string;
+      section: string;
+      sublabel: string;
+      icon: React.ReactNode;
+    },
+  ): CommandItem => ({
+    id: overrides.id,
+    label: d.name,
+    sublabel: overrides.sublabel,
+    section: overrides.section,
+    icon: overrides.icon,
+    badge: d.online
+      ? { text: "Online", variant: "green" }
+      : { text: "Offline", variant: "muted" },
+    // Shake the row the user actually clicked (Devices `device-`, Recent
+    // `recent-`) on an offline/permission reject — not a same-uid duplicate.
+    onSelect: () => connectOrRestore(d.uid, d.name, d.online, overrides.id),
+    onDrillIn: () => enterDrillIn(d.uid),
+  });
 
   terminalSessions.forEach((s) => {
     const statusLabel =
@@ -140,21 +175,31 @@ export function buildConnectionItems(deps: {
     });
   });
 
+  // Recently-connected devices (already resolved, ordered, and deduped against
+  // open sessions by the caller). A `recent-` id lets the same device still
+  // appear in the full Devices list below.
+  recentDevices.forEach(({ device, connectedAt }) => {
+    list.push(
+      deviceRow(device, {
+        id: `recent-${device.uid}`,
+        section: "Recent",
+        sublabel: formatRelative(connectedAt),
+        icon: icons.recent,
+      }),
+    );
+  });
+
   // useDevices is called with status: "accepted", so the API already scopes
   // this list — no client-side status filter needed.
   devices.forEach((d) => {
-    list.push({
-      id: `device-${d.uid}`,
-      label: d.name,
-      sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
-      section: "Devices",
-      icon: icons.devices,
-      badge: d.online
-        ? { text: "Online", variant: "green" }
-        : { text: "Offline", variant: "muted" },
-      onSelect: () => connectOrRestore(d.uid, d.name, d.online),
-      onDrillIn: () => enterDrillIn(d.uid),
-    });
+    list.push(
+      deviceRow(d, {
+        id: `device-${d.uid}`,
+        section: "Devices",
+        sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
+        icon: icons.devices,
+      }),
+    );
   });
 
   return list;
@@ -205,7 +250,12 @@ export function buildDeviceActionItems(deps: {
   nsName: string;
   canConnect: boolean;
   hasOpenSession: boolean;
-  connectOrRestore: (uid: string, name: string, online: boolean) => void;
+  connectOrRestore: (
+    uid: string,
+    name: string,
+    online: boolean,
+    rowId: string,
+  ) => void;
   copyAction: (value: string, label: string) => void;
   go: (path: string) => void;
 }): CommandItem[] {
@@ -236,7 +286,7 @@ export function buildDeviceActionItems(deps: {
       badge: online
         ? { text: "Online", variant: "green" }
         : { text: "Offline", variant: "muted" },
-      onSelect: () => connectOrRestore(uid, name, online),
+      onSelect: () => connectOrRestore(uid, name, online, "act-connect"),
       disabled: connectDisabled,
     },
     {

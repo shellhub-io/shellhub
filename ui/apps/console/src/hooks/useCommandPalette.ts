@@ -5,6 +5,10 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
+import {
+  useRecentDevicesStore,
+  type RecentDevice,
+} from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useCopy } from "@/hooks/useCopy";
@@ -17,6 +21,13 @@ import {
   type CommandItem,
   type Feedback,
 } from "@/components/commandPalette/items";
+
+/* Stable empty reference for tenants with no recents — keeps the selector from
+ * returning a fresh array each render. */
+const EMPTY_RECENTS: RecentDevice[] = [];
+/* How many recent devices the palette shows. The store keeps more (see
+ * `STORE_CAP` in recentDevicesStore) so hiding open-session ones still fills it. */
+const RECENT_LIMIT = 5;
 
 /** The view-model the palette shell and its presentational parts consume. */
 export interface CommandPaletteViewModel {
@@ -77,6 +88,9 @@ export function useCommandPalette(): CommandPaletteViewModel {
   // The green banner is our copy confirmation, so useCopy's own `copied` flag
   // (its per-button "Copied!" affordance) is intentionally unused here.
   const { copy } = useCopy();
+  const recentEntries = useRecentDevicesStore(
+    (s) => s.byTenant[tenant ?? ""] ?? EMPTY_RECENTS,
+  );
 
   /* The drilled-in device, resolved from the live list. Deriving drill-in state
    * from the *resolved* device means a drillInUid whose device left the list
@@ -182,9 +196,9 @@ export function useCommandPalette(): CommandPaletteViewModel {
    * offline device with no session can't be connected; an existing session
    * still restores when permitted. */
   const connectOrRestore = useCallback(
-    (uid: string, name: string, online: boolean) => {
+    (uid: string, name: string, online: boolean, rowId: string) => {
       if (!canConnect) {
-        rejectRow(`device-${uid}`, NO_CONNECT_PERMISSION);
+        rejectRow(rowId, NO_CONNECT_PERMISSION);
         return;
       }
       const store = useTerminalStore.getState();
@@ -195,7 +209,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
         return;
       }
       if (!online) {
-        rejectRow(`device-${uid}`, `${name} is offline — start it to connect`);
+        rejectRow(rowId, `${name} is offline — start it to connect`);
         return;
       }
       close();
@@ -219,11 +233,28 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => window.removeEventListener("keydown", handler);
   }, [close]);
 
+  /* Resolve recent-device entries against the live list: hide any with an open
+   * session (already shown in Terminal Sessions) or no longer present, keep MRU
+   * order, and cap the count. */
+  const recentDevices = useMemo(() => {
+    const openUids = new Set(terminalSessions.map((s) => s.deviceUid));
+    const resolved: { device: NormalizedDevice; connectedAt: string }[] = [];
+    for (const entry of recentEntries) {
+      if (openUids.has(entry.uid)) continue;
+      const device = devices.find((d) => d.uid === entry.uid);
+      if (!device) continue;
+      resolved.push({ device, connectedAt: entry.connectedAt });
+      if (resolved.length >= RECENT_LIMIT) break;
+    }
+    return resolved;
+  }, [recentEntries, devices, terminalSessions]);
+
   const connectionItems = useMemo(
     () =>
       buildConnectionItems({
         devices,
         terminalSessions,
+        recentDevices,
         canConnect,
         connectOrRestore,
         restoreTerminal,
@@ -234,6 +265,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
     [
       devices,
       terminalSessions,
+      recentDevices,
       canConnect,
       connectOrRestore,
       restoreTerminal,
