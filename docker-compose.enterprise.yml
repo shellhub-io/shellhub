@@ -4,7 +4,6 @@ services:
     restart: unless-stopped
     environment:
       # Database and Cache connections
-      - MONGO_URI=mongodb://mongo:27017/main
       - REDIS_URI=redis://redis:6379
       # Keys paths (mounted via secrets)
       - ADMIN_API_PRIVATE_KEY=/run/secrets/api_private_key

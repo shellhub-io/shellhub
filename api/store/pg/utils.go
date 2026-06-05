@@ -25,7 +25,11 @@ func fromSQLError(err error) error {
 			}
 		}
 
-		return err
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return err
+		}
+
+		return errors.Join(err, store.ErrInternal)
 	}
 }
 

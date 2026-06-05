@@ -3,10 +3,8 @@ package app
 import (
 	"context"
 	"errors"
-	"net/http"
 	"os"
 	"strings"
-	"sync/atomic"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -14,9 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/migrate"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
-	mongooptions "github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/api/store/pg"
 	pgoptions "github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -29,21 +24,16 @@ import (
 )
 
 type Env struct {
-	Database string `env:"DATABASE,default=mongo"`
-
 	// PostgresHost specifies the host for PostgreSQL.
 	PostgresHost string `env:"POSTGRES_HOST,default=postgres"`
 	// PostgresPort specifies the port for PostgreSQL.
 	PostgresPort string `env:"POSTGRES_PORT,default=5432"`
 	// PostgresUsername specifies the username for authenticate PostgreSQL.
 	PostgresUsername string `env:"POSTGRES_USERNAME,default=admin"`
-	// PostgresUser specifies the password for authenticate PostgreSQL.
+	// PostgresPassword specifies the password for authenticate PostgreSQL.
 	PostgresPassword string `env:"POSTGRES_PASSWORD,default=admin"`
-	// PostgresDatabase especifica o nome do banco de dados PostgreSQL a ser utilizado.
+	// PostgresDatabase specifies the name of the PostgreSQL database to use.
 	PostgresDatabase string `env:"POSTGRES_DATABASE,default=main"`
-
-	// MongoURI specifies the connection string for MongoDB.
-	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 
 	// RedisURI specifies the connection string for Redis.
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
@@ -102,63 +92,16 @@ func (s *Server) Setup(ctx context.Context) error {
 	// package name. In CE builds this returns nil.
 	wrapperFactory := store.StoreWrapper()
 
-	var store store.Store
-	switch s.env.Database {
-	case "mongo":
-		store, err = mongo.NewStore(ctx, s.env.MongoURI, cache, mongooptions.RunMigatrions)
-	case "postgres":
-		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
-		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate()) // TODO: Log envs
-	case "migrate":
-		mongoStore, mongoErr := mongo.NewStore(ctx, s.env.MongoURI, cache)
-		if mongoErr != nil {
-			log.WithError(mongoErr).Fatal("failed to connect to MongoDB for migration")
-		}
+	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
 
-		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
-		pgStore, pgErr := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate())
-		if pgErr != nil {
-			log.WithError(pgErr).Fatal("failed to connect to PostgreSQL for migration")
-		}
-
-		migrator := migrate.New(mongoStore.(*mongo.Store).GetDB(), pgStore.(*pg.Pg).Driver())
-
-		var status atomic.Value
-		status.Store("running")
-		go func() {
-			if err := migrator.Run(ctx); err != nil {
-				log.WithError(err).Error("migration failed")
-				status.Store("failed")
-
-				return
-			}
-
-			log.Info("Migration completed successfully")
-			status.Store("completed")
-		}()
-
-		e := echo.New()
-		e.GET("/api/migration/status", func(c echo.Context) error {
-			return c.JSON(200, map[string]string{"status": status.Load().(string)})
-		})
-
-		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.WithError(err).Fatal("migration status server failed")
-		}
-
-		return nil
-	default:
-		log.WithField("database", s.env.Database).Error("invalid database")
-
-		return errors.New("invalid database")
-	}
+	store, err := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate())
 	if err != nil {
 		log.
 			WithError(err).
 			Fatal("failed to create the store")
 	}
 
-	log.WithField("database", s.env.Database).Info("store connected successfully")
+	log.Info("store connected successfully")
 
 	// If a store wrapper factory was registered (EE/cloud build), wrap the
 	// store so cloud-specific entity overrides are used by the core service.

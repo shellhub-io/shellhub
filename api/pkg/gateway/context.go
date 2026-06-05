@@ -31,7 +31,7 @@ func (c *Context) Role() authorizer.Role {
 func (c *Context) Tenant() *models.Tenant {
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	if tenant != "" {
-		return &models.Tenant{tenant}
+		return &models.Tenant{ID: tenant}
 	}
 
 	return nil
@@ -41,7 +41,7 @@ func (c *Context) Tenant() *models.Tenant {
 func (c *Context) Username() *models.Username {
 	username := c.Request().Header.Get("X-Username")
 	if username != "" {
-		return &models.Username{username}
+		return &models.Username{ID: username}
 	}
 
 	return nil
@@ -51,7 +51,7 @@ func (c *Context) Username() *models.Username {
 func (c *Context) ID() *models.ID {
 	ID := c.Request().Header.Get("X-ID")
 	if ID != "" {
-		return &models.ID{ID}
+		return &models.ID{ID: ID}
 	}
 
 	return nil

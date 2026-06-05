@@ -29,6 +29,7 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
+      - ./tests:/go/src/github.com/shellhub-io/shellhub/tests
       - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
     environment:

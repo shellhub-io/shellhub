@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -223,14 +222,11 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 
 func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member *models.Member) error {
 	if err := s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
+		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrNamespaceNotFound(ns.TenantID, err)
-		case errors.Is(err, mongo.ErrUserNotFound):
-			return NewErrNamespaceMemberNotFound(member.ID, err)
-		default:
-			return err
 		}
+
+		return err
 	}
 
 	return nil

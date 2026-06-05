@@ -70,11 +70,8 @@ COMPOSE_FILE="docker-compose.yml"
 [ -n "$SHELLHUB_BILLING" ] && export COMPOSE_PROFILES="$SHELLHUB_BILLING"
 
 case "$SHELLHUB_DATABASE" in
-    mongo|postgres)
-        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SHELLHUB_DATABASE}.yml"
-        ;;
-    migrate)
-        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.mongo.yml:docker-compose.postgres.yml"
+    postgres)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
         ;;
     *)
         echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to postgres." >&2

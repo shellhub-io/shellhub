@@ -2,7 +2,6 @@ package environment
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -98,14 +97,8 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	}
 
 	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml"}
-	switch dc.envs["SHELLHUB_DATABASE"] {
-	case "mongo":
-		dockerFiles = append(dockerFiles, "../docker-compose.mongo.test.yml")
-	case "postgres":
-		dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
-	default:
-		panic(fmt.Sprintf("invalid database %s", dc.envs["SHELLHUB_DATABASE"]))
-	}
+	onlyPostgresAllowed(dc.envs["SHELLHUB_DATABASE"])
+	dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
 
 	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
 	if !assert.NoError(dcc.t, err) {

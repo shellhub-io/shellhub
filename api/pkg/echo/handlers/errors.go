@@ -10,7 +10,6 @@ import (
 	routes "github.com/shellhub-io/shellhub/api/routes/errors"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
@@ -36,9 +35,10 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 		// happens in each case, avoiding the use of else statements, which would make the code more confusing or a big
 		// switch statement, which would make the code less readable.
 
-		// Every Mongo error that isn't mapped as a store error must be reported to Sentry and responded with HTTP
-		// status code 500.
-		if errors.Is(err, mongo.ErrMongo) {
+		// Order-sensitive: checked before the generic Layer switch below.
+		// ErrInternal shares Layer == store.ErrLayer with other store errors but
+		// must also be reported to Sentry, so it needs its own early branch.
+		if errors.Is(err, store.ErrInternal) {
 			report(reporter, err, ctx.Request())
 			ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
 
