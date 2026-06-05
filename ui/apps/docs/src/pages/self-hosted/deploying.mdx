@@ -6,7 +6,7 @@ description: Set up a self-hosted ShellHub instance with Docker Compose
 
 # Setup
 
-Run ShellHub on your own infrastructure using Docker Compose. This guide covers the full setup — for a quick overview, see the [Quick Start](/v2/docs/getting-started/quick-start#self-hosted).
+Run ShellHub on your own infrastructure using Docker Compose. This guide covers the full setup — for a quick overview, see the [Quick Start](/getting-started/quick-start#self-hosted).
 
 ## Requirements
 
@@ -60,7 +60,7 @@ Open the URL in your browser. Create your admin account and choose a namespace n
 
 > **Note:** The setup URL includes a cryptographic signature and is single-use. If you need to re-run setup, execute `./bin/setup` again.
 
-Default settings are in `.env`. To customize ports, domain, or other options, see [Configuration](/v2/docs/self-hosted/configuring).
+Default settings are in `.env`. To customize ports, domain, or other options, see [Configuration](/self-hosted/configuring).
 
 ## HTTPS configuration
 
@@ -82,7 +82,7 @@ Requires ports 80 and 443 to be accessible from the internet for the ACME challe
 
 If you run ShellHub behind a reverse proxy (nginx, Caddy, Traefik), terminate SSL at the proxy and forward traffic to ShellHub on port 80.
 
-For Layer 4 / TCP load balancers that speak PROXY protocol (AWS NLB, HAProxy in TCP mode), see [`SHELLHUB_PROXY`](/v2/docs/self-hosted/configuring#domain-and-ssl) in the Configuration reference.
+For Layer 4 / TCP load balancers that speak PROXY protocol (AWS NLB, HAProxy in TCP mode), see [`SHELLHUB_PROXY`](/self-hosted/configuring#domain-and-ssl) in the Configuration reference.
 
 ## Data persistence
 
@@ -91,7 +91,7 @@ All data is stored in Docker volumes:
 - **MongoDB** — Device registrations, users, namespaces, sessions
 - **Redis** — Cache and session state (ephemeral, rebuilt on restart)
 
-Back up the MongoDB volume regularly. See [Administration](/v2/docs/self-hosted/administration#backups) for backup instructions.
+Back up the MongoDB volume regularly. See [Administration](/self-hosted/administration#backups) for backup instructions.
 
 ## Stopping and restarting
 
@@ -105,6 +105,6 @@ Data persists across stops and restarts.
 
 ## Next steps
 
-- [Configuration](/v2/docs/self-hosted/configuring) — Customize ports, domain, and environment variables
-- [Administration](/v2/docs/self-hosted/administration) — Manage users, namespaces, and backups
-- [Upgrade](/v2/docs/self-hosted/upgrading) — Update to a new ShellHub version
+- [Configuration](/self-hosted/configuring) — Customize ports, domain, and environment variables
+- [Administration](/self-hosted/administration) — Manage users, namespaces, and backups
+- [Upgrade](/self-hosted/upgrading) — Update to a new ShellHub version

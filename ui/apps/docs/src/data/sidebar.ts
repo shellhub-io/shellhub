@@ -31,26 +31,26 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Introduction",
-        href: "/v2/docs/getting-started/introduction",
+        href: "/getting-started/introduction",
         featured: true,
       },
       {
         label: "How it Works",
-        href: "/v2/docs/getting-started/how-it-works",
+        href: "/getting-started/how-it-works",
         featured: true,
       },
       {
         label: "Features",
-        href: "/v2/docs/getting-started/features",
+        href: "/getting-started/features",
         featured: true,
       },
-      { label: "Editions", href: "/v2/docs/getting-started/editions" },
+      { label: "Editions", href: "/getting-started/editions" },
       {
         label: "Quick Start",
-        href: "/v2/docs/getting-started/quick-start",
+        href: "/getting-started/quick-start",
         featured: true,
       },
-      { label: "FAQ", href: "/v2/docs/getting-started/faq" },
+      { label: "FAQ", href: "/getting-started/faq" },
     ],
   },
   {
@@ -61,17 +61,17 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Devices",
-        href: "/v2/docs/guides/devices",
+        href: "/guides/devices",
         featured: true,
       },
       {
         label: "Sessions",
-        href: "/v2/docs/guides/sessions",
+        href: "/guides/sessions",
         featured: true,
       },
       {
         label: "Web Endpoints",
-        href: "/v2/docs/guides/web-endpoints",
+        href: "/guides/web-endpoints",
         featured: true,
       },
     ],
@@ -84,12 +84,12 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Public Keys",
-        href: "/v2/docs/guides/public-keys",
+        href: "/guides/public-keys",
         featured: true,
       },
       {
         label: "Firewall Rules",
-        href: "/v2/docs/guides/firewall-rules",
+        href: "/guides/firewall-rules",
         featured: true,
       },
     ],
@@ -102,17 +102,17 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Namespaces",
-        href: "/v2/docs/guides/namespaces",
+        href: "/guides/namespaces",
         featured: true,
       },
       {
         label: "Team",
-        href: "/v2/docs/guides/team",
+        href: "/guides/team",
         featured: true,
       },
       {
         label: "Settings",
-        href: "/v2/docs/guides/settings",
+        href: "/guides/settings",
         featured: true,
       },
     ],
@@ -125,26 +125,26 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Connecting via SSH",
-        href: "/v2/docs/guides/connecting",
+        href: "/guides/connecting",
         featured: true,
       },
       {
         label: "File Transfer",
-        href: "/v2/docs/guides/file-transfer",
+        href: "/guides/file-transfer",
         featured: true,
       },
       {
         label: "Port Forwarding",
-        href: "/v2/docs/guides/port-forwarding",
+        href: "/guides/port-forwarding",
         featured: true,
       },
       {
         label: "Container Access",
-        href: "/v2/docs/guides/container-access",
+        href: "/guides/container-access",
         featured: true,
       },
-      { label: "Session Recording", href: "/v2/docs/guides/session-recording" },
-      { label: "Organizing with Tags", href: "/v2/docs/guides/tags" },
+      { label: "Session Recording", href: "/guides/session-recording" },
+      { label: "Organizing with Tags", href: "/guides/tags" },
     ],
   },
   {
@@ -155,32 +155,32 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Agent Overview",
-        href: "/v2/docs/agent/overview",
+        href: "/agent/overview",
         featured: true,
       },
-      { label: "Install Script", href: "/v2/docs/agent/install-script" },
+      { label: "Install Script", href: "/agent/install-script" },
       {
         label: "Platform Guides",
         items: [
           {
             label: "Docker",
-            href: "/v2/docs/agent/docker",
+            href: "/agent/docker",
             featured: true,
           },
           {
             label: "Snap",
-            href: "/v2/docs/agent/snap",
+            href: "/agent/snap",
             featured: true,
           },
           {
             label: "FreeBSD",
-            href: "/v2/docs/agent/freebsd",
+            href: "/agent/freebsd",
             featured: true,
           },
-          { label: "WSL", href: "/v2/docs/agent/wsl" },
+          { label: "WSL", href: "/agent/wsl" },
           {
             label: "Building from Source",
-            href: "/v2/docs/agent/building-from-source",
+            href: "/agent/building-from-source",
           },
         ],
       },
@@ -194,18 +194,18 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Embedded Linux Overview",
-        href: "/v2/docs/embedded-linux/overview",
+        href: "/embedded-linux/overview",
         featured: true,
       },
-      { label: "Raspberry Pi", href: "/v2/docs/embedded-linux/raspberry-pi", featured: true },
+      { label: "Raspberry Pi", href: "/embedded-linux/raspberry-pi", featured: true },
       {
         label: "Buildroot",
-        href: "/v2/docs/embedded-linux/buildroot",
+        href: "/embedded-linux/buildroot",
         featured: true,
       },
       {
         label: "Yocto Project",
-        href: "/v2/docs/embedded-linux/yocto",
+        href: "/embedded-linux/yocto",
         featured: true,
       },
     ],
@@ -216,25 +216,25 @@ export const sidebar: SidebarSection[] = [
       "Connect ShellHub with Ansible, Terraform, CI/CD, and VS Code.",
     icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58v0Z" />`,
     items: [
-      { label: "Integrations Overview", href: "/v2/docs/integration/overview" },
+      { label: "Integrations Overview", href: "/integration/overview" },
       {
         label: "Ansible",
-        href: "/v2/docs/integration/ansible",
+        href: "/integration/ansible",
         featured: true,
       },
       {
         label: "Terraform",
-        href: "/v2/docs/integration/terraform",
+        href: "/integration/terraform",
         featured: true,
       },
       {
         label: "CI/CD Pipelines",
-        href: "/v2/docs/integration/ci-cd",
+        href: "/integration/ci-cd",
         featured: true,
       },
       {
         label: "VS Code Remote",
-        href: "/v2/docs/integration/vscode-remote",
+        href: "/integration/vscode-remote",
         featured: true,
       },
     ],
@@ -247,27 +247,27 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Setup",
-        href: "/v2/docs/self-hosted/deploying",
+        href: "/self-hosted/deploying",
         featured: true,
       },
       {
         label: "Configuration",
-        href: "/v2/docs/self-hosted/configuring",
+        href: "/self-hosted/configuring",
         featured: true,
       },
       {
         label: "Administration",
-        href: "/v2/docs/self-hosted/administration",
+        href: "/self-hosted/administration",
         featured: true,
       },
       {
         label: "Upgrade",
-        href: "/v2/docs/self-hosted/upgrading",
+        href: "/self-hosted/upgrading",
         featured: true,
       },
       {
         label: "Troubleshooting",
-        href: "/v2/docs/self-hosted/troubleshooting",
+        href: "/self-hosted/troubleshooting",
       },
     ],
   },
@@ -279,17 +279,17 @@ export const sidebar: SidebarSection[] = [
     items: [
       {
         label: "Dev Environment",
-        href: "/v2/docs/developers/development-environment",
+        href: "/developers/development-environment",
         featured: true,
       },
       {
         label: "API Reference",
-        href: "/v2/docs/developers/api-reference",
+        href: "/developers/api-reference",
         featured: true,
       },
       {
         label: "Agent Development",
-        href: "/v2/docs/developers/agent-development",
+        href: "/developers/agent-development",
         featured: true,
       },
     ],

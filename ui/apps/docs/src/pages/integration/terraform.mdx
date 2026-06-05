@@ -132,11 +132,11 @@ EOF
 - **Store tenant ID as a variable** — Mark it `sensitive = true` to keep it out of plan output and state files
 - **Use cloud-init over provisioners** — Cloud-init runs without needing SSH access to the instance during creation
 - **Set preferred hostname** — Use Terraform resource names or IDs as hostnames for traceability between your infra code and ShellHub dashboard
-- **Accept devices via API** — For large fleets, use the [ShellHub API](/v2/docs/developers/api-reference) to accept devices programmatically after provisioning
+- **Accept devices via API** — For large fleets, use the [ShellHub API](/developers/api-reference) to accept devices programmatically after provisioning
 
 ## Next steps
 
-- [Agent Overview](/v2/docs/agent/overview) — How the agent works
-- [Docker](/v2/docs/agent/docker) — Agent Docker image details
-- [CI/CD Pipelines](/v2/docs/integration/ci-cd) — Automate deployments after provisioning
-- [API Reference](/v2/docs/developers/api-reference) — Auto-accept devices via the API
+- [Agent Overview](/agent/overview) — How the agent works
+- [Docker](/agent/docker) — Agent Docker image details
+- [CI/CD Pipelines](/integration/ci-cd) — Automate deployments after provisioning
+- [API Reference](/developers/api-reference) — Auto-accept devices via the API

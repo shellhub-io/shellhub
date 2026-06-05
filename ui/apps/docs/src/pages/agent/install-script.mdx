@@ -26,7 +26,7 @@ The `TENANT_ID` and `SERVER_ADDRESS` are passed as inline environment variables 
 
 The script follows this sequence:
 
-1. **Checks for FreeBSD** — exits early with a link to the [FreeBSD guide](/v2/docs/agent/freebsd) (not supported by the script)
+1. **Checks for FreeBSD** — exits early with a link to the [FreeBSD guide](/agent/freebsd) (not supported by the script)
 2. **Validates** that `TENANT_ID` is set (exits if missing)
 3. **Detects architecture** from `uname -m`
 4. **Queries the server** at `/info` to determine the agent version to install
@@ -46,7 +46,7 @@ The script tries each method in order and uses the first one that works:
 
 If neither Docker nor Podman is found, the script prints a warning recommending them before falling back.
 
-> **Note:** On WSL systems, the script **overrides** any previously detected method. If the kernel reports "Microsoft" in `/proc/version`, the script forces the WSL install path — even if Docker is available. On non-Ubuntu WSL, this causes an error exit. See the [WSL guide](/v2/docs/agent/wsl) for details.
+> **Note:** On WSL systems, the script **overrides** any previously detected method. If the kernel reports "Microsoft" in `/proc/version`, the script forces the WSL install path — even if Docker is available. On non-Ubuntu WSL, this causes an error exit. See the [WSL guide](/agent/wsl) for details.
 
 You can skip auto-detection by setting `INSTALL_METHOD` explicitly:
 
@@ -135,7 +135,7 @@ When installed via **Docker or Podman**, the agent checks the server version eve
 
 This happens transparently — no manual intervention needed. The device keeps its identity (private key) across updates.
 
-Auto-update is **not available** for Snap, standalone, or [native builds](/v2/docs/agent/building-from-source). For Snap, use `snap refresh shellhub`. For standalone, re-run the install script.
+Auto-update is **not available** for Snap, standalone, or [native builds](/agent/building-from-source). For Snap, use `snap refresh shellhub`. For standalone, re-run the install script.
 
 ## Environment variables
 
@@ -202,6 +202,6 @@ Only containers with that Docker label are registered as devices.
 
 ## Next steps
 
-- [Agent Overview](/v2/docs/agent/overview) — How the agent works and full configuration reference
-- [Docker](/v2/docs/agent/docker) — Manual Docker installation and advanced options
-- [Connecting](/v2/docs/guides/connecting) — Connect to your device after installation
+- [Agent Overview](/agent/overview) — How the agent works and full configuration reference
+- [Docker](/agent/docker) — Manual Docker installation and advanced options
+- [Connecting](/guides/connecting) — Connect to your device after installation

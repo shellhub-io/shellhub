@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Reveal } from "../landing/components";
 import apiClient from "../../api/client";
+import { loginUrl } from "@/links";
 
 interface StepSignupProps {
   onBack: () => void;
@@ -108,7 +109,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
               Check your email to confirm your account, then log in to get started.
             </p>
             <a
-              href="/v2/ui/login"
+              href={loginUrl}
               className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 text-sm font-semibold bg-primary border border-primary-400/40 text-white rounded-xl hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
               Go to Login
@@ -127,7 +128,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
           <div className="px-6 pt-6 pb-5 border-b border-border bg-surface/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <img src="/v2/cloud-icon.svg" alt="" className="h-5" />
+                <img src="/cloud-icon.svg" alt="" className="h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-bold">ShellHub Cloud</h3>

@@ -19,7 +19,7 @@ const tiers = [
       "Community support",
     ],
     cta: "Get Started",
-    ctaHref: "/v2/getting-started",
+    ctaHref: "/getting-started",
     highlighted: false,
   },
   {
@@ -39,7 +39,7 @@ const tiers = [
       "Email support",
     ],
     cta: "Start Free",
-    ctaHref: "/v2/getting-started",
+    ctaHref: "/getting-started",
     highlighted: true,
   },
   {
@@ -60,7 +60,7 @@ const tiers = [
       "Custom integrations",
     ],
     cta: "Contact Sales",
-    ctaHref: "/v2/enterprise",
+    ctaHref: "/enterprise",
     highlighted: false,
   },
 ];
