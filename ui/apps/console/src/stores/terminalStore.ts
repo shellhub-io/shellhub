@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { generateRandomUUID } from "@/utils/random-uuid";
+import { useRecentDevicesStore } from "./recentDevicesStore";
 
 export type TerminalWindowState = "docked" | "minimized" | "fullscreen";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
@@ -62,6 +63,11 @@ export const useTerminalStore = create<TerminalState>((set) => ({
 
   open: (params) => {
     const id = generateRandomUUID();
+    // The single app-wide connect choke point: every entry point reaches here,
+    // so this is where a device joins the palette's Recent list.
+    useRecentDevicesStore
+      .getState()
+      .record(params.deviceUid, params.deviceName);
     set((state) => ({
       reconnectTarget: null,
       sessions: [

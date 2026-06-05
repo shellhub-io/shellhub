@@ -37,6 +37,7 @@ import { useDevices } from "@/hooks/useDevices";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
+import { useRecentDevicesStore } from "@/stores/recentDevicesStore";
 
 const device = {
   uid: "dev-1",
@@ -58,6 +59,18 @@ const session = {
   state: "minimized",
   connectionStatus: "connected",
 } satisfies TerminalSession;
+
+/** A second device, used to populate the Recent section without colliding with
+ *  `device` (`dev-1`). */
+const device2 = {
+  ...device,
+  uid: "dev-2",
+  name: "db-01",
+  identity: { mac: "aa:bb:cc:dd:ee:ff" },
+} as unknown as NormalizedDevice;
+
+/** A fixed past timestamp so the Recent sublabel renders a stable "1 hour ago". */
+const HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
 /** Reflects the router location so navigation can be asserted. */
 function LocationProbe() {
@@ -86,6 +99,7 @@ describe("CommandPalette", () => {
     vi.mocked(useHasPermission).mockReturnValue(true);
     copyMock.mockClear();
     useTerminalStore.setState({ sessions: [], reconnectTarget: null });
+    useRecentDevicesStore.setState({ byTenant: {} });
     useCommandPaletteStore.setState({ open: true });
   });
 
@@ -326,6 +340,229 @@ describe("CommandPalette", () => {
 
     expect(screen.queryByText("Terminal Sessions")).not.toBeInTheDocument();
     expect(screen.getByText("web-01")).toBeInTheDocument();
+  });
+
+  // ─── Phase 6: recent devices section ───────────────────────────────────────
+
+  it("lists recent devices between sessions and the full device list", () => {
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    expect(screen.getByText("Recent")).toBeInTheDocument();
+    // order: Terminal Sessions → Recent → Devices
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveTextContent("root@web-01"); // open session
+    expect(options[1]).toHaveTextContent("db-01"); // recent
+    // the recent row carries a relative-time sublabel
+    expect(screen.getByText(/1 hour ago/)).toBeInTheDocument();
+  });
+
+  it("hides a device with an open session from the Recent section", () => {
+    // dev-1 is both recent and currently open — it belongs only to Sessions
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "dev-1", name: "web-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+  });
+
+  it("drops a recent device that is no longer in the device list", () => {
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "ghost", name: "old-box", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+    expect(screen.queryByText("old-box")).not.toBeInTheDocument();
+  });
+
+  it("connects from a recent device row", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    // target the recent row via its unique relative-time sublabel
+    const recentRow = screen.getByText(/1 hour ago/).closest('[role="option"]');
+    expect(recentRow).not.toBeNull();
+    await user.click(recentRow as HTMLElement);
+
+    expect(useTerminalStore.getState().reconnectTarget).toEqual({
+      deviceUid: "dev-2",
+      deviceName: "db-01",
+    });
+    expect(useCommandPaletteStore.getState().open).toBe(false);
+  });
+
+  it("omits the Recent section when there are no recent devices", () => {
+    renderPalette();
+
+    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+  });
+
+  it("shakes the clicked recent row, not its device duplicate, when offline", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, { ...device2, online: false }],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    const recentRow = screen.getByText(/1 hour ago/).closest('[role="option"]');
+    await user.click(recentRow as HTMLElement);
+
+    // the offline reject shakes the recent row the user clicked …
+    expect(recentRow?.className).toContain("animate-shake");
+    // … not the same device's duplicate row in the Devices section
+    const deviceRow = screen
+      .getByText("aa:bb:cc:dd:ee:ff")
+      .closest('[role="option"]');
+    expect(deviceRow?.className).not.toContain("animate-shake");
+    expect(screen.getByRole("alert")).toHaveTextContent(/offline/i);
+  });
+
+  // ─── keyboard navigation across sections ────────────────────────────────────
+
+  it("moves the highlight down across sections, tracking aria-activedescendant", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    const input = screen.getByRole("combobox");
+    // default highlight: the leading session (Sessions → Recent → Devices)
+    expect(input).toHaveAttribute("aria-activedescendant", "cmdk-opt-term-s1");
+    await user.type(input, "{ArrowDown}");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-recent-dev-2",
+    );
+    await user.type(input, "{ArrowDown}");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-1",
+    );
+  });
+
+  it("wraps around at the list ends with ArrowUp/ArrowDown", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPalette();
+
+    const input = screen.getByRole("combobox");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-1",
+    );
+    await user.type(input, "{ArrowUp}"); // wrap to the last option
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-2",
+    );
+    await user.type(input, "{ArrowDown}"); // wrap back to the first
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-1",
+    );
+  });
+
+  it("jumps to the first and last option with Home and End", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPalette();
+
+    const input = screen.getByRole("combobox");
+    await user.type(input, "{End}");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-2",
+    );
+    await user.type(input, "{Home}");
+    expect(input).toHaveAttribute(
+      "aria-activedescendant",
+      "cmdk-opt-device-dev-1",
+    );
+  });
+
+  it("selects the highlighted option after navigating", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [device, device2],
+      totalCount: 2,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPalette();
+
+    const input = screen.getByRole("combobox");
+    await user.type(input, "{ArrowDown}"); // highlight the second device (dev-2)
+    await user.type(input, "{Enter}");
+
+    expect(useTerminalStore.getState().reconnectTarget).toEqual({
+      deviceUid: "dev-2",
+      deviceName: "db-01",
+    });
+    expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
   // ─── Phase 4: per-device drill-in action menu ──────────────────────────────
