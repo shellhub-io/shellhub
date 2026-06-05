@@ -1,3 +1,5 @@
+import type { NormalizedDevice } from "@/hooks/useDevices";
+
 /** A single footer keyboard hint: one or more keycaps plus a label. */
 function KeyHint({ keys, label }: { keys: string[]; label: string }) {
   return (
@@ -16,13 +18,28 @@ function KeyHint({ keys, label }: { keys: string[]; label: string }) {
   );
 }
 
-/** Keyboard hints at the bottom of the palette. */
-export default function PaletteFooter() {
+interface PaletteFooterProps {
+  drillDevice: NormalizedDevice | null;
+  commandMode: boolean;
+}
+
+/** Context-dependent keyboard hints at the bottom of the palette. */
+export default function PaletteFooter({
+  drillDevice,
+  commandMode,
+}: PaletteFooterProps) {
   return (
     <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border bg-card/30 shrink-0">
       <KeyHint keys={["↑", "↓"]} label="navigate" />
-      <KeyHint keys={["↵"]} label="select" />
-      <KeyHint keys={[">"]} label="commands" />
+      <KeyHint
+        keys={["↵"]}
+        label={drillDevice || commandMode ? "select" : "connect"}
+      />
+      {!drillDevice && !commandMode && <KeyHint keys={["→"]} label="actions" />}
+      {drillDevice && <KeyHint keys={["←"]} label="back" />}
+      {!drillDevice && !commandMode && (
+        <KeyHint keys={[">"]} label="commands" />
+      )}
       <div className="ml-auto">
         <KeyHint keys={["⌘K"]} label="toggle" />
       </div>

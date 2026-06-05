@@ -11,7 +11,10 @@ import {
   ChevronDoubleRightIcon,
   ChevronRightIcon,
   LockClosedIcon,
+  DocumentDuplicateIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { buildSshid } from "@/utils/sshid";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
@@ -25,7 +28,19 @@ export interface CommandItem {
   icon: JSX.Element;
   badge?: { text: string; variant: BadgeVariant };
   onSelect: () => void;
+  /** When set, the row exposes a drill-in affordance (trailing chevron / "→")
+   *  that opens a secondary view instead of selecting. Device rows use it to
+   *  open their action menu. */
+  onDrillIn?: () => void;
+  /** When true, the row is shown but inert (`aria-disabled`): it ignores
+   *  click/Enter and can't be selected. The drill-in Connect action uses it
+   *  when the device can neither connect nor restore. */
+  disabled?: boolean;
 }
+
+/** Banner feedback: an assertive error (offline/permission, drives the shake)
+ *  or a polite success (e.g. a copy confirmation). */
+export type Feedback = { kind: "error" | "success"; text: string };
 
 export const LISTBOX_ID = "cmdk-listbox";
 export const optionId = (itemId: string) => `cmdk-opt-${itemId}`;
@@ -45,6 +60,9 @@ export const icons = {
   settings: <Cog6ToothIcon className="w-4 h-4" />,
   add: <PlusIcon className="w-4 h-4" />,
   terminal: <ChevronDoubleRightIcon className="w-4 h-4" />,
+  connect: <ChevronDoubleRightIcon className="w-4 h-4" />,
+  copy: <DocumentDuplicateIcon className="w-4 h-4" />,
+  details: <InformationCircleIcon className="w-4 h-4" />,
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
   team: <UsersIcon className="w-4 h-4" />,
   vault: <LockClosedIcon className="w-4 h-4" />,
@@ -61,7 +79,8 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-/* Default (connection-first) view: devices to connect/restore + open sessions. */
+/* Default (connection-first) view: devices to connect/restore + open sessions.
+ * Device rows also expose a drill-in (→) into their action menu. */
 export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
   terminalSessions: TerminalSession[];
@@ -69,6 +88,7 @@ export function buildConnectionItems(deps: {
   connectOrRestore: (uid: string, name: string, online: boolean) => void;
   restoreTerminal: (id: string) => void;
   rejectRow: (rowId: string, message: string) => void;
+  enterDrillIn: (uid: string) => void;
   close: () => void;
 }): CommandItem[] {
   const {
@@ -78,6 +98,7 @@ export function buildConnectionItems(deps: {
     connectOrRestore,
     restoreTerminal,
     rejectRow,
+    enterDrillIn,
     close,
   } = deps;
   const list: CommandItem[] = [];
@@ -95,6 +116,7 @@ export function buildConnectionItems(deps: {
         ? { text: "Online", variant: "green" }
         : { text: "Offline", variant: "muted" },
       onSelect: () => connectOrRestore(d.uid, d.name, d.online),
+      onDrillIn: () => enterDrillIn(d.uid),
     });
   });
 
@@ -172,4 +194,73 @@ export function buildCommandItems(deps: {
   });
 
   return list;
+}
+
+/* Drill-in view: actions for the focused device. The section header doubles
+ * as the breadcrumb. Copy/View are ungated (like the Devices page); Connect
+ * reuses connectOrRestore, which keeps the permission + offline guards. */
+export function buildDeviceActionItems(deps: {
+  drillDevice: NormalizedDevice | null;
+  nsName: string;
+  canConnect: boolean;
+  hasOpenSession: boolean;
+  connectOrRestore: (uid: string, name: string, online: boolean) => void;
+  copyAction: (value: string, label: string) => void;
+  go: (path: string) => void;
+}): CommandItem[] {
+  const {
+    drillDevice,
+    nsName,
+    canConnect,
+    hasOpenSession,
+    connectOrRestore,
+    copyAction,
+    go,
+  } = deps;
+  if (!drillDevice) return [];
+  const { uid, name, online } = drillDevice;
+  const sshid = nsName ? buildSshid(nsName, name) : uid;
+  const sshCommand = `ssh <username>@${sshid}`;
+  /* Connect is connect-or-restore, so it's actionable only when the user may
+   * connect AND the device is reachable or has an open session to restore.
+   * Disable it otherwise — the row stays open for Copy/View details. */
+  const connectDisabled = !canConnect || (!online && !hasOpenSession);
+  return [
+    {
+      id: "act-connect",
+      label: "Connect",
+      sublabel: canConnect ? undefined : "Requires connect permission",
+      section: name,
+      icon: icons.connect,
+      badge: online
+        ? { text: "Online", variant: "green" }
+        : { text: "Offline", variant: "muted" },
+      onSelect: () => connectOrRestore(uid, name, online),
+      disabled: connectDisabled,
+    },
+    {
+      id: "act-copy-sshid",
+      label: "Copy SSHID",
+      sublabel: sshid,
+      section: name,
+      icon: icons.copy,
+      onSelect: () => copyAction(sshid, "SSHID"),
+    },
+    {
+      id: "act-copy-ssh",
+      label: "Copy ssh command",
+      sublabel: sshCommand,
+      section: name,
+      icon: icons.copy,
+      onSelect: () => copyAction(sshCommand, "ssh command"),
+    },
+    {
+      id: "act-details",
+      label: "View details",
+      sublabel: `/devices/${uid}`,
+      section: name,
+      icon: icons.details,
+      onSelect: () => go(`/devices/${uid}`),
+    },
+  ];
 }
