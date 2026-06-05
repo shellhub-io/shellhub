@@ -30,6 +30,11 @@ type Sessioner struct {
 	//
 	// NOTICE: It's a pointer because when the server is created, we don't know the device name yet, that is set later.
 	deviceName *string
+	// sftpServerCommand builds the command used to start the SFTP server subprocess. When nil,
+	// [command.SFTPServerCommand] is used, which re-executes the current binary
+	// (/proc/self/exe) with the "sftp" subcommand. It can be overridden so the agent can run
+	// embedded in another binary, where /proc/self/exe is not the agent.
+	sftpServerCommand func() *exec.Cmd
 }
 
 func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
@@ -39,10 +44,15 @@ func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
 // NewSessioner creates a new instance of Sessioner for the host mode.
 // The device name is a pointer to a string because when the server is created, we don't know the device name yet, that
 // is set later.
-func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd) *Sessioner {
+//
+// sftpServerCommand builds the command used to start the SFTP server subprocess. When nil,
+// [command.SFTPServerCommand] is used (re-executing /proc/self/exe). It can be overridden so
+// the agent can run embedded in another binary, where /proc/self/exe is not the agent.
+func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd, sftpServerCommand func() *exec.Cmd) *Sessioner {
 	return &Sessioner{
-		deviceName: deviceName,
-		cmds:       cmds,
+		deviceName:        deviceName,
+		cmds:              cmds,
+		sftpServerCommand: sftpServerCommand,
 	}
 }
 
@@ -304,7 +314,12 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	}).Info("SFTP session started")
 	defer session.Close()
 
-	cmd := command.SFTPServerCommand()
+	newSFTPServerCommand := command.SFTPServerCommand
+	if s.sftpServerCommand != nil {
+		newSFTPServerCommand = s.sftpServerCommand
+	}
+
+	cmd := newSFTPServerCommand()
 
 	looked, err := user.Lookup(session.User())
 	if err != nil {

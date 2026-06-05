@@ -1,4 +1,4 @@
-package main
+package agentd
 
 import (
 	"context"
@@ -215,7 +215,7 @@ func sshCloseHandlerV2(agent *Agent) tunnel.HandlerFunc {
 		log.WithFields(
 			log.Fields{
 				"id":             id,
-				"version":        AgentVersion,
+				"version":        agent.config.Version,
 				"tenant_id":      agent.authData.Namespace,
 				"server_address": agent.config.ServerAddress,
 			},
@@ -239,7 +239,7 @@ func httpProxyHandlerV1(agent *Agent) func(c echo.Context) error {
 			"remote":    c.Request().RemoteAddr,
 			"namespace": c.Request().Header.Get("X-Namespace"),
 			"path":      c.Request().Header.Get("X-Path"),
-			"version":   AgentVersion,
+			"version":   agent.config.Version,
 		})
 
 		errorResponse := func(err error, msg string, code int) error {
@@ -397,7 +397,7 @@ func sshCloseHandlerV1(a *Agent) func(c echo.Context) error {
 		log.WithFields(
 			log.Fields{
 				"id":             id,
-				"version":        AgentVersion,
+				"version":        a.config.Version,
 				"tenant_id":      a.authData.Namespace,
 				"server_address": a.config.ServerAddress,
 			},

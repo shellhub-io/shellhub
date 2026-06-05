@@ -1,4 +1,4 @@
-// Package agent provides packages and functions to create a new ShellHub Agent instance.
+// Package agentd provides packages and functions to create a new ShellHub Agent instance.
 //
 // The ShellHub Agent is a lightweight software component that runs the device and provide communication between the
 // device and ShellHub's server. Its main role is to provide a reserve SSH server always connected to the ShellHub
@@ -23,7 +23,7 @@
 //	    }
 //
 //	    ctx := context.Background()
-//	    ag, err := NewAgentWithConfig(&cfg)
+//	    ag, err := NewAgentWithConfig(&cfg, new(HostMode))
 //	    if err != nil {
 //	        panic(err)
 //	    }
@@ -35,8 +35,16 @@
 //	    ag.Listen(ctx)
 //	}
 //
+// # Embedding the agent
+//
+// This package is meant to be importable so the agent can run in-process inside another Go
+// program (for example, ShellHub Desktop). Note that the agent's go.mod replaces
+// github.com/gliderlabs/ssh with github.com/shellhub-io/ssh (a fork). Go ignores replace
+// directives from non-main modules, so any program embedding this package must replicate that
+// same replace directive in its own go.mod.
+//
 // [ShellHub Agent]: https://github.com/shellhub-io/shellhub/tree/master/agent
-package main
+package agentd
 
 import (
 	"context"
@@ -46,6 +54,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -111,6 +120,22 @@ type Config struct {
 	// Version 1 uses HTTP-based revdial, version 2 uses yamux multiplexing with multistream.
 	// Supported values are 1 and 2. Default is 2.
 	TransportVersion int `env:"TRANSPORT_VERSION,default=2"`
+
+	// Version is the agent version reported to the server and embedded in the device info.
+	// The CLI injects the value set at build time via `-ldflags -X main.AgentVersion=...`.
+	// Embedders must set it explicitly.
+	Version string
+
+	// Platform identifies the platform the agent is running on (e.g. "native", "docker",
+	// "connector"). The CLI injects the value detected at build time; embedders set it
+	// explicitly.
+	Platform string
+
+	// SFTPServerCommand builds the command used to start the SFTP server subprocess. When nil,
+	// the agent re-executes its own binary (/proc/self/exe) with the "sftp" subcommand. An
+	// embedding program (where /proc/self/exe is not the agent binary) must set this to point
+	// at a binary/subcommand that runs the SFTP server.
+	SFTPServerCommand func() *exec.Cmd
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
@@ -173,7 +198,9 @@ type Agent struct {
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
 // where device own and the path to the private key on the file system.
 //
-// To create a new [Agent] instance with all configurations, you can use [NewAgentWithConfig].
+// It builds a minimal [Config], leaving optional fields (including Version and Platform) unset. As a result the device
+// is registered with an empty version. Embedders that need to report a version or override other defaults should use
+// [NewAgentWithConfig] with a fully populated [Config].
 func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
 		ServerAddress: address,
@@ -227,7 +254,7 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 func (a *Agent) Initialize() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(AgentVersion))
+	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
@@ -259,7 +286,7 @@ func (a *Agent) Initialize() error {
 	a.closed.Store(false)
 
 	a.logger = log.WithFields(log.Fields{
-		"version":           AgentVersion,
+		"version":           a.config.Version,
 		"tenant_id":         a.authData.Namespace,
 		"server_address":    a.config.ServerAddress,
 		"ssh_endpoint":      a.serverInfo.Endpoints.SSH,
@@ -325,8 +352,8 @@ func (a *Agent) loadDeviceInfo() error {
 	a.Info = &models.DeviceInfo{
 		ID:         info.ID,
 		PrettyName: info.Name,
-		Version:    AgentVersion,
-		Platform:   AgentPlatform,
+		Version:    a.config.Version,
+		Platform:   a.config.Platform,
 		Arch:       runtime.GOARCH,
 	}
 
@@ -335,7 +362,7 @@ func (a *Agent) loadDeviceInfo() error {
 
 // probeServerInfo gets information about the ShellHub server.
 func (a *Agent) probeServerInfo() error {
-	info, err := a.cli.GetInfo(AgentVersion)
+	info, err := a.cli.GetInfo(a.config.Version)
 	a.serverInfo = info
 
 	return err
@@ -553,7 +580,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 		select {
 		case <-ctx.Done():
 			log.WithFields(log.Fields{
-				"version":        AgentVersion,
+				"version":        a.config.Version,
 				"tenant_id":      a.authData.Namespace,
 				"server_address": a.config.ServerAddress,
 			}).Debug("stopped pinging server due to context cancellation")
@@ -562,7 +589,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 		case ok := <-a.listening:
 			if ok {
 				log.WithFields(log.Fields{
-					"version":        AgentVersion,
+					"version":        a.config.Version,
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
@@ -571,7 +598,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				ticker.Reset(interval)
 			} else {
 				log.WithFields(log.Fields{
-					"version":        AgentVersion,
+					"version":        a.config.Version,
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
 					"timestamp":      time.Now(),
@@ -585,7 +612,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 			}
 
 			log.WithFields(log.Fields{
-				"version":        AgentVersion,
+				"version":        a.config.Version,
 				"tenant_id":      a.authData.Namespace,
 				"server_address": a.config.ServerAddress,
 				"name":           a.authData.Name,
@@ -602,7 +629,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 
 // CheckUpdate gets the ShellHub's server version.
 func (a *Agent) CheckUpdate() (*semver.Version, error) {
-	info, err := a.cli.GetInfo(AgentVersion)
+	info, err := a.cli.GetInfo(a.config.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -616,7 +643,7 @@ func (a *Agent) GetInfo() (*models.Info, error) {
 		return a.serverInfo, nil
 	}
 
-	info, err := a.cli.GetInfo(AgentVersion)
+	info, err := a.cli.GetInfo(a.config.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -633,7 +660,7 @@ func GetInfo(cfg *Config) (*models.Info, error) {
 		return nil, errors.Wrap(err, "failed to create the HTTP client")
 	}
 
-	info, err := cli.GetInfo(AgentVersion)
+	info, err := cli.GetInfo(cfg.Version)
 	if err != nil {
 		return nil, err
 	}
