@@ -109,6 +109,14 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 		}
 
 		message.Data = sig
+	case messageKindShare:
+		var req ShareRequest
+
+		if err := json.Unmarshal(data, &req); err != nil {
+			return 0, errors.Join(ErrConnReadMessageJSONInvalid)
+		}
+
+		message.Data = req
 	default:
 		return 0, errors.Join(ErrConnReadMessageKindInvalid)
 	}

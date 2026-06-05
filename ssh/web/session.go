@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -114,7 +117,33 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+// startShare exposes the current console session as a public shareable terminal. It resolves the
+// device's tenant, registers an in-process share whose producer is this session, and returns the
+// hub (to feed output / drain guest input), a close function and the share token.
+func startShare(ctx context.Context, shares *share.Registry, deviceUID string, dim Dimensions, req ShareRequest) (*share.Hub, func(), string, error) {
+	cli, err := internalclient.NewClient(nil)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	device, err := cli.GetDevice(ctx, deviceUID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	token, hub, closeFn := shares.CreateLocal(deviceUID, device.TenantID, models.ShareCreateRequest{
+		Name:       req.Name,
+		Command:    "console session",
+		Writable:   req.Writable,
+		TTLSeconds: req.TTL,
+	})
+
+	hub.Resize(share.Dimensions{Cols: int(dim.Cols), Rows: int(dim.Rows)})
+
+	return hub, closeFn, token, nil
+}
+
+func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info, shares *share.Registry) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -230,8 +259,23 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		return ErrShell
 	}
 
+	// shareHub holds the share's hub once the user shares this session (nil until then). The output
+	// goroutine reads it to tee output; the input goroutine writes it.
+	var shareHub atomic.Pointer[share.Hub]
+
 	go func() {
 		defer agent.Close()
+
+		// currentDim tracks the live terminal size so a share started mid-session matches geometry.
+		currentDim := dim
+
+		// shareClose tears the share down when this session ends. Only this goroutine touches it.
+		var shareClose func()
+		defer func() {
+			if shareClose != nil {
+				shareClose()
+			}
+		}()
 
 		for {
 			var message Message
@@ -257,18 +301,59 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 				}
 			case messageKindResize:
 				dim := message.Data.(Dimensions)
+				currentDim = dim
 
 				if err := agent.WindowChange(int(dim.Rows), int(dim.Cols)); err != nil {
 					logger.WithError(err).Error("failed to change the size of window for terminal session")
 
 					return
 				}
+
+				if h := shareHub.Load(); h != nil {
+					h.Resize(share.Dimensions{Cols: int(dim.Cols), Rows: int(dim.Rows)})
+				}
+			case messageKindShare:
+				if shareHub.Load() != nil {
+					continue // already shared
+				}
+
+				req := message.Data.(ShareRequest)
+
+				hub, closeFn, token, err := startShare(ctx, shares, creds.Device, currentDim, req)
+				if err != nil {
+					logger.WithError(err).Error("failed to start the share")
+
+					continue
+				}
+
+				shareClose = closeFn
+				shareHub.Store(hub)
+
+				// In collaborative mode, guest keystrokes flow into the same PTY stdin as the local user.
+				if req.Writable {
+					go func() {
+						for {
+							select {
+							case <-hub.Done():
+								return
+							case data := <-hub.Input():
+								if _, err := stdin.Write(data); err != nil {
+									return
+								}
+							}
+						}
+					}()
+				}
+
+				if _, err := conn.WriteMessage(&Message{Kind: messageKindShare, Data: token}); err != nil {
+					logger.WithError(err).Error("failed to send the share token to the client")
+				}
 			}
 		}
 	}()
 
-	go redirToWs(stdout, conn) // nolint:errcheck
-	go io.Copy(conn, stderr)   //nolint:errcheck
+	go redirToWs(stdout, conn, &shareHub) // nolint:errcheck
+	go io.Copy(conn, stderr)              //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {
 		logger.WithError(err).Warning("client remote command returned a error")
@@ -277,7 +362,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	return nil
 }
 
-func redirToWs(rd io.Reader, ws *Conn) error {
+func redirToWs(rd io.Reader, ws *Conn, shareHub *atomic.Pointer[share.Hub]) error {
 	// TODO: Evaluate refactoring this function to improve its readability.
 	var buf [32 * 1024]byte
 	var start, end, buflen int
@@ -334,8 +419,15 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 			end = 0
 		}
 
-		if _, err = ws.WriteBinary([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
+		chunk := []byte(string(bytes.Runes(buf[0:end])))
+
+		if _, err = ws.WriteBinary(chunk); err != nil {
 			return err
+		}
+
+		// Tee the same output to the share hub when this session is being shared.
+		if h := shareHub.Load(); h != nil {
+			h.Output(chunk)
 		}
 
 		start = buflen - end

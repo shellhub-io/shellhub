@@ -2,10 +2,12 @@ package web
 
 import (
 	"io"
+	"sync/atomic"
 	"testing"
 	"testing/iotest"
 
 	"github.com/shellhub-io/shellhub/ssh/web/mocks"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,7 +48,7 @@ func TestRedirToWs_Regression_EndNegative(t *testing.T) {
 	reader := &singleRead{data: []byte{0x80, 0x81, 0x82}}
 
 	assert.NotPanics(t, func() {
-		_ = redirToWs(reader, conn)
+		_ = redirToWs(reader, conn, new(atomic.Pointer[share.Hub]))
 	}, "expected redirToWs to panic when end is -1 and negative slice is attempted")
 }
 
@@ -58,6 +60,6 @@ func TestRedirToWs_Regression_ZeroReadThenEOF(t *testing.T) {
 	reader := iotest.TimeoutReader(&zeroReadNoEOFReader{})
 
 	assert.NotPanics(t, func() {
-		_ = redirToWs(reader, conn)
+		_ = redirToWs(reader, conn, new(atomic.Pointer[share.Hub]))
 	}, "expected redirToWs to handle zero read without panicking")
 }
