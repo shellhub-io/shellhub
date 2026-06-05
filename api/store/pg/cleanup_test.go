@@ -107,6 +107,7 @@ func TestMongoDepsPruned(t *testing.T) {
 		for scanner.Scan() {
 			if strings.Contains(scanner.Text(), "testcontainers-go/modules/postgres") {
 				found = true
+
 				break
 			}
 		}

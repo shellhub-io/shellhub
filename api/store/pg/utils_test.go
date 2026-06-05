@@ -15,9 +15,10 @@ import (
 
 func TestFromSQLError(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   error
-		check   func(t *testing.T, result error)
+		name  string
+		input error
+
+		check func(t *testing.T, result error)
 	}{
 		{
 			name:  "nil passes through",
