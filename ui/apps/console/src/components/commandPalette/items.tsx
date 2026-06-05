@@ -79,8 +79,9 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-/* Default (connection-first) view: devices to connect/restore + open sessions.
- * Device rows also expose a drill-in (→) into their action menu. */
+/* Default (connection-first) view: open terminal sessions lead so you can jump
+ * straight back in (restore), followed by devices to connect/restore. Device
+ * rows also expose a drill-in (→) into their action menu. */
 export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
   terminalSessions: TerminalSession[];
@@ -102,23 +103,6 @@ export function buildConnectionItems(deps: {
     close,
   } = deps;
   const list: CommandItem[] = [];
-
-  // useDevices is called with status: "accepted", so the API already scopes
-  // this list — no client-side status filter needed.
-  devices.forEach((d) => {
-    list.push({
-      id: `device-${d.uid}`,
-      label: d.name,
-      sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
-      section: "Devices",
-      icon: icons.devices,
-      badge: d.online
-        ? { text: "Online", variant: "green" }
-        : { text: "Offline", variant: "muted" },
-      onSelect: () => connectOrRestore(d.uid, d.name, d.online),
-      onDrillIn: () => enterDrillIn(d.uid),
-    });
-  });
 
   terminalSessions.forEach((s) => {
     const statusLabel =
@@ -153,6 +137,23 @@ export function buildConnectionItems(deps: {
         close();
         restoreTerminal(s.id);
       },
+    });
+  });
+
+  // useDevices is called with status: "accepted", so the API already scopes
+  // this list — no client-side status filter needed.
+  devices.forEach((d) => {
+    list.push({
+      id: `device-${d.uid}`,
+      label: d.name,
+      sublabel: d.identity?.mac ?? d.uid.slice(0, 12),
+      section: "Devices",
+      icon: icons.devices,
+      badge: d.online
+        ? { text: "Online", variant: "green" }
+        : { text: "Offline", variant: "muted" },
+      onSelect: () => connectOrRestore(d.uid, d.name, d.online),
+      onDrillIn: () => enterDrillIn(d.uid),
     });
   });
 

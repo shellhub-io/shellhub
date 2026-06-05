@@ -36,7 +36,7 @@ import CommandPalette from "@/components/commandPalette/CommandPalette";
 import { useDevices } from "@/hooks/useDevices";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
-import { useTerminalStore } from "@/stores/terminalStore";
+import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 
 const device = {
   uid: "dev-1",
@@ -46,6 +46,18 @@ const device = {
   identity: { mac: "00:11:22:33:44:55" },
   tags: [],
 } as unknown as NormalizedDevice;
+
+/** A minimized, connected terminal session for `device` (`dev-1`). Store
+ *  actions never mutate sessions in place, so this fixture is safe to reuse. */
+const session = {
+  id: "s1",
+  deviceUid: "dev-1",
+  deviceName: "web-01",
+  username: "root",
+  password: "",
+  state: "minimized",
+  connectionStatus: "connected",
+} satisfies TerminalSession;
 
 /** Reflects the router location so navigation can be asserted. */
 function LocationProbe() {
@@ -273,6 +285,49 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/permission/i);
   });
 
+  // ─── Phase 5: open terminal sessions lead the default view ─────────────────
+
+  it("lists open terminal sessions above devices", () => {
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    renderPalette();
+
+    expect(screen.getByText("Terminal Sessions")).toBeInTheDocument();
+    // the session row leads; the device row (its MAC sublabel) follows
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveTextContent("root@web-01");
+    expect(options[1]).toHaveTextContent("00:11:22:33:44:55");
+  });
+
+  it("restores a session from its top row", async () => {
+    const user = userEvent.setup();
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    renderPalette();
+
+    await user.click(screen.getByText("root@web-01"));
+
+    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useCommandPaletteStore.getState().open).toBe(false);
+  });
+
+  it("restores the leading session on Enter by default", async () => {
+    const user = userEvent.setup();
+    useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+    renderPalette();
+
+    // no arrowing: the promoted session is the default highlight (index 0)
+    await user.type(screen.getByRole("combobox"), "{Enter}");
+
+    expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
+    expect(useCommandPaletteStore.getState().open).toBe(false);
+  });
+
+  it("omits the Terminal Sessions section when none are open", () => {
+    renderPalette();
+
+    expect(screen.queryByText("Terminal Sessions")).not.toBeInTheDocument();
+    expect(screen.getByText("web-01")).toBeInTheDocument();
+  });
+
   // ─── Phase 4: per-device drill-in action menu ──────────────────────────────
 
   it("opens the device action menu on ArrowRight without connecting", async () => {
@@ -463,7 +518,11 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    // the session now leads the list, so {ArrowRight} would target it (no
+    // drill-in); reach the device's menu via its chevron instead
+    await user.click(
+      screen.getByRole("button", { name: "Show actions for web-01" }),
+    );
 
     const connect = screen.getByText("Connect").closest('[role="option"]');
     expect(connect).not.toHaveAttribute("aria-disabled");
