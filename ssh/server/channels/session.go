@@ -268,6 +268,18 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						return
 					}
 
+					denyRequest := func(msg string) bool {
+						logger.Warn(msg)
+
+						if req.WantReply {
+							if err := req.Reply(false, nil); err != nil {
+								logger.WithError(err).Error("failed to deny request from client")
+							}
+						}
+
+						return true
+					}
+
 					switch req.Type {
 					case ShellRequestType:
 						if seat, ok := sess.Seats.Get(seat); ok && seat.HasPty {
@@ -278,10 +290,49 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 						sess.Event(req.Type, req.Payload, seat)
 					case ExecRequestType, SubsystemRequestType:
+						if req.Type == SubsystemRequestType {
+							var subsystem struct {
+								Subsystem string `ssh:"subsystem"`
+							}
+							if err := gossh.Unmarshal(req.Payload, &subsystem); err != nil {
+								reject(nil, "failed to decode subsystem request")
+
+								return
+							}
+							if subsystem.Subsystem == "sftp" {
+								// Check namespace setting first
+								if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowSFTP {
+									if denyRequest("SFTP is disabled for this namespace") {
+										continue
+									}
+								}
+								// Check device override
+								if sess.Device.SSH != nil && !sess.Device.SSH.AllowSFTP {
+									if denyRequest("SFTP is disabled for this device") {
+										continue
+									}
+								}
+							}
+						}
+
 						session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
 
 						sess.Type = ExecRequestType
 					case PtyRequestType:
+						// Check namespace setting first
+						if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowTTY {
+							if denyRequest("TTY allocation is disabled for this namespace") {
+								continue
+							}
+						}
+
+						// Check device override
+						if sess.Device.SSH != nil && !sess.Device.SSH.AllowTTY {
+							if denyRequest("TTY allocation is disabled for this device") {
+								continue
+							}
+						}
+
 						var pty models.SSHPty
 
 						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
@@ -300,6 +351,20 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
 					case AuthRequestOpenSSHRequest:
+						// Check namespace setting first
+						if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowAgentForwarding {
+							if denyRequest("Agent forwarding is disabled for this namespace") {
+								continue
+							}
+						}
+
+						// Check device override
+						if sess.Device.SSH != nil && !sess.Device.SSH.AllowAgentForwarding {
+							if denyRequest("Agent forwarding is disabled for this device") {
+								continue
+							}
+						}
+
 						gliderssh.SetAgentRequested(ctx)
 
 						sess.Event(req.Type, req.Payload, seat)

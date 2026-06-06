@@ -15,7 +15,7 @@ vi.mock("@/components/common/Drawer", async () => ({
 
 const mockMutateAsync = vi.fn();
 
-const mockNamespace: Namespace = {
+const mockNamespace = {
   name: "my-namespace",
   owner: "owner-1",
   tenant_id: "tenant-abc",
@@ -24,6 +24,8 @@ const mockNamespace: Namespace = {
     session_record: true,
     connection_announcement: "hello",
     device_auto_accept: false,
+    allow_password: true,
+    allow_public_key: true,
   },
   max_devices: 10,
   created_at: "2024-01-01T00:00:00Z",
@@ -31,7 +33,7 @@ const mockNamespace: Namespace = {
   devices_pending_count: 0,
   devices_accepted_count: 3,
   devices_rejected_count: 0,
-};
+} as unknown as Namespace;
 
 beforeEach(() => {
   vi.clearAllMocks();

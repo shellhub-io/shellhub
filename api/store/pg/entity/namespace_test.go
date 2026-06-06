@@ -49,12 +49,12 @@ func TestNamespaceFromModel(t *testing.T) {
 				CreatedAt:            now,
 			},
 			expected: &Namespace{
-				ID:      "ns-id-1",
-				Name:    "my-namespace",
-				OwnerID: "owner-id-1",
-				Type:    "team",
-				Settings: NamespaceSettings{
-					MaxDevices:             10,
+				ID:         "ns-id-1",
+				Name:       "my-namespace",
+				OwnerID:    "owner-id-1",
+				Type:       "team",
+				MaxDevices: 10,
+				Settings: &NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: "Welcome!",
 				},
@@ -108,13 +108,12 @@ func TestNamespaceFromModel(t *testing.T) {
 				Members:    []models.Member{},
 			},
 			expected: &Namespace{
-				ID:      "ns-id-3",
-				Name:    "no-settings",
-				OwnerID: "owner-id-3",
-				Type:    "personal",
-				Settings: NamespaceSettings{
-					MaxDevices: 15,
-				},
+				ID:          "ns-id-3",
+				Name:        "no-settings",
+				OwnerID:     "owner-id-3",
+				Type:        "personal",
+				MaxDevices:  15,
+				Settings:    nil,
 				Memberships: []Membership{},
 			},
 		},
@@ -144,9 +143,11 @@ func TestNamespaceFromModel(t *testing.T) {
 			assert.Equal(t, tt.expected.Name, result.Name)
 			assert.Equal(t, tt.expected.OwnerID, result.OwnerID)
 			assert.Equal(t, tt.expected.Type, result.Type)
-			assert.Equal(t, tt.expected.Settings.MaxDevices, result.Settings.MaxDevices)
-			assert.Equal(t, tt.expected.Settings.SessionRecord, result.Settings.SessionRecord)
-			assert.Equal(t, tt.expected.Settings.ConnectionAnnouncement, result.Settings.ConnectionAnnouncement)
+			assert.Equal(t, tt.expected.MaxDevices, result.MaxDevices)
+			if tt.expected.Settings != nil {
+				assert.Equal(t, tt.expected.Settings.SessionRecord, result.Settings.SessionRecord)
+				assert.Equal(t, tt.expected.Settings.ConnectionAnnouncement, result.Settings.ConnectionAnnouncement)
+			}
 			assert.Equal(t, tt.expected.DevicesAcceptedCount, result.DevicesAcceptedCount)
 			assert.Equal(t, tt.expected.DevicesPendingCount, result.DevicesPendingCount)
 			assert.Equal(t, tt.expected.DevicesRejectedCount, result.DevicesRejectedCount)
@@ -174,12 +175,12 @@ func TestNamespaceToModel(t *testing.T) {
 		{
 			name: "full fields",
 			entity: &Namespace{
-				ID:      "ns-id-1",
-				Name:    "my-namespace",
-				OwnerID: "owner-id-1",
-				Type:    "team",
-				Settings: NamespaceSettings{
-					MaxDevices:             10,
+				ID:         "ns-id-1",
+				Name:       "my-namespace",
+				OwnerID:    "owner-id-1",
+				Type:       "team",
+				MaxDevices: 10,
+				Settings: &NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: "Hello!",
 				},
@@ -234,7 +235,7 @@ func TestNamespaceToModel(t *testing.T) {
 				Name:     "empty-ns",
 				Owner:    "owner-id-2",
 				Type:     models.TypePersonal,
-				Settings: &models.NamespaceSettings{},
+				Settings: nil,
 				Members:  []models.Member{},
 			},
 		},
@@ -248,9 +249,13 @@ func TestNamespaceToModel(t *testing.T) {
 			assert.Equal(t, tt.expected.Owner, result.Owner)
 			assert.Equal(t, tt.expected.Type, result.Type)
 			assert.Equal(t, tt.expected.MaxDevices, result.MaxDevices)
-			require.NotNil(t, result.Settings, "Settings should never be nil")
-			assert.Equal(t, tt.expected.Settings.SessionRecord, result.Settings.SessionRecord)
-			assert.Equal(t, tt.expected.Settings.ConnectionAnnouncement, result.Settings.ConnectionAnnouncement)
+			if tt.expected.Settings == nil {
+				assert.Nil(t, result.Settings)
+			} else {
+				require.NotNil(t, result.Settings, "Settings should not be nil")
+				assert.Equal(t, tt.expected.Settings.SessionRecord, result.Settings.SessionRecord)
+				assert.Equal(t, tt.expected.Settings.ConnectionAnnouncement, result.Settings.ConnectionAnnouncement)
+			}
 			assert.Equal(t, tt.expected.DevicesAcceptedCount, result.DevicesAcceptedCount)
 			assert.Equal(t, tt.expected.DevicesPendingCount, result.DevicesPendingCount)
 			assert.Equal(t, tt.expected.DevicesRejectedCount, result.DevicesRejectedCount)

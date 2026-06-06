@@ -14,9 +14,33 @@ type DeviceList struct {
 }
 
 type DeviceUpdate struct {
+	TenantID     string             `header:"X-Tenant-ID"`
+	UID          string             `param:"uid" validate:"required"`
+	Name         string             `json:"name" validate:"device_name,omitempty"`
+	CustomFields *map[string]string `json:"custom_fields" validate:"omitempty,max=20,dive,keys,min=1,max=64,endkeys,max=256"`
+}
+
+type SSHSettingsUpdate struct {
+	AllowPassword        *bool `json:"allow_password" validate:"omitempty"`
+	AllowPublicKey       *bool `json:"allow_public_key" validate:"omitempty"`
+	AllowRoot            *bool `json:"allow_root" validate:"omitempty"`
+	AllowEmptyPasswords  *bool `json:"allow_empty_passwords" validate:"omitempty"`
+	AllowTTY             *bool `json:"allow_tty" validate:"omitempty"`
+	AllowTCPForwarding   *bool `json:"allow_tcp_forwarding" validate:"omitempty"`
+	AllowWebEndpoints    *bool `json:"allow_web_endpoints" validate:"omitempty"`
+	AllowSFTP            *bool `json:"allow_sftp" validate:"omitempty"`
+	AllowAgentForwarding *bool `json:"allow_agent_forwarding" validate:"omitempty"`
+}
+
+type DeviceGetSettings struct {
 	TenantID string `header:"X-Tenant-ID"`
-	UID      string `param:"uid" validate:"required"`
-	Name     string `json:"name" validate:"omitempty,device_name"`
+	DeviceParam
+}
+
+type DeviceUpdateSettings struct {
+	TenantID string `header:"X-Tenant-ID"`
+	DeviceParam
+	SSHSettingsUpdate
 }
 
 type DeviceSetCustomField struct {

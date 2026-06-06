@@ -49,6 +49,8 @@ type DeviceStore interface {
 
 	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, device *models.Device) error
+	// DeviceUpdateSettings updates a device's SSH settings. It returns [ErrNoDocuments] if no device is found.
+	DeviceUpdateSettings(ctx context.Context, uid string, settings *models.SSHSettings) error
 	// DeviceHeartbeat updates the last_seen timestamp and sets disconnected_at to nil for multiple devices.
 	// It returns the number of modified devices and an error if any.
 	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (modifiedCount int64, err error)

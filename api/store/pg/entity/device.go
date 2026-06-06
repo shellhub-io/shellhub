@@ -33,8 +33,9 @@ type Device struct {
 	Latitude        float64           `bun:"latitude,type:numeric"`
 	CustomFields    map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}'"`
 
-	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
-	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
+	Namespace *Namespace      `bun:"rel:belongs-to,join:namespace_id=id"`
+	Tags      []*Tag          `bun:"m2m:device_tags,join:Device=Tag"`
+	Settings  *DeviceSettings `bun:"rel:has-one,join:id=device_id"`
 }
 
 func DeviceFromModel(model *models.Device) *Device {
@@ -150,6 +151,12 @@ func DeviceToModel(entity *Device) *models.Device {
 			device.Tags[i] = *TagToModel(t)
 			device.TagIDs[i] = t.ID
 		}
+	}
+
+	if entity.Settings != nil {
+		device.SSH = DeviceSettingsToModel(entity.Settings)
+	} else {
+		device.SSH = models.DefaultSSHSettings()
 	}
 
 	return device

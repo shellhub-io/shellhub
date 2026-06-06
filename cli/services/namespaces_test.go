@@ -18,6 +18,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func defaultNamespaceSettings(announcement string) *models.NamespaceSettings {
+	return &models.NamespaceSettings{
+		SessionRecord:          true,
+		ConnectionAnnouncement: announcement,
+		AllowPassword:          true,
+		AllowPublicKey:         true,
+		AllowRoot:              true,
+		AllowEmptyPasswords:    true,
+		AllowTTY:               true,
+		AllowTCPForwarding:     true,
+		AllowWebEndpoints:      true,
+		AllowSFTP:              true,
+		AllowAgentForwarding:   true,
+	}
+}
+
 func TestNamespaceCreate(t *testing.T) {
 	type Expected struct {
 		namespace *models.Namespace
@@ -86,10 +102,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
@@ -129,10 +142,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
@@ -150,10 +160,7 @@ func TestNamespaceCreate(t *testing.T) {
 						AddedAt: now,
 					},
 				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-				},
+				Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
 			}, nil},
@@ -190,10 +197,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
 				}
@@ -211,10 +215,7 @@ func TestNamespaceCreate(t *testing.T) {
 						AddedAt: now,
 					},
 				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-				},
+				Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 				MaxDevices: MaxNumberDevicesLimited,
 				CreatedAt:  now,
 			}, nil},
@@ -251,10 +252,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
 				}
@@ -272,10 +270,7 @@ func TestNamespaceCreate(t *testing.T) {
 						AddedAt: now,
 					},
 				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-				},
+				Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 				MaxDevices: MaxNumberDevicesLimited,
 				CreatedAt:  now,
 			}, nil},
@@ -312,10 +307,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
@@ -333,10 +325,7 @@ func TestNamespaceCreate(t *testing.T) {
 						AddedAt: now,
 					},
 				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-				},
+				Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
 			}, nil},
@@ -373,10 +362,7 @@ func TestNamespaceCreate(t *testing.T) {
 							AddedAt: now,
 						},
 					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+					Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
@@ -394,10 +380,7 @@ func TestNamespaceCreate(t *testing.T) {
 						AddedAt: now,
 					},
 				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-				},
+				Settings:   defaultNamespaceSettings(models.DefaultAnnouncementMessage),
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
 			}, nil},

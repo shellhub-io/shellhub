@@ -558,6 +558,24 @@ func (_m *Store) DeviceUpdate(ctx context.Context, device *models.Device) error 
 	return r0
 }
 
+// DeviceUpdateSettings provides a mock function with given fields: ctx, uid, settings
+func (_m *Store) DeviceUpdateSettings(ctx context.Context, uid string, settings *models.SSHSettings) error {
+	ret := _m.Called(ctx, uid, settings)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceUpdateSettings")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.SSHSettings) error); ok {
+		r0 = rf(ctx, uid, settings)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetStats provides a mock function with given fields: ctx, tenantID
 func (_m *Store) GetStats(ctx context.Context, tenantID string) (*models.Stats, error) {
 	ret := _m.Called(ctx, tenantID)

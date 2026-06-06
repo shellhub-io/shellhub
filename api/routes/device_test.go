@@ -662,3 +662,111 @@ func TestUpdateDevice(t *testing.T) {
 		})
 	}
 }
+
+func TestGetDeviceSettings(t *testing.T) {
+	mock := new(mocks.Service)
+
+	settings := &models.SSHSettings{
+		AllowPassword:  false,
+		AllowPublicKey: true,
+	}
+
+	mock.
+		On("GetDeviceSettings", gomock.Anything, &requests.DeviceGetSettings{
+			TenantID:    "00000000-0000-4000-0000-000000000000",
+			DeviceParam: requests.DeviceParam{UID: "1234"},
+		}).
+		Return(settings, nil).
+		Once()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/devices/1234/settings", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Role", authorizer.RoleOwner.String())
+	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+	rec := httptest.NewRecorder()
+
+	e := NewRouter(mock)
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
+
+	var body *models.SSHSettings
+	err := json.NewDecoder(rec.Result().Body).Decode(&body)
+	require.NoError(t, err)
+	assert.Equal(t, settings, body)
+}
+
+func TestUpdateDeviceSettings(t *testing.T) {
+	mock := new(mocks.Service)
+
+	cases := []struct {
+		description    string
+		req            requests.DeviceUpdateSettings
+		requiredMocks  func()
+		expectedStatus int
+	}{
+		{
+			description: "fails when device settings update cannot find device",
+			req: requests.DeviceUpdateSettings{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{
+					UID: "1234",
+				},
+			},
+			requiredMocks: func() {
+				mock.On("UpdateDeviceSettings", gomock.Anything, &requests.DeviceUpdateSettings{
+					TenantID:    "00000000-0000-4000-0000-000000000000",
+					DeviceParam: requests.DeviceParam{UID: "1234"},
+				}).Return(svc.ErrNotFound).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			description: "success when updating a device setting",
+			req: requests.DeviceUpdateSettings{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{
+					UID: "1234",
+				},
+				SSHSettingsUpdate: requests.SSHSettingsUpdate{
+					AllowPassword: func() *bool {
+						v := false
+
+						return &v
+					}(),
+				},
+			},
+			requiredMocks: func() {
+				v := false
+				mock.On("UpdateDeviceSettings", gomock.Anything, &requests.DeviceUpdateSettings{
+					TenantID:    "00000000-0000-4000-0000-000000000000",
+					DeviceParam: requests.DeviceParam{UID: "1234"},
+					SSHSettingsUpdate: requests.SSHSettingsUpdate{
+						AllowPassword: &v,
+					},
+				}).Return(nil).Once()
+			},
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			jsonData, err := json.Marshal(tc.req)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/devices/%s/settings", tc.req.UID), strings.NewReader(string(jsonData)))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+		})
+	}
+}

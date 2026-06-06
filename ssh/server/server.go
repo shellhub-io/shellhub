@@ -110,7 +110,20 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 			channels.SessionChannel:     channels.DefaultSessionHandler(),
 			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
 		},
-		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
+		LocalPortForwardingCallback: func(ctx gliderssh.Context, _ string, _ uint32) bool {
+			sess, _ := session.ObtainSession(ctx)
+			if sess == nil || sess.Device == nil {
+				return false
+			}
+
+			if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowTCPForwarding {
+				return false
+			}
+
+			if sess.Device.SSH != nil && !sess.Device.SSH.AllowTCPForwarding {
+				return false
+			}
+
 			return true
 		},
 		ReversePortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {

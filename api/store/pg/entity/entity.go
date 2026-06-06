@@ -8,8 +8,10 @@ func Entities() []any {
 
 		(*APIKey)(nil),
 		(*Device)(nil),
+		(*DeviceSettings)(nil),
 		(*Membership)(nil),
 		(*Namespace)(nil),
+		(*NamespaceSettings)(nil),
 		(*PrivateKey)(nil),
 		(*PublicKey)(nil),
 		(*Session)(nil),

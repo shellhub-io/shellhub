@@ -11,11 +11,14 @@ import {
   TagIcon,
   FingerPrintIcon,
   VideoCameraIcon,
+  LockClosedIcon,
+  LockOpenIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
   DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { useNamespace } from "../hooks/useNamespaces";
+import type { Namespace } from "../hooks/useNamespaces";
 import {
   useEditNamespace,
   useDeleteNamespace,
@@ -23,7 +26,6 @@ import {
   useSetDeviceAutoAccept,
 } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
-import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
@@ -35,6 +37,15 @@ import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import SettingToggle from "../components/common/SettingToggle";
+import { normalizeNamespaceSettings } from "../utils/namespaceSettings";
+import { hasPermission, type Action } from "../utils/permission";
+
+type NamespaceSettings = NonNullable<Namespace["settings"]>;
+type NamespaceSSHSettingKey = Exclude<
+  keyof NamespaceSettings,
+  "connection_announcement" | "device_auto_accept" | "session_record"
+>;
 
 /* ─── Settings Card ─── */
 
@@ -94,6 +105,74 @@ function SettingsRow({
       <div className="shrink-0">{children}</div>
     </div>
   );
+}
+
+const NAMESPACE_SSH_SETTINGS: Array<{
+  key: NamespaceSSHSettingKey;
+  title: string;
+  description: string;
+  permission: Action;
+}> = [
+  {
+    key: "allow_password",
+    title: "Allow Password Authentication",
+    description: "Allow SSH connections using password for all devices in this namespace",
+    permission: "namespace:updateAllowPassword",
+  },
+  {
+    key: "allow_public_key",
+    title: "Allow Public Key Authentication",
+    description: "Allow SSH connections using public key for all devices in this namespace",
+    permission: "namespace:updateAllowPublicKey",
+  },
+  {
+    key: "allow_root",
+    title: "Allow Root Login",
+    description: "Allow SSH connections to devices using the root user",
+    permission: "namespace:updateAllowRoot",
+  },
+  {
+    key: "allow_empty_passwords",
+    title: "Allow Empty Passwords",
+    description: "Allow SSH logins with empty passwords for devices in this namespace",
+    permission: "namespace:updateAllowEmptyPasswords",
+  },
+  {
+    key: "allow_tty",
+    title: "Allow TTY Allocation",
+    description: "Allow SSH sessions to allocate a TTY",
+    permission: "namespace:updateAllowTTY",
+  },
+  {
+    key: "allow_tcp_forwarding",
+    title: "Allow TCP Forwarding",
+    description: "Allow SSH TCP port forwarding for devices in this namespace",
+    permission: "namespace:updateAllowTcpForwarding",
+  },
+  {
+    key: "allow_web_endpoints",
+    title: "Allow Web Endpoints",
+    description: "Allow access to web endpoints through the HTTP proxy",
+    permission: "namespace:updateAllowWebEndpoints",
+  },
+  {
+    key: "allow_sftp",
+    title: "Allow SFTP",
+    description: "Allow the SFTP subsystem for devices in this namespace",
+    permission: "namespace:updateAllowSFTP",
+  },
+  {
+    key: "allow_agent_forwarding",
+    title: "Allow Agent Forwarding",
+    description: "Allow SSH agent forwarding for devices in this namespace",
+    permission: "namespace:updateAllowAgentForwarding",
+  },
+];
+
+function ToggleStateIcon({ enabled }: { enabled: boolean }) {
+  return enabled
+    ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+    : <LockClosedIcon className="w-4 h-4 text-accent-red" />;
 }
 
 /* ─── Edit Name Drawer ─── */
@@ -385,48 +464,40 @@ function BannerPreview({
 
 export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
+  const role = useAuthStore((s) => s.role);
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const editNs = useEditNamespace();
   const setDeviceAutoAccept = useSetDeviceAutoAccept();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const [togglingRecord, setTogglingRecord] = useState(false);
+  const [togglingSetting, setTogglingSetting] = useState<keyof NamespaceSettings | null>(null);
   const [togglingAutoAccept, setTogglingAutoAccept] = useState(false);
 
-  const canRename = useHasPermission("namespace:rename");
-  const canUpdateRecording = useHasPermission(
-    "namespace:updateSessionRecording",
-  );
-  const canUpdateAutoAccept = useHasPermission(
-    "namespace:updateDeviceAutoAccept",
-  );
-  const canEditBanner = useHasPermission("namespace:editBanner");
-  const canDelete = useHasPermission("namespace:delete");
+  const can = (action: Action) => hasPermission(role, action);
+  const canRename = can("namespace:rename");
+  const canUpdateRecording = can("namespace:updateSessionRecording");
+  const canUpdateAutoAccept = can("namespace:updateDeviceAutoAccept");
+  const canEditBanner = can("namespace:editBanner");
+  const canDelete = can("namespace:delete");
 
-  const settings = ns?.settings;
-  const sessionRecord = settings?.session_record ?? false;
-  const deviceAutoAccept = settings?.device_auto_accept ?? false;
-  const banner = settings?.connection_announcement ?? "";
+  const settings = normalizeNamespaceSettings(ns?.settings);
+  const sessionRecord = settings.session_record;
+  const deviceAutoAccept = settings.device_auto_accept;
+  const banner = settings.connection_announcement;
 
-  const handleToggleRecord = async () => {
-    if (!tenantId || togglingRecord) return;
-    setTogglingRecord(true);
+  const updateNamespaceSettings = async (patch: Partial<NamespaceSettings>, key: keyof NamespaceSettings) => {
+    if (!tenantId || togglingSetting) return;
+    setTogglingSetting(key);
     try {
       await editNs.mutateAsync({
         path: { tenant: tenantId },
-        body: {
-          settings: {
-            session_record: !sessionRecord,
-            connection_announcement: banner,
-            device_auto_accept: deviceAutoAccept,
-          },
-        },
+        body: { settings: normalizeNamespaceSettings({ ...settings, ...patch }) },
       });
     } catch {
       /* state didn't change */
     } finally {
-      setTogglingRecord(false);
+      setTogglingSetting(null);
     }
   };
 
@@ -445,6 +516,14 @@ export default function Settings() {
     }
   };
 
+  const handleToggleSetting = async (
+    key: NamespaceSSHSettingKey | "session_record",
+    checked: boolean,
+  ) => {
+    await updateNamespaceSettings({ [key]: checked }, key);
+  };
+
+  const isUpdatingSetting = (key: keyof NamespaceSettings) => togglingSetting === key;
   if (!ns) {
     return <PageLoader label="Loading settings" padding="lg" />;
   }
@@ -522,41 +601,37 @@ export default function Settings() {
               title="Session Recording"
               description="Record SSH sessions for audit and playback"
             >
-              <div
-                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateRecording || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (sessionRecord) void handleToggleRecord();
-                  }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    !sessionRecord
-                      ? "bg-hover-strong text-text-secondary border border-border-light"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  Off
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!sessionRecord) void handleToggleRecord();
-                  }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    sessionRecord
-                      ? "bg-primary/15 text-primary border border-primary/25"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  On
-                </button>
-              </div>
+              <SettingToggle
+                checked={sessionRecord}
+                disabled={!canUpdateRecording || isUpdatingSetting("session_record")}
+                tone="primary"
+                onChange={(checked) => handleToggleSetting("session_record", checked)}
+              />
             </SettingsRow>
           )}
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />
+
+          {NAMESPACE_SSH_SETTINGS.map((setting) => {
+            const enabled = settings[setting.key] ?? true;
+
+            return (
+              <SettingsRow
+                key={setting.key}
+                icon={<ToggleStateIcon enabled={enabled} />}
+                title={setting.title}
+                description={setting.description}
+              >
+                <SettingToggle
+                  checked={enabled}
+                  disabled={!can(setting.permission) || isUpdatingSetting(setting.key)}
+                  tone="success"
+                  onChange={(checked) => handleToggleSetting(setting.key, checked)}
+                />
+              </SettingsRow>
+            );
+          })}
         </SettingsCard>
 
         {/* ── Devices ── */}
@@ -566,36 +641,12 @@ export default function Settings() {
             title="Auto-Accept Devices"
             description="Automatically accept new devices when they connect for the first time"
           >
-            <div
-              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateAutoAccept || togglingAutoAccept ? "opacity-40 pointer-events-none" : ""}`}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  if (deviceAutoAccept) void handleToggleAutoAccept();
-                }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  !deviceAutoAccept
-                    ? "bg-hover-strong text-text-secondary border border-border-light"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
-              >
-                Off
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!deviceAutoAccept) void handleToggleAutoAccept();
-                }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  deviceAutoAccept
-                    ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
-              >
-                On
-              </button>
-            </div>
+            <SettingToggle
+              checked={deviceAutoAccept}
+              disabled={!canUpdateAutoAccept || togglingAutoAccept}
+              tone="primary"
+              onChange={() => handleToggleAutoAccept()}
+            />
           </SettingsRow>
         </SettingsCard>
 
