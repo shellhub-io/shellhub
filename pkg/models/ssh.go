@@ -28,12 +28,13 @@ type SSHWindowChange struct {
 
 // NOTE: [SSHPty] cannot use [SSHWindowChange] inside itself due [ssh.Unmarshal] issues.
 type SSHPty struct {
-	Term     string `json:"term"`
-	Columns  uint32 `json:"columns" `
-	Rows     uint32 `json:"rows"`
-	Width    uint32 `json:"width"`
-	Height   uint32 `json:"height"`
-	Modelist []byte `json:"modelist"`
+	Term    string `json:"term"`
+	Columns uint32 `json:"columns"`
+	Rows    uint32 `json:"rows"`
+	Width   uint32 `json:"width"`
+	Height  uint32 `json:"height"`
+	// Not persisted (json:"-"); kept only so gossh.Unmarshal can consume it.
+	Modelist []byte `json:"-"`
 }
 
 type SSHPtyOutput struct {
