@@ -654,6 +654,83 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
+			// store.ErrDuplicate from NamespaceCreate means a concurrent insert raced past the
+			// NamespaceConflicts pre-check (case-sensitive name=? queries rely on lowercased
+			// writes). The service must map it to ErrNamespaceDuplicated, not ErrNamespaceCreateStore.
+			description: "fails when NamespaceCreate returns store.ErrDuplicate",
+			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserGetInfo", ctx, "000000000000000000000000").
+					Return(
+						&models.UserInfo{
+							OwnedNamespaces:      []models.Namespace{{}},
+							AssociatedNamespaces: []models.Namespace{},
+						},
+						nil,
+					).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 3,
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
+					Once()
+				// envs.IsCommunity() calls SHELLHUB_CLOUD then SHELLHUB_ENTERPRISE.
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_ENTERPRISE").
+					Return("false").
+					Once()
+				// envs.IsCloud() calls SHELLHUB_CLOUD once more.
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				storeMock.
+					On(
+						"NamespaceCreate",
+						ctx,
+						&models.Namespace{
+							TenantID: "00000000-0000-4000-0000-000000000000",
+							Name:     "namespace",
+							Owner:    "000000000000000000000000",
+							Type:     models.TypeTeam,
+							Members: []models.Member{
+								{
+									ID:      "000000000000000000000000",
+									Role:    authorizer.RoleOwner,
+									AddedAt: now,
+								},
+							},
+							Settings: &models.NamespaceSettings{
+								SessionRecord:          true,
+								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+							},
+							MaxDevices: -1,
+						},
+					).
+					Return("", store.ErrDuplicate).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: NewErrNamespaceDuplicated(store.ErrDuplicate),
+			},
+		},
+		{
 			description: "succeeds to create a namespace",
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
@@ -1104,6 +1181,33 @@ func TestEditNamespace(t *testing.T) {
 			expected: Expected{
 				nil,
 				errors.New("error"),
+			},
+		},
+		{
+			description:   "fails with ErrNamespaceDuplicated when store returns ErrDuplicate",
+			tenantID:      "xxxxx",
+			namespaceName: "newname",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{SessionRecord: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Name = "newname"
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrNamespaceDuplicated(store.ErrDuplicate),
 			},
 		},
 		{

@@ -94,7 +94,14 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		ns.MaxDevices = -1
 	}
 
+	// The NamespaceConflicts pre-check above is the fast path; store.ErrDuplicate
+	// here means a concurrent insert raced past it. Map it to ErrNamespaceDuplicated
+	// so callers get a consistent duplicate signal regardless of timing.
 	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return nil, NewErrNamespaceDuplicated(err)
+		}
+
 		return nil, NewErrNamespaceCreateStore(err)
 	}
 
@@ -196,7 +203,14 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
 	}
 
+	// NamespaceUpdate returns store.ErrDuplicate when the new name collides with an
+	// existing namespace. Map it to ErrNamespaceDuplicated so callers get a
+	// consistent duplicate signal regardless of timing.
 	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return nil, NewErrNamespaceDuplicated(err)
+		}
+
 		return nil, err
 	}
 

@@ -310,6 +310,66 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 	})
 }
 
+// TestNamespaceCreateDuplicate verifies that NamespaceCreate enforces a
+// case-insensitive unique constraint on the namespace name (lower(name)).
+func (s *Suite) TestNamespaceCreateDuplicate(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	tests := []struct {
+		description string
+		first       string // name of the namespace created first (always succeeds)
+		second      string // name of the namespace created second
+		wantErr     bool   // whether the second creation must be rejected
+	}{
+		{
+			description: "exact duplicate name is rejected",
+			first:       "my-namespace",
+			second:      "my-namespace",
+			wantErr:     true,
+		},
+		{
+			description: "mixed-case duplicate name is rejected",
+			first:       "case-test",
+			second:      "Case-Test",
+			wantErr:     true,
+		},
+		{
+			description: "fully upper-case variant is rejected",
+			first:       "unique-ns",
+			second:      "UNIQUE-NS",
+			wantErr:     true,
+		},
+		{
+			description: "distinct name succeeds after first creation",
+			first:       "alpha-ns",
+			second:      "beta-ns",
+			wantErr:     false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			require.NoError(t, s.provider.CleanDatabase(t))
+
+			userID := s.CreateUser(t)
+			s.CreateNamespace(t, WithOwner(userID), WithNamespaceName(tc.first))
+
+			_, err := st.NamespaceCreate(ctx, &models.Namespace{
+				Name:       tc.second,
+				Owner:      userID,
+				MaxDevices: -1,
+				Settings:   &models.NamespaceSettings{SessionRecord: true},
+			})
+			if tc.wantErr {
+				assert.ErrorIs(t, err, store.ErrDuplicate)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 // TestNamespaceConflicts tests checking for namespace conflicts
 func (s *Suite) TestNamespaceConflicts(t *testing.T) {
 	ctx := context.Background()
