@@ -21,6 +21,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestNamespaceResolve(t)
 		s.TestNamespaceGetPreferred(t)
 		s.TestNamespaceCreate(t)
+		s.TestNamespaceCreateDuplicate(t)
 		s.TestNamespaceConflicts(t)
 		s.TestNamespaceUpdate(t)
 		s.TestNamespaceIncrementDeviceCount(t)

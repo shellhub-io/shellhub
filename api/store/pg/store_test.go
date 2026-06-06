@@ -30,6 +30,7 @@ func TestPgStore(t *testing.T) {
 		suite.TestNamespaceResolve(t)
 		suite.TestNamespaceGetPreferred(t)
 		suite.TestNamespaceCreate(t)
+		suite.TestNamespaceCreateDuplicate(t)
 		suite.TestNamespaceConflicts(t)
 		suite.TestNamespaceUpdate(t)
 		suite.TestNamespaceIncrementDeviceCount(t)
