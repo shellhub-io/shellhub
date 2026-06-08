@@ -1,15 +1,20 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import {
   KeyIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
   ExclamationCircleIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
+import { ALLOWED_TIMEOUT_MINUTES } from "@/types/vault";
+import type { AllowedTimeoutMinutes } from "@/types/vault";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import Spinner from "@/components/common/Spinner";
 
 function ChangePasswordDrawer({
@@ -78,9 +83,7 @@ function ChangePasswordDrawer({
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {loading && (
-              <Spinner size="sm" tone="onPrimary" />
-            )}
+            {loading && <Spinner size="sm" tone="onPrimary" />}
             Update Password
           </button>
         </>
@@ -132,10 +135,82 @@ function ChangePasswordDrawer({
   );
 }
 
+const TIMEOUT_LABELS: Record<AllowedTimeoutMinutes, string> = {
+  0: "Never",
+  5: "5 minutes",
+  15: "15 minutes",
+  30: "30 minutes",
+  60: "60 minutes",
+};
+
+function AutoLockTimeoutSelect({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (minutes: AllowedTimeoutMinutes) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useClickOutside(containerRef, () => setOpen(false));
+
+  const currentLabel =
+    TIMEOUT_LABELS[value as AllowedTimeoutMinutes] ?? `${value} minutes`;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        aria-label="Auto-lock timeout"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-text-primary bg-card border border-border rounded-md hover:border-border-light transition-colors"
+      >
+        {currentLabel}
+        <ChevronDownIcon
+          className={`w-3.5 h-3.5 text-text-muted transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          strokeWidth={2.5}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="Auto-lock timeout options"
+          className="absolute right-0 top-full mt-1 w-36 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down"
+        >
+          {ALLOWED_TIMEOUT_MINUTES.map((minutes) => (
+            <li
+              key={minutes}
+              role="option"
+              aria-selected={value === minutes}
+              onClick={() => {
+                onChange(minutes);
+                setOpen(false);
+              }}
+              className={`px-3 py-2 text-sm cursor-pointer transition-colors ${
+                value === minutes
+                  ? "text-primary bg-primary/10"
+                  : "text-text-secondary hover:text-text-primary hover:bg-hover-medium"
+              }`}
+            >
+              {TIMEOUT_LABELS[minutes]}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function VaultSettingsSection() {
   const status = useVaultStore((s) => s.status);
   const lock = useVaultStore((s) => s.lock);
   const resetVault = useVaultStore((s) => s.resetVault);
+  const autoLockTimeoutMinutes = useVaultStore((s) => s.autoLockTimeoutMinutes);
+  const lockOnHidden = useVaultStore((s) => s.lockOnHidden);
+  const updateAutoLockSettings = useVaultStore((s) => s.updateAutoLockSettings);
   const [changeOpen, setChangeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [resetConfirmText, setResetConfirmText] = useState("");
@@ -164,6 +239,38 @@ export default function VaultSettingsSection() {
               </p>
             </div>
           </button>
+
+          <div className="flex items-center gap-3 w-full px-4 py-3.5">
+            <LockClosedIcon className="w-4 h-4 text-text-muted shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-text-primary">
+                Auto-lock Timeout
+              </p>
+              <p className="text-2xs text-text-muted">
+                Automatically lock the vault after this period of inactivity.
+              </p>
+            </div>
+            <AutoLockTimeoutSelect
+              value={autoLockTimeoutMinutes}
+              onChange={(minutes) =>
+                updateAutoLockSettings({ autoLockTimeoutMinutes: minutes })
+              }
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full px-4 py-3.5">
+            <div className="min-w-0 flex-1">
+              <CheckboxField
+                id="vault-lock-on-hidden"
+                label="Lock when hidden"
+                description="Locks the vault about a minute after you switch away or minimize."
+                checked={lockOnHidden}
+                onChange={(checked) =>
+                  updateAutoLockSettings({ lockOnHidden: checked })
+                }
+              />
+            </div>
+          </div>
 
           <button
             type="button"

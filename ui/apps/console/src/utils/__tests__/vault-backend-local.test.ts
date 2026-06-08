@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { LocalVaultBackend } from "../vault-backend-local";
 import type { VaultMeta, VaultData, LegacyPrivateKey } from "@/types/vault";
+import { DEFAULT_VAULT_SETTINGS } from "@/types/vault";
 
 const VAULT_META_KEY = "shellhub-vault-meta";
 const VAULT_DATA_KEY = "shellhub-vault-data";
+const VAULT_SETTINGS_KEY = "shellhub-vault-settings";
 const LEGACY_KEYS_KEY = "privateKeys";
 
 const META: VaultMeta = {
@@ -71,32 +73,50 @@ describe("LocalVaultBackend", () => {
     });
 
     it("returns null when version is not 1", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, version: 2 }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, version: 2 }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
 
     it("returns null when iterations is below minimum", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, iterations: 99_999 }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, iterations: 99_999 }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
 
     it("returns null when iterations exceeds maximum", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, iterations: 10_000_001 }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, iterations: 10_000_001 }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
 
     it("returns null when iterations is not an integer", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, iterations: 600000.5 }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, iterations: 600000.5 }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
 
     it("returns null when salt is not a string", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, salt: 42 }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, salt: 42 }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
 
     it("returns null when verifier is not a string", () => {
-      localStorage.setItem(VAULT_META_KEY, JSON.stringify({ ...META, verifier: null }));
+      localStorage.setItem(
+        VAULT_META_KEY,
+        JSON.stringify({ ...META, verifier: null }),
+      );
       expect(backend.loadMeta()).toBeNull();
     });
   });
@@ -183,7 +203,10 @@ describe("LocalVaultBackend", () => {
 
   describe("storage quota exceeded error", () => {
     it("throws a descriptive error when saving meta exceeds quota", () => {
-      const quotaError = new DOMException("QuotaExceededError", "QuotaExceededError");
+      const quotaError = new DOMException(
+        "QuotaExceededError",
+        "QuotaExceededError",
+      );
       vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
         throw quotaError;
       });
@@ -193,7 +216,10 @@ describe("LocalVaultBackend", () => {
     });
 
     it("throws a descriptive error when saving data exceeds quota", () => {
-      const quotaError = new DOMException("QuotaExceededError", "QuotaExceededError");
+      const quotaError = new DOMException(
+        "QuotaExceededError",
+        "QuotaExceededError",
+      );
       vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
         throw quotaError;
       });
@@ -208,6 +234,99 @@ describe("LocalVaultBackend", () => {
         throw unknownError;
       });
       expect(() => backend.saveMeta(META)).toThrow("disk failure");
+    });
+  });
+
+  describe("settings", () => {
+    it("returns DEFAULT_VAULT_SETTINGS when nothing is stored", () => {
+      expect(backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
+    });
+
+    it("save->load round-trip returns the same settings", () => {
+      const settings = { autoLockTimeoutMinutes: 30, lockOnHidden: true };
+      backend.saveSettings(settings);
+      expect(backend.loadSettings()).toEqual(settings);
+    });
+
+    it("returns DEFAULT_VAULT_SETTINGS when stored JSON is invalid", () => {
+      localStorage.setItem(VAULT_SETTINGS_KEY, "not-json{{{");
+      expect(backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
+    });
+
+    it("autoLockTimeoutMinutes:0 round-trips as 0 (valid member, not coerced)", () => {
+      backend.saveSettings({ autoLockTimeoutMinutes: 0, lockOnHidden: false });
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(0);
+    });
+
+    it("autoLockTimeoutMinutes:7 (not in allowed list) falls back to 15", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: 7, lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("autoLockTimeoutMinutes:999999 falls back to 15", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: 999999, lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("autoLockTimeoutMinutes:15.5 (float, not a member) falls back to 15", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: 15.5, lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("autoLockTimeoutMinutes as string '15' falls back to 15 (no coercion)", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: "15", lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("autoLockTimeoutMinutes:null falls back to 15", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: null, lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("missing autoLockTimeoutMinutes falls back to 15", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ lockOnHidden: false }),
+      );
+      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+    });
+
+    it("non-boolean lockOnHidden falls back to false", () => {
+      localStorage.setItem(
+        VAULT_SETTINGS_KEY,
+        JSON.stringify({ autoLockTimeoutMinutes: 15, lockOnHidden: "yes" }),
+      );
+      expect(backend.loadSettings().lockOnHidden).toBe(false);
+    });
+
+    it("clear() removes the settings key", () => {
+      backend.saveSettings({ autoLockTimeoutMinutes: 30, lockOnHidden: true });
+      backend.clear();
+      expect(localStorage.getItem(VAULT_SETTINGS_KEY)).toBeNull();
+    });
+
+    it("scoped backend uses prefixed settings key", () => {
+      const scoped = new LocalVaultBackend({ user: "alice", tenant: "t1" });
+      scoped.saveSettings({ autoLockTimeoutMinutes: 60, lockOnHidden: true });
+      expect(localStorage.getItem(`${VAULT_SETTINGS_KEY}:alice:t1`)).toBe(
+        JSON.stringify({ autoLockTimeoutMinutes: 60, lockOnHidden: true }),
+      );
+      expect(localStorage.getItem(VAULT_SETTINGS_KEY)).toBeNull();
     });
   });
 });

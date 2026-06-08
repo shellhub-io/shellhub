@@ -2,11 +2,14 @@ import type {
   VaultMeta,
   VaultData,
   LegacyPrivateKey,
+  VaultSettings,
 } from "@/types/vault";
+import { ALLOWED_TIMEOUT_MINUTES, DEFAULT_VAULT_SETTINGS } from "@/types/vault";
 import type { IVaultBackend } from "@/utils/vault-backend";
 
 const VAULT_META_KEY = "shellhub-vault-meta";
 const VAULT_DATA_KEY = "shellhub-vault-data";
+const VAULT_SETTINGS_KEY = "shellhub-vault-settings";
 const LEGACY_KEYS_KEY = "privateKeys";
 
 function prefixKey(base: string, prefix?: string): string {
@@ -18,7 +21,10 @@ function safeSetItem(key: string, value: string): void {
     localStorage.setItem(key, value);
   } catch (err) {
     if (err instanceof DOMException && err.name === "QuotaExceededError") {
-      throw new Error("Storage quota exceeded. Free up space or reset the vault.", { cause: err });
+      throw new Error(
+        "Storage quota exceeded. Free up space or reset the vault.",
+        { cause: err },
+      );
     }
     throw err;
   }
@@ -46,15 +52,15 @@ export class LocalVaultBackend implements IVaultBackend {
       null,
     );
     if (
-      !raw
-      || raw.version !== 1
-      || typeof raw.salt !== "string"
-      || typeof raw.iterations !== "number"
-      || !Number.isInteger(raw.iterations)
-      || raw.iterations < 100_000
-      || raw.iterations > 10_000_000
-      || typeof raw.verifier !== "string"
-      || typeof raw.verifierIv !== "string"
+      !raw ||
+      raw.version !== 1 ||
+      typeof raw.salt !== "string" ||
+      typeof raw.iterations !== "number" ||
+      !Number.isInteger(raw.iterations) ||
+      raw.iterations < 100_000 ||
+      raw.iterations > 10_000_000 ||
+      typeof raw.verifier !== "string" ||
+      typeof raw.verifierIv !== "string"
     )
       return null;
     return raw as unknown as VaultMeta;
@@ -69,7 +75,12 @@ export class LocalVaultBackend implements IVaultBackend {
       localStorage.getItem(prefixKey(VAULT_DATA_KEY, this.prefix)),
       null,
     );
-    if (!raw || typeof raw.iv !== "string" || typeof raw.ciphertext !== "string") return null;
+    if (
+      !raw ||
+      typeof raw.iv !== "string" ||
+      typeof raw.ciphertext !== "string"
+    )
+      return null;
     return raw as unknown as VaultData;
   }
 
@@ -80,6 +91,36 @@ export class LocalVaultBackend implements IVaultBackend {
   clear(): void {
     localStorage.removeItem(prefixKey(VAULT_META_KEY, this.prefix));
     localStorage.removeItem(prefixKey(VAULT_DATA_KEY, this.prefix));
+    localStorage.removeItem(prefixKey(VAULT_SETTINGS_KEY, this.prefix));
+  }
+
+  loadSettings(): VaultSettings {
+    const raw = safeParse<Record<string, unknown> | null>(
+      localStorage.getItem(prefixKey(VAULT_SETTINGS_KEY, this.prefix)),
+      null,
+    );
+    if (!raw) return { ...DEFAULT_VAULT_SETTINGS };
+
+    const rawTimeout = raw.autoLockTimeoutMinutes;
+    const autoLockTimeoutMinutes =
+      typeof rawTimeout === "number" &&
+      (ALLOWED_TIMEOUT_MINUTES as readonly number[]).includes(rawTimeout)
+        ? rawTimeout
+        : DEFAULT_VAULT_SETTINGS.autoLockTimeoutMinutes;
+
+    const lockOnHidden =
+      typeof raw.lockOnHidden === "boolean"
+        ? raw.lockOnHidden
+        : DEFAULT_VAULT_SETTINGS.lockOnHidden;
+
+    return { autoLockTimeoutMinutes, lockOnHidden };
+  }
+
+  saveSettings(settings: VaultSettings): void {
+    safeSetItem(
+      prefixKey(VAULT_SETTINGS_KEY, this.prefix),
+      JSON.stringify(settings),
+    );
   }
 
   loadLegacyKeys(): LegacyPrivateKey[] {
@@ -87,12 +128,12 @@ export class LocalVaultBackend implements IVaultBackend {
     if (!Array.isArray(raw)) return [];
     return raw.filter(
       (item): item is LegacyPrivateKey =>
-        typeof item === "object"
-        && item !== null
-        && typeof (item as Record<string, unknown>).name === "string"
-        && typeof (item as Record<string, unknown>).data === "string"
-        && typeof (item as Record<string, unknown>).hasPassphrase === "boolean"
-        && typeof (item as Record<string, unknown>).fingerprint === "string",
+        typeof item === "object" &&
+        item !== null &&
+        typeof (item as Record<string, unknown>).name === "string" &&
+        typeof (item as Record<string, unknown>).data === "string" &&
+        typeof (item as Record<string, unknown>).hasPassphrase === "boolean" &&
+        typeof (item as Record<string, unknown>).fingerprint === "string",
     );
   }
 

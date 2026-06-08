@@ -2,6 +2,7 @@ import type {
   VaultMeta,
   VaultData,
   LegacyPrivateKey,
+  VaultSettings,
 } from "@/types/vault";
 
 export interface IVaultBackend {
@@ -12,4 +13,6 @@ export interface IVaultBackend {
   clear(): void;
   loadLegacyKeys(): LegacyPrivateKey[];
   clearLegacyKeys(): void;
+  loadSettings(): VaultSettings;
+  saveSettings(settings: VaultSettings): void;
 }
