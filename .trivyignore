@@ -10,3 +10,16 @@
 #
 # Suppressions are reviewed quarterly. Remove entries as soon as the underlying
 # vulnerability is resolved or the affected component is no longer shipped.
+
+# CVE-2026-34040 (GHSA-x744-4wpc-w9h2): Moby AuthZ plugin body-size bypass.
+# Trivy marks this as fixed only in github.com/docker/docker v29.3.1, but that
+# version does not exist as a Go module tag — the moby project moved to
+# github.com/moby/moby/v2 for v29+.  We are pinned to the backport commit
+# v28.5.3-0.20260325154711-31a1689cb0a1 which contains the identical fix
+# (pkg/authorization/authz.go — maxBodySize 4MiB + reject-if-too-large logic,
+# merged to the 28.x branch on 2026-03-25, SHA 31a1689cb0a1b92f).
+# The agent uses docker/docker only as a *client* (api/types/*, client/*,
+# pkg/process, pkg/stdcopy); the vulnerable code lives in the *daemon's*
+# AuthZ middleware, which the agent never ships or executes.
+# Remove this entry once Trivy updates its DB to recognise the pseudo-version.
+CVE-2026-34040  # owner: @shellhub-io/security — backported fix present at 31a1689cb0a1; tracked: see agent/go.mod
