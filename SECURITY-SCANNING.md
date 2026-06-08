@@ -33,7 +33,7 @@ all three `security-gate` jobs report success (or skipped).
 
 | Workflow file | Tool | What it scans | Runs on |
 |---|---|---|---|
-| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `api`, `agent`, `ssh`, `cli`, `gateway`, `openapi`, `tests`) | PR + push to master + weekly |
+| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `api`, `agent`, `ssh`, `cli`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
 | `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`api`, `ssh`, `gateway`, `cli`, `ui`, `agent`) | PR + push to master + weekly |
 | `.github/workflows/semgrep.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + push to master + weekly |
 | `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
@@ -46,7 +46,7 @@ those lack the necessary `security-events: write` permission).
 
 ## Baseline suppression files
 
-Three baseline files gate new suppressions behind a team-lead code-owner review
+Two baseline files gate new suppressions behind a team-lead code-owner review
 (see `.github/CODEOWNERS`).
 
 ### `.trivyignore` — Trivy CVE suppression
@@ -65,22 +65,6 @@ Three baseline files gate new suppressions behind a team-lead code-owner review
    `@shellhub-io/team-lead` for mandatory review.
 4. Schedule a quarterly review to remove the entry once the vulnerability is patched.
 
-### `.govulncheck-allow.txt` — govulncheck allowlist
-
-```
-# GO-YYYY-NNNN reachability=called|imported # owner: @handle — justification; tracked: ISSUE-123
-```
-
-Fields:
-
-- `GO-YYYY-NNNN` — Go vulnerability database ID (required).
-- `reachability=called` — the vulnerable function appears in the call graph.
-- `reachability=imported` — the vulnerable package is imported but the function is not called.
-
-**How to add an entry:** follow the same owner + justification + quarterly-review process as
-`.trivyignore`.  Stale entries (where the vulnerability no longer appears in findings) cause
-CI to fail — remove them promptly.
-
 ### `.semgrepignore` — Semgrep path exclusion
 
 ```
@@ -94,7 +78,7 @@ generated mocks).  **Do not suppress production source paths** — fix the findi
 
 ## Inline suppression conventions
 
-### `#nosec` (gosec / govulncheck)
+### `#nosec` (gosec)
 
 Append `//nolint:gosec` or `#nosec GXXX` directly on the line that triggers the finding:
 
@@ -103,6 +87,20 @@ conn, err := tls.Dial("tcp", addr, cfg) //nolint:gosec // G402: minimum TLS vers
 ```
 
 Always include a short rationale after the directive.
+
+### govulncheck — suppressing a finding
+
+govulncheck findings are surfaced as alerts in the GitHub Security tab (SARIF-based).
+To suppress a known, accepted vulnerability:
+
+1. Open the alert in the **Security → Code scanning alerts** tab.
+2. Click **Dismiss alert** and choose a reason (e.g. "Used in tests", "Risk accepted",
+   "False positive") along with a brief comment identifying the owner and justification.
+3. Dismissed alerts are audited and visible to the team in the Security tab.  There is no
+   separate suppression file — suppression lives entirely in GitHub code scanning.
+
+> **Note:** The `agent` and `ssh` modules scan with build tags (`docker` and `internal_api`
+> respectively) via the `GOFLAGS` environment variable forwarded to `go/packages`.
 
 ### `# nosemgrep: <rule-id> -- <reason>` (Semgrep)
 
@@ -176,10 +174,11 @@ branch or workflow:
    do not yet mark them as required checks in branch protection.  Let the scans accumulate
    data for at least one week.
 
-2. **Seed the baseline files** — review findings from step 1 and populate `.trivyignore`,
-   `.govulncheck-allow.txt`, and `.semgrepignore` with justified suppressions for any
-   pre-existing issues that cannot be fixed immediately.  Each entry requires an owner and
-   justification comment.
+2. **Seed the baseline files** — review findings from step 1 and populate `.trivyignore`
+   and `.semgrepignore` with justified suppressions for any pre-existing issues that cannot
+   be fixed immediately.  Each entry requires an owner and justification comment.  For
+   govulncheck findings, dismiss the alert in the GitHub Security tab with a reason — no
+   separate file is needed.
 
 3. **Flip to blocking-on-new** — configure Semgrep to run with `--baseline-commit origin/master`
    on PRs (already the default in `semgrep.yml`) so that only _new_ findings introduced by
@@ -190,7 +189,7 @@ branch or workflow:
    GitHub repository settings → Branches → Branch protection rules for `master`:
    - Under "Require status checks to pass before merging", add **`security-gate`** (the
      exact frozen name) from each of the three workflows (Security, Semgrep, CodeQL).
-   - Enable **"Require review from Code Owners"** so that changes to `.trivyignore`,
-     `.govulncheck-allow.txt`, and `.semgrepignore` always go through `@shellhub-io/team-lead`.
+   - Enable **"Require review from Code Owners"** so that changes to `.trivyignore`
+     and `.semgrepignore` always go through `@shellhub-io/team-lead`.
 
 > **Note:** Steps 1–3 are performed by contributors; step 4 requires a repository admin.
