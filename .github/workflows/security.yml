@@ -59,10 +59,13 @@ jobs:
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
+      - name: Build govulncheck wrapper
+        run: |
+          ( cd "$GITHUB_WORKSPACE/.github" && go build -o "$RUNNER_TEMP/govulncheck-filter" ./govulncheck/cmd )
+
       - name: Run govulncheck
         uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1
         env:
-          # govulncheck honors GOFLAGS through go/packages for build-tag coverage
           GOFLAGS: ${{ matrix.tags != '' && format('-tags={0}', matrix.tags) || '' }}
         with:
           go-version-file: ${{ matrix.module == '.' && 'go.mod' || format('{0}/go.mod', matrix.module) }}
@@ -72,9 +75,6 @@ jobs:
           output-file: govulncheck-${{ matrix.sarif_name }}.sarif
           repo-checkout: false
 
-      # Vuln gating is performed by GitHub's native "Code scanning results" PR check
-      # (identical to CodeQL/Semgrep); this upload step is the success signal for
-      # security-gate — govulncheck's own exit code does NOT block the PR.
       - name: Upload SARIF report
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
         uses: github/codeql-action/upload-sarif@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
@@ -110,7 +110,7 @@ jobs:
           load: true
 
       - name: Scan ${{ matrix.image }} image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.31.0
         with:
           image-ref: shellhub/${{ matrix.image }}:scan
           format: table

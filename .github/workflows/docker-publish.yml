@@ -109,7 +109,7 @@ jobs:
       # .trivyignore is always at shellhub/.trivyignore because all sources
       # are checked out under the shellhub/ subdirectory.
       - name: Scan '${{ matrix.project }}' image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.31.0
         with:
           image-ref: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
           format: table
