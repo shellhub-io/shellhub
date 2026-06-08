@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, agent, pkg, ssh, cli]
+        project: [api, agent, pkg, ssh, cli, gateway]
         database: ['']  # Empty by default
         include:
           - project: api
@@ -32,6 +32,9 @@ jobs:
             extra_args: "-tags internal_api"
             lint_args: "--build-tags internal_api"
           - project: cli
+            extra_args: ""
+            lint_args: ""
+          - project: gateway
             extra_args: ""
             lint_args: ""
           # Integration tests with PostgreSQL
@@ -71,6 +74,7 @@ jobs:
               - 'pkg/**'
               - 'ssh/**'
               - 'cli/**'
+              - 'gateway/**'
               - 'tests/**'
 
       - name: Set up Go 1.x [Go]
@@ -136,3 +140,28 @@ jobs:
               name=$(echo "$img" | tr '/:' '_')
               docker save -o "/tmp/docker-cache/${name}.tar" "$img" 2>/dev/null || true
             done
+
+  gateway-lint:
+    name: lint (gateway)
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
+        id: filter
+        with:
+          filters: |
+            go:
+              - 'gateway/**'
+
+      - name: Code linting [Go]
+        if: steps.filter.outputs.go == 'true'
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          working-directory: gateway
+          version: v2.11.3
+          args: --timeout 2m ./...
+          skip-cache: true

@@ -1,0 +1,89 @@
+name: Semgrep
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    name: semgrep
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.154.0
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history required for --baseline-ref diff
+          fetch-depth: 0
+
+      - name: Fetch master for baseline comparison
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git fetch origin master
+
+      - name: Run Semgrep (PR — baseline diff)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          semgrep scan \
+            --config p/golang \
+            --config p/dockerfile \
+            --config p/ci \
+            --baseline-ref origin/master \
+            --error \
+            --sarif \
+            --output semgrep.sarif \
+            .
+
+      - name: Run Semgrep (push / schedule — full scan)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          semgrep scan \
+            --config p/golang \
+            --config p/dockerfile \
+            --config p/ci \
+            --error \
+            --sarif \
+            --output semgrep.sarif \
+            .
+
+      - name: Upload SARIF report
+        if: ${{ always() && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
+        uses: github/codeql-action/upload-sarif@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  # security-gate is the frozen required-check name referenced in branch protection.
+  # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
+  security-gate:
+    name: security-gate
+    needs: [scan]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Semgrep results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || \
+                "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more Semgrep scan jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All Semgrep scan jobs passed or were skipped."

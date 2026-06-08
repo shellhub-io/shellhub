@@ -24,7 +24,7 @@ func backfillSQL(t *testing.T) string {
 	require.True(t, ok)
 
 	path := filepath.Join(filepath.Dir(self), "migrations", "014_backfill_install_key_events.tx.up.sql")
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 	require.NoError(t, err)
 
 	return string(data)

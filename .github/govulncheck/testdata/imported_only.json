@@ -1,0 +1,4 @@
+{"config":{"protocol_version":"v1.0.0","scanner_name":"govulncheck","scanner_version":"v1.1.4"}}
+{"progress":{"message":"Scanning your code and 100 packages across 10 modules for known vulnerabilities..."}}
+{"osv":{"schema_version":"1.3.0","id":"GO-2024-0002","published":"2024-02-01T00:00:00Z","modified":"2024-02-02T00:00:00Z","aliases":["CVE-2024-0002"],"summary":"Race condition in another package","details":"A race condition exists in the package.","affected":[{"package":{"name":"example.com/racy","ecosystem":"Go"},"ranges":[{"type":"SEMVER","events":[{"introduced":"0"},{"fixed":"2.0.0"}]}],"database_specific":{"url":"https://pkg.go.dev/vuln/GO-2024-0002"}}],"database_specific":{"url":"https://pkg.go.dev/vuln/GO-2024-0002","review_status":"REVIEWED"}}}
+{"finding":{"osv":"GO-2024-0002","fixed_version":"v2.0.0","trace":[{"module":"example.com/racy","version":"v1.9.0","package":"example.com/racy"}]}}

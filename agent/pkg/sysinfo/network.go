@@ -65,7 +65,7 @@ func PrimaryInterface() (*net.Interface, error) {
 }
 
 func readSysFs(iface, file string) (string, error) {
-	data, err := os.ReadFile(filepath.Join("/sys/class/net", iface, file))
+	data, err := os.ReadFile(filepath.Join("/sys/class/net", iface, file)) //nolint:gosec // path is rooted under /sys/class/net, a read-only kernel virtual filesystem.
 
 	return strings.TrimSpace(string(data)), err
 }

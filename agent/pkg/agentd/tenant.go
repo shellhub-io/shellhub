@@ -17,7 +17,7 @@ func TenantFilePath(privateKeyPath string) string {
 // ReadPersistedTenant reads the tenant persisted by a previous pairing. A
 // missing file is not an error; it returns an empty tenant.
 func ReadPersistedTenant(path string) (string, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path is derived from the PRIVATE_KEY env var (operator-configured, not end-user input).
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil

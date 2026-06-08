@@ -39,7 +39,7 @@ func TestGetSessionsAdvertisesFilterQueryParameter(t *testing.T) {
 	require.NoError(t, err, "filterQuery.yaml component file should exist at %s", filterRef)
 
 	// Read and parse the sessions path spec.
-	data, err := os.ReadFile(sessionsPath)
+	data, err := os.ReadFile(sessionsPath) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 	require.NoError(t, err, "should be able to read %s", sessionsPath)
 
 	var spec map[string]interface{}

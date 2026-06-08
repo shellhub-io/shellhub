@@ -11,7 +11,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrPemDecode = errors.New("PEM decode error")
+var (
+	// ErrPemDecode is returned when PEM decoding fails.
+	ErrPemDecode = errors.New("PEM decode error")
+
+	// ErrPathTraversal is returned when a filename escapes the declared base directory.
+	ErrPathTraversal = errors.New("path escapes base directory")
+)
 
 func GeneratePrivateKey(filename string) error {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -29,7 +35,7 @@ func GeneratePrivateKey(filename string) error {
 		return err
 	}
 
-	f, err := os.Create(filename)
+	f, err := os.Create(filename) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
 	if err != nil {
 		return err
 	}
@@ -50,7 +56,7 @@ func GeneratePrivateKey(filename string) error {
 }
 
 func ReadPublicKey(filename string) (*rsa.PublicKey, error) {
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(filename) //nolint:gosec // filename is a configured key path, not user-supplied taint input.
 	if err != nil {
 		return nil, err
 	}

@@ -31,7 +31,7 @@ func migration004Statements(t *testing.T) []string {
 	// This file lives at api/store/pg/migrations_test.go
 	path := filepath.Join(filepath.Dir(file), "migrations", "004_namespaces_name_unique.tx.up.sql")
 
-	raw, err := os.ReadFile(path)
+	raw, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 	require.NoError(t, err, "004 migration file must exist on disk")
 
 	var stmts []string

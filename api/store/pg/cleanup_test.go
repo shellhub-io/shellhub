@@ -71,7 +71,7 @@ func TestMongoDepsPruned(t *testing.T) {
 	for _, path := range []string{gomod, gosum} {
 		name := filepath.Base(path)
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open(path)
+			f, err := os.Open(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 			if err != nil {
 				t.Fatalf("open %s: %v", path, err)
 			}
@@ -96,7 +96,7 @@ func TestMongoDepsPruned(t *testing.T) {
 
 	// Positive assertion: modules/postgres must still be present in go.mod.
 	t.Run("postgres_kept", func(t *testing.T) {
-		f, err := os.Open(gomod)
+		f, err := os.Open(gomod) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 		if err != nil {
 			t.Fatalf("open go.mod: %v", err)
 		}

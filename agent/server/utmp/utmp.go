@@ -113,7 +113,7 @@ func UtmpEndSession(u Utmpx) { //nolint:revive
 // This function updates the utmp file by overwriting the record with index
 // id if present; otherwise by appending the new record to the file.
 func updUtmp(u Utmpx, id string) {
-	file, err := os.OpenFile(
+	file, err := os.OpenFile( //nolint:gosec // utmp files conventionally use 0644; tighter permissions break system accounting tools.
 		UtmpxFile,
 		os.O_RDWR|os.O_CREATE,
 		0o644)
@@ -190,7 +190,7 @@ func updUtmp(u Utmpx, id string) {
 
 // This function updates the wtmp file by appending the record to the file.
 func updWtmp(u Utmpx) {
-	file, err := os.OpenFile(
+	file, err := os.OpenFile( //nolint:gosec // wtmp files conventionally use 0644; tighter permissions break system accounting tools.
 		WtmpxFile,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		0o644)
