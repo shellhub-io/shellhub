@@ -62,7 +62,7 @@ jobs:
             .
 
       - name: Scan amd64 agent image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.31.0
         with:
           image-ref: shellhubio/agent:scan-amd64
           format: table

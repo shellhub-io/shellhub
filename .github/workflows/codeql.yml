@@ -89,14 +89,6 @@ jobs:
           upload: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
           output: codeql-results-${{ matrix.module == '.' && 'root' || matrix.module }}.sarif
 
-      - name: Filter NEW alerts only (PR)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: codeql-results-${{ matrix.module == '.' && 'root' || matrix.module }}.sarif
-          category: codeql-go-${{ matrix.module == '.' && 'root' || matrix.module }}
-          wait-for-processing: true
-
   # security-gate aggregates all CodeQL jobs for branch protection.
   security-gate:
     name: security-gate
