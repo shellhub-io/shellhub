@@ -62,14 +62,17 @@ jobs:
             .
 
       - name: Scan amd64 agent image with Trivy
-        uses: aquasecurity/trivy-action@v0.31.0
-        with:
-          image-ref: shellhubio/agent:scan-amd64
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true
-          trivyignores: .trivyignore
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/work:ro" \
+            ghcr.io/aquasecurity/trivy:0.63.0 image \
+              --severity CRITICAL,HIGH \
+              --ignore-unfixed \
+              --scanners vuln \
+              --exit-code 1 \
+              --ignorefile /work/.trivyignore \
+              shellhubio/agent:scan-amd64
 
       - name: Build and push multiarch image
         run: |
