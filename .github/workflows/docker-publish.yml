@@ -12,48 +12,151 @@ permissions:
 
 jobs:
   build:
-    name: Build and publish '${{ matrix.project }}' to Docker Registry
+    name: Build, scan and publish '${{ matrix.project }}' to Docker Registry
 
+    # Each image is built, scanned, then pushed independently so a scan failure
+    # only blocks that image. fail-fast: false lets the other images continue.
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        project: [api, ssh, gateway, ui, cli]
+        project: [api, ssh, gateway, ui, cli, api-enterprise]
 
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout source code
+      - name: Checkout shellhub source
         uses: actions/checkout@v6
+        with:
+          path: shellhub
+
+      # api-enterprise only: obtain a short-lived App token to clone the private cloud repo.
+      # The token is scoped to the cloud repo only and is never printed or exported into
+      # SARIF reports.
+      - name: Generate cloud repo token (api-enterprise only)
+        id: cloud-token
+        if: matrix.project == 'api-enterprise'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+
+      - name: Checkout cloud source (api-enterprise only)
+        if: matrix.project == 'api-enterprise'
+        uses: actions/checkout@v6
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.cloud-token.outputs.token }}
+          ref: ${{ github.ref_name }}
+          path: cloud
 
       - name: Get release version
-        id: get_version
-        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> "$GITHUB_ENV"
 
-      - name: Login to Docker Hub
+      - name: Set image registry and name
+        id: image
+        run: |
+          if [[ "${{ matrix.project }}" == "api-enterprise" ]]; then
+            echo "name=registry.infra.ossystems.io/shellhub/api-enterprise" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=shellhubio/${{ matrix.project }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # ── Community images ──────────────────────────────────────────────────────
+      - name: Login to Docker Hub (community images)
+        if: matrix.project != 'api-enterprise'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and publish '${{ matrix.project }}' to Docker Registry
+      # ── Enterprise image ──────────────────────────────────────────────────────
+      - name: Login to private Docker Registry (api-enterprise)
+        if: matrix.project == 'api-enterprise'
+        uses: docker/login-action@v4
+        with:
+          registry: registry.infra.ossystems.io
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
+
+      # Step 1 — Build into the local Docker daemon (push=false, load=true).
+      # The image is tagged but NOT pushed yet so Trivy can scan it first.
+      - name: Build '${{ matrix.project }}' image (load only, no push)
+        if: matrix.project != 'api-enterprise'
         uses: docker/build-push-action@v7
         with:
-          tags: shellhubio/${{ matrix.project }}:latest,shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
-          push: true
-          file: ${{ matrix.project }}/Dockerfile
+          push: false
+          load: true
+          tags: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
+          file: shellhub/${{ matrix.project }}/Dockerfile
+          context: shellhub
+          cache-from: type=gha,scope=${{ matrix.project }}
+          cache-to: type=gha,scope=${{ matrix.project }},mode=max
+
+      - name: Build 'api-enterprise' image (load only, no push)
+        if: matrix.project == 'api-enterprise'
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+          load: true
+          tags: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
+          file: shellhub/api/Dockerfile
+          context: shellhub
+          build-args: EDITION=enterprise
+          build-contexts: cloud-src=./cloud
+          cache-from: type=gha,scope=${{ matrix.project }}
+          cache-to: type=gha,scope=${{ matrix.project }},mode=max
+
+      # Step 2 — Scan the locally loaded image BEFORE pushing anywhere.
+      # Failures here abort the job; nothing has been pushed yet.
+      # .trivyignore is always at shellhub/.trivyignore because all sources
+      # are checked out under the shellhub/ subdirectory.
+      - name: Scan '${{ matrix.project }}' image with Trivy
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: shellhub/.trivyignore
+
+      # Step 3 — Push the SAME image that was just scanned.
+      # `docker push` re-uses the layers already present in the local Docker
+      # daemon — no rebuild occurs, so the pushed digest is identical to what
+      # Trivy scanned.
+      #
+      # NOTE: cross-registry push is sequential, not transactional. If the
+      # versioned-tag push succeeds but the `latest` push fails (or vice versa),
+      # the registry will hold a partial set of tags. Re-running the workflow is
+      # safe: buildx GHA cache ensures digest-identical layers on the next run.
+      - name: Push '${{ matrix.project }}' image (same digest as scanned)
+        run: |
+          docker tag \
+            "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}" \
+            "${{ steps.image.outputs.name }}:latest"
+          docker push "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
+          docker push "${{ steps.image.outputs.name }}:latest"
+
+      # ── SBOM + cosign ─────────────────────────────────────────────────────────
 
       - name: Generate SBOM for '${{ matrix.project }}' image
         uses: anchore/sbom-action@v0
         with:
-          image: shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
+          image: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json
           upload-artifact: false
 
       - name: Generate SBOM for '${{ matrix.project }}' source
+        if: matrix.project != 'api-enterprise'
         uses: anchore/sbom-action@v0
         with:
-          path: ${{ matrix.project }}
+          path: shellhub/${{ matrix.project }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.project }}-source-${{ env.RELEASE_VERSION }}.cdx.json
           upload-artifact: false
@@ -70,85 +173,13 @@ jobs:
       - name: Attach SBOM to '${{ matrix.project }}' image
         run: |
           cosign attach sbom \
-            --sbom sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json \
+            --sbom "sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json" \
             --type cyclonedx \
-            shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
-
-  publish-enterprise:
-    name: Build and publish 'api-enterprise' to Docker Registry
-
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Checkout shellhub source
-        uses: actions/checkout@v6
-        with:
-          path: shellhub
-
-      - name: Generate cloud repo token
-        id: cloud-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
-          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
-          owner: shellhub-io
-          repositories: cloud
-
-      - name: Checkout cloud source
-        uses: actions/checkout@v6
-        with:
-          repository: shellhub-io/cloud
-          token: ${{ steps.cloud-token.outputs.token }}
-          ref: ${{ github.ref_name }}
-          path: cloud
-
-      - name: Get release version
-        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-
-      - name: Login to Docker Registry
-        uses: docker/login-action@v4
-        with:
-          registry: registry.infra.ossystems.io
-          username: ${{ secrets.PORTUS_USERNAME }}
-          password: ${{ secrets.PORTUS_TOKEN }}
-
-      - name: Build and publish 'api-enterprise' to Docker Registry
-        uses: docker/build-push-action@v7
-        with:
-          tags: registry.infra.ossystems.io/shellhub/api-enterprise:latest,registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
-          push: true
-          context: shellhub
-          file: shellhub/api/Dockerfile
-          build-args: EDITION=enterprise
-          build-contexts: cloud-src=./cloud
-
-      - name: Generate SBOM for api-enterprise image
-        uses: anchore/sbom-action@v0
-        with:
-          image: registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
-          format: cyclonedx-json
-          output-file: sbom-api-enterprise-${{ env.RELEASE_VERSION }}.cdx.json
-          upload-artifact: false
-
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: sbom-api-enterprise
-          path: sbom-api-enterprise-*.cdx.json
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Attach SBOM to api-enterprise image
-        run: |
-          cosign attach sbom \
-            --sbom sbom-api-enterprise-${{ env.RELEASE_VERSION }}.cdx.json \
-            --type cyclonedx \
-            registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
+            "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
 
   release-sboms:
     name: Attach SBOMs to GitHub Release
-    needs: [build, publish-enterprise]
+    needs: [build]
     runs-on: ubuntu-24.04
 
     steps:

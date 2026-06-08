@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, agent, pkg, ssh, cli]
+        project: [api, agent, pkg, ssh, cli, gateway]
         database: ['']  # Empty by default
         include:
           - project: api
@@ -32,6 +32,9 @@ jobs:
             extra_args: "-tags internal_api"
             lint_args: "--build-tags internal_api"
           - project: cli
+            extra_args: ""
+            lint_args: ""
+          - project: gateway
             extra_args: ""
             lint_args: ""
           # Integration tests with PostgreSQL
@@ -71,6 +74,7 @@ jobs:
               - 'pkg/**'
               - 'ssh/**'
               - 'cli/**'
+              - 'gateway/**'
               - 'tests/**'
 
       - name: Set up Go 1.x [Go]

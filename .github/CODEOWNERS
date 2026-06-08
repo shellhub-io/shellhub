@@ -2,3 +2,8 @@
 api/ @shellhub-io/backend-owners
 ssh/ @shellhub-io/backend-owners
 ui/ @shellhub-io/frontend-owners
+
+# Security allowlist and scanner ignore files — reviewed by team lead.
+.trivyignore @shellhub-io/team-lead
+.govulncheck-allow.txt @shellhub-io/team-lead
+.semgrepignore @shellhub-io/team-lead

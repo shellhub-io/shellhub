@@ -27,7 +27,7 @@ type NginxController struct {
 
 // generateConfigs generates the NGINX configuration files.
 func (nc *NginxController) generateConfigs() {
-	if err := os.MkdirAll("/etc/nginx", 0o755); err != nil {
+	if err := os.MkdirAll("/etc/nginx", 0o750); err != nil { //nolint:gosec
 		log.Fatalf("Failed to create nginx directory: %v", err)
 	}
 
@@ -49,7 +49,7 @@ func (nc *NginxController) generateConfigs() {
 		destPath := filepath.Join(nc.rootDir, relativePath)
 
 		if info.IsDir() {
-			if err := os.MkdirAll(destPath, 0o755); err != nil {
+			if err := os.MkdirAll(destPath, 0o750); err != nil { //nolint:gosec
 				return fmt.Errorf("failed to create directory %s: %w", destPath, err)
 			}
 		} else {

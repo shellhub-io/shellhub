@@ -1,0 +1,140 @@
+name: Security
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  govulncheck:
+    name: govulncheck (${{ matrix.module }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: .
+            extra_args: ""
+          - module: api
+            extra_args: ""
+          - module: agent
+            extra_args: "-tags docker"
+          - module: ssh
+            extra_args: "-tags internal_api"
+          - module: cli
+            extra_args: ""
+          - module: gateway
+            extra_args: ""
+          - module: openapi
+            extra_args: ""
+          - module: tests
+            extra_args: ""
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck
+        run: |
+          cd "${{ matrix.module }}"
+          govulncheck -json ${{ matrix.extra_args }} ./... | \
+            go run "$GITHUB_WORKSPACE/.github/govulncheck/cmd/" \
+              "$GITHUB_WORKSPACE/.govulncheck-allow.txt"
+
+  trivy-image:
+    name: trivy-image (${{ matrix.image }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [api, ssh, gateway, cli, ui, agent]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build ${{ matrix.image }} image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.image }}/Dockerfile
+          tags: shellhub/${{ matrix.image }}:scan
+          push: false
+          load: true
+
+      - name: Scan ${{ matrix.image }} image with Trivy
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: shellhub/${{ matrix.image }}:scan
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+
+      - name: Scan ${{ matrix.image }} image with Trivy (SARIF)
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: shellhub/${{ matrix.image }}:scan
+          format: sarif
+          output: trivy-${{ matrix.image }}.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+
+      - name: Upload SARIF report
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.image }}.sarif
+          category: trivy-${{ matrix.image }}
+
+  # security-gate is the frozen required-check name referenced in branch protection.
+  # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
+  security-gate:
+    name: security-gate
+    needs: [govulncheck, trivy-image]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check scan results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || \
+                "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more security scan jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All security scan jobs passed or were skipped."

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	client_mocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
@@ -11,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func ExampleNewAgentWithConfig() {
@@ -302,6 +304,96 @@ func TestAgent_GetInfo(t *testing.T) {
 
 			assert.Equal(t, test.expected.info, info)
 			assert.ErrorIs(t, err, test.expected.err)
+		})
+	}
+}
+
+// TestAgent_generatePrivateKey_PathContainment verifies that the production
+// generatePrivateKey method rejects PrivateKey paths that contain raw ".."
+// traversal sequences.  The raw path is what an operator would supply via
+// the PRIVATE_KEY environment variable, so filepath.Join is intentionally
+// NOT used here — it would silently clean the traversal before the test runs.
+func TestAgent_generatePrivateKey_PathContainment(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+
+	tests := []struct {
+		description string
+		privateKey  string
+		wantErr     error
+	}{
+		{
+			description: "valid absolute path with no traversal",
+			privateKey:  baseDir + "/device.key",
+			wantErr:     nil,
+		},
+		{
+			description: "path traversal via raw .. sequence",
+			// Construct the traversal without filepath.Join so the ".." is
+			// not cleaned before it reaches the agent's path-containment check.
+			privateKey: baseDir + "/../escaped.key",
+			wantErr:    keygen.ErrPathTraversal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			t.Parallel()
+
+			a := &Agent{config: &Config{PrivateKey: tt.privateKey}}
+			err := a.generatePrivateKey()
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestAgent_readPublicKey_PathContainment verifies that the production
+// readPublicKey method rejects PrivateKey paths that contain raw ".."
+// traversal sequences.
+func TestAgent_readPublicKey_PathContainment(t *testing.T) {
+	t.Parallel()
+
+	baseDir := t.TempDir()
+	keyPath := baseDir + "/device.key"
+	require.NoError(t, keygen.GeneratePrivateKey(keyPath))
+
+	tests := []struct {
+		description string
+		privateKey  string
+		wantErr     error
+	}{
+		{
+			description: "valid absolute path with no traversal",
+			privateKey:  keyPath,
+			wantErr:     nil,
+		},
+		{
+			description: "path traversal via raw .. sequence",
+			// Construct the traversal without filepath.Join so the ".." is
+			// not cleaned before it reaches the agent's path-containment check.
+			privateKey: baseDir + "/../escaped.key",
+			wantErr:    keygen.ErrPathTraversal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			t.Parallel()
+
+			a := &Agent{config: &Config{PrivateKey: tt.privateKey}}
+			err := a.readPublicKey()
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }

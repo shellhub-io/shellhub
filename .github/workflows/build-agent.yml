@@ -46,6 +46,31 @@ jobs:
             echo "BUILD_ARGS=" >> $GITHUB_ENV
           fi
 
+      # Build amd64 only and load it into the local Docker daemon so Trivy can
+      # scan it before the multi-arch push.  amd64 is the representative
+      # architecture for CVE scanning: apk-specific CVEs for arm/386 variants
+      # are advisory and tracked separately in the scheduled security workflow.
+      - name: Build amd64 image (load only, no push)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --file agent/Dockerfile \
+            --tag shellhubio/agent:scan-amd64 \
+            ${{ env.BUILD_ARGS }} \
+            --load \
+            --provenance=false \
+            .
+
+      - name: Scan amd64 agent image with Trivy
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: shellhubio/agent:scan-amd64
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+
       - name: Build and push multiarch image
         run: |
           TAGS=""
