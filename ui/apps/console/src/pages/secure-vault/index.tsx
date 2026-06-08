@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ShieldCheckIcon,
   LockClosedIcon,
@@ -49,6 +49,7 @@ export default function SecureVault() {
   const status = useVaultStore((s) => s.status);
   const keys = useVaultStore((s) => s.keys);
   const refreshStatus = useVaultStore((s) => s.refreshStatus);
+  const autoLockNonce = useVaultStore((s) => s.autoLockNonce);
   const [setupOpen, setSetupOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -59,6 +60,14 @@ export default function SecureVault() {
   useEffect(() => {
     refreshStatus();
   }, [refreshStatus]);
+
+  const seenNonce = useRef(autoLockNonce);
+  useEffect(() => {
+    if (autoLockNonce !== seenNonce.current) {
+      seenNonce.current = autoLockNonce;
+      setUnlockOpen(true);
+    }
+  }, [autoLockNonce]);
 
   const openNew = () => {
     setEditTarget(null);

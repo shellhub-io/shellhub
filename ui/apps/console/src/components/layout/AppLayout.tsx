@@ -12,6 +12,7 @@ import ChatwootProvider from "./ChatwootProvider";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
+import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 
 export default function AppLayout() {
   const { pathname } = useLocation();
@@ -83,6 +84,7 @@ export default function AppLayout() {
         <WelcomeWizardTrigger />
         <AnnouncementModalTrigger />
         <DeviceChooserTrigger />
+        <VaultAutoLockBanner />
       </div>
     </ChatwootProvider>
   );

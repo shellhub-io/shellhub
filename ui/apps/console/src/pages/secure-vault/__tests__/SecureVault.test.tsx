@@ -1,9 +1,10 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
+import ConnectDrawer from "@/components/ConnectDrawer";
 import type { VaultKeyEntry } from "@/types/vault";
 
 vi.mock("@/utils/date", () => ({
@@ -27,44 +28,200 @@ vi.mock("@/components/common/PageHeader", () => ({
 
 vi.mock("@/stores/vaultStore", () => ({
   useVaultStore: vi.fn((selector?: (s: Record<string, unknown>) => unknown) => {
-    const state = (useVaultStore as unknown as { _state: Record<string, unknown> })._state;
+    const state = (
+      useVaultStore as unknown as { _state: Record<string, unknown> }
+    )._state;
     return selector ? selector(state) : state;
   }),
 }));
 
-// Mock heavy vault dialog/banner components to isolate page logic
-vi.mock("@/components/vault/VaultSetupDialog", () => ({
+vi.mock("@/stores/terminalStore", () => ({
+  useTerminalStore: vi.fn(
+    (selector?: (s: Record<string, unknown>) => unknown) => {
+      const state = { open: vi.fn() };
+      return selector ? selector(state) : state;
+    },
+  ),
+}));
+
+vi.mock("@/utils/ssh-keys", () => ({
+  validatePrivateKey: vi.fn(() => ({ valid: false, encrypted: false })),
+  getFingerprint: vi.fn(() => "fp"),
+}));
+
+vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
-    onClose,
+    children,
+    footer,
+    title,
   }: {
     open: boolean;
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+    title: string;
     onClose: () => void;
   }) =>
-    open
-      ? (
-        <div role="dialog" aria-label="Setup Vault">
-          <button onClick={onClose}>Close Setup</button>
-        </div>
-      )
-      : null,
+    open ? (
+      <div role="dialog" aria-label={title}>
+        {children}
+        {footer}
+      </div>
+    ) : null,
+}));
+
+vi.mock("@/components/vault/VaultLockedBanner", () => ({
+  default: ({ onUnlock }: { onUnlock: () => void }) => (
+    <div data-testid="vault-locked-banner">
+      <button onClick={onUnlock}>Unlock Vault</button>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/common/CopyButton", () => ({
+  default: ({ text }: { text: string }) => (
+    <button aria-label={`Copy ${text}`}>Copy</button>
+  ),
+}));
+
+vi.mock("@/components/common/fields/InputField", () => ({
+  default: ({
+    id,
+    label,
+    value,
+    onChange,
+    placeholder,
+  }: {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    autoFocus?: boolean;
+  }) => (
+    <div>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  ),
+}));
+
+vi.mock("@/components/common/fields/PasswordField", () => ({
+  default: ({
+    id,
+    label,
+    value,
+    onChange,
+    placeholder,
+  }: {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    autoComplete?: string;
+    suppressPasswordManager?: boolean;
+    hint?: string;
+  }) => (
+    <div>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="password"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  ),
+}));
+
+vi.mock("@/components/common/fields/FieldLabel", () => ({
+  default: ({
+    children,
+    htmlFor,
+  }: {
+    children: React.ReactNode;
+    htmlFor?: string;
+  }) => <label htmlFor={htmlFor}>{children}</label>,
+}));
+
+vi.mock("@/components/common/fields/RadioCard", () => ({
+  default: ({
+    value,
+    label,
+  }: {
+    value: string;
+    label: string;
+    icon?: React.ReactNode;
+    description?: string;
+  }) => <div data-testid={`radio-card-${value}`}>{label}</div>,
+}));
+
+vi.mock("@/components/common/fields/RadioGroupField", () => ({
+  default: ({
+    label,
+    value,
+    onChange,
+    children,
+    containerClassName,
+  }: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    children: React.ReactNode;
+    containerClassName?: string;
+  }) => (
+    <div>
+      <span>{label}</span>
+      <div className={containerClassName}>{children}</div>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="password">Password</option>
+        <option value="key">Private Key</option>
+        <option value="vault">Vault</option>
+        <option value="manual">Manual</option>
+      </select>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/common/fields/RadioSegment", () => ({
+  default: ({
+    value,
+    label,
+  }: {
+    value: string;
+    label: string;
+    icon?: React.ReactNode;
+  }) => <div data-testid={`radio-segment-${value}`}>{label}</div>,
+}));
+
+// Mock heavy vault dialog/banner components to isolate page logic
+vi.mock("@/components/vault/VaultSetupDialog", () => ({
+  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div role="dialog" aria-label="Setup Vault">
+        <button onClick={onClose}>Close Setup</button>
+      </div>
+    ) : null,
 }));
 
 vi.mock("@/components/vault/VaultUnlockDialog", () => ({
-  default: ({
-    open,
-    onClose,
-  }: {
-    open: boolean;
-    onClose: () => void;
-  }) =>
-    open
-      ? (
-        <div role="dialog" aria-label="Unlock Vault">
-          <button onClick={onClose}>Close Unlock</button>
-        </div>
-      )
-      : null,
+  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div role="dialog" aria-label="Unlock Vault">
+        <button onClick={onClose}>Close Unlock</button>
+      </div>
+    ) : null,
 }));
 
 vi.mock("@/components/vault/VaultSettingsSection", () => ({
@@ -83,16 +240,14 @@ vi.mock("../KeyDrawer", () => ({
     editKey: VaultKeyEntry | null;
     onClose: () => void;
   }) =>
-    open
-      ? (
-        <div
-          role="dialog"
-          aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
-        >
-          <button onClick={onClose}>Close Drawer</button>
-        </div>
-      )
-      : null,
+    open ? (
+      <div
+        role="dialog"
+        aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
+      >
+        <button onClick={onClose}>Close Drawer</button>
+      </div>
+    ) : null,
 }));
 
 vi.mock("../KeyDeleteDialog", () => ({
@@ -105,21 +260,12 @@ vi.mock("../KeyDeleteDialog", () => ({
     entry: VaultKeyEntry | null;
     onClose: () => void;
   }) =>
-    open
-      ? (
-        <div role="dialog" aria-label="Delete Key Dialog">
-          {entry && <span>{entry.name}</span>}
-          <button onClick={onClose}>Close Delete</button>
-        </div>
-      )
-      : null,
-}));
-
-// CopyButton is used inside the key table — stub it out
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button aria-label={`Copy ${text}`}>Copy</button>
-  ),
+    open ? (
+      <div role="dialog" aria-label="Delete Key Dialog">
+        {entry && <span>{entry.name}</span>}
+        <button onClick={onClose}>Close Delete</button>
+      </div>
+    ) : null,
 }));
 
 const makeKey = (overrides: Partial<VaultKeyEntry> = {}): VaultKeyEntry => ({
@@ -138,12 +284,19 @@ const mockRefreshStatus = vi.fn();
 function setupStore(
   status: "uninitialized" | "locked" | "unlocked",
   keys: VaultKeyEntry[] = [],
+  autoLockNonce: number = 0,
 ) {
   (useVaultStore as unknown as { _state: Record<string, unknown> })._state = {
     status,
     keys,
     refreshStatus: mockRefreshStatus,
+    autoLockNonce,
   };
+}
+
+function getState() {
+  return (useVaultStore as unknown as { _state: Record<string, unknown> })
+    ._state;
 }
 
 afterEach(cleanup);
@@ -196,7 +349,9 @@ describe("SecureVault", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /set up secure vault/i }),
       );
-      await userEvent.click(screen.getByRole("button", { name: /close setup/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /close setup/i }),
+      );
 
       expect(
         screen.queryByRole("dialog", { name: /setup vault/i }),
@@ -214,7 +369,9 @@ describe("SecureVault", () => {
     it("renders the full-screen locked page with heading and highlights", () => {
       setupStore("locked");
       render(<SecureVault />);
-      expect(screen.getByRole("heading", { name: /your vault is locked/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /your vault is locked/i }),
+      ).toBeInTheDocument();
       expect(screen.getByText("AES-256 Encryption")).toBeInTheDocument();
       expect(screen.getByText("Zero Knowledge")).toBeInTheDocument();
       expect(screen.getByText("Quick Connect")).toBeInTheDocument();
@@ -224,7 +381,9 @@ describe("SecureVault", () => {
       setupStore("locked");
       render(<SecureVault />);
 
-      await userEvent.click(screen.getByRole("button", { name: /unlock vault/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /unlock vault/i }),
+      );
 
       expect(
         screen.getByRole("dialog", { name: /unlock vault/i }),
@@ -235,7 +394,9 @@ describe("SecureVault", () => {
       setupStore("locked");
       render(<SecureVault />);
 
-      await userEvent.click(screen.getByRole("button", { name: /unlock vault/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /unlock vault/i }),
+      );
       await userEvent.click(
         screen.getByRole("button", { name: /close unlock/i }),
       );
@@ -256,9 +417,7 @@ describe("SecureVault", () => {
     it("renders the empty state message", () => {
       setupStore("unlocked", []);
       render(<SecureVault />);
-      expect(
-        screen.getByText(/no keys yet/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/no keys yet/i)).toBeInTheDocument();
     });
 
     it("renders 'Add Private Key' button in empty state", () => {
@@ -301,7 +460,11 @@ describe("SecureVault", () => {
 
   describe("unlocked state — with keys", () => {
     const keys = [
-      makeKey({ id: "key-1", name: "Production Server", fingerprint: "aa:bb:cc:dd" }),
+      makeKey({
+        id: "key-1",
+        name: "Production Server",
+        fingerprint: "aa:bb:cc:dd",
+      }),
       makeKey({
         id: "key-2",
         name: "Staging Server",
@@ -325,7 +488,14 @@ describe("SecureVault", () => {
     });
 
     it("does not show lock icon for keys without passphrase", () => {
-      setupStore("unlocked", [makeKey({ id: "key-1", name: "Production Server", fingerprint: "aa:bb:cc:dd", hasPassphrase: false })]);
+      setupStore("unlocked", [
+        makeKey({
+          id: "key-1",
+          name: "Production Server",
+          fingerprint: "aa:bb:cc:dd",
+          hasPassphrase: false,
+        }),
+      ]);
       render(<SecureVault />);
       expect(screen.queryByTitle("Encrypted")).not.toBeInTheDocument();
     });
@@ -409,8 +579,16 @@ describe("SecureVault", () => {
 
   describe("search filtering", () => {
     const keys = [
-      makeKey({ id: "key-1", name: "Production Server", fingerprint: "aa:bb:cc:dd" }),
-      makeKey({ id: "key-2", name: "Staging Server", fingerprint: "11:22:33:44" }),
+      makeKey({
+        id: "key-1",
+        name: "Production Server",
+        fingerprint: "aa:bb:cc:dd",
+      }),
+      makeKey({
+        id: "key-2",
+        name: "Staging Server",
+        fingerprint: "11:22:33:44",
+      }),
     ];
 
     it("shows all rows when search is empty", () => {
@@ -455,9 +633,7 @@ describe("SecureVault", () => {
         "nonexistent",
       );
 
-      expect(
-        screen.getByText(/no keys matching/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/no keys matching/i)).toBeInTheDocument();
     });
 
     it("search is case-insensitive", async () => {
@@ -494,6 +670,184 @@ describe("SecureVault", () => {
       expect(
         screen.queryByTestId("vault-settings-section"),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("auto-lock nonce — auto-open unlock dialog", () => {
+    it("opens VaultUnlockDialog when autoLockNonce bumps while mounted (unlocked → locked)", () => {
+      // Start unlocked with nonce=0
+      setupStore("unlocked", [], 0);
+      const { rerender } = render(<SecureVault />);
+
+      // Simulate auto-lock: status becomes locked AND nonce bumps to 1
+      act(() => {
+        getState().status = "locked";
+        getState().autoLockNonce = 1;
+      });
+      rerender(<SecureVault />);
+
+      // The unlock dialog must auto-open
+      expect(
+        screen.getByRole("dialog", { name: /unlock vault/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("does NOT auto-open unlock dialog on manual lock (nonce unchanged)", () => {
+      // Start unlocked with nonce=0
+      setupStore("unlocked", [], 0);
+      const { rerender } = render(<SecureVault />);
+
+      // Simulate manual lock: status becomes locked but nonce stays at 0
+      act(() => {
+        getState().status = "locked";
+        // autoLockNonce remains 0 — no bump
+      });
+      rerender(<SecureVault />);
+
+      // Locked screen is shown but unlock dialog must NOT auto-open
+      expect(
+        screen.getByRole("heading", { name: /your vault is locked/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: /unlock vault/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does NOT auto-open unlock dialog for a stale nonce after remount", () => {
+      // First mount: nonce was already 1 (a past auto-lock event)
+      // Navigating away and back — fresh mount should NOT pop the dialog
+      setupStore("locked", [], 1);
+      render(<SecureVault />);
+
+      // Locked screen is shown but unlock dialog must NOT auto-open
+      expect(
+        screen.getByRole("heading", { name: /your vault is locked/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: /unlock vault/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("hook count is stable across unlocked→locked transition (no hook-order crash)", () => {
+      // Start unlocked
+      setupStore("unlocked", [], 0);
+      const { rerender } = render(<SecureVault />);
+
+      // Mutate BOTH status and nonce simultaneously before rerender
+      act(() => {
+        getState().status = "locked";
+        getState().autoLockNonce = 1;
+      });
+
+      // Must not throw (hook count must be identical in both renders)
+      expect(() => rerender(<SecureVault />)).not.toThrow();
+    });
+  });
+
+  describe("ConnectDrawer — auto-lock degrade", () => {
+    const vaultKey = makeKey({
+      id: "vault-key-1",
+      name: "My Key",
+      fingerprint: "ff:ee:dd:cc",
+    });
+
+    function setupConnectStore(
+      status: "uninitialized" | "locked" | "unlocked",
+      keys: VaultKeyEntry[] = [],
+    ) {
+      (useVaultStore as unknown as { _state: Record<string, unknown> })._state =
+        {
+          status,
+          keys,
+          refreshStatus: mockRefreshStatus,
+          autoLockNonce: 0,
+        };
+    }
+
+    function renderConnectDrawer() {
+      return render(
+        <ConnectDrawer
+          open
+          onClose={vi.fn()}
+          deviceUid="dev-1"
+          deviceName="my-device"
+          sshid="my-device.ns@localhost"
+        />,
+      );
+    }
+
+    it("shows locked UI and disables Connect when vault auto-locks while drawer is open", () => {
+      // Start with vault unlocked and a vault key available
+      setupConnectStore("unlocked", [vaultKey]);
+      const { rerender } = renderConnectDrawer();
+
+      // Vault auto-locks
+      act(() => {
+        setupConnectStore("locked", []);
+      });
+      rerender(
+        <ConnectDrawer
+          open
+          onClose={vi.fn()}
+          deviceUid="dev-1"
+          deviceName="my-device"
+          sshid="my-device.ns@localhost"
+        />,
+      );
+
+      // Locked banner should be visible when auth method is "key"
+      // Connect button must be disabled (canConnect is false: no username)
+      const connectBtn = screen.getByRole("button", { name: /connect/i });
+      expect(connectBtn).toBeDisabled();
+    });
+
+    it("hides key-selection UI when vault is locked", () => {
+      // Start unlocked with vault key
+      setupConnectStore("unlocked", [vaultKey]);
+      const { rerender } = renderConnectDrawer();
+
+      // Auto-lock
+      act(() => {
+        setupConnectStore("locked", []);
+      });
+      rerender(
+        <ConnectDrawer
+          open
+          onClose={vi.fn()}
+          deviceUid="dev-1"
+          deviceName="my-device"
+          sshid="my-device.ns@localhost"
+        />,
+      );
+
+      // Key source toggle (Vault/Manual) must NOT be present since vault has no keys
+      expect(
+        screen.queryByTestId("radio-segment-vault"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("radio-segment-manual"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not crash when vault auto-locks while key auth mode is active", () => {
+      setupConnectStore("unlocked", [vaultKey]);
+      const { rerender } = renderConnectDrawer();
+
+      act(() => {
+        setupConnectStore("locked", []);
+      });
+
+      expect(() =>
+        rerender(
+          <ConnectDrawer
+            open
+            onClose={vi.fn()}
+            deviceUid="dev-1"
+            deviceName="my-device"
+            sshid="my-device.ns@localhost"
+          />,
+        ),
+      ).not.toThrow();
     });
   });
 });

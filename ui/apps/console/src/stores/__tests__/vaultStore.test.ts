@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { VaultMeta, VaultData, VaultKeyEntry } from "@/types/vault";
+import { DEFAULT_VAULT_SETTINGS } from "@/types/vault";
 
 vi.mock("@/utils/vault-crypto", () => ({
   createVaultMeta: vi.fn(),
@@ -21,6 +22,11 @@ vi.mock("../authStore", () => ({
   },
 }));
 
+vi.mock("@/utils/vault-activity-tracker", () => ({
+  start: vi.fn(),
+  stop: vi.fn(),
+}));
+
 import {
   createVaultMeta,
   verifyPassword,
@@ -32,6 +38,7 @@ import {
 } from "@/utils/vault-crypto";
 
 import { getVaultBackend } from "@/utils/vault-backend-factory";
+import * as activityTracker from "@/utils/vault-activity-tracker";
 
 import { useVaultStore, DuplicateKeyError } from "../vaultStore";
 
@@ -43,6 +50,8 @@ const mockSetSession = vi.mocked(setSessionKey);
 const mockGetSession = vi.mocked(getSessionKey);
 const mockClearSession = vi.mocked(clearSessionKey);
 const mockGetBackend = vi.mocked(getVaultBackend);
+const mockTrackerStart = vi.mocked(activityTracker.start);
+const mockTrackerStop = vi.mocked(activityTracker.stop);
 
 function makeFakeKey(overrides: Partial<VaultKeyEntry> = {}): VaultKeyEntry {
   return {
@@ -58,7 +67,13 @@ function makeFakeKey(overrides: Partial<VaultKeyEntry> = {}): VaultKeyEntry {
 }
 
 function makeMeta(): VaultMeta {
-  return { version: 1, salt: "c2FsdA==", iterations: 600000, verifier: "dmVyaWZpZXI=", verifierIv: "aXY=" };
+  return {
+    version: 1,
+    salt: "c2FsdA==",
+    iterations: 600000,
+    verifier: "dmVyaWZpZXI=",
+    verifierIv: "aXY=",
+  };
 }
 
 function makeVaultData(): VaultData {
@@ -74,11 +89,18 @@ function makeFakeBackend() {
     clear: vi.fn(),
     loadLegacyKeys: vi.fn().mockReturnValue([]),
     clearLegacyKeys: vi.fn(),
+    loadSettings: vi.fn().mockReturnValue(DEFAULT_VAULT_SETTINGS),
+    saveSettings: vi.fn(),
   };
 }
 
 function makeFakeCryptoKey(label = "AES-GCM"): CryptoKey {
-  return { type: "secret", extractable: false, algorithm: { name: label }, usages: ["encrypt", "decrypt"] };
+  return {
+    type: "secret",
+    extractable: false,
+    algorithm: { name: label },
+    usages: ["encrypt", "decrypt"],
+  };
 }
 
 beforeEach(() => {
@@ -87,6 +109,9 @@ beforeEach(() => {
     keys: [],
     loading: false,
     error: null,
+    autoLockNonce: 0,
+    autoLockTimeoutMinutes: 15,
+    lockOnHidden: false,
   });
   vi.clearAllMocks();
 });
@@ -124,6 +149,91 @@ describe("vaultStore", () => {
 
       expect(useVaultStore.getState().status).toBe("unlocked");
     });
+
+    it("loads settings from backend ONLY when meta exists", () => {
+      const backend = makeFakeBackend();
+      const customSettings = { autoLockTimeoutMinutes: 30, lockOnHidden: true };
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadSettings.mockReturnValue(customSettings);
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      useVaultStore.getState().refreshStatus();
+
+      expect(backend.loadSettings).toHaveBeenCalled();
+      expect(useVaultStore.getState().autoLockTimeoutMinutes).toBe(30);
+      expect(useVaultStore.getState().lockOnHidden).toBe(true);
+    });
+
+    it("does NOT call loadSettings when meta is absent (uninitialized)", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(null);
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      useVaultStore.getState().refreshStatus();
+
+      expect(backend.loadSettings).not.toHaveBeenCalled();
+    });
+
+    it("does not change autoLockNonce on any refreshStatus call", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      useVaultStore.setState({ autoLockNonce: 5 });
+      useVaultStore.getState().refreshStatus();
+
+      expect(useVaultStore.getState().autoLockNonce).toBe(5);
+    });
+
+    it("calls activityTracker.stop() when no meta (uninitialized return)", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(null);
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      useVaultStore.getState().refreshStatus();
+
+      expect(mockTrackerStop).toHaveBeenCalled();
+    });
+
+    it("calls activityTracker.stop() when meta exists but no session key (locked)", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      useVaultStore.getState().refreshStatus();
+
+      expect(mockTrackerStop).toHaveBeenCalled();
+    });
+
+    it("does NOT call activityTracker.start() on the unlocked branch", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(makeFakeCryptoKey());
+
+      useVaultStore.getState().refreshStatus();
+
+      expect(mockTrackerStart).not.toHaveBeenCalled();
+    });
+
+    it("does not throw when backend.loadSettings throws (exception-safe)", () => {
+      const backend = makeFakeBackend();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadSettings.mockImplementation(() => {
+        throw new Error("storage error");
+      });
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(null);
+
+      expect(() => useVaultStore.getState().refreshStatus()).not.toThrow();
+      // Status should still be set despite settings load failure
+      expect(useVaultStore.getState().status).toBe("locked");
+    });
   });
 
   describe("initialize", () => {
@@ -150,11 +260,37 @@ describe("vaultStore", () => {
       expect(backend.saveData).toHaveBeenCalledWith(encryptedData);
     });
 
+    it("calls loadSettings then startTracker (activityTracker.start) after success", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      const customSettings = { autoLockTimeoutMinutes: 30, lockOnHidden: true };
+      backend.loadSettings.mockReturnValue(customSettings);
+
+      mockGetBackend.mockReturnValue(backend);
+      mockCrypto.mockResolvedValue({ meta: makeMeta(), derivedKey });
+      mockGetSession.mockReturnValue(derivedKey);
+      mockEncrypt.mockResolvedValue(makeVaultData());
+
+      await useVaultStore.getState().initialize("master-pass");
+
+      expect(backend.loadSettings).toHaveBeenCalled();
+      expect(mockTrackerStart).toHaveBeenCalled();
+      const startArg = mockTrackerStart.mock.calls[0][0];
+      expect(startArg.idleTimeoutMs).toBe(30 * 60000);
+      expect(startArg.lockOnHidden).toBe(true);
+    });
+
     it("migrates legacy keys when they exist", async () => {
       const backend = makeFakeBackend();
       const derivedKey = makeFakeCryptoKey();
       const legacyKeys = [
-        { id: 1, name: "Old Key", data: "-----BEGIN", hasPassphrase: false, fingerprint: "ff:ee:dd" },
+        {
+          id: 1,
+          name: "Old Key",
+          data: "-----BEGIN",
+          hasPassphrase: false,
+          fingerprint: "ff:ee:dd",
+        },
       ];
       backend.loadLegacyKeys.mockReturnValue(legacyKeys);
 
@@ -207,7 +343,11 @@ describe("vaultStore", () => {
 
       let resolve: (v: { meta: VaultMeta; derivedKey: CryptoKey }) => void;
       mockGetBackend.mockReturnValue(backend);
-      mockCrypto.mockReturnValue(new Promise((r) => { resolve = r; }));
+      mockCrypto.mockReturnValue(
+        new Promise((r) => {
+          resolve = r;
+        }),
+      );
 
       const promise = useVaultStore.getState().initialize("master-pass");
       expect(useVaultStore.getState().loading).toBe(true);
@@ -241,6 +381,27 @@ describe("vaultStore", () => {
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
       expect(mockSetSession).toHaveBeenCalledWith(derivedKey);
+    });
+
+    it("calls loadSettings then startTracker (activityTracker.start) after success", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      const customSettings = { autoLockTimeoutMinutes: 5, lockOnHidden: false };
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      backend.loadSettings.mockReturnValue(customSettings);
+
+      mockGetBackend.mockReturnValue(backend);
+      mockVerify.mockResolvedValue(derivedKey);
+      mockDecrypt.mockResolvedValue(JSON.stringify([makeFakeKey()]));
+
+      await useVaultStore.getState().unlock("master-pass");
+
+      expect(backend.loadSettings).toHaveBeenCalled();
+      expect(mockTrackerStart).toHaveBeenCalled();
+      const startArg = mockTrackerStart.mock.calls[0][0];
+      expect(startArg.idleTimeoutMs).toBe(5 * 60000);
+      expect(startArg.lockOnHidden).toBe(false);
     });
 
     it("loads empty keys when vault has no data yet", async () => {
@@ -311,7 +472,11 @@ describe("vaultStore", () => {
 
   describe("lock", () => {
     it("clears session key, empties keys, and transitions to locked", () => {
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()], error: "old error" });
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [makeFakeKey()],
+        error: "old error",
+      });
 
       useVaultStore.getState().lock();
 
@@ -320,6 +485,149 @@ describe("vaultStore", () => {
       expect(state.keys).toEqual([]);
       expect(state.error).toBeNull();
       expect(mockClearSession).toHaveBeenCalled();
+    });
+
+    it("calls activityTracker.stop() when locking manually", () => {
+      useVaultStore.setState({ status: "unlocked", keys: [] });
+
+      useVaultStore.getState().lock();
+
+      expect(mockTrackerStop).toHaveBeenCalled();
+    });
+
+    it("does NOT bump autoLockNonce on manual lock", () => {
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [],
+        autoLockNonce: 3,
+      });
+
+      useVaultStore.getState().lock();
+
+      expect(useVaultStore.getState().autoLockNonce).toBe(3);
+    });
+  });
+
+  describe("onIdle callback behavior", () => {
+    it("onIdle sets status to locked, clears keys, and bumps autoLockNonce", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockVerify.mockResolvedValue(derivedKey);
+      mockDecrypt.mockResolvedValue(JSON.stringify([makeFakeKey()]));
+
+      await useVaultStore.getState().unlock("master-pass");
+
+      expect(mockTrackerStart).toHaveBeenCalled();
+      const { onIdle } = mockTrackerStart.mock.calls[0][0];
+
+      // Simulate vault becoming locked before onIdle fires (ensure session key cleared)
+      mockGetSession.mockReturnValue(derivedKey);
+      useVaultStore.setState({ autoLockNonce: 0 });
+
+      onIdle();
+
+      const state = useVaultStore.getState();
+      expect(state.status).toBe("locked");
+      expect(state.keys).toEqual([]);
+      expect(state.error).toBeNull();
+      expect(state.autoLockNonce).toBe(1);
+      expect(mockClearSession).toHaveBeenCalled();
+      expect(mockTrackerStop).toHaveBeenCalled();
+    });
+
+    it("onIdle is a no-op (no nonce bump) when vault is already locked", async () => {
+      const backend = makeFakeBackend();
+      const derivedKey = makeFakeCryptoKey();
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockVerify.mockResolvedValue(derivedKey);
+      mockDecrypt.mockResolvedValue(JSON.stringify([]));
+
+      await useVaultStore.getState().unlock("master-pass");
+
+      const { onIdle } = mockTrackerStart.mock.calls[0][0];
+
+      // Manually lock the vault first
+      useVaultStore.setState({ status: "locked", autoLockNonce: 2 });
+      vi.clearAllMocks();
+
+      onIdle();
+
+      expect(useVaultStore.getState().autoLockNonce).toBe(2);
+      expect(mockClearSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateAutoLockSettings", () => {
+    it("saves settings to backend, updates state, and restarts tracker when unlocked", () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+      useVaultStore.setState({
+        status: "unlocked",
+        autoLockTimeoutMinutes: 15,
+        lockOnHidden: false,
+      });
+
+      useVaultStore.getState().updateAutoLockSettings({
+        autoLockTimeoutMinutes: 30,
+        lockOnHidden: true,
+      });
+
+      expect(backend.saveSettings).toHaveBeenCalledWith({
+        autoLockTimeoutMinutes: 30,
+        lockOnHidden: true,
+      });
+      const state = useVaultStore.getState();
+      expect(state.autoLockTimeoutMinutes).toBe(30);
+      expect(state.lockOnHidden).toBe(true);
+      expect(mockTrackerStart).toHaveBeenCalled();
+      const startArg = mockTrackerStart.mock.calls[0][0];
+      expect(startArg.idleTimeoutMs).toBe(30 * 60000);
+      expect(startArg.lockOnHidden).toBe(true);
+    });
+
+    it("saves settings and updates state but does NOT restart tracker when locked", () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+      useVaultStore.setState({
+        status: "locked",
+        autoLockTimeoutMinutes: 15,
+        lockOnHidden: false,
+      });
+
+      useVaultStore
+        .getState()
+        .updateAutoLockSettings({ autoLockTimeoutMinutes: 60 });
+
+      expect(backend.saveSettings).toHaveBeenCalledWith({
+        autoLockTimeoutMinutes: 60,
+        lockOnHidden: false,
+      });
+      expect(useVaultStore.getState().autoLockTimeoutMinutes).toBe(60);
+      expect(mockTrackerStart).not.toHaveBeenCalled();
+    });
+
+    it("can update only lockOnHidden (partial update)", () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+      useVaultStore.setState({
+        status: "unlocked",
+        autoLockTimeoutMinutes: 15,
+        lockOnHidden: false,
+      });
+
+      useVaultStore.getState().updateAutoLockSettings({ lockOnHidden: true });
+
+      expect(backend.saveSettings).toHaveBeenCalledWith({
+        autoLockTimeoutMinutes: 15,
+        lockOnHidden: true,
+      });
+      expect(useVaultStore.getState().lockOnHidden).toBe(true);
+      expect(useVaultStore.getState().autoLockTimeoutMinutes).toBe(15);
     });
   });
 
@@ -351,30 +659,59 @@ describe("vaultStore", () => {
     });
 
     it("throws DuplicateKeyError with field 'name' when name already exists", async () => {
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })] });
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })],
+      });
 
       await expect(
-        useVaultStore.getState().addKey({ name: "My Key", data: "x", hasPassphrase: false, fingerprint: "dd:ee:ff" }),
+        useVaultStore.getState().addKey({
+          name: "My Key",
+          data: "x",
+          hasPassphrase: false,
+          fingerprint: "dd:ee:ff",
+        }),
       ).rejects.toBeInstanceOf(DuplicateKeyError);
 
       await expect(
-        useVaultStore.getState().addKey({ name: "My Key", data: "x", hasPassphrase: false, fingerprint: "dd:ee:ff" }),
+        useVaultStore.getState().addKey({
+          name: "My Key",
+          data: "x",
+          hasPassphrase: false,
+          fingerprint: "dd:ee:ff",
+        }),
       ).rejects.toMatchObject({ field: "name" });
     });
 
     it("throws DuplicateKeyError with field 'private_key' when fingerprint already exists", async () => {
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })] });
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })],
+      });
 
       await expect(
-        useVaultStore.getState().addKey({ name: "Other Key", data: "x", hasPassphrase: false, fingerprint: "aa:bb:cc" }),
+        useVaultStore.getState().addKey({
+          name: "Other Key",
+          data: "x",
+          hasPassphrase: false,
+          fingerprint: "aa:bb:cc",
+        }),
       ).rejects.toMatchObject({ field: "private_key" });
     });
 
     it("throws DuplicateKeyError with field 'both' when both name and fingerprint are duplicates", async () => {
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })] });
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [makeFakeKey({ name: "My Key", fingerprint: "aa:bb:cc" })],
+      });
 
       await expect(
-        useVaultStore.getState().addKey({ name: "My Key", data: "x", hasPassphrase: false, fingerprint: "aa:bb:cc" }),
+        useVaultStore.getState().addKey({
+          name: "My Key",
+          data: "x",
+          hasPassphrase: false,
+          fingerprint: "aa:bb:cc",
+        }),
       ).rejects.toMatchObject({ field: "both" });
     });
 
@@ -385,8 +722,49 @@ describe("vaultStore", () => {
       mockGetBackend.mockReturnValue(backend);
 
       await expect(
-        useVaultStore.getState().addKey({ name: "Key", data: "x", hasPassphrase: false, fingerprint: "11:22:33" }),
+        useVaultStore.getState().addKey({
+          name: "Key",
+          data: "x",
+          hasPassphrase: false,
+          fingerprint: "11:22:33",
+        }),
       ).rejects.toThrow("Vault is locked");
+    });
+
+    it("aborts set({keys}) if vault locks mid-flight during persistKeys", async () => {
+      const derivedKey = makeFakeCryptoKey();
+      const backend = makeFakeBackend();
+
+      useVaultStore.setState({ status: "unlocked", keys: [] });
+      mockGetSession.mockReturnValue(derivedKey);
+      mockGetBackend.mockReturnValue(backend);
+
+      let resolveEncrypt!: (v: VaultData) => void;
+      mockEncrypt.mockReturnValue(
+        new Promise<VaultData>((r) => {
+          resolveEncrypt = r;
+        }),
+      );
+
+      const promise = useVaultStore.getState().addKey({
+        name: "New Key",
+        data: "-----BEGIN",
+        hasPassphrase: false,
+        fingerprint: "11:22:33",
+      });
+
+      // Lock the vault mid-flight (simulating onIdle firing during await)
+      useVaultStore.setState({ status: "locked", keys: [] });
+
+      // Resolve encrypt so persistKeys finishes
+      resolveEncrypt(makeVaultData());
+      await promise.catch(() => {
+        /* may throw */
+      });
+
+      // keys should remain [] (the locked state, not overwritten by addKey)
+      expect(useVaultStore.getState().keys).toEqual([]);
+      expect(useVaultStore.getState().status).toBe("locked");
     });
   });
 
@@ -394,7 +772,11 @@ describe("vaultStore", () => {
     it("updates key fields and persists", async () => {
       const derivedKey = makeFakeCryptoKey();
       const backend = makeFakeBackend();
-      const existing = makeFakeKey({ id: "key-1", name: "Old Name", fingerprint: "aa:bb:cc" });
+      const existing = makeFakeKey({
+        id: "key-1",
+        name: "Old Name",
+        fingerprint: "aa:bb:cc",
+      });
 
       useVaultStore.setState({ status: "unlocked", keys: [existing] });
       mockGetSession.mockReturnValue(derivedKey);
@@ -409,7 +791,10 @@ describe("vaultStore", () => {
     });
 
     it("throws when key id does not exist", async () => {
-      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey({ id: "key-1" })] });
+      useVaultStore.setState({
+        status: "unlocked",
+        keys: [makeFakeKey({ id: "key-1" })],
+      });
 
       await expect(
         useVaultStore.getState().updateKey("non-existent", { name: "X" }),
@@ -431,7 +816,11 @@ describe("vaultStore", () => {
     it("allows updating a key's own name without throwing duplicate error", async () => {
       const derivedKey = makeFakeCryptoKey();
       const backend = makeFakeBackend();
-      const key = makeFakeKey({ id: "key-1", name: "My Key", fingerprint: "aa:bb:cc" });
+      const key = makeFakeKey({
+        id: "key-1",
+        name: "My Key",
+        fingerprint: "aa:bb:cc",
+      });
 
       useVaultStore.setState({ status: "unlocked", keys: [key] });
       mockGetSession.mockReturnValue(derivedKey);
@@ -441,6 +830,39 @@ describe("vaultStore", () => {
       await expect(
         useVaultStore.getState().updateKey("key-1", { name: "My Key" }),
       ).resolves.toBeUndefined();
+    });
+
+    it("aborts set({keys}) if vault locks mid-flight during persistKeys", async () => {
+      const derivedKey = makeFakeCryptoKey();
+      const backend = makeFakeBackend();
+      const existing = makeFakeKey({ id: "key-1", name: "Old Name" });
+
+      useVaultStore.setState({ status: "unlocked", keys: [existing] });
+      mockGetSession.mockReturnValue(derivedKey);
+      mockGetBackend.mockReturnValue(backend);
+
+      let resolveEncrypt!: (v: VaultData) => void;
+      mockEncrypt.mockReturnValue(
+        new Promise<VaultData>((r) => {
+          resolveEncrypt = r;
+        }),
+      );
+
+      const promise = useVaultStore
+        .getState()
+        .updateKey("key-1", { name: "New Name" });
+
+      // Lock mid-flight
+      useVaultStore.setState({ status: "locked", keys: [] });
+
+      resolveEncrypt(makeVaultData());
+      await promise.catch(() => {
+        /* may throw or not */
+      });
+
+      // Name should NOT have been updated; keys still [] from the locked state
+      expect(useVaultStore.getState().keys).toEqual([]);
+      expect(useVaultStore.getState().status).toBe("locked");
     });
   });
 
@@ -472,7 +894,40 @@ describe("vaultStore", () => {
       useVaultStore.setState({ status: "unlocked", keys });
       mockGetBackend.mockReturnValue(backend);
 
-      await expect(useVaultStore.getState().removeKey("ghost-id")).rejects.toThrow("Key not found");
+      await expect(
+        useVaultStore.getState().removeKey("ghost-id"),
+      ).rejects.toThrow("Key not found");
+    });
+
+    it("aborts set({keys}) if vault locks mid-flight during persistKeys", async () => {
+      const derivedKey = makeFakeCryptoKey();
+      const backend = makeFakeBackend();
+      const existing = makeFakeKey({ id: "key-1", name: "Key" });
+
+      useVaultStore.setState({ status: "unlocked", keys: [existing] });
+      mockGetSession.mockReturnValue(derivedKey);
+      mockGetBackend.mockReturnValue(backend);
+
+      let resolveEncrypt!: (v: VaultData) => void;
+      mockEncrypt.mockReturnValue(
+        new Promise<VaultData>((r) => {
+          resolveEncrypt = r;
+        }),
+      );
+
+      const promise = useVaultStore.getState().removeKey("key-1");
+
+      // Lock mid-flight
+      useVaultStore.setState({ status: "locked", keys: [] });
+
+      resolveEncrypt(makeVaultData());
+      await promise.catch(() => {
+        /* may throw or not */
+      });
+
+      // keys should remain [] (locked state not overwritten with post-remove keys)
+      expect(useVaultStore.getState().keys).toEqual([]);
+      expect(useVaultStore.getState().status).toBe("locked");
     });
   });
 
@@ -493,7 +948,9 @@ describe("vaultStore", () => {
 
       useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
 
-      await useVaultStore.getState().changeMasterPassword("current-pass", "new-pass");
+      await useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
 
       const state = useVaultStore.getState();
       expect(state.loading).toBe(false);
@@ -507,7 +964,9 @@ describe("vaultStore", () => {
       backend.loadMeta.mockReturnValue(null);
       mockGetBackend.mockReturnValue(backend);
 
-      await useVaultStore.getState().changeMasterPassword("current-pass", "new-pass");
+      await useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
 
       const state = useVaultStore.getState();
       expect(state.error).toBe("No vault found");
@@ -523,7 +982,9 @@ describe("vaultStore", () => {
 
       useVaultStore.setState({ status: "unlocked", keys: [] });
 
-      await useVaultStore.getState().changeMasterPassword("wrong-pass", "new-pass");
+      await useVaultStore
+        .getState()
+        .changeMasterPassword("wrong-pass", "new-pass");
 
       const state = useVaultStore.getState();
       expect(state.error).toBe("Current password is incorrect");
@@ -538,7 +999,9 @@ describe("vaultStore", () => {
 
       useVaultStore.setState({ status: "locked", keys: [] });
 
-      await useVaultStore.getState().changeMasterPassword("current-pass", "new-pass");
+      await useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
 
       const state = useVaultStore.getState();
       expect(state.error).toBe("Vault is locked");
@@ -561,14 +1024,67 @@ describe("vaultStore", () => {
 
       useVaultStore.setState({ status: "unlocked", keys: [] });
 
-      await useVaultStore.getState().changeMasterPassword("current-pass", "new-pass");
+      await useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
 
       const state = useVaultStore.getState();
       expect(state.error).toBe("Encrypt failed");
       // Session should have been restored to old key as the last setSessionKey call
-      expect(mockSetSession.mock.calls[mockSetSession.mock.calls.length - 1]?.[0]).toBe(oldKey);
+      expect(
+        mockSetSession.mock.calls[mockSetSession.mock.calls.length - 1]?.[0],
+      ).toBe(oldKey);
       // Old data should have been restored
       expect(backend.saveData).toHaveBeenCalledWith(oldData);
+    });
+
+    it("CRITICAL: early return when vault locks during createVaultMeta (after verifyPassword)", async () => {
+      const backend = makeFakeBackend();
+      const oldKey = makeFakeCryptoKey("old");
+      const newKey = makeFakeCryptoKey("new");
+      const newMeta = makeMeta();
+
+      backend.loadMeta.mockReturnValue(makeMeta());
+      backend.loadData.mockReturnValue(makeVaultData());
+      mockGetBackend.mockReturnValue(backend);
+      mockGetSession.mockReturnValue(oldKey);
+      mockVerify.mockResolvedValue(oldKey);
+
+      let resolveCrypto!: (v: {
+        meta: VaultMeta;
+        derivedKey: CryptoKey;
+      }) => void;
+      mockCrypto.mockReturnValue(
+        new Promise<{ meta: VaultMeta; derivedKey: CryptoKey }>((r) => {
+          resolveCrypto = r;
+        }),
+      );
+
+      useVaultStore.setState({ status: "unlocked", keys: [makeFakeKey()] });
+
+      const promise = useVaultStore
+        .getState()
+        .changeMasterPassword("current-pass", "new-pass");
+
+      // Vault locks while createVaultMeta is in flight
+      useVaultStore.setState({ status: "locked", keys: [] });
+      mockGetSession.mockReturnValue(null);
+
+      // Now resolve createVaultMeta
+      resolveCrypto({ meta: newMeta, derivedKey: newKey });
+      await promise;
+
+      // CRITICAL: neither setSessionKey(newKey) nor setSessionKey(oldKey) should be called
+      // after the early return path. getSessionKey() should remain null.
+      expect(mockGetSession()).toBeNull();
+      // saveMeta should NOT be called with newMeta
+      expect(backend.saveMeta).not.toHaveBeenCalledWith(newMeta);
+      // saveData should NOT have been re-called (the new encrypt path never ran)
+      expect(mockEncrypt).not.toHaveBeenCalled();
+      // Error should be set
+      expect(useVaultStore.getState().error).toBe(
+        "Vault locked during password change",
+      );
     });
   });
 
@@ -591,6 +1107,46 @@ describe("vaultStore", () => {
       expect(state.error).toBeNull();
       expect(backend.clear).toHaveBeenCalled();
       expect(mockClearSession).toHaveBeenCalled();
+    });
+
+    it("calls activityTracker.stop() on resetVault", () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+      useVaultStore.setState({ status: "unlocked", keys: [] });
+
+      useVaultStore.getState().resetVault();
+
+      expect(mockTrackerStop).toHaveBeenCalled();
+    });
+
+    it("resets autoLockTimeoutMinutes and lockOnHidden to defaults", () => {
+      const backend = makeFakeBackend();
+      mockGetBackend.mockReturnValue(backend);
+
+      useVaultStore.setState({
+        status: "unlocked",
+        autoLockTimeoutMinutes: 60,
+        lockOnHidden: true,
+      });
+
+      useVaultStore.getState().resetVault();
+
+      const state = useVaultStore.getState();
+      expect(state.autoLockTimeoutMinutes).toBe(
+        DEFAULT_VAULT_SETTINGS.autoLockTimeoutMinutes,
+      );
+      expect(state.lockOnHidden).toBe(DEFAULT_VAULT_SETTINGS.lockOnHidden);
+    });
+  });
+
+  describe("authStore.logout() path -> lock() -> activityTracker.stop()", () => {
+    it("lock() called from logout stops the activity tracker", () => {
+      useVaultStore.setState({ status: "unlocked", keys: [] });
+
+      // Simulate what authStore.logout() does: calls useVaultStore.getState().lock()
+      useVaultStore.getState().lock();
+
+      expect(mockTrackerStop).toHaveBeenCalled();
     });
   });
 

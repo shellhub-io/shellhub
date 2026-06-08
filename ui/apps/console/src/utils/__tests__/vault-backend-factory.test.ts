@@ -26,10 +26,15 @@ describe("getVaultBackend", () => {
     expect(typeof backend.clear).toBe("function");
     expect(typeof backend.loadLegacyKeys).toBe("function");
     expect(typeof backend.clearLegacyKeys).toBe("function");
+    expect(typeof backend.loadSettings).toBe("function");
+    expect(typeof backend.saveSettings).toBe("function");
   });
 
   it("scopes storage keys when scope is provided", () => {
-    const backend = getVaultBackend({ user: "testuser", tenant: "test-tenant" });
+    const backend = getVaultBackend({
+      user: "testuser",
+      tenant: "test-tenant",
+    });
     const meta = {
       version: 1 as const,
       salt: "c2FsdA==",
@@ -38,7 +43,9 @@ describe("getVaultBackend", () => {
       verifierIv: "aXY=",
     };
     backend.saveMeta(meta);
-    expect(localStorage.getItem("shellhub-vault-meta:testuser:test-tenant")).toBe(JSON.stringify(meta));
+    expect(
+      localStorage.getItem("shellhub-vault-meta:testuser:test-tenant"),
+    ).toBe(JSON.stringify(meta));
     expect(localStorage.getItem("shellhub-vault-meta")).toBeNull();
   });
 
@@ -52,6 +59,8 @@ describe("getVaultBackend", () => {
       verifierIv: "aXY=",
     };
     backend.saveMeta(meta);
-    expect(localStorage.getItem("shellhub-vault-meta")).toBe(JSON.stringify(meta));
+    expect(localStorage.getItem("shellhub-vault-meta")).toBe(
+      JSON.stringify(meta),
+    );
   });
 });
