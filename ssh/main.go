@@ -30,9 +30,16 @@ type Envs struct {
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
-	AllowPublickeyAccessBelow060 bool   `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-	WebEndpoints                 bool   `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
-	WebEndpointsDomain           string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
+	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	WebEndpoints                 bool `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	// WebEndpointsDomain is the dedicated subdomain for web endpoints. When
+	// empty, Domain is used as the fallback. The env key must stay
+	// SHELLHUB_WEB_ENDPOINTS_DOMAIN (not SSH_SHELLHUB_WEB_ENDPOINTS_DOMAIN)
+	// because the prefix "SSH_" is stripped by envs.ParseWithPrefix.
+	WebEndpointsDomain string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN,default=$SHELLHUB_DOMAIN"`
+	// Domain is the base domain for this ShellHub instance. The env key must
+	// stay SHELLHUB_DOMAIN (not SSH_SHELLHUB_DOMAIN) for the same reason.
+	Domain string `env:"SHELLHUB_DOMAIN"`
 }
 
 func main() {
@@ -59,6 +66,7 @@ func main() {
 	h := http.NewServer(d, cli, &http.Config{
 		WebEndpoints:       env.WebEndpoints,
 		WebEndpointsDomain: env.WebEndpointsDomain,
+		Domain:             env.Domain,
 	})
 
 	router := h.Router

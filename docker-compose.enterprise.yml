@@ -57,6 +57,7 @@ services:
   ssh:
     image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
     environment:
+      - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
       - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
       - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}
 
