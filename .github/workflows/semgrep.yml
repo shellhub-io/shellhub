@@ -34,9 +34,8 @@ jobs:
           # Full history required for --baseline-ref diff
           fetch-depth: 0
 
-      - name: Fetch master for baseline comparison
-        if: ${{ github.event_name == 'pull_request' }}
-        run: git fetch origin master
+      - name: Mark workspace safe for git (semgrep container runs as different user)
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Run Semgrep (PR — baseline diff)
         if: ${{ github.event_name == 'pull_request' }}
@@ -45,7 +44,7 @@ jobs:
             --config p/golang \
             --config p/dockerfile \
             --config p/ci \
-            --baseline-ref origin/master \
+            --baseline-ref ${{ github.event.pull_request.base.sha }} \
             --error \
             --sarif \
             --output semgrep.sarif \

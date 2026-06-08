@@ -59,12 +59,15 @@ jobs:
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
+      - name: Build govulncheck wrapper
+        run: |
+          ( cd "$GITHUB_WORKSPACE/.github" && go build -o "$RUNNER_TEMP/govulncheck-filter" ./govulncheck/cmd )
+
       - name: Run govulncheck
         run: |
           cd "${{ matrix.module }}"
           govulncheck -json ${{ matrix.extra_args }} ./... | \
-            go run "$GITHUB_WORKSPACE/.github/govulncheck/cmd/" \
-              "$GITHUB_WORKSPACE/.govulncheck-allow.txt"
+            "$RUNNER_TEMP/govulncheck-filter" "$GITHUB_WORKSPACE/.govulncheck-allow.txt"
 
   trivy-image:
     name: trivy-image (${{ matrix.image }})
@@ -94,7 +97,7 @@ jobs:
           load: true
 
       - name: Scan ${{ matrix.image }} image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.31.0
         with:
           image-ref: shellhub/${{ matrix.image }}:scan
           format: table
@@ -105,7 +108,7 @@ jobs:
 
       - name: Scan ${{ matrix.image }} image with Trivy (SARIF)
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.31.0
         with:
           image-ref: shellhub/${{ matrix.image }}:scan
           format: sarif
