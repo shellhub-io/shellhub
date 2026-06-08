@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -135,7 +134,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelParsePath))
 	}
 
-	req.Host = strings.Join([]string{address, h.Config.WebEndpointsDomain}, ".")
+	req.Host = h.Config.webEndpointHost(address)
 
 	// NOTE: endpoint.TLS.Domain doubles as a Host-override hint and (when TLS
 	// is enabled) as the SNI used during the handshake. When non-empty, it
