@@ -55,6 +55,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -361,10 +362,26 @@ func (a *Agent) ClearPairingCode() {
 	a.config.PairingCode = ""
 }
 
+func cleanKeyPath(raw string) (string, error) {
+	cleaned := filepath.Clean(raw)
+	if cleaned != raw {
+		return "", keygen.ErrPathTraversal
+	}
+
+	return cleaned, nil
+}
+
 // generatePrivateKey generates a new private key if it doesn't exist on the filesystem.
+// It rejects PrivateKey paths that contain raw path-traversal sequences so that a
+// misconfigured PRIVATE_KEY value cannot write a key outside the intended directory.
 func (a *Agent) generatePrivateKey() error {
-	if _, err := os.Stat(a.config.PrivateKey); os.IsNotExist(err) {
-		if err := keygen.GeneratePrivateKey(a.config.PrivateKey); err != nil {
+	keyPath, err := cleanKeyPath(a.config.PrivateKey)
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+		if err := keygen.GeneratePrivateKey(keyPath); err != nil {
 			return err
 		}
 	}
@@ -372,8 +389,19 @@ func (a *Agent) generatePrivateKey() error {
 	return nil
 }
 
+// readPublicKey reads the RSA public key from the configured private-key file.
+// It rejects PrivateKey paths that contain raw path-traversal sequences so that
+// a misconfigured PRIVATE_KEY value cannot read a key from outside the intended
+// directory.
 func (a *Agent) readPublicKey() error {
-	key, err := keygen.ReadPublicKey(a.config.PrivateKey)
+	keyPath, err := cleanKeyPath(a.config.PrivateKey)
+	if err != nil {
+		a.pubKey = nil
+
+		return err
+	}
+
+	key, err := keygen.ReadPublicKey(keyPath)
 	a.pubKey = key
 
 	return err

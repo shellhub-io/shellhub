@@ -15,9 +15,6 @@ formatters:
     - goimports
 
 linters:
-  exclusions:
-    paths:
-      - "mocks/.*\\.go$"
   disable:
     - errcheck
   enable:

@@ -1,0 +1,12 @@
+# .trivyignore — Trivy vulnerability suppression list
+#
+# Format (one entry per line):
+#   <CVE-ID or GHSA-ID>
+#
+# Each suppression MUST include an inline comment explaining why it is safe to
+# ignore, the owner responsible, and (optionally) a ticket reference:
+#
+#   CVE-YYYY-NNNNN  # owner: @handle — reason; tracked: ISSUE-123
+#
+# Suppressions are reviewed quarterly. Remove entries as soon as the underlying
+# vulnerability is resolved or the affected component is no longer shipped.

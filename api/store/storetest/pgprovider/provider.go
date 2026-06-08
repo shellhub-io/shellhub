@@ -83,7 +83,7 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 	for _, fixtureName := range fixtures {
 		filePath := filepath.Join(p.fixtureRoot, fixtureName+".yml")
 
-		data, err := os.ReadFile(filePath)
+		data, err := os.ReadFile(filePath) //nolint:gosec // filePath is constructed from a trusted fixture root, not user input.
 		if err != nil {
 			return fmt.Errorf("failed to read fixture %s: %w", fixtureName, err)
 		}
