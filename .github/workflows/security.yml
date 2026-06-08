@@ -111,25 +111,32 @@ jobs:
           load: true
 
       - name: Scan ${{ matrix.image }} image with Trivy
-        uses: aquasecurity/trivy-action@v0.31.0
-        with:
-          image-ref: shellhub/${{ matrix.image }}:scan
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true
-          trivyignores: .trivyignore
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/work:ro" \
+            ghcr.io/aquasecurity/trivy:0.63.0 image \
+              --severity CRITICAL,HIGH \
+              --ignore-unfixed \
+              --scanners vuln \
+              --exit-code 1 \
+              --ignorefile /work/.trivyignore \
+              shellhub/${{ matrix.image }}:scan
 
       - name: Scan ${{ matrix.image }} image with Trivy (SARIF)
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
-        uses: aquasecurity/trivy-action@v0.31.0
-        with:
-          image-ref: shellhub/${{ matrix.image }}:scan
-          format: sarif
-          output: trivy-${{ matrix.image }}.sarif
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          trivyignores: .trivyignore
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/work" \
+            ghcr.io/aquasecurity/trivy:0.63.0 image \
+              --severity CRITICAL,HIGH \
+              --ignore-unfixed \
+              --scanners vuln \
+              --format sarif \
+              --output /work/trivy-${{ matrix.image }}.sarif \
+              --ignorefile /work/.trivyignore \
+              shellhub/${{ matrix.image }}:scan
 
       - name: Upload SARIF report
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
