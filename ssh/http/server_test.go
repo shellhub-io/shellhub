@@ -4,52 +4,6 @@ import (
 	"testing"
 )
 
-func TestConfigWebEndpointsDomain(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		description        string
-		webEndpointsDomain string
-		domain             string
-		expected           string
-	}{
-		{
-			description:        "WebEndpointsDomain takes priority over Domain",
-			webEndpointsDomain: "cloud.example",
-			domain:             "example",
-			expected:           "cloud.example",
-		},
-		{
-			description:        "falls back to Domain when WebEndpointsDomain is empty",
-			webEndpointsDomain: "",
-			domain:             "example",
-			expected:           "example",
-		},
-		{
-			description:        "returns empty string when both are empty",
-			webEndpointsDomain: "",
-			domain:             "",
-			expected:           "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.description, func(t *testing.T) {
-			t.Parallel()
-
-			cfg := &Config{
-				WebEndpointsDomain: tt.webEndpointsDomain,
-				Domain:             tt.domain,
-			}
-
-			got := cfg.webEndpointsDomain()
-			if got != tt.expected {
-				t.Errorf("webEndpointsDomain() = %q, want %q", got, tt.expected)
-			}
-		})
-	}
-}
-
 func TestConfigWebEndpointHost(t *testing.T) {
 	t.Parallel()
 

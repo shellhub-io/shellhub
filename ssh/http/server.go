@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 )
 
@@ -40,29 +41,13 @@ type Config struct {
 	Domain string
 }
 
-// webEndpointsDomain returns the effective base domain for web endpoint
-// host construction. WebEndpointsDomain takes precedence; if empty,
-// Domain is used. Returns an empty string when neither is set.
-func (c *Config) webEndpointsDomain() string {
-	if c.WebEndpointsDomain != "" {
-		return c.WebEndpointsDomain
-	}
-
-	return c.Domain
-}
-
 // webEndpointHost builds the full host value for a tunneled HTTP
 // request by joining address and the effective domain with a dot.
 // When the effective domain is empty the address is returned as-is
 // (no trailing dot), acting as a regression guard against malformed
 // Host headers.
 func (c *Config) webEndpointHost(address string) string {
-	domain := c.webEndpointsDomain()
-	if domain == "" {
-		return address
-	}
-
-	return address + "." + domain
+	return webendpoints.Host(address, webendpoints.Domain(c.WebEndpointsDomain, c.Domain))
 }
 
 // Server wires HTTP routes (connection upgrade, reverse dialing,

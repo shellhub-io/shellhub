@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -85,9 +86,7 @@ func NewGateway(config *GatewayConfig, controller *NginxController, features []s
 	// SSL's enabled.
 	if slices.Contains(features, WebEndpointsFeature) {
 		if g.Certbot != nil {
-			if g.Config.WebEndpointsDomain == "" {
-				g.Config.WebEndpointsDomain = g.Config.Domain
-			}
+			g.Config.WebEndpointsDomain = webendpoints.Domain(g.Config.WebEndpointsDomain, g.Config.Domain)
 
 			g.Certbot.Certificates = append(
 				g.Certbot.Certificates,
