@@ -29,21 +29,30 @@ jobs:
       matrix:
         include:
           - module: .
-            extra_args: ""
+            sarif_name: root
+            tags: ""
           - module: api
-            extra_args: ""
+            sarif_name: api
+            tags: ""
+          # agent/ssh build-tag coverage relies on GOFLAGS being forwarded to go/packages
           - module: agent
-            extra_args: "-tags docker"
+            sarif_name: agent
+            tags: docker
           - module: ssh
-            extra_args: "-tags internal_api"
+            sarif_name: ssh
+            tags: internal_api
           - module: cli
-            extra_args: ""
+            sarif_name: cli
+            tags: ""
           - module: gateway
-            extra_args: ""
+            sarif_name: gateway
+            tags: ""
           - module: openapi
-            extra_args: ""
+            sarif_name: openapi
+            tags: ""
           - module: tests
-            extra_args: ""
+            sarif_name: tests
+            tags: ""
 
     runs-on: ubuntu-latest
 
@@ -51,21 +60,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-
-      - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
-
-      - name: Build govulncheck wrapper
-        run: |
-          ( cd "$GITHUB_WORKSPACE/.github" && go build -o "$RUNNER_TEMP/govulncheck-filter" ./govulncheck/cmd )
-
       - name: Run govulncheck
         uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1
         env:
+          # govulncheck honors GOFLAGS through go/packages for build-tag coverage
           GOFLAGS: ${{ matrix.tags != '' && format('-tags={0}', matrix.tags) || '' }}
         with:
           go-version-file: ${{ matrix.module == '.' && 'go.mod' || format('{0}/go.mod', matrix.module) }}
@@ -75,6 +73,9 @@ jobs:
           output-file: govulncheck-${{ matrix.sarif_name }}.sarif
           repo-checkout: false
 
+      # Vuln gating is performed by GitHub's native "Code scanning results" PR check
+      # (identical to CodeQL/Semgrep); this upload step is the success signal for
+      # security-gate — govulncheck's own exit code does NOT block the PR.
       - name: Upload SARIF report
         if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
         uses: github/codeql-action/upload-sarif@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
