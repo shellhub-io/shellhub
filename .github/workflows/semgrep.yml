@@ -31,7 +31,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # Full history required for --baseline-ref diff
+          # Full history required for --baseline-commit diff
           fetch-depth: 0
 
       - name: Mark workspace safe for git (semgrep container runs as different user)
@@ -44,7 +44,7 @@ jobs:
             --config p/golang \
             --config p/dockerfile \
             --config p/ci \
-            --baseline-ref ${{ github.event.pull_request.base.sha }} \
+            --baseline-commit ${{ github.event.pull_request.base.sha }} \
             --error \
             --sarif \
             --output semgrep.sarif \
