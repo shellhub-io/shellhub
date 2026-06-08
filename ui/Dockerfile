@@ -53,6 +53,9 @@ RUN npm run build -w @shellhub/console
 
 FROM nginx:1.31.3-alpine AS production
 
+# Patch CVE-2026-6732 (libxml2 DoS); drop once the nginx base ships the fix
+RUN apk add --no-cache --upgrade "libxml2>=2.13.9-r1"
+
 RUN apk add curl
 
 RUN rm /etc/nginx/conf.d/default.conf
