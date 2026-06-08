@@ -52,7 +52,9 @@ jobs:
           path: cloud
 
       - name: Get release version
-        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> "$GITHUB_ENV"
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: echo "RELEASE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
 
       - name: Set image registry and name
         id: image
