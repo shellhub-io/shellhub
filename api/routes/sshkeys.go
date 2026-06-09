@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -38,6 +39,8 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 	}
 
 	if err := req.Filters.Unmarshal(); err != nil {
+		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode public keys list filter")
+
 		return c.NoContent(http.StatusBadRequest)
 	}
 
