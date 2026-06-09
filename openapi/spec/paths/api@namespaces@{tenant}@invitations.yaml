@@ -35,6 +35,8 @@ get:
             type: array
             items:
               $ref: ../components/schemas/membershipInvitation.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':
