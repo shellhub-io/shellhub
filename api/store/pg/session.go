@@ -154,7 +154,10 @@ func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) 
 
 	activeSession := &models.ActiveSession{UID: models.UID(session.UID), LastSeen: session.StartedAt, TenantID: session.TenantID}
 	e := entity.ActiveSessionFromModel(activeSession)
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+	if _, err := db.NewInsert().Model(e).
+		On("CONFLICT (session_id) DO UPDATE").
+		Set("seen_at = NOW()").
+		Exec(ctx); err != nil {
 		return fromSQLError(err)
 	}
 
