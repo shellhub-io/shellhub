@@ -85,7 +85,8 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 		"1",
 	}, nsArgs...)
 
-	nsenterCmd = append(nsenterCmd,
+	nsenterCmd = append(
+		nsenterCmd,
 		[]string{
 			"-S",
 			strconv.Itoa(int(uid)),
