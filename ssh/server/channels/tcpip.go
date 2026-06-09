@@ -134,8 +134,12 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 			"dest_addr":   data.DestAddr,
 		}).Trace("copying data from client to agent")
 
-		if _, err := io.Copy(client, agent); err != nil && err != io.EOF {
+		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed to copy data from agent to client")
+
+			// Close both ends so the peer goroutine unblocks and wg.Wait can return.
+			_ = agent.Close()
+			_ = client.Close()
 
 			return
 		}
@@ -154,8 +158,11 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 			"dest_addr":   data.DestAddr,
 		}).Trace("copying data from agent to client")
 
-		if _, err := io.Copy(agent, client); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed to copy data from client to agent")
+
+			_ = agent.Close()
+			_ = client.Close()
 
 			return
 		}

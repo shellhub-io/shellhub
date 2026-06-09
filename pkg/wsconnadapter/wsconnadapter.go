@@ -19,8 +19,8 @@ import (
 var ErrUnexpectedMessageType = errors.New("unexpected websocket message type")
 
 const (
-	pongTimeout  = time.Second * 35
-	pingInterval = time.Second * 30
+	defaultPongTimeout  = time.Second * 35
+	defaultPingInterval = time.Second * 30
 )
 
 type Adapter struct {
@@ -36,6 +36,11 @@ type Adapter struct {
 	closeErr   error
 	Logger     *log.Entry
 	CreatedAt  time.Time
+
+	// pingInterval and pongTimeout control the keep-alive loop. They default to
+	// the package defaults and are only overridden in tests.
+	pingInterval time.Duration
+	pongTimeout  time.Duration
 }
 
 type Option func(*Adapter)
@@ -64,7 +69,9 @@ func New(conn *websocket.Conn, options ...Option) *Adapter {
 			Hooks:     log.StandardLogger().Hooks,
 			Level:     log.StandardLogger().Level,
 		}),
-		CreatedAt: clock.Now(),
+		CreatedAt:    clock.Now(),
+		pingInterval: defaultPingInterval,
+		pongTimeout:  defaultPongTimeout,
 	}
 
 	for _, option := range options {
@@ -79,14 +86,14 @@ func (a *Adapter) Ping() chan bool {
 		a.stopPingCh = make(chan struct{})
 		a.pongCh = make(chan bool)
 
-		timeout := time.AfterFunc(pongTimeout, func() {
+		timeout := time.AfterFunc(a.pongTimeout, func() {
 			a.Logger.Debug("close connection due pong timeout")
 
 			_ = a.Close()
 		})
 
 		a.conn.SetPongHandler(func(_ string) error {
-			timeout.Reset(pongTimeout)
+			timeout.Reset(a.pongTimeout)
 			a.Logger.Trace("pong timeout")
 
 			// non-blocking channel write
@@ -101,14 +108,23 @@ func (a *Adapter) Ping() chan bool {
 
 		// ping loop
 		go func() {
-			ticker := time.NewTicker(pingInterval)
+			ticker := time.NewTicker(a.pingInterval)
 			defer ticker.Stop()
 
 			for {
 				select {
 				case <-ticker.C:
 					if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil {
-						a.Logger.WithError(err).Error("failed to write ping message")
+						// A failed ping write is terminal (broken pipe / closed socket):
+						// close the adapter so teardown propagates to the consumer, and stop.
+						a.Logger.
+							WithError(err).
+							WithField("lifetime", clock.Now().Sub(a.CreatedAt).String()).
+							Warn("reverse connection ping failed, tearing down connection")
+
+						_ = a.Close()
+
+						return
 					}
 				case <-a.stopPingCh:
 					a.Logger.Debug("stop ping message received")

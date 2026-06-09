@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -106,4 +107,35 @@ func TestCloseWithoutPing(t *testing.T) {
 	// Close without ever calling Ping — stopPingCh is nil.
 	err := client.Close()
 	assert.NoError(t, err)
+}
+
+// TestPingFailureClosesConnection verifies the keep-alive contract: when a ping
+// write fails the loop closes the adapter and stops, so a dead connection does
+// not stay registered.
+func TestPingFailureClosesConnection(t *testing.T) {
+	client, server := newTestPair(t)
+
+	// Drive the ping loop fast so the test doesn't wait the default 30s.
+	client.pingInterval = 5 * time.Millisecond
+	client.pongTimeout = time.Hour // keep the pong timeout out of the picture
+
+	client.Ping()
+
+	// Kill the peer so the next ping write fails with a closed/broken connection.
+	server.Close()
+
+	// The ping loop must Close() the adapter on the write failure, which closes
+	// stopPingCh. A closed channel reads immediately, so this returns quickly;
+	// if teardown never happens the test times out.
+	require.Eventually(t, func() bool {
+		select {
+		case <-client.stopPingCh:
+			return true
+		default:
+			return false
+		}
+	}, 2*time.Second, 5*time.Millisecond, "ping failure did not tear down the connection")
+
+	// Close() must remain safe to call again after the auto-teardown.
+	assert.NotPanics(t, func() { _ = client.Close() })
 }

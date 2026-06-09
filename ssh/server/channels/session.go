@@ -141,7 +141,9 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 		var wg sync.WaitGroup
 
-		done := make(chan bool)
+		// Buffered so pipe's completion signal never blocks the sender, even if
+		// this goroutine is still looping on agent.Requests.
+		done := make(chan bool, 1)
 
 		oncePipe := sync.OnceFunc(func() {
 			go pipe(sess, client.Channel, agent.Channel, seat, done)
