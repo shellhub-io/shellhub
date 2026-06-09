@@ -29,6 +29,35 @@ func NewRecorder(session *session.Session, seat int) (io.Writer, error) {
 // PtyOutputEventType is the event's type for an output.
 const PtyOutputEventType = "pty-output"
 
+// maxConsecutiveEmptyReads bounds how many times a reader may return (0, nil)
+// before we treat it as dead. It mirrors the guard the standard library's bufio
+// package uses against a broken reader.
+const maxConsecutiveEmptyReads = 100
+
+// deadReadGuard wraps a reader so a connection stuck returning (0, nil) is turned
+// into io.ErrNoProgress after maxConsecutiveEmptyReads. io.Copy treats (0, nil) as
+// "nothing happened, try again", so without this a dead or half-closed channel
+// busy-loops a CPU core instead of terminating the copy.
+type deadReadGuard struct {
+	r     io.Reader
+	zeros int
+}
+
+func (g *deadReadGuard) Read(p []byte) (int, error) {
+	n, err := g.r.Read(p)
+	if n == 0 && err == nil {
+		if g.zeros++; g.zeros >= maxConsecutiveEmptyReads {
+			return 0, io.ErrNoProgress
+		}
+
+		return 0, nil
+	}
+
+	g.zeros = 0
+
+	return n, err
+}
+
 func (c *Recorder) Write(output []byte) (int, error) {
 	// NOTE: Writes the event into the event stream to be processed and send to target endpoint.
 	c.session.Event(PtyOutputEventType, &models.SSHPtyOutput{
@@ -82,8 +111,12 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 		}
 
 		multi := io.MultiWriter(writers...)
-		if _, err := io.Copy(multi, a); err != nil && err != io.EOF {
-			log.WithError(err).Error("failed on coping data from client to agent")
+		if _, err := io.Copy(multi, &deadReadGuard{r: a}); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed on coping data from agent to client")
+
+			// Close both ends so the other copy goroutine unblocks and pipe can return.
+			_ = agent.Close()
+			_ = client.Close()
 		}
 
 		log.Trace("agent channel data copy done")
@@ -106,8 +139,12 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			}
 		}()
 
-		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: c}); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
+
+			// Close both ends so the other copy goroutine unblocks and pipe can return.
+			_ = agent.Close()
+			_ = client.Close()
 		}
 
 		log.Trace("client channel data copy done")
@@ -132,8 +169,11 @@ func hose(sess *session.Session, agent gossh.Channel, client gossh.Channel) {
 		defer wg.Done()
 		defer agent.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(agent, c); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: c}); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from client to agent")
+
+			// Close the agent so the other copy goroutine unblocks.
+			_ = agent.Close()
 		}
 
 		log.Trace("agent channel data copy done")
@@ -143,8 +183,11 @@ func hose(sess *session.Session, agent gossh.Channel, client gossh.Channel) {
 		defer wg.Done()
 		defer client.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(client, a); err != nil && err != io.EOF {
+		if _, err := io.Copy(client, &deadReadGuard{r: a}); err != nil && err != io.EOF {
 			log.WithError(err).Error("failed on coping data from agent to client")
+
+			// Close the client so the other copy goroutine unblocks.
+			_ = client.Close()
 		}
 
 		log.Trace("client channel data copy done")
