@@ -22,6 +22,14 @@ import (
 // NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 
+// startPtyFn and initPtyFn are package-level function variables that point to
+// the real pty helpers by default. Tests may replace them with stubs to avoid
+// spawning real pseudo-terminals.
+var (
+	startPtyFn = startPty
+	initPtyFn  = initPty
+)
+
 // Sessioner implements the Sessioner interface when the server is running in host mode.
 type Sessioner struct {
 	mu   sync.Mutex
@@ -65,9 +73,12 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		return errors.New("failed to generate shell command")
 	}
 
-	pts, err := startPty(scmd, session, winCh)
+	pts, err := startPtyFn(scmd, session, winCh)
 	if err != nil {
 		log.Warn(err)
+		_ = session.Exit(1)
+
+		return fmt.Errorf("failed to start pty: %w", err)
 	}
 
 	u, err := osauth.LookupUser(session.User())
@@ -222,9 +233,12 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 
 	wg := &sync.WaitGroup{}
 	if sIsPty {
-		pty, tty, err := initPty(cmd, session, sWinCh)
+		pty, tty, err := initPtyFn(cmd, session, sWinCh)
 		if err != nil {
 			log.Warn(err)
+			_ = session.Exit(1)
+
+			return fmt.Errorf("failed to init pty: %w", err)
 		}
 
 		defer tty.Close()
@@ -298,7 +312,12 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command ended")
 
-	if err := session.Exit(cmd.ProcessState.ExitCode()); err != nil { // nolint:errcheck
+	code := 1
+	if cmd.ProcessState != nil {
+		code = cmd.ProcessState.ExitCode()
+	}
+
+	if err := session.Exit(code); err != nil { //nolint:errcheck
 		log.Warn(err)
 	}
 
