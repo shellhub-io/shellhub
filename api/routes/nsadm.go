@@ -34,9 +34,9 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 		return err
 	}
 
-	req.Paginator.Normalize()
-	if err := req.Filters.Unmarshal(); err != nil {
-		return err
+	req.Normalize()
+	if err := req.Unmarshal(); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if err := c.Validate(req); err != nil {
