@@ -3,6 +3,8 @@
 package host
 
 import (
+	"errors"
+	"net"
 	"os/exec"
 	"sync/atomic"
 	"testing"
@@ -14,6 +16,36 @@ import (
 	"github.com/stretchr/testify/mock"
 	gossh "golang.org/x/crypto/ssh"
 )
+
+// fakeGosshConn is a minimal implementation of gossh.Conn that can be embedded
+// in a gossh.ServerConn so tests can inject a ServerConn into the session context
+// without needing a real SSH network connection.
+type fakeGosshConn struct{}
+
+func (f *fakeGosshConn) User() string          { return "root" }
+func (f *fakeGosshConn) SessionID() []byte     { return nil }
+func (f *fakeGosshConn) ClientVersion() []byte { return nil }
+func (f *fakeGosshConn) ServerVersion() []byte { return nil }
+func (f *fakeGosshConn) RemoteAddr() net.Addr  { return &net.TCPAddr{} }
+func (f *fakeGosshConn) LocalAddr() net.Addr   { return &net.TCPAddr{} }
+func (f *fakeGosshConn) SendRequest(_ string, _ bool, _ []byte) (bool, []byte, error) {
+	return false, nil, nil
+}
+
+func (f *fakeGosshConn) OpenChannel(_ string, _ []byte) (gossh.Channel, <-chan *gossh.Request, error) {
+	return nil, nil, errors.New("not implemented")
+}
+
+func (f *fakeGosshConn) Close() error { return nil }
+
+// Wait blocks until the returned channel is closed — used by tests to
+// control when the "kill on disconnect" goroutine unblocks.
+func (f *fakeGosshConn) Wait() error {
+	// Block until the test is done (goroutine is abandoned when the test
+	// function returns; the Go runtime cleans it up). This is acceptable
+	// because the caller only needs Wait to not panic.
+	select {}
+}
 
 // TestExec_NonPty_SucceedingCommand is a regression guard for the non-PTY path of
 // Exec(). It verifies that:
