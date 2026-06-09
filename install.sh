@@ -66,6 +66,18 @@ podman_install() {
     $ARGS \
     docker.io/shellhubio/agent:$AGENT_VERSION \
     $MODE
+
+  if [ -z "$MODE" ]; then
+    _FSUDO=""
+    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+    printf '#!/bin/sh\nexec podman exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
+      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
+      exit 1
+    }
+    $_FSUDO chmod +x "$WRAPPER_PATH"
+    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+  fi
 }
 
 docker_install() {
@@ -131,6 +143,18 @@ docker_install() {
     $ARGS \
     shellhubio/agent:$AGENT_VERSION \
     $MODE
+
+  if [ -z "$MODE" ]; then
+    _FSUDO=""
+    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+    printf '#!/bin/sh\nexec docker exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
+      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
+      exit 1
+    }
+    $_FSUDO chmod +x "$WRAPPER_PATH"
+    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+  fi
 }
 
 snap_install() {
@@ -217,6 +241,48 @@ standalone_install() {
   echo "✅ ShellHub agent installed and started."
 
   rm -rf "$TMP_DIR"
+}
+
+docker_uninstall() {
+  _FSUDO=""
+  [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+
+  SUDO="${SUDO:-$_FSUDO}"
+
+  CONTAINER_NAME="${CONTAINER_NAME:-shellhub}"
+
+  echo "🗑️ Stopping and removing ShellHub container..."
+  $SUDO docker rm -f "$CONTAINER_NAME" 2>/dev/null || echo "⚠️ Container '$CONTAINER_NAME' not found (may already be removed)."
+
+  WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+  if [ -f "$WRAPPER_PATH" ]; then
+    echo "🗑️ Removing shellhub-agent wrapper..."
+    $_FSUDO rm -f "$WRAPPER_PATH"
+  fi
+
+  echo "✅ ShellHub agent uninstalled."
+  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
+}
+
+podman_uninstall() {
+  _FSUDO=""
+  [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+
+  SUDO="${SUDO:-$_FSUDO}"
+
+  CONTAINER_NAME="${CONTAINER_NAME:-shellhub}"
+
+  echo "🗑️ Stopping and removing ShellHub container..."
+  $SUDO podman rm -f "$CONTAINER_NAME" 2>/dev/null || echo "⚠️ Container '$CONTAINER_NAME' not found (may already be removed)."
+
+  WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+  if [ -f "$WRAPPER_PATH" ]; then
+    echo "🗑️ Removing shellhub-agent wrapper..."
+    $_FSUDO rm -f "$WRAPPER_PATH"
+  fi
+
+  echo "✅ ShellHub agent uninstalled."
+  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
 }
 
 standalone_uninstall() {
@@ -424,6 +490,14 @@ uninstall)
   standalone|wsl)
     echo "🗑️ Uninstalling ShellHub using standalone method..."
     standalone_uninstall
+    ;;
+  docker)
+    echo "🐳 Uninstalling ShellHub using docker method..."
+    docker_uninstall
+    ;;
+  podman)
+    echo "🐳 Uninstalling ShellHub using podman method..."
+    podman_uninstall
     ;;
   *)
     echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
