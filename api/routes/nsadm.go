@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -35,7 +36,10 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 	}
 
 	req.Normalize()
+
 	if err := req.Unmarshal(); err != nil {
+		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace list filter")
+
 		return c.NoContent(http.StatusBadRequest)
 	}
 
