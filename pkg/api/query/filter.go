@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 var (
@@ -38,11 +39,16 @@ func (fs *Filters) Unmarshal() error {
 
 	raw, err := base64.StdEncoding.DecodeString(fs.Raw)
 	if err != nil {
-		return err
+		// Fall back to RawStdEncoding when the caller omitted one or more '='
+		// padding characters (common in URL contexts).
+		raw, err = base64.RawStdEncoding.DecodeString(strings.TrimRight(fs.Raw, "="))
+		if err != nil {
+			return ErrFilterInvalid
+		}
 	}
 
 	if err := json.Unmarshal(raw, &fs.Data); len(raw) > 0 && err != nil {
-		return err
+		return ErrFilterInvalid
 	}
 
 	return nil

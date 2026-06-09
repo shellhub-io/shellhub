@@ -60,8 +60,8 @@ func (h *Handler) GetTags(c gateway.Context) error {
 		return err
 	}
 
-	if err := req.Filters.Unmarshal(); err != nil {
-		return err
+	if err := req.Unmarshal(); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	req.Paginator.Normalize()

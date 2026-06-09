@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -78,6 +79,76 @@ func TestGetPublicKeys(t *testing.T) {
 				assert.ErrorIs(t, io.EOF, err)
 			}
 			assert.Equal(t, tc.expected.expectedSession, session)
+		})
+	}
+}
+
+func TestGetPublicKeysBadFilter(t *testing.T) {
+	cases := []struct {
+		description string
+		filter      string
+	}{
+		{
+			description: "returns 400 when filter is not valid base64",
+			filter:      "!!!not-base64!!!",
+		},
+		{
+			description: "returns 400 when filter decodes to invalid JSON",
+			filter:      "bm90LWpzb24=", // base64("not-json")
+		},
+		{
+			description: "returns 400 when filter contains an unknown field",
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "nonexistent_field",
+							Operator: "eq",
+							Value:    "foo",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+		},
+		{
+			description: "returns 400 when filter uses a disallowed operator for the field",
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "name",
+							Operator: "regex", // disallowed: name only allows contains/eq/ne
+							Value:    "foo",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			svcMock := new(mocks.Service)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys?filter="+tc.filter, nil)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(svcMock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
+			svcMock.AssertNotCalled(t, "ListPublicKeys")
 		})
 	}
 }

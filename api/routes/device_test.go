@@ -382,6 +382,82 @@ func TestGetDeviceList(t *testing.T) {
 	}
 }
 
+func TestGetDeviceListBadFilter(t *testing.T) {
+	cases := []struct {
+		description string
+		filter      string
+	}{
+		{
+			description: "returns 400 when filter is not valid base64",
+			filter:      "!!!not-base64!!!",
+		},
+		{
+			description: "returns 400 when filter decodes to invalid JSON",
+			filter:      "bm90LWpzb24=", // base64("not-json")
+		},
+		{
+			description: "returns 400 when filter contains an unknown field",
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "nonexistent_field",
+							Operator: "eq",
+							Value:    "foo",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+		},
+		{
+			description: "returns 400 when filter uses a disallowed operator for the field",
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "status",
+							Operator: "contains", // disallowed: status only allows eq/ne
+							Value:    "accepted",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			mock := new(mocks.Service)
+
+			urlVal := url.Values{}
+			urlVal.Set("page", "1")
+			urlVal.Set("per_page", "10")
+			urlVal.Set("sort_by", "name")
+			urlVal.Set("order_by", "asc")
+			urlVal.Set("filter", tc.filter)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusBadRequest, rec.Result().StatusCode)
+			mock.AssertNotCalled(t, "ListDevices")
+		})
+	}
+}
+
 func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 	cases := []struct {
 		description string
@@ -455,7 +531,7 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 			// property so it applies to it; otherwise the platform
 			// condition gets OR'd with user filters, returning all
 			// devices regardless of the user's filter.
-			data := captured.Filters.Data
+			data := captured.Data
 			require.GreaterOrEqual(t, len(data), 3)
 
 			lastTwo := data[len(data)-2:]
