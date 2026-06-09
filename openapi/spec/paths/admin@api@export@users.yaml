@@ -55,6 +55,8 @@ get:
             format: 'binary'
     '204':
       description: No content.
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '500':

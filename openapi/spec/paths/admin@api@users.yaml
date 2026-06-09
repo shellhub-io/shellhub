@@ -92,6 +92,8 @@ get:
                   email: example@example.com
                   username: example
                   password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '500':
