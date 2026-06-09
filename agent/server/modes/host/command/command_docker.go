@@ -85,8 +85,8 @@ func probeTimeNSJoinable() (result bool, definitive bool) {
 // emitted at most once per process lifetime.
 func newTimeNSMemoizer(probe func() (bool, bool)) func() bool {
 	var (
-		mu      sync.Mutex
-		cached  *bool
+		mu       sync.Mutex
+		cached   *bool
 		warnOnce sync.Once
 	)
 
@@ -210,7 +210,8 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 		"1",
 	}, nsArgs...)
 
-	nsenterCmd = append(nsenterCmd,
+	nsenterCmd = append(
+		nsenterCmd,
 		[]string{
 			"-S",
 			strconv.Itoa(int(uid)),
