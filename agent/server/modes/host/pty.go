@@ -16,6 +16,9 @@ func openPty(c *exec.Cmd) (*os.File, *os.File, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	// tty is intentionally closed here: callers obtain the device path via
+	// tty.Name() (a path-based call), not the fd, so os.Chown on that path
+	// remains safe even though the fd is already closed.
 	defer tty.Close()
 
 	if c.Stdout == nil {

@@ -13,6 +13,22 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
+// statFn is a seam for os.Stat used when probing /proc/1/ns/* entries.
+// It can be replaced in tests to avoid filesystem access.
+var statFn = os.Stat
+
+// nsenterArgs builds the nsenter flag slice from the present namespace map.
+// Docker always shares the host time namespace, so -T is never passed.
+func nsenterArgs(present map[string]string) []string {
+	args := []string{}
+
+	for _, flag := range present {
+		args = append(args, flag)
+	}
+
+	return args
+}
+
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	groups, err := osauth.ListGroups(u.Username)
 	if err != nil {
@@ -80,29 +96,35 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 	return append(setPrivCmd, nsenterCmd...)
 }
 
+// nsenterCommandWrapper builds the full nsenter+setpriv command slice.
+// It probes /proc/1/ns/* for each namespace using statFn, then delegates
+// flag assembly to nsenterArgs. The time namespace is never joined because
+// Docker always shares the host time namespace.
 func nsenterCommandWrapper(uid, gid uint32, groups []uint32, home string, command ...string) ([]string, error) {
-	if _, err := os.Stat("/usr/bin/nsenter"); err != nil && !os.IsNotExist(err) {
+	if _, err := statFn("/usr/bin/nsenter"); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 
-	paths := map[string]string{
+	namespaces := map[string]string{
 		"mnt":    "-m",
 		"uts":    "-u",
 		"ipc":    "-i",
 		"net":    "-n",
 		"pid":    "-p",
 		"cgroup": "-C",
-		"time":   "-T",
 	}
 
-	args := []string{}
-	for path, params := range paths {
-		if _, err := os.Stat(fmt.Sprintf("/proc/1/ns/%s", path)); err != nil {
+	present := map[string]string{}
+
+	for ns, flag := range namespaces {
+		if _, err := statFn(fmt.Sprintf("/proc/1/ns/%s", ns)); err != nil {
 			continue
 		}
 
-		args = append(args, params)
+		present[ns] = flag
 	}
+
+	args := nsenterArgs(present)
 
 	return append(getWrappedCommand(args, uid, gid, groups, home), command...), nil
 }
