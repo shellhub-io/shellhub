@@ -17,7 +17,7 @@ import (
 
 // ensureDatabasePath ensures that [dbPath] exists and creates if not.
 func ensureDatabasePath() error {
-	if err := os.MkdirAll(dbPath, 0o755); err != nil {
+	if err := os.MkdirAll(dbPath, 0o755); err != nil { //nolint:gosec // GeoIP database directory is world-readable by design; daemons running as different users need read access.
 		return errors.New("failed to create dbPath: " + err.Error())
 	}
 
@@ -73,7 +73,7 @@ func saveDB() archiver.FileHandler {
 
 		destPath := filepath.Join(dbPath, f.Name())
 
-		outFile, err := os.Create(destPath)
+		outFile, err := os.Create(destPath) //nolint:gosec // destPath is constructed from a trusted dbPath constant and the archive entry name.
 		if err != nil {
 			return err
 		}

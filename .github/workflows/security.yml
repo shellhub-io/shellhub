@@ -1,0 +1,164 @@
+name: Security
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  govulncheck:
+    name: govulncheck (${{ matrix.module }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: .
+            sarif_name: root
+            tags: ""
+          - module: api
+            sarif_name: api
+            tags: ""
+          # agent/ssh build-tag coverage relies on GOFLAGS being forwarded to go/packages
+          - module: agent
+            sarif_name: agent
+            tags: docker
+          - module: ssh
+            sarif_name: ssh
+            tags: internal_api
+          - module: cli
+            sarif_name: cli
+            tags: ""
+          - module: gateway
+            sarif_name: gateway
+            tags: ""
+          - module: openapi
+            sarif_name: openapi
+            tags: ""
+          - module: tests
+            sarif_name: tests
+            tags: ""
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        env:
+          # govulncheck honors GOFLAGS through go/packages for build-tag coverage
+          GOFLAGS: ${{ matrix.tags != '' && format('-tags={0}', matrix.tags) || '' }}
+        with:
+          go-version-file: ${{ matrix.module == '.' && 'go.mod' || format('{0}/go.mod', matrix.module) }}
+          work-dir: ${{ matrix.module }}
+          go-package: ./...
+          output-format: sarif
+          output-file: govulncheck-${{ matrix.sarif_name }}.sarif
+          repo-checkout: false
+
+      # Vuln gating is performed by GitHub's native "Code scanning results" PR check
+      # (identical to CodeQL/Semgrep); this upload step is the success signal for
+      # security-gate — govulncheck's own exit code does NOT block the PR.
+      - name: Upload SARIF report
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: govulncheck-${{ matrix.sarif_name }}.sarif
+          category: govulncheck-${{ matrix.sarif_name }}
+
+  trivy-image:
+    name: trivy-image (${{ matrix.image }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [api, ssh, gateway, cli, ui, agent]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build ${{ matrix.image }} image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.image }}/Dockerfile
+          tags: shellhub/${{ matrix.image }}:scan
+          push: false
+          load: true
+
+      - name: Scan ${{ matrix.image }} image with Trivy
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/work:ro" \
+            ghcr.io/aquasecurity/trivy:0.63.0 image \
+              --severity CRITICAL,HIGH \
+              --ignore-unfixed \
+              --scanners vuln \
+              --exit-code 1 \
+              --ignorefile /work/.trivyignore \
+              shellhub/${{ matrix.image }}:scan
+
+      - name: Scan ${{ matrix.image }} image with Trivy (SARIF)
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${{ github.workspace }}:/work" \
+            ghcr.io/aquasecurity/trivy:0.63.0 image \
+              --severity CRITICAL,HIGH \
+              --ignore-unfixed \
+              --scanners vuln \
+              --format sarif \
+              --output /work/trivy-${{ matrix.image }}.sarif \
+              --ignorefile /work/.trivyignore \
+              shellhub/${{ matrix.image }}:scan
+
+      - name: Upload SARIF report
+        if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.image }}.sarif
+          category: trivy-${{ matrix.image }}
+
+  # security-gate is the frozen required-check name referenced in branch protection.
+  # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
+  security-gate:
+    name: security-gate
+    needs: [govulncheck, trivy-image]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check scan results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || \
+                "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more security scan jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All security scan jobs passed or were skipped."

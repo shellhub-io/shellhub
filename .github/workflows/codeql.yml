@@ -1,0 +1,107 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: analyze (${{ matrix.module }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: .
+            build_tags: ""
+          - module: api
+            build_tags: ""
+          - module: agent
+            build_tags: "docker"
+          - module: ssh
+            build_tags: "internal_api"
+          - module: cli
+            build_tags: ""
+          - module: gateway
+            build_tags: ""
+          - module: openapi
+            build_tags: ""
+          - module: tests
+            build_tags: ""
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          build-mode: manual
+          db-location: ${{ github.workspace }}/.codeql/db-${{ matrix.module == '.' && 'root' || matrix.module }}
+
+      - name: Build ${{ matrix.module }} under CodeQL tracing
+        run: |
+          cd "${{ matrix.module }}"
+          if [ -n "${{ matrix.build_tags }}" ]; then
+            go build -tags "${{ matrix.build_tags }}" ./...
+          else
+            go build ./...
+          fi
+
+      - name: Assert CodeQL DB is non-empty
+        run: |
+          DB_DIR="${{ github.workspace }}/.codeql/db-${{ matrix.module == '.' && 'root' || matrix.module }}"
+          FILE_COUNT=$(find "${DB_DIR}" -name "*.trap.gz" -o -name "*.trap" 2>/dev/null | wc -l)
+          echo "Traced files in ${DB_DIR}: ${FILE_COUNT}"
+          if [ "${FILE_COUNT}" -eq 0 ]; then
+            echo "ERROR: CodeQL database for module '${{ matrix.module }}' is empty — no files were traced."
+            exit 1
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql-go-${{ matrix.module == '.' && 'root' || matrix.module }}
+          upload: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+          output: codeql-results-${{ matrix.module == '.' && 'root' || matrix.module }}.sarif
+
+  # security-gate aggregates all CodeQL jobs for branch protection.
+  security-gate:
+    name: security-gate
+    needs: [analyze]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check CodeQL results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || \
+                "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more CodeQL analysis jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All CodeQL analysis jobs passed or were skipped."

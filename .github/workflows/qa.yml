@@ -71,6 +71,7 @@ jobs:
               - 'pkg/**'
               - 'ssh/**'
               - 'cli/**'
+              - 'gateway/**'
               - 'tests/**'
 
       - name: Set up Go 1.x [Go]
@@ -136,3 +137,28 @@ jobs:
               name=$(echo "$img" | tr '/:' '_')
               docker save -o "/tmp/docker-cache/${name}.tar" "$img" 2>/dev/null || true
             done
+
+  gateway-lint:
+    name: lint (gateway)
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            go:
+              - 'gateway/**'
+
+      - name: Code linting [Go]
+        if: steps.filter.outputs.go == 'true'
+        uses: golangci/golangci-lint-action@v9
+        with:
+          working-directory: gateway
+          version: v2.11.3
+          args: --timeout 2m ./...
+          skip-cache: true

@@ -1,0 +1,21 @@
+# .semgrepignore — Semgrep path exclusion list
+#
+# Paths and patterns listed here are excluded from all Semgrep scans.
+# Use this file to suppress noise from test fixtures, generated code, and
+# vendored third-party code that is not maintained by this project.
+#
+# Format: one glob pattern per line (gitignore syntax).
+# Lines beginning with '#' are comments.
+#
+# Guidelines:
+#   - Prefer narrow patterns (specific file or directory) over broad ones.
+#   - Do NOT suppress production source paths — fix the finding instead.
+#   - Annotate each entry with the reason for exclusion.
+
+# Test fixtures — synthetic data used only in unit/integration tests.
+# Semgrep findings in fixtures are expected and do not indicate real risk.
+**/testdata/
+**/fixtures/
+
+# Generated mock files — not maintained by hand; findings are false positives.
+**/mocks/
