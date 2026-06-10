@@ -19,8 +19,6 @@ var (
 type Filters struct {
 	// Raw holds the raw data of the filter. It must be a base64url-encoded JSON
 	// (RFC 4648 §5, unpadded); also accepts padded/unpadded standard base64.
-	//
-	// TODO(#6469): the OpenAPI description still says "standard base64"; update it.
 	Raw string `query:"filter"`
 
 	// Data stores the decoded filters; it's automatically populated with the Unmarshal method.

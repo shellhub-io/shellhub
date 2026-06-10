@@ -1,6 +1,6 @@
 name: filter
 description: |
-  Filter field receives a JSON object enconded as base64 string for limit a search.
+  Filter field receives a JSON object encoded as a base64url string (URL-safe, unpadded, RFC 4648 §5) to limit a search. Standard base64 is also accepted for backward compatibility.
 
   The JSON enconded must follow these interafaces:
   ```typescript

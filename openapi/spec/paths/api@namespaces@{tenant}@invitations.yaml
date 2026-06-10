@@ -16,7 +16,7 @@ get:
       description: |
         Membership invitations filter.
 
-        Filter field receives a base64 encoded JSON object to limit the search.
+        Filter field receives a base64url-encoded JSON object (URL-safe, unpadded) to limit the search. Standard base64 is also accepted for backward compatibility.
       schema:
         type: string
       required: false
