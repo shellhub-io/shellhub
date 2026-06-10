@@ -193,6 +193,8 @@ func TestShell_StartPtyError(t *testing.T) {
 	assert.NotNil(t, retErr, "Shell() must return a non-nil error when startPty fails")
 	assert.True(t, strings.Contains(retErr.Error(), "pty"), "error should mention 'pty', got: %s", retErr.Error())
 	assert.Empty(t, s.cmds, "s.cmds must be empty — the session must not have been registered")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
 }
 
 // TestExec_InitPtyError verifies that Exec() with sIsPty=true does NOT panic and
