@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { decodeB64url } from "@/test/decodeB64url";
 import { useAdminUsers, useAdminUser } from "../useAdminUsers";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -174,7 +175,10 @@ describe("useAdminUsers", () => {
     it("includes a base64-encoded filter when search is non-empty", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useAdminUsers({ search: "alice" }), {
+      // " >" (space + greater-than) encodes to base64url with a "-" character,
+      // which atob() cannot decode — only Buffer.from(b64url.replace(/-/g,'+')
+      // .replace(/_/g,'/'), 'base64') handles it correctly.
+      renderHook(() => useAdminUsers({ search: " >" }), {
         wrapper: createWrapper(),
       });
 
@@ -183,11 +187,11 @@ describe("useAdminUsers", () => {
         { query: Record<string, unknown> },
       ];
       expect(typeof opts.query.filter).toBe("string");
-      // Verify it decodes to valid JSON containing the search term
-      const decoded = JSON.parse(
-        atob(opts.query.filter as string),
-      ) as unknown[];
-      expect(JSON.stringify(decoded)).toContain("alice");
+      // Verify it decodes to valid JSON containing the search term.
+      // Use decodeB64url() instead of atob() because toBase64Json() produces
+      // base64url (replacing + with - and / with _), which atob() cannot decode.
+      const decoded = decodeB64url(opts.query.filter as string) as unknown[];
+      expect(JSON.stringify(decoded)).toContain(" >");
     });
   });
 
