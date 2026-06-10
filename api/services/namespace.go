@@ -7,12 +7,29 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
+
+// NamespaceFilterFields maps each filter field the namespace list endpoint accepts
+// to the set of operators valid for it. The "type" field maps to the "scope" column
+// in the database (see namespaceFilterColumns) and only supports equality operators
+// because it is an enum column.
+var NamespaceFilterFields = query.NewFieldConstraints(map[string][]string{
+	"name": {"contains", "eq", "ne"},
+	"type": {"eq", "ne"},
+})
+
+// namespaceFilterColumns maps API-level field names to their actual database column
+// names where the two differ. It is used by the store layer to translate filter
+// properties before constructing SQL queries.
+var namespaceFilterColumns = map[string]string{
+	"type": "scope",
+}
 
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
@@ -109,6 +126,14 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
+	for i := range req.Filters.Data {
+		if p, ok := req.Filters.Data[i].Params.(*query.FilterProperty); ok {
+			if col, found := namespaceFilterColumns[p.Name]; found {
+				p.Name = col
+			}
+		}
+	}
+
 	// When the caller has no user ID and is not a system admin (e.g.
 	// authenticated via API key), the listing is scoped to the caller's
 	// tenant. Otherwise the caller could enumerate namespaces across tenants.

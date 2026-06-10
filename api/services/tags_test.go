@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -883,4 +884,28 @@ func TestService_DeleteTag(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestListTags(t *testing.T) {
+	t.Run("TagFilterFields rejects any field and operator", func(t *testing.T) {
+		assert.False(t, TagFilterFields.Allows("name", "eq"))
+		assert.False(t, TagFilterFields.Allows("name", "contains"))
+		assert.False(t, TagFilterFields.Allows("unknown", "eq"))
+	})
+
+	t.Run("TagSortFields allows name", func(t *testing.T) {
+		assert.True(t, TagSortFields.Allows("name"))
+	})
+
+	t.Run("TagSortFields allows created_at", func(t *testing.T) {
+		assert.True(t, TagSortFields.Allows("created_at"))
+	})
+
+	t.Run("TagSortFields allows updated_at", func(t *testing.T) {
+		assert.True(t, TagSortFields.Allows("updated_at"))
+	})
+
+	t.Run("TagSortFields rejects unknown field", func(t *testing.T) {
+		assert.False(t, TagSortFields.Allows("unknown"))
+	})
 }

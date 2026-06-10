@@ -10,6 +10,20 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+// TagFilterFields maps each filter field the tag list endpoint accepts to the
+// set of operators valid for it. Tags currently have no filterable fields, so
+// this is an empty FieldConstraints that causes all filter attempts to be
+// rejected at the handler level.
+var TagFilterFields = query.NewFieldConstraints(map[string][]string{})
+
+// TagSortFields is the set of field names accepted in the sort_by query
+// parameter when listing tags.
+var TagSortFields = query.NewFieldSet(
+	"name",
+	"created_at",
+	"updated_at",
+)
+
 type TagsService interface {
 	// CreateTag creates a new tag in the specified tenant namespace.
 	//
