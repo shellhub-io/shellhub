@@ -3,12 +3,14 @@ package host
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/exec"
 	"strings"
 	"sync/atomic"
+	"syscall"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -195,6 +197,48 @@ func TestShell_StartPtyError(t *testing.T) {
 	assert.Empty(t, s.cmds, "s.cmds must be empty — the session must not have been registered")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
+}
+
+// TestPtyFailureHint verifies the ptyFailureHint helper:
+//   - wrapping syscall.ENOTTY yields a non-empty hint
+//   - an error whose message contains "inappropriate ioctl for device" yields a non-empty hint
+//   - an unrelated error yields an empty string
+func TestPtyFailureHint(t *testing.T) {
+	const wantHint = "the system may not support PTY allocation — ensure /dev/ptmx is accessible and the agent is not in a restricted environment"
+
+	tests := []struct {
+		name      string
+		err       error
+		wantEmpty bool
+	}{
+		{
+			name:      "wrapped ENOTTY yields hint",
+			err:       fmt.Errorf("wrapped: %w", syscall.ENOTTY),
+			wantEmpty: false,
+		},
+		{
+			name:      "message contains 'inappropriate ioctl for device' yields hint",
+			err:       errors.New("inappropriate ioctl for device"),
+			wantEmpty: false,
+		},
+		{
+			name:      "unrelated error yields empty hint",
+			err:       errors.New("some unrelated error"),
+			wantEmpty: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hint := ptyFailureHint(tt.err)
+
+			if tt.wantEmpty {
+				assert.Empty(t, hint, "expected empty hint for unrelated error")
+			} else {
+				assert.Equal(t, wantHint, hint, "expected diagnostic hint for pty failure error")
+			}
+		})
+	}
 }
 
 // TestExec_InitPtyError verifies that Exec() with sIsPty=true does NOT panic and
