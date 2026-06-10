@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "sync": "astro sync",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",
