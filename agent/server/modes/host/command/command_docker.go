@@ -30,7 +30,7 @@ var statFn = os.Stat
 //   - (false, true):  definitive denial (EPERM/EACCES, i.e. *exec.ExitError
 //     with code other than 126/127); result is safe to cache.
 //   - (false, false): nsenter or /bin/true not found (exit 126/127 or
-//     exec.ErrNotFound); logged as a distinct warning; must NOT be cached.
+//     os.ErrNotExist); logged as a distinct warning; must NOT be cached.
 //   - (false, false): context deadline exceeded or any other transient error;
 //     must NOT be cached.
 func probeTimeNSJoinable() (result bool, definitive bool) {
@@ -42,8 +42,11 @@ func probeTimeNSJoinable() (result bool, definitive bool) {
 		return true, true
 	}
 
-	// exec.ErrNotFound means the nsenter binary itself was not located.
-	if errors.Is(err, exec.ErrNotFound) {
+	// os.ErrNotExist means the nsenter binary itself was not found at the
+	// absolute path (/usr/bin/nsenter). When an absolute path is given,
+	// exec.Command skips LookPath entirely, so exec.ErrNotFound is never
+	// returned; a missing binary surfaces as an *fs.PathError wrapping ENOENT.
+	if errors.Is(err, os.ErrNotExist) {
 		log.WithError(err).Warn("nsenter not found; time namespace join probe skipped")
 
 		return false, false
