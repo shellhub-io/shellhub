@@ -19,6 +19,10 @@ jobs:
         include:
           - app: console
             workspace: "@shellhub/console"
+          - app: docs
+            workspace: "@shellhub/docs"
+          - app: website
+            workspace: "@shellhub/website"
 
     runs-on: ubuntu-latest
 
@@ -37,6 +41,18 @@ jobs:
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
               - 'openapi/spec/**'
+            docs:
+              - 'ui/apps/docs/**'
+              - 'ui/packages/**'
+              - 'ui/package.json'
+              - 'ui/package-lock.json'
+              - 'ui/eslint.config.js'
+            website:
+              - 'ui/apps/website/**'
+              - 'ui/packages/**'
+              - 'ui/package.json'
+              - 'ui/package-lock.json'
+              - 'ui/eslint.config.js'
 
       - name: Set up Node.JS 24.13.0 [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
@@ -57,11 +73,16 @@ jobs:
         run: npm install
 
       - name: Generate OpenAPI client [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
+        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app == 'console'
         working-directory: ui
         run: |
           npx @redocly/cli@2.31.5 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w ${{ matrix.workspace }}
+
+      - name: Astro sync [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app == 'docs'
+        working-directory: ui
+        run: npm run sync -w @shellhub/docs
 
       - name: Unit test [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
