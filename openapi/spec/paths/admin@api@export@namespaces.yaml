@@ -17,7 +17,7 @@ get:
         Namespace's filter
 
 
-        Filter field receives a base64 enconded JSON object for limit a search.
+        Filter field receives a base64url-encoded JSON object (URL-safe, unpadded) to limit the search. Standard base64 is also accepted for backward compatibility.
         The JSON object should have a property called `type`, it will filter by a `property` called `devices` where the value should be 'gt' `0`.
 
         An example of JSON object will looks like this:
