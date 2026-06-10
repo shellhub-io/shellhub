@@ -44,13 +44,8 @@
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.101.0",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.0",
-    "ansi-styles": "^5.2.0",
-    "jsdom": "^28.1.0",
-    "vitest": "^4.1.6"
+    "ansi-styles": "^5.2.0"
   }
 }
