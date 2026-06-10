@@ -47,6 +47,159 @@ func (f *fakeGosshConn) Wait() error {
 	select {}
 }
 
+// TestShell_DeniedCredentialSwitch verifies that Shell() returns a non-nil error,
+// calls session.Exit(1) exactly once, and leaves s.cmds empty when
+// checkCredentialSwitchFn returns an error.  The gate must fire before any call
+// to session.Pty(), generateShellCmd, or startPtyFn, so the test does NOT need a
+// real ServerConn in the session context.
+func TestShell_DeniedCredentialSwitch(t *testing.T) {
+	origCheckCredentialSwitch := checkCredentialSwitchFn
+
+	t.Cleanup(func() {
+		checkCredentialSwitchFn = origCheckCredentialSwitch
+	})
+
+	// Stub: simulate a denied credential switch.
+	checkCredentialSwitchFn = func() error {
+		return errors.New("setgroups denied in unprivileged user namespace")
+	}
+
+	deviceName := "test-device"
+	cmds := make(map[string]*exec.Cmd)
+	s := NewSessioner(&deviceName, cmds, nil)
+
+	sess := newFakeSession("session-cred-switch", "root")
+
+	var retErr error
+
+	assert.NotPanics(t, func() {
+		retErr = s.Shell(sess)
+	}, "Shell() must not panic when credential switch is denied")
+
+	assert.NotNil(t, retErr, "Shell() must return a non-nil error when credential switch is denied")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
+	assert.Empty(t, s.cmds, "s.cmds must be empty — the session must not have been registered")
+}
+
+// TestExec_DeniedCredentialSwitch verifies that Exec() returns a non-nil error,
+// calls session.Exit(1) exactly once with code 1, when checkCredentialSwitchFn
+// returns an error. The gate must fire as the FIRST statement inside Exec(),
+// before LookupUser, session.Pty(), command.NewCmd, initPtyFn, or cmd.Start.
+func TestExec_DeniedCredentialSwitch(t *testing.T) {
+	origCheckCredentialSwitch := checkCredentialSwitchFn
+
+	t.Cleanup(func() {
+		checkCredentialSwitchFn = origCheckCredentialSwitch
+	})
+
+	// Stub: simulate a denied credential switch.
+	checkCredentialSwitchFn = func() error {
+		return errors.New("setgroups denied in unprivileged user namespace")
+	}
+
+	deviceName := "test-device"
+	cmds := make(map[string]*exec.Cmd)
+	s := NewSessioner(&deviceName, cmds, nil)
+
+	sess := newFakeSession("session-exec-cred-switch", "root")
+	sess.command = []string{"/bin/true"}
+	sess.rawCommand = "/bin/true"
+
+	var retErr error
+
+	assert.NotPanics(t, func() {
+		retErr = s.Exec(sess)
+	}, "Exec() must not panic when credential switch is denied")
+
+	assert.NotNil(t, retErr, "Exec() must return a non-nil error when credential switch is denied")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
+}
+
+// TestHeredoc_StartFailure verifies that Heredoc() handles cmd.Start() failure
+// without panicking. Before the fix, two nil-derefs were possible:
+//  1. The kill-goroutine was launched before cmd.Start(), so cmd.Process was nil
+//     when serverConn.Wait() returned, causing cmd.Process.Kill() to panic.
+//  2. After cmd.Start() failed cmd.Wait() also failed and cmd.ProcessState was nil,
+//     causing cmd.ProcessState.ExitCode() to panic.
+//
+// After the fix: cmd.Start() failure triggers an early-return — log.Warn + session.Exit(1)
+// + return err — BEFORE launching any goroutine or reaching cmd.ProcessState.ExitCode().
+func TestHeredoc_StartFailure(t *testing.T) {
+	// Mock osauth so generateShellCmd produces a cmd with a non-existent binary.
+	osauthMock := &osauthMocks.Backend{}
+	osauth.DefaultBackend = osauthMock
+
+	// Point the shell at a path that does not exist so cmd.Start() will fail with
+	// "no such file or directory".
+	fakeUser := &osauth.User{
+		UID:      0,
+		GID:      0,
+		Username: "root",
+		Shell:    "/nonexistent/shell-that-does-not-exist",
+		HomeDir:  "/root",
+	}
+
+	osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(fakeUser, nil).Maybe()
+	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
+
+	deviceName := "test-device"
+	cmds := make(map[string]*exec.Cmd)
+	s := NewSessioner(&deviceName, cmds, nil)
+
+	sess := newFakeSession("session-heredoc-start-fail", "root")
+
+	// Inject a fakeGosshConn so the serverConn context lookup inside Heredoc()
+	// succeeds (the kill-goroutine path requires a non-nil serverConn).
+	fakeConn := &gossh.ServerConn{Conn: &fakeGosshConn{}}
+	sess.ctx.(*testSSHContext).SetValue(gliderssh.ContextKeyConn, fakeConn)
+
+	var retErr error
+
+	assert.NotPanics(t, func() {
+		retErr = s.Heredoc(sess)
+	}, "Heredoc() must not panic when cmd.Start() fails")
+
+	assert.NotNil(t, retErr, "Heredoc() must return a non-nil error when cmd.Start() fails")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with exit code 1")
+}
+
+// TestHeredoc_DeniedCredentialSwitch verifies that Heredoc() returns a non-nil
+// error, calls session.Exit(1) exactly once with code 1, and returns before any
+// further work (generateShellCmd, pipe creation, serverConn lookup, cmd.Start)
+// when checkCredentialSwitchFn returns an error. Because the gate fires as the
+// FIRST statement, no ServerConn injection into the session context is needed.
+func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
+	origCheckCredentialSwitch := checkCredentialSwitchFn
+
+	t.Cleanup(func() {
+		checkCredentialSwitchFn = origCheckCredentialSwitch
+	})
+
+	// Stub: simulate a denied credential switch.
+	checkCredentialSwitchFn = func() error {
+		return errors.New("setgroups denied in unprivileged user namespace")
+	}
+
+	deviceName := "test-device"
+	cmds := make(map[string]*exec.Cmd)
+	s := NewSessioner(&deviceName, cmds, nil)
+
+	sess := newFakeSession("session-heredoc-cred-switch", "root")
+
+	var retErr error
+
+	assert.NotPanics(t, func() {
+		retErr = s.Heredoc(sess)
+	}, "Heredoc() must not panic when credential switch is denied")
+
+	assert.NotNil(t, retErr, "Heredoc() must return a non-nil error when credential switch is denied")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
+}
+
 // TestExec_NonPty_SucceedingCommand is a regression guard for the non-PTY path of
 // Exec(). It verifies that:
 //   - a real command starts and completes

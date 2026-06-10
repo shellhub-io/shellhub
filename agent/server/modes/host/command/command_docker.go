@@ -29,6 +29,12 @@ func nsenterArgs(present map[string]string) []string {
 	return args
 }
 
+// CheckCredentialSwitch is a no-op in Docker mode: the agent relies on
+// nsenter+setpriv for credential switching, so this check is not applicable.
+func CheckCredentialSwitch() error {
+	return nil
+}
+
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	groups, err := osauth.ListGroups(u.Username)
 	if err != nil {

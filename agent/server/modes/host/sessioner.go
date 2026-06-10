@@ -8,7 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"strings"
 	"sync"
+	"syscall"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
@@ -29,6 +31,38 @@ var (
 	startPtyFn = startPty
 	initPtyFn  = initPty
 )
+
+// checkCredentialSwitchFn is a package-level seam for command.CheckCredentialSwitch.
+// Tests may replace it to simulate a denied credential switch without touching the
+// real /proc/self/setgroups.
+var checkCredentialSwitchFn = command.CheckCredentialSwitch
+
+// refuseIfCredentialSwitchDenied calls checkCredentialSwitchFn and, when it
+// returns a non-nil error, logs the refusal, calls session.Exit(1), and returns
+// the error so the caller can immediately propagate it.  A nil return means the
+// session may proceed.
+func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
+	if err := checkCredentialSwitchFn(); err != nil {
+		log.WithError(err).Error("refusing session: credential switch impossible")
+		_ = session.Exit(1)
+
+		return err
+	}
+
+	return nil
+}
+
+// ptyFailureHint returns a diagnostic hint string when err indicates that PTY
+// allocation failed because the system does not support pseudo-terminals (ENOTTY
+// or "inappropriate ioctl for device"). It returns an empty string for all other
+// errors so callers can append it to log messages without extra branching.
+func ptyFailureHint(err error) string {
+	if errors.Is(err, syscall.ENOTTY) || strings.Contains(err.Error(), "inappropriate ioctl for device") {
+		return "the system may not support PTY allocation — ensure /dev/ptmx is accessible and the agent is not in a restricted environment"
+	}
+
+	return ""
+}
 
 // Sessioner implements the Sessioner interface when the server is running in host mode.
 type Sessioner struct {
@@ -66,6 +100,10 @@ func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd, sftpServerComma
 
 // Shell manages the SSH shell session of the server when operating in host mode.
 func (s *Sessioner) Shell(session gliderssh.Session) error {
+	if err := refuseIfCredentialSwitchDenied(session); err != nil {
+		return err
+	}
+
 	sspty, winCh, isPty := session.Pty()
 
 	scmd := generateShellCmd(*s.deviceName, session, sspty.Term)
@@ -75,7 +113,12 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 
 	pts, err := startPtyFn(scmd, session, winCh)
 	if err != nil {
-		log.Warn(err)
+		entry := log.WithError(err)
+		if hint := ptyFailureHint(err); hint != "" {
+			entry = entry.WithField("hint", hint)
+		}
+
+		entry.Error("failed to start pty")
 		_ = session.Exit(1)
 
 		return fmt.Errorf("failed to start pty: %w", err)
@@ -132,6 +175,10 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 // heredoc is special block of code that contains multi-line strings that will be redirected to a stdin of a shell. It
 // request a shell, but doesn't allocate a pty.
 func (s *Sessioner) Heredoc(session gliderssh.Session) error {
+	if err := refuseIfCredentialSwitchDenied(session); err != nil {
+		return err
+	}
+
 	_, _, isPty := session.Pty()
 
 	cmd := generateShellCmd(*s.deviceName, session, "")
@@ -148,11 +195,6 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		return fmt.Errorf("failed to get server connection from session context")
 	}
 
-	go func() {
-		serverConn.Wait()  // nolint:errcheck
-		cmd.Process.Kill() // nolint:errcheck
-	}()
-
 	log.WithFields(log.Fields{
 		"user":        session.User(),
 		"ispty":       isPty,
@@ -161,10 +203,19 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command started")
 
-	err := cmd.Start()
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		log.Warn(err)
+		_ = session.Exit(1)
+
+		return err
 	}
+
+	// kill the process if the SSH connection is interrupted — must be after a
+	// successful cmd.Start() so cmd.Process is guaranteed non-nil.
+	go func() {
+		serverConn.Wait()  // nolint:errcheck
+		cmd.Process.Kill() // nolint:errcheck
+	}()
 
 	go func() {
 		if _, err := io.Copy(stdin, session); err != nil {
@@ -181,12 +232,11 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		}
 	}()
 
-	err = cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
 	}
 
-	session.Exit(cmd.ProcessState.ExitCode()) //nolint:errcheck
+	_ = session.Exit(cmd.ProcessState.ExitCode())
 
 	log.WithFields(log.Fields{
 		"user":        session.User(),
@@ -200,6 +250,10 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 
 // Exec handles the SSH's server exec session when server is running in host mode.
 func (s *Sessioner) Exec(session gliderssh.Session) error {
+	if err := refuseIfCredentialSwitchDenied(session); err != nil {
+		return err
+	}
+
 	if len(session.Command()) == 0 {
 		log.WithFields(log.Fields{
 			"user":      session.User(),
@@ -235,7 +289,12 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	if sIsPty {
 		pty, tty, err := initPtyFn(cmd, session, sWinCh)
 		if err != nil {
-			log.Warn(err)
+			entry := log.WithError(err)
+			if hint := ptyFailureHint(err); hint != "" {
+				entry = entry.WithField("hint", hint)
+			}
+
+			entry.Error("failed to init pty")
 			_ = session.Exit(1)
 
 			return fmt.Errorf("failed to init pty: %w", err)
