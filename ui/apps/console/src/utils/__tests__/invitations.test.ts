@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { invitationStatusFilter, isInvitationExpired } from "../invitations";
+import { decodeB64url } from "@/test/decodeB64url";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -14,14 +15,14 @@ describe("invitationStatusFilter", () => {
 
   it("decodes to valid JSON array", () => {
     const result = invitationStatusFilter("pending");
-    const decoded = JSON.parse(atob(result)) as unknown[];
+    const decoded = decodeB64url(result) as unknown[];
     expect(Array.isArray(decoded)).toBe(true);
     expect(decoded).toHaveLength(1);
   });
 
   it("encodes a property-type filter with name='status' and operator='eq'", () => {
     const result = invitationStatusFilter("accepted");
-    const [filter] = JSON.parse(atob(result)) as Array<{
+    const [filter] = decodeB64url(result) as Array<{
       type: string;
       params: { name: string; operator: string; value: string };
     }>;
@@ -32,7 +33,7 @@ describe("invitationStatusFilter", () => {
 
   it("encodes the given status as the filter value — pending", () => {
     const result = invitationStatusFilter("pending");
-    const [filter] = JSON.parse(atob(result)) as Array<{
+    const [filter] = decodeB64url(result) as Array<{
       type: string;
       params: { name: string; operator: string; value: string };
     }>;
@@ -41,7 +42,7 @@ describe("invitationStatusFilter", () => {
 
   it("encodes the given status as the filter value — cancelled", () => {
     const result = invitationStatusFilter("cancelled");
-    const [filter] = JSON.parse(atob(result)) as Array<{
+    const [filter] = decodeB64url(result) as Array<{
       type: string;
       params: { name: string; operator: string; value: string };
     }>;
@@ -52,6 +53,23 @@ describe("invitationStatusFilter", () => {
     expect(invitationStatusFilter("pending")).not.toBe(
       invitationStatusFilter("accepted"),
     );
+  });
+
+  it("decodes a base64url value that contains '-' (from '+' in standard base64)", () => {
+    // The '>' character produces a '+' in standard base64, which toBase64Json
+    // replaces with '-' (base64url). atob() rejects '-', so this test proves
+    // the Buffer-based helper is required.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = invitationStatusFilter(">" as any);
+    // Must not contain raw '+' or unpadded '=' — it is proper base64url
+    expect(result).not.toMatch(/\+/);
+    expect(result).not.toMatch(/=$/);
+    // Buffer-based decoding must recover the original value
+    const [filter] = decodeB64url(result) as Array<{
+      type: string;
+      params: { name: string; operator: string; value: string };
+    }>;
+    expect(filter.params.value).toBe(">");
   });
 });
 

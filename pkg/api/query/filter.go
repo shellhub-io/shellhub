@@ -17,7 +17,10 @@ var (
 
 // Filters represents a set of filters that can be applied to queries.
 type Filters struct {
-	// Raw holds the raw data of the filter and it's a base64-encoded JSON.
+	// Raw holds the raw data of the filter. It must be a base64url-encoded JSON
+	// (RFC 4648 §5, unpadded); also accepts padded/unpadded standard base64.
+	//
+	// TODO(#6469): the OpenAPI description still says "standard base64"; update it.
 	Raw string `query:"filter"`
 
 	// Data stores the decoded filters; it's automatically populated with the Unmarshal method.
@@ -37,11 +40,15 @@ func (fs *Filters) Unmarshal() error {
 		return ErrFilterTooLarge
 	}
 
-	raw, err := base64.StdEncoding.DecodeString(fs.Raw)
+	// Strip any trailing '=' padding once so both standard and URL-safe encodings
+	// can be tried with their respective Raw (unpadded) decoders.
+	unpadded := strings.TrimRight(fs.Raw, "=")
+
+	raw, err := base64.RawStdEncoding.DecodeString(unpadded)
 	if err != nil {
-		// Fall back to RawStdEncoding when the caller omitted one or more '='
-		// padding characters (common in URL contexts).
-		raw, err = base64.RawStdEncoding.DecodeString(strings.TrimRight(fs.Raw, "="))
+		// Fall back to RawURLEncoding (RFC 4648 §5) whose alphabet uses '-' and '_'
+		// instead of '+' and '/'.
+		raw, err = base64.RawURLEncoding.DecodeString(unpadded)
 		if err != nil {
 			return ErrFilterInvalid
 		}
