@@ -301,6 +301,48 @@ func TestListNamespaces(t *testing.T) {
 				err:        nil,
 			},
 		},
+		{
+			description: "type filter name is rewritten to scope before store call",
+			req: &requests.NamespaceList{
+				IsAdmin:   true,
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters: query.Filters{
+					Data: []query.Filter{
+						{
+							Type:   query.FilterTypeProperty,
+							Params: &query.FilterProperty{Name: "type", Operator: "eq", Value: "team"},
+						},
+					},
+				},
+			},
+			ctx: ctx,
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", &query.Filters{
+						Data: []query.Filter{
+							{
+								Type:   query.FilterTypeProperty,
+								Params: &query.FilterProperty{Name: "scope", Operator: "eq", Value: "team"},
+							},
+						},
+					}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Namespace{}, 0, nil).
+					Once()
+			},
+			expected: Expected{
+				namespaces: []models.Namespace{},
+				count:      0,
+				err:        nil,
+			},
+		},
 	}
 
 	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
@@ -1602,4 +1644,33 @@ func TestDeleteNamespace(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestNamespaceFilterFields(t *testing.T) {
+	t.Run("name field allows contains, eq and ne operators", func(t *testing.T) {
+		assert.True(t, NamespaceFilterFields.Allows("name", "contains"))
+		assert.True(t, NamespaceFilterFields.Allows("name", "eq"))
+		assert.True(t, NamespaceFilterFields.Allows("name", "ne"))
+	})
+
+	t.Run("type field allows eq and ne operators", func(t *testing.T) {
+		assert.True(t, NamespaceFilterFields.Allows("type", "eq"))
+		assert.True(t, NamespaceFilterFields.Allows("type", "ne"))
+	})
+
+	t.Run("type field does not allow contains operator", func(t *testing.T) {
+		assert.False(t, NamespaceFilterFields.Allows("type", "contains"))
+	})
+
+	t.Run("unknown field is rejected", func(t *testing.T) {
+		assert.False(t, NamespaceFilterFields.Allows("unknown", "eq"))
+	})
+
+	t.Run("namespaceFilterColumns maps type to scope", func(t *testing.T) {
+		assert.Equal(t, "scope", namespaceFilterColumns["type"])
+	})
+
+	t.Run("namespaceFilterColumns has exactly one entry", func(t *testing.T) {
+		assert.Len(t, namespaceFilterColumns, 1)
+	})
 }

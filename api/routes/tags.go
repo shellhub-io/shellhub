@@ -5,7 +5,9 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	log "github.com/sirupsen/logrus"
 )
@@ -67,8 +69,16 @@ func (h *Handler) GetTags(c gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
+	if err := query.ValidateFilters(&req.Filters, services.TagFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	req.Paginator.Normalize()
 	req.Sorter.Normalize()
+
+	if err := query.ValidateSorter(&req.Sorter, services.TagSortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
 
 	tags, totalCount, err := h.service.ListTags(c.Ctx(), req)
 	if err != nil {

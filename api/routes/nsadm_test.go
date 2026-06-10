@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -666,6 +668,42 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
+// encodeFilter serialises filters as the JSON array the API expects and
+// returns it base64-encoded, ready to be used as the "filter" query param.
+func encodeFilter(t *testing.T, filters []query.Filter) string {
+	t.Helper()
+
+	raw, err := json.Marshal(filters)
+	if err != nil {
+		t.Fatalf("encodeFilter: marshal: %v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(raw)
+}
+
+// namespaceListHasFilterName returns a testify MatchedBy matcher that
+// verifies the first property filter in a *requests.NamespaceList carries the
+// given field name un-rewritten, ensuring the handler passes the API-level
+// field name to the service layer without translating it to a database column.
+func namespaceListHasFilterName(name string) interface{} {
+	return gomock.MatchedBy(func(req *requests.NamespaceList) bool {
+		for _, f := range req.Filters.Data {
+			if f.Type != query.FilterTypeProperty {
+				continue
+			}
+
+			prop, ok := f.Params.(*query.FilterProperty)
+			if !ok {
+				return false
+			}
+
+			return prop.Name == name
+		}
+
+		return false
+	})
+}
+
 func TestGetNamespaceList(t *testing.T) {
 	svcMock := new(mocks.Service)
 
@@ -681,6 +719,87 @@ func TestGetNamespaceList(t *testing.T) {
 			query:          "filter=!!!notbase64!!!",
 			requiredMocks:  func() {},
 			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// Unknown field not present in NamespaceFilterFields must yield 400
+			// before reaching the service layer.
+			description: "fails with unknown filter field",
+			query: "filter=" + encodeFilter(t, []query.Filter{
+				{
+					Type: query.FilterTypeProperty,
+					Params: &query.FilterProperty{
+						Name:     "unknown_field",
+						Operator: "eq",
+						Value:    "test",
+					},
+				},
+			}),
+			requiredMocks:  func() {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// Operator "contains" is not allowed on the "type" field (enum), so
+			// the handler must return 400 without calling the service.
+			description: "fails with disallowed operator for type field",
+			query: "filter=" + encodeFilter(t, []query.Filter{
+				{
+					Type: query.FilterTypeProperty,
+					Params: &query.FilterProperty{
+						Name:     "type",
+						Operator: "contains",
+						Value:    "test",
+					},
+				},
+			}),
+			requiredMocks:  func() {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// A valid name+contains filter must reach the service and return 200
+			// with the correct X-Total-Count header.
+			description: "succeeds with valid name+contains filter",
+			query: "filter=" + encodeFilter(t, []query.Filter{
+				{
+					Type: query.FilterTypeProperty,
+					Params: &query.FilterProperty{
+						Name:     "name",
+						Operator: "contains",
+						Value:    "test",
+					},
+				},
+			}),
+			requiredMocks: func() {
+				svcMock.
+					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
+					Return([]models.Namespace{}, 5, nil).
+					Once()
+			},
+			expectedStatus: http.StatusOK,
+			expectedCount:  5,
+		},
+		{
+			// A valid type+eq filter must reach the service with the field name
+			// "type" un-rewritten (the store layer, not the handler, translates
+			// "type" → "scope").
+			description: "succeeds with valid type+eq filter and name reaches service un-rewritten",
+			query: "filter=" + encodeFilter(t, []query.Filter{
+				{
+					Type: query.FilterTypeProperty,
+					Params: &query.FilterProperty{
+						Name:     "type",
+						Operator: "eq",
+						Value:    "personal",
+					},
+				},
+			}),
+			requiredMocks: func() {
+				svcMock.
+					On("ListNamespaces", gomock.Anything, namespaceListHasFilterName("type")).
+					Return([]models.Namespace{}, 2, nil).
+					Once()
+			},
+			expectedStatus: http.StatusOK,
+			expectedCount:  2,
 		},
 		{
 			description: "succeeds and returns X-Total-Count header",
