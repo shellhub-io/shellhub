@@ -24,6 +24,9 @@ services:
       # Web endpoints (feature gate read by the enterprise binary)
       - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
       - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}
+      # GeoIP (MaxMind) database source, read by the enterprise binary
+      - MAXMIND_MIRROR=${SHELLHUB_MAXMIND_MIRROR:-}
+      - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE:-}
     secrets:
       - api_private_key
       - api_public_key

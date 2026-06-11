@@ -15,9 +15,9 @@ var _ Locator = (*nullGeoLite)(nil)
 // Check if geoLite2 implements io.Closer interface.
 var _ io.Closer = (*nullGeoLite)(nil)
 
-// NewNullGeoLite opens a connection to GeoIp2 database and return a geoLite2 structure with the database connection.
-//
-// The connection uses the local database or try to download it from MaxMind's server (the download required `MAXMIND_LICENSE`).
+// NewNullGeoLite returns a no-op [Locator] that resolves every IP to an empty
+// result. It is the Community Edition fallback; the real MaxMind-backed locator
+// lives in the cloud/enterprise build.
 func NewNullGeoLite() Locator {
 	return &nullGeoLite{}
 }
