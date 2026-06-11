@@ -60,15 +60,15 @@ html {
 .toc-link {
   display: block;
   font-size: 12.5px;
-  color: #5C6070;
+  color: theme('colors.text-muted');
   text-decoration: none;
   padding: 3px 0 3px 12px;
-  border-left: 1px solid #2C2F36;
+  border-left: 1px solid theme('colors.border');
   transition: all 0.15s;
 }
 
 .toc-link:hover {
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
 }
 
 .toc-link--sub {
@@ -77,8 +77,8 @@ html {
 }
 
 .toc-link--active {
-  color: #667ACC;
-  border-left-color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
+  border-left-color: theme('colors.primary.DEFAULT');
 }
 
 /* ══════════════════════════════════════
@@ -115,8 +115,8 @@ html {
   width: 520px;
   max-width: calc(100vw - 32px);
   max-height: 440px;
-  background: #1E2127;
-  border: 1px solid #2C2F36;
+  background: theme('colors.surface');
+  border: 1px solid theme('colors.border');
   border-radius: 12px;
   overflow: hidden;
   box-shadow:
@@ -135,13 +135,13 @@ html {
   align-items: center;
   padding: 0 16px;
   gap: 10px;
-  border-bottom: 1px solid #2C2F36;
+  border-bottom: 1px solid theme('colors.border');
 }
 
 .cmd-search-icon {
   width: 16px;
   height: 16px;
-  color: #5C6070;
+  color: theme('colors.text-muted');
   flex-shrink: 0;
 }
 
@@ -153,19 +153,19 @@ html {
   outline: none;
   font-family: "IBM Plex Sans", sans-serif;
   font-size: 15px;
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
 }
 
 .cmd-input::placeholder {
-  color: #5C6070;
+  color: theme('colors.text-muted');
 }
 
 .cmd-esc {
   font-family: "IBM Plex Mono", monospace;
   font-size: 10px;
-  color: #5C6070;
+  color: theme('colors.text-muted');
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid #2C2F36;
+  border: 1px solid theme('colors.border');
   border-radius: 4px;
   padding: 2px 6px;
   flex-shrink: 0;
@@ -184,7 +184,7 @@ html {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #5C6070;
+  color: theme('colors.text-muted');
 }
 
 .cmd-item {
@@ -194,7 +194,7 @@ html {
   padding: 8px 10px;
   border-radius: 6px;
   text-decoration: none;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   font-size: 13.5px;
   cursor: pointer;
   transition: all 0.08s;
@@ -203,17 +203,17 @@ html {
 .cmd-item:hover,
 .cmd-item--sel {
   background: rgba(102, 122, 204, 0.1);
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
 }
 
 .cmd-item--cur span:first-child {
-  color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
 }
 
 .cmd-badge {
   font-family: "IBM Plex Mono", monospace;
   font-size: 9px;
-  color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
   background: rgba(102, 122, 204, 0.1);
   padding: 2px 7px;
   border-radius: 4px;
@@ -222,7 +222,7 @@ html {
 .cmd-empty {
   padding: 24px;
   text-align: center;
-  color: #5C6070;
+  color: theme('colors.text-muted');
   font-size: 13px;
 }
 
@@ -256,7 +256,7 @@ html {
    ══════════════════════════════════════ */
 
 .prose {
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   line-height: 1.6;
 }
 
@@ -270,7 +270,7 @@ html {
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   margin: 0 0 12px 0;
 }
 
@@ -278,23 +278,23 @@ html {
   font-size: 1.3rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   margin: 44px 0 16px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid #2C2F36;
+  border-bottom: 1px solid theme('colors.border');
 }
 
 .prose h3 {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   margin: 32px 0 12px 0;
 }
 
 .prose h4 {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   margin: 24px 0 8px 0;
 }
 
@@ -303,18 +303,18 @@ html {
 .prose p {
   font-size: 15px;
   line-height: 1.75;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   margin-bottom: 16px;
 }
 
 .prose strong {
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   font-weight: 500;
 }
 
 .prose h1 + p {
   font-size: 16px;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   margin-top: 4px;
   margin-bottom: 36px;
   line-height: 1.7;
@@ -323,7 +323,7 @@ html {
 /* Links */
 
 .prose a {
-  color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
   text-decoration: none;
   border-bottom: 1px solid rgba(102, 122, 204, 0.25);
   transition: all 0.15s;
@@ -331,7 +331,7 @@ html {
 
 .prose a:hover {
   color: #8B9EDD;
-  border-bottom-color: #667ACC;
+  border-bottom-color: theme('colors.primary.DEFAULT');
 }
 
 /* Inline code */
@@ -343,7 +343,7 @@ html {
   border: 1px solid rgba(78, 154, 163, 0.12);
   border-radius: 4px;
   padding: 1.5px 6px;
-  color: #4e9aa3;
+  color: theme('colors.accent.cyan');
 }
 
 /* Code blocks */
@@ -351,7 +351,7 @@ html {
 .prose pre {
   position: relative;
   background: #141517;
-  border: 1px solid #2C2F36;
+  border: 1px solid theme('colors.border');
   border-radius: 10px;
   padding: 18px 22px;
   margin-bottom: 20px;
@@ -362,7 +362,7 @@ html {
   background: transparent;
   border: none;
   padding: 0;
-  color: #E1E4EA;
+  color: theme('colors.text-primary');
   font-size: 13px;
   line-height: 1.65;
 }
@@ -376,14 +376,14 @@ html {
 
 .prose ul li {
   font-size: 15px;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   line-height: 1.75;
   list-style-type: disc;
   margin-bottom: 4px;
 }
 
 .prose ul li::marker {
-  color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
 }
 
 .prose ol {
@@ -393,14 +393,14 @@ html {
 
 .prose ol li {
   font-size: 15px;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   line-height: 1.75;
   list-style-type: decimal;
   margin-bottom: 4px;
 }
 
 .prose ol li::marker {
-  color: #667ACC;
+  color: theme('colors.primary.DEFAULT');
   font-family: "IBM Plex Mono", monospace;
   font-size: 12.5px;
 }
@@ -411,7 +411,7 @@ html {
   border-left: 2px solid rgba(102, 122, 204, 0.35);
   padding: 4px 16px;
   margin: 0 0 16px 0;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   font-style: italic;
 }
 
@@ -420,7 +420,7 @@ html {
 .prose hr {
   border: none;
   height: 1px;
-  background: #2C2F36;
+  background: theme('colors.border');
   margin: 36px 0;
 }
 
@@ -431,7 +431,7 @@ html {
   font-size: 13.5px;
   margin-bottom: 20px;
   border-collapse: collapse;
-  border: 1px solid #2C2F36;
+  border: 1px solid theme('colors.border');
   border-radius: 10px;
   overflow: hidden;
 }
@@ -443,15 +443,15 @@ html {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #5C6070;
+  color: theme('colors.text-muted');
   padding: 10px 14px;
-  border-bottom: 1px solid #2C2F36;
+  border-bottom: 1px solid theme('colors.border');
   background: rgba(255, 255, 255, 0.02);
 }
 
 .prose td {
   padding: 10px 14px;
-  color: #8B8F99;
+  color: theme('colors.text-secondary');
   border-bottom: 1px solid rgba(44, 47, 54, 0.5);
 }
 
