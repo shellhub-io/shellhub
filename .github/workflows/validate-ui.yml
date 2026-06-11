@@ -23,6 +23,8 @@ jobs:
             workspace: "@shellhub/docs"
           - app: website
             workspace: "@shellhub/website"
+          - app: design-system
+            workspace: "@shellhub/design-system"
 
     runs-on: ubuntu-latest
 
@@ -53,6 +55,8 @@ jobs:
               - 'ui/package.json'
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
+            design-system:
+              - 'ui/packages/design-system/**'
 
       - name: Set up Node.JS 24.13.0 [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
@@ -90,11 +94,11 @@ jobs:
         run: npm run test -w ${{ matrix.workspace }}
 
       - name: Code linting [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
+        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app != 'design-system'
         working-directory: ui
         run: npm run lint -w ${{ matrix.workspace }}
 
       - name: Build [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true'
+        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app != 'design-system'
         working-directory: ui
         run: npm run build -w ${{ matrix.workspace }}
