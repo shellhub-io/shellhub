@@ -82,10 +82,10 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   .diagram-container {
-    background: #1E2127;
-    border: 1px solid #2C2F36;
+    background: theme('colors.surface');
+    border: 1px solid theme('colors.border');
     border-radius: 12px;
     padding: 28px 32px;
     margin: 12px 0 24px;
@@ -114,20 +114,20 @@
   }
 
   .diagram-tag--red {
-    color: #ca6169;
-    background: rgba(202, 97, 105, 0.1);
-    border: 1px solid rgba(202, 97, 105, 0.2);
+    color: theme('colors.accent.red');
+    background: rgba(216, 115, 123, 0.1);
+    border: 1px solid rgba(216, 115, 123, 0.2);
   }
 
   .diagram-tag--primary {
-    color: #667ACC;
+    color: theme('colors.primary.DEFAULT');
     background: rgba(102, 122, 204, 0.1);
     border: 1px solid rgba(102, 122, 204, 0.2);
   }
 
   .diagram-hint {
     font-size: 12px;
-    color: #5C6070;
+    color: theme('colors.text-muted');
   }
 
   .diagram-flow {
@@ -151,20 +151,20 @@
   .diagram-icon {
     width: 36px;
     height: 36px;
-    color: #8B8F99;
+    color: theme('colors.text-secondary');
     padding: 7px;
-    background: #22252B;
-    border: 1px solid #2C2F36;
+    background: theme('colors.card');
+    border: 1px solid theme('colors.border');
     border-radius: 10px;
   }
 
   .diagram-node--red .diagram-icon {
-    border-color: rgba(202, 97, 105, 0.4);
+    border-color: rgba(216, 115, 123, 0.4);
   }
 
   .diagram-node--primary .diagram-icon {
     border-color: rgba(102, 122, 204, 0.4);
-    color: #667ACC;
+    color: theme('colors.primary.DEFAULT');
   }
 
   .diagram-node--server .diagram-icon {
@@ -176,7 +176,7 @@
   .diagram-node-label {
     font-size: 11px;
     font-weight: 500;
-    color: #8B8F99;
+    color: theme('colors.text-secondary');
     white-space: nowrap;
   }
 
@@ -193,13 +193,13 @@
   }
 
   .diagram-node-badge--red {
-    background: rgba(202, 97, 105, 0.2);
-    color: #ca6169;
+    background: rgba(216, 115, 123, 0.2);
+    color: theme('colors.accent.red');
   }
 
   .diagram-node-badge--green {
     background: rgba(130, 165, 104, 0.2);
-    color: #82a568;
+    color: theme('colors.accent.green');
   }
 
   .diagram-arrow {
@@ -217,7 +217,7 @@
   }
 
   .diagram-arrow-line--red {
-    background: rgba(202, 97, 105, 0.3);
+    background: rgba(216, 115, 123, 0.3);
   }
 
   .diagram-arrow-line--primary {
@@ -231,7 +231,7 @@
   }
 
   .diagram-arrow-head--red {
-    color: rgba(202, 97, 105, 0.5);
+    color: rgba(216, 115, 123, 0.5);
   }
 
   .diagram-arrow-head--primary {
@@ -249,13 +249,13 @@
     transform: translateX(-50%);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    color: #5C6070;
+    color: theme('colors.text-muted');
     white-space: nowrap;
   }
 
   .diagram-divider {
     height: 1px;
-    background: #2C2F36;
+    background: theme('colors.border');
     margin: 20px 0;
   }
 
