@@ -8,5 +8,9 @@
     "./css/base.css": "./css/base.css",
     "./components": "./components/index.ts",
     "./constants": "./constants.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
