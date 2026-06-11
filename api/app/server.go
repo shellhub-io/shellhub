@@ -17,7 +17,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
@@ -58,13 +57,6 @@ type Env struct {
 	// If a job doesn't complete within this period, its lock is released, allowing a new instance
 	// to be enqueued and executed.
 	AsynqUniquenessTimeout int `env:"ASYNQ_UNIQUENESS_TIMEOUT,default=24"`
-
-	// GeoipMirror specifies an alternative URL for downloading GeoIP databases.
-	// When configured, this takes precedence over GeoipMaxmindLicense.
-	GeoipMirror string `env:"MAXMIND_MIRROR,default="`
-	// GeoipMaxmindLicense is the MaxMind license key for downloading GeoIP databases directly.
-	// This is used as a fallback when GeoipMirror is not configured.
-	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
 
 	// Metrics enables the /metrics endpoint.
 	Metrics bool `env:"METRICS,default=false"`
@@ -197,25 +189,20 @@ func (s *Server) Shutdown() {
 func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {
 	opts := []services.Option{}
 
-	var geoipFetcher geolite2.GeoliteFetcher
-	switch {
-	case s.env.GeoipMirror != "":
-		log.Info("Using custom mirror for GeoIP database")
-		geoipFetcher = geolite2.FetchFromMirror(s.env.GeoipMirror)
-	case s.env.GeoipMaxmindLicense != "":
-		log.Info("Using MaxMind license key for GeoIP database")
-		geoipFetcher = geolite2.FetchFromLicenseKey(s.env.GeoipMaxmindLicense)
-	}
-
-	if geoipFetcher != nil {
-		locator, err := geolite2.NewLocator(ctx, geoipFetcher)
+	// If a locator factory was registered (EE/cloud build), create and inject
+	// the GeoIP locator before the service is constructed. In CE builds the
+	// factory is nil and the service falls back to the null locator.
+	if factory := services.LocatorFactory(); factory != nil {
+		locator, err := factory(ctx)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(errors.New("failed to initialize GeoIP locator"), err)
 		}
 
-		log.Info("GeoIP locator initialized successfully")
+		if locator != nil {
+			log.Info("GeoIP locator initialized successfully")
 
-		opts = append(opts, services.WithLocator(locator))
+			opts = append(opts, services.WithLocator(locator))
+		}
 	}
 
 	return opts, nil
