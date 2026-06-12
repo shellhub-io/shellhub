@@ -1,0 +1,48 @@
+get:
+  operationId: getVault
+  summary: Get vault
+  description: |
+    Get the authenticated user's vault in the current namespace. Returns 404
+    when the user has not created a vault yet.
+  tags:
+    - cloud
+
+    - vault
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to get the vault.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/vaultResponse.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteVault
+  summary: Delete vault
+  description: Delete the authenticated user's vault in the current namespace.
+  tags:
+    - cloud
+
+    - vault
+  security:
+    - jwt: []
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

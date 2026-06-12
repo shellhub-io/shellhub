@@ -30,7 +30,7 @@ describe("getVaultBackend", () => {
     expect(typeof backend.saveSettings).toBe("function");
   });
 
-  it("scopes storage keys when scope is provided", () => {
+  it("scopes storage keys when scope is provided", async () => {
     const backend = getVaultBackend({
       user: "testuser",
       tenant: "test-tenant",
@@ -42,14 +42,14 @@ describe("getVaultBackend", () => {
       verifier: "dmVyaWZpZXI=",
       verifierIv: "aXY=",
     };
-    backend.saveMeta(meta);
+    await backend.saveMeta(meta);
     expect(
       localStorage.getItem("shellhub-vault-meta:testuser:test-tenant"),
     ).toBe(JSON.stringify(meta));
     expect(localStorage.getItem("shellhub-vault-meta")).toBeNull();
   });
 
-  it("uses unscoped keys when no scope is provided", () => {
+  it("uses unscoped keys when no scope is provided", async () => {
     const backend = getVaultBackend();
     const meta = {
       version: 1 as const,
@@ -58,7 +58,7 @@ describe("getVaultBackend", () => {
       verifier: "dmVyaWZpZXI=",
       verifierIv: "aXY=",
     };
-    backend.saveMeta(meta);
+    await backend.saveMeta(meta);
     expect(localStorage.getItem("shellhub-vault-meta")).toBe(
       JSON.stringify(meta),
     );

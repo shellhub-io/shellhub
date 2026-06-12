@@ -93,9 +93,7 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
               disabled={!canSubmit}
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {loading && (
-                <Spinner tone="onPrimary" />
-              )}
+              {loading && <Spinner tone="onPrimary" />}
               Unlock
             </button>
           </div>

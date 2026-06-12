@@ -2,10 +2,16 @@ import { useState, FormEvent, useEffect, useId, useMemo } from "react";
 import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
+  ComputerDesktopIcon,
+  ServerStackIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
-import { getVaultBackend } from "@/utils/vault-backend-factory";
-import { useAuthStore } from "@/stores/authStore";
+import { loadLegacyKeysFromStorage } from "@/utils/vault-backend-local";
+import {
+  isVaultServerEnabled,
+  type VaultStorageMode,
+} from "@/utils/vault-backend-factory";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
 import Spinner from "@/components/common/Spinner";
@@ -19,29 +25,52 @@ interface FormProps extends Props {
   instanceId: string;
 }
 
+const STORAGE_OPTIONS: {
+  mode: VaultStorageMode;
+  icon: typeof ServerStackIcon;
+  title: string;
+  description: string;
+}[] = [
+  {
+    mode: "server",
+    icon: ServerStackIcon,
+    title: "Sync to the ShellHub server",
+    description:
+      "Use your keys on any machine you sign in to. Stored encrypted — the server never sees them.",
+  },
+  {
+    mode: "local",
+    icon: ComputerDesktopIcon,
+    title: "This device only",
+    description:
+      "Keys stay in this browser. Clearing its data deletes them, and other machines can't reach them.",
+  },
+];
+
 function SetupForm({ open, onClose, instanceId }: FormProps) {
   const loading = useVaultStore((s) => s.loading);
   const error = useVaultStore((s) => s.error);
   const initialize = useVaultStore((s) => s.initialize);
   const clearError = useVaultStore((s) => s.clearError);
-  const user = useAuthStore((s) => s.user);
-  const tenant = useAuthStore((s) => s.tenant);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  // Server-backed deployments default to syncing — the value of the feature.
+  const [mode, setMode] = useState<VaultStorageMode>("server");
 
+  const serverEnabled = isVaultServerEnabled();
   const titleId = `vault-setup-title-${instanceId}`;
 
   useEffect(() => {
     if (open) clearError();
   }, [open, clearError]);
 
-  // Compute once per open/user/tenant change — avoids a localStorage read
-  // on every render and ensures the component subscribes to auth changes.
+  // Compute once per open change — avoids a localStorage read on every
+  // render. Legacy keys predate the vault and always live in localStorage,
+  // regardless of which vault backend is active.
   const legacyCount = useMemo(() => {
     if (!open) return 0;
-    const scope = user && tenant ? { user, tenant } : undefined;
-    return getVaultBackend(scope).loadLegacyKeys().length;
-  }, [open, user, tenant]);
+    return loadLegacyKeysFromStorage().length;
+  }, [open]);
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
@@ -50,7 +79,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-    await initialize(password);
+    await initialize(password, serverEnabled ? mode : "local");
     if (!useVaultStore.getState().error && !useVaultStore.getState().loading) {
       onClose();
     }
@@ -93,6 +122,59 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
       )}
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+        {serverEnabled && (
+          <fieldset className="space-y-2">
+            <legend className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+              Where to store it
+            </legend>
+            {STORAGE_OPTIONS.map((option) => {
+              const selected = mode === option.mode;
+              const Icon = option.icon;
+              return (
+                <label
+                  key={option.mode}
+                  className={`flex items-start gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-colors ${
+                    selected
+                      ? "border-primary bg-primary/[0.06]"
+                      : "border-border hover:border-border-light hover:bg-hover-subtle"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`${instanceId}-storage`}
+                    value={option.mode}
+                    checked={selected}
+                    onChange={() => setMode(option.mode)}
+                    className="sr-only"
+                  />
+                  <Icon
+                    className={`w-5 h-5 shrink-0 mt-0.5 ${
+                      selected ? "text-primary" : "text-text-muted"
+                    }`}
+                    strokeWidth={2}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-text-primary">
+                        {option.title}
+                      </span>
+                      {selected && (
+                        <CheckCircleIcon
+                          className="w-4 h-4 text-primary shrink-0"
+                          strokeWidth={2}
+                        />
+                      )}
+                    </div>
+                    <p className="text-2xs text-text-muted mt-0.5">
+                      {option.description}
+                    </p>
+                  </div>
+                </label>
+              );
+            })}
+          </fieldset>
+        )}
+
         <PasswordField
           id={`${instanceId}-password`}
           label="Master Password"
@@ -136,9 +218,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {loading && (
-              <Spinner tone="onPrimary" />
-            )}
+            {loading && <Spinner tone="onPrimary" />}
             Create Vault
           </button>
         </div>

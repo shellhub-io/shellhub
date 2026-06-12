@@ -6,13 +6,13 @@ import type {
 } from "@/types/vault";
 
 export interface IVaultBackend {
-  loadMeta(): VaultMeta | null;
-  saveMeta(meta: VaultMeta): void;
-  loadData(): VaultData | null;
-  saveData(data: VaultData): void;
-  clear(): void;
-  loadLegacyKeys(): LegacyPrivateKey[];
-  clearLegacyKeys(): void;
-  loadSettings(): VaultSettings;
-  saveSettings(settings: VaultSettings): void;
+  loadMeta(): Promise<VaultMeta | null>;
+  saveMeta(meta: VaultMeta): Promise<void>;
+  loadData(): Promise<VaultData | null>;
+  saveData(data: VaultData): Promise<void>;
+  clear(): Promise<void>;
+  loadLegacyKeys(): Promise<LegacyPrivateKey[]>;
+  clearLegacyKeys(): Promise<void>;
+  loadSettings(): Promise<VaultSettings>;
+  saveSettings(settings: VaultSettings): Promise<void>;
 }

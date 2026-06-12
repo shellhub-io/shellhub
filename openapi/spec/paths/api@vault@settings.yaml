@@ -1,0 +1,39 @@
+put:
+  operationId: saveVaultSettings
+  summary: Save vault settings
+  description: |
+    Save the vault settings for the authenticated user in the current
+    namespace, creating the vault when it does not exist yet.
+  tags:
+    - cloud
+
+    - vault
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            settings:
+              description: Vault settings, as an opaque JSON string.
+              type: string
+              example: '{"autoLockTimeoutMinutes":5,"lockOnHidden":true}'
+          required:
+            - settings
+  responses:
+    '200':
+      description: Success to save the vault settings.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/vaultVersionResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

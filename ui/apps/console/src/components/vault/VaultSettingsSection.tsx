@@ -5,8 +5,11 @@ import {
   ExclamationTriangleIcon,
   ExclamationCircleIcon,
   ChevronDownIcon,
+  ServerStackIcon,
 } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
+import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
+import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
 import { ALLOWED_TIMEOUT_MINUTES } from "@/types/vault";
 import type { AllowedTimeoutMinutes } from "@/types/vault";
 import { useClickOutside } from "@/hooks/useClickOutside";
@@ -211,9 +214,11 @@ export default function VaultSettingsSection() {
   const autoLockTimeoutMinutes = useVaultStore((s) => s.autoLockTimeoutMinutes);
   const lockOnHidden = useVaultStore((s) => s.lockOnHidden);
   const updateAutoLockSettings = useVaultStore((s) => s.updateAutoLockSettings);
+  const storageMode = useVaultStore((s) => s.storageMode);
   const [changeOpen, setChangeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [resetConfirmText, setResetConfirmText] = useState("");
+  const [syncOpen, setSyncOpen] = useState(false);
 
   if (status !== "unlocked") return null;
 
@@ -253,7 +258,7 @@ export default function VaultSettingsSection() {
             <AutoLockTimeoutSelect
               value={autoLockTimeoutMinutes}
               onChange={(minutes) =>
-                updateAutoLockSettings({ autoLockTimeoutMinutes: minutes })
+                void updateAutoLockSettings({ autoLockTimeoutMinutes: minutes })
               }
             />
           </div>
@@ -266,11 +271,29 @@ export default function VaultSettingsSection() {
                 description="Locks the vault about a minute after you switch away or minimize."
                 checked={lockOnHidden}
                 onChange={(checked) =>
-                  updateAutoLockSettings({ lockOnHidden: checked })
+                  void updateAutoLockSettings({ lockOnHidden: checked })
                 }
               />
             </div>
           </div>
+
+          {isVaultServerEnabled() && (
+            <button
+              type="button"
+              onClick={() => setSyncOpen(true)}
+              className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors"
+            >
+              <ServerStackIcon className="w-4 h-4 text-text-muted shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">Storage</p>
+                <p className="text-2xs text-text-muted">
+                  {storageMode === "server"
+                    ? "Synced with the ShellHub server. Click to move it to this device."
+                    : "Stored in this browser only. Click to sync it to the ShellHub server."}
+                </p>
+              </div>
+            </button>
+          )}
 
           <button
             type="button"
@@ -319,7 +342,7 @@ export default function VaultSettingsSection() {
           setResetOpen(false);
         }}
         onConfirm={() => {
-          resetVault();
+          void resetVault();
           setResetOpen(false);
         }}
         title="Reset Secure Vault"
@@ -347,6 +370,12 @@ export default function VaultSettingsSection() {
           />
         </div>
       </ConfirmDialog>
+
+      <VaultSyncDialog
+        open={syncOpen}
+        onClose={() => setSyncOpen(false)}
+        direction={storageMode === "server" ? "to-local" : "to-server"}
+      />
     </>
   );
 }

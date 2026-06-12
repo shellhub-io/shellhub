@@ -1,0 +1,8 @@
+type: object
+description: Current vault version after a write.
+properties:
+  version:
+    description: Vault version, incremented on every write.
+    type: integer
+    format: int64
+    example: 2
