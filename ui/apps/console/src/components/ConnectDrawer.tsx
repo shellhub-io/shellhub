@@ -115,7 +115,7 @@ export default function ConnectDrawer({
   useEffect(() => {
     if (!open) return;
     dispatch({ type: "reset" });
-    refreshVault();
+    void refreshVault();
   }, [open, refreshVault]);
 
   const hasVaultKeys = vaultStatus === "unlocked" && vaultKeys.length > 0;

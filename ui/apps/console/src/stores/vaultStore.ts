@@ -15,15 +15,24 @@ import {
   getSessionKey,
   clearSessionKey,
 } from "@/utils/vault-crypto";
-import { getVaultBackend } from "@/utils/vault-backend-factory";
+import {
+  getVaultBackend,
+  getVaultStorageMode,
+  setVaultStorageMode,
+  type VaultStorageMode,
+} from "@/utils/vault-backend-factory";
 import type { IVaultBackend } from "@/utils/vault-backend";
 import * as activityTracker from "@/utils/vault-activity-tracker";
 import { useAuthStore } from "@/stores/authStore";
 import { generateRandomUUID } from "@/utils/random-uuid";
 
-function getBackend() {
+function getScope() {
   const { user, tenant } = useAuthStore.getState();
-  return getVaultBackend(user && tenant ? { user, tenant } : undefined);
+  return user && tenant ? { user, tenant } : undefined;
+}
+
+function getBackend() {
+  return getVaultBackend(getScope());
 }
 
 export type DuplicateField = "name" | "private_key" | "both";
@@ -44,9 +53,14 @@ interface VaultState {
   autoLockTimeoutMinutes: number;
   lockOnHidden: boolean;
   autoLockNonce: number;
+  /** Where the vault lives for the current user ("local" or "server"). */
+  storageMode: VaultStorageMode;
 
-  refreshStatus: () => void;
-  initialize: (masterPassword: string) => Promise<void>;
+  refreshStatus: () => Promise<void>;
+  initialize: (
+    masterPassword: string,
+    mode?: VaultStorageMode,
+  ) => Promise<void>;
   unlock: (masterPassword: string) => Promise<void>;
   lock: () => void;
   addKey: (
@@ -69,9 +83,9 @@ interface VaultState {
     currentPassword: string,
     newPassword: string,
   ) => Promise<void>;
-  resetVault: () => void;
+  resetVault: () => Promise<void>;
   clearError: () => void;
-  updateAutoLockSettings: (updates: Partial<VaultSettings>) => void;
+  updateAutoLockSettings: (updates: Partial<VaultSettings>) => Promise<void>;
 }
 
 async function persistKeys(
@@ -83,7 +97,7 @@ async function persistKeys(
 
   const backend = be ?? getBackend();
   const data = await encrypt(key, JSON.stringify(keys));
-  backend.saveData(data);
+  await backend.saveData(data);
 }
 
 function checkDuplicates(
@@ -119,10 +133,10 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
 }
 
 export const useVaultStore = create<VaultState>((set, get) => {
-  function loadSettingsIntoState(): void {
+  async function loadSettingsIntoState(): Promise<void> {
     try {
       const backend = getBackend();
-      const settings = backend.loadSettings();
+      const settings = await backend.loadSettings();
       set({
         autoLockTimeoutMinutes: settings.autoLockTimeoutMinutes,
         lockOnHidden: settings.lockOnHidden,
@@ -161,10 +175,24 @@ export const useVaultStore = create<VaultState>((set, get) => {
     autoLockTimeoutMinutes: DEFAULT_VAULT_SETTINGS.autoLockTimeoutMinutes,
     lockOnHidden: DEFAULT_VAULT_SETTINGS.lockOnHidden,
     autoLockNonce: 0,
+    storageMode: "local",
 
-    refreshStatus: () => {
-      const backend = getBackend();
-      const meta = backend.loadMeta();
+    refreshStatus: async () => {
+      set({ storageMode: getVaultStorageMode(getScope()) });
+
+      let meta;
+      try {
+        const backend = getBackend();
+        meta = await backend.loadMeta();
+      } catch (err) {
+        // Keep the current status: with a server-backed vault a transient
+        // network error must not present the setup screen (which could lead
+        // to overwriting an existing vault).
+        const msg =
+          err instanceof Error ? err.message : "Failed to load the vault";
+        set({ error: msg });
+        return;
+      }
 
       if (!meta) {
         activityTracker.stop();
@@ -172,7 +200,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
         return;
       }
 
-      loadSettingsIntoState();
+      await loadSettingsIntoState();
 
       if (!getSessionKey()) {
         activityTracker.stop();
@@ -183,30 +211,36 @@ export const useVaultStore = create<VaultState>((set, get) => {
       set({ status: "unlocked" });
     },
 
-    initialize: async (masterPassword) => {
+    initialize: async (masterPassword, mode) => {
       set({ loading: true, error: null });
+      // Persist the chosen storage location before picking the backend so the
+      // vault is created where the user asked (local or server).
+      if (mode) {
+        setVaultStorageMode(mode, getScope());
+        set({ storageMode: mode });
+      }
       const backend = getBackend();
       try {
         const { meta, derivedKey } = await createVaultMeta(masterPassword);
-        backend.saveMeta(meta);
+        await backend.saveMeta(meta);
 
         setSessionKey(derivedKey);
 
-        const legacyKeys = backend.loadLegacyKeys();
+        const legacyKeys = await backend.loadLegacyKeys();
         const keys = legacyKeys.length > 0 ? migrateLegacyKeys(legacyKeys) : [];
 
         await persistKeys(keys);
 
         if (legacyKeys.length > 0) {
-          backend.clearLegacyKeys();
+          await backend.clearLegacyKeys();
         }
 
         set({ status: "unlocked", keys, loading: false });
-        loadSettingsIntoState();
+        await loadSettingsIntoState();
         startTracker();
       } catch (err) {
         // Rollback saved meta so the vault returns to "uninitialized"
-        backend.clear();
+        await backend.clear().catch(() => undefined);
         clearSessionKey();
         const msg =
           err instanceof Error ? err.message : "Failed to create vault";
@@ -218,7 +252,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
       set({ loading: true, error: null });
       try {
         const backend = getBackend();
-        const meta = backend.loadMeta();
+        const meta = await backend.loadMeta();
         if (!meta) {
           set({ loading: false, error: "No vault found" });
           return;
@@ -235,7 +269,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
         setSessionKey(derivedKey);
 
         try {
-          const vaultData = backend.loadData();
+          const vaultData = await backend.loadData();
           const parsed: unknown = vaultData
             ? JSON.parse(await decrypt(derivedKey, vaultData))
             : [];
@@ -259,7 +293,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
           const keys = parsed as VaultKeyEntry[];
 
           set({ status: "unlocked", keys, loading: false });
-          loadSettingsIntoState();
+          await loadSettingsIntoState();
           startTracker();
         } catch {
           clearSessionKey();
@@ -328,7 +362,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
       set({ loading: true, error: null });
       try {
         const backend = getBackend();
-        const meta = backend.loadMeta();
+        const meta = await backend.loadMeta();
         if (!meta) {
           set({ loading: false, error: "No vault found" });
           return;
@@ -356,18 +390,18 @@ export const useVaultStore = create<VaultState>((set, get) => {
         }
 
         // Save current encrypted data and meta for rollback before re-encrypting.
-        const oldData = backend.loadData();
+        const oldData = await backend.loadData();
         const oldMeta = meta;
 
         setSessionKey(newKey);
         try {
           await persistKeys(get().keys, backend);
-          backend.saveMeta(newMeta);
+          await backend.saveMeta(newMeta);
         } catch (err) {
           // Restore old session key, encrypted data, and meta
           setSessionKey(oldKey);
-          if (oldData) backend.saveData(oldData);
-          backend.saveMeta(oldMeta);
+          if (oldData) await backend.saveData(oldData).catch(() => undefined);
+          await backend.saveMeta(oldMeta).catch(() => undefined);
           throw err;
         }
 
@@ -383,9 +417,16 @@ export const useVaultStore = create<VaultState>((set, get) => {
       }
     },
 
-    resetVault: () => {
+    resetVault: async () => {
       const backend = getBackend();
-      backend.clear();
+      try {
+        await backend.clear();
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : "Failed to reset the vault";
+        set({ error: msg });
+        return;
+      }
       clearSessionKey();
       activityTracker.stop();
       set({
@@ -399,7 +440,7 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
     clearError: () => set({ error: null }),
 
-    updateAutoLockSettings: (updates) => {
+    updateAutoLockSettings: async (updates) => {
       const current = get();
       const newSettings: VaultSettings = {
         autoLockTimeoutMinutes:
@@ -408,7 +449,14 @@ export const useVaultStore = create<VaultState>((set, get) => {
       };
 
       const backend = getBackend();
-      backend.saveSettings(newSettings);
+      try {
+        await backend.saveSettings(newSettings);
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : "Failed to save vault settings";
+        set({ error: msg });
+        return;
+      }
       set(newSettings);
 
       if (get().status === "unlocked") {

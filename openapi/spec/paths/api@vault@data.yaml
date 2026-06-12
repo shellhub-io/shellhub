@@ -1,0 +1,51 @@
+put:
+  operationId: saveVaultData
+  summary: Save vault data
+  description: |
+    Save the encrypted vault data for the authenticated user in the current
+    namespace. The vault must already exist and `version` must match the
+    current vault version; a stale version is rejected with 409 and the
+    client should reload the vault.
+  tags:
+    - cloud
+
+    - vault
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            data:
+              description: Encrypted vault data, as an opaque JSON string.
+              type: string
+              example: '{"iv":"aXY=","ciphertext":"Y2lwaGVydGV4dA=="}'
+            version:
+              description: The vault version this write is based on.
+              type: integer
+              format: int64
+              example: 1
+          required:
+            - data
+            - version
+  responses:
+    '200':
+      description: Success to save the vault data.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/vaultVersionResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

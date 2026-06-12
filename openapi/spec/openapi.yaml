@@ -86,6 +86,8 @@ tags:
     description: Routes related to announcements resource
   - name: mfa
     description: Routes related to MFA
+  - name: vault
+    description: Routes related to the user's encrypted SSH key vault.
 
 paths:
   /info:
@@ -186,6 +188,14 @@ paths:
     $ref: paths/api@firewall@rules.yaml
   /api/firewall/rules/{id}:
     $ref: paths/api@firewall@rules@{id}.yaml
+  /api/vault:
+    $ref: paths/api@vault.yaml
+  /api/vault/meta:
+    $ref: paths/api@vault@meta.yaml
+  /api/vault/data:
+    $ref: paths/api@vault@data.yaml
+  /api/vault/settings:
+    $ref: paths/api@vault@settings.yaml
   /api/register:
     $ref: paths/api@register.yaml
   /api/user/resend_email:

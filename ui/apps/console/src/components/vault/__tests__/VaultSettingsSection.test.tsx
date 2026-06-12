@@ -30,6 +30,7 @@ vi.mock("@/utils/vault-backend-factory", () => ({
     clearLegacyKeys: vi.fn(),
     clear: vi.fn(),
   })),
+  isVaultServerEnabled: vi.fn(() => false),
 }));
 
 vi.mock("@/stores/authStore", () => ({

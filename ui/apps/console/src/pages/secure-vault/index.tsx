@@ -17,6 +17,13 @@ import CopyButton from "@/components/common/CopyButton";
 import VaultSetupDialog from "@/components/vault/VaultSetupDialog";
 import VaultUnlockDialog from "@/components/vault/VaultUnlockDialog";
 import VaultSettingsSection from "@/components/vault/VaultSettingsSection";
+import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
+import VaultSyncPromoDialog from "@/components/vault/VaultSyncPromoDialog";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  isVaultServerEnabled,
+  isVaultSyncPromoDismissed,
+} from "@/utils/vault-backend-factory";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import KeyDrawer from "./KeyDrawer";
@@ -50,15 +57,20 @@ export default function SecureVault() {
   const keys = useVaultStore((s) => s.keys);
   const refreshStatus = useVaultStore((s) => s.refreshStatus);
   const autoLockNonce = useVaultStore((s) => s.autoLockNonce);
+  const storageMode = useVaultStore((s) => s.storageMode);
+  const user = useAuthStore((s) => s.user);
+  const tenant = useAuthStore((s) => s.tenant);
   const [setupOpen, setSetupOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
+  const [promoOpen, setPromoOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<VaultKeyEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VaultKeyEntry | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    refreshStatus();
+    void refreshStatus();
   }, [refreshStatus]);
 
   const seenNonce = useRef(autoLockNonce);
@@ -68,6 +80,28 @@ export default function SecureVault() {
       setUnlockOpen(true);
     }
   }, [autoLockNonce]);
+
+  // Offer syncing a local vault to the ShellHub server right after the user
+  // unlocks it: they just proved ownership and are looking at their keys, so
+  // it's the natural moment to pitch portability. Fires only on the
+  // locked -> unlocked transition (a real unlock), never on setup
+  // (uninitialized -> unlocked, where the user just picked a location) nor on
+  // a plain page open of an already-unlocked vault.
+  const prevStatus = useRef(status);
+  useEffect(() => {
+    const cameFromLocked = prevStatus.current === "locked";
+    prevStatus.current = status;
+
+    if (
+      cameFromLocked &&
+      status === "unlocked" &&
+      isVaultServerEnabled() &&
+      storageMode === "local" &&
+      !isVaultSyncPromoDismissed(user && tenant ? { user, tenant } : undefined)
+    ) {
+      setPromoOpen(true);
+    }
+  }, [status, storageMode, user, tenant]);
 
   const openNew = () => {
     setEditTarget(null);
@@ -273,6 +307,16 @@ export default function SecureVault() {
         open={!!deleteTarget}
         entry={deleteTarget}
         onClose={() => setDeleteTarget(null)}
+      />
+      <VaultSyncPromoDialog
+        open={promoOpen}
+        onClose={() => setPromoOpen(false)}
+        onSync={() => setSyncOpen(true)}
+      />
+      <VaultSyncDialog
+        open={syncOpen}
+        onClose={() => setSyncOpen(false)}
+        direction="to-server"
       />
     </div>
   );

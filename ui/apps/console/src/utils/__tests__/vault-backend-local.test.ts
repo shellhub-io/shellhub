@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { LocalVaultBackend } from "../vault-backend-local";
+import { LocalVaultBackend, localVaultExists } from "../vault-backend-local";
 import type { VaultMeta, VaultData, LegacyPrivateKey } from "@/types/vault";
 import { DEFAULT_VAULT_SETTINGS } from "@/types/vault";
 
@@ -40,169 +40,169 @@ describe("LocalVaultBackend", () => {
   });
 
   describe("meta", () => {
-    it("returns null when no meta is stored", () => {
-      expect(backend.loadMeta()).toBeNull();
+    it("returns null when no meta is stored", async () => {
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("saves and loads meta correctly", () => {
-      backend.saveMeta(META);
-      expect(backend.loadMeta()).toEqual(META);
+    it("saves and loads meta correctly", async () => {
+      await backend.saveMeta(META);
+      expect(await backend.loadMeta()).toEqual(META);
     });
 
-    it("persists meta under the correct localStorage key", () => {
-      backend.saveMeta(META);
+    it("persists meta under the correct localStorage key", async () => {
+      await backend.saveMeta(META);
       expect(localStorage.getItem(VAULT_META_KEY)).toBe(JSON.stringify(META));
     });
 
-    it("returns null after meta is cleared via clear()", () => {
-      backend.saveMeta(META);
-      backend.clear();
-      expect(backend.loadMeta()).toBeNull();
+    it("returns null after meta is cleared via clear()", async () => {
+      await backend.saveMeta(META);
+      await backend.clear();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when stored meta is invalid JSON", () => {
+    it("returns null when stored meta is invalid JSON", async () => {
       localStorage.setItem(VAULT_META_KEY, "not-json{{{");
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("overwrites existing meta on repeated saves", () => {
-      backend.saveMeta(META);
+    it("overwrites existing meta on repeated saves", async () => {
+      await backend.saveMeta(META);
       const updated: VaultMeta = { ...META, iterations: 100000 };
-      backend.saveMeta(updated);
-      expect(backend.loadMeta()).toEqual(updated);
+      await backend.saveMeta(updated);
+      expect(await backend.loadMeta()).toEqual(updated);
     });
 
-    it("returns null when version is not 1", () => {
+    it("returns null when version is not 1", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, version: 2 }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when iterations is below minimum", () => {
+    it("returns null when iterations is below minimum", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, iterations: 99_999 }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when iterations exceeds maximum", () => {
+    it("returns null when iterations exceeds maximum", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, iterations: 10_000_001 }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when iterations is not an integer", () => {
+    it("returns null when iterations is not an integer", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, iterations: 600000.5 }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when salt is not a string", () => {
+    it("returns null when salt is not a string", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, salt: 42 }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
 
-    it("returns null when verifier is not a string", () => {
+    it("returns null when verifier is not a string", async () => {
       localStorage.setItem(
         VAULT_META_KEY,
         JSON.stringify({ ...META, verifier: null }),
       );
-      expect(backend.loadMeta()).toBeNull();
+      expect(await backend.loadMeta()).toBeNull();
     });
   });
 
   describe("data", () => {
-    it("returns null when no data is stored", () => {
-      expect(backend.loadData()).toBeNull();
+    it("returns null when no data is stored", async () => {
+      expect(await backend.loadData()).toBeNull();
     });
 
-    it("saves and loads data correctly", () => {
-      backend.saveData(DATA);
-      expect(backend.loadData()).toEqual(DATA);
+    it("saves and loads data correctly", async () => {
+      await backend.saveData(DATA);
+      expect(await backend.loadData()).toEqual(DATA);
     });
 
-    it("persists data under the correct localStorage key", () => {
-      backend.saveData(DATA);
+    it("persists data under the correct localStorage key", async () => {
+      await backend.saveData(DATA);
       expect(localStorage.getItem(VAULT_DATA_KEY)).toBe(JSON.stringify(DATA));
     });
 
-    it("returns null after data is cleared via clear()", () => {
-      backend.saveData(DATA);
-      backend.clear();
-      expect(backend.loadData()).toBeNull();
+    it("returns null after data is cleared via clear()", async () => {
+      await backend.saveData(DATA);
+      await backend.clear();
+      expect(await backend.loadData()).toBeNull();
     });
 
-    it("returns null when stored data is invalid JSON", () => {
+    it("returns null when stored data is invalid JSON", async () => {
       localStorage.setItem(VAULT_DATA_KEY, "!!!bad json!!!");
-      expect(backend.loadData()).toBeNull();
+      expect(await backend.loadData()).toBeNull();
     });
 
-    it("overwrites existing data on repeated saves", () => {
-      backend.saveData(DATA);
+    it("overwrites existing data on repeated saves", async () => {
+      await backend.saveData(DATA);
       const updated: VaultData = { iv: "bmV3SXY=", ciphertext: "bmV3Q2lwaA==" };
-      backend.saveData(updated);
-      expect(backend.loadData()).toEqual(updated);
+      await backend.saveData(updated);
+      expect(await backend.loadData()).toEqual(updated);
     });
   });
 
   describe("clear", () => {
-    it("removes both meta and data from localStorage", () => {
-      backend.saveMeta(META);
-      backend.saveData(DATA);
-      backend.clear();
+    it("removes both meta and data from localStorage", async () => {
+      await backend.saveMeta(META);
+      await backend.saveData(DATA);
+      await backend.clear();
       expect(localStorage.getItem(VAULT_META_KEY)).toBeNull();
       expect(localStorage.getItem(VAULT_DATA_KEY)).toBeNull();
     });
 
-    it("does not remove legacy keys", () => {
+    it("does not remove legacy keys", async () => {
       localStorage.setItem(LEGACY_KEYS_KEY, JSON.stringify(LEGACY_KEYS));
-      backend.clear();
+      await backend.clear();
       expect(localStorage.getItem(LEGACY_KEYS_KEY)).not.toBeNull();
     });
 
-    it("is idempotent when nothing is stored", () => {
-      expect(() => backend.clear()).not.toThrow();
+    it("is idempotent when nothing is stored", async () => {
+      await expect(backend.clear()).resolves.toBeUndefined();
     });
   });
 
   describe("legacy keys", () => {
-    it("returns an empty array when no legacy keys are stored", () => {
-      expect(backend.loadLegacyKeys()).toEqual([]);
+    it("returns an empty array when no legacy keys are stored", async () => {
+      expect(await backend.loadLegacyKeys()).toEqual([]);
     });
 
-    it("loads legacy keys stored by another mechanism", () => {
+    it("loads legacy keys stored by another mechanism", async () => {
       localStorage.setItem(LEGACY_KEYS_KEY, JSON.stringify(LEGACY_KEYS));
-      expect(backend.loadLegacyKeys()).toEqual(LEGACY_KEYS);
+      expect(await backend.loadLegacyKeys()).toEqual(LEGACY_KEYS);
     });
 
-    it("returns an empty array when legacy keys storage contains invalid JSON", () => {
+    it("returns an empty array when legacy keys storage contains invalid JSON", async () => {
       localStorage.setItem(LEGACY_KEYS_KEY, "oops{");
-      expect(backend.loadLegacyKeys()).toEqual([]);
+      expect(await backend.loadLegacyKeys()).toEqual([]);
     });
 
-    it("removes legacy keys from localStorage on clearLegacyKeys()", () => {
+    it("removes legacy keys from localStorage on clearLegacyKeys()", async () => {
       localStorage.setItem(LEGACY_KEYS_KEY, JSON.stringify(LEGACY_KEYS));
-      backend.clearLegacyKeys();
+      await backend.clearLegacyKeys();
       expect(localStorage.getItem(LEGACY_KEYS_KEY)).toBeNull();
     });
 
-    it("clearLegacyKeys is idempotent when nothing is stored", () => {
-      expect(() => backend.clearLegacyKeys()).not.toThrow();
+    it("clearLegacyKeys is idempotent when nothing is stored", async () => {
+      await expect(backend.clearLegacyKeys()).resolves.toBeUndefined();
     });
   });
 
   describe("storage quota exceeded error", () => {
-    it("throws a descriptive error when saving meta exceeds quota", () => {
+    it("throws a descriptive error when saving meta exceeds quota", async () => {
       const quotaError = new DOMException(
         "QuotaExceededError",
         "QuotaExceededError",
@@ -210,12 +210,12 @@ describe("LocalVaultBackend", () => {
       vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
         throw quotaError;
       });
-      expect(() => backend.saveMeta(META)).toThrow(
+      await expect(backend.saveMeta(META)).rejects.toThrow(
         "Storage quota exceeded. Free up space or reset the vault.",
       );
     });
 
-    it("throws a descriptive error when saving data exceeds quota", () => {
+    it("throws a descriptive error when saving data exceeds quota", async () => {
       const quotaError = new DOMException(
         "QuotaExceededError",
         "QuotaExceededError",
@@ -223,110 +223,138 @@ describe("LocalVaultBackend", () => {
       vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
         throw quotaError;
       });
-      expect(() => backend.saveData(DATA)).toThrow(
+      await expect(backend.saveData(DATA)).rejects.toThrow(
         "Storage quota exceeded. Free up space or reset the vault.",
       );
     });
 
-    it("re-throws non-quota errors as-is", () => {
+    it("re-throws non-quota errors as-is", async () => {
       const unknownError = new Error("disk failure");
       vi.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
         throw unknownError;
       });
-      expect(() => backend.saveMeta(META)).toThrow("disk failure");
+      await expect(backend.saveMeta(META)).rejects.toThrow("disk failure");
     });
   });
 
   describe("settings", () => {
-    it("returns DEFAULT_VAULT_SETTINGS when nothing is stored", () => {
-      expect(backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
+    it("returns DEFAULT_VAULT_SETTINGS when nothing is stored", async () => {
+      expect(await backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
     });
 
-    it("save->load round-trip returns the same settings", () => {
+    it("save->load round-trip returns the same settings", async () => {
       const settings = { autoLockTimeoutMinutes: 30, lockOnHidden: true };
-      backend.saveSettings(settings);
-      expect(backend.loadSettings()).toEqual(settings);
+      await backend.saveSettings(settings);
+      expect(await backend.loadSettings()).toEqual(settings);
     });
 
-    it("returns DEFAULT_VAULT_SETTINGS when stored JSON is invalid", () => {
+    it("returns DEFAULT_VAULT_SETTINGS when stored JSON is invalid", async () => {
       localStorage.setItem(VAULT_SETTINGS_KEY, "not-json{{{");
-      expect(backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
+      expect(await backend.loadSettings()).toEqual(DEFAULT_VAULT_SETTINGS);
     });
 
-    it("autoLockTimeoutMinutes:0 round-trips as 0 (valid member, not coerced)", () => {
-      backend.saveSettings({ autoLockTimeoutMinutes: 0, lockOnHidden: false });
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(0);
+    it("autoLockTimeoutMinutes:0 round-trips as 0 (valid member, not coerced)", async () => {
+      await backend.saveSettings({
+        autoLockTimeoutMinutes: 0,
+        lockOnHidden: false,
+      });
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(0);
     });
 
-    it("autoLockTimeoutMinutes:7 (not in allowed list) falls back to 15", () => {
+    it("autoLockTimeoutMinutes:7 (not in allowed list) falls back to 15", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: 7, lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("autoLockTimeoutMinutes:999999 falls back to 15", () => {
+    it("autoLockTimeoutMinutes:999999 falls back to 15", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: 999999, lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("autoLockTimeoutMinutes:15.5 (float, not a member) falls back to 15", () => {
+    it("autoLockTimeoutMinutes:15.5 (float, not a member) falls back to 15", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: 15.5, lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("autoLockTimeoutMinutes as string '15' falls back to 15 (no coercion)", () => {
+    it("autoLockTimeoutMinutes as string '15' falls back to 15 (no coercion)", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: "15", lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("autoLockTimeoutMinutes:null falls back to 15", () => {
+    it("autoLockTimeoutMinutes:null falls back to 15", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: null, lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("missing autoLockTimeoutMinutes falls back to 15", () => {
+    it("missing autoLockTimeoutMinutes falls back to 15", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ lockOnHidden: false }),
       );
-      expect(backend.loadSettings().autoLockTimeoutMinutes).toBe(15);
+      expect((await backend.loadSettings()).autoLockTimeoutMinutes).toBe(15);
     });
 
-    it("non-boolean lockOnHidden falls back to false", () => {
+    it("non-boolean lockOnHidden falls back to false", async () => {
       localStorage.setItem(
         VAULT_SETTINGS_KEY,
         JSON.stringify({ autoLockTimeoutMinutes: 15, lockOnHidden: "yes" }),
       );
-      expect(backend.loadSettings().lockOnHidden).toBe(false);
+      expect((await backend.loadSettings()).lockOnHidden).toBe(false);
     });
 
-    it("clear() removes the settings key", () => {
-      backend.saveSettings({ autoLockTimeoutMinutes: 30, lockOnHidden: true });
-      backend.clear();
+    it("clear() removes the settings key", async () => {
+      await backend.saveSettings({
+        autoLockTimeoutMinutes: 30,
+        lockOnHidden: true,
+      });
+      await backend.clear();
       expect(localStorage.getItem(VAULT_SETTINGS_KEY)).toBeNull();
     });
 
-    it("scoped backend uses prefixed settings key", () => {
+    it("scoped backend uses prefixed settings key", async () => {
       const scoped = new LocalVaultBackend({ user: "alice", tenant: "t1" });
-      scoped.saveSettings({ autoLockTimeoutMinutes: 60, lockOnHidden: true });
+      await scoped.saveSettings({
+        autoLockTimeoutMinutes: 60,
+        lockOnHidden: true,
+      });
       expect(localStorage.getItem(`${VAULT_SETTINGS_KEY}:alice:t1`)).toBe(
         JSON.stringify({ autoLockTimeoutMinutes: 60, lockOnHidden: true }),
       );
       expect(localStorage.getItem(VAULT_SETTINGS_KEY)).toBeNull();
+    });
+  });
+
+  describe("localVaultExists", () => {
+    it("is false when no vault meta is stored", () => {
+      expect(localVaultExists()).toBe(false);
+    });
+
+    it("is true after meta is saved", async () => {
+      await backend.saveMeta(META);
+      expect(localVaultExists()).toBe(true);
+    });
+
+    it("respects scoping", async () => {
+      const scoped = new LocalVaultBackend({ user: "alice", tenant: "t1" });
+      await scoped.saveMeta(META);
+      expect(localVaultExists({ user: "alice", tenant: "t1" })).toBe(true);
+      expect(localVaultExists({ user: "bob", tenant: "t1" })).toBe(false);
+      expect(localVaultExists()).toBe(false);
     });
   });
 });

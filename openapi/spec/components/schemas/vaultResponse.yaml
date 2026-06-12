@@ -1,0 +1,33 @@
+type: object
+description: |
+  The user's encrypted SSH key vault. `meta`, `data` and `settings` are opaque
+  strings produced by the client: all encryption happens in the browser and
+  the server never parses their contents.
+properties:
+  meta:
+    description: Vault metadata (KDF parameters and verifier), as an opaque JSON string.
+    type: string
+    example: '{"version":1,"salt":"c2FsdA==","iterations":600000,"verifier":"dg==","verifierIv":"aXY="}'
+  data:
+    description: Encrypted vault data (IV and ciphertext), as an opaque JSON string.
+    type: string
+    example: '{"iv":"aXY=","ciphertext":"Y2lwaGVydGV4dA=="}'
+  settings:
+    description: Vault settings, as an opaque JSON string.
+    type: string
+    example: '{"autoLockTimeoutMinutes":5,"lockOnHidden":true}'
+  version:
+    description: |
+      Vault version, incremented on every write. Used for optimistic
+      concurrency when saving data.
+    type: integer
+    format: int64
+    example: 2
+  created_at:
+    description: Vault's creation date.
+    type: string
+    format: date-time
+  updated_at:
+    description: Vault's last update date.
+    type: string
+    format: date-time

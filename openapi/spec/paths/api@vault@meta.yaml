@@ -1,0 +1,40 @@
+put:
+  operationId: saveVaultMeta
+  summary: Save vault metadata
+  description: |
+    Save the vault metadata (KDF parameters and verifier) for the
+    authenticated user in the current namespace, creating the vault when it
+    does not exist yet.
+  tags:
+    - cloud
+
+    - vault
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            meta:
+              description: Vault metadata, as an opaque JSON string.
+              type: string
+              example: '{"version":1,"salt":"c2FsdA==","iterations":600000,"verifier":"dg==","verifierIv":"aXY="}'
+          required:
+            - meta
+  responses:
+    '200':
+      description: Success to save the vault metadata.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/vaultVersionResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
