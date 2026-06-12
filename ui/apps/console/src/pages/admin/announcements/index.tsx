@@ -13,6 +13,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
 import type { AnnouncementShort } from "@/client";
+import { Badge } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -37,9 +38,9 @@ export default function AdminAnnouncements() {
       key: "uuid",
       header: "UUID",
       render: (a) => (
-        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium max-w-[120px] truncate">
+        <Badge color="primary" className="max-w-32 truncate">
           {a.uuid.slice(0, 8)}
-        </span>
+        </Badge>
       ),
     },
     {

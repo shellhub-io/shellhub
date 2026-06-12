@@ -20,6 +20,7 @@ import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import { Badge, Card } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -74,9 +75,7 @@ export default function UserDetails() {
   } = useLoginAsUser();
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading user details" />
-    );
+    return <PageLoader label="Loading user details" />;
   }
 
   if (error || !user) {
@@ -124,11 +123,7 @@ export default function UserDetails() {
             </h1>
             <div className="flex items-center gap-2 mt-1.5">
               <UserStatusChip status={userStatus} />
-              {user.admin && (
-                <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                  Admin
-                </span>
-              )}
+              {user.admin && <Badge color="yellow">Admin</Badge>}
             </div>
           </div>
         </div>
@@ -182,7 +177,7 @@ export default function UserDetails() {
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Identity Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Identity
@@ -203,10 +198,10 @@ export default function UserDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
 
         {/* Account Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ClockIcon className="w-4 h-4 text-primary" />
             Account
@@ -250,17 +245,14 @@ export default function UserDetails() {
               <dt className={LABEL}>Auth Methods</dt>
               <dd className="flex items-center gap-1.5 mt-1">
                 {user.preferences.auth_methods.map((method) => (
-                  <span
-                    key={method}
-                    className="inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md bg-primary/10 text-primary border border-primary/20"
-                  >
+                  <Badge key={method} color="primary">
                     {method.toUpperCase()}
-                  </span>
+                  </Badge>
                 ))}
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
 
       {/* Edit Drawer */}

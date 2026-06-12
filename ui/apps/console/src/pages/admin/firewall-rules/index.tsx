@@ -5,13 +5,15 @@ import {
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
+import ActiveBadge from "@/components/common/ActiveBadge";
 import Alert from "@/components/common/Alert";
-import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
-import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import SearchField from "@/components/common/fields/SearchField";
 import FilterBadge from "@/components/common/FilterBadge";
+import PageHeader from "@/components/common/PageHeader";
+import SearchField from "@/components/common/fields/SearchField";
+import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import { Badge } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -43,11 +45,7 @@ export default function AdminFirewallRules() {
     {
       key: "priority",
       header: "Priority",
-      render: (rule) => (
-        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium">
-          {rule.priority}
-        </span>
-      ),
+      render: (rule) => <Badge color="primary">{rule.priority}</Badge>,
     },
     {
       key: "action",
@@ -102,16 +100,7 @@ export default function AdminFirewallRules() {
     {
       key: "status",
       header: "Status",
-      render: (rule) =>
-        rule.active ? (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
-            Active
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-            Inactive
-          </span>
-        ),
+      render: (rule) => <ActiveBadge active={rule.active} />,
     },
     {
       key: "namespace",

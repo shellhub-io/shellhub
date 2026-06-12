@@ -1,35 +1,21 @@
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import { Badge, type BadgeColor } from "@shellhub/design-system/primitives";
 import { ROLES, type AssignableRole } from "./helpers";
 
 /* ─── Constants ─── */
 
-const ROLE_STYLES: Record<
-  string,
-  { bg: string; text: string; border: string }
-> = {
-  owner: {
-    bg: "bg-accent-yellow/10",
-    text: "text-accent-yellow",
-    border: "border-accent-yellow/20",
-  },
-  administrator: {
-    bg: "bg-primary/10",
-    text: "text-primary",
-    border: "border-primary/20",
-  },
-  operator: {
-    bg: "bg-accent-green/10",
-    text: "text-accent-green",
-    border: "border-accent-green/20",
-  },
-  observer: {
-    bg: "bg-hover-medium",
-    text: "text-text-muted",
-    border: "border-border",
-  },
+/** Roles that map directly to a Badge palette color. */
+const ROLE_COLOR: Record<string, BadgeColor> = {
+  owner: "yellow",
+  administrator: "primary",
+  operator: "green",
 };
+
+/** Fallback inline styles for roles that have no palette equivalent (observer). */
+const ROLE_NEUTRAL_STYLE =
+  "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border bg-hover-medium text-text-muted border-border";
 
 const ROLE_META: Record<string, { icon: string; summary: string }> = {
   administrator: {
@@ -51,24 +37,26 @@ const ROLE_META: Record<string, { icon: string; summary: string }> = {
 /** Small destructive badge shown next to expired API keys or invitations. */
 export function ExpiredBadge() {
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono font-semibold text-accent-red bg-accent-red/10 border border-accent-red/20 rounded">
+    <Badge color="red" shape="pill">
       <ExclamationCircleIcon className="w-2.5 h-2.5" strokeWidth={2} />
       Expired
-    </span>
+    </Badge>
   );
 }
 
 /* ─── Role Badge ─── */
 
 export function RoleBadge({ role }: { role: string }) {
-  const style = ROLE_STYLES[role] ?? ROLE_STYLES.observer;
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${style.bg} ${style.text} ${style.border}`}
-    >
-      {role}
-    </span>
-  );
+  const color = ROLE_COLOR[role];
+  if (color) {
+    return (
+      <Badge color={color} shape="pill">
+        {role}
+      </Badge>
+    );
+  }
+  // observer and unknown roles use a neutral style not in the Badge palette
+  return <span className={ROLE_NEUTRAL_STYLE}>{role}</span>;
 }
 
 /* ─── Role Selector ─── */

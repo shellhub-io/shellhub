@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { IconBadge, type Palette } from "@shellhub/design-system/primitives";
 
 interface PageHeaderProps {
   icon: ReactNode;
@@ -7,6 +8,7 @@ interface PageHeaderProps {
   description?: string;
   children?: ReactNode;
   variant?: "default" | "decorated";
+  iconColor?: Palette;
 }
 
 export default function PageHeader({
@@ -16,6 +18,7 @@ export default function PageHeader({
   description,
   children,
   variant = "default",
+  iconColor = "primary",
 }: PageHeaderProps) {
   return (
     <div
@@ -36,9 +39,9 @@ export default function PageHeader({
         className={`${variant === "decorated" ? "relative " : ""}flex flex-col sm:flex-row sm:items-center justify-between gap-4`}
       >
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <IconBadge size="lg" color={iconColor}>
             {icon}
-          </div>
+          </IconBadge>
           <div>
             <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary mb-1">
               {overline}

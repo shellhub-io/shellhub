@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  MegaphoneIcon,
-} from "@heroicons/react/24/outline";
+import { MegaphoneIcon } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
 import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
@@ -12,6 +10,7 @@ import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;
 
@@ -55,9 +54,7 @@ export default function EditAnnouncement() {
   };
 
   if (isFetching) {
-    return (
-      <PageLoader label="Loading announcement" />
-    );
+    return <PageLoader label="Loading announcement" />;
   }
 
   if (fetchError || !announcement) {
@@ -100,12 +97,13 @@ export default function EditAnnouncement() {
       )}
 
       {/* Form */}
-      <form
-        onSubmit={(e) => {
+      <Card
+        as="form"
+        onSubmit={(e: React.FormEvent) => {
           e.preventDefault();
           void handleSubmit();
         }}
-        className="bg-card border border-border rounded-xl p-6 space-y-5"
+        className="p-6 space-y-5"
       >
         <InputField
           id="announcement-title"
@@ -151,7 +149,7 @@ export default function EditAnnouncement() {
             Save
           </button>
         </div>
-      </form>
+      </Card>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Card } from "@shellhub/design-system/primitives";
 import { useCustomer } from "@/hooks/useBilling";
 import BillingIcon from "./BillingIcon";
 
@@ -18,7 +19,7 @@ export default function BillingCheckout() {
       </div>
 
       {defaultPm ? (
-        <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <Card className="p-4 flex items-center gap-4">
           <span className="shrink-0 text-text-primary">
             <BillingIcon brand={defaultPm.brand} className="w-8 h-8" />
           </span>
@@ -39,11 +40,11 @@ export default function BillingCheckout() {
               {defaultPm.exp_year}
             </p>
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-card border border-border rounded-xl p-4 text-sm text-text-muted">
+        <Card className="p-4 text-sm text-text-muted">
           No default payment method. Go back and choose one before confirming.
-        </div>
+        </Card>
       )}
 
       <ul className="text-xs text-text-muted space-y-1.5 leading-relaxed list-disc list-inside">

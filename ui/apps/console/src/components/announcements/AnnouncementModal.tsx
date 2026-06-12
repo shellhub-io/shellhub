@@ -5,6 +5,7 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
 import { MegaphoneIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { IconBadge } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 import { formatDateShort } from "@/utils/date";
 import { isAllowedUrl } from "@/utils/url";
@@ -58,12 +59,17 @@ export default function AnnouncementModal({
   const titleId = useId();
 
   return (
-    <BaseDialog open={open} onClose={onClose} size="md" aria-labelledby={titleId}>
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      size="md"
+      aria-labelledby={titleId}
+    >
       <div className="flex items-start justify-between gap-4 p-6 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+          <IconBadge size="md">
             <MegaphoneIcon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-          </div>
+          </IconBadge>
           <div>
             <h2
               id={titleId}
@@ -87,7 +93,10 @@ export default function AnnouncementModal({
       </div>
 
       <div className="p-6 overflow-y-auto max-h-[60vh]">
-        <AnnouncementContent key={announcement.uuid} content={announcement.content} />
+        <AnnouncementContent
+          key={announcement.uuid}
+          content={announcement.content}
+        />
       </div>
 
       <div className="flex justify-end gap-2 p-5 border-t border-border">

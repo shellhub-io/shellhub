@@ -5,6 +5,7 @@ import {
   ChevronUpIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { IconBadge } from "@shellhub/design-system/primitives";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import DistroIcon from "@/components/common/DistroIcon";
 import CopyButton from "@/components/common/CopyButton";
@@ -67,7 +68,10 @@ export default function WizardStep3Device({
       )}
 
       {fetchError && (
-        <div role="alert" className="flex items-center gap-3 bg-accent-red/10 border border-accent-red/25 rounded-xl px-4 py-3">
+        <div
+          role="alert"
+          className="flex items-center gap-3 bg-accent-red/10 border border-accent-red/25 rounded-xl px-4 py-3"
+        >
           <ExclamationCircleIcon className="w-5 h-5 text-accent-red shrink-0" />
           <span className="text-sm text-accent-red">
             No pending device found. It may have already been processed.
@@ -83,19 +87,20 @@ export default function WizardStep3Device({
             onClick={() => setExpanded((v) => !v)}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-hover-subtle transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-lg">
-              <DistroIcon id={device.info?.id ?? ""} className="text-base leading-none" />
-            </div>
+            <IconBadge size="sm" className="text-lg">
+              <DistroIcon
+                id={device.info?.id ?? ""}
+                className="text-base leading-none"
+              />
+            </IconBadge>
             <span className="flex-1 text-sm font-mono font-semibold text-text-primary text-left">
               {device.name}
             </span>
-            {expanded
-              ? (
-                <ChevronUpIcon className="w-4 h-4 text-text-muted shrink-0" />
-              )
-              : (
-                <ChevronDownIcon className="w-4 h-4 text-text-muted shrink-0" />
-              )}
+            {expanded ? (
+              <ChevronUpIcon className="w-4 h-4 text-text-muted shrink-0" />
+            ) : (
+              <ChevronDownIcon className="w-4 h-4 text-text-muted shrink-0" />
+            )}
           </button>
 
           {/* Detail rows */}
@@ -104,14 +109,18 @@ export default function WizardStep3Device({
               <DetailRow label="OS" value={device.info?.pretty_name ?? "—"} />
               <DetailRow
                 label="UID"
-                value={(
+                value={
                   <span className="flex items-center gap-2 min-w-0">
                     <span className="font-mono text-2xs truncate">
                       {device.uid}
                     </span>
-                    <CopyButton text={device.uid} size="sm" className="shrink-0" />
+                    <CopyButton
+                      text={device.uid}
+                      size="sm"
+                      className="shrink-0"
+                    />
                   </span>
-                )}
+                }
               />
               <DetailRow label="MAC" value={device.identity?.mac ?? "—"} />
               <DetailRow label="Agent" value={device.info?.version ?? "—"} />

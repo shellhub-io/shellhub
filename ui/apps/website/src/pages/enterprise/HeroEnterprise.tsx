@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge } from "@shellhub/design-system/primitives";
 import { Reveal, ConnectionGrid } from "../landing/components";
 
 export function HeroEnterprise() {
@@ -10,9 +11,9 @@ export function HeroEnterprise() {
 
       <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
         <Reveal>
-          <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20 rounded-full mb-6">
+          <Badge shape="pill" color="yellow" className="mb-6">
             Enterprise
-          </span>
+          </Badge>
         </Reveal>
         <Reveal>
           <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">

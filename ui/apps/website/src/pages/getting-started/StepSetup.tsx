@@ -1,3 +1,4 @@
+import { Card } from "@shellhub/design-system/primitives";
 import { docsUrl } from "@/links";
 import { Reveal, CopyBtn } from "../landing/components";
 
@@ -11,7 +12,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
   return (
     <div className="max-w-xl mx-auto w-full">
       <Reveal>
-        <div className="bg-card border border-border rounded-xl overflow-hidden mb-6">
+        <Card className="overflow-hidden mb-6">
           <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border bg-surface">
             <span className="w-2.5 h-2.5 rounded-full bg-accent-red/70" />
             <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/70" />
@@ -27,7 +28,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
             </code>
             <CopyBtn text={DOCKER_CMD} />
           </div>
-        </div>
+        </Card>
       </Reveal>
 
       <Reveal delay={0.1}>

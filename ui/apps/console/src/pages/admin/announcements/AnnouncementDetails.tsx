@@ -13,6 +13,7 @@ import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
 import { formatDateFull } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -28,9 +29,7 @@ export default function AnnouncementDetails() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading announcement details" />
-    );
+    return <PageLoader label="Loading announcement details" />;
   }
 
   if (error || !announcement) {
@@ -94,7 +93,7 @@ export default function AnnouncementDetails() {
       </div>
 
       {/* Properties Card */}
-      <div className="bg-card border border-border rounded-xl p-5 space-y-4 mb-6">
+      <Card className="p-5 space-y-4 mb-6">
         <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
           <InformationCircleIcon className="w-4 h-4 text-primary" />
           Properties
@@ -119,10 +118,10 @@ export default function AnnouncementDetails() {
             </dd>
           </div>
         </dl>
-      </div>
+      </Card>
 
       {/* Content Card */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <Card className="p-5">
         <h3 className="text-xs font-semibold text-text-primary mb-4">
           Content
         </h3>
@@ -130,7 +129,7 @@ export default function AnnouncementDetails() {
           key={announcement.uuid}
           content={announcement.content}
         />
-      </div>
+      </Card>
 
       <DeleteAnnouncementDialog
         open={deleteOpen}

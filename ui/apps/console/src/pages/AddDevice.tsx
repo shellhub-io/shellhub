@@ -26,6 +26,7 @@ import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
+import { Card } from "@shellhub/design-system/primitives";
 
 /* ─── Types ─── */
 type Method =
@@ -264,7 +265,7 @@ export default function AddDevice() {
         </div>
 
         {selectedMethod.manual ? (
-          <div className="bg-card border border-border rounded-xl p-5">
+          <Card className="p-5">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-center justify-center shrink-0">
                 <BookOpenIcon className="w-4.5 h-4.5 text-accent-yellow" />
@@ -291,9 +292,9 @@ export default function AddDevice() {
                 </a>
               </div>
             </div>
-          </div>
+          </Card>
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <Card className="overflow-hidden">
             {/* Terminal chrome */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-surface/50">
               <div className="flex items-center gap-1.5">
@@ -313,7 +314,7 @@ export default function AddDevice() {
                 {command}
               </pre>
             </div>
-          </div>
+          </Card>
         )}
       </div>
 
@@ -332,7 +333,7 @@ export default function AddDevice() {
           </button>
 
           {showAdvanced && (
-            <div className="mt-3 bg-card border border-border rounded-xl p-4 space-y-4 animate-fade-in">
+            <Card className="mt-3 p-4 space-y-4 animate-fade-in">
               <InputField
                 id="add-device-hostname"
                 label="Preferred Hostname"
@@ -373,7 +374,7 @@ export default function AddDevice() {
                 hint="Interval in seconds between keep-alive messages sent by the agent. Defaults to 30."
                 error={keepaliveIntervalError || undefined}
               />
-            </div>
+            </Card>
           )}
         </div>
       )}

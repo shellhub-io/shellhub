@@ -18,6 +18,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatDate } from "@/utils/date";
+import { Card } from "@shellhub/design-system/primitives";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
 import PageLoader from "@/components/common/PageLoader";
@@ -244,8 +245,8 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          <div
-            className="bg-card border border-border rounded-lg overflow-hidden animate-slide-up"
+          <Card
+            className="overflow-hidden animate-slide-up"
             style={{ animationDelay: "560ms" }}
           >
             <DataTable
@@ -268,7 +269,7 @@ export default function AdminDashboard() {
                 </div>
               }
             />
-          </div>
+          </Card>
         </>
       )}
     </div>

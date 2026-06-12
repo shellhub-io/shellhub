@@ -1,4 +1,5 @@
 import { Tag } from "@/client";
+import { Badge } from "@shellhub/design-system/primitives";
 import {
   TagIcon,
   CpuChipIcon,
@@ -14,13 +15,10 @@ export default function FilterBadge({
     return (
       <div className="flex flex-wrap gap-1">
         {filter.tags.map((tag) => (
-          <span
-            key={tag.name}
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-medium"
-          >
+          <Badge key={tag.name} color="primary">
             <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
             {tag.name}
-          </span>
+          </Badge>
         ))}
       </div>
     );

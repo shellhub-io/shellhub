@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
+import { Card } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
@@ -223,7 +224,7 @@ export default function VaultSettingsSection() {
         <h3 className="text-xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3">
           Vault Settings
         </h3>
-        <div className="bg-card border border-border rounded-lg divide-y divide-border">
+        <Card className="divide-y divide-border">
           <button
             type="button"
             onClick={() => setChangeOpen(true)}
@@ -304,7 +305,7 @@ export default function VaultSettingsSection() {
               </p>
             </div>
           </button>
-        </div>
+        </Card>
       </div>
 
       <ChangePasswordDrawer

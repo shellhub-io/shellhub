@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { SiteLayout } from "@/components/SiteLayout";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
@@ -15,16 +16,20 @@ function TerminalChrome({
   children: React.ReactNode;
 }) {
   return (
-    <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-surface/60">
-        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-        <span className="ml-2 text-2xs text-text-muted font-mono">{title}</span>
-      </div>
-      <div className="p-5 font-mono text-2xs leading-[1.7] overflow-x-auto">
-        {children}
-      </div>
+    <ShimmerCard>
+      <Card className="overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-surface/60">
+          <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+          <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+          <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+          <span className="ml-2 text-2xs text-text-muted font-mono">
+            {title}
+          </span>
+        </div>
+        <div className="p-5 font-mono text-2xs leading-[1.7] overflow-x-auto">
+          {children}
+        </div>
+      </Card>
     </ShimmerCard>
   );
 }
@@ -74,9 +79,9 @@ export default function Integrations() {
 
         <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
           <Reveal>
-            <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 rounded-full mb-6">
+            <Badge shape="pill" color="cyan" className="mb-6 tracking-label">
               Integrations
-            </span>
+            </Badge>
           </Reveal>
           <Reveal>
             <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">
@@ -305,9 +310,9 @@ export default function Integrations() {
                       .github/workflows/deploy.yml
                     </span>
                     <div className="ml-auto flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                      <Badge shape="pill" color="green">
                         Passing
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 
@@ -633,7 +638,7 @@ export default function Integrations() {
                     {/* Header */}
                     <div className="px-6 pt-6 pb-4">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-center justify-center">
+                        <IconBadge color="yellow">
                           <svg
                             className="w-5 h-5 text-accent-yellow"
                             fill="none"
@@ -647,7 +652,7 @@ export default function Integrations() {
                               d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Z"
                             />
                           </svg>
-                        </div>
+                        </IconBadge>
                         <div>
                           <h3 className="text-sm font-bold">Embedded Linux</h3>
                           <p className="text-2xs text-text-muted">
@@ -741,7 +746,7 @@ export default function Integrations() {
             {/* Left: diagram */}
             <Reveal>
               <ShimmerCard>
-                <div className="bg-card border border-border rounded-xl p-8 overflow-hidden">
+                <Card className="p-8 overflow-hidden">
                   <p className="text-2xs font-mono text-text-muted uppercase tracking-wider mb-6">
                     Connection Flow
                   </p>
@@ -877,7 +882,7 @@ export default function Integrations() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
 
@@ -913,7 +918,7 @@ export default function Integrations() {
                     <Dim>curl localhost:8080/health</Dim>
                   </Ln>
                   <Ln>
-                    <Str>{"{\"status\":\"healthy\",\"uptime\":\"14d 6h\"}"}</Str>
+                    <Str>{'{"status":"healthy","uptime":"14d 6h"}'}</Str>
                   </Ln>
                 </TerminalChrome>
               </Reveal>
@@ -941,12 +946,12 @@ export default function Integrations() {
 
           <Reveal delay={0.1}>
             <ShimmerCard className="max-w-4xl mx-auto">
-              <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <Card className="overflow-hidden">
                 {/* API tabs */}
                 <div className="flex items-center gap-1 px-5 py-3 border-b border-border bg-surface/60">
-                  <span className="px-3 py-1 text-2xs font-mono font-semibold bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                  <Badge shape="pill" color="green">
                     GET
-                  </span>
+                  </Badge>
                   <span className="text-2xs font-mono text-text-secondary ml-2">
                     /api/devices
                   </span>
@@ -1097,7 +1102,7 @@ export default function Integrations() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -1181,7 +1186,7 @@ export default function Integrations() {
             ].map((b, i) => (
               <Reveal key={i} delay={i * 0.06}>
                 <ShimmerCard className="h-full">
-                  <div className="bg-card border border-border rounded-xl p-6 hover:border-border-light transition-all duration-300 h-full">
+                  <Card hover className="p-6 h-full">
                     <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                       style={{
@@ -1195,7 +1200,7 @@ export default function Integrations() {
                     <p className="text-xs text-text-secondary leading-relaxed">
                       {b.desc}
                     </p>
-                  </div>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}

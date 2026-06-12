@@ -20,6 +20,7 @@ import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import Spinner from "@/components/common/Spinner";
+import { Badge } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -57,11 +58,7 @@ export default function AdminUsers() {
           <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
             {user.name}
           </span>
-          {user.admin && (
-            <span className="inline-flex items-center px-1.5 py-0.5 text-2xs font-semibold rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-              Admin
-            </span>
-          )}
+          {user.admin && <Badge color="yellow">Admin</Badge>}
         </div>
       ),
     },
