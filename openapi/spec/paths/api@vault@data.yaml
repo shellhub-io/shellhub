@@ -21,11 +21,13 @@ put:
             data:
               description: Encrypted vault data, as an opaque JSON string.
               type: string
+              maxLength: 1048576
               example: '{"iv":"aXY=","ciphertext":"Y2lwaGVydGV4dA=="}'
             version:
               description: The vault version this write is based on.
               type: integer
               format: int64
+              minimum: 1
               example: 1
           required:
             - data
