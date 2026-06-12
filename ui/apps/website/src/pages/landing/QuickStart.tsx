@@ -1,3 +1,4 @@
+import { Card } from "@shellhub/design-system/primitives";
 import { Reveal, CopyBtn } from "./components";
 import { docsUrl } from "@/links";
 
@@ -18,7 +19,7 @@ export function QuickStart() {
         </Reveal>
 
         <Reveal>
-          <div className="max-w-xl mx-auto bg-card border border-border rounded-xl overflow-hidden">
+          <Card className="max-w-xl mx-auto overflow-hidden">
             <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border bg-surface">
               <span className="w-2.5 h-2.5 rounded-full bg-accent-red/70" />
               <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/70" />
@@ -36,7 +37,7 @@ export function QuickStart() {
               </code>
               <CopyBtn text="docker run -d -p 80:80 shellhubio/shellhub" />
             </div>
-          </div>
+          </Card>
         </Reveal>
 
         <Reveal className="text-center mt-5">

@@ -1,12 +1,13 @@
 import { SparklesIcon } from "@heroicons/react/24/outline";
+import { IconBadge } from "@shellhub/design-system/primitives";
 
 export default function BillingLetter() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+        <IconBadge size="md">
           <SparklesIcon className="w-5 h-5" />
-        </span>
+        </IconBadge>
         <div>
           <p className="text-2xs font-mono font-semibold uppercase tracking-label text-primary">
             ShellHub Cloud

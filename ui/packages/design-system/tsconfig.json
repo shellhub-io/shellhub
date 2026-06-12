@@ -21,6 +21,8 @@
     "constants.ts",
     "tailwind.preset.js",
     "vitest.config.ts",
-    "__tests__"
+    "__tests__",
+    "primitives",
+    "test"
   ]
 }

@@ -16,6 +16,7 @@ import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import PageLoader from "@/components/common/PageLoader";
+import { Badge, Card } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -35,9 +36,7 @@ export default function NamespaceDetails() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading namespace details" />
-    );
+    return <PageLoader label="Loading namespace details" />;
   }
 
   if (error || !namespace) {
@@ -87,9 +86,9 @@ export default function NamespaceDetails() {
       key: "role",
       header: "Role",
       render: (member) => (
-        <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-primary/10 text-primary border border-primary/20 capitalize">
+        <Badge color="primary" className="capitalize">
           {member.role || "member"}
-        </span>
+        </Badge>
       ),
     },
     {
@@ -149,7 +148,7 @@ export default function NamespaceDetails() {
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Properties Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Properties
@@ -184,10 +183,10 @@ export default function NamespaceDetails() {
               <dd className={VALUE}>{formatDateFull(namespace.created_at)}</dd>
             </div>
           </dl>
-        </div>
+        </Card>
 
         {/* Settings Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <Cog6ToothIcon className="w-4 h-4 text-primary" />
             Settings
@@ -264,11 +263,11 @@ export default function NamespaceDetails() {
               </div>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
 
       {/* Members Section */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <h3 className="text-xs font-semibold text-text-primary">
             Members ({namespace.members?.length || 0})
@@ -282,7 +281,7 @@ export default function NamespaceDetails() {
           noWrapper
           emptyMessage="No members"
         />
-      </div>
+      </Card>
 
       <EditNamespaceDrawer
         open={editOpen}

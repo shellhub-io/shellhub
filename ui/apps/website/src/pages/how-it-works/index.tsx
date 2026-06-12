@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -163,9 +164,9 @@ export default function HowItWorks() {
 
         <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
           <Reveal>
-            <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-primary/10 text-primary border border-primary/20 rounded-full mb-6">
+            <Badge shape="pill" color="primary" className="mb-6 tracking-label">
               How It Works
-            </span>
+            </Badge>
           </Reveal>
           <Reveal>
             <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">
@@ -233,502 +234,504 @@ export default function HowItWorks() {
           </Reveal>
 
           <Reveal>
-            <ShimmerCard className="bg-card border border-border rounded-xl p-6 lg:p-10 overflow-x-auto">
-              <svg
-                viewBox="0 0 960 340"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full h-auto min-w-[720px]"
-              >
-                <defs>
-                  <marker
-                    id="hw-a-pri"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.primary} />
-                  </marker>
-                  <marker
-                    id="hw-a-grn"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.green} />
-                  </marker>
-                  <marker
-                    id="hw-a-dim"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={`${C.primary}60`} />
-                  </marker>
-                </defs>
-
-                {/* ── User ── */}
-                <text
-                  x="70"
-                  y="24"
-                  fontFamily="IBM Plex Sans"
-                  fontSize="11"
-                  fill={C.textMuted}
-                  textAnchor="middle"
-                  letterSpacing=".1em"
-                >
-                  YOU
-                </text>
-                <rect
-                  x="20"
-                  y="36"
-                  width="100"
-                  height="90"
-                  rx="12"
-                  fill={C.card}
-                  stroke={C.border}
-                  strokeWidth="1.2"
-                />
-                <circle
-                  cx="70"
-                  cy="62"
-                  r="14"
-                  stroke={C.primary}
-                  strokeWidth="1.5"
+            <ShimmerCard>
+              <Card className="p-6 lg:p-10 overflow-x-auto">
+                <svg
+                  viewBox="0 0 960 340"
                   fill="none"
-                />
-                <circle cx="70" cy="58" r="4.5" fill={C.primary} />
-                <path
-                  d="M70 63 L70 67 M63 65 L77 65"
-                  stroke={C.primary}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                <text
-                  x="70"
-                  y="100"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="9"
-                  fill={C.textSec}
-                  textAnchor="middle"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-auto min-w-[720px]"
                 >
-                  Any location
-                </text>
-                <text
-                  x="70"
-                  y="114"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="8"
-                  fill={C.textMuted}
-                  textAnchor="middle"
-                >
-                  laptop / browser
-                </text>
-
-                {/* ── Arrow: User to Gateway ── */}
-                <line
-                  x1="125"
-                  y1="80"
-                  x2="260"
-                  y2="80"
-                  stroke={C.primary}
-                  strokeWidth="1.5"
-                  strokeDasharray="6 4"
-                  markerEnd="url(#hw-a-pri)"
-                />
-                <rect
-                  x="155"
-                  y="58"
-                  width="68"
-                  height="16"
-                  rx="4"
-                  fill={C.bg}
-                />
-                <text
-                  x="189"
-                  y="70"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="8"
-                  fill={C.primary}
-                  textAnchor="middle"
-                >
-                  SSH / HTTPS
-                </text>
-
-                {/* ── ShellHub Cloud ── */}
-                <rect
-                  x="265"
-                  y="20"
-                  width="330"
-                  height="290"
-                  rx="16"
-                  fill={`${C.primary}08`}
-                  stroke={C.primary}
-                  strokeWidth="1.5"
-                />
-                <text
-                  x="430"
-                  y="14"
-                  fontFamily="IBM Plex Sans"
-                  fontSize="12"
-                  fill={C.primary}
-                  textAnchor="middle"
-                  fontWeight="600"
-                  letterSpacing=".1em"
-                >
-                  SHELLHUB CLOUD
-                </text>
-
-                {/* Logo badge */}
-                <rect
-                  x="395"
-                  y="38"
-                  width="70"
-                  height="36"
-                  rx="10"
-                  fill={C.primaryDim}
-                  stroke={C.primary}
-                  strokeWidth="1"
-                />
-                <text
-                  x="430"
-                  y="62"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="16"
-                  fill={C.primary}
-                  textAnchor="middle"
-                  fontWeight="700"
-                >
-                  SH
-                </text>
-
-                {/* Internal modules */}
-                {[
-                  {
-                    x: 285,
-                    y: 100,
-                    label: "Authentication",
-                    color: C.primary,
-                    icon: "lock",
-                  },
-                  {
-                    x: 285,
-                    y: 140,
-                    label: "TLS Encryption",
-                    color: C.primary,
-                    icon: "shield",
-                  },
-                  {
-                    x: 285,
-                    y: 180,
-                    label: "Session Recording",
-                    color: C.cyan,
-                    icon: "rec",
-                  },
-                  {
-                    x: 285,
-                    y: 220,
-                    label: "Connection Router",
-                    color: C.green,
-                    icon: "route",
-                  },
-                  {
-                    x: 445,
-                    y: 100,
-                    label: "Firewall Rules",
-                    color: C.yellow,
-                    icon: "fire",
-                  },
-                  {
-                    x: 445,
-                    y: 140,
-                    label: "Audit Logging",
-                    color: C.green,
-                    icon: "log",
-                  },
-                  {
-                    x: 445,
-                    y: 180,
-                    label: "Team RBAC",
-                    color: C.primary,
-                    icon: "team",
-                  },
-                  {
-                    x: 445,
-                    y: 220,
-                    label: "Device Registry",
-                    color: C.blue,
-                    icon: "device",
-                  },
-                ].map((m, i) => (
-                  <g key={i}>
-                    <rect
-                      x={m.x}
-                      y={m.y}
-                      width="130"
-                      height="30"
-                      rx="6"
-                      fill={C.card}
-                      stroke={C.border}
-                    />
-                    <circle
-                      cx={m.x + 16}
-                      cy={m.y + 15}
-                      r="5"
-                      fill={`${m.color}30`}
-                      stroke={m.color}
-                      strokeWidth=".8"
-                    />
-                    <text
-                      x={m.x + 32}
-                      y={m.y + 19}
-                      fontFamily="IBM Plex Sans"
-                      fontSize="9"
-                      fill={C.textSec}
+                  <defs>
+                    <marker
+                      id="hw-a-pri"
+                      markerWidth="8"
+                      markerHeight="6"
+                      refX="8"
+                      refY="3"
+                      orient="auto"
                     >
-                      {m.label}
-                    </text>
-                  </g>
-                ))}
-
-                {/* Gateway label */}
-                <text
-                  x="430"
-                  y="278"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="8"
-                  fill={C.textMuted}
-                  textAnchor="middle"
-                >
-                  CLOUD OR SELF-HOSTED
-                </text>
-
-                {/* ── NAT Wall ── */}
-                <rect
-                  x="630"
-                  y="30"
-                  width="8"
-                  height="270"
-                  rx="4"
-                  fill={C.border}
-                />
-                <rect
-                  x="630"
-                  y="30"
-                  width="8"
-                  height="270"
-                  rx="4"
-                  fill={`${C.red}12`}
-                />
-                <text
-                  x="634"
-                  y="22"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="9"
-                  fill={C.textMuted}
-                  textAnchor="middle"
-                >
-                  NAT
-                </text>
-
-                {/* ── Arrow: Gateway to NAT ── */}
-                <line
-                  x1="600"
-                  y1="115"
-                  x2="626"
-                  y2="115"
-                  stroke={C.green}
-                  strokeWidth="1.5"
-                  markerEnd="url(#hw-a-grn)"
-                />
-
-                {/* ── Arrows: NAT to Devices ── */}
-                <line
-                  x1="642"
-                  y1="85"
-                  x2="678"
-                  y2="65"
-                  stroke={`${C.primary}60`}
-                  strokeWidth="1.2"
-                  strokeDasharray="4 3"
-                  markerEnd="url(#hw-a-dim)"
-                />
-                <line
-                  x1="642"
-                  y1="125"
-                  x2="678"
-                  y2="140"
-                  stroke={`${C.primary}60`}
-                  strokeWidth="1.2"
-                  strokeDasharray="4 3"
-                  markerEnd="url(#hw-a-dim)"
-                />
-                <line
-                  x1="642"
-                  y1="175"
-                  x2="678"
-                  y2="215"
-                  stroke={`${C.primary}60`}
-                  strokeWidth="1.2"
-                  strokeDasharray="4 3"
-                  markerEnd="url(#hw-a-dim)"
-                />
-                <line
-                  x1="642"
-                  y1="220"
-                  x2="678"
-                  y2="280"
-                  stroke={`${C.primary}60`}
-                  strokeWidth="1.2"
-                  strokeDasharray="4 3"
-                  markerEnd="url(#hw-a-dim)"
-                />
-
-                <text
-                  x="658"
-                  y="170"
-                  fontFamily="IBM Plex Mono"
-                  fontSize="7"
-                  fill={`${C.primary}50`}
-                  textAnchor="middle"
-                  transform="rotate(-90,658,170)"
-                >
-                  NAT Traversal
-                </text>
-
-                {/* ── YOUR DEVICES label ── */}
-                <text
-                  x="790"
-                  y="22"
-                  fontFamily="IBM Plex Sans"
-                  fontSize="11"
-                  fill={C.textMuted}
-                  textAnchor="middle"
-                  letterSpacing=".1em"
-                >
-                  YOUR DEVICES
-                </text>
-
-                {/* ── Devices ── */}
-                {[
-                  {
-                    y: 36,
-                    icon: "Pi",
-                    iconBg: C.green,
-                    label: "Raspberry Pi",
-                    sub: "armv7 / aarch64",
-                    begin: "0s",
-                  },
-                  {
-                    y: 112,
-                    icon: "srv",
-                    iconBg: C.primary,
-                    label: "Linux Server",
-                    sub: "Ubuntu / Debian / RHEL",
-                    begin: ".5s",
-                  },
-                  {
-                    y: 188,
-                    icon: "dk",
-                    iconBg: C.blue,
-                    label: "Docker Host",
-                    sub: "container agent",
-                    begin: "1s",
-                  },
-                  {
-                    y: 264,
-                    icon: "iot",
-                    iconBg: C.yellow,
-                    label: "IoT Gateway",
-                    sub: "OpenWrt / Yocto",
-                    begin: "1.5s",
-                  },
-                ].map((d, i) => (
-                  <g key={i}>
-                    <rect
-                      x="682"
-                      y={d.y}
-                      width="160"
-                      height="60"
-                      rx="10"
-                      fill={C.card}
-                      stroke={C.border}
-                    />
-                    {/* icon box */}
-                    <rect
-                      x="696"
-                      y={d.y + 12}
-                      width="28"
-                      height="20"
-                      rx="4"
-                      fill={`${d.iconBg}15`}
-                      stroke={d.iconBg}
-                      strokeWidth=".8"
-                    />
-                    <text
-                      x="710"
-                      y={d.y + 26}
-                      fontSize="9"
-                      fill={d.iconBg}
-                      textAnchor="middle"
-                      fontFamily="IBM Plex Mono"
-                      fontWeight="600"
+                      <path d="M0,0 L8,3 L0,6" fill={C.primary} />
+                    </marker>
+                    <marker
+                      id="hw-a-grn"
+                      markerWidth="8"
+                      markerHeight="6"
+                      refX="8"
+                      refY="3"
+                      orient="auto"
                     >
-                      {d.icon === "Pi"
-                        ? "Pi"
-                        : d.icon === "srv"
-                          ? ">_"
-                          : d.icon === "dk"
-                            ? "dk"
-                            : "IoT"}
-                    </text>
-                    {/* labels */}
-                    <text
-                      x="736"
-                      y={d.y + 24}
-                      fontFamily="IBM Plex Sans"
-                      fontSize="10"
-                      fill={C.text}
+                      <path d="M0,0 L8,3 L0,6" fill={C.green} />
+                    </marker>
+                    <marker
+                      id="hw-a-dim"
+                      markerWidth="8"
+                      markerHeight="6"
+                      refX="8"
+                      refY="3"
+                      orient="auto"
                     >
-                      {d.label}
-                    </text>
-                    <text
-                      x="736"
-                      y={d.y + 38}
-                      fontFamily="IBM Plex Mono"
-                      fontSize="7"
-                      fill={C.textMuted}
-                    >
-                      {d.sub}
-                    </text>
-                    <text
-                      x="736"
-                      y={d.y + 50}
-                      fontFamily="IBM Plex Mono"
-                      fontSize="7"
-                      fill={C.textMuted}
-                    >
-                      agent running
-                    </text>
-                    {/* animated status dot */}
-                    <circle cx="834" cy={d.y + 10} r="3.5" fill={C.green}>
-                      <animate
-                        attributeName="opacity"
-                        values="1;.3;1"
-                        dur="2s"
-                        repeatCount="indefinite"
-                        begin={d.begin}
+                      <path d="M0,0 L8,3 L0,6" fill={`${C.primary}60`} />
+                    </marker>
+                  </defs>
+
+                  {/* ── User ── */}
+                  <text
+                    x="70"
+                    y="24"
+                    fontFamily="IBM Plex Sans"
+                    fontSize="11"
+                    fill={C.textMuted}
+                    textAnchor="middle"
+                    letterSpacing=".1em"
+                  >
+                    YOU
+                  </text>
+                  <rect
+                    x="20"
+                    y="36"
+                    width="100"
+                    height="90"
+                    rx="12"
+                    fill={C.card}
+                    stroke={C.border}
+                    strokeWidth="1.2"
+                  />
+                  <circle
+                    cx="70"
+                    cy="62"
+                    r="14"
+                    stroke={C.primary}
+                    strokeWidth="1.5"
+                    fill="none"
+                  />
+                  <circle cx="70" cy="58" r="4.5" fill={C.primary} />
+                  <path
+                    d="M70 63 L70 67 M63 65 L77 65"
+                    stroke={C.primary}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <text
+                    x="70"
+                    y="100"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="9"
+                    fill={C.textSec}
+                    textAnchor="middle"
+                  >
+                    Any location
+                  </text>
+                  <text
+                    x="70"
+                    y="114"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="8"
+                    fill={C.textMuted}
+                    textAnchor="middle"
+                  >
+                    laptop / browser
+                  </text>
+
+                  {/* ── Arrow: User to Gateway ── */}
+                  <line
+                    x1="125"
+                    y1="80"
+                    x2="260"
+                    y2="80"
+                    stroke={C.primary}
+                    strokeWidth="1.5"
+                    strokeDasharray="6 4"
+                    markerEnd="url(#hw-a-pri)"
+                  />
+                  <rect
+                    x="155"
+                    y="58"
+                    width="68"
+                    height="16"
+                    rx="4"
+                    fill={C.bg}
+                  />
+                  <text
+                    x="189"
+                    y="70"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="8"
+                    fill={C.primary}
+                    textAnchor="middle"
+                  >
+                    SSH / HTTPS
+                  </text>
+
+                  {/* ── ShellHub Cloud ── */}
+                  <rect
+                    x="265"
+                    y="20"
+                    width="330"
+                    height="290"
+                    rx="16"
+                    fill={`${C.primary}08`}
+                    stroke={C.primary}
+                    strokeWidth="1.5"
+                  />
+                  <text
+                    x="430"
+                    y="14"
+                    fontFamily="IBM Plex Sans"
+                    fontSize="12"
+                    fill={C.primary}
+                    textAnchor="middle"
+                    fontWeight="600"
+                    letterSpacing=".1em"
+                  >
+                    SHELLHUB CLOUD
+                  </text>
+
+                  {/* Logo badge */}
+                  <rect
+                    x="395"
+                    y="38"
+                    width="70"
+                    height="36"
+                    rx="10"
+                    fill={C.primaryDim}
+                    stroke={C.primary}
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="430"
+                    y="62"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="16"
+                    fill={C.primary}
+                    textAnchor="middle"
+                    fontWeight="700"
+                  >
+                    SH
+                  </text>
+
+                  {/* Internal modules */}
+                  {[
+                    {
+                      x: 285,
+                      y: 100,
+                      label: "Authentication",
+                      color: C.primary,
+                      icon: "lock",
+                    },
+                    {
+                      x: 285,
+                      y: 140,
+                      label: "TLS Encryption",
+                      color: C.primary,
+                      icon: "shield",
+                    },
+                    {
+                      x: 285,
+                      y: 180,
+                      label: "Session Recording",
+                      color: C.cyan,
+                      icon: "rec",
+                    },
+                    {
+                      x: 285,
+                      y: 220,
+                      label: "Connection Router",
+                      color: C.green,
+                      icon: "route",
+                    },
+                    {
+                      x: 445,
+                      y: 100,
+                      label: "Firewall Rules",
+                      color: C.yellow,
+                      icon: "fire",
+                    },
+                    {
+                      x: 445,
+                      y: 140,
+                      label: "Audit Logging",
+                      color: C.green,
+                      icon: "log",
+                    },
+                    {
+                      x: 445,
+                      y: 180,
+                      label: "Team RBAC",
+                      color: C.primary,
+                      icon: "team",
+                    },
+                    {
+                      x: 445,
+                      y: 220,
+                      label: "Device Registry",
+                      color: C.blue,
+                      icon: "device",
+                    },
+                  ].map((m, i) => (
+                    <g key={i}>
+                      <rect
+                        x={m.x}
+                        y={m.y}
+                        width="130"
+                        height="30"
+                        rx="6"
+                        fill={C.card}
+                        stroke={C.border}
                       />
-                    </circle>
-                  </g>
-                ))}
-              </svg>
+                      <circle
+                        cx={m.x + 16}
+                        cy={m.y + 15}
+                        r="5"
+                        fill={`${m.color}30`}
+                        stroke={m.color}
+                        strokeWidth=".8"
+                      />
+                      <text
+                        x={m.x + 32}
+                        y={m.y + 19}
+                        fontFamily="IBM Plex Sans"
+                        fontSize="9"
+                        fill={C.textSec}
+                      >
+                        {m.label}
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Gateway label */}
+                  <text
+                    x="430"
+                    y="278"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="8"
+                    fill={C.textMuted}
+                    textAnchor="middle"
+                  >
+                    CLOUD OR SELF-HOSTED
+                  </text>
+
+                  {/* ── NAT Wall ── */}
+                  <rect
+                    x="630"
+                    y="30"
+                    width="8"
+                    height="270"
+                    rx="4"
+                    fill={C.border}
+                  />
+                  <rect
+                    x="630"
+                    y="30"
+                    width="8"
+                    height="270"
+                    rx="4"
+                    fill={`${C.red}12`}
+                  />
+                  <text
+                    x="634"
+                    y="22"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="9"
+                    fill={C.textMuted}
+                    textAnchor="middle"
+                  >
+                    NAT
+                  </text>
+
+                  {/* ── Arrow: Gateway to NAT ── */}
+                  <line
+                    x1="600"
+                    y1="115"
+                    x2="626"
+                    y2="115"
+                    stroke={C.green}
+                    strokeWidth="1.5"
+                    markerEnd="url(#hw-a-grn)"
+                  />
+
+                  {/* ── Arrows: NAT to Devices ── */}
+                  <line
+                    x1="642"
+                    y1="85"
+                    x2="678"
+                    y2="65"
+                    stroke={`${C.primary}60`}
+                    strokeWidth="1.2"
+                    strokeDasharray="4 3"
+                    markerEnd="url(#hw-a-dim)"
+                  />
+                  <line
+                    x1="642"
+                    y1="125"
+                    x2="678"
+                    y2="140"
+                    stroke={`${C.primary}60`}
+                    strokeWidth="1.2"
+                    strokeDasharray="4 3"
+                    markerEnd="url(#hw-a-dim)"
+                  />
+                  <line
+                    x1="642"
+                    y1="175"
+                    x2="678"
+                    y2="215"
+                    stroke={`${C.primary}60`}
+                    strokeWidth="1.2"
+                    strokeDasharray="4 3"
+                    markerEnd="url(#hw-a-dim)"
+                  />
+                  <line
+                    x1="642"
+                    y1="220"
+                    x2="678"
+                    y2="280"
+                    stroke={`${C.primary}60`}
+                    strokeWidth="1.2"
+                    strokeDasharray="4 3"
+                    markerEnd="url(#hw-a-dim)"
+                  />
+
+                  <text
+                    x="658"
+                    y="170"
+                    fontFamily="IBM Plex Mono"
+                    fontSize="7"
+                    fill={`${C.primary}50`}
+                    textAnchor="middle"
+                    transform="rotate(-90,658,170)"
+                  >
+                    NAT Traversal
+                  </text>
+
+                  {/* ── YOUR DEVICES label ── */}
+                  <text
+                    x="790"
+                    y="22"
+                    fontFamily="IBM Plex Sans"
+                    fontSize="11"
+                    fill={C.textMuted}
+                    textAnchor="middle"
+                    letterSpacing=".1em"
+                  >
+                    YOUR DEVICES
+                  </text>
+
+                  {/* ── Devices ── */}
+                  {[
+                    {
+                      y: 36,
+                      icon: "Pi",
+                      iconBg: C.green,
+                      label: "Raspberry Pi",
+                      sub: "armv7 / aarch64",
+                      begin: "0s",
+                    },
+                    {
+                      y: 112,
+                      icon: "srv",
+                      iconBg: C.primary,
+                      label: "Linux Server",
+                      sub: "Ubuntu / Debian / RHEL",
+                      begin: ".5s",
+                    },
+                    {
+                      y: 188,
+                      icon: "dk",
+                      iconBg: C.blue,
+                      label: "Docker Host",
+                      sub: "container agent",
+                      begin: "1s",
+                    },
+                    {
+                      y: 264,
+                      icon: "iot",
+                      iconBg: C.yellow,
+                      label: "IoT Gateway",
+                      sub: "OpenWrt / Yocto",
+                      begin: "1.5s",
+                    },
+                  ].map((d, i) => (
+                    <g key={i}>
+                      <rect
+                        x="682"
+                        y={d.y}
+                        width="160"
+                        height="60"
+                        rx="10"
+                        fill={C.card}
+                        stroke={C.border}
+                      />
+                      {/* icon box */}
+                      <rect
+                        x="696"
+                        y={d.y + 12}
+                        width="28"
+                        height="20"
+                        rx="4"
+                        fill={`${d.iconBg}15`}
+                        stroke={d.iconBg}
+                        strokeWidth=".8"
+                      />
+                      <text
+                        x="710"
+                        y={d.y + 26}
+                        fontSize="9"
+                        fill={d.iconBg}
+                        textAnchor="middle"
+                        fontFamily="IBM Plex Mono"
+                        fontWeight="600"
+                      >
+                        {d.icon === "Pi"
+                          ? "Pi"
+                          : d.icon === "srv"
+                            ? ">_"
+                            : d.icon === "dk"
+                              ? "dk"
+                              : "IoT"}
+                      </text>
+                      {/* labels */}
+                      <text
+                        x="736"
+                        y={d.y + 24}
+                        fontFamily="IBM Plex Sans"
+                        fontSize="10"
+                        fill={C.text}
+                      >
+                        {d.label}
+                      </text>
+                      <text
+                        x="736"
+                        y={d.y + 38}
+                        fontFamily="IBM Plex Mono"
+                        fontSize="7"
+                        fill={C.textMuted}
+                      >
+                        {d.sub}
+                      </text>
+                      <text
+                        x="736"
+                        y={d.y + 50}
+                        fontFamily="IBM Plex Mono"
+                        fontSize="7"
+                        fill={C.textMuted}
+                      >
+                        agent running
+                      </text>
+                      {/* animated status dot */}
+                      <circle cx="834" cy={d.y + 10} r="3.5" fill={C.green}>
+                        <animate
+                          attributeName="opacity"
+                          values="1;.3;1"
+                          dur="2s"
+                          repeatCount="indefinite"
+                          begin={d.begin}
+                        />
+                      </circle>
+                    </g>
+                  ))}
+                </svg>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -807,40 +810,43 @@ export default function HowItWorks() {
                 </div>
 
                 <div className="md:pl-12">
-                  <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                        <span className="ml-2 text-2xs text-text-muted font-mono">
-                          Terminal
-                        </span>
-                      </div>
-                      <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
-                        <p>
-                          <span className="text-accent-green">$</span>{" "}
-                          <span className="text-text-secondary">
-                            curl -sSf https://cloud.shellhub.io/install.sh | sh
+                  <ShimmerCard>
+                    <Card className="overflow-hidden">
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+                          <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+                          <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+                          <span className="ml-2 text-2xs text-text-muted font-mono">
+                            Terminal
                           </span>
-                        </p>
-                        <p className="text-text-muted">
-                          # Downloading ShellHub agent v0.17.2...
-                        </p>
-                        <p className="text-text-muted">
-                          # Installing to /usr/local/bin/shellhub-agent
-                        </p>
-                        <p className="text-text-muted">
-                          # Registering systemd service...
-                        </p>
-                        <p className="text-accent-green">
-                          # Agent installed and running.
-                        </p>
-                        <p className="text-accent-green">
-                          # Device ID: a1b2c3d4-e5f6-7890
-                        </p>
+                        </div>
+                        <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
+                          <p>
+                            <span className="text-accent-green">$</span>{" "}
+                            <span className="text-text-secondary">
+                              curl -sSf https://cloud.shellhub.io/install.sh |
+                              sh
+                            </span>
+                          </p>
+                          <p className="text-text-muted">
+                            # Downloading ShellHub agent v0.17.2...
+                          </p>
+                          <p className="text-text-muted">
+                            # Installing to /usr/local/bin/shellhub-agent
+                          </p>
+                          <p className="text-text-muted">
+                            # Registering systemd service...
+                          </p>
+                          <p className="text-accent-green">
+                            # Agent installed and running.
+                          </p>
+                          <p className="text-accent-green">
+                            # Device ID: a1b2c3d4-e5f6-7890
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    </Card>
                   </ShimmerCard>
                 </div>
               </div>
@@ -851,7 +857,7 @@ export default function HowItWorks() {
               <div className="relative grid md:grid-cols-2 gap-8 mb-16">
                 <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-cyan border-2 border-background z-10 hidden md:block" />
 
-                <div className="md:pr-12 md:text-right md:order-last md:text-left md:pl-12 md:pr-0">
+                <div className="md:order-last md:text-left md:pl-12">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center text-sm font-bold font-mono text-accent-cyan">
                       02
@@ -899,222 +905,224 @@ export default function HowItWorks() {
                 </div>
 
                 <div className="md:pr-12">
-                  <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="p-5">
-                      <svg
-                        viewBox="0 0 400 200"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-full h-auto"
-                      >
-                        <defs>
-                          <marker
-                            id="hw-s2-a"
-                            markerWidth="7"
-                            markerHeight="5"
-                            refX="7"
-                            refY="2.5"
-                            orient="auto"
-                          >
-                            <path d="M0,0 L7,2.5 L0,5" fill={C.cyan} />
-                          </marker>
-                        </defs>
+                  <ShimmerCard>
+                    <Card className="overflow-hidden">
+                      <div className="p-5">
+                        <svg
+                          viewBox="0 0 400 200"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-full h-auto"
+                        >
+                          <defs>
+                            <marker
+                              id="hw-s2-a"
+                              markerWidth="7"
+                              markerHeight="5"
+                              refX="7"
+                              refY="2.5"
+                              orient="auto"
+                            >
+                              <path d="M0,0 L7,2.5 L0,5" fill={C.cyan} />
+                            </marker>
+                          </defs>
 
-                        {/* Device */}
-                        <rect
-                          x="20"
-                          y="60"
-                          width="90"
-                          height="80"
-                          rx="10"
-                          fill={C.card}
-                          stroke={C.border}
-                        />
-                        <rect
-                          x="35"
-                          y="74"
-                          width="24"
-                          height="16"
-                          rx="3"
-                          fill={`${C.green}15`}
-                          stroke={C.green}
-                          strokeWidth=".8"
-                        />
-                        <text
-                          x="47"
-                          y="86"
-                          fontSize="8"
-                          fill={C.green}
-                          textAnchor="middle"
-                          fontFamily="IBM Plex Mono"
-                          fontWeight="600"
-                        >
-                          Pi
-                        </text>
-                        <text
-                          x="65"
-                          y="110"
-                          fontFamily="IBM Plex Sans"
-                          fontSize="9"
-                          fill={C.textSec}
-                          textAnchor="middle"
-                        >
-                          Device
-                        </text>
-                        <text
-                          x="65"
-                          y="124"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="7"
-                          fill={C.textMuted}
-                          textAnchor="middle"
-                        >
-                          agent
-                        </text>
-                        <circle cx="100" cy="68" r="3" fill={C.green}>
-                          <animate
-                            attributeName="opacity"
-                            values="1;.3;1"
-                            dur="2s"
-                            repeatCount="indefinite"
+                          {/* Device */}
+                          <rect
+                            x="20"
+                            y="60"
+                            width="90"
+                            height="80"
+                            rx="10"
+                            fill={C.card}
+                            stroke={C.border}
                           />
-                        </circle>
+                          <rect
+                            x="35"
+                            y="74"
+                            width="24"
+                            height="16"
+                            rx="3"
+                            fill={`${C.green}15`}
+                            stroke={C.green}
+                            strokeWidth=".8"
+                          />
+                          <text
+                            x="47"
+                            y="86"
+                            fontSize="8"
+                            fill={C.green}
+                            textAnchor="middle"
+                            fontFamily="IBM Plex Mono"
+                            fontWeight="600"
+                          >
+                            Pi
+                          </text>
+                          <text
+                            x="65"
+                            y="110"
+                            fontFamily="IBM Plex Sans"
+                            fontSize="9"
+                            fill={C.textSec}
+                            textAnchor="middle"
+                          >
+                            Device
+                          </text>
+                          <text
+                            x="65"
+                            y="124"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="7"
+                            fill={C.textMuted}
+                            textAnchor="middle"
+                          >
+                            agent
+                          </text>
+                          <circle cx="100" cy="68" r="3" fill={C.green}>
+                            <animate
+                              attributeName="opacity"
+                              values="1;.3;1"
+                              dur="2s"
+                              repeatCount="indefinite"
+                            />
+                          </circle>
 
-                        {/* NAT Wall */}
-                        <rect
-                          x="145"
-                          y="40"
-                          width="6"
-                          height="120"
-                          rx="3"
-                          fill={C.border}
-                        />
-                        <rect
-                          x="145"
-                          y="40"
-                          width="6"
-                          height="120"
-                          rx="3"
-                          fill={`${C.red}15`}
-                        />
-                        <text
-                          x="148"
-                          y="34"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="8"
-                          fill={C.textMuted}
-                          textAnchor="middle"
-                        >
-                          NAT
-                        </text>
+                          {/* NAT Wall */}
+                          <rect
+                            x="145"
+                            y="40"
+                            width="6"
+                            height="120"
+                            rx="3"
+                            fill={C.border}
+                          />
+                          <rect
+                            x="145"
+                            y="40"
+                            width="6"
+                            height="120"
+                            rx="3"
+                            fill={`${C.red}15`}
+                          />
+                          <text
+                            x="148"
+                            y="34"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="8"
+                            fill={C.textMuted}
+                            textAnchor="middle"
+                          >
+                            NAT
+                          </text>
 
-                        {/* Outbound arrow: Device through NAT to Cloud */}
-                        <line
-                          x1="115"
-                          y1="100"
-                          x2="142"
-                          y2="100"
-                          stroke={C.cyan}
-                          strokeWidth="1.5"
-                          markerEnd="url(#hw-s2-a)"
-                        />
-                        <line
-                          x1="154"
-                          y1="100"
-                          x2="225"
-                          y2="100"
-                          stroke={C.cyan}
-                          strokeWidth="1.5"
-                          strokeDasharray="6 4"
-                          markerEnd="url(#hw-s2-a)"
-                        />
-                        <text
-                          x="190"
-                          y="92"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="7"
-                          fill={C.cyan}
-                          textAnchor="middle"
-                        >
-                          outbound :443
-                        </text>
+                          {/* Outbound arrow: Device through NAT to Cloud */}
+                          <line
+                            x1="115"
+                            y1="100"
+                            x2="142"
+                            y2="100"
+                            stroke={C.cyan}
+                            strokeWidth="1.5"
+                            markerEnd="url(#hw-s2-a)"
+                          />
+                          <line
+                            x1="154"
+                            y1="100"
+                            x2="225"
+                            y2="100"
+                            stroke={C.cyan}
+                            strokeWidth="1.5"
+                            strokeDasharray="6 4"
+                            markerEnd="url(#hw-s2-a)"
+                          />
+                          <text
+                            x="190"
+                            y="92"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="7"
+                            fill={C.cyan}
+                            textAnchor="middle"
+                          >
+                            outbound :443
+                          </text>
 
-                        {/* Cloud */}
-                        <rect
-                          x="230"
-                          y="50"
-                          width="150"
-                          height="100"
-                          rx="14"
-                          fill={`${C.primary}08`}
-                          stroke={C.primary}
-                          strokeWidth="1.2"
-                        />
-                        <rect
-                          x="278"
-                          y="68"
-                          width="54"
-                          height="28"
-                          rx="8"
-                          fill={C.primaryDim}
-                          stroke={C.primary}
-                          strokeWidth=".8"
-                        />
-                        <text
-                          x="305"
-                          y="87"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="12"
-                          fill={C.primary}
-                          textAnchor="middle"
-                          fontWeight="700"
-                        >
-                          SH
-                        </text>
-                        <text
-                          x="305"
-                          y="118"
-                          fontFamily="IBM Plex Sans"
-                          fontSize="9"
-                          fill={C.textSec}
-                          textAnchor="middle"
-                        >
-                          ShellHub Gateway
-                        </text>
-                        <text
-                          x="305"
-                          y="132"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="7"
-                          fill={C.textMuted}
-                          textAnchor="middle"
-                        >
-                          Auth + Encryption
-                        </text>
+                          {/* Cloud */}
+                          <rect
+                            x="230"
+                            y="50"
+                            width="150"
+                            height="100"
+                            rx="14"
+                            fill={`${C.primary}08`}
+                            stroke={C.primary}
+                            strokeWidth="1.2"
+                          />
+                          <rect
+                            x="278"
+                            y="68"
+                            width="54"
+                            height="28"
+                            rx="8"
+                            fill={C.primaryDim}
+                            stroke={C.primary}
+                            strokeWidth=".8"
+                          />
+                          <text
+                            x="305"
+                            y="87"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="12"
+                            fill={C.primary}
+                            textAnchor="middle"
+                            fontWeight="700"
+                          >
+                            SH
+                          </text>
+                          <text
+                            x="305"
+                            y="118"
+                            fontFamily="IBM Plex Sans"
+                            fontSize="9"
+                            fill={C.textSec}
+                            textAnchor="middle"
+                          >
+                            ShellHub Gateway
+                          </text>
+                          <text
+                            x="305"
+                            y="132"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="7"
+                            fill={C.textMuted}
+                            textAnchor="middle"
+                          >
+                            Auth + Encryption
+                          </text>
 
-                        {/* Labels */}
-                        <text
-                          x="65"
-                          y="170"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="7"
-                          fill={C.textMuted}
-                          textAnchor="middle"
-                        >
-                          PRIVATE NETWORK
-                        </text>
-                        <text
-                          x="305"
-                          y="170"
-                          fontFamily="IBM Plex Mono"
-                          fontSize="7"
-                          fill={C.textMuted}
-                          textAnchor="middle"
-                        >
-                          PUBLIC CLOUD
-                        </text>
-                      </svg>
-                    </div>
+                          {/* Labels */}
+                          <text
+                            x="65"
+                            y="170"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="7"
+                            fill={C.textMuted}
+                            textAnchor="middle"
+                          >
+                            PRIVATE NETWORK
+                          </text>
+                          <text
+                            x="305"
+                            y="170"
+                            fontFamily="IBM Plex Mono"
+                            fontSize="7"
+                            fill={C.textMuted}
+                            textAnchor="middle"
+                          >
+                            PUBLIC CLOUD
+                          </text>
+                        </svg>
+                      </div>
+                    </Card>
                   </ShimmerCard>
                 </div>
               </div>
@@ -1173,56 +1181,58 @@ export default function HowItWorks() {
                 </div>
 
                 <div className="md:pl-12">
-                  <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                        <span className="ml-2 text-2xs text-text-muted font-mono">
-                          Terminal
-                        </span>
+                  <ShimmerCard>
+                    <Card className="overflow-hidden">
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+                          <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+                          <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+                          <span className="ml-2 text-2xs text-text-muted font-mono">
+                            Terminal
+                          </span>
+                        </div>
+                        <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
+                          <p>
+                            <span className="text-accent-green">$</span>{" "}
+                            <span className="text-text-secondary">
+                              ssh pi@a1b2c3d4-e5f6-7890.mycompany.shellhub.io
+                            </span>
+                          </p>
+                          <p className="text-text-muted">
+                            # Connecting through ShellHub gateway...
+                          </p>
+                          <p className="text-text-muted">
+                            # Authenticating with public key...
+                          </p>
+                          <p className="text-text-muted">
+                            # Session recording enabled.
+                          </p>
+                          <p>&nbsp;</p>
+                          <p>
+                            <span className="text-accent-green">
+                              pi@raspberrypi
+                            </span>
+                            :<span className="text-accent-blue">~</span>
+                            <span className="text-text-secondary">
+                              $ uname -a
+                            </span>
+                          </p>
+                          <p className="text-text-secondary">
+                            Linux raspberrypi 6.1.0-rpi7 armv7l GNU/Linux
+                          </p>
+                          <p>
+                            <span className="text-accent-green">
+                              pi@raspberrypi
+                            </span>
+                            :<span className="text-accent-blue">~</span>
+                            <span className="text-text-muted animate-pulse">
+                              _
+                            </span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
-                        <p>
-                          <span className="text-accent-green">$</span>{" "}
-                          <span className="text-text-secondary">
-                            ssh pi@a1b2c3d4-e5f6-7890.mycompany.shellhub.io
-                          </span>
-                        </p>
-                        <p className="text-text-muted">
-                          # Connecting through ShellHub gateway...
-                        </p>
-                        <p className="text-text-muted">
-                          # Authenticating with public key...
-                        </p>
-                        <p className="text-text-muted">
-                          # Session recording enabled.
-                        </p>
-                        <p>&nbsp;</p>
-                        <p>
-                          <span className="text-accent-green">
-                            pi@raspberrypi
-                          </span>
-                          :<span className="text-accent-blue">~</span>
-                          <span className="text-text-secondary">
-                            $ uname -a
-                          </span>
-                        </p>
-                        <p className="text-text-secondary">
-                          Linux raspberrypi 6.1.0-rpi7 armv7l GNU/Linux
-                        </p>
-                        <p>
-                          <span className="text-accent-green">
-                            pi@raspberrypi
-                          </span>
-                          :<span className="text-accent-blue">~</span>
-                          <span className="text-text-muted animate-pulse">
-                            _
-                          </span>
-                        </p>
-                      </div>
-                    </div>
+                    </Card>
                   </ShimmerCard>
                 </div>
               </div>
@@ -1256,7 +1266,7 @@ export default function HowItWorks() {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
                   <div className="relative">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <IconBadge color="primary">
                         <svg
                           className="w-5 h-5 text-primary"
                           fill="none"
@@ -1270,16 +1280,16 @@ export default function HowItWorks() {
                             d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
                           />
                         </svg>
-                      </div>
+                      </IconBadge>
                       <div>
                         <h3 className="text-sm font-bold">ShellHub</h3>
                         <p className="text-2xs text-primary">
                           Purpose-built for device access
                         </p>
                       </div>
-                      <span className="ml-auto px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                      <Badge shape="pill" color="green" className="ml-auto">
                         Recommended
-                      </span>
+                      </Badge>
                     </div>
 
                     <ul className="space-y-3">
@@ -1313,7 +1323,7 @@ export default function HowItWorks() {
             {/* VPN Side */}
             <Reveal delay={0.1}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-8 flex flex-col h-full hover:border-border-light transition-colors duration-300">
+                <Card hover className="p-8 flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
                       <svg
@@ -1361,7 +1371,7 @@ export default function HowItWorks() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
           </div>
@@ -1387,20 +1397,22 @@ export default function HowItWorks() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {techDetails.map((f, i) => (
               <Reveal key={i} delay={i * 0.04}>
-                <ShimmerCard className="bg-card border border-border rounded-xl p-6 hover:border-border-light transition-all duration-300 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
+                <ShimmerCard>
+                  <Card hover className="p-6 h-full">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                      style={{
+                        background: `${f.color}15`,
+                        borderColor: `${f.color}25`,
+                      }}
+                    >
+                      {f.icon}
+                    </div>
+                    <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      {f.desc}
+                    </p>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}

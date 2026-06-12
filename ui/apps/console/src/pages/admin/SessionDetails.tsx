@@ -10,6 +10,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 function Field({
   label,
@@ -54,9 +55,7 @@ export default function AdminSessionDetails() {
   const { session, isLoading, error } = useAdminSessionDetail(uid);
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading session" padding="fill" />
-    );
+    return <PageLoader label="Loading session" padding="fill" />;
   }
 
   if (error || !session) {
@@ -116,7 +115,7 @@ export default function AdminSessionDetails() {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
+      <Card className="rounded-lg overflow-hidden animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
           <div className="px-6 py-2">
             <Field label="UID">
@@ -203,7 +202,7 @@ export default function AdminSessionDetails() {
             </Field>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

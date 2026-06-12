@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   FolderPlusIcon,
 } from "@heroicons/react/24/outline";
+import { Card, IconBadge } from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
 import NamespaceNameField from "./fields/NamespaceNameField";
@@ -60,7 +61,7 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
       </p>
 
       {/* Command block */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-surface/50">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-accent-red/60" />
@@ -78,7 +79,7 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
             {CLI_COMMAND}
           </pre>
         </div>
-      </div>
+      </Card>
 
       {/* Name rules */}
       <div>
@@ -159,9 +160,9 @@ export default function CreateNamespaceDialog({
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <IconBadge size="sm">
             <FolderPlusIcon className="w-4 h-4" />
-          </span>
+          </IconBadge>
           <h2 id={titleId} className="text-sm font-semibold text-text-primary">
             Create a Namespace
           </h2>

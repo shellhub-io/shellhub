@@ -37,6 +37,7 @@ import {
 import RestrictedAction from "@/components/common/RestrictedAction";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import { Badge } from "@shellhub/design-system/primitives";
 
 /* ─── Constants ─── */
 
@@ -761,24 +762,24 @@ function EndpointCard({
 
               {/* TLS-to-device indicator */}
               {endpoint.tls?.enabled && (
-                <span
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-green/10 text-accent-green text-2xs rounded font-medium"
+                <Badge
+                  color="green"
                   title="The service on the device uses HTTPS"
                 >
                   <LockClosedIcon className="w-2.5 h-2.5" strokeWidth={2} />
                   TLS
-                </span>
+                </Badge>
               )}
 
               {/* Expired badge */}
               {expired && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-yellow/10 text-accent-yellow text-2xs rounded font-medium">
+                <Badge color="yellow">
                   <ExclamationCircleIcon
                     className="w-2.5 h-2.5"
                     strokeWidth={2}
                   />
                   Expired
-                </span>
+                </Badge>
               )}
 
               {/* Expiration / Created */}

@@ -15,6 +15,7 @@ import PlatformBadge from "@/components/common/PlatformBadge";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatDateFull, formatRelative } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -25,9 +26,7 @@ export default function AdminDeviceDetails() {
   const { data: device, isLoading, error } = useAdminDevice(uid ?? "");
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading device details" />
-    );
+    return <PageLoader label="Loading device details" />;
   }
 
   if (error || !device) {
@@ -94,7 +93,7 @@ export default function AdminDeviceDetails() {
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Identity Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Identity
@@ -132,10 +131,10 @@ export default function AdminDeviceDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
 
         {/* System Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ComputerDesktopIcon className="w-4 h-4 text-primary" />
             System
@@ -180,10 +179,10 @@ export default function AdminDeviceDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
 
         {/* Namespace & Timeline Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ClockIcon className="w-4 h-4 text-primary" />
             Namespace & Timeline
@@ -222,11 +221,11 @@ export default function AdminDeviceDetails() {
               <dd className={VALUE}>{formatRelative(device.last_seen)}</dd>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
 
       {/* Tags Section */}
-      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+      <Card className="p-5 mb-6">
         <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-3">
           <TagIcon className="w-4 h-4 text-primary" />
           Tags
@@ -245,11 +244,11 @@ export default function AdminDeviceDetails() {
         ) : (
           <p className="text-xs font-mono text-text-muted/50">No tags</p>
         )}
-      </div>
+      </Card>
 
       {/* Public Key Section */}
       {device.public_key && (
-        <div className="bg-card border border-border rounded-xl p-5">
+        <Card className="p-5">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-3">
             <KeyIcon className="w-4 h-4 text-primary" />
             Public Key
@@ -257,7 +256,7 @@ export default function AdminDeviceDetails() {
           <pre className="text-2xs font-mono text-text-secondary bg-surface border border-border rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all">
             {device.public_key}
           </pre>
-        </div>
+        </Card>
       )}
     </div>
   );

@@ -2,18 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import { create, type AsciinemaPlayer } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
+import { Card } from "@shellhub/design-system/primitives";
 
 type Speed = 0.5 | 1 | 1.5 | 2;
 
 function formatTime(secs: number): string {
-  const m = Math.floor(secs / 60).toString().padStart(2, "0");
-  const s = Math.floor(secs % 60).toString().padStart(2, "0");
+  const m = Math.floor(secs / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = Math.floor(secs % 60)
+    .toString()
+    .padStart(2, "0");
   return `${m}:${s}`;
 }
 
 function KeyboardIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <rect x="2" y="7" width="20" height="11" rx="2" />
       <path d="M6 11h.01M10 11h.01M14 11h.01M18 11h.01M8 15h8" />
     </svg>
@@ -93,16 +106,12 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
   const setupPlayer = (startAt = 0) => {
     if (!containerRef.current) return;
-    const p = create(
-      { data: logs },
-      containerRef.current,
-      {
-        fit: "width",
-        controls: false,
-        speed: speedRef.current,
-        startAt,
-      },
-    );
+    const p = create({ data: logs }, containerRef.current, {
+      fit: "width",
+      controls: false,
+      speed: speedRef.current,
+      startAt,
+    });
     playerRef.current = p;
     attachListeners(p);
     p.play();
@@ -116,7 +125,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
       playerRef.current?.dispose();
       playerRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const seekTo = (t: number) => {
@@ -133,7 +142,11 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLSelectElement
+      )
+        return;
 
       switch (e.key) {
         case " ":
@@ -151,11 +164,17 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
           break;
         case "ArrowLeft":
           e.preventDefault();
-          seekTo(currentTimeRef.current - (e.shiftKey ? durationRef.current * 0.1 : 5));
+          seekTo(
+            currentTimeRef.current -
+              (e.shiftKey ? durationRef.current * 0.1 : 5),
+          );
           break;
         case "ArrowRight":
           e.preventDefault();
-          seekTo(currentTimeRef.current + (e.shiftKey ? durationRef.current * 0.1 : 5));
+          seekTo(
+            currentTimeRef.current +
+              (e.shiftKey ? durationRef.current * 0.1 : 5),
+          );
           break;
         case ",":
           if (!isPlayingRef.current) seekTo(currentTimeRef.current - 0.1);
@@ -179,8 +198,14 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
           }
           break;
         default:
-          if (e.key >= "0" && e.key <= "9" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-            seekTo(durationRef.current * parseInt(e.key) / 10);
+          if (
+            e.key >= "0" &&
+            e.key <= "9" &&
+            !e.shiftKey &&
+            !e.ctrlKey &&
+            !e.metaKey
+          ) {
+            seekTo((durationRef.current * parseInt(e.key)) / 10);
           }
       }
     };
@@ -258,7 +283,9 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
         <select
           value={speed}
-          onChange={(e) => handleSpeedChange(parseFloat(e.target.value) as Speed)}
+          onChange={(e) =>
+            handleSpeedChange(parseFloat(e.target.value) as Speed)
+          }
           className="bg-surface border border-border rounded text-xs font-mono text-text-secondary px-2 py-1 shrink-0"
           aria-label="Playback speed"
         >
@@ -283,14 +310,19 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
         {/* Shortcuts popover */}
         {showShortcuts && (
-          <div className="absolute bottom-full right-4 mb-2 bg-card border border-border rounded-lg shadow-lg p-3 w-80">
+          <Card className="absolute bottom-full right-4 mb-2 rounded-lg shadow-lg p-3 w-80">
             <p className="text-2xs font-mono font-semibold uppercase tracking-widest text-text-muted/60 mb-2.5">
               Keyboard Shortcuts
             </p>
             <div className="space-y-1.5">
               {SHORTCUTS.map(({ keys, description }) => (
-                <div key={description} className="flex items-center justify-between gap-4">
-                  <span className="text-xs text-text-secondary">{description}</span>
+                <div
+                  key={description}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <span className="text-xs text-text-secondary">
+                    {description}
+                  </span>
                   <div className="flex items-center gap-1 shrink-0">
                     {keys.map((k) => (
                       <kbd
@@ -304,7 +336,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
       </div>
     </div>

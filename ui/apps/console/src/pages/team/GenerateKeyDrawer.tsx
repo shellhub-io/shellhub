@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { Card } from "@shellhub/design-system/primitives";
 import { useCreateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKeyCreate } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
@@ -140,15 +141,15 @@ function GenerateKeyDrawer({
             <span id="generated-api-key-label" className={LABEL}>
               Your API Key
             </span>
-            <div
+            <Card
               aria-labelledby="generated-api-key-label"
-              className="flex items-center gap-2 bg-card border border-border rounded-lg px-3.5 py-2.5"
+              className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
             >
               <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
                 {generatedKey}
               </code>
               <CopyButton text={generatedKey} size="md" />
-            </div>
+            </Card>
           </div>
         </div>
       ) : (

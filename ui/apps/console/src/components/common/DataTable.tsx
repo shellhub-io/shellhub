@@ -4,15 +4,13 @@ import {
   ChevronDownIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/24/outline";
+import { Card } from "@shellhub/design-system/primitives";
 import { cn } from "@/utils/cn";
 import Pagination from "./Pagination";
 import PageLoader from "@/components/common/PageLoader";
 
 const TH_CLASS =
   "px-4 py-3 text-left text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted whitespace-nowrap";
-
-const DEFAULT_WRAPPER =
-  "bg-card border border-border rounded-xl overflow-hidden";
 
 export interface Column<T> {
   key: string;
@@ -224,7 +222,7 @@ export default function DataTable<T>({
       {noWrapper ? (
         tableContent
       ) : (
-        <div className={DEFAULT_WRAPPER}>{tableContent}</div>
+        <Card className="overflow-hidden">{tableContent}</Card>
       )}
 
       {hasPagination && (

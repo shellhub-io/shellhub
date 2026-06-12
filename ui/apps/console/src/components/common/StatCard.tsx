@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Card } from "@shellhub/design-system/primitives";
 
 interface StatCardBaseProps {
   icon: ReactNode;
@@ -25,7 +26,7 @@ export default function StatCard(props: StatCardProps) {
   const { icon, title, value, linkLabel, accent } = props;
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all duration-300">
+    <Card className="rounded-lg p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all duration-300">
       <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-5">
         {icon}
       </div>
@@ -40,27 +41,21 @@ export default function StatCard(props: StatCardProps) {
         {value}
       </p>
 
-      {props.onClick
-        ? (
-          <button
-            onClick={props.onClick}
-            className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-          >
-            {linkLabel}
-            {" "}
-            &rarr;
-          </button>
-        )
-        : (
-          <Link
-            to={props.linkTo}
-            className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-          >
-            {linkLabel}
-            {" "}
-            &rarr;
-          </Link>
-        )}
-    </div>
+      {props.onClick ? (
+        <button
+          onClick={props.onClick}
+          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
+        >
+          {linkLabel} &rarr;
+        </button>
+      ) : (
+        <Link
+          to={props.linkTo}
+          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
+        >
+          {linkLabel} &rarr;
+        </Link>
+      )}
+    </Card>
   );
 }

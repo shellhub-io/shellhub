@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -503,9 +504,9 @@ export default function ContainerManagement() {
 
         <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
           <Reveal>
-            <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 rounded-full mb-6">
+            <Badge shape="pill" color="cyan" className="mb-6 tracking-label">
               Use Case
-            </span>
+            </Badge>
           </Reveal>
           <Reveal>
             <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">
@@ -579,7 +580,7 @@ export default function ContainerManagement() {
             {/* Without ShellHub */}
             <Reveal delay={0}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-8 flex flex-col h-full hover:border-border-light transition-colors duration-300">
+                <Card hover className="p-8 flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
                       <svg
@@ -659,7 +660,7 @@ export default function ContainerManagement() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
 
@@ -670,7 +671,7 @@ export default function ContainerManagement() {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
                   <div className="relative flex-1 flex flex-col">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <IconBadge color="primary">
                         <svg
                           className="w-5 h-5 text-primary"
                           fill="none"
@@ -684,10 +685,10 @@ export default function ContainerManagement() {
                             d="m4.5 12.75 6 6 9-13.5"
                           />
                         </svg>
-                      </div>
-                      <span className="px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                      </IconBadge>
+                      <Badge shape="pill" color="green">
                         Recommended
-                      </span>
+                      </Badge>
                     </div>
 
                     <h3 className="text-sm font-bold mb-1">With ShellHub</h3>
@@ -784,9 +785,9 @@ export default function ContainerManagement() {
 
           <Reveal>
             <ShimmerCard>
-              <div className="bg-card border border-border rounded-xl p-6 sm:p-8 overflow-hidden hover:border-border-light transition-colors duration-300">
+              <Card hover className="p-6 sm:p-8 overflow-hidden">
                 <ArchitectureDiagram />
-              </div>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -812,7 +813,7 @@ export default function ContainerManagement() {
             {painPoints.map((p, i) => (
               <Reveal key={i} delay={i * 0.06}>
                 <ShimmerCard className="h-full">
-                  <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                  <Card hover className="p-6 h-full">
                     <div className="flex items-start gap-4">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
@@ -843,7 +844,7 @@ export default function ContainerManagement() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}
@@ -875,7 +876,7 @@ export default function ContainerManagement() {
                 <div className="relative grid lg:grid-cols-2 gap-8 p-8">
                   {/* Left: description */}
                   <div className="flex flex-col justify-center">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
+                    <IconBadge color="primary" className="mb-4">
                       <svg
                         width="20"
                         height="20"
@@ -890,7 +891,7 @@ export default function ContainerManagement() {
                         <path d="M23 21v-2a4 4 0 00-3-3.87" />
                         <path d="M16 3.13a4 4 0 010 7.75" />
                       </svg>
-                    </div>
+                    </IconBadge>
                     <h3 className="text-lg font-bold mb-2">
                       Per-Container Access Control
                     </h3>
@@ -996,7 +997,7 @@ export default function ContainerManagement() {
             {smallFeatures.map((f, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <ShimmerCard className="h-full">
-                  <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                  <Card hover className="p-6 h-full">
                     <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                       style={{
@@ -1010,7 +1011,7 @@ export default function ContainerManagement() {
                     <p className="text-xs text-text-secondary leading-relaxed">
                       {f.desc}
                     </p>
-                  </div>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}
@@ -1059,12 +1060,12 @@ export default function ContainerManagement() {
                     {s.num}
                   </div>
                   <ShimmerCard>
-                    <div className="bg-card border border-border rounded-xl p-6 hover:border-border-light transition-all duration-300">
+                    <Card hover className="p-6">
                       <h4 className="text-sm font-semibold mb-2">{s.title}</h4>
                       <p className="text-xs text-text-secondary leading-relaxed">
                         {s.desc}
                       </p>
-                    </div>
+                    </Card>
                   </ShimmerCard>
                 </div>
               </Reveal>

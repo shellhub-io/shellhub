@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card } from "@shellhub/design-system/primitives";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -14,7 +15,7 @@ function TerminalChrome({
   accent?: string;
 }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-accent-red/60" />
         <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
@@ -26,7 +27,7 @@ function TerminalChrome({
         />
       </div>
       <div className="p-5 font-mono text-xs leading-relaxed">{children}</div>
-    </div>
+    </Card>
   );
 }
 
@@ -39,7 +40,7 @@ function BrowserChrome({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-accent-red/60" />
         <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
@@ -62,7 +63,7 @@ function BrowserChrome({
         </div>
       </div>
       <div className="p-5">{children}</div>
-    </div>
+    </Card>
   );
 }
 
@@ -109,9 +110,9 @@ function Hero() {
 
       <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
         <Reveal>
-          <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-primary/10 text-primary border border-primary/20 rounded-full mb-6">
+          <Badge shape="pill" color="primary" className="mb-6 tracking-label">
             Features
-          </span>
+          </Badge>
         </Reveal>
         <Reveal>
           <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">
@@ -237,37 +238,39 @@ function NativeSSH() {
 
           {/* Terminal Mockup */}
           <Reveal delay={0.1}>
-            <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-              <TerminalChrome title="Terminal — ssh" accent={C.green}>
-                <Line
-                  prompt="$"
-                  cmd="ssh admin@rpi-gateway.production.shellhub"
-                />
-                <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
-                  <span className="text-accent-green">Connected to</span>{" "}
-                  <span className="text-primary">rpi-gateway</span>
-                  <span className="text-text-muted"> (production)</span>
-                </div>
-                <Line
-                  prompt="$"
-                  cmd="ssh deploy@sensor-node-04.staging.shellhub"
-                />
-                <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
-                  <span className="text-accent-green">Connected to</span>{" "}
-                  <span className="text-primary">sensor-node-04</span>
-                  <span className="text-text-muted"> (staging)</span>
-                </div>
-                <Line
-                  prompt="$"
-                  cmd="ssh root@edge-server.iot-fleet.shellhub"
-                />
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-                  <span className="text-text-muted text-2xs">
-                    Connecting via ShellHub gateway...
-                  </span>
-                </div>
-              </TerminalChrome>
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <TerminalChrome title="Terminal — ssh" accent={C.green}>
+                  <Line
+                    prompt="$"
+                    cmd="ssh admin@rpi-gateway.production.shellhub"
+                  />
+                  <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
+                    <span className="text-accent-green">Connected to</span>{" "}
+                    <span className="text-primary">rpi-gateway</span>
+                    <span className="text-text-muted"> (production)</span>
+                  </div>
+                  <Line
+                    prompt="$"
+                    cmd="ssh deploy@sensor-node-04.staging.shellhub"
+                  />
+                  <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
+                    <span className="text-accent-green">Connected to</span>{" "}
+                    <span className="text-primary">sensor-node-04</span>
+                    <span className="text-text-muted"> (staging)</span>
+                  </div>
+                  <Line
+                    prompt="$"
+                    cmd="ssh root@edge-server.iot-fleet.shellhub"
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
+                    <span className="text-text-muted text-2xs">
+                      Connecting via ShellHub gateway...
+                    </span>
+                  </div>
+                </TerminalChrome>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -286,139 +289,151 @@ function SessionRecording() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Playback Mockup (left on this one for visual variety) */}
           <Reveal delay={0.1}>
-            <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="p-6">
-                {/* Header bar */}
-                <div className="flex items-center justify-between mb-5">
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  {/* Header bar */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/20 flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-accent-cyan"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={1.5}
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <polygon points="10 8 16 12 10 16 10 8" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold">Session #a7f3c2</p>
+                        <p className="text-2xs text-text-muted font-mono">
+                          admin@rpi-gateway &middot; production
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 text-2xs font-mono bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                      Recorded
+                    </span>
+                  </div>
+
+                  {/* Fake terminal playback area */}
+                  <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs mb-4">
+                    <div className="text-text-muted mb-1">
+                      <span className="text-accent-green">
+                        admin@rpi-gateway
+                      </span>
+                      :<span className="text-accent-blue">~</span>$ systemctl
+                      status nginx
+                    </div>
+                    <div className="text-text-secondary mb-1">
+                      ● nginx.service - A high performance web server
+                    </div>
+                    <div className="text-text-secondary mb-1">
+                      &nbsp;&nbsp;&nbsp;Active:{" "}
+                      <span className="text-accent-green">
+                        active (running)
+                      </span>{" "}
+                      since Mon 2026-02-14 09:31:04 UTC
+                    </div>
+                    <div className="text-text-secondary mb-1">
+                      &nbsp;&nbsp;Process: 1247 ExecStartPre=/usr/sbin/nginx -t
+                      (code=exited, status=0/SUCCESS)
+                    </div>
+                    <div className="text-text-muted mt-2">
+                      <span className="text-accent-green">
+                        admin@rpi-gateway
+                      </span>
+                      :<span className="text-accent-blue">~</span>${" "}
+                      <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Playback controls */}
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/20 flex items-center justify-center">
+                    <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
                       <svg
-                        className="w-4 h-4 text-accent-cyan"
+                        className="w-4 h-4 text-text-secondary"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                        strokeWidth={1.5}
+                        strokeWidth={2}
                       >
-                        <circle cx="12" cy="12" r="10" />
-                        <polygon points="10 8 16 12 10 16 10 8" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062A1.125 1.125 0 0 1 21 8.688v8.123ZM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062a1.125 1.125 0 0 1 1.683.977v8.123Z"
+                        />
                       </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold">Session #a7f3c2</p>
-                      <p className="text-2xs text-text-muted font-mono">
-                        admin@rpi-gateway &middot; production
-                      </p>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 text-2xs font-mono bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
-                    Recorded
-                  </span>
-                </div>
+                    </button>
+                    <button className="w-10 h-10 rounded-lg bg-accent-cyan/15 border border-accent-cyan/25 flex items-center justify-center hover:bg-accent-cyan/25 transition-colors">
+                      <svg
+                        className="w-5 h-5 text-accent-cyan"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+                        />
+                      </svg>
+                    </button>
+                    <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
+                      <svg
+                        className="w-4 h-4 text-text-secondary"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062A1.125 1.125 0 0 1 3 16.81V8.688ZM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062a1.125 1.125 0 0 1-1.683-.977V8.688Z"
+                        />
+                      </svg>
+                    </button>
 
-                {/* Fake terminal playback area */}
-                <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs mb-4">
-                  <div className="text-text-muted mb-1">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>$ systemctl
-                    status nginx
-                  </div>
-                  <div className="text-text-secondary mb-1">
-                    ● nginx.service - A high performance web server
-                  </div>
-                  <div className="text-text-secondary mb-1">
-                    &nbsp;&nbsp;&nbsp;Active:{" "}
-                    <span className="text-accent-green">active (running)</span>{" "}
-                    since Mon 2026-02-14 09:31:04 UTC
-                  </div>
-                  <div className="text-text-secondary mb-1">
-                    &nbsp;&nbsp;Process: 1247 ExecStartPre=/usr/sbin/nginx -t
-                    (code=exited, status=0/SUCCESS)
-                  </div>
-                  <div className="text-text-muted mt-2">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>${" "}
-                    <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
-                  </div>
-                </div>
-
-                {/* Playback controls */}
-                <div className="flex items-center gap-3">
-                  <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
-                    <svg
-                      className="w-4 h-4 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062A1.125 1.125 0 0 1 21 8.688v8.123ZM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062a1.125 1.125 0 0 1 1.683.977v8.123Z"
-                      />
-                    </svg>
-                  </button>
-                  <button className="w-10 h-10 rounded-lg bg-accent-cyan/15 border border-accent-cyan/25 flex items-center justify-center hover:bg-accent-cyan/25 transition-colors">
-                    <svg
-                      className="w-5 h-5 text-accent-cyan"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-                      />
-                    </svg>
-                  </button>
-                  <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
-                    <svg
-                      className="w-4 h-4 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062A1.125 1.125 0 0 1 3 16.81V8.688ZM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062a1.125 1.125 0 0 1-1.683-.977V8.688Z"
-                      />
-                    </svg>
-                  </button>
-
-                  {/* Timeline */}
-                  <div className="flex-1 mx-2">
-                    <div className="h-1.5 bg-surface rounded-full overflow-hidden border border-border">
-                      <div className="h-full w-[62%] bg-gradient-to-r from-accent-cyan to-primary rounded-full relative">
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(78,154,163,0.6)]" />
+                    {/* Timeline */}
+                    <div className="flex-1 mx-2">
+                      <div className="h-1.5 bg-surface rounded-full overflow-hidden border border-border">
+                        <div className="h-full w-[62%] bg-gradient-to-r from-accent-cyan to-primary rounded-full relative">
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(78,154,163,0.6)]" />
+                        </div>
                       </div>
                     </div>
+
+                    <span className="text-2xs text-text-muted font-mono whitespace-nowrap">
+                      04:32 / 07:15
+                    </span>
                   </div>
 
-                  <span className="text-2xs text-text-muted font-mono whitespace-nowrap">
-                    04:32 / 07:15
-                  </span>
+                  {/* Session metadata */}
+                  <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-2xs text-text-muted mb-0.5">
+                        Duration
+                      </p>
+                      <p className="text-xs font-mono font-medium">7m 15s</p>
+                    </div>
+                    <div>
+                      <p className="text-2xs text-text-muted mb-0.5">
+                        Commands
+                      </p>
+                      <p className="text-xs font-mono font-medium">23</p>
+                    </div>
+                    <div>
+                      <p className="text-2xs text-text-muted mb-0.5">Size</p>
+                      <p className="text-xs font-mono font-medium">1.2 MB</p>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Session metadata */}
-                <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-2xs text-text-muted mb-0.5">Duration</p>
-                    <p className="text-xs font-mono font-medium">7m 15s</p>
-                  </div>
-                  <div>
-                    <p className="text-2xs text-text-muted mb-0.5">Commands</p>
-                    <p className="text-xs font-mono font-medium">23</p>
-                  </div>
-                  <div>
-                    <p className="text-2xs text-text-muted mb-0.5">Size</p>
-                    <p className="text-xs font-mono font-medium">1.2 MB</p>
-                  </div>
-                </div>
-              </div>
+              </Card>
             </ShimmerCard>
           </Reveal>
 
@@ -566,62 +581,68 @@ function WebTerminal() {
 
           {/* Browser Mockup */}
           <Reveal delay={0.1}>
-            <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-              <BrowserChrome url="shellhub.io/devices/rpi-gateway/terminal">
-                {/* Fake tabs row */}
-                <div className="flex items-center gap-1 mb-4">
-                  <div className="px-3 py-1.5 bg-surface border border-border rounded-t-lg text-2xs font-mono text-text-primary flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
-                    rpi-gateway
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <BrowserChrome url="shellhub.io/devices/rpi-gateway/terminal">
+                  {/* Fake tabs row */}
+                  <div className="flex items-center gap-1 mb-4">
+                    <div className="px-3 py-1.5 bg-surface border border-border rounded-t-lg text-2xs font-mono text-text-primary flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+                      rpi-gateway
+                    </div>
+                    <div className="px-3 py-1.5 bg-card border border-border/50 rounded-t-lg text-2xs font-mono text-text-muted flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
+                      sensor-node-04
+                    </div>
                   </div>
-                  <div className="px-3 py-1.5 bg-card border border-border/50 rounded-t-lg text-2xs font-mono text-text-muted flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
-                    sensor-node-04
-                  </div>
-                </div>
 
-                {/* Terminal area inside browser */}
-                <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs">
-                  <div className="text-text-muted mb-1.5">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>$ docker ps
-                    --format &quot;table {"{{.Names}}"}\t{"{{.Status}}"}&quot;
+                  {/* Terminal area inside browser */}
+                  <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs">
+                    <div className="text-text-muted mb-1.5">
+                      <span className="text-accent-green">
+                        admin@rpi-gateway
+                      </span>
+                      :<span className="text-accent-blue">~</span>$ docker ps
+                      --format &quot;table {"{{.Names}}"}\t{"{{.Status}}"}&quot;
+                    </div>
+                    <div className="text-text-secondary mb-0.5">
+                      NAMES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STATUS
+                    </div>
+                    <div className="text-text-secondary mb-0.5">
+                      nginx-proxy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
+                      days
+                    </div>
+                    <div className="text-text-secondary mb-0.5">
+                      app-backend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
+                      days
+                    </div>
+                    <div className="text-text-secondary mb-0.5">
+                      redis-cache&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
+                      days
+                    </div>
+                    <div className="text-text-secondary mb-1.5">
+                      postgres-db&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
+                      days
+                    </div>
+                    <div className="text-text-muted">
+                      <span className="text-accent-green">
+                        admin@rpi-gateway
+                      </span>
+                      :<span className="text-accent-blue">~</span>${" "}
+                      <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
+                    </div>
                   </div>
-                  <div className="text-text-secondary mb-0.5">
-                    NAMES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STATUS
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    nginx-proxy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    app-backend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    redis-cache&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-1.5">
-                    postgres-db&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-muted">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>${" "}
-                    <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
-                  </div>
-                </div>
 
-                {/* Status bar */}
-                <div className="mt-3 flex items-center justify-between text-2xs text-text-muted">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
-                    <span>Connected &middot; WebSocket</span>
+                  {/* Status bar */}
+                  <div className="mt-3 flex items-center justify-between text-2xs text-text-muted">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+                      <span>Connected &middot; WebSocket</span>
+                    </div>
+                    <span className="font-mono">80x24</span>
                   </div>
-                  <span className="font-mono">80x24</span>
-                </div>
-              </BrowserChrome>
+                </BrowserChrome>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -770,20 +791,22 @@ function SecurityGrid() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {securityFeatures.map((f, i) => (
             <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard className="bg-card border border-border rounded-xl p-6 hover:border-border-light transition-all duration-300 h-full">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${f.color}15`,
-                    borderColor: `${f.color}25`,
-                  }}
-                >
-                  {f.icon}
-                </div>
-                <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  {f.desc}
-                </p>
+              <ShimmerCard>
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                    style={{
+                      background: `${f.color}15`,
+                      borderColor: `${f.color}25`,
+                    }}
+                  >
+                    {f.icon}
+                  </div>
+                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {f.desc}
+                  </p>
+                </Card>
               </ShimmerCard>
             </Reveal>
           ))}
@@ -803,52 +826,54 @@ function FileTransfer() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Terminal Mockup */}
           <Reveal delay={0.1}>
-            <ShimmerCard className="bg-card border border-border rounded-xl overflow-hidden">
-              <TerminalChrome title="Terminal — scp / sftp" accent={C.cyan}>
-                <div className="mb-4">
-                  <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
-                    SCP &mdash; Copy files to device
-                  </p>
-                  <Line
-                    prompt="$"
-                    cmd="scp firmware-v2.4.bin admin@rpi-gateway.production.shellhub:/opt/firmware/"
-                  />
-                  <div className="mt-1 flex items-center gap-3">
-                    <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden border border-border">
-                      <div className="h-full w-full bg-gradient-to-r from-accent-cyan to-primary rounded-full" />
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <TerminalChrome title="Terminal — scp / sftp" accent={C.cyan}>
+                  <div className="mb-4">
+                    <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
+                      SCP &mdash; Copy files to device
+                    </p>
+                    <Line
+                      prompt="$"
+                      cmd="scp firmware-v2.4.bin admin@rpi-gateway.production.shellhub:/opt/firmware/"
+                    />
+                    <div className="mt-1 flex items-center gap-3">
+                      <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden border border-border">
+                        <div className="h-full w-full bg-gradient-to-r from-accent-cyan to-primary rounded-full" />
+                      </div>
+                      <span className="text-accent-green text-2xs">100%</span>
                     </div>
-                    <span className="text-accent-green text-2xs">100%</span>
-                  </div>
-                  <p className="text-text-muted text-2xs mt-1">
-                    firmware-v2.4.bin &nbsp; 24.3 MB &nbsp; 12.1MB/s &nbsp;
-                    00:02
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-border">
-                  <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
-                    SFTP &mdash; Interactive session
-                  </p>
-                  <Line prompt="sftp>" cmd="ls /var/log/" />
-                  <div className="text-text-secondary ml-0">
-                    <p>
-                      syslog &nbsp;&nbsp; auth.log &nbsp;&nbsp; kern.log
-                      &nbsp;&nbsp; nginx/
+                    <p className="text-text-muted text-2xs mt-1">
+                      firmware-v2.4.bin &nbsp; 24.3 MB &nbsp; 12.1MB/s &nbsp;
+                      00:02
                     </p>
                   </div>
-                  <Line
-                    prompt="sftp>"
-                    cmd="get /var/log/syslog ./diagnostics/"
-                  />
-                  <p className="text-text-muted text-2xs mt-1">
-                    Fetching /var/log/syslog to ./diagnostics/syslog
-                  </p>
-                  <p className="text-accent-green text-2xs">
-                    /var/log/syslog &nbsp; 100% &nbsp; 847KB &nbsp; 4.2MB/s
-                    &nbsp; 00:00
-                  </p>
-                </div>
-              </TerminalChrome>
+
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
+                      SFTP &mdash; Interactive session
+                    </p>
+                    <Line prompt="sftp>" cmd="ls /var/log/" />
+                    <div className="text-text-secondary ml-0">
+                      <p>
+                        syslog &nbsp;&nbsp; auth.log &nbsp;&nbsp; kern.log
+                        &nbsp;&nbsp; nginx/
+                      </p>
+                    </div>
+                    <Line
+                      prompt="sftp>"
+                      cmd="get /var/log/syslog ./diagnostics/"
+                    />
+                    <p className="text-text-muted text-2xs mt-1">
+                      Fetching /var/log/syslog to ./diagnostics/syslog
+                    </p>
+                    <p className="text-accent-green text-2xs">
+                      /var/log/syslog &nbsp; 100% &nbsp; 847KB &nbsp; 4.2MB/s
+                      &nbsp; 00:00
+                    </p>
+                  </div>
+                </TerminalChrome>
+              </Card>
             </ShimmerCard>
           </Reveal>
 
@@ -1340,7 +1365,7 @@ function DeviceOrganization() {
           {/* Tags card */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
-              <div className="bg-card border border-border rounded-xl p-8 h-full hover:border-border-light transition-all duration-300">
+              <Card hover className="p-8 h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                     <svg
@@ -1449,7 +1474,7 @@ function DeviceOrganization() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Card>
             </ShimmerCard>
           </Reveal>
 

@@ -27,25 +27,49 @@ import {
 import type { GetLicenseResponse } from "@/client/types.gen";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 /* ─── Status Alert ─── */
 
-const alertStyles: Record<"info" | "warning" | "error", {
-  container: string;
-  Icon: HeroIcon;
-  text: string;
-}> = {
-  info: { container: "bg-accent-blue/[0.06] border-accent-blue/10", Icon: InformationCircleIcon, text: "text-accent-blue" },
-  warning: { container: "bg-accent-yellow/[0.06] border-accent-yellow/10", Icon: ExclamationTriangleIcon, text: "text-accent-yellow" },
-  error: { container: "bg-accent-red/[0.06] border-accent-red/10", Icon: ExclamationCircleIcon, text: "text-accent-red" },
+const alertStyles: Record<
+  "info" | "warning" | "error",
+  {
+    container: string;
+    Icon: HeroIcon;
+    text: string;
+  }
+> = {
+  info: {
+    container: "bg-accent-blue/[0.06] border-accent-blue/10",
+    Icon: InformationCircleIcon,
+    text: "text-accent-blue",
+  },
+  warning: {
+    container: "bg-accent-yellow/[0.06] border-accent-yellow/10",
+    Icon: ExclamationTriangleIcon,
+    text: "text-accent-yellow",
+  },
+  error: {
+    container: "bg-accent-red/[0.06] border-accent-red/10",
+    Icon: ExclamationCircleIcon,
+    text: "text-accent-red",
+  },
 };
 
-function LicenseStatusAlert({ license }: { license: GetLicenseResponse | null }) {
+function LicenseStatusAlert({
+  license,
+}: {
+  license: GetLicenseResponse | null;
+}) {
   const config = getLicenseAlertConfig(
     license
-      ? { expired: license.expired, about_to_expire: license.about_to_expire, grace_period: license.grace_period }
+      ? {
+          expired: license.expired,
+          about_to_expire: license.about_to_expire,
+          grace_period: license.grace_period,
+        }
       : null,
   );
 
@@ -68,7 +92,13 @@ function LicenseStatusAlert({ license }: { license: GetLicenseResponse | null })
 
 /* ─── Detail Row ─── */
 
-function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between py-2.5">
       <span className="text-sm text-text-muted">{label}</span>
@@ -100,9 +130,11 @@ function LicenseDetails({ license }: { license: GetLicenseResponse }) {
         </DetailRow>
         <DetailRow label="Allowed regions">
           <span className="inline-flex items-center gap-1.5">
-            {isGlobal
-              ? <GlobeAltIcon className="w-4 h-4 text-text-muted" />
-              : <FlagIcon className="w-4 h-4 text-text-muted" />}
+            {isGlobal ? (
+              <GlobeAltIcon className="w-4 h-4 text-text-muted" />
+            ) : (
+              <FlagIcon className="w-4 h-4 text-text-muted" />
+            )}
             {regionText}
           </span>
         </DetailRow>
@@ -113,7 +145,11 @@ function LicenseDetails({ license }: { license: GetLicenseResponse }) {
 
 /* ─── License Owner ─── */
 
-function LicenseOwner({ customer }: { customer: GetLicenseResponse["customer"] }) {
+function LicenseOwner({
+  customer,
+}: {
+  customer: GetLicenseResponse["customer"];
+}) {
   return (
     <section>
       <h2 className="text-xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3">
@@ -128,15 +164,9 @@ function LicenseOwner({ customer }: { customer: GetLicenseResponse["customer"] }
             {customer.id && <CopyButton text={customer.id} />}
           </span>
         </DetailRow>
-        <DetailRow label="Name">
-          {customer.name ?? "\u2014"}
-        </DetailRow>
-        <DetailRow label="Email">
-          {customer.email ?? "\u2014"}
-        </DetailRow>
-        <DetailRow label="Company">
-          {customer.company ?? "\u2014"}
-        </DetailRow>
+        <DetailRow label="Name">{customer.name ?? "\u2014"}</DetailRow>
+        <DetailRow label="Email">{customer.email ?? "\u2014"}</DetailRow>
+        <DetailRow label="Company">{customer.company ?? "\u2014"}</DetailRow>
       </div>
     </section>
   );
@@ -144,7 +174,11 @@ function LicenseOwner({ customer }: { customer: GetLicenseResponse["customer"] }
 
 /* ─── License Features ─── */
 
-function LicenseFeatures({ features }: { features: GetLicenseResponse["features"] }) {
+function LicenseFeatures({
+  features,
+}: {
+  features: GetLicenseResponse["features"];
+}) {
   const display = getDisplayFeatures(features);
 
   return (
@@ -155,25 +189,21 @@ function LicenseFeatures({ features }: { features: GetLicenseResponse["features"
       <div className="divide-y divide-border">
         {display.map((feature) => (
           <DetailRow key={feature.name} label={feature.label}>
-            {feature.type === "number"
-              ? (
-                <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-semibold bg-primary/10 text-primary border border-primary/20 rounded">
-                  {formatDeviceCount(feature.value)}
-                </span>
-              )
-              : feature.value
-                ? (
-                  <CheckCircleIcon
-                    className="w-5 h-5 text-accent-green"
-                    aria-label="Included"
-                  />
-                )
-                : (
-                  <XCircleIcon
-                    className="w-5 h-5 text-accent-red"
-                    aria-label="Not included"
-                  />
-                )}
+            {feature.type === "number" ? (
+              <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-semibold bg-primary/10 text-primary border border-primary/20 rounded">
+                {formatDeviceCount(feature.value)}
+              </span>
+            ) : feature.value ? (
+              <CheckCircleIcon
+                className="w-5 h-5 text-accent-green"
+                aria-label="Included"
+              />
+            ) : (
+              <XCircleIcon
+                className="w-5 h-5 text-accent-red"
+                aria-label="Not included"
+              />
+            )}
           </DetailRow>
         ))}
       </div>
@@ -187,7 +217,10 @@ function LicenseUpload() {
   const upload = useUploadLicense();
   const [file, setFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
@@ -224,7 +257,10 @@ function LicenseUpload() {
     setFeedback(null);
     try {
       await upload.mutateAsync({ body: { file } });
-      setFeedback({ type: "success", message: "License uploaded successfully." });
+      setFeedback({
+        type: "success",
+        message: "License uploaded successfully.",
+      });
       clearFile();
     } catch {
       setFeedback({ type: "error", message: "Failed to upload the license." });
@@ -235,7 +271,10 @@ function LicenseUpload() {
 
   return (
     <section aria-labelledby="upload-license-heading">
-      <h2 id="upload-license-heading" className="text-xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3">
+      <h2
+        id="upload-license-heading"
+        className="text-xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3"
+      >
         Upload License
       </h2>
       <div className="space-y-3">
@@ -256,7 +295,9 @@ function LicenseUpload() {
               accept=".dat"
               tabIndex={-1}
               onChange={handleFileChange}
-              aria-describedby={validationError ? "license-file-error" : undefined}
+              aria-describedby={
+                validationError ? "license-file-error" : undefined
+              }
               aria-invalid={!!validationError || undefined}
               className="sr-only"
             />
@@ -273,9 +314,15 @@ function LicenseUpload() {
                 }
               }}
               onDrop={handleDrop}
-              onDragEnter={(e) => { e.preventDefault(); dragCounter.current++; setIsDragging(true); }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                dragCounter.current++;
+                setIsDragging(true);
+              }}
               onDragOver={(e) => e.preventDefault()}
-              onDragLeave={() => { if (--dragCounter.current === 0) setIsDragging(false); }}
+              onDragLeave={() => {
+                if (--dragCounter.current === 0) setIsDragging(false);
+              }}
               className={[
                 "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-dashed cursor-pointer select-none transition-all duration-150",
                 "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
@@ -289,7 +336,10 @@ function LicenseUpload() {
             >
               {file ? (
                 <>
-                  <DocumentIcon className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
+                  <DocumentIcon
+                    className="w-4 h-4 text-primary shrink-0"
+                    aria-hidden="true"
+                  />
                   <span className="text-sm text-text-primary font-medium truncate flex-1 min-w-0">
                     {file.name}
                   </span>
@@ -299,10 +349,18 @@ function LicenseUpload() {
                 </>
               ) : (
                 <>
-                  <ArrowUpTrayIcon className="w-4 h-4 text-text-muted shrink-0" aria-hidden="true" />
+                  <ArrowUpTrayIcon
+                    className="w-4 h-4 text-text-muted shrink-0"
+                    aria-hidden="true"
+                  />
                   <span className="text-sm">
-                    <span className="text-text-secondary">Choose a .dat file</span>
-                    <span className="text-text-muted hidden sm:inline"> or drag and drop</span>
+                    <span className="text-text-secondary">
+                      Choose a .dat file
+                    </span>
+                    <span className="text-text-muted hidden sm:inline">
+                      {" "}
+                      or drag and drop
+                    </span>
                   </span>
                   <span className="ml-auto text-2xs font-mono text-text-muted/60 shrink-0">
                     under 32 KB
@@ -325,7 +383,11 @@ function LicenseUpload() {
           </div>
 
           {/* Persistent live region — always in DOM so SR catches text changes */}
-          <div aria-live="polite" aria-atomic="true" className="min-h-[1rem] mt-1.5">
+          <div
+            aria-live="polite"
+            aria-atomic="true"
+            className="min-h-[1rem] mt-1.5"
+          >
             {validationError && (
               <p id="license-file-error" className="text-2xs text-accent-red">
                 {validationError}
@@ -340,19 +402,27 @@ function LicenseUpload() {
             onClick={() => void handleUpload()}
             disabled={!canUpload}
             aria-busy={upload.isPending}
-            aria-label={upload.isPending ? "Uploading license file" : "Upload license file"}
+            aria-label={
+              upload.isPending
+                ? "Uploading license file"
+                : "Upload license file"
+            }
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
-            {upload.isPending
-              ? <Spinner size="md" tone="onPrimary" />
-              : <ArrowUpTrayIcon className="w-4 h-4" aria-hidden="true" />}
+            {upload.isPending ? (
+              <Spinner size="md" tone="onPrimary" />
+            ) : (
+              <ArrowUpTrayIcon className="w-4 h-4" aria-hidden="true" />
+            )}
             {upload.isPending ? "Uploading..." : "Upload"}
           </button>
           {feedback && (
             <p
               role={feedback.type === "error" ? "alert" : "status"}
               className={`text-sm font-medium ${
-                feedback.type === "success" ? "text-accent-green" : "text-accent-red"
+                feedback.type === "success"
+                  ? "text-accent-green"
+                  : "text-accent-red"
               }`}
             >
               {feedback.message}
@@ -370,9 +440,7 @@ export default function AdminLicense() {
   const { data, isLoading, isError } = useAdminLicense();
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading license information" padding="fill" />
-    );
+    return <PageLoader label="Loading license information" padding="fill" />;
   }
 
   if (isError) {
@@ -380,8 +448,12 @@ export default function AdminLicense() {
       <div className="h-full flex items-center justify-center">
         <div className="text-center" role="alert">
           <ExclamationCircleIcon className="w-10 h-10 text-accent-red mx-auto mb-3" />
-          <p className="text-sm font-medium text-text-primary">Failed to load license information</p>
-          <p className="text-2xs text-text-muted mt-1">Please try again later.</p>
+          <p className="text-sm font-medium text-text-primary">
+            Failed to load license information
+          </p>
+          <p className="text-2xs text-text-muted mt-1">
+            Please try again later.
+          </p>
         </div>
       </div>
     );
@@ -402,18 +474,18 @@ export default function AdminLicense() {
         <LicenseStatusAlert license={installedLicense} />
 
         {installedLicense && (
-          <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+          <Card className="p-6 space-y-6">
             <LicenseDetails license={installedLicense} />
             <hr className="border-border" />
             <LicenseOwner customer={installedLicense.customer} />
             <hr className="border-border" />
             <LicenseFeatures features={installedLicense.features} />
-          </div>
+          </Card>
         )}
 
-        <div className="bg-card border border-border rounded-xl p-6">
+        <Card className="p-6">
           <LicenseUpload />
-        </div>
+        </Card>
       </div>
     </div>
   );

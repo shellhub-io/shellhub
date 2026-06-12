@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
-import PageHeader from "@/components/common/PageHeader";
-import EmptyState from "@/components/common/EmptyState";
+import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import SearchField from "@/components/common/fields/SearchField";
+import EmptyState from "@/components/common/EmptyState";
 import FilterBadge from "@/components/common/FilterBadge";
+import PageHeader from "@/components/common/PageHeader";
+import SearchField from "@/components/common/fields/SearchField";
 import RuleDrawer from "./RuleDrawer";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import {
@@ -20,6 +21,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import { Badge } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -86,11 +88,7 @@ export default function FirewallRules() {
     {
       key: "priority",
       header: "Priority",
-      render: (rule) => (
-        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium">
-          {rule.priority}
-        </span>
-      ),
+      render: (rule) => <Badge color="primary">{rule.priority}</Badge>,
     },
     {
       key: "action",
@@ -145,16 +143,7 @@ export default function FirewallRules() {
     {
       key: "status",
       header: "Status",
-      render: (rule) =>
-        rule.active ? (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
-            Active
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-            Inactive
-          </span>
-        ),
+      render: (rule) => <ActiveBadge active={rule.active} />,
     },
     {
       key: "actions",

@@ -38,6 +38,7 @@ import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -495,7 +496,7 @@ export default function ContainerDetails() {
 
       {/* SSHID Banner */}
       {container.status === "accepted" && (
-        <div className="bg-card border border-border rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
+        <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
             <p className={LABEL}>SSHID</p>
             <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
@@ -503,12 +504,12 @@ export default function ContainerDetails() {
             </code>
           </div>
           <CopyButton text={sshid} />
-        </div>
+        </Card>
       )}
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Identity
@@ -533,9 +534,9 @@ export default function ContainerDetails() {
               mono
             />
           </dl>
-        </div>
+        </Card>
 
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ServerIcon className="w-4 h-4 text-primary" />
             Container
@@ -557,9 +558,9 @@ export default function ContainerDetails() {
               mono
             />
           </dl>
-        </div>
+        </Card>
 
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ClockIcon className="w-4 h-4 text-primary" />
             Timeline
@@ -587,13 +588,13 @@ export default function ContainerDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
 
       {/* Tags */}
-      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+      <Card className="p-5 mb-6">
         <TagsSection uid={container.uid} tags={tags} />
-      </div>
+      </Card>
 
       {/* Connect Drawer */}
       <ConnectDrawer

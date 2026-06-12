@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { Card } from "@shellhub/design-system/primitives";
 import { Reveal } from "../landing/components";
 import apiClient from "../../api/client";
 import { loginUrl } from "@/links";
@@ -131,7 +132,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
     return (
       <div className="max-w-md mx-auto w-full">
         <Reveal>
-          <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <Card className="p-8 text-center">
             <div className="w-12 h-12 rounded-full bg-accent-green/10 border border-accent-green/20 flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-6 h-6 text-accent-green"
@@ -158,7 +159,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
             >
               Go to Login
             </a>
-          </div>
+          </Card>
         </Reveal>
       </div>
     );
@@ -167,7 +168,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
   return (
     <div className="max-w-md mx-auto w-full">
       <Reveal>
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Card className="overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-5 border-b border-border bg-surface/50">
             <div className="flex items-center gap-3">
@@ -496,7 +497,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
               Back to options
             </button>
           </form>
-        </div>
+        </Card>
       </Reveal>
     </div>
   );

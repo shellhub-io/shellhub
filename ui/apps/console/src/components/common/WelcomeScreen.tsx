@@ -7,6 +7,7 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { IconBadge } from "@shellhub/design-system/primitives";
 
 interface WelcomeScreenProps {
   namespaceName: string;
@@ -186,9 +187,13 @@ export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
 
               <div className="relative">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/15 group-hover:border-primary/30 transition-all duration-300">
+                  <IconBadge
+                    size="md"
+                    color="primary"
+                    className="group-hover:bg-primary/15 group-hover:border-primary/30 transition-all duration-300"
+                  >
                     {step.icon}
-                  </div>
+                  </IconBadge>
                   <span className="text-2xs font-mono font-bold text-text-muted/40">
                     {step.num}
                   </span>

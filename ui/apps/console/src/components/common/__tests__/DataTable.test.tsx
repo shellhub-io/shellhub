@@ -548,6 +548,12 @@ describe("DataTable", () => {
       expect(wrapper.className).toContain("rounded-xl");
     });
 
+    it("wrapper has overflow-hidden so content does not bleed outside rounded corners", () => {
+      const { container } = renderTable();
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper.className).toContain("overflow-hidden");
+    });
+
     it("skips the default card wrapper when noWrapper is true", () => {
       const { container } = renderTable({ noWrapper: true });
       const firstChild = container.firstChild as HTMLElement;
@@ -565,9 +571,7 @@ describe("DataTable", () => {
   describe("label prop", () => {
     it("sets an aria-label on the table when label is provided", () => {
       renderTable({ label: "Users" });
-      expect(
-        screen.getByRole("table", { name: "Users" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("table", { name: "Users" })).toBeInTheDocument();
     });
 
     it("does not set an aria-label when label is omitted", () => {

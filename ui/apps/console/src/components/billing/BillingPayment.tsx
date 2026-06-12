@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Card } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import {
   Elements,
@@ -291,9 +292,10 @@ function BillingPaymentInner({
       {paymentMethods.length > 0 && (
         <ul className="space-y-2" aria-label="Saved payment methods">
           {paymentMethods.map((pm) => (
-            <li
+            <Card
+              as="li"
               key={pm.id}
-              className="bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-3"
+              className="rounded-lg px-4 py-3 flex items-center gap-3"
             >
               <span className="shrink-0 text-text-primary">
                 <BillingIcon brand={pm.brand} className="w-7 h-7" />
@@ -349,7 +351,7 @@ function BillingPaymentInner({
                   <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
-            </li>
+            </Card>
           ))}
         </ul>
       )}
@@ -366,7 +368,7 @@ function BillingPaymentInner({
       )}
 
       {isAddingCard && (
-        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+        <Card className="rounded-lg p-4 space-y-3">
           <div>
             <FieldLabel htmlFor="stripe-card-element">Card details</FieldLabel>
             <div
@@ -409,7 +411,7 @@ function BillingPaymentInner({
               Save card
             </button>
           </div>
-        </div>
+        </Card>
       )}
 
       {error && (

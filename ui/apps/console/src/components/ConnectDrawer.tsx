@@ -20,6 +20,7 @@ import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
 import { INPUT, LABEL } from "../utils/styles";
+import { Card } from "@shellhub/design-system/primitives";
 import type { VaultKeyEntry } from "../types/vault";
 
 interface Props {
@@ -254,7 +255,7 @@ export default function ConnectDrawer({
           className="space-y-5"
         >
           {/* SSHID helper */}
-          <div className="bg-card border border-border rounded-lg p-3.5">
+          <Card className="rounded-lg p-3.5">
             <span className={LABEL}>Connect via terminal</span>
             <div className="flex items-center gap-2">
               <code className="text-xs font-mono flex-1 truncate">
@@ -289,7 +290,7 @@ export default function ConnectDrawer({
                 Enter your device OS username below to complete this command.
               </p>
             )}
-          </div>
+          </Card>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />

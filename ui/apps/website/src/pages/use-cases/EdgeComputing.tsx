@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import { C } from "../landing/constants";
@@ -214,9 +215,9 @@ export default function EdgeComputing() {
 
         <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
           <Reveal>
-            <span className="inline-block px-3 py-1 text-2xs font-mono font-semibold uppercase tracking-[0.15em] bg-accent-blue/10 text-accent-blue border border-accent-blue/20 rounded-full mb-6">
+            <Badge shape="pill" color="blue" className="mb-6 tracking-label">
               Use Case
-            </span>
+            </Badge>
           </Reveal>
           <Reveal>
             <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-6 max-w-3xl mx-auto">
@@ -486,24 +487,28 @@ export default function EdgeComputing() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {painPoints.map((p, i) => (
               <Reveal key={i} delay={i * 0.06}>
-                <ShimmerCard className="bg-card border border-border rounded-xl p-6 hover:border-border-light transition-all duration-300 h-full">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
-                      style={{
-                        background: `${p.color}15`,
-                        borderColor: `${p.color}25`,
-                      }}
-                    >
-                      {p.icon}
+                <ShimmerCard>
+                  <Card hover className="p-6 h-full">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
+                        style={{
+                          background: `${p.color}15`,
+                          borderColor: `${p.color}25`,
+                        }}
+                      >
+                        {p.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">
+                          {p.title}
+                        </h4>
+                        <p className="text-xs text-text-secondary leading-relaxed">
+                          {p.desc}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}
@@ -535,7 +540,7 @@ export default function EdgeComputing() {
                 <div className="relative grid lg:grid-cols-2 gap-8 items-center">
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <IconBadge color="primary">
                         <svg
                           width="20"
                           height="20"
@@ -549,10 +554,10 @@ export default function EdgeComputing() {
                           <polyline points="4 17 10 11 4 5" />
                           <line x1="12" y1="19" x2="20" y2="19" />
                         </svg>
-                      </div>
-                      <span className="px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                      </IconBadge>
+                      <Badge shape="pill" color="green">
                         Core Feature
-                      </span>
+                      </Badge>
                     </div>
                     <h3 className="text-lg font-bold mb-2">
                       Instant Remote Access
@@ -650,7 +655,7 @@ export default function EdgeComputing() {
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <Reveal delay={0.05}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                <Card hover className="p-6 h-full">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                     style={{
@@ -722,13 +727,13 @@ export default function EdgeComputing() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
 
             <Reveal delay={0.1}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                <Card hover className="p-6 h-full">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                     style={{
@@ -801,7 +806,7 @@ export default function EdgeComputing() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
           </div>
@@ -810,7 +815,7 @@ export default function EdgeComputing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Reveal delay={0.05}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                <Card hover className="p-6 h-full">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                     style={{
@@ -857,13 +862,13 @@ export default function EdgeComputing() {
                       </span>
                     ))}
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
 
             <Reveal delay={0.1}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                <Card hover className="p-6 h-full">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                     style={{
@@ -919,13 +924,13 @@ export default function EdgeComputing() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
 
             <Reveal delay={0.15}>
               <ShimmerCard className="h-full">
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                <Card hover className="p-6 h-full">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
                     style={{
@@ -997,7 +1002,7 @@ export default function EdgeComputing() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               </ShimmerCard>
             </Reveal>
           </div>
@@ -1024,7 +1029,7 @@ export default function EdgeComputing() {
             {scenarios.map((s, i) => (
               <Reveal key={i} delay={i * 0.08}>
                 <ShimmerCard className="h-full">
-                  <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-border-light transition-all duration-300">
+                  <Card hover className="p-6 h-full">
                     <div
                       className="w-2 h-2 rounded-full mb-4"
                       style={{ background: s.color }}
@@ -1034,7 +1039,7 @@ export default function EdgeComputing() {
                       {s.desc}
                     </p>
                     {s.mockup}
-                  </div>
+                  </Card>
                 </ShimmerCard>
               </Reveal>
             ))}

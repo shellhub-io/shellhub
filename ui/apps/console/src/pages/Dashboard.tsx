@@ -21,6 +21,7 @@ import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
+import { Card } from "@shellhub/design-system/primitives";
 
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -131,7 +132,7 @@ export default function Dashboard() {
         description="Manage your ShellHub namespace"
       >
         {currentNamespace && (
-          <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2">
+          <Card className="flex items-center gap-2 px-3 py-2">
             <span className="text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted">
               Tenant ID
             </span>
@@ -139,7 +140,7 @@ export default function Dashboard() {
               {currentNamespace.tenant_id}
             </span>
             <CopyButton text={currentNamespace.tenant_id} size="sm" />
-          </div>
+          </Card>
         )}
       </PageHeader>
 
@@ -193,8 +194,8 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div
-        className="bg-card border border-border rounded-lg overflow-hidden animate-slide-up"
+      <Card
+        className="overflow-hidden animate-slide-up"
         style={{ animationDelay: "300ms" }}
       >
         <DataTable
@@ -217,7 +218,7 @@ export default function Dashboard() {
             </div>
           }
         />
-      </div>
+      </Card>
     </div>
   );
 }

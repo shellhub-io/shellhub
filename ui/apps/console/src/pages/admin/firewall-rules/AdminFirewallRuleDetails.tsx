@@ -7,10 +7,12 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
+import ActiveBadge from "@/components/common/ActiveBadge";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -21,9 +23,7 @@ export default function AdminFirewallRuleDetails() {
   const { data: rule, isLoading, error } = useAdminFirewallRule(id ?? "");
 
   if (isLoading) {
-    return (
-      <PageLoader label="Loading firewall rule details" />
-    );
+    return <PageLoader label="Loading firewall rule details" />;
   }
 
   if (error || !rule) {
@@ -78,15 +78,7 @@ export default function AdminFirewallRuleDetails() {
             <span className="inline-flex items-center px-1.5 py-0.5 bg-hover-strong text-text-muted text-2xs rounded font-mono">
               Priority {rule.priority}
             </span>
-            {rule.active ? (
-              <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
-                Active
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                Inactive
-              </span>
-            )}
+            <ActiveBadge active={rule.active} />
           </div>
         </div>
       </div>
@@ -94,7 +86,7 @@ export default function AdminFirewallRuleDetails() {
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Rule Properties Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Rule Properties
@@ -151,22 +143,14 @@ export default function AdminFirewallRuleDetails() {
             <div>
               <dt className={LABEL}>Status</dt>
               <dd className="mt-0.5">
-                {rule.active ? (
-                  <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
-                    Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                    Inactive
-                  </span>
-                )}
+                <ActiveBadge active={rule.active} />
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
 
         {/* Connection Criteria Card */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <FunnelIcon className="w-4 h-4 text-primary" />
             Connection Criteria
@@ -199,7 +183,7 @@ export default function AdminFirewallRuleDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
     </div>
   );

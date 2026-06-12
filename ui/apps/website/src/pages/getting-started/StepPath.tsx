@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { Reveal, ShimmerCard } from "../landing/components";
 
 interface StepPathProps {
@@ -17,12 +18,15 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent pointer-events-none" />
               <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
               <div className="relative flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_12px_rgba(102,122,204,0.15)]">
+                <IconBadge
+                  color="primary"
+                  className="shadow-[0_0_12px_rgba(102,122,204,0.15)]"
+                >
                   <img src="/cloud-icon.svg" alt="" className="h-5" />
-                </div>
-                <span className="px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-full">
+                </IconBadge>
+                <Badge shape="pill" color="green">
                   Recommended
-                </span>
+                </Badge>
               </div>
 
               <h3 className="text-lg font-bold mb-2">ShellHub Cloud</h3>
@@ -163,8 +167,8 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
 
       {/* Enterprise card — full width below */}
       <Reveal delay={0.2}>
-        <div className="bg-card border border-border rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:border-primary/30 transition-colors duration-300">
-          <div className="w-10 h-10 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-center justify-center shrink-0">
+        <Card className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:border-primary/30 transition-colors duration-300">
+          <IconBadge color="yellow">
             <svg
               className="w-5 h-5 text-accent-yellow"
               fill="none"
@@ -178,7 +182,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
                 d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21"
               />
             </svg>
-          </div>
+          </IconBadge>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold mb-1">Enterprise</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
@@ -205,7 +209,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
               />
             </svg>
           </Link>
-        </div>
+        </Card>
       </Reveal>
     </div>
   );

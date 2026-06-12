@@ -29,6 +29,7 @@ import InfoItem from "./devices/InfoItem";
 import TagsSection from "./devices/TagsSection";
 import RenameSection from "./devices/RenameSection";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
+import { Card } from "@shellhub/design-system/primitives";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -84,9 +85,7 @@ export default function DeviceDetails() {
   }, [searchParams, device, existingSession, restoreTerminal]);
 
   if (isLoading || !device) {
-    return (
-      <PageLoader label="Loading device details" />
-    );
+    return <PageLoader label="Loading device details" />;
   }
 
   const nsName = currentNamespace?.name ?? "";
@@ -250,7 +249,7 @@ export default function DeviceDetails() {
 
       {/* SSHID Banner */}
       {device.status === "accepted" && (
-        <div className="bg-card border border-border rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
+        <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
             <p className={LABEL}>SSHID</p>
             <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
@@ -258,12 +257,12 @@ export default function DeviceDetails() {
             </code>
           </div>
           <CopyButton text={sshid} />
-        </div>
+        </Card>
       )}
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <InformationCircleIcon className="w-4 h-4 text-primary" />
             Identity
@@ -288,9 +287,9 @@ export default function DeviceDetails() {
               mono
             />
           </dl>
-        </div>
+        </Card>
 
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ComputerDesktopIcon className="w-4 h-4 text-primary" />
             System
@@ -321,9 +320,9 @@ export default function DeviceDetails() {
               mono
             />
           </dl>
-        </div>
+        </Card>
 
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
             <ClockIcon className="w-4 h-4 text-primary" />
             Timeline
@@ -351,20 +350,20 @@ export default function DeviceDetails() {
               </dd>
             </div>
           </dl>
-        </div>
+        </Card>
       </div>
 
       {/* Tags + Custom Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-card border border-border rounded-xl p-5">
+        <Card className="p-5">
           <TagsSection uid={device.uid} tags={tags} />
-        </div>
-        <div className="bg-card border border-border rounded-xl p-5">
+        </Card>
+        <Card className="p-5">
           <CustomFieldsSection
             uid={device.uid}
             customFields={device.custom_fields ?? {}}
           />
-        </div>
+        </Card>
       </div>
 
       {/* Delete Dialog */}

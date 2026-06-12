@@ -1,4 +1,5 @@
 import { ReactNode, useId } from "react";
+import { IconBadge } from "@shellhub/design-system/primitives";
 
 export type EmptyStateAccent = "primary" | "yellow";
 
@@ -132,12 +133,14 @@ export default function EmptyState({
                 className="bg-card/60 border border-border rounded-xl p-5 text-center animate-slide-up"
                 style={{ animationDelay: `${150 + idx * 100}ms` }}
               >
-                <div
+                <IconBadge
                   aria-hidden="true"
-                  className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3 text-primary"
+                  size="md"
+                  color="primary"
+                  className="mx-auto mb-3"
                 >
                   {feature.icon}
-                </div>
+                </IconBadge>
                 <h2 className="text-sm font-semibold text-text-primary mb-1">
                   {feature.title}
                 </h2>

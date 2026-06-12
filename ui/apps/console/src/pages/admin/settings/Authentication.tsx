@@ -15,6 +15,7 @@ import PageHeader from "../../../components/common/PageHeader";
 import CopyButton from "../../../components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
 import PageLoader from "@/components/common/PageLoader";
+import { Card } from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
@@ -67,7 +68,9 @@ export default function AdminAuthentication() {
     let cancelled = false;
     void (async () => {
       try {
-        const { data } = await getAuthenticationSettings({ throwOnError: true });
+        const { data } = await getAuthenticationSettings({
+          throwOnError: true,
+        });
         if (!cancelled) setSettings(data);
       } catch {
         if (!cancelled) setError("Failed to load authentication settings.");
@@ -75,7 +78,9 @@ export default function AdminAuthentication() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [refreshKey]);
 
   const handleLocalToggle = async () => {
@@ -169,14 +174,15 @@ export default function AdminAuthentication() {
 
       <div className="space-y-4">
         {/* Local Authentication */}
-        <div className="bg-card border border-border rounded-xl p-5">
+        <Card className="p-5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-text-primary mb-0.5">
                 Local Authentication
               </h3>
               <p className="text-xs text-text-muted leading-relaxed">
-                Allow users to sign in with a username and password stored locally.
+                Allow users to sign in with a username and password stored
+                locally.
               </p>
             </div>
             <Toggle
@@ -186,10 +192,10 @@ export default function AdminAuthentication() {
               ariaLabel="Toggle local authentication"
             />
           </div>
-        </div>
+        </Card>
 
         {/* SAML Authentication */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="flex items-center justify-between gap-4 p-5">
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-text-primary mb-0.5">
@@ -199,7 +205,8 @@ export default function AdminAuthentication() {
                 Allow users to sign in via a SAML Identity Provider (SSO).
                 {!samlEnabled && (
                   <span className="text-text-secondary">
-                    {" "}Enable to configure your IdP settings.
+                    {" "}
+                    Enable to configure your IdP settings.
                   </span>
                 )}
               </p>
@@ -232,8 +239,9 @@ export default function AdminAuthentication() {
                     <CopyButton text={saml.assertion_url} size="md" />
                   </div>
                   <p className="mt-1 text-2xs text-text-muted leading-relaxed">
-                    The URL where your IdP should redirect users after successful authentication.
-                    Configure this as the Assertion Consumer Service (ACS) URL in your IdP.
+                    The URL where your IdP should redirect users after
+                    successful authentication. Configure this as the Assertion
+                    Consumer Service (ACS) URL in your IdP.
                   </p>
                 </div>
               )}
@@ -283,7 +291,10 @@ export default function AdminAuthentication() {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary border border-border hover:border-border-light hover:text-text-primary rounded-lg transition-all"
                     title="Opens a new window directly calling the authentication URL"
                   >
-                    <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" strokeWidth={2} />
+                    <ArrowTopRightOnSquareIcon
+                      className="w-3.5 h-3.5"
+                      strokeWidth={2}
+                    />
                     Test Auth Integration
                   </a>
                 )}
@@ -298,7 +309,7 @@ export default function AdminAuthentication() {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       <SamlConfigDrawer

@@ -4,6 +4,7 @@ import {
   CheckCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import { IconBadge } from "@shellhub/design-system/primitives";
 import Alert from "@/components/common/Alert";
 import Drawer from "../common/Drawer";
 import CheckboxField from "@/components/common/fields/CheckboxField";
@@ -68,11 +69,18 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await updateUser({ body: { recovery_email: recoveryEmail }, throwOnError: true });
+      await updateUser({
+        body: { recovery_email: recoveryEmail },
+        throwOnError: true,
+      });
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
-      setError(isSdkError(err) && err.status === 409 ? "Email already in use" : "Failed to save recovery email");
+      setError(
+        isSdkError(err) && err.status === 409
+          ? "Email already in use"
+          : "Failed to save recovery email",
+      );
     } finally {
       setLoading(false);
     }
@@ -118,7 +126,10 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await enableMfa({ body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes }, throwOnError: true });
+      await enableMfa({
+        body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes },
+        throwOnError: true,
+      });
       setStep(4);
     } catch {
       setError("Invalid verification code");
@@ -185,9 +196,7 @@ export default function MfaEnableDrawer({
                 disabled={loading || !recoveryEmail.trim()}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                {loading && (
-                  <Spinner size="sm" tone="onPrimary" />
-                )}
+                {loading && <Spinner size="sm" tone="onPrimary" />}
                 Save & Continue
               </button>
             ) : (
@@ -196,9 +205,7 @@ export default function MfaEnableDrawer({
                 disabled={loading}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                {loading && (
-                  <Spinner size="sm" tone="onPrimary" />
-                )}
+                {loading && <Spinner size="sm" tone="onPrimary" />}
                 Continue
               </button>
             )}
@@ -232,9 +239,7 @@ export default function MfaEnableDrawer({
               disabled={loading || !isCodeComplete || !qrLink || !secret}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {loading && (
-                <Spinner size="sm" tone="onPrimary" />
-              )}
+              {loading && <Spinner size="sm" tone="onPrimary" />}
               Verify & Enable
             </button>
           </>
@@ -256,7 +261,10 @@ export default function MfaEnableDrawer({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-text-primary mb-2">
-                Step 1: {showRecoveryEmailInput ? "Set Recovery Email" : "Confirm Recovery Email"}
+                Step 1:{" "}
+                {showRecoveryEmailInput
+                  ? "Set Recovery Email"
+                  : "Confirm Recovery Email"}
               </h3>
               <p className="text-xs text-text-muted leading-relaxed mb-4">
                 {showRecoveryEmailInput
@@ -287,9 +295,9 @@ export default function MfaEnableDrawer({
               <div className="space-y-3">
                 <div className="bg-surface border border-border rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <IconBadge size="md">
                       <EnvelopeIcon className="w-5 h-5 text-primary" />
-                    </div>
+                    </IconBadge>
                     <div className="min-w-0 flex-1">
                       <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1">
                         Current Recovery Email
@@ -356,7 +364,8 @@ export default function MfaEnableDrawer({
               ) : (
                 <div className="py-8 text-center">
                   <p className="text-sm text-text-muted">
-                    Recovery codes failed to generate. Please close and try again.
+                    Recovery codes failed to generate. Please close and try
+                    again.
                   </p>
                 </div>
               )}

@@ -36,6 +36,8 @@ import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import { Badge, Card } from "@shellhub/design-system/primitives";
+import SessionTypeBadge from "./sessions/SessionTypeBadge";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -252,28 +254,6 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
   );
 }
 
-function SessionTypeBadge({ types }: { types: string[] }) {
-  if (types.includes("subsystem"))
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded-md border bg-accent-cyan/10 text-accent-cyan border-accent-cyan/20">
-        sftp
-      </span>
-    );
-  if (types.includes("exec"))
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded-md border bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20">
-        exec
-      </span>
-    );
-  if (types.includes("shell") || types.includes("pty-req"))
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded-md border bg-primary/10 text-primary border-primary/20">
-        shell
-      </span>
-    );
-  return null;
-}
-
 function DurationStat({
   startedAt,
   lastSeen,
@@ -413,10 +393,10 @@ export default function SessionDetails() {
                 {session.active ? "Active" : "Closed"}
               </span>
               {!session.authenticated && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-mono font-semibold rounded-md bg-accent-red/10 text-accent-red border border-accent-red/20">
+                <Badge color="red" shape="pill">
                   <ShieldExclamationIcon className="w-3 h-3" strokeWidth={2} />
                   not authenticated
-                </span>
+                </Badge>
               )}
               <SessionTypeBadge types={session.events?.types ?? []} />
               <DurationStat
@@ -485,7 +465,7 @@ export default function SessionDetails() {
       {/* Body */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Timeline */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
+        <Card className="lg:col-span-2 p-5">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-5">
             <ClockIcon className="w-4 h-4 text-primary" />
             Session flow
@@ -497,12 +477,12 @@ export default function SessionDetails() {
               isLast={i === timeline.length - 1}
             />
           ))}
-        </div>
+        </Card>
 
         {/* Right column */}
         <div className="space-y-5">
           {/* Session meta */}
-          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <Card className="p-5 space-y-4">
             <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
               <InformationCircleIcon className="w-4 h-4 text-primary" />
               Details
@@ -534,11 +514,11 @@ export default function SessionDetails() {
                 </div>
               )}
             </dl>
-          </div>
+          </Card>
 
           {/* Device */}
           {session.device?.uid && (
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <Card className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
                   <CpuChipIcon className="w-4 h-4 text-primary" />
@@ -580,7 +560,7 @@ export default function SessionDetails() {
                   />
                 </dl>
               )}
-            </div>
+            </Card>
           )}
         </div>
       </div>
@@ -617,7 +597,8 @@ export default function SessionDetails() {
             </span>{" "}
             on{" "}
             <span className="font-medium text-text-primary">
-              {session.device?.name ?? (session.device_uid ?? "").substring(0, 8)}
+              {session.device?.name ??
+                (session.device_uid ?? "").substring(0, 8)}
             </span>
             ?
           </>

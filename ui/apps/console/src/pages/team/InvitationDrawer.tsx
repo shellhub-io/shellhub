@@ -1,6 +1,7 @@
 import { useRef, useState, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { Card } from "@shellhub/design-system/primitives";
 import {
   EnvelopeIcon,
   LinkIcon,
@@ -187,16 +188,18 @@ function InvitationDrawer({
             </div>
           </div>
           <div>
-            <span id="invitation-link-label" className={LABEL}>Invitation link</span>
-            <div
+            <span id="invitation-link-label" className={LABEL}>
+              Invitation link
+            </span>
+            <Card
               aria-labelledby="invitation-link-label"
-              className="flex items-center gap-2 bg-card border border-border rounded-lg px-3.5 py-2.5"
+              className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
             >
               <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
                 {generatedLink}
               </code>
               <CopyButton text={generatedLink} size="md" />
-            </div>
+            </Card>
           </div>
         </div>
       ) : (
