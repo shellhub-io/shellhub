@@ -197,6 +197,22 @@ describe("BillingSection — Subscribe button visibility", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows portal button when status is 'canceled'", () => {
+    setStatus("canceled");
+    renderSection();
+    expect(
+      screen.getByRole("button", { name: /open portal/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows portal button when status is 'incomplete_expired'", () => {
+    setStatus("incomplete_expired");
+    renderSection();
+    expect(
+      screen.getByRole("button", { name: /open portal/i }),
+    ).toBeInTheDocument();
+  });
+
   it("does not show Subscribe button when status is 'active'", () => {
     setStatus("active");
     renderSection();
