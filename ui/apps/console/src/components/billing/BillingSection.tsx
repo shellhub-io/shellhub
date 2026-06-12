@@ -237,7 +237,11 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
     isActiveLike ||
     status === "unpaid" ||
     status === "paused" ||
-    status === "incomplete";
+    status === "incomplete" ||
+    // canceled/incomplete_expired retain a Stripe customer_id and subscription_id;
+    // they may carry an open invoice the 402 re-subscribe path directs here to settle.
+    status === "canceled" ||
+    status === "incomplete_expired";
 
   const dateDescription = (() => {
     if (!endAt) return "—";
