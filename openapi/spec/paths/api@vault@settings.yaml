@@ -19,6 +19,7 @@ put:
             settings:
               description: Vault settings, as an opaque JSON string.
               type: string
+              maxLength: 4096
               example: '{"autoLockTimeoutMinutes":5,"lockOnHidden":true}'
           required:
             - settings

@@ -20,6 +20,7 @@ put:
             meta:
               description: Vault metadata, as an opaque JSON string.
               type: string
+              maxLength: 4096
               example: '{"version":1,"salt":"c2FsdA==","iterations":600000,"verifier":"dg==","verifierIv":"aXY="}'
           required:
             - meta
