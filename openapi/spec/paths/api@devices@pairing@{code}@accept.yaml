@@ -1,0 +1,59 @@
+post:
+  operationId: acceptDevicePairing
+  summary: Accept a device pairing
+  description: |
+    Materialize a pairing as a device in the chosen namespace and accept it.
+    The authenticated user must be a member of the chosen namespace with the
+    device accept permission; the session does not need to be scoped to it.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: Device pairing code.
+        type: string
+        pattern: ^[0-9a-f]{32}$
+        example: 9f86d081884c7d659a2feaa0c55ad015
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            tenant_id:
+              $ref: ../components/schemas/namespaceTenantID.yaml
+          required:
+            - tenant_id
+  responses:
+    '200':
+      description: Success to accept the device pairing
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              uid:
+                $ref: ../components/schemas/deviceUID.yaml
+              tenant_id:
+                $ref: ../components/schemas/namespaceTenantID.yaml
+              namespace:
+                $ref: ../components/schemas/namespaceName.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

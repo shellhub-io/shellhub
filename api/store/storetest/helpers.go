@@ -166,6 +166,13 @@ func WithDeviceStatus(status models.DeviceStatus) DeviceOption {
 	}
 }
 
+// WithDevicePublicKey sets the device public key
+func WithDevicePublicKey(publicKey string) DeviceOption {
+	return func(d *models.Device) {
+		d.PublicKey = publicKey
+	}
+}
+
 // WithDeviceRemovedAt sets the removed_at timestamp
 func WithDeviceRemovedAt(removedAt *time.Time) DeviceOption {
 	return func(d *models.Device) {

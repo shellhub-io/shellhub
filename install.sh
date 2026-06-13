@@ -1,6 +1,88 @@
 #!/bin/sh
 
 # Overridden variables from Go template: {{.Overrides}}
+
+# Pairing mode (empty TENANT_ID) is only supported by the container methods in
+# agent mode; every other path still requires a tenant.
+require_tenant() {
+  [ -z "$TENANT_ID" ] && {
+    echo "ERROR: TENANT_ID is required for this installation method."
+    exit 1
+  }
+}
+
+# Installs the shellhub-agent wrapper that proxies commands into the agent
+# container. The agent itself cannot open the host's browser from inside the
+# container, so for 'login' the wrapper scans the output for the accept-device
+# URL and opens it on the host; native (non-container) agents open it directly.
+install_agent_wrapper() {
+  _RUNTIME="$1"
+
+  _FSUDO=""
+  [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+  WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+
+  if ! cat <<EOF | $_FSUDO tee "$WRAPPER_PATH" > /dev/null
+#!/bin/sh
+
+if [ "\$1" = "login" ] && command -v xdg-open > /dev/null 2>&1; then
+  _STATUS_FILE=\$(mktemp)
+  trap 'rm -f "\$_STATUS_FILE"' EXIT
+
+  { $_RUNTIME exec $CONTAINER_NAME agent "\$@" 2>&1; echo \$? > "\$_STATUS_FILE"; } | while IFS= read -r _LINE; do
+    printf '%s\n' "\$_LINE"
+    case "\$_LINE" in
+    *"/accept-device?code="*)
+      _URL=\$(printf '%s' "\$_LINE" | tr -d ' ')
+      { xdg-open "\$_URL" > /dev/null 2>&1 && printf '%s\n' "(opened in your browser)"; } &
+      ;;
+    esac
+  done
+
+  read -r _CODE < "\$_STATUS_FILE" || _CODE=1
+  exit "\${_CODE:-1}"
+fi
+
+exec $_RUNTIME exec $CONTAINER_NAME agent "\$@"
+EOF
+  then
+    echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
+    exit 1
+  fi
+
+  $_FSUDO chmod +x "$WRAPPER_PATH"
+  echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+}
+
+# Enrolls a freshly installed container agent. Without a tenant the device does
+# not belong to any namespace yet, so we run the login flow in the foreground:
+# it prints the accept URL (opening the browser when possible) and waits until a
+# user accepts the device into a namespace — no second command, no pending list
+# to dig through. With a tenant (fleet install) the device shows up pending and
+# is accepted in the console as before.
+enroll_agent_interactively() {
+  _RUNTIME="$1"
+
+  if [ -n "$TENANT_ID" ]; then
+    echo ""
+    echo "The device will appear as pending in the console — accept it there."
+
+    return 0
+  fi
+
+  # Wait for the agent to generate its key so the login flow reuses it instead
+  # of racing the daemon to create one.
+  _KEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+  _i=0
+  while [ "$_i" -lt 30 ] && ! $SUDO $_RUNTIME exec "$CONTAINER_NAME" test -f "$_KEY" 2>/dev/null; do
+    sleep 1
+    _i=$((_i + 1))
+  done
+
+  echo ""
+  "$WRAPPER_PATH" login || true
+}
+
 podman_install() {
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
@@ -24,6 +106,7 @@ podman_install() {
     shift 1
     ;;
   "connector")
+    require_tenant
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
@@ -68,15 +151,8 @@ podman_install() {
     $MODE
 
   if [ -z "$MODE" ]; then
-    _FSUDO=""
-    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
-    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    printf '#!/bin/sh\nexec podman exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
-      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
-      exit 1
-    }
-    $_FSUDO chmod +x "$WRAPPER_PATH"
-    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+    install_agent_wrapper "podman"
+    enroll_agent_interactively "podman"
   fi
 }
 
@@ -103,6 +179,7 @@ docker_install() {
     shift 1
     ;;
   "connector")
+    require_tenant
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
@@ -145,19 +222,14 @@ docker_install() {
     $MODE
 
   if [ -z "$MODE" ]; then
-    _FSUDO=""
-    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
-    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    printf '#!/bin/sh\nexec docker exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
-      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
-      exit 1
-    }
-    $_FSUDO chmod +x "$WRAPPER_PATH"
-    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+    install_agent_wrapper "docker"
+    enroll_agent_interactively "docker"
   fi
 }
 
 snap_install() {
+  require_tenant
+
   if ! type snap >/dev/null 2>&1; then
     echo "❌ Snap is not installed or not supported on this system."
     exit 1
@@ -199,6 +271,8 @@ snap_install() {
 }
 
 standalone_install() {
+  require_tenant
+
   if [ "$(id -u)" -ne 0 ]; then
     printf "⚠️ NOTE: This install method requires root privileges.\n"
     SUDO="sudo"
@@ -312,6 +386,8 @@ standalone_uninstall() {
 }
 
 wsl_install() {
+  require_tenant
+
   if ! systemctl show-environment >/dev/null 2>&1; then
     printf "❌ ERROR: This install method requires systemd to be enabled.\n"
     printf "Please refer to the following link for instructions on how to enable systemd:\n"
@@ -360,10 +436,9 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
   exit 1
 fi
 
-[ -z "$TENANT_ID" ] && {
-  echo "ERROR: TENANT_ID is missing."
-  exit 1
-}
+# TENANT_ID is optional for the container methods: without it the agent boots
+# into pairing mode and is enrolled into a namespace via 'shellhub-agent login'.
+# Snap and standalone installs still require it (checked in their functions).
 
 SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
@@ -411,7 +486,7 @@ fi
 
 echo "⚙️ Detected settings:"
 echo "- Server address: $SERVER_ADDRESS"
-echo "- Tenant ID: $TENANT_ID"
+echo "- Tenant ID: ${TENANT_ID:-(none — enroll with 'shellhub-agent login')}"
 echo "- Agent version: $AGENT_VERSION"
 echo "- Architecture: $BINARY_ARCH"
 [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"

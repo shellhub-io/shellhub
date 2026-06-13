@@ -735,6 +735,156 @@ func (_m *Service) EventSession(ctx context.Context, uid models.UID, event *mode
 	return r0
 }
 
+// CreateDeviceLoginCode provides a mock function with given fields: ctx, uid, tenantID
+func (_m *Service) CreateDeviceLoginCode(ctx context.Context, uid string, tenantID string) (*models.DeviceLoginCode, error) {
+	ret := _m.Called(ctx, uid, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDeviceLoginCode")
+	}
+
+	var r0 *models.DeviceLoginCode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.DeviceLoginCode, error)); ok {
+		return rf(ctx, uid, tenantID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.DeviceLoginCode); ok {
+		r0 = rf(ctx, uid, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceLoginCode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, uid, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateDevicePairing provides a mock function with given fields: ctx, req
+func (_m *Service) CreateDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDevicePairing")
+	}
+
+	var r0 *models.DevicePairing
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DevicePairingCreate) (*models.DevicePairing, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DevicePairingCreate) *models.DevicePairing); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairing)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.DevicePairingCreate) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDevicePairingStatus provides a mock function with given fields: ctx, code
+func (_m *Service) GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
+	ret := _m.Called(ctx, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDevicePairingStatus")
+	}
+
+	var r0 *models.DevicePairingStatus
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.DevicePairingStatus, error)); ok {
+		return rf(ctx, code)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.DevicePairingStatus); ok {
+		r0 = rf(ctx, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairingStatus)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AcceptDevicePairing provides a mock function with given fields: ctx, userID, req
+func (_m *Service) AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error) {
+	ret := _m.Called(ctx, userID, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AcceptDevicePairing")
+	}
+
+	var r0 *models.DevicePairingAccepted
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error)); ok {
+		return rf(ctx, userID, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *requests.DevicePairingAccept) *models.DevicePairingAccepted); ok {
+		r0 = rf(ctx, userID, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairingAccepted)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, *requests.DevicePairingAccept) error); ok {
+		r1 = rf(ctx, userID, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResolveDeviceLoginCode provides a mock function with given fields: ctx, userID, code
+func (_m *Service) ResolveDeviceLoginCode(ctx context.Context, userID string, code string) (*models.DeviceLoginCodePreview, error) {
+	ret := _m.Called(ctx, userID, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveDeviceLoginCode")
+	}
+
+	var r0 *models.DeviceLoginCodePreview
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.DeviceLoginCodePreview, error)); ok {
+		return rf(ctx, userID, code)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.DeviceLoginCodePreview); ok {
+		r0 = rf(ctx, userID, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceLoginCodePreview)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, userID, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -1451,9 +1601,9 @@ func (_m *Service) Store() store.Store {
 	return r0
 }
 
-// SystemDownloadInstallScript provides a mock function with given fields: ctx
-func (_m *Service) SystemDownloadInstallScript(ctx context.Context) (string, error) {
-	ret := _m.Called(ctx)
+// SystemDownloadInstallScript provides a mock function with given fields: ctx, req
+func (_m *Service) SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript) (string, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SystemDownloadInstallScript")
@@ -1461,17 +1611,17 @@ func (_m *Service) SystemDownloadInstallScript(ctx context.Context) (string, err
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (string, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript) (string, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript) string); ok {
+		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.SystemInstallScript) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}

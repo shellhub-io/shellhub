@@ -21,6 +21,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
@@ -120,9 +121,17 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 
-		position, err := s.locator.GetPosition(net.ParseIP(req.RealIP))
-		if err != nil {
-			return nil, err
+		// NOTE: The position lookup is best-effort: a pairing accept materializes
+		// the device server-side without a device IP, and a lookup failure should
+		// not block registration.
+		position := geoip.Position{}
+		if ip := net.ParseIP(req.RealIP); ip != nil {
+			if position, err = s.locator.GetPosition(ip); err != nil {
+				log.WithError(err).WithFields(log.Fields{"real_ip": req.RealIP, "tenant_id": req.TenantID}).
+					Warn("failed to resolve the device position")
+
+				position = geoip.Position{}
+			}
 		}
 
 		device = &models.Device{

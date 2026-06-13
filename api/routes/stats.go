@@ -50,9 +50,20 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 }
 
 func (h *Handler) GetSystemDownloadInstallScript(c gateway.Context) error {
+	req := new(requests.SystemInstallScript)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	// Fall back to the request Host when the gateway didn't forward it, so the
+	// served script can default SERVER_ADDRESS to the instance's own address.
+	if req.Host == "" {
+		req.Host = c.Request().Host
+	}
+
 	c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
 
-	data, err := h.service.SystemDownloadInstallScript(c.Ctx())
+	data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

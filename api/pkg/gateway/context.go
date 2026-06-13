@@ -37,6 +37,12 @@ func (c *Context) Tenant() *models.Tenant {
 	return nil
 }
 
+// DeviceUID returns the device's UID got from the device JWT through gateway.
+// It is empty when the request was not authenticated with a device token.
+func (c *Context) DeviceUID() string {
+	return c.Request().Header.Get("X-Device-UID")
+}
+
 // Username returns the username got from JWT through gateway.
 func (c *Context) Username() *models.Username {
 	username := c.Request().Header.Get("X-Username")

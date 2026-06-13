@@ -89,6 +89,31 @@ type DeviceRemoveTag struct {
 	TagBody
 }
 
+// DeviceLoginCodeResolve is the structure to represent the request data for the device login code resolve endpoint.
+type DeviceLoginCodeResolve struct {
+	Code string `param:"code" validate:"required,len=32,hexadecimal"`
+}
+
+// DevicePairingCreate is the structure to represent the request data for the device pairing creation
+// endpoint. It mirrors DeviceAuth minus the tenant, which the user chooses at accept time.
+type DevicePairingCreate struct {
+	Info      *DeviceInfo     `json:"info" validate:"required"`
+	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
+	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
+	PublicKey string          `json:"public_key" validate:"required"`
+}
+
+// DevicePairingAccept is the structure to represent the request data for the device pairing accept endpoint.
+type DevicePairingAccept struct {
+	Code     string `param:"code" validate:"required,len=32,hexadecimal"`
+	TenantID string `json:"tenant_id" validate:"required,uuid"`
+}
+
+// DevicePairingStatus is the structure to represent the request data for the device pairing status endpoint.
+type DevicePairingStatus struct {
+	Code string `param:"code" validate:"required,len=32,hexadecimal"`
+}
+
 // DeviceUpdateTag is the structure to represent the request data for device update tags endpoint.
 type DeviceUpdateTag struct {
 	DeviceParam

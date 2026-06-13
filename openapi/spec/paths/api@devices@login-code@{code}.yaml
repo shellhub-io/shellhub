@@ -1,0 +1,63 @@
+get:
+  operationId: resolveDeviceLoginCode
+  summary: Resolve a device login code
+  description: |
+    Resolve a device login code into a device preview for the console's
+    accept page. The requesting user must be a member of the device's
+    namespace; unknown, expired, and non-member codes all return 404 so the
+    existence of a code is never leaked.
+
+    The code is not consumed by this route; it expires by TTL or becomes
+    moot once the device leaves the pending state.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: Device login code.
+        type: string
+        pattern: ^[0-9a-f]{32}$
+        example: 9f86d081884c7d659a2feaa0c55ad015
+  responses:
+    '200':
+      description: Success to resolve the device login code
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              kind:
+                description: |
+                  Whether the code is bound to an existing pending device
+                  (`device`) or to a tenant-less pairing where the user picks
+                  the namespace at accept time (`pairing`). For `pairing`,
+                  `uid`, `namespace`, `tenant_id` and `status` are absent.
+                type: string
+                enum:
+                  - device
+                  - pairing
+              uid:
+                $ref: ../components/schemas/deviceUID.yaml
+              name:
+                $ref: ../components/schemas/deviceName.yaml
+              identity:
+                $ref: ../components/schemas/deviceIdentity.yaml
+              info:
+                $ref: ../components/schemas/deviceInfo.yaml
+              namespace:
+                $ref: ../components/schemas/namespaceName.yaml
+              tenant_id:
+                $ref: ../components/schemas/namespaceTenantID.yaml
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
