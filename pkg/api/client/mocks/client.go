@@ -79,6 +79,126 @@ func (_m *Client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) 
 	return r0, r1
 }
 
+// CreateDeviceLoginCode provides a mock function with given fields: token
+func (_m *Client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error) {
+	ret := _m.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDeviceLoginCode")
+	}
+
+	var r0 *models.DeviceLoginCode
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*models.DeviceLoginCode, error)); ok {
+		return rf(token)
+	}
+	if rf, ok := ret.Get(0).(func(string) *models.DeviceLoginCode); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceLoginCode)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateDevicePairing provides a mock function with given fields: req
+func (_m *Client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDevicePairing")
+	}
+
+	var r0 *models.DevicePairing
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*models.DevicePairingRequest) (*models.DevicePairing, error)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*models.DevicePairingRequest) *models.DevicePairing); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairing)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*models.DevicePairingRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDevicePairingStatus provides a mock function with given fields: code
+func (_m *Client) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
+	ret := _m.Called(code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDevicePairingStatus")
+	}
+
+	var r0 *models.DevicePairingStatus
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*models.DevicePairingStatus, error)); ok {
+		return rf(code)
+	}
+	if rf, ok := ret.Get(0).(func(string) *models.DevicePairingStatus); ok {
+		r0 = rf(code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairingStatus)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(code)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDeviceAuthStatus provides a mock function with given fields: token
+func (_m *Client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {
+	ret := _m.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeviceAuthStatus")
+	}
+
+	var r0 *models.DeviceAuthStatus
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*models.DeviceAuthStatus, error)); ok {
+		return rf(token)
+	}
+	if rf, ok := ret.Get(0).(func(string) *models.DeviceAuthStatus); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceAuthStatus)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Endpoints provides a mock function with no fields
 func (_m *Client) Endpoints() (*models.Endpoints, error) {
 	ret := _m.Called()

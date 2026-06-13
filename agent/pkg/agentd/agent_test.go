@@ -60,6 +60,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 		},
 		{
+			// NOTE: TenantID is no longer required — an empty tenant is valid and
+			// drives the agent into pairing mode.
 			description: "fail to load the environment variables when one required values is empty",
 			requiredMocks: func() {
 				envs := new(Config)
@@ -76,7 +78,6 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			expected: expected{
 				cfg: nil,
 				fields: map[string]interface{}{
-					"TenantID":   "required",
 					"PrivateKey": "required",
 				},
 				err: validator.ErrStructureInvalid,
@@ -100,7 +101,6 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				cfg: nil,
 				fields: map[string]interface{}{
 					"ServerAddress": "required",
-					"TenantID":      "required",
 					"PrivateKey":    "required",
 				},
 				err: validator.ErrStructureInvalid,
@@ -187,22 +187,13 @@ func TestNewAgentWithConfig(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when tenant is empty",
-			config: &Config{
-				ServerAddress: "http://localhost",
-				TenantID:      "",
-			},
-			mode: new(HostMode),
-			expected: expected{
-				agent: nil,
-				err:   ErrNewAgentWithConfigEmptyTenant,
-			},
-		},
-		{
+			// NOTE: An empty tenant is allowed at construction time so a
+			// tenant-less agent can run Setup and pair; Authorize is the one
+			// that requires it.
 			description: "fail when private key is empty",
 			config: &Config{
 				ServerAddress: "http://localhost",
-				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				TenantID:      "",
 				PrivateKey:    "",
 			},
 			mode: new(HostMode),

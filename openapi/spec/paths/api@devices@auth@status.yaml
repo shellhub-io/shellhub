@@ -1,0 +1,30 @@
+get:
+  operationId: getDeviceAuthStatus
+  summary: Get the device's own status
+  description: |
+    Report the device's current status to the device itself. The agent polls
+    this route while `shellhub-agent login` waits for the device to be
+    accepted.
+
+    This route is authenticated with the device's own token.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to get the device status
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

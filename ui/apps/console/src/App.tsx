@@ -43,6 +43,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
+const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
@@ -100,6 +101,7 @@ export default function App() {
                   element={<ValidationAccount />}
                 />
               </Route>
+              <Route path="/accept-device" element={<AcceptDevice />} />
               {getConfig().cloud && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -197,33 +199,36 @@ export default function App() {
                   <Route path="/devices/add" element={<AddDevice />} />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
                   <Route path="/containers" element={<Containers />} />
-                  <Route path="/containers/:uid" element={<ContainerDetails />} />
+                  <Route
+                    path="/containers/:uid"
+                    element={<ContainerDetails />}
+                  />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/secure-vault" element={<SecureVault />} />
                   <Route
                     path="/firewall-rules"
-                    element={(
+                    element={
                       <FeatureGate
                         feature="Firewall Rules"
                         description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
                       >
                         <FirewallRules />
                       </FeatureGate>
-                    )}
+                    }
                   />
                   {getConfig().webEndpoints && (
                     <Route
                       path="/web-endpoints"
-                      element={(
+                      element={
                         <FeatureGate
                           feature="Web Endpoints"
                           description="Tunnel HTTP traffic to services running on your devices through unique URLs."
                         >
                           <WebEndpoints />
                         </FeatureGate>
-                      )}
+                      }
                     />
                   )}
                   <Route path="/team" element={<Team />} />

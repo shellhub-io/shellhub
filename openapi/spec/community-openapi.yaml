@@ -98,6 +98,18 @@ paths:
     $ref: paths/api@devices@{uid}@{status}.yaml
   /api/devices/{uid}/custom_fields/{key}:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
+  /api/devices/auth/code:
+    $ref: paths/api@devices@auth@code.yaml
+  /api/devices/auth/status:
+    $ref: paths/api@devices@auth@status.yaml
+  /api/devices/login-code/{code}:
+    $ref: paths/api@devices@login-code@{code}.yaml
+  /api/devices/pairing:
+    $ref: paths/api@devices@pairing.yaml
+  /api/devices/pairing/{code}/status:
+    $ref: paths/api@devices@pairing@{code}@status.yaml
+  /api/devices/pairing/{code}/accept:
+    $ref: paths/api@devices@pairing@{code}@accept.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
   /internal/sessions/{uid}:

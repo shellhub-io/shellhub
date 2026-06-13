@@ -28,6 +28,17 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
+	// CreateDeviceLoginCode requests a short-lived code that deep-links this device into the
+	// console's accept page. It is authenticated with the device's token.
+	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
+	// GetDeviceAuthStatus reports the device's current status on the server. It is
+	// authenticated with the device's token.
+	GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error)
+	// CreateDevicePairing submits a tenant-less agent's identity and returns a
+	// short-lived pairing code. Unauthenticated; the code is the secret.
+	CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error)
+	// GetDevicePairingStatus polls the outcome of a pairing code. Unauthenticated.
+	GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error)
 	// NewReverseListener creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server
 	// using RevDial protocol.
 	NewReverseListenerV1(ctx context.Context, token string, path string) (net.Listener, error)
