@@ -326,6 +326,8 @@ func DeviceResolverToString(resolver store.DeviceResolver) (string, error) {
 		return "name", nil
 	case store.DeviceMACResolver:
 		return "mac", nil
+	case store.DevicePublicKeyResolver:
+		return "public_key", nil
 	default:
 		return "", store.ErrResolverNotFound
 	}

@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
-import { WindowChrome } from "@shellhub/design-system/primitives";
+import { Button, WindowChrome } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
-import { useDevicePolling } from "@/hooks/useDevicePolling";
+import { useDevicePairingEnrollment } from "@/hooks/useDevicePairingEnrollment";
 import { buildInstallCommand } from "@/utils/installCommand";
+import { formatCountdown } from "@/utils/date";
 import CopyButton from "@/components/common/CopyButton";
 
 const requirements = [
@@ -13,29 +14,30 @@ const requirements = [
 ];
 
 interface WizardStep2InstallProps {
-  onDeviceDetected: () => void;
+  onConnected: (device: { uid: string; name: string }) => void;
 }
 
 export default function WizardStep2Install({
-  onDeviceDetected,
+  onConnected,
 }: WizardStep2InstallProps) {
   const tenant = useAuthStore((s) => s.tenant);
-  const installCmd = buildInstallCommand(tenant ?? "", window.location.origin);
+  const enrollment = useDevicePairingEnrollment(true, tenant ?? "");
 
-  const { isPolling, start } = useDevicePolling({
-    onPoll: (stats) => {
-      if ((stats.pending_devices ?? 0) > 0) {
-        onDeviceDetected();
-        return true;
-      }
-      return false;
-    },
-  });
+  const commandReady = Boolean(enrollment.code);
+  const installCmd = commandReady
+    ? buildInstallCommand(
+        `PAIRING_CODE=${enrollment.code}`,
+        window.location.origin,
+      )
+    : "";
 
-  // Start polling as soon as this step mounts
+  // The device is accepted automatically the moment it claims the code, so move
+  // straight to the finish step — no manual approval.
   useEffect(() => {
-    start();
-  }, [start]);
+    if (enrollment.phase === "connected" && enrollment.device) {
+      onConnected(enrollment.device);
+    }
+  }, [enrollment.phase, enrollment.device, onConnected]);
 
   return (
     <div className="py-2 flex flex-col gap-5">
@@ -44,8 +46,8 @@ export default function WizardStep2Install({
           Install the Agent
         </h2>
         <p className="text-sm text-text-muted">
-          Run this command on the target device. The agent will register
-          automatically.
+          Run this command on the target device. It joins this namespace and
+          shows up here automatically.
         </p>
       </div>
 
@@ -53,11 +55,19 @@ export default function WizardStep2Install({
       <WindowChrome
         variant="terminal"
         size="sm"
-        titleBarSlot={<CopyButton text={installCmd} showLabel />}
+        titleBarSlot={
+          commandReady ? <CopyButton text={installCmd} showLabel /> : null
+        }
       >
         <pre className="text-accent-cyan whitespace-pre-wrap break-all">
           <span className="text-text-muted select-none">$ </span>
-          {installCmd}
+          {commandReady ? (
+            installCmd
+          ) : (
+            <span className="text-text-muted">
+              Preparing your install command…
+            </span>
+          )}
         </pre>
       </WindowChrome>
 
@@ -76,29 +86,46 @@ export default function WizardStep2Install({
         </ul>
       </div>
 
-      {/* Polling status */}
+      {/* Live status */}
       <div
         role="status"
         className="flex items-center gap-3 bg-background border border-border rounded-xl px-4 py-3"
       >
-        {isPolling ? (
+        {enrollment.phase === "expired" ? (
+          <>
+            <span className="relative inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-text-muted/40" />
+            <span className="flex-1 text-2xs font-mono text-text-muted">
+              The code expired.
+            </span>
+            <Button variant="ghost" size="sm" onClick={enrollment.regenerate}>
+              New code
+            </Button>
+          </>
+        ) : enrollment.phase === "error" ? (
+          <>
+            <span className="relative inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-accent-red/60" />
+            <span className="flex-1 text-2xs font-mono text-text-muted">
+              Couldn&apos;t prepare a code.
+            </span>
+            <Button variant="ghost" size="sm" onClick={enrollment.regenerate}>
+              Retry
+            </Button>
+          </>
+        ) : (
           <>
             <span className="relative flex h-2.5 w-2.5 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-yellow opacity-60" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-yellow" />
             </span>
-            <span className="text-2xs font-mono text-text-muted">
+            <span className="flex-1 text-2xs font-mono text-text-muted">
               Listening for device connection&hellip;
+              {enrollment.secondsLeft > 0
+                ? ` code expires in ${formatCountdown(enrollment.secondsLeft)}`
+                : ""}
             </span>
-          </>
-        ) : (
-          <>
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-text-muted/30" />
-            </span>
-            <span className="text-2xs font-mono text-text-muted">
-              Waiting to start&hellip;
-            </span>
+            <Button variant="ghost" size="sm" onClick={enrollment.regenerate}>
+              New code
+            </Button>
           </>
         )}
       </div>

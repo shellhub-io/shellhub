@@ -21,6 +21,10 @@ func (*nullCache) Set(_ context.Context, _ string, _ interface{}, _ time.Duratio
 	return nil
 }
 
+func (*nullCache) SetNX(_ context.Context, _ string, _ interface{}, _ time.Duration) (bool, error) {
+	return true, nil
+}
+
 func (*nullCache) Delete(_ context.Context, _ string) error {
 	return nil
 }

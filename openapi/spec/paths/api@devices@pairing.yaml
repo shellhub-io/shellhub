@@ -1,0 +1,67 @@
+post:
+  operationId: createDevicePairing
+  summary: Create a device pairing
+  description: |
+    Store the identity of a tenant-less agent and create a short-lived pairing
+    code that deep-links it into the console's accept page. No device is
+    created until a user accepts the pairing into a namespace of their choice.
+
+    This route is unauthenticated, like the device auth route; the returned
+    code is the secret. Codes expire after 10 minutes.
+  tags:
+    - community
+    - devices
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            hostname:
+              $ref: ../components/schemas/deviceName.yaml
+            identity:
+              $ref: ../components/schemas/deviceIdentity.yaml
+            info:
+              $ref: ../components/schemas/deviceInfo.yaml
+            public_key:
+              description: Device's public key in PEM format.
+              type: string
+            code:
+              description: |
+                Pre-authorized pairing code the agent was given at install time
+                (see the prepare endpoint). When set, the device is accepted into
+                the code's namespace automatically instead of a code being minted.
+              type: string
+              pattern: "^[2-9A-HJKMNP-TV-Z-]+$"
+              example: WXYZ-2K7Q
+          required:
+            - info
+            - public_key
+  responses:
+    '200':
+      description: |
+        Success to create the device pairing. When the public key already
+        belongs to an accepted device, the server resolves it immediately:
+        `status` is `accepted` and `tenant_id` is set, and `code` is omitted.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                description: Pairing code to be appended to the accept-device URL. Omitted on resume.
+                type: string
+                pattern: "^[2-9A-HJKMNP-TV-Z]{8}$"
+                example: WXYZ2K7Q
+              expires_in_seconds:
+                description: How long the code remains valid, in seconds. Omitted on resume.
+                type: integer
+                example: 600
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
+              tenant_id:
+                $ref: ../components/schemas/namespaceTenantID.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

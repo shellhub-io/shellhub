@@ -80,6 +80,90 @@ type DeviceAuthResponse struct {
 	Config map[string]any `json:"config,omitempty"`
 }
 
+// DeviceLoginCode is a short-lived code that deep-links a pending device into
+// the console's accept page. It carries no authority by itself: accepting the
+// device still requires an authenticated user with the DeviceAccept permission
+// in the device's namespace.
+type DeviceLoginCode struct {
+	Code      string `json:"code"`
+	ExpiresIn int    `json:"expires_in_seconds"`
+}
+
+// Kinds of codes the accept-device page can resolve.
+const (
+	// DeviceLoginCodeKindDevice is a code bound to an existing pending device
+	// in a namespace (agent had a tenant).
+	DeviceLoginCodeKindDevice = "device"
+	// DeviceLoginCodeKindPairing is a code for a tenant-less agent; the device
+	// does not exist yet and the user picks the namespace at accept time.
+	DeviceLoginCodeKindPairing = "pairing"
+)
+
+// DeviceLoginCodePreview is what an authenticated user sees when resolving a
+// device login code before accepting the device. For pairing codes the device
+// does not exist yet, so UID, Namespace, TenantID and Status are empty.
+type DeviceLoginCodePreview struct {
+	Kind      string          `json:"kind"`
+	UID       string          `json:"uid,omitempty"`
+	Name      string          `json:"name"`
+	Identity  *DeviceIdentity `json:"identity"`
+	Info      *DeviceInfo     `json:"info"`
+	Namespace string          `json:"namespace,omitempty"`
+	TenantID  string          `json:"tenant_id,omitempty"`
+	Status    DeviceStatus    `json:"status,omitempty"`
+}
+
+// DeviceAuthStatus is the device's current status as reported to the device
+// itself while it waits for acceptance.
+type DeviceAuthStatus struct {
+	Status DeviceStatus `json:"status"`
+}
+
+// DevicePairingRequest is the identity payload a tenant-less agent submits to
+// start a pairing. It mirrors the fields of a device auth request minus the
+// tenant, which the user chooses at accept time.
+//
+// Code carries a pre-authorized pairing code the agent was given at install
+// time. When set, the server claims it and accepts the device into the
+// pre-authorized namespace instead of returning a code to poll.
+type DevicePairingRequest struct {
+	Hostname  string          `json:"hostname,omitempty"`
+	Identity  *DeviceIdentity `json:"identity,omitempty"`
+	Info      *DeviceInfo     `json:"info"`
+	PublicKey string          `json:"public_key"`
+	Code      string          `json:"code,omitempty"`
+}
+
+// DevicePairing is the response to a pairing creation request. When the device
+// (identified by its public key) was already accepted into a namespace, the
+// server resolves it immediately: Status is "accepted" and TenantID is set, so
+// the agent learns its tenant without waiting on a code. Otherwise a Code is
+// returned to poll.
+type DevicePairing struct {
+	Code      string       `json:"code,omitempty"`
+	ExpiresIn int          `json:"expires_in_seconds,omitempty"`
+	Status    DeviceStatus `json:"status"`
+	TenantID  string       `json:"tenant_id,omitempty"`
+}
+
+// DevicePairingStatus is what a tenant-less agent — or the console page that
+// minted a pre-authorized code — polls while waiting for the device to be
+// accepted. TenantID is set once accepted; UID and Name identify the resulting
+// device so the console can link straight to it.
+type DevicePairingStatus struct {
+	Status   DeviceStatus `json:"status"`
+	TenantID string       `json:"tenant_id,omitempty"`
+	UID      string       `json:"uid,omitempty"`
+	Name     string       `json:"name,omitempty"`
+}
+
+// DevicePairingAccepted is the response to a pairing accept request.
+type DevicePairingAccepted struct {
+	UID       string `json:"uid"`
+	TenantID  string `json:"tenant_id"`
+	Namespace string `json:"namespace"`
+}
+
 type DeviceIdentity struct {
 	MAC string `json:"mac"`
 }
