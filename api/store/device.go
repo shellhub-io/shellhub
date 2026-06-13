@@ -25,6 +25,10 @@ const (
 	DeviceUIDResolver DeviceResolver = iota + 1
 	DeviceHostnameResolver
 	DeviceMACResolver
+	// DevicePublicKeyResolver resolves a device by its public key. The key is the
+	// same across namespaces, so callers typically pair it with a status filter
+	// and no namespace scope (e.g. to find where a key was already accepted).
+	DevicePublicKeyResolver
 )
 
 type DeviceStore interface {

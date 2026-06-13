@@ -14,8 +14,9 @@ import (
 )
 
 type redisCache struct {
-	cache *rediscache.Cache
-	cfg   *config
+	cache  *rediscache.Cache
+	client *redis.Client
+	cfg    *config
 }
 
 var _ Cache = &redisCache{}
@@ -35,10 +36,13 @@ func NewRedisCache(uri string, pool int) (Cache, error) {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
+	client := redis.NewClient(opt)
+
 	return &redisCache{
-		cfg: cfg,
+		cfg:    cfg,
+		client: client,
 		cache: rediscache.New(&rediscache.Options{
-			Redis: redis.NewClient(opt),
+			Redis: client,
 		}),
 	}, nil
 }
@@ -57,6 +61,14 @@ func (c *redisCache) Get(ctx context.Context, key string, value interface{}) err
 // Set puts value into cache with key and expire time.
 func (c *redisCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	return c.cache.Set(&rediscache.Item{Ctx: ctx, Key: key, Value: value, TTL: ttl})
+}
+
+// SetNX atomically sets key to value with the given ttl only if it does not
+// already exist, reporting whether it was set. Unlike Set (which serializes
+// through go-redis/cache), this goes straight to the Redis SETNX so it can back
+// single-use reservations.
+func (c *redisCache) SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error) {
+	return c.client.SetNX(ctx, key, value, ttl).Result()
 }
 
 // Delete deletes cached value by given key.

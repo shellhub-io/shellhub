@@ -31,6 +31,8 @@ type service struct {
 type Service interface {
 	TagsService
 	DeviceService
+	DeviceLoginCodeService
+	DevicePairingService
 	UserService
 	SSHKeysService
 	SessionService

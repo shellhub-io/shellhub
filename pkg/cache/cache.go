@@ -27,6 +27,12 @@ type Cache interface {
 	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
 	Delete(ctx context.Context, key string) error
 
+	// SetNX atomically sets key to value with the given ttl only if the key does
+	// not already exist, and reports whether it was set. It is the building block
+	// for single-use reservations (e.g. a pairing code claimed by exactly one
+	// device even under concurrent requests), which Get+Set cannot do race-free.
+	SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error)
+
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp
 	// in seconds representing the end of the lockout, or 0 if no lockout was found; the
