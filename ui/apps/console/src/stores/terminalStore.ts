@@ -14,6 +14,11 @@ export interface TerminalSession {
   fingerprint?: string;
   privateKey?: string;
   passphrase?: string;
+  // kind "connect" dials an external host directly via /ws/connect (saved direct
+  // connections); the default routes to a device's agent via /ws/ssh.
+  kind?: "device" | "connect";
+  host?: string;
+  port?: number;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
 }

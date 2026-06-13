@@ -17,6 +17,11 @@ type Credentials struct {
 	Password string `json:"password"`
 	// Fingerprint is the identifier of the public key used in the device's OS.
 	Fingerprint string `json:"fingerprint"`
+	// Host and Port are set only for the direct connection bridge (/ws/connect),
+	// where the server dials the target SSH endpoint directly instead of routing
+	// to a device over the reverse tunnel.
+	Host string `json:"host"`
+	Port int    `json:"port"`
 }
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
