@@ -43,6 +43,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
+const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
@@ -100,6 +101,7 @@ export default function App() {
                   element={<ValidationAccount />}
                 />
               </Route>
+              <Route path="/accept-device" element={<AcceptDevice />} />
               {getConfig().cloud && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -67,6 +67,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	"github.com/shellhub-io/shellhub/agent/server"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -86,8 +87,17 @@ type Config struct {
 
 	// Sets the account tenant id used during communication to associate the
 	// device to a specific tenant.
-	// This is required.
-	TenantID string `env:"TENANT_ID,required" validate:"required"`
+	//
+	// It is optional: when empty (and no tenant was persisted from a previous
+	// pairing), the agent boots into pairing mode and waits for a user to
+	// accept it into a namespace, learning the tenant from the server.
+	TenantID string `env:"TENANT_ID"`
+
+	// PairingCode is a pre-authorized pairing code handed to the agent at install
+	// time (minted from the console's Add Device page). When set and no tenant is
+	// configured, the agent claims it: the server accepts the device into the
+	// code's namespace automatically, so it never lands in the pending list.
+	PairingCode string `env:"PAIRING_CODE"`
 
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
@@ -173,6 +183,19 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 		return nil, fields, err
 	}
 
+	// Tenant resolution: environment > tenant persisted by a previous pairing.
+	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
+		switch {
+		case cfg.TenantID == "":
+			cfg.TenantID = persisted
+		case cfg.TenantID != persisted:
+			log.WithFields(log.Fields{
+				"env_tenant":       cfg.TenantID,
+				"persisted_tenant": persisted,
+			}).Warn("tenant from environment overrides the tenant persisted by pairing")
+		}
+	}
+
 	return cfg, nil, nil
 }
 
@@ -219,6 +242,9 @@ var (
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
 //
+// The tenant may be empty at this point: a tenant-less agent can run [Agent.Setup]
+// and pair interactively, but [Agent.Authorize] requires a tenant.
+//
 // Check [Config] for more information.
 func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 	if config.ServerAddress == "" {
@@ -227,10 +253,6 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 
 	if _, err := url.ParseRequestURI(config.ServerAddress); err != nil {
 		return nil, ErrNewAgentWithConfigInvalidServerAddress
-	}
-
-	if config.TenantID == "" {
-		return nil, ErrNewAgentWithConfigEmptyTenant
 	}
 
 	if config.PrivateKey == "" {
@@ -252,6 +274,17 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 //
 // When any of the steps fails, the agent will return an error, and the agent will not be able to start.
 func (a *Agent) Initialize() error {
+	if err := a.Setup(); err != nil {
+		return err
+	}
+
+	return a.Authorize()
+}
+
+// Setup prepares the agent for server communication without authorizing it:
+// HTTP client, device identity, device info, key pair and server probe. None
+// of these require a tenant, so a tenant-less agent can run Setup and pair.
+func (a *Agent) Setup() error {
 	var err error
 
 	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(a.config.Version))
@@ -279,6 +312,17 @@ func (a *Agent) Initialize() error {
 		return errors.Wrap(err, "failed to probe server info")
 	}
 
+	return nil
+}
+
+// Authorize registers the device on the ShellHub server within its tenant.
+// [Agent.Setup] must have been run first, and the tenant must be set (either
+// from configuration or injected with [Agent.SetTenantID] after a pairing).
+func (a *Agent) Authorize() error {
+	if a.config.TenantID == "" {
+		return ErrNewAgentWithConfigEmptyTenant
+	}
+
 	if err := a.authorize(); err != nil {
 		return errors.Wrap(err, "failed to authorize device")
 	}
@@ -296,6 +340,19 @@ func (a *Agent) Initialize() error {
 	})
 
 	return nil
+}
+
+// SetTenantID injects the tenant learned from a pairing so the agent can be
+// authorized.
+func (a *Agent) SetTenantID(tenant string) {
+	a.config.TenantID = tenant
+}
+
+// ClearPairingCode drops a pre-authorized pairing code after the server rejected
+// it, so a retry falls back to a normal (user-accepted) pairing instead of
+// re-sending the dead code.
+func (a *Agent) ClearPairingCode() {
+	a.config.PairingCode = ""
 }
 
 // generatePrivateKey generates a new private key if it doesn't exist on the filesystem.
@@ -370,16 +427,16 @@ func (a *Agent) probeServerInfo() error {
 
 var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
 
-// authorize send auth request to the server with device information in order to register it in the namespace.
-func (a *Agent) authorize() error {
-	req := &models.DeviceAuthRequest{
-		Info: a.Info,
-		DeviceAuth: &models.DeviceAuth{
-			Hostname:  a.config.PreferredHostname,
-			Identity:  a.Identity,
-			TenantID:  a.config.TenantID,
-			PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
-		},
+// buildDeviceAuth assembles the identity fields the agent presents to the
+// server. It is shared by authorize and the pairing request so the derivation
+// never drifts: the server materializes a paired device from these same
+// fields, and the UID hash must match the later device auth.
+func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
+	auth := &models.DeviceAuth{
+		Hostname:  a.config.PreferredHostname,
+		Identity:  a.Identity,
+		TenantID:  a.config.TenantID,
+		PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
 	}
 
 	// NOTE: A MAC address can be empty when the network interface used to communicate with the external world isn't a
@@ -388,8 +445,23 @@ func (a *Agent) authorize() error {
 	// fallback identifier for the device. This ensures that even if both the MAC address and hostname are missing, we
 	// have a way to identify the device uniquely. When it occurs, and no variable was defined, the agent should fail to
 	// initialize.
-	if req.DeviceAuth.Hostname == "" && (req.DeviceAuth.Identity == nil || req.DeviceAuth.Identity.MAC == "") {
-		return ErrNoIdentityAndHostname
+	if auth.Hostname == "" && (auth.Identity == nil || auth.Identity.MAC == "") {
+		return nil, ErrNoIdentityAndHostname
+	}
+
+	return auth, nil
+}
+
+// authorize send auth request to the server with device information in order to register it in the namespace.
+func (a *Agent) authorize() error {
+	auth, err := a.buildDeviceAuth()
+	if err != nil {
+		return err
+	}
+
+	req := &models.DeviceAuthRequest{
+		Info:       a.Info,
+		DeviceAuth: auth,
 	}
 
 	data, err := a.cli.AuthDevice(req)
@@ -400,6 +472,55 @@ func (a *Agent) authorize() error {
 	a.authData = data
 
 	return err
+}
+
+// CreatePairing submits this tenant-less agent's identity to the server and
+// returns a short-lived pairing code. [Agent.Setup] must have been run first.
+//
+// When the agent was configured with a pre-authorized PairingCode, it is sent
+// along so the server claims it and accepts the device immediately, returning
+// an "accepted" pairing with the tenant instead of a code to poll.
+func (a *Agent) CreatePairing() (*models.DevicePairing, error) {
+	auth, err := a.buildDeviceAuth()
+	if err != nil {
+		return nil, err
+	}
+
+	return a.cli.CreateDevicePairing(&models.DevicePairingRequest{
+		Hostname:  auth.Hostname,
+		Identity:  auth.Identity,
+		Info:      a.Info,
+		PublicKey: auth.PublicKey,
+		Code:      a.config.PairingCode,
+	})
+}
+
+// GetPairingStatus polls the outcome of a pairing code.
+func (a *Agent) GetPairingStatus(code string) (*models.DevicePairingStatus, error) {
+	return a.cli.GetDevicePairingStatus(code)
+}
+
+// CreateDeviceLoginCode requests a short-lived code that deep-links this device into the
+// console's accept page. The agent must be initialized first.
+func (a *Agent) CreateDeviceLoginCode() (*models.DeviceLoginCode, error) {
+	return a.cli.CreateDeviceLoginCode(a.authData.Token)
+}
+
+// DeviceStatus returns the device's current status on the server. The agent must be
+// initialized first.
+func (a *Agent) DeviceStatus() (models.DeviceStatus, error) {
+	res, err := a.cli.GetDeviceAuthStatus(a.authData.Token)
+	if err != nil {
+		return models.DeviceStatusEmpty, err
+	}
+
+	return res.Status, nil
+}
+
+// Namespace returns the name of the namespace the device belongs to. The agent must be
+// initialized first.
+func (a *Agent) Namespace() string {
+	return a.authData.Namespace
 }
 
 func (a *Agent) isClosed() bool {
@@ -592,7 +713,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 					"version":        a.config.Version,
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
-					"timestamp":      time.Now(),
+					"timestamp":      clock.Now(),
 				}).Debug("Starting the ping interval to server")
 
 				ticker.Reset(interval)
@@ -601,7 +722,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 					"version":        a.config.Version,
 					"tenant_id":      a.authData.Namespace,
 					"server_address": a.config.ServerAddress,
-					"timestamp":      time.Now(),
+					"timestamp":      clock.Now(),
 				}).Debug("Stopped pinging server due listener status")
 
 				ticker.Stop()
@@ -618,7 +739,7 @@ func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 				"name":           a.authData.Name,
 				"hostname":       a.config.PreferredHostname,
 				"identity":       a.config.PreferredIdentity,
-				"timestamp":      time.Now(),
+				"timestamp":      clock.Now(),
 			}).Info("Ping")
 
 			randTimeout := time.Duration(rand.Intn(a.config.MaxRetryConnectionTimeout-10)+10) * time.Second //nolint:gosec

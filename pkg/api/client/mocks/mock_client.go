@@ -170,6 +170,130 @@ func (_c *MockClient_AuthPublicKey_Call) RunAndReturn(run func(req *models.Publi
 	return _c
 }
 
+// CreateDeviceLoginCode provides a mock function for the type MockClient
+func (_mock *MockClient) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error) {
+	ret := _mock.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDeviceLoginCode")
+	}
+
+	var r0 *models.DeviceLoginCode
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*models.DeviceLoginCode, error)); ok {
+		return returnFunc(token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *models.DeviceLoginCode); ok {
+		r0 = returnFunc(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceLoginCode)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_CreateDeviceLoginCode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDeviceLoginCode'
+type MockClient_CreateDeviceLoginCode_Call struct {
+	*mock.Call
+}
+
+// CreateDeviceLoginCode is a helper method to define mock.On call
+//   - token string
+func (_e *MockClient_Expecter) CreateDeviceLoginCode(token any) *MockClient_CreateDeviceLoginCode_Call {
+	return &MockClient_CreateDeviceLoginCode_Call{Call: _e.mock.On("CreateDeviceLoginCode", token)}
+}
+
+func (_c *MockClient_CreateDeviceLoginCode_Call) Run(run func(token string)) *MockClient_CreateDeviceLoginCode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_CreateDeviceLoginCode_Call) Return(deviceLoginCode *models.DeviceLoginCode, err error) *MockClient_CreateDeviceLoginCode_Call {
+	_c.Call.Return(deviceLoginCode, err)
+	return _c
+}
+
+func (_c *MockClient_CreateDeviceLoginCode_Call) RunAndReturn(run func(token string) (*models.DeviceLoginCode, error)) *MockClient_CreateDeviceLoginCode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateDevicePairing provides a mock function for the type MockClient
+func (_mock *MockClient) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
+	ret := _mock.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDevicePairing")
+	}
+
+	var r0 *models.DevicePairing
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(*models.DevicePairingRequest) (*models.DevicePairing, error)); ok {
+		return returnFunc(req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(*models.DevicePairingRequest) *models.DevicePairing); ok {
+		r0 = returnFunc(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairing)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(*models.DevicePairingRequest) error); ok {
+		r1 = returnFunc(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_CreateDevicePairing_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDevicePairing'
+type MockClient_CreateDevicePairing_Call struct {
+	*mock.Call
+}
+
+// CreateDevicePairing is a helper method to define mock.On call
+//   - req *models.DevicePairingRequest
+func (_e *MockClient_Expecter) CreateDevicePairing(req any) *MockClient_CreateDevicePairing_Call {
+	return &MockClient_CreateDevicePairing_Call{Call: _e.mock.On("CreateDevicePairing", req)}
+}
+
+func (_c *MockClient_CreateDevicePairing_Call) Run(run func(req *models.DevicePairingRequest)) *MockClient_CreateDevicePairing_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *models.DevicePairingRequest
+		if args[0] != nil {
+			arg0 = args[0].(*models.DevicePairingRequest)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_CreateDevicePairing_Call) Return(devicePairing *models.DevicePairing, err error) *MockClient_CreateDevicePairing_Call {
+	_c.Call.Return(devicePairing, err)
+	return _c
+}
+
+func (_c *MockClient_CreateDevicePairing_Call) RunAndReturn(run func(req *models.DevicePairingRequest) (*models.DevicePairing, error)) *MockClient_CreateDevicePairing_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Endpoints provides a mock function for the type MockClient
 func (_mock *MockClient) Endpoints() (*models.Endpoints, error) {
 	ret := _mock.Called()
@@ -283,6 +407,130 @@ func (_c *MockClient_GetDevice_Call) Return(device *models.Device, err error) *M
 }
 
 func (_c *MockClient_GetDevice_Call) RunAndReturn(run func(uid string) (*models.Device, error)) *MockClient_GetDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDeviceAuthStatus provides a mock function for the type MockClient
+func (_mock *MockClient) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {
+	ret := _mock.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeviceAuthStatus")
+	}
+
+	var r0 *models.DeviceAuthStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*models.DeviceAuthStatus, error)); ok {
+		return returnFunc(token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *models.DeviceAuthStatus); ok {
+		r0 = returnFunc(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DeviceAuthStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_GetDeviceAuthStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDeviceAuthStatus'
+type MockClient_GetDeviceAuthStatus_Call struct {
+	*mock.Call
+}
+
+// GetDeviceAuthStatus is a helper method to define mock.On call
+//   - token string
+func (_e *MockClient_Expecter) GetDeviceAuthStatus(token any) *MockClient_GetDeviceAuthStatus_Call {
+	return &MockClient_GetDeviceAuthStatus_Call{Call: _e.mock.On("GetDeviceAuthStatus", token)}
+}
+
+func (_c *MockClient_GetDeviceAuthStatus_Call) Run(run func(token string)) *MockClient_GetDeviceAuthStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_GetDeviceAuthStatus_Call) Return(deviceAuthStatus *models.DeviceAuthStatus, err error) *MockClient_GetDeviceAuthStatus_Call {
+	_c.Call.Return(deviceAuthStatus, err)
+	return _c
+}
+
+func (_c *MockClient_GetDeviceAuthStatus_Call) RunAndReturn(run func(token string) (*models.DeviceAuthStatus, error)) *MockClient_GetDeviceAuthStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDevicePairingStatus provides a mock function for the type MockClient
+func (_mock *MockClient) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
+	ret := _mock.Called(code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDevicePairingStatus")
+	}
+
+	var r0 *models.DevicePairingStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*models.DevicePairingStatus, error)); ok {
+		return returnFunc(code)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *models.DevicePairingStatus); ok {
+		r0 = returnFunc(code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.DevicePairingStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(code)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_GetDevicePairingStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDevicePairingStatus'
+type MockClient_GetDevicePairingStatus_Call struct {
+	*mock.Call
+}
+
+// GetDevicePairingStatus is a helper method to define mock.On call
+//   - code string
+func (_e *MockClient_Expecter) GetDevicePairingStatus(code any) *MockClient_GetDevicePairingStatus_Call {
+	return &MockClient_GetDevicePairingStatus_Call{Call: _e.mock.On("GetDevicePairingStatus", code)}
+}
+
+func (_c *MockClient_GetDevicePairingStatus_Call) Run(run func(code string)) *MockClient_GetDevicePairingStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_GetDevicePairingStatus_Call) Return(devicePairingStatus *models.DevicePairingStatus, err error) *MockClient_GetDevicePairingStatus_Call {
+	_c.Call.Return(devicePairingStatus, err)
+	return _c
+}
+
+func (_c *MockClient_GetDevicePairingStatus_Call) RunAndReturn(run func(code string) (*models.DevicePairingStatus, error)) *MockClient_GetDevicePairingStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

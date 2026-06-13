@@ -368,6 +368,84 @@ func (_c *MockCache_Set_Call) RunAndReturn(run func(ctx context.Context, key str
 	return _c
 }
 
+// SetNX provides a mock function for the type MockCache
+func (_mock *MockCache) SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error) {
+	ret := _mock.Called(ctx, key, value, ttl)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetNX")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, interface{}, time.Duration) (bool, error)); ok {
+		return returnFunc(ctx, key, value, ttl)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, interface{}, time.Duration) bool); ok {
+		r0 = returnFunc(ctx, key, value, ttl)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, interface{}, time.Duration) error); ok {
+		r1 = returnFunc(ctx, key, value, ttl)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockCache_SetNX_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetNX'
+type MockCache_SetNX_Call struct {
+	*mock.Call
+}
+
+// SetNX is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+//   - value interface{}
+//   - ttl time.Duration
+func (_e *MockCache_Expecter) SetNX(ctx any, key any, value any, ttl any) *MockCache_SetNX_Call {
+	return &MockCache_SetNX_Call{Call: _e.mock.On("SetNX", ctx, key, value, ttl)}
+}
+
+func (_c *MockCache_SetNX_Call) Run(run func(ctx context.Context, key string, value interface{}, ttl time.Duration)) *MockCache_SetNX_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 interface{}
+		if args[2] != nil {
+			arg2 = args[2].(interface{})
+		}
+		var arg3 time.Duration
+		if args[3] != nil {
+			arg3 = args[3].(time.Duration)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockCache_SetNX_Call) Return(b bool, err error) *MockCache_SetNX_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockCache_SetNX_Call) RunAndReturn(run func(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error)) *MockCache_SetNX_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StoreLoginAttempt provides a mock function for the type MockCache
 func (_mock *MockCache) StoreLoginAttempt(ctx context.Context, source string, userID string) (int64, int, error) {
 	ret := _mock.Called(ctx, source, userID)

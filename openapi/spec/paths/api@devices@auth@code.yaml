@@ -1,0 +1,40 @@
+post:
+  operationId: createDeviceLoginCode
+  summary: Create a device login code
+  description: |
+    Create a short-lived code that deep-links this device into the console's
+    accept page. The agent prints the resulting URL when running
+    `shellhub-agent login`.
+
+    The code carries no authority by itself: accepting the device still
+    requires an authenticated user with the device accept permission in the
+    device's namespace. Issuing a new code invalidates the previous one for
+    the same device.
+
+    This route is authenticated with the device's own token.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to create the device login code
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                description: Login code to be appended to the accept-device URL.
+                type: string
+                pattern: '^[2-9A-HJKMNP-TV-Z]{8}$'
+                example: WXYZ2K7Q
+              expires_in_seconds:
+                description: How long the code remains valid, in seconds.
+                type: integer
+                example: 600
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

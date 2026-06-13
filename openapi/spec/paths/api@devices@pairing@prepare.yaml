@@ -1,0 +1,43 @@
+post:
+  operationId: prepareDevicePairing
+  summary: Prepare a pre-authorized device pairing
+  description: |
+    Mint a short-lived, single-use pre-authorized pairing code for the current
+    namespace. The console embeds the code in the install command so the device
+    that claims it is accepted automatically, with no trip through the pending
+    list. The authenticated user must have the device accept permission in the
+    namespace. Codes expire after 10 minutes and can be claimed by one device.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to prepare the device pairing
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                description: Pre-authorized pairing code to pass to the installer as CODE.
+                type: string
+                pattern: '^[2-9A-HJKMNP-TV-Z]{8}$'
+                example: WXYZ2K7Q
+              expires_in_seconds:
+                description: How long the code remains valid, in seconds.
+                type: integer
+                example: 600
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

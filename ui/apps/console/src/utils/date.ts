@@ -24,6 +24,11 @@ export function formatDateShort(dateStr: string): string {
   return format(new Date(dateStr), "MMM d, yyyy");
 }
 
+/** Format a countdown of seconds as m:ss (e.g. 7:41). */
+export function formatCountdown(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 export function formatDuration(
   startedAt: string,
   lastSeen: string,

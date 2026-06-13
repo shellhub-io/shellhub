@@ -1,0 +1,43 @@
+get:
+  operationId: getDevicePairingStatus
+  summary: Get a device pairing status
+  description: |
+    Report the pairing outcome to the agent polling it. Returns `pending`
+    until a user accepts the pairing; once accepted, `tenant_id` carries the
+    namespace the device was accepted into.
+
+    This route is unauthenticated; the code is the secret. Unknown or expired
+    codes return 404.
+  tags:
+    - community
+    - devices
+  security: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: Device pairing code.
+        type: string
+        pattern: '^[0-9A-Za-z-]+$'
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to get the device pairing status
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
+              tenant_id:
+                $ref: ../components/schemas/namespaceTenantID.yaml
+              uid:
+                $ref: ../components/schemas/deviceUID.yaml
+              name:
+                $ref: ../components/schemas/deviceName.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -99,6 +99,8 @@ var (
 	ErrConflictName                    = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInvalidFormat                   = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
+	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
+	ErrDevicePairingCodeNotFound       = errors.New("device pairing code not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceInvalid                   = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceDuplicated                = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrDeviceLimit                     = errors.New("device limit reached", ErrLayer, ErrCodePayment)
@@ -321,6 +323,20 @@ func NewErrPublicKeyFilter(next error) error {
 // NewErrDeviceNotFound returns an error when the device is not found.
 func NewErrDeviceNotFound(id models.UID, next error) error {
 	return NewErrNotFound(ErrDeviceNotFound, string(id), next)
+}
+
+// NewErrDeviceLoginCodeNotFound returns an error when the device login code is not found,
+// expired, or the requesting user is not a member of the device's namespace. All three
+// cases collapse into the same error to avoid leaking the existence of a code.
+func NewErrDeviceLoginCodeNotFound(code string, next error) error {
+	return NewErrNotFound(ErrDeviceLoginCodeNotFound, code, next)
+}
+
+// NewErrDevicePairingCodeNotFound returns an error when the device pairing code is not
+// found, expired, or not claimable. All cases collapse into the same error to avoid
+// leaking the existence of a code.
+func NewErrDevicePairingCodeNotFound(code string, next error) error {
+	return NewErrNotFound(ErrDevicePairingCodeNotFound, code, next)
 }
 
 // NewErrSessionNotFound returns an error when the session is not found.
