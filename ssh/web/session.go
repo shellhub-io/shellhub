@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -114,7 +117,33 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+// startShare exposes the current console session as a public shareable terminal. It resolves the
+// device's tenant, registers an in-process share whose producer is this session, and returns the
+// hub (to feed output / drain guest input), a close function and the share token.
+func startShare(ctx context.Context, shares *share.Registry, deviceUID string, dim Dimensions, req ShareRequest) (*share.Hub, func(), string, error) {
+	cli, err := internalclient.NewClient(nil)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	device, err := cli.GetDevice(ctx, deviceUID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	token, hub, closeFn := shares.CreateLocal(deviceUID, device.TenantID, models.ShareCreateRequest{
+		Name:       req.Name,
+		Command:    "console session",
+		Writable:   req.Writable,
+		TTLSeconds: req.TTL,
+	})
+
+	hub.Resize(share.Dimensions{Cols: int(dim.Cols), Rows: int(dim.Rows)})
+
+	return hub, closeFn, token, nil
+}
+
+func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info, shares *share.Registry) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -230,8 +259,22 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		return ErrShell
 	}
 
+	// output accumulates console output for scrollback and tees it to the share hub once shared.
+	output := &shareOutput{}
+
 	go func() {
 		defer agent.Close()
+
+		// currentDim tracks the live terminal size so a share started mid-session matches geometry.
+		currentDim := dim
+
+		// shareClose tears the share down when this session ends. Only this goroutine touches it.
+		var shareClose func()
+		defer func() {
+			if shareClose != nil {
+				shareClose()
+			}
+		}()
 
 		for {
 			var message Message
@@ -257,18 +300,60 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 				}
 			case messageKindResize:
 				dim := message.Data.(Dimensions)
+				currentDim = dim
 
 				if err := agent.WindowChange(int(dim.Rows), int(dim.Cols)); err != nil {
 					logger.WithError(err).Error("failed to change the size of window for terminal session")
 
 					return
 				}
+
+				output.resize(share.Dimensions{Cols: int(dim.Cols), Rows: int(dim.Rows)})
+			case messageKindShare:
+				if output.shared() {
+					continue // already shared
+				}
+
+				req := message.Data.(ShareRequest)
+
+				hub, closeFn, token, err := startShare(ctx, shares, creds.Device, currentDim, req)
+				if err != nil {
+					logger.WithError(err).Error("failed to start the share")
+
+					continue
+				}
+
+				shareClose = closeFn
+
+				// Seed the hub with the screen captured so far, then tee new output. A guest joining
+				// later is replayed this from the hub, so they see the current screen.
+				output.activate(hub)
+
+				// In collaborative mode, guest keystrokes flow into the same PTY stdin as the local user.
+				if req.Writable {
+					go func() {
+						for {
+							select {
+							case <-hub.Done():
+								return
+							case data := <-hub.Input():
+								if _, err := stdin.Write(data); err != nil {
+									return
+								}
+							}
+						}
+					}()
+				}
+
+				if _, err := conn.WriteMessage(&Message{Kind: messageKindShare, Data: token}); err != nil {
+					logger.WithError(err).Error("failed to send the share token to the client")
+				}
 			}
 		}
 	}()
 
-	go redirToWs(stdout, conn) // nolint:errcheck
-	go io.Copy(conn, stderr)   //nolint:errcheck
+	go redirToWs(stdout, conn, output) // nolint:errcheck
+	go io.Copy(conn, stderr)           //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {
 		logger.WithError(err).Warning("client remote command returned a error")
@@ -277,7 +362,67 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	return nil
 }
 
-func redirToWs(rd io.Reader, ws *Conn) error {
+// shareCaptureCap bounds the console output retained before a session is shared, so the eventual
+// guest can be seeded with the current screen. It matches the hub's ring capacity.
+const shareCaptureCap = 128 * 1024
+
+// shareOutput accumulates the console session's output from the start and, once the session is
+// shared, seeds the hub with it (so a guest sees the screen that was already there) and tees new
+// output. The hub's bounded ring buffer — not this accumulator — is what's retained long-term.
+type shareOutput struct {
+	mu  sync.Mutex
+	buf []byte
+	hub *share.Hub
+}
+
+func (s *shareOutput) write(p []byte) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Once shared, output flows straight to the hub (which owns retention); before that, keep a
+	// bounded buffer so the pre-share screen can seed the first guest.
+	if s.hub != nil {
+		s.hub.Output(p)
+
+		return
+	}
+
+	s.buf = append(s.buf, p...)
+	if len(s.buf) > shareCaptureCap {
+		s.buf = s.buf[len(s.buf)-shareCaptureCap:]
+	}
+}
+
+func (s *shareOutput) activate(hub *share.Hub) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(s.buf) > 0 {
+		hub.Output(s.buf)
+	}
+
+	s.hub = hub
+	s.buf = nil
+}
+
+func (s *shareOutput) shared() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.hub != nil
+}
+
+func (s *shareOutput) resize(dim share.Dimensions) {
+	s.mu.Lock()
+	hub := s.hub
+	s.mu.Unlock()
+
+	if hub != nil {
+		hub.Resize(dim)
+	}
+}
+
+func redirToWs(rd io.Reader, ws *Conn, output *shareOutput) error {
 	// TODO: Evaluate refactoring this function to improve its readability.
 	var buf [32 * 1024]byte
 	var start, end, buflen int
@@ -334,9 +479,14 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 			end = 0
 		}
 
-		if _, err = ws.WriteBinary([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
+		chunk := []byte(string(bytes.Runes(buf[0:end])))
+
+		if _, err = ws.WriteBinary(chunk); err != nil {
 			return err
 		}
+
+		// Record the output for scrollback and, when sharing, tee it to the share hub.
+		output.write(chunk)
 
 		start = buflen - end
 

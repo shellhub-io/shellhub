@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	ssh "github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/web"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,6 +41,8 @@ type Envs struct {
 	// Domain is the base domain for this ShellHub instance. The env key must
 	// stay SHELLHUB_DOMAIN (not SSH_SHELLHUB_DOMAIN) for the same reason.
 	Domain string `env:"SHELLHUB_DOMAIN"`
+	// ShareTTL is how long a shareable terminal session (tmate-style) link stays valid.
+	ShareTTL time.Duration `env:"SHARE_TTL,default=4h"`
 }
 
 func main() {
@@ -71,7 +74,11 @@ func main() {
 
 	router := h.Router
 
-	web.NewSSHServerBridge(router, cache)
+	shareRegistry := share.NewRegistry(env.ShareTTL)
+
+	web.NewSSHServerBridge(router, cache, shareRegistry)
+
+	share.Register(router, shareRegistry, cli)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# ShellHub agent host wrapper.
+#
+# Install this at /usr/local/bin/shellhub-agent on the host where the agent
+# container runs, so host users can invoke the agent CLI directly:
+#
+#     shellhub-agent share -- bash
+#
+# The agent itself runs inside a container, so a plain `share` would spawn the
+# command inside that container. This wrapper forwards the invocation into the
+# agent container with `docker exec`, and passes the invoking host user via
+# SHELLHUB_SHARE_USER so the command runs on the host as that user (the agent
+# resolves it through the host's /etc/passwd, the same way SSH sessions do).
+#
+# Everything is auto-detected — no configuration needed in either development or
+# production. The env vars below are optional overrides:
+#
+#     SHELLHUB_AGENT_CONTAINER   force a specific container/name
+#     SHELLHUB_AGENT_BIN         force the agent binary path inside the container
+#
+set -eu
+
+container="${SHELLHUB_AGENT_CONTAINER:-}"
+if [ -z "$container" ]; then
+	# Prefer a Compose-managed `agent` service (development stack and most deployments),
+	# then a plainly-named container, then anything from the official agent image.
+	for filter in \
+		'label=com.docker.compose.service=agent' \
+		'name=shellhub-agent' \
+		'ancestor=shellhubio/agent'; do
+		container=$(docker ps --filter "$filter" --format '{{.Names}}' 2>/dev/null | head -n1)
+		[ -n "$container" ] && break
+	done
+fi
+
+if [ -z "$container" ]; then
+	echo "shellhub-agent: could not find a running agent container." >&2
+	echo "Set SHELLHUB_AGENT_CONTAINER to its name." >&2
+	exit 1
+fi
+
+bin="${SHELLHUB_AGENT_BIN:-}"
+if [ -z "$bin" ]; then
+	# Development runs under air with the binary at /tmp/air/main; production has it on PATH.
+	if docker exec "$container" test -x /tmp/air/main 2>/dev/null; then
+		bin=/tmp/air/main
+	else
+		bin=shellhub-agent
+	fi
+fi
+
+# Allocate a TTY only when one is attached, so the wrapper also works in pipelines/scripts.
+tty="-i"
+[ -t 0 ] && tty="-it"
+
+exec docker exec "$tty" \
+	-e "SHELLHUB_SHARE_USER=$(id -un)" \
+	"$container" "$bin" "$@"
