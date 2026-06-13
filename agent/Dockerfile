@@ -46,6 +46,9 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 # Cross-compile for target architecture
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
+# Compile static /bin/true smoke-check binary
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -o /bin/true ./cmd/true
+
 # Runtime utilities stage - CRITICAL: must use target platform
 FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.22} AS runtime-utils
 
@@ -91,6 +94,12 @@ COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
 
 # Copy musl loader from runtime-utils
 COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
+
+# Copy static /bin/true smoke-check binary from builder
+COPY --from=builder /bin/true /bin/true
+
+# Build-time smoke-check: ensure /bin/true executes successfully
+RUN ["/bin/true"]
 
 # Copy the agent binary
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent

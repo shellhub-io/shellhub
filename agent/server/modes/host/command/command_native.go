@@ -4,13 +4,67 @@
 package command
 
 import (
+	"errors"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	log "github.com/sirupsen/logrus"
 )
+
+// geteuidFn is a seam for os.Geteuid used in setgroupsDenied and NewCmd.
+// Tests can replace it to simulate running as root or non-root.
+var geteuidFn = os.Geteuid
+
+// readSetgroupsPolicyFn is a seam for reading /proc/self/setgroups.
+// Tests can replace it to control the kernel policy value without filesystem access.
+var readSetgroupsPolicyFn = func() ([]byte, error) {
+	return os.ReadFile("/proc/self/setgroups")
+}
+
+// setgroupsDenied reports whether the kernel has denied setgroups(2) for this
+// process by checking /proc/self/setgroups.
+//
+// Return values:
+//   - true:  the policy file trims to "deny".
+//   - false: the file does not exist (kernel too old or not in a user-ns); silent.
+//   - false: any other read error; a warning is emitted via the logger.
+func setgroupsDenied() bool {
+	data, err := readSetgroupsPolicyFn()
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			log.WithError(err).Warn("failed to read /proc/self/setgroups; assuming setgroups is allowed")
+		}
+
+		return false
+	}
+
+	return strings.TrimSpace(string(data)) == "deny"
+}
+
+// CheckCredentialSwitch reports whether the process can switch credentials via
+// setgroups(2).  It is a pre-flight check that must be called before attempting
+// to execute a command as a different user.
+//
+// Short-circuit: when the effective UID is not root (euid != 0), credential
+// switching is a no-op and the check always succeeds (nil).
+//
+// When euid == 0, the kernel may still forbid setgroups inside an unprivileged
+// user namespace (Linux ≥ 3.19).  In that case the function returns a sentinel
+// error whose message contains "setgroups denied in unprivileged user namespace".
+func CheckCredentialSwitch() error {
+	if geteuidFn() != 0 {
+		return nil
+	}
+
+	if setgroupsDenied() {
+		return errors.New("setgroups denied in unprivileged user namespace")
+	}
+
+	return nil
+}
 
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
 	groups, err := osauth.ListGroups(u.Username)
@@ -44,7 +98,7 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		cmd.Dir = u.HomeDir
 	}
 
-	if os.Geteuid() == 0 {
+	if geteuidFn() == 0 {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: u.UID, Gid: u.GID, Groups: groups}
 	}
