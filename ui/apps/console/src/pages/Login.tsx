@@ -16,9 +16,9 @@ import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
-import Spinner from "@/components/common/Spinner";
 
 interface CountdownState {
   display: string;
@@ -296,20 +296,17 @@ export default function Login() {
               </div>
             )}
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
               type="submit"
+              className="px-4"
+              loading={loading}
               disabled={disableSubmit}
-              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
             >
-              {loading ? (
-                <>
-                  <Spinner size="sm" tone="onPrimary" />
-                  Authenticating...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </button>
+              {loading ? "Authenticating..." : "Sign In"}
+            </Button>
           </form>
         </div>
       )}

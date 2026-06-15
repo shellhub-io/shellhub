@@ -5,6 +5,7 @@ import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
+import { Button } from "@shellhub/design-system/primitives";
 import { RoleSelector } from "./constants";
 import { isAssignableRole, type AssignableRole } from "./helpers";
 
@@ -58,20 +59,17 @@ function EditKeyDrawer({
       title="Edit API Key"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!name.trim() || submitting}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            loading={submitting}
           >
             Save Changes
-          </button>
+          </Button>
         </>
       }
     >

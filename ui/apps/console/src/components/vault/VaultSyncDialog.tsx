@@ -13,7 +13,7 @@ import {
 } from "@/utils/vault-migrate";
 import BaseDialog from "@/components/common/BaseDialog";
 import Alert from "@/components/common/Alert";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 type Direction = "to-server" | "to-local";
 

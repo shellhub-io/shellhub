@@ -16,7 +16,7 @@ import {
 } from "@/hooks/useInvitationMutations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 type Branch =
   | { kind: "loading" }

@@ -11,7 +11,7 @@ import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
 import BillingSuccessful from "./BillingSuccessful";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const STEPS = ["Overview", "Payment method", "Review", "Success"] as const;
 const TOTAL_STEPS = STEPS.length;
@@ -248,9 +248,7 @@ function PrimaryButton({
         bg-primary text-white hover:bg-primary-600 active:scale-[0.98]
         disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
     >
-      {loading && (
-        <Spinner size="sm" tone="onPrimary" />
-      )}
+      {loading && <Spinner size="sm" tone="onPrimary" />}
       {children}
     </button>
   );

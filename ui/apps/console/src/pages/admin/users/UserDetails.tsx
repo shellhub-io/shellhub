@@ -18,9 +18,8 @@ import EditUserDrawer from "./EditUserDrawer";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
-import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
-import { Badge, Card } from "@shellhub/design-system/primitives";
+import { Badge, Card, Spinner } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";

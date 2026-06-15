@@ -24,6 +24,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { PublicKeyResponse as PublicKey } from "@/client";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -187,27 +188,29 @@ export default function PublicKeys() {
       render: (pk) => (
         <div className="flex items-center justify-end gap-0.5">
           <RestrictedAction action="publicKey:edit">
-            <button
-              onClick={() => openEdit(pk)}
+            <IconButton
+              variant="primary"
               title="Edit"
-              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+              aria-label={`Edit ${pk.name}`}
+              onClick={() => openEdit(pk)}
             >
               <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
+            </IconButton>
           </RestrictedAction>
           <RestrictedAction action="publicKey:remove">
-            <button
+            <IconButton
+              variant="danger"
+              title="Delete"
+              aria-label={`Delete ${pk.name}`}
               onClick={() =>
                 setDeleteTarget({
                   fingerprint: pk.fingerprint,
                   name: pk.name,
                 })
               }
-              title="Delete"
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
             >
               <TrashIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
+            </IconButton>
           </RestrictedAction>
         </div>
       ),

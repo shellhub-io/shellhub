@@ -5,9 +5,9 @@ import {
   CheckCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 import { recoverPassword } from "../client";
 import InputField from "@/components/common/fields/InputField";
-import Spinner from "@/components/common/Spinner";
 
 export default function ForgotPassword() {
   const [account, setAccount] = useState("");
@@ -95,23 +95,18 @@ export default function ForgotPassword() {
               required
             />
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
               type="submit"
+              className="px-4"
+              loading={loading}
               disabled={loading || !account.trim()}
-              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
+              icon={<EnvelopeIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              {loading ? (
-                <>
-                  <Spinner size="sm" tone="onPrimary" />
-                  <span className="font-mono text-xs">Sending...</span>
-                </>
-              ) : (
-                <>
-                  <EnvelopeIcon className="w-4 h-4" strokeWidth={2} />
-                  Reset Password
-                </>
-              )}
-            </button>
+              {loading ? "Sending..." : "Reset Password"}
+            </Button>
           </form>
         )}
       </div>

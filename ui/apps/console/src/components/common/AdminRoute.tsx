@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function AdminRoute() {
   const fetchUser = useAuthStore((s) => s.fetchUser);

@@ -15,7 +15,7 @@ import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
 import type { BillingStatus } from "@/client/types.gen";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const BillingDialog = lazy(() => import("./BillingDialog"));
 

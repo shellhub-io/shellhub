@@ -25,9 +25,8 @@ import {
   getLicenseAlertConfig,
 } from "@/utils/license";
 import type { GetLicenseResponse } from "@/client/types.gen";
-import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Spinner } from "@shellhub/design-system/primitives";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 

@@ -6,8 +6,7 @@ import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import Spinner from "@/components/common/Spinner";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Spinner } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;
 

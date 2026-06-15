@@ -1,4 +1,4 @@
-import Spinner, { type SpinnerSize } from "@/components/common/Spinner";
+import { Spinner, type SpinnerSize } from "@shellhub/design-system/primitives";
 
 type Padding = "none" | "sm" | "md" | "lg" | "fill";
 

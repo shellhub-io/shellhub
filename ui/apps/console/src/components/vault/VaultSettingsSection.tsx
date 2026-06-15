@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Spinner } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
@@ -19,8 +19,6 @@ import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import Spinner from "@/components/common/Spinner";
-
 function ChangePasswordDrawer({
   open,
   onClose,

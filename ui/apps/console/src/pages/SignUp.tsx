@@ -5,10 +5,10 @@ import Alert from "@/components/common/Alert";
 import { validate, type FormErrors } from "./setup/validate";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
+import { Button } from "@shellhub/design-system/primitives";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import Spinner from "@/components/common/Spinner";
 
 const SERVER_FIELD_MAP: Record<string, keyof FormErrors> = {
   username: "username",
@@ -174,7 +174,8 @@ export default function SignUp() {
         {/* Invite alert */}
         {isInvite && (
           <Alert variant="warning">
-            Please create your account before accepting the namespace invitation.
+            Please create your account before accepting the namespace
+            invitation.
           </Alert>
         )}
 
@@ -291,20 +292,17 @@ export default function SignUp() {
               label="I accept to receive news and updates from ShellHub via email."
             />
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
               type="submit"
+              className="px-4"
+              loading={signUpLoading}
               disabled={signUpLoading || !isFormValid}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-2 flex items-center justify-center gap-2"
             >
-              {signUpLoading ? (
-                <>
-                  <Spinner size="sm" tone="onPrimary" />
-                  Creating account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </button>
+              {signUpLoading ? "Creating account..." : "Create Account"}
+            </Button>
           </form>
         </div>
 

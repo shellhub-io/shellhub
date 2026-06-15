@@ -10,7 +10,7 @@ import {
 import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 export default function PendingDevices() {

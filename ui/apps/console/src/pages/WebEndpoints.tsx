@@ -35,9 +35,8 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, Spinner } from "@shellhub/design-system/primitives";
 
 /* ─── Constants ─── */
 

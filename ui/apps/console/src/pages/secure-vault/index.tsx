@@ -30,6 +30,7 @@ import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatDate } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 const VAULT_FEATURES: EmptyStateFeature[] = [
   {
@@ -236,20 +237,22 @@ export default function SecureVault() {
       headerClassName: "w-16",
       render: (entry) => (
         <div className="flex items-center justify-end gap-0.5">
-          <button
-            onClick={() => openEdit(entry)}
+          <IconButton
+            variant="primary"
             title="Edit"
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            aria-label={`Edit ${entry.name}`}
+            onClick={() => openEdit(entry)}
           >
             <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
-          <button
-            onClick={() => setDeleteTarget(entry)}
+          </IconButton>
+          <IconButton
+            variant="danger"
             title="Delete"
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+            aria-label={`Delete ${entry.name}`}
+            onClick={() => setDeleteTarget(entry)}
           >
             <TrashIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
+          </IconButton>
         </div>
       ),
     },

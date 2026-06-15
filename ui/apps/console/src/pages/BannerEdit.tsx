@@ -7,7 +7,7 @@ import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 const MAX_LENGTH = 4096;
@@ -100,26 +100,18 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
 
         {canEdit && (
           <div className="flex items-center justify-end gap-2 mt-6 pt-6 border-t border-border">
-            <Link
-              to="/settings"
-              className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button as={Link} to="/settings" variant="ghost">
               Cancel
-            </Link>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               onClick={() => void handleSave()}
               disabled={!changed || overLimit || saving}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              loading={saving}
+              icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              {saving
-                ? (
-                  <Spinner tone="onPrimary" />
-                )
-                : (
-                  <CheckIcon className="w-4 h-4" strokeWidth={2} />
-                )}
               Save
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -135,9 +127,7 @@ export default function BannerEdit() {
   const canEdit = useHasPermission("namespace:editBanner");
 
   if (!ns) {
-    return (
-      <PageLoader label="Loading banner" padding="lg" />
-    );
+    return <PageLoader label="Loading banner" padding="lg" />;
   }
 
   return (

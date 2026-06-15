@@ -9,7 +9,7 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 function MinimalHeader() {
   return (
@@ -36,11 +36,7 @@ function FetchErrorPage({
 
       {/* Content */}
       <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <img
-          src="/logo.svg"
-          alt="ShellHub"
-          className="h-8 mb-10 opacity-50"
-        />
+        <img src="/logo.svg" alt="ShellHub" className="h-8 mb-10 opacity-50" />
 
         <div className="animate-float mb-6">
           <div className="w-20 h-20 rounded-2xl bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shadow-lg shadow-accent-red/5">
@@ -58,8 +54,7 @@ function FetchErrorPage({
           Could not load namespaces
         </h1>
         <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-          {error}
-          . This is likely temporary — check your connection or try
+          {error}. This is likely temporary — check your connection or try
           again.
         </p>
 

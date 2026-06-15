@@ -2,7 +2,7 @@ import { useState, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Button } from "@shellhub/design-system/primitives";
 import { useCreateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKeyCreate } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
@@ -13,7 +13,6 @@ import RadioPill from "@/components/common/fields/RadioPill";
 import { RoleSelector } from "./constants";
 import { EXPIRY_OPTIONS, type AssignableRole } from "./helpers";
 import { LABEL } from "@/utils/styles";
-import Spinner from "@/components/common/Spinner";
 
 function validateName(value: string): string {
   if (value.length < 3) return "Name must be at least 3 characters.";
@@ -94,35 +93,23 @@ function GenerateKeyDrawer({
       title="Generate API Key"
       footer={
         generatedKey ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-          >
+          <Button variant="primary" onClick={onClose}>
             Done
-          </button>
+          </Button>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="primary"
               onClick={() => void handleSubmit()}
               disabled={submitting || !!nameError || !name.trim()}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              loading={submitting}
+              icon={<KeyIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              {submitting ? (
-                <Spinner size="md" tone="onPrimary" />
-              ) : (
-                <KeyIcon className="w-4 h-4" strokeWidth={2} />
-              )}
               Generate Key
-            </button>
+            </Button>
           </>
         )
       }

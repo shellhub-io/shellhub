@@ -6,7 +6,7 @@ import { useAuthStore } from "../stores/authStore";
 import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function MfaRecover() {
   const {

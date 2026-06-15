@@ -7,7 +7,7 @@ import InputField from "@/components/common/fields/InputField";
 import { EMAIL_REGEX } from "@/utils/validation";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 
 /* --- Add Member Drawer --- */
 
@@ -66,26 +66,18 @@ function AddMemberDrawer({
       title="Add Member"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!emailValid || submitting}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            {submitting ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            )}
             Add Member
-          </button>
+          </Button>
         </>
       }
     >

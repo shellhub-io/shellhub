@@ -4,7 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useCreateUser } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 import UserFormFields from "./UserFormFields";
 import { useUserForm } from "./useUserForm";
 
@@ -49,26 +49,18 @@ export default function CreateUserDrawer({
       title="Create User"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!form.isSubmittable || createUser.isPending}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={createUser.isPending}
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            {createUser.isPending ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            )}
             Create User
-          </button>
+          </Button>
         </>
       }
     >
@@ -77,11 +69,7 @@ export default function CreateUserDrawer({
         className="space-y-5"
         noValidate
       >
-        <UserFormFields
-          form={form}
-          idPrefix="create-user"
-          autoFocus={open}
-        />
+        <UserFormFields form={form} idPrefix="create-user" autoFocus={open} />
         {submitError && (
           <p role="alert" className="text-2xs text-accent-red">
             {submitError}

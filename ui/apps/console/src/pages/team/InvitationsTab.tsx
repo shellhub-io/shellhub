@@ -25,6 +25,7 @@ import {
 import { ExpiredBadge, RoleBadge } from "./constants";
 import InvitationDrawer from "./InvitationDrawer";
 import EditInvitationDrawer from "./EditInvitationDrawer";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -232,49 +233,49 @@ function InvitationsTab({ tenantId }: { tenantId: string }) {
         return (
           <div className="flex items-center justify-end gap-1">
             <RestrictedAction action="namespace:editInvitation">
-              <button
-                onClick={() => canEdit && setEditTarget(inv)}
+              <IconButton
+                variant="primary"
                 disabled={!canEdit}
-                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
                 title={
                   canEdit
                     ? "Edit role"
                     : "Only pending invitations can be edited"
                 }
                 aria-label="Edit invitation role"
+                onClick={() => canEdit && setEditTarget(inv)}
               >
                 <PencilSquareIcon className="w-4 h-4" />
-              </button>
+              </IconButton>
             </RestrictedAction>
             <RestrictedAction action="namespace:addMember">
-              <button
-                onClick={() => canResend && setResendTarget(inv)}
+              <IconButton
+                variant="ghost"
                 disabled={!canResend}
-                className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/5 disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
                 title={
                   canResend
                     ? "Resend invitation"
                     : "Only cancelled or expired invitations can be resent"
                 }
                 aria-label="Resend invitation"
+                onClick={() => canResend && setResendTarget(inv)}
               >
                 <ArrowPathIcon className="w-4 h-4" />
-              </button>
+              </IconButton>
             </RestrictedAction>
             <RestrictedAction action="namespace:cancelInvitation">
-              <button
-                onClick={() => canCancel && setCancelTarget(inv)}
+              <IconButton
+                variant="danger"
                 disabled={!canCancel}
-                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
                 title={
                   canCancel
                     ? "Cancel invitation"
                     : "Only pending invitations can be cancelled"
                 }
                 aria-label="Cancel invitation"
+                onClick={() => canCancel && setCancelTarget(inv)}
               >
                 <TrashIcon className="w-4 h-4" />
-              </button>
+              </IconButton>
             </RestrictedAction>
           </div>
         );

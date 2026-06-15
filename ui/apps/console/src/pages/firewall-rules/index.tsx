@@ -21,7 +21,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -152,28 +152,26 @@ export default function FirewallRules() {
       render: (rule) => (
         <div className="flex items-center justify-end gap-0.5">
           <RestrictedAction action="firewall:edit">
-            <button
-              type="button"
-              onClick={() => openEdit(rule)}
-              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
+            <IconButton
+              variant="primary"
               aria-label={`Edit firewall rule with priority ${rule.priority}`}
               title="Edit"
+              onClick={() => openEdit(rule)}
             >
               <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </IconButton>
           </RestrictedAction>
           <RestrictedAction action="firewall:remove">
-            <button
-              type="button"
+            <IconButton
+              variant="danger"
+              aria-label={`Delete firewall rule with priority ${rule.priority}`}
+              title="Delete"
               onClick={() =>
                 setDeleteTarget({ id: rule.id, priority: rule.priority })
               }
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-red/50"
-              aria-label="Delete"
-              title="Delete"
             >
               <TrashIcon className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </IconButton>
           </RestrictedAction>
         </div>
       ),

@@ -7,7 +7,7 @@ import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;

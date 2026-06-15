@@ -66,7 +66,9 @@ import FirewallRules from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
+function makeRule(
+  overrides: Partial<FirewallRulesResponse> = {},
+): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -105,7 +107,9 @@ describe("FirewallRules — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
     render(<FirewallRules />);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(
+      screen.getByRole("button", { name: /^delete firewall rule/i }),
+    );
     return user;
   }
 
@@ -174,7 +178,9 @@ describe("FirewallRules — delete error handling", () => {
     );
 
     // Reopen — the stale error text should be gone before the next attempt.
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(
+      screen.getByRole("button", { name: /^delete firewall rule/i }),
+    );
     dialog = await getDialog();
     expect(within(dialog).queryByText("Transient")).not.toBeInTheDocument();
   });

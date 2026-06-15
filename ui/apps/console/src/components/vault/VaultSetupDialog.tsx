@@ -14,7 +14,7 @@ import {
 } from "@/utils/vault-backend-factory";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 interface Props {
   open: boolean;

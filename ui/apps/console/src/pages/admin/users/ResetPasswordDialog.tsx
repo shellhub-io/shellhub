@@ -6,7 +6,7 @@ import { isSdkError } from "@/api/errors";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import InputField from "@/components/common/fields/InputField";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 
 interface ResetPasswordDialogProps {
   open: boolean;
@@ -85,23 +85,17 @@ export default function ResetPasswordDialog({
 
           {/* Footer */}
           <div className="flex justify-end gap-2 px-6 py-4 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               onClick={() => void handleEnable()}
               disabled={resetPassword.isPending}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              loading={resetPassword.isPending}
             >
-              {resetPassword.isPending && (
-                <Spinner tone="onPrimary" />
-              )}
               Enable
-            </button>
+            </Button>
           </div>
         </>
       ) : (
@@ -145,13 +139,9 @@ export default function ResetPasswordDialog({
 
           {/* Footer */}
           <div className="flex justify-end px-6 py-4 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-            >
+            <Button variant="primary" onClick={onClose}>
               Close
-            </button>
+            </Button>
           </div>
         </>
       )}

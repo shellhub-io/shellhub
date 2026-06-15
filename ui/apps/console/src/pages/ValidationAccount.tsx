@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { useSignUpStore } from "../stores/signUpStore";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function ValidationAccount() {
   const navigate = useNavigate();

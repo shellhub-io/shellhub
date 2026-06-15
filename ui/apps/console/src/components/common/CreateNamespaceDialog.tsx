@@ -4,7 +4,7 @@ import {
   BookOpenIcon,
   FolderPlusIcon,
 } from "@heroicons/react/24/outline";
-import { Card, IconBadge } from "@shellhub/design-system/primitives";
+import { Card, IconBadge, Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
 import NamespaceNameField from "./fields/NamespaceNameField";
@@ -15,8 +15,6 @@ import {
 } from "@/utils/validation";
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
-import Spinner from "@/components/common/Spinner";
-
 const CLI_COMMAND = "./bin/cli namespace create <namespace> <owner>";
 
 const FORM_ID = "create-namespace-form";

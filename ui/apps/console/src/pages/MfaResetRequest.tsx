@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 import Alert from "@/components/common/Alert";
 import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import Spinner from "@/components/common/Spinner";
 
 export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
@@ -49,7 +49,10 @@ export default function MfaResetRequest() {
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
           <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <EnvelopeIcon className="w-10 h-10 text-primary" strokeWidth={1.2} />
+            <EnvelopeIcon
+              className="w-10 h-10 text-primary"
+              strokeWidth={1.2}
+            />
           </div>
         </div>
         <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
@@ -59,7 +62,8 @@ export default function MfaResetRequest() {
           Reset MFA via Email
         </h1>
         <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          We'll send verification codes to both email addresses registered for <span className="font-semibold text-text-primary">{identifier}</span>.
+          We'll send verification codes to both email addresses registered for{" "}
+          <span className="font-semibold text-text-primary">{identifier}</span>.
         </p>
       </div>
 
@@ -74,27 +78,25 @@ export default function MfaResetRequest() {
 
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-xs text-text-muted text-center">
-                Verification codes will be sent to the email addresses registered for:
+                Verification codes will be sent to the email addresses
+                registered for:
               </p>
               <p className="text-sm font-mono font-semibold text-primary text-center mt-2">
                 {identifier}
               </p>
             </div>
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
               type="submit"
+              className="px-4"
+              loading={loading}
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
             >
-              {loading ? (
-                <>
-                  <Spinner size="sm" tone="onPrimary" />
-                  Sending...
-                </>
-              ) : (
-                "Send Verification Codes"
-              )}
-            </button>
+              {loading ? "Sending..." : "Send Verification Codes"}
+            </Button>
 
             <div className="text-center pt-2">
               <Link
@@ -109,7 +111,10 @@ export default function MfaResetRequest() {
           <div className="space-y-5 text-center">
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-                <CheckCircleIcon className="w-8 h-8 text-accent-green" strokeWidth={2} />
+                <CheckCircleIcon
+                  className="w-8 h-8 text-accent-green"
+                  strokeWidth={2}
+                />
               </div>
             </div>
 
@@ -118,13 +123,25 @@ export default function MfaResetRequest() {
                 Emails Sent!
               </h3>
               <p className="text-sm text-text-muted leading-relaxed">
-                We've sent verification codes to both your <span className="font-semibold text-text-primary">main email</span> and <span className="font-semibold text-text-primary">recovery email</span> addresses.
+                We've sent verification codes to both your{" "}
+                <span className="font-semibold text-text-primary">
+                  main email
+                </span>{" "}
+                and{" "}
+                <span className="font-semibold text-text-primary">
+                  recovery email
+                </span>{" "}
+                addresses.
               </p>
             </div>
 
             <div className="p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg">
               <p className="text-xs text-text-muted leading-relaxed">
-                <span className="font-semibold text-accent-yellow">Next step:</span> Check both email inboxes and click the link in either email to continue with the reset process.
+                <span className="font-semibold text-accent-yellow">
+                  Next step:
+                </span>{" "}
+                Check both email inboxes and click the link in either email to
+                continue with the reset process.
               </p>
             </div>
 
@@ -144,9 +161,9 @@ export default function MfaResetRequest() {
         style={{ animationDelay: "400ms" }}
       >
         <p className="text-2xs text-text-muted leading-relaxed">
-          <span className="font-semibold text-primary">Note:</span> You'll receive
-          two separate emails with verification codes. Both codes are required to
-          complete the reset process.
+          <span className="font-semibold text-primary">Note:</span> You'll
+          receive two separate emails with verification codes. Both codes are
+          required to complete the reset process.
         </p>
       </div>
 

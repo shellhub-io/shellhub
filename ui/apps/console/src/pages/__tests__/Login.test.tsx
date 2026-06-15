@@ -178,14 +178,22 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
 
-      expect(mockedLogin).toHaveBeenCalledWith(expect.objectContaining({ body: { username: "admin", password: "secret" } }));
+      expect(mockedLogin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: { username: "admin", password: "secret" },
+        }),
+      );
     });
 
     it("does not trim password", async () => {
       renderLogin();
       await fillAndSubmit("admin", "  secret  ");
 
-      expect(mockedLogin).toHaveBeenCalledWith(expect.objectContaining({ body: { username: "admin", password: "  secret  " } }));
+      expect(mockedLogin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: { username: "admin", password: "  secret  " },
+        }),
+      );
     });
 
     it("disables the submit button when username or password is empty", async () => {
@@ -242,6 +250,36 @@ describe("Login", () => {
       expect(
         screen.getByRole("button", { name: /authenticating/i }),
       ).toBeDisabled();
+
+      resolveLogin();
+      await clickPromise;
+    });
+
+    it("marks the submit button aria-busy while the request is in flight (DS Button loading prop)", async () => {
+      let resolveLogin!: () => void;
+      mockedLogin.mockReturnValue(
+        new Promise<SdkResponse<UserAuth>>((resolve) => {
+          resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
+        }),
+      );
+
+      renderLogin();
+      await userEvent.type(screen.getByLabelText(/username/i), "admin");
+      await userEvent.type(screen.getByLabelText(/^password$/i), "secret");
+
+      const clickPromise = userEvent.click(
+        screen.getByRole("button", { name: /sign in/i }),
+      );
+
+      await waitFor(() =>
+        expect(screen.getByText(/authenticating/i)).toBeInTheDocument(),
+      );
+
+      // DS Button sets aria-busy="true" on the button element when loading=true.
+      // Plain <button> elements do not set this attribute.
+      expect(
+        screen.getByRole("button", { name: /authenticating/i }),
+      ).toHaveAttribute("aria-busy", "true");
 
       resolveLogin();
       await clickPromise;

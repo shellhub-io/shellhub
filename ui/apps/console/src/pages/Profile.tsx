@@ -30,7 +30,7 @@ import {
 import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
 import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
 import { hasMfaSupport } from "../utils/features";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 const USERNAME_REGEX = /^[a-z0-9_.@-]+$/;
@@ -295,14 +295,9 @@ function DeleteAccountWarningDialog({
         </div>
 
         <div className="flex justify-end mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            data-test="close-btn"
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose} data-test="close-btn">
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </BaseDialog>
@@ -402,26 +397,18 @@ export function EditProfileDrawer({
       title="Edit Profile"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
+            icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            {submitting ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
             Save
-          </button>
+          </Button>
         </>
       }
     >
@@ -541,26 +528,18 @@ function ChangePasswordDrawer({
       title="Change Password"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
+            icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            {submitting ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
             Change Password
-          </button>
+          </Button>
         </>
       }
     >
@@ -635,14 +614,13 @@ export default function Profile() {
         title="Profile"
         description="Manage your account details and security settings"
       >
-        <button
-          type="button"
+        <Button
+          variant="secondary"
           onClick={openEdit}
-          className="px-4 py-2.5 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+          icon={<PencilSquareIcon className="w-4 h-4" />}
         >
-          <PencilSquareIcon className="w-4 h-4" />
           Edit Profile
-        </button>
+        </Button>
       </PageHeader>
 
       <div className="space-y-6 animate-fade-in">
@@ -705,13 +683,13 @@ export default function Profile() {
             title="Password"
             description="Credentials used to authenticate into your account"
           >
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="secondary"
               onClick={() => setPwDrawerOpen(true)}
-              className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
             >
               Change Password
-            </button>
+            </Button>
           </SettingsRow>
 
           {hasMfaSupport() ? (
@@ -728,21 +706,21 @@ export default function Profile() {
               }
             >
               {mfaEnabled ? (
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="secondary"
                   onClick={() => setMfaDisableOpen(true)}
-                  className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
                 >
                   Disable
-                </button>
+                </Button>
               ) : (
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="secondary"
                   onClick={() => setMfaEnableOpen(true)}
-                  className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
                 >
                   Enable MFA
-                </button>
+                </Button>
               )}
             </SettingsRow>
           ) : (
@@ -756,14 +734,16 @@ export default function Profile() {
                 </span>
               }
             >
-              <a
+              <Button
+                as="a"
+                size="sm"
+                variant="secondary"
                 href="https://www.shellhub.io/pricing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
               >
                 Upgrade
-              </a>
+              </Button>
             </SettingsRow>
           )}
         </SettingsCard>
@@ -779,14 +759,15 @@ export default function Profile() {
                 : "Account deletion requires CLI or Admin Console access."
             }
           >
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="dangerSoft"
               onClick={() => setDeleteDialogOpen(true)}
               data-test="delete-account-btn"
-              className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 hover:border-accent-red/40 rounded-lg text-sm font-medium transition-all"
+              className="hover:border-accent-red/40"
             >
               Delete
-            </button>
+            </Button>
           </SettingsRow>
         </SettingsCard>
       </div>

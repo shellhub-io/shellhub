@@ -1,11 +1,14 @@
 import { useState, FormEvent } from "react";
-import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 import { disableMfa } from "@/client";
 import Alert from "@/components/common/Alert";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaDisableDialogProps {
@@ -60,10 +63,16 @@ export default function MfaDisableDialog({
     try {
       if (mode === "totp") {
         if (!otp.isComplete) return;
-        await disableMfa({ body: { code: otp.getValue() }, throwOnError: true });
+        await disableMfa({
+          body: { code: otp.getValue() },
+          throwOnError: true,
+        });
       } else if (mode === "recovery") {
         if (!recoveryCode.trim()) return;
-        await disableMfa({ body: { recovery_code: recoveryCode }, throwOnError: true });
+        await disableMfa({
+          body: { recovery_code: recoveryCode },
+          throwOnError: true,
+        });
       }
 
       onSuccess();
@@ -98,8 +107,8 @@ export default function MfaDisableDialog({
     }
   };
 
-  const isComplete
-    = mode === "totp"
+  const isComplete =
+    mode === "totp"
       ? otp.isComplete
       : mode === "recovery"
         ? recoveryCode.trim() !== ""
@@ -210,7 +219,8 @@ export default function MfaDisableDialog({
                 <div className="space-y-4">
                   <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
                     <p className="text-xs text-text-muted text-center">
-                      Verification codes will be sent to both email addresses registered for your account.
+                      Verification codes will be sent to both email addresses
+                      registered for your account.
                     </p>
                   </div>
 
@@ -220,9 +230,7 @@ export default function MfaDisableDialog({
                     disabled={requestingEmail}
                     className="w-full px-4 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-dim disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {requestingEmail && (
-                      <Spinner tone="onPrimary" />
-                    )}
+                    {requestingEmail && <Spinner tone="onPrimary" />}
                     Send Verification Codes
                   </button>
 
@@ -240,7 +248,10 @@ export default function MfaDisableDialog({
                 <div className="space-y-4 text-center">
                   <div className="flex justify-center">
                     <div className="w-14 h-14 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-                      <CheckCircleIcon className="w-7 h-7 text-accent-green" strokeWidth={2} />
+                      <CheckCircleIcon
+                        className="w-7 h-7 text-accent-green"
+                        strokeWidth={2}
+                      />
                     </div>
                   </div>
 
@@ -249,13 +260,18 @@ export default function MfaDisableDialog({
                       Emails Sent!
                     </h4>
                     <p className="text-xs text-text-muted leading-relaxed">
-                      Verification codes have been sent to both your main and recovery email addresses.
+                      Verification codes have been sent to both your main and
+                      recovery email addresses.
                     </p>
                   </div>
 
                   <div className="p-3 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg">
                     <p className="text-2xs text-text-muted leading-relaxed">
-                      <span className="font-semibold text-accent-yellow">Next step:</span> Check both email inboxes and click the link in either email to continue.
+                      <span className="font-semibold text-accent-yellow">
+                        Next step:
+                      </span>{" "}
+                      Check both email inboxes and click the link in either
+                      email to continue.
                     </p>
                   </div>
 
@@ -286,9 +302,7 @@ export default function MfaDisableDialog({
                 disabled={submitting || !isComplete}
                 className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                {submitting && (
-                  <Spinner tone="onPrimary" />
-                )}
+                {submitting && <Spinner tone="onPrimary" />}
                 Disable MFA
               </button>
             </div>
