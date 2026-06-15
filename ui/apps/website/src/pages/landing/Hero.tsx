@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { Button } from "@shellhub/design-system/primitives";
+import { ArrowRight } from "@/components/ArrowRight";
 import { ConnectionGrid } from "./components";
 
 export function Hero() {
@@ -50,25 +52,16 @@ export function Hero() {
           className="flex gap-3 flex-wrap justify-center animate-fade-in"
           style={{ animationDelay: "300ms" }}
         >
-          <Link
+          <Button
+            as={Link}
             to="/getting-started"
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 text-[15px] font-semibold bg-primary border border-primary-400/40 text-white rounded-xl animate-[cta-glow_2.5s_ease-in-out_infinite] hover:brightness-110 hover:border-primary-400/60 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group"
+            variant="primary"
+            size="xl"
+            glow
+            iconRight={<ArrowRight />}
           >
             Get Started
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
+          </Button>
         </div>
       </div>
     </section>

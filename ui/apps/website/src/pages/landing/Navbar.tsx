@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "@shellhub/design-system/primitives";
 import { C } from "./constants";
 import { loginUrl, signupUrl } from "@/links";
 import {
@@ -440,36 +441,26 @@ export function Navbar({
 
           {/* CTA */}
           <div className="hidden lg:flex items-center gap-2">
-            <a
+            <Button
+              as="a"
               href={loginUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-[13px] font-medium rounded-lg transition-all"
-              style={{ color: C.textSec, border: `1px solid ${C.border}` }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = C.text;
-                e.currentTarget.style.borderColor = C.borderLight;
-                e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = C.textSec;
-                e.currentTarget.style.borderColor = C.border;
-                e.currentTarget.style.background = "";
-              }}
+              variant="outline"
+              size="md"
             >
               Log In
-            </a>
-            <a
+            </Button>
+            <Button
+              as="a"
               href={signupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-[13px] font-semibold rounded-lg transition-all"
-              style={{ background: C.primary, color: "#111214" }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              variant="primary"
+              size="md"
             >
               Sign Up Free
-            </a>
+            </Button>
           </div>
         </div>
 
@@ -525,24 +516,28 @@ export function Navbar({
             className="pt-2 mt-1 flex flex-col gap-2"
             style={{ borderTop: `1px solid ${C.border}` }}
           >
-            <a
+            <Button
+              as="a"
               href={loginUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-center text-[13px] font-medium rounded-lg"
-              style={{ color: C.textSec, border: `1px solid ${C.border}` }}
+              variant="outline"
+              size="md"
+              fullWidth
             >
               Log In
-            </a>
-            <a
+            </Button>
+            <Button
+              as="a"
               href={signupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-center text-[13px] font-semibold rounded-lg"
-              style={{ background: C.primary, color: "#111214" }}
+              variant="primary"
+              size="md"
+              fullWidth
             >
               Sign Up Free
-            </a>
+            </Button>
           </div>
         </div>
       </nav>

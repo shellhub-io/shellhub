@@ -171,15 +171,6 @@
     45% { transform: translateY(0); }
   }
 
-  @keyframes cta-border-spin {
-    to { transform: rotate(1turn); }
-  }
-
-  @keyframes cta-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(var(--color-primary-rgb),0.3), 0 0 40px rgba(var(--color-primary-rgb),0.15), 0 0 60px rgba(var(--color-primary-rgb),0.05); }
-    50%      { box-shadow: 0 0 28px rgba(var(--color-primary-rgb),0.5), 0 0 56px rgba(var(--color-primary-rgb),0.25), 0 0 90px rgba(var(--color-primary-rgb),0.12); }
-  }
-
   /* Landing page scroll-reveal */
   .landing-reveal {
     opacity: 0;

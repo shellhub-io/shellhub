@@ -1,5 +1,11 @@
 import { Link } from "react-router-dom";
-import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  IconBadge,
+} from "@shellhub/design-system/primitives";
+import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -168,32 +174,19 @@ export default function IotEmbedded() {
           </Reveal>
           <Reveal>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
+              <Button
+                as={Link}
                 to="/getting-started"
-                className="relative inline-flex items-center gap-2.5 px-8 py-3.5 text-[15px] font-semibold bg-primary text-[#111214] rounded-xl shadow-[0_0_20px_rgba(102,122,204,0.3)] hover:shadow-[0_0_32px_rgba(102,122,204,0.5)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group overflow-hidden"
+                variant="primary"
+                size="xl"
+                glow
+                iconRight={<ArrowRight />}
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out" />
-                <span className="relative">Get Started Free</span>
-                <svg
-                  className="relative w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                  />
-                </svg>
-              </Link>
-              <Link
-                to="/pricing"
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-[15px] font-medium text-text-secondary border border-border rounded-xl hover:text-text-primary hover:border-border-light hover:bg-white/[0.04] transition-all duration-300"
-              >
+                Get Started Free
+              </Button>
+              <Button as={Link} to="/pricing" variant="outline" size="xl">
                 View Pricing
-              </Link>
+              </Button>
             </div>
           </Reveal>
         </div>
@@ -959,32 +952,24 @@ export default function IotEmbedded() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Link
+                  <Button
+                    as={Link}
                     to="/getting-started"
-                    className="relative inline-flex items-center gap-2.5 px-8 py-3.5 text-[15px] font-semibold bg-primary text-[#111214] rounded-xl shadow-[0_0_20px_rgba(102,122,204,0.3)] hover:shadow-[0_0_32px_rgba(102,122,204,0.5)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group overflow-hidden"
+                    variant="primary"
+                    size="xl"
+                    glow
+                    iconRight={<ArrowRight />}
                   >
-                    <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out" />
-                    <span className="relative">Get Started Free</span>
-                    <svg
-                      className="relative w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                      />
-                    </svg>
-                  </Link>
-                  <a
+                    Get Started Free
+                  </Button>
+                  <Button
+                    as="a"
                     href="mailto:sales@shellhub.io"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 text-[15px] font-medium text-text-secondary border border-border rounded-xl hover:text-text-primary hover:border-border-light hover:bg-white/[0.04] transition-all duration-300"
+                    variant="outline"
+                    size="xl"
                   >
                     Contact Sales
-                  </a>
+                  </Button>
                 </div>
               </div>
             </div>
