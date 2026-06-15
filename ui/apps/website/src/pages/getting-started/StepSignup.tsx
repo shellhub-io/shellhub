@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 import { Reveal } from "../landing/components";
 import apiClient from "../../api/client";
 import { loginUrl } from "@/links";
@@ -153,12 +153,15 @@ export function StepSignup({ onBack }: StepSignupProps) {
               Check your email to confirm your account, then log in to get
               started.
             </p>
-            <a
+            <Button
+              as="a"
+              variant="primary"
+              size="lg"
+              fullWidth
               href={loginUrl}
-              className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 text-sm font-semibold bg-primary border border-primary-400/40 text-white rounded-xl hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
               Go to Login
-            </a>
+            </Button>
           </Card>
         </Reveal>
       </div>
@@ -460,20 +463,16 @@ export function StepSignup({ onBack }: StepSignupProps) {
             </div>
 
             {/* Submit */}
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 text-sm font-semibold bg-primary border border-primary-400/40 text-white rounded-xl hover:brightness-110 hover:border-primary-400/60 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 mt-1"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+              className="mt-1"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating account...
-                </span>
-              ) : (
-                "Create Account"
-              )}
-            </button>
+              {loading ? "Creating account..." : "Create Account"}
+            </Button>
 
             {/* Back */}
             <button

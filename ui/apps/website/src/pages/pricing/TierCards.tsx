@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Button } from "@shellhub/design-system/primitives";
 import { Reveal, ShimmerCard } from "../landing/components";
 
 const tiers = [
@@ -131,29 +132,21 @@ export function TierCards() {
                       ))}
                     </ul>
 
-                    <Link
+                    <Button
+                      as={Link}
                       to={tier.ctaHref}
-                      className={`inline-flex items-center justify-center gap-2 w-full px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-300 group ${
+                      variant={tier.highlighted ? "primary" : "surface"}
+                      size="lg"
+                      glow={tier.highlighted}
+                      fullWidth
+                      className={
                         tier.highlighted
-                          ? "bg-primary border border-primary-400/40 text-white hover:brightness-110 hover:border-primary-400/60 hover:scale-[1.02] active:scale-[0.98]"
-                          : "bg-surface border border-border text-text-primary hover:border-border-light hover:bg-white/[0.04] hover:scale-[1.02] active:scale-[0.98]"
-                      }`}
+                          ? undefined
+                          : "hover:scale-[1.02] active:scale-[0.98]"
+                      }
                     >
                       {tier.cta}
-                      <svg
-                        className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                        />
-                      </svg>
-                    </Link>
+                    </Button>
                   </div>
                 </div>
               </ShimmerCard>
