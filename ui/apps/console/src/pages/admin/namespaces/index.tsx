@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ServerStackIcon,
@@ -16,6 +16,7 @@ import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -91,28 +92,28 @@ export default function AdminNamespaces() {
       headerClassName: "text-right",
       render: (ns) => (
         <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={(e) => {
+          <IconButton
+            variant="primary"
+            title="Edit namespace"
+            aria-label={`Edit ${ns.name}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               setEditTarget(ns);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-            title="Edit namespace"
-            aria-label={`Edit ${ns.name}`}
           >
             <PencilSquareIcon className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
+          </IconButton>
+          <IconButton
+            variant="danger"
+            title="Delete namespace"
+            aria-label={`Delete ${ns.name}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               setDeleteTarget(ns);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-            title="Delete namespace"
-            aria-label={`Delete ${ns.name}`}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       ),
     },

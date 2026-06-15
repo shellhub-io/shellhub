@@ -12,7 +12,7 @@ import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import type { VaultKeyEntry } from "@/types/vault";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 
 interface Props {
   open: boolean;
@@ -164,30 +164,18 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
       title={isEdit ? "Edit Private Key" : "Add Private Key"}
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
           >
-            {submitting ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Saving...
-              </>
-            ) : isEdit ? (
-              "Save Changes"
-            ) : (
-              "Add Key"
-            )}
-          </button>
+            {submitting ? "Saving..." : isEdit ? "Save Changes" : "Add Key"}
+          </Button>
         </>
       }
     >

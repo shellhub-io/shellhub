@@ -4,6 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateMembershipInvitation } from "@/hooks/useInvitationMutations";
 import type { MembershipInvitation } from "@/client";
 import Drawer from "@/components/common/Drawer";
+import { Button } from "@shellhub/design-system/primitives";
 import { RoleSelector } from "./constants";
 import { isAssignableRole, type AssignableRole } from "./helpers";
 
@@ -28,9 +29,7 @@ function EditInvitationDrawer({
     // but only assignable roles can be chosen via RoleSelector. Fall back to
     // "operator" for any non-assignable role — in practice "owner" never
     // reaches the edit drawer, but the guard keeps types sound.
-    setRole(
-      isAssignableRole(invitation?.role) ? invitation.role : "operator",
-    );
+    setRole(isAssignableRole(invitation?.role) ? invitation.role : "operator");
     setSubmitting(false);
     setError("");
   });
@@ -64,20 +63,17 @@ function EditInvitationDrawer({
       }
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={role === invitation?.role || submitting}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            loading={submitting}
           >
             Save Changes
-          </button>
+          </Button>
         </>
       }
     >

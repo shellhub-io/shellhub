@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 interface DrawerProps {
@@ -61,12 +62,9 @@ export default function Drawer({
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-          >
+          <IconButton variant="ghost" aria-label="Close" onClick={onClose}>
             <XMarkIcon className="w-5 h-5" />
-          </button>
+          </IconButton>
         </div>
         <div className={bodyClassName ?? "flex-1 overflow-y-auto px-6 py-5"}>
           {children}

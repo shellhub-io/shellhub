@@ -4,8 +4,8 @@ import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import { getSafeRedirect } from "../utils/navigation";
+import { Button } from "@shellhub/design-system/primitives";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import Spinner from "@/components/common/Spinner";
 import Alert from "@/components/common/Alert";
 
 export default function MfaLogin() {
@@ -77,7 +77,10 @@ export default function MfaLogin() {
             <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
               Verification Code
             </label>
-            <div className="flex gap-2 justify-center" onPaste={otp.handlePaste}>
+            <div
+              className="flex gap-2 justify-center"
+              onPaste={otp.handlePaste}
+            >
               {otp.code.map((digit, index) => (
                 <input
                   key={index}
@@ -96,20 +99,17 @@ export default function MfaLogin() {
             </div>
           </div>
 
-          <button
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             type="submit"
+            className="px-4"
+            loading={loading}
             disabled={loading || !otp.isComplete}
-            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Verifying...
-              </>
-            ) : (
-              "Verify"
-            )}
-          </button>
+            {loading ? "Verifying..." : "Verify"}
+          </Button>
 
           <div className="text-center pt-2">
             <Link

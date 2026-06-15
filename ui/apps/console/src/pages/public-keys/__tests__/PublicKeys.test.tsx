@@ -100,7 +100,7 @@ describe("PublicKeys — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
     render(<PublicKeys />);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: /^delete/i }));
     return user;
   }
 

@@ -18,7 +18,7 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 

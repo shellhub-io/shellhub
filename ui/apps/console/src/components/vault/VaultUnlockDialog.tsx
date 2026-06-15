@@ -3,7 +3,7 @@ import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 interface Props {
   open: boolean;

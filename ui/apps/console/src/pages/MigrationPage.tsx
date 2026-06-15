@@ -5,7 +5,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "../components/common/AmbientBackground";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 

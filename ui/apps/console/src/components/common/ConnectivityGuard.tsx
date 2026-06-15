@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 function ApiUnavailablePage() {
   return (

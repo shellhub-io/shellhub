@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Spinner } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import {
   Elements,
@@ -33,7 +33,6 @@ import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
 import BillingIcon from "./BillingIcon";
-import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
 
 const ELEMENTS_OPTIONS: StripeElementsOptions = {

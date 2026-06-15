@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LifebuoyIcon } from "@heroicons/react/24/outline";
 import { useChatwootContext } from "@/hooks/useChatwoot";
 import SupportPaywallDialog from "./SupportPaywallDialog";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const GITHUB_ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new";
 

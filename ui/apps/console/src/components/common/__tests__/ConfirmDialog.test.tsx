@@ -233,7 +233,7 @@ describe("ConfirmDialog", () => {
     it("applies danger variant classes by default", () => {
       renderDialog(true);
       const btn = screen.getByRole("button", { name: "Confirm" });
-      expect(btn.className).toContain("bg-accent-red/90");
+      expect(btn.className).toContain("bg-accent-red");
     });
 
     it("applies primary variant classes when variant='primary'", () => {
@@ -255,6 +255,29 @@ describe("ConfirmDialog", () => {
       const btn = screen.getByRole("button", { name: "Confirm" });
       expect(btn.className).toContain("bg-accent-yellow");
       expect(btn.className).not.toContain("bg-accent-red");
+    });
+
+    it("variant=warning loading renders Spinner with onBackground tone (border-background/30)", async () => {
+      const user = userEvent.setup();
+      let resolve!: () => void;
+      const onConfirm = vi.fn(
+        () =>
+          new Promise<void>((res) => {
+            resolve = res;
+          }),
+      );
+      renderDialog(true, { variant: "warning", onConfirm });
+
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+      const confirmBtn = screen.getByRole("button", { name: "Confirm" });
+      const spinner = confirmBtn.querySelector(".animate-spin");
+      expect(spinner).not.toBeNull();
+      expect(spinner!.className).toContain("border-background/30");
+
+      act(() => {
+        resolve();
+      });
     });
   });
 });

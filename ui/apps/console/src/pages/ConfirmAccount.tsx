@@ -4,7 +4,7 @@ import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
 import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function ConfirmAccount() {
   const [searchParams] = useSearchParams();
@@ -16,15 +16,19 @@ export default function ConfirmAccount() {
     resetErrors();
   }, [resetErrors]);
 
-  const { handleResend, resendLoading, resendError, resendSuccess, resendCooldown } = useResendEmail(username);
+  const {
+    handleResend,
+    resendLoading,
+    resendError,
+    resendSuccess,
+    resendCooldown,
+  } = useResendEmail(username);
 
   if (!username) return <Navigate to="/login" replace />;
 
   return (
     <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm text-center animate-slide-up"
-      >
+      <div className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm text-center animate-slide-up">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/20 mb-5">
           <EnvelopeIcon className="w-7 h-7 text-primary" strokeWidth={1.5} />
         </div>
@@ -58,23 +62,20 @@ export default function ConfirmAccount() {
           disabled={resendLoading || resendCooldown > 0}
           className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mb-5 flex items-center justify-center gap-2"
         >
-          {resendLoading
-            ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Sending...
-              </>
-            ) : resendCooldown > 0 ? (
-              `Resend Email (${resendCooldown}s)`
-            )
-              : (
-                "Resend Email"
-              )}
+          {resendLoading ? (
+            <>
+              <Spinner size="sm" tone="onPrimary" />
+              Sending...
+            </>
+          ) : resendCooldown > 0 ? (
+            `Resend Email (${resendCooldown}s)`
+          ) : (
+            "Resend Email"
+          )}
         </button>
 
         <p className="text-xs text-text-muted">
-          Back to
-          {" "}
+          Back to{" "}
           <Link
             to="/login"
             className="text-primary hover:text-primary/80 font-medium transition-colors"

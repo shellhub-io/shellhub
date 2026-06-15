@@ -23,7 +23,7 @@ import {
 } from "@/hooks/useDeviceChooser";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 5;
 const SEARCH_DEBOUNCE_MS = 300;

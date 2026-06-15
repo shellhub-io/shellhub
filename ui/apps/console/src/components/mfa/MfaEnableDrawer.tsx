@@ -4,7 +4,7 @@ import {
   CheckCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import { IconBadge } from "@shellhub/design-system/primitives";
+import { IconBadge, Spinner } from "@shellhub/design-system/primitives";
 import Alert from "@/components/common/Alert";
 import Drawer from "../common/Drawer";
 import CheckboxField from "@/components/common/fields/CheckboxField";
@@ -13,8 +13,6 @@ import { generateMfa, enableMfa, updateUser } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
-import Spinner from "@/components/common/Spinner";
-
 interface MfaEnableDrawerProps {
   open: boolean;
   onClose: () => void;

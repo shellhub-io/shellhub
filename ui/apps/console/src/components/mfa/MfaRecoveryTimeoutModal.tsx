@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "@/hooks/useCountdown";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaRecoveryTimeoutModalProps {
@@ -62,7 +62,8 @@ export default function MfaRecoveryTimeoutModal({
         <div className="text-sm text-text-muted mb-6 leading-relaxed">
           <p className="mb-3">
             You've successfully used a recovery code. For security reasons, you
-            now have a <strong className="text-text-primary">10-minute window</strong> to
+            now have a{" "}
+            <strong className="text-text-primary">10-minute window</strong> to
             disable MFA if you no longer have access to your authenticator
             device.
           </p>
@@ -97,9 +98,7 @@ export default function MfaRecoveryTimeoutModal({
             disabled={hasAccess || disabling || isExpired}
             className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {disabling && (
-              <Spinner tone="onPrimary" />
-            )}
+            {disabling && <Spinner tone="onPrimary" />}
             Disable MFA
           </button>
         </div>

@@ -1,8 +1,8 @@
 import { ReactNode, useId, useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { Button, type ButtonVariant } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
-import Spinner from "@/components/common/Spinner";
 
 interface ConfirmDialogProps {
   /** Controls open/close state. */
@@ -49,16 +49,14 @@ interface ConfirmDialogProps {
   errorMessage?: string | null;
 }
 
-// Text color is included per-variant so that `warning`'s dark text is not
-// overridden by a standalone `text-white` on the button element.
-const VARIANT_CLASSES: Record<
+const VARIANT_BUTTON: Record<
   "primary" | "danger" | "success" | "warning",
-  string
+  ButtonVariant
 > = {
-  danger: "bg-accent-red/90 hover:bg-accent-red text-white",
-  primary: "bg-primary hover:bg-primary-600 text-white",
-  success: "bg-accent-green/90 hover:bg-accent-green text-white",
-  warning: "bg-accent-yellow/90 hover:bg-accent-yellow text-background",
+  primary: "primary",
+  danger: "destructive",
+  success: "success",
+  warning: "warning",
 };
 
 export default function ConfirmDialog({
@@ -96,6 +94,8 @@ export default function ConfirmDialog({
       setConfirming(false);
     }
   };
+
+  const buttonVariant = VARIANT_BUTTON[variant];
 
   return (
     <BaseDialog
@@ -139,20 +139,17 @@ export default function ConfirmDialog({
 
       {/* Footer */}
       <div className="flex justify-end gap-2 px-6 py-4 border-t border-border">
-        <button
-          onClick={onClose}
-          className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-        >
+        <Button variant="ghost" onClick={onClose}>
           {cancelLabel}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={buttonVariant}
+          disabled={confirmDisabled}
+          loading={confirming}
           onClick={() => void handleConfirm()}
-          disabled={confirming || confirmDisabled}
-          className={`px-5 py-2.5 ${VARIANT_CLASSES[variant]} rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2`}
         >
-          {confirming && <Spinner tone="onPrimary" />}
           {confirmLabel}
-        </button>
+        </Button>
       </div>
     </BaseDialog>
   );

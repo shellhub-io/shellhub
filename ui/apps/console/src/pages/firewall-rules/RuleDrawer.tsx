@@ -24,7 +24,7 @@ import {
 import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
 import NumericInput from "@/components/common/fields/NumericInput";
 import { LABEL } from "@/utils/styles";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;
@@ -180,30 +180,18 @@ export default function RuleDrawer({
       title={isEdit ? "Edit Firewall Rule" : "New Firewall Rule"}
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
           >
-            {submitting ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Saving...
-              </>
-            ) : isEdit ? (
-              "Save Changes"
-            ) : (
-              "Create Rule"
-            )}
-          </button>
+            {submitting ? "Saving..." : isEdit ? "Save Changes" : "Create Rule"}
+          </Button>
         </>
       }
     >

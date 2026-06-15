@@ -18,7 +18,7 @@ import {
   NAMESPACE_NAME_MIN_LENGTH,
   validateNamespaceName,
 } from "@/utils/validation";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 /* ─── Cloud/Enterprise form ─── */
 function CloudForm() {

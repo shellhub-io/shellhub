@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MegaphoneIcon,
@@ -13,7 +13,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
 import type { AnnouncementShort } from "@/client";
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -67,28 +67,28 @@ export default function AdminAnnouncements() {
       headerClassName: "text-right",
       render: (a) => (
         <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={(e) => {
+          <IconButton
+            variant="primary"
+            title="Edit announcement"
+            aria-label={`Edit ${a.title}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               void navigate(`/admin/announcements/${a.uuid}/edit`);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/5 transition-colors"
-            title="Edit announcement"
-            aria-label={`Edit ${a.title}`}
           >
             <PencilSquareIcon className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
+          </IconButton>
+          <IconButton
+            variant="danger"
+            title="Delete announcement"
+            aria-label={`Delete ${a.title}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               setDeleteTarget(a);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-            title="Delete announcement"
-            aria-label={`Delete ${a.title}`}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       ),
     },
@@ -102,13 +102,13 @@ export default function AdminAnnouncements() {
         title="Announcements"
         description="Manage system-wide announcements for all users"
       >
-        <button
+        <Button
+          variant="primary"
           onClick={() => void navigate("/admin/announcements/new")}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+          icon={<PlusIcon className="w-4 h-4" />}
         >
-          <PlusIcon className="w-4 h-4" />
           New
-        </button>
+        </Button>
       </PageHeader>
 
       {error && (

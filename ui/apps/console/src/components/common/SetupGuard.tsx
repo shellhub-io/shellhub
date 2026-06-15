@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { getInfo } from "@/client";
 import { getConfig } from "@/env";
-import Spinner from "@/components/common/Spinner";
+import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function SetupGuard() {
   const isCloud = getConfig().cloud;

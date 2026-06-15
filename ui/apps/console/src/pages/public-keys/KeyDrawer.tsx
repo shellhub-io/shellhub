@@ -9,8 +9,15 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@/components/icons";
-import { useCreatePublicKey, useUpdatePublicKey } from "@/hooks/usePublicKeyMutations";
-import type { PublicKeyFilterResponse, PublicKeyRequest, PublicKeyResponse } from "@/client";
+import {
+  useCreatePublicKey,
+  useUpdatePublicKey,
+} from "@/hooks/usePublicKeyMutations";
+import type {
+  PublicKeyFilterResponse,
+  PublicKeyRequest,
+  PublicKeyResponse,
+} from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -18,7 +25,7 @@ import TagsSelector from "@/components/common/fields/TagsSelector";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import KeyDataInput from "./KeyDataInput";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 
 /* --- Drawer --- */
 function KeyDrawer({
@@ -49,7 +56,8 @@ function KeyDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const mapTagsNames = (tags: PublicKeyFilterResponse["tags"]) => tags.map((t) => t.name);
+  const mapTagsNames = (tags: PublicKeyFilterResponse["tags"]) =>
+    tags.map((t) => t.name);
 
   useResetOnOpen(open, () => {
     const decodedKeyData = editKey
@@ -77,8 +85,14 @@ function KeyDrawer({
     );
     setUsername(editKey && editKey.username !== ".*" ? editKey.username : "");
     setFilterOption(filterInit);
-    setHostname(editKey && filterInit === "hostname" ? (editKey.filter.hostname ?? "") : "");
-    setSelectedTags(editKey && filterInit === "tags" ? mapTagsNames(editKey.filter.tags) : []);
+    setHostname(
+      editKey && filterInit === "hostname"
+        ? (editKey.filter.hostname ?? "")
+        : "",
+    );
+    setSelectedTags(
+      editKey && filterInit === "tags" ? mapTagsNames(editKey.filter.tags) : [],
+    );
     setSubmitting(false);
     setError(null);
   });
@@ -170,30 +184,18 @@ function KeyDrawer({
       title={isEdit ? "Edit Public Key" : "New Public Key"}
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
           >
-            {submitting ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Saving...
-              </>
-            ) : isEdit ? (
-              "Save Changes"
-            ) : (
-              "Create Key"
-            )}
-          </button>
+            {submitting ? "Saving..." : isEdit ? "Save Changes" : "Create Key"}
+          </Button>
         </>
       }
     >

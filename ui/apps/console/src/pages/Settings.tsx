@@ -33,7 +33,7 @@ import InputField from "@/components/common/fields/InputField";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
-import Spinner from "@/components/common/Spinner";
+import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Settings Card ─── */
@@ -146,26 +146,18 @@ function EditNameDrawer({
       bodyClassName="flex-1 overflow-y-auto px-6 py-5"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={submitting}
+            icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            {submitting ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
             Save
-          </button>
+          </Button>
         </>
       }
     >
@@ -610,13 +602,13 @@ export default function Settings() {
               title="Delete Namespace"
               description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
             >
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="dangerSoft"
                 onClick={() => setDeleteOpen(true)}
-                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
                 Delete
-              </button>
+              </Button>
             </SettingsRow>
           ) : (
             <SettingsRow
@@ -626,13 +618,13 @@ export default function Settings() {
               title="Leave Namespace"
               description="You will lose access immediately. To rejoin, someone will need to invite you again."
             >
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="dangerSoft"
                 onClick={() => setLeaveOpen(true)}
-                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
                 Leave
-              </button>
+              </Button>
             </SettingsRow>
           )}
         </SettingsCard>

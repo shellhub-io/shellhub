@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   UsersIcon,
@@ -19,8 +19,7 @@ import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
-import Spinner from "@/components/common/Spinner";
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, IconButton, Spinner } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -89,17 +88,17 @@ export default function AdminUsers() {
       headerClassName: "text-right",
       render: (user) => (
         <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={(e) => {
+          <IconButton
+            variant="primary"
+            title="Edit user"
+            aria-label={`Edit ${user.name}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               setEditTarget(user);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-            title="Edit user"
-            aria-label={`Edit ${user.name}`}
           >
             <PencilSquareIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -124,17 +123,17 @@ export default function AdminUsers() {
               <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
             )}
           </button>
-          <button
-            onClick={(e) => {
+          <IconButton
+            variant="danger"
+            title="Delete user"
+            aria-label={`Delete ${user.name}`}
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               setDeleteTarget(user);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-            title="Delete user"
-            aria-label={`Delete ${user.name}`}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       ),
     },

@@ -2,7 +2,11 @@ import { useState, useRef, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTags } from "../hooks/useTags";
-import { useCreateTag, useUpdateTag, useDeleteTag } from "../hooks/useTagMutations";
+import {
+  useCreateTag,
+  useUpdateTag,
+  useDeleteTag,
+} from "../hooks/useTagMutations";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
 import {
@@ -13,7 +17,7 @@ import {
   TrashIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import Spinner from "@/components/common/Spinner";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
@@ -47,10 +51,10 @@ export default function ManageTagsDrawer({
     setError(null);
   });
 
-  const newNameValid
-    = newName.trim().length >= 3
-      && newName.trim().length <= 255
-      && TAG_PATTERN.test(newName.trim());
+  const newNameValid =
+    newName.trim().length >= 3 &&
+    newName.trim().length <= 255 &&
+    TAG_PATTERN.test(newName.trim());
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -72,10 +76,10 @@ export default function ManageTagsDrawer({
   };
 
   const editNameTrimmed = editName.trim();
-  const editNameValid
-    = editNameTrimmed.length >= 3
-      && editNameTrimmed.length <= 255
-      && TAG_PATTERN.test(editNameTrimmed);
+  const editNameValid =
+    editNameTrimmed.length >= 3 &&
+    editNameTrimmed.length <= 255 &&
+    TAG_PATTERN.test(editNameTrimmed);
   const editNameChanged = editingTag !== null && editNameTrimmed !== editingTag;
 
   const handleRename = async (currentName: string, fromBlur = false) => {
@@ -85,9 +89,9 @@ export default function ManageTagsDrawer({
       return;
     }
     if (
-      trimmed.length < 3
-      || trimmed.length > 255
-      || !TAG_PATTERN.test(trimmed)
+      trimmed.length < 3 ||
+      trimmed.length > 255 ||
+      !TAG_PATTERN.test(trimmed)
     ) {
       if (fromBlur) setEditingTag(null);
       return;
@@ -95,7 +99,10 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await updateTag.mutateAsync({ path: { name: currentName }, body: { name: trimmed } });
+      await updateTag.mutateAsync({
+        path: { name: currentName },
+        body: { name: trimmed },
+      });
       skipBlurRef.current = true;
       setEditName("");
       setEditingTag(null);
@@ -131,15 +138,11 @@ export default function ManageTagsDrawer({
         icon={<TagIcon className="w-4 h-4 text-primary" />}
         width="sm"
         bodyClassName="flex-1 flex flex-col overflow-hidden"
-        footer={(
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+        footer={
+          <Button variant="ghost" onClick={onClose}>
             Done
-          </button>
-        )}
+          </Button>
+        }
       >
         {/* Create input */}
         <form
@@ -154,19 +157,16 @@ export default function ManageTagsDrawer({
               placeholder="Enter tag name..."
               className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
             />
-            <button
+            <IconButton
               type="submit"
-              disabled={!newNameValid || submitting}
-              className="px-3 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all shrink-0"
+              variant="primary"
+              size="lg"
+              loading={submitting}
+              disabled={!newNameValid}
+              aria-label="Add tag"
             >
-              {submitting
-                ? (
-                  <Spinner tone="onPrimary" className="block" />
-                )
-                : (
-                  <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                )}
-            </button>
+              <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            </IconButton>
           </div>
           {newName.trim() && !newNameValid && (
             <p className="mt-1.5 text-2xs text-text-muted">
@@ -203,105 +203,97 @@ export default function ManageTagsDrawer({
 
         {/* Tag list */}
         <div className="flex-1 overflow-y-auto">
-          {isLoading && tags.length === 0
-            ? (
-              <PageLoader label="Loading tags" padding="sm" />
-            )
-            : tags.length === 0
-              ? (
-                <div className="px-6 py-12 text-center">
-                  <TagIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-3" />
-                  <p className="text-sm text-text-muted">No tags yet</p>
-                  <p className="text-2xs text-text-muted/60 mt-1">
-                    Create your first tag above.
-                  </p>
-                </div>
-              )
-              : (
-                <div className="divide-y divide-border/60">
-                  {tags.map((tag) => (
-                    <div
-                      key={tag.name}
-                      className="group flex items-center gap-2 px-6 py-2.5 hover:bg-hover-subtle transition-colors"
-                    >
-                      {editingTag === tag.name
-                        ? (
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  skipBlurRef.current = true;
-                                  void handleRename(tag.name);
-                                }
-                                if (e.key === "Escape") {
-                                  skipBlurRef.current = true;
-                                  setEditName("");
-                                  setEditingTag(null);
-                                }
-                              }}
-                              onBlur={() => {
-                                if (skipBlurRef.current) {
-                                  skipBlurRef.current = false;
-                                  return;
-                                }
-                                void handleRename(tag.name, true);
-                              }}
-                              autoFocus
-                              className={`w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all ${
-                                editNameChanged && !editNameValid
-                                  ? "border-accent-red/50 focus:ring-accent-red/20"
-                                  : "border-primary/50 focus:ring-primary/20"
-                              }`}
-                            />
-                            {editNameChanged && !editNameValid && (
-                              <p className="mt-1 text-2xs text-accent-red">
-                                {editNameTrimmed.length < 3
-                                  ? "At least 3 characters"
-                                  : editNameTrimmed.length > 255
-                                    ? "At most 255 characters"
-                                    : "Only letters and numbers"}
-                              </p>
-                            )}
-                          </div>
-                        )
-                        : (
-                          <div className="flex-1 flex items-center gap-2 min-w-0">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium">
-                              <TagIcon className="w-3 h-3" strokeWidth={2} />
-                              {tag.name}
-                            </span>
-                          </div>
-                        )}
-                      {editingTag !== tag.name && (
-                        <div className="flex items-center gap-0.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingTag(tag.name);
-                              setEditName(tag.name);
-                            }}
-                            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                            title="Rename"
-                          >
-                            <PencilSquareIcon className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingTag(tag.name)}
-                            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-                            title="Delete"
-                          >
-                            <TrashIcon className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+          {isLoading && tags.length === 0 ? (
+            <PageLoader label="Loading tags" padding="sm" />
+          ) : tags.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <TagIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-3" />
+              <p className="text-sm text-text-muted">No tags yet</p>
+              <p className="text-2xs text-text-muted/60 mt-1">
+                Create your first tag above.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {tags.map((tag) => (
+                <div
+                  key={tag.name}
+                  className="group flex items-center gap-2 px-6 py-2.5 hover:bg-hover-subtle transition-colors"
+                >
+                  {editingTag === tag.name ? (
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            skipBlurRef.current = true;
+                            void handleRename(tag.name);
+                          }
+                          if (e.key === "Escape") {
+                            skipBlurRef.current = true;
+                            setEditName("");
+                            setEditingTag(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (skipBlurRef.current) {
+                            skipBlurRef.current = false;
+                            return;
+                          }
+                          void handleRename(tag.name, true);
+                        }}
+                        autoFocus
+                        className={`w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all ${
+                          editNameChanged && !editNameValid
+                            ? "border-accent-red/50 focus:ring-accent-red/20"
+                            : "border-primary/50 focus:ring-primary/20"
+                        }`}
+                      />
+                      {editNameChanged && !editNameValid && (
+                        <p className="mt-1 text-2xs text-accent-red">
+                          {editNameTrimmed.length < 3
+                            ? "At least 3 characters"
+                            : editNameTrimmed.length > 255
+                              ? "At most 255 characters"
+                              : "Only letters and numbers"}
+                        </p>
                       )}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium">
+                        <TagIcon className="w-3 h-3" strokeWidth={2} />
+                        {tag.name}
+                      </span>
+                    </div>
+                  )}
+                  {editingTag !== tag.name && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <IconButton
+                        variant="ghost"
+                        title="Rename"
+                        onClick={() => {
+                          setEditingTag(tag.name);
+                          setEditName(tag.name);
+                        }}
+                      >
+                        <PencilSquareIcon className="w-3.5 h-3.5" />
+                      </IconButton>
+                      <IconButton
+                        variant="danger"
+                        title="Delete"
+                        onClick={() => setDeletingTag(tag.name)}
+                      >
+                        <TrashIcon className="w-3.5 h-3.5" />
+                      </IconButton>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
+            </div>
+          )}
         </div>
       </Drawer>
 
@@ -310,14 +302,13 @@ export default function ManageTagsDrawer({
         onClose={() => setDeletingTag(null)}
         onConfirm={() => handleDelete(deletingTag!)}
         title="Delete Tag"
-        description={(
+        description={
           <>
-            Are you sure you want to delete
-            {" "}
+            Are you sure you want to delete{" "}
             <span className="font-medium text-text-primary">{deletingTag}</span>
             ? This will remove the tag from all devices.
           </>
-        )}
+        }
         confirmLabel="Delete"
       />
     </>

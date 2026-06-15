@@ -20,7 +20,7 @@ import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
 import { INPUT, LABEL } from "../utils/styles";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, Button } from "@shellhub/design-system/primitives";
 import type { VaultKeyEntry } from "../types/vault";
 
 interface Props {
@@ -230,22 +230,20 @@ export default function ConnectDrawer({
         subtitle={<span className="font-mono">{deviceName}</span>}
         footer={
           <>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="success"
               type="submit"
               form={`connect-form-${deviceUid}`}
               disabled={!canConnect}
-              className="px-5 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              icon={
+                <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
+              }
             >
-              <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
               Connect
-            </button>
+            </Button>
           </>
         }
       >
