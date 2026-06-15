@@ -14,6 +14,9 @@ const (
 	// messageKindError is the identifier to output an erro rmessage. This kind of message contains data to be show
 	// in terminal for information propose.
 	messageKindError
+	// messageKindSession carries the server session UID to the web client, so a client-side recording can be tied
+	// to its session. This kind of message contains the session UID as a string.
+	messageKindSession
 )
 
 // MessageMinSize is the minimum size of a message in bytes. This is used to validate if the message is valid.

@@ -206,6 +206,14 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	defer connection.Close() //nolint:errcheck
 
+	// Ask the SSH server for this connection's session UID and relay it to the web
+	// client, so a client-side recording can be tied to its server session.
+	if ok, reply, err := connection.SendRequest("session-uid@shellhub.io", true, nil); err == nil && ok {
+		if _, err := conn.WriteMessage(&Message{Kind: messageKindSession, Data: string(reply)}); err != nil {
+			logger.WithError(err).Debug("failed to send the session UID to the web client")
+		}
+	}
+
 	agent, err := connection.NewSession()
 	if err != nil {
 		logger.WithError(err).Debug("failed to create a new session")
