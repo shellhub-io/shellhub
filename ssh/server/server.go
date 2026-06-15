@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/server/channels"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 type Options struct {
@@ -120,6 +121,13 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			channels.SessionChannel:     channels.DefaultSessionHandler(),
 			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
+		},
+		// Answers the web terminal bridge with this connection's session UID, so a
+		// client-side recording can be tied to its server session.
+		RequestHandlers: map[string]gliderssh.RequestHandler{
+			"session-uid@shellhub.io": func(ctx gliderssh.Context, _ *gliderssh.Server, _ *gossh.Request) (bool, []byte) {
+				return true, []byte(ctx.SessionID())
+			},
 		},
 		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return true
