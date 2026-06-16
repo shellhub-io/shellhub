@@ -25,25 +25,28 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	return e.ID, nil
 }
 
-func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
+func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
 		return []string{}, false, nil
 	}
 
+	// A name only conflicts with an accepted device; pending/rejected/removed don't hold a name.
+	// Namespace scoping comes from opts (InNamespace), so a name used in another namespace is not
+	// a conflict. Keep the predicates ANDed: chaining with WhereGroup(" OR ", ...) would let the
+	// name match satisfy the query on its own and silently disable the status filter.
 	devices := make([]entity.Device, 0)
 	query := db.NewSelect().
 		Model(&devices).
 		Column("name").
-		Where("status != ?", models.DeviceStatusRemoved).
-		WhereGroup(" OR ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			if target.Name != "" {
-				q = q.Where("name = ?", target.Name)
-			}
+		Where("status = ?", models.DeviceStatusAccepted).
+		Where("name = ?", target.Name)
 
-			return q
-		})
+	var err error
+	if query, err = applyOptions(ctx, query, opts...); err != nil {
+		return nil, false, err
+	}
 
 	if err := query.Scan(ctx); err != nil {
 		return nil, false, fromSQLError(err)
@@ -51,7 +54,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 
 	seen := make(map[string]bool)
 	for _, device := range devices {
-		if target.Name != "" && device.Name == target.Name {
+		if device.Name == target.Name {
 			seen["name"] = true
 		}
 	}

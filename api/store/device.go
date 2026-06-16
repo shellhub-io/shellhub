@@ -45,7 +45,10 @@ type DeviceStore interface {
 	//  conflicts, has, err := store.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "mydevice"})
 	//
 	// It returns an array of conflicting attribute fields and an error, if any.
-	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) (conflicts []string, has bool, err error)
+	//
+	// Only accepted devices are considered conflicting. Scope the lookup to a namespace by
+	// passing the InNamespace query option; without it the check spans every namespace.
+	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...QueryOption) (conflicts []string, has bool, err error)
 
 	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, device *models.Device) error

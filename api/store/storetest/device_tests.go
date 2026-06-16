@@ -523,6 +523,46 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		assert.ElementsMatch(t, []string{"name"}, conflicts)
 		assert.True(t, ok)
 	})
+
+	t.Run("no conflict when the same name lives in another namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		nsA := s.CreateNamespace(t)
+		nsB := s.CreateNamespace(t)
+		s.CreateDevice(t, WithDeviceName("shared"), WithTenantID(nsA))
+
+		// Scoped to namespace B, an accepted "shared" in namespace A must not conflict.
+		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "shared"}, st.Options().InNamespace(nsB))
+		require.NoError(t, err)
+		assert.Empty(t, conflicts)
+		assert.False(t, ok)
+	})
+
+	t.Run("conflict when the same name lives in the same namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		nsA := s.CreateNamespace(t)
+		s.CreateDevice(t, WithDeviceName("shared"), WithTenantID(nsA))
+
+		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "shared"}, st.Options().InNamespace(nsA))
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"name"}, conflicts)
+		assert.True(t, ok)
+	})
+
+	t.Run("no conflict when the matching device is not accepted", func(t *testing.T) {
+		for _, status := range []models.DeviceStatus{models.DeviceStatusPending, models.DeviceStatusRejected, models.DeviceStatusRemoved} {
+			require.NoError(t, s.provider.CleanDatabase(t))
+
+			nsA := s.CreateNamespace(t)
+			s.CreateDevice(t, WithDeviceName("not-accepted"), WithTenantID(nsA), WithDeviceStatus(status))
+
+			conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "not-accepted"}, st.Options().InNamespace(nsA))
+			require.NoError(t, err, status)
+			assert.Empty(t, conflicts, status)
+			assert.False(t, ok, status)
+		}
+	})
 }
 
 // TestDeviceUpdate tests device updates
