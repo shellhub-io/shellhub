@@ -91,7 +91,7 @@ COPY ./install.sh /templates/install.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # ── production stage ──────────────────────────────────────────────────────────
-FROM alpine:3.23.4 AS production
+FROM alpine:3.24.0 AS production
 
 RUN apk add --no-cache curl
 
