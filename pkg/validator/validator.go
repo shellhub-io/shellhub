@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"unicode"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -83,26 +82,16 @@ var Rules = []Rule{
 		},
 		Error: fmt.Errorf("the device name can only contain `_`, `-` and alpha numeric characters"),
 	},
-	// api-key_name reports whether a given string is a valid name for an api key or not. A valid
-	// value must be more than 3 characters, less than 20 and does not contains any whitespace.
+	// api-key_name reports whether a given string is a valid API key name. A valid
+	// name must be between 3 and 20 characters and contain only letters, digits, `-`
+	// and `_`. URL-reserved characters (e.g. @, /, #) are intentionally excluded
+	// because the name is used as a path parameter in PATCH and DELETE endpoints.
 	{
 		Tag: "api-key_name",
 		Handler: func(field validator.FieldLevel) bool {
-			name := field.Field().String()
-
-			if len(name) < 3 || len(name) > 20 {
-				return false
-			}
-
-			for _, c := range field.Field().String() {
-				if unicode.IsSpace(c) {
-					return false
-				}
-			}
-
-			return true
+			return regexp.MustCompile(`^[a-zA-Z0-9_-]{3,20}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("name must contain at least 3 characters, at most 20 characters, and no whitespaces"),
+		Error: fmt.Errorf("name must be between 3 and 20 characters and can only contain letters, numbers, `-` and `_`"),
 	},
 	// api-key_expires-at reports whether a given int is in [ 30 60 90 365 -1 ].
 	{

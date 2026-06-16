@@ -18,7 +18,8 @@ import Spinner from "@/components/common/Spinner";
 function validateName(value: string): string {
   if (value.length < 3) return "Name must be at least 3 characters.";
   if (value.length > 20) return "Name must be at most 20 characters.";
-  if (/\s/.test(value)) return "Name must not contain spaces.";
+  if (!/^[a-zA-Z0-9_-]+$/.test(value))
+    return "Name can only contain letters, numbers, - and _.";
   return "";
 }
 
@@ -75,7 +76,9 @@ function GenerateKeyDrawer({
       setGeneratedKey(result.id);
     } catch (err) {
       if (isSdkError(err) && err.status === 400) {
-        setNameError("Name must be 3–20 characters with no spaces.");
+        setNameError(
+          "Name must be 3–20 characters: letters, numbers, - and _ only.",
+        );
       } else {
         setError("Failed to generate API key. The name may already exist.");
       }
