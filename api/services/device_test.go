@@ -2261,13 +2261,13 @@ func TestDeviceUpdate(t *testing.T) {
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
 					Return(nil).
-					Once()
+					Twice()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}, mock.AnythingOfType("store.QueryOption")).
 					Return([]string{"name"}, true, nil).
 					Once()
 			},
@@ -2318,13 +2318,13 @@ func TestDeviceUpdate(t *testing.T) {
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
 					Return(nil).
-					Once()
+					Twice()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("store.QueryOption")).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -2355,13 +2355,13 @@ func TestDeviceUpdate(t *testing.T) {
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
 					Return(nil).
-					Once()
+					Twice()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "NewName"}).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("store.QueryOption")).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.

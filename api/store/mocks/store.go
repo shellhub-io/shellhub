@@ -284,9 +284,16 @@ func (_m *Store) ActiveSessionUpdate(ctx context.Context, activeSession *models.
 	return r0
 }
 
-// DeviceConflicts provides a mock function with given fields: ctx, target
-func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
-	ret := _m.Called(ctx, target)
+// DeviceConflicts provides a mock function with given fields: ctx, target, opts
+func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, target)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceConflicts")
@@ -295,25 +302,25 @@ func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfl
 	var r0 []string
 	var r1 bool
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts) ([]string, bool, error)); ok {
-		return rf(ctx, target)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) ([]string, bool, error)); ok {
+		return rf(ctx, target, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts) []string); ok {
-		r0 = rf(ctx, target)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) []string); ok {
+		r0 = rf(ctx, target, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceConflicts) bool); ok {
-		r1 = rf(ctx, target)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) bool); ok {
+		r1 = rf(ctx, target, opts...)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *models.DeviceConflicts) error); ok {
-		r2 = rf(ctx, target)
+	if rf, ok := ret.Get(2).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, target, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}

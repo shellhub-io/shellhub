@@ -383,9 +383,11 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return nil
 	}
 
-	conflictsTarget := &models.DeviceConflicts{Name: req.Name}
+	// Device names are stored lower-cased, so match on the lower-cased value. Scope the lookup
+	// to the device's namespace: a name used in another namespace is not a conflict.
+	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(req.Name)}
 	conflictsTarget.Distinct(device)
-	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget); err != nil || has {
+	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget, s.store.Options().InNamespace(req.TenantID)); err != nil || has {
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
