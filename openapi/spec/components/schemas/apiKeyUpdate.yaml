@@ -7,6 +7,7 @@ properties:
       will never be returned. It is unique per namespace.
     maxLength: 20
     minLength: 3
+    pattern: ^[a-zA-Z0-9_-]{3,20}$
     example: dev
   role:
     type: string

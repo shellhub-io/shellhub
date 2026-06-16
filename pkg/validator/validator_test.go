@@ -373,6 +373,94 @@ rRrVfCKhbJKpjAZq5U9VKt9LcGe9kA==
 	}
 }
 
+func TestAPIKeyName(t *testing.T) {
+	tests := []struct {
+		description string
+		value       string
+		want        bool
+	}{
+		{
+			description: "fails when the name is empty",
+			value:       "",
+			want:        false,
+		},
+		{
+			description: "fails when the name is too short",
+			value:       "ab",
+			want:        false,
+		},
+		{
+			description: "fails when the name is too long",
+			value:       "aaaaaaaaaaaaaaaaaaaaa",
+			want:        false,
+		},
+		{
+			description: "fails when the name contains @",
+			value:       "@@@@@@",
+			want:        false,
+		},
+		{
+			description: "fails when the name contains /",
+			value:       "foo/bar",
+			want:        false,
+		},
+		{
+			description: "fails when the name contains #",
+			value:       "foo#bar",
+			want:        false,
+		},
+		{
+			description: "fails when the name contains %",
+			value:       "foo%40bar",
+			want:        false,
+		},
+		{
+			description: "fails when the name contains spaces",
+			value:       "my key",
+			want:        false,
+		},
+		{
+			description: "succeeds with exactly 3 characters",
+			value:       "abc",
+			want:        true,
+		},
+		{
+			description: "succeeds with exactly 20 characters",
+			value:       "aaaaaaaaaaaaaaaaaaaa",
+			want:        true,
+		},
+		{
+			description: "succeeds with letters and digits",
+			value:       "myKey123",
+			want:        true,
+		},
+		{
+			description: "succeeds with hyphen",
+			value:       "my-key",
+			want:        true,
+		},
+		{
+			description: "succeeds with underscore",
+			value:       "my_key",
+			want:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			data := struct {
+				Name string `validate:"required,api-key_name"`
+			}{
+				Name: tt.value,
+			}
+
+			ok, _ := New().Struct(data)
+
+			assert.Equal(t, tt.want, ok)
+		})
+	}
+}
+
 func TestCertPEM(t *testing.T) {
 	tests := []struct {
 		description string
