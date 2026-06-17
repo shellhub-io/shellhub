@@ -46,6 +46,9 @@ podman_install() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
+  LABEL_ARGS=""
+  [ -z "$MODE" ] && LABEL_ARGS="--label shellhub.role=agent"
+
   $SUDO podman run -d \
     --name=$CONTAINER_NAME \
     --replace \
@@ -64,6 +67,7 @@ podman_install() {
     -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
     -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
+    $LABEL_ARGS \
     docker.io/shellhubio/agent:$AGENT_VERSION \
     $MODE
 
@@ -71,7 +75,22 @@ podman_install() {
     _FSUDO=""
     [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
     WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    printf '#!/bin/sh\nexec podman exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
+    $_FSUDO tee "$WRAPPER_PATH" > /dev/null << 'WRAPPER'
+#!/bin/sh
+_containers=$(podman ps --filter label=shellhub.role=agent --format '{{.Names}}')
+if [ -z "$_containers" ]; then
+  echo "shellhub-agent: no running agent container found" >&2
+  echo "Start the agent or run 'install.sh uninstall' to remove this wrapper" >&2
+  exit 1
+fi
+if [ "$(printf '%s\n' "$_containers" | wc -l)" -gt 1 ]; then
+  echo "shellhub-agent: multiple agent containers found, stop all but one:" >&2
+  printf '%s\n' "$_containers" | sed 's/^/  /' >&2
+  exit 1
+fi
+exec podman exec "$_containers" agent "$@"
+WRAPPER
+    [ $? -ne 0 ] && {
       echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
       exit 1
     }
@@ -125,6 +144,12 @@ docker_install() {
 
   CONTAINER_NAME="${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
 
+  LABEL_ARGS=""
+  [ -z "$MODE" ] && LABEL_ARGS="--label shellhub.role=agent"
+
+  # Remove any existing container so the new one gets the shellhub.role=agent label.
+  $SUDO docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+
   $SUDO docker run -d \
     --name=$CONTAINER_NAME \
     --restart=on-failure \
@@ -141,6 +166,7 @@ docker_install() {
     -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
     -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
+    $LABEL_ARGS \
     shellhubio/agent:$AGENT_VERSION \
     $MODE
 
@@ -148,7 +174,22 @@ docker_install() {
     _FSUDO=""
     [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
     WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    printf '#!/bin/sh\nexec docker exec %s agent "$@"\n' "$CONTAINER_NAME" | $_FSUDO tee "$WRAPPER_PATH" > /dev/null || {
+    $_FSUDO tee "$WRAPPER_PATH" > /dev/null << 'WRAPPER'
+#!/bin/sh
+_containers=$(docker ps --filter label=shellhub.role=agent --format '{{.Names}}')
+if [ -z "$_containers" ]; then
+  echo "shellhub-agent: no running agent container found" >&2
+  echo "Start the agent or run 'install.sh uninstall' to remove this wrapper" >&2
+  exit 1
+fi
+if [ "$(printf '%s\n' "$_containers" | wc -l)" -gt 1 ]; then
+  echo "shellhub-agent: multiple agent containers found, stop all but one:" >&2
+  printf '%s\n' "$_containers" | sed 's/^/  /' >&2
+  exit 1
+fi
+exec docker exec "$_containers" agent "$@"
+WRAPPER
+    [ $? -ne 0 ] && {
       echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
       exit 1
     }
@@ -360,7 +401,7 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
   exit 1
 fi
 
-[ -z "$TENANT_ID" ] && {
+[ "$1" != "uninstall" ] && [ -z "$TENANT_ID" ] && {
   echo "ERROR: TENANT_ID is missing."
   exit 1
 }
