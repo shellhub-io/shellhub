@@ -481,6 +481,9 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 // validateDeviceAcceptance checks if a namespace can accept another device.
 // For cloud environments, this includes billing validation.
 // For community/enterprise, this checks configured device limits.
+//
+// NOTE: this function is only called on the non-merge path (line 354). The same-MAC
+// merge path returns before reaching that call site, so merges are never limit-checked.
 func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
 	// Check hard limit first (applies to all editions)
 	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
@@ -505,6 +508,30 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 			}).Error("billing validation failed")
 
 			return err
+		}
+	}
+
+	// Check license-based device limit (enterprise/cloud licensing).
+	// NOTE: enforcement is best-effort and not atomic. CanAcceptDevice reads the
+	// global device count, but that read is not serialized with the device status
+	// update performed by the surrounding transaction, so concurrent acceptances
+	// can race and overshoot the licensed limit by a small margin. This is an
+	// accepted trade-off: the same limit is independently enforced at SSH
+	// connection time, so an overshoot cannot be exploited to gain SSH access
+	// beyond the license.
+	// Fail-open: if the evaluator returns an error, log a warning and allow
+	// the device to be accepted so that a transient license-service outage
+	// does not block operators from managing their fleet.
+	if s.licenseEvaluator != nil {
+		ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
+		if err != nil {
+			log.WithError(err).Warn("license evaluator returned an error; failing open and allowing device acceptance")
+
+			return nil
+		}
+
+		if !ok {
+			return ErrDeviceLicenseLimit
 		}
 	}
 

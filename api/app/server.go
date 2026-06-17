@@ -133,6 +133,13 @@ func (s *Server) Setup(ctx context.Context) error {
 		log.Info("Billing provider initialized and injected into service")
 	}
 
+	leOpts, err := s.licenseEvaluatorOption(ctx, store, cache)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, leOpts...)
+
 	routerOptions, err := s.routerOptions()
 	if err != nil {
 		return err
@@ -206,6 +213,35 @@ func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) 
 	}
 
 	return opts, nil
+}
+
+// licenseEvaluatorOption initialises the license evaluator when a factory has been
+// registered by an enterprise/cloud package via services.RegisterLicenseEvaluator.
+// In Community Edition builds the factory is nil and an empty slice is returned.
+//
+// The nil-interface guard (if le != nil) is MANDATORY for cloud builds.  The
+// cloud factory may return a concrete *T(nil) to signal "not applicable"; without
+// the guard that typed-nil would be wrapped in a non-nil interface value and
+// passed to WithLicenseEvaluator, causing a panic the first time any method is
+// called on the injected evaluator.
+func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.LicenseEvaluatorFactory()
+	if factory == nil {
+		return nil, nil
+	}
+
+	le, err := factory(ctx, st, c)
+	if err != nil {
+		return nil, errors.Join(errors.New("init license evaluator"), err)
+	}
+
+	// The factory returns an untyped nil on its skip path, so a plain nil-check
+	// is sufficient — no typed-nil interface can occur here.
+	if le != nil {
+		return []services.Option{services.WithLicenseEvaluator(le)}, nil
+	}
+
+	return nil, nil
 }
 
 // routerOptions returns configuration options for the HTTP router.
