@@ -414,7 +414,7 @@ function BillingPaymentInner({
       )}
 
       {error && (
-        <p role="alert" className="text-2xs text-accent-red">
+        <p role="alert" className="text-xs text-accent-red">
           {error}
         </p>
       )}
