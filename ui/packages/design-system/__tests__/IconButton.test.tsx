@@ -32,6 +32,28 @@ describe("IconButton — base classes", () => {
     expect(el.className).toContain("shrink-0");
   });
 
+  it("includes default bg and text color classes", () => {
+    render(<IconButton data-testid="btn">X</IconButton>);
+    const el = screen.getByTestId("btn");
+    expect(el.className).toContain("bg-transparent");
+    expect(el.className).toContain("text-text-muted");
+  });
+
+  it("includes shared transition, selection, focus, and disabled classes", () => {
+    render(<IconButton data-testid="btn">X</IconButton>);
+    const el = screen.getByTestId("btn");
+    expect(el.className).toContain("transition-all");
+    expect(el.className).toContain("duration-150");
+    expect(el.className).toContain("select-none");
+    expect(el.className).toContain("focus-visible:outline-none");
+    expect(el.className).toContain("focus-visible:ring-2");
+    expect(el.className).toContain("focus-visible:ring-offset-2");
+    expect(el.className).toContain("focus-visible:ring-offset-background");
+    expect(el.className).toContain("focus-visible:ring-primary");
+    expect(el.className).toContain("disabled:opacity-50");
+    expect(el.className).toContain("disabled:cursor-not-allowed");
+  });
+
   it("includes focus-visible:ring-2", () => {
     render(<IconButton data-testid="btn">X</IconButton>);
     expect(screen.getByTestId("btn").className).toContain(
@@ -105,29 +127,46 @@ describe("IconButton — variants", () => {
   it("variant=ghost (default) adds ghost classes", () => {
     render(<IconButton data-testid="btn">X</IconButton>);
     const el = screen.getByTestId("btn");
-    expect(el.className).toContain("bg-transparent");
-    expect(el.className).toContain("text-text-primary");
+    expect(el.className).toContain("hover:text-text-primary");
+    expect(el.className).toContain("hover:bg-hover-subtle");
   });
 
-  it("variant=primary adds primary classes", () => {
+  it("variant=primary adds subtle muted-to-blue classes (row edit convention)", () => {
     render(
       <IconButton data-testid="btn" variant="primary">
         X
       </IconButton>,
     );
     const el = screen.getByTestId("btn");
-    expect(el.className).toContain("bg-primary");
-    expect(el.className).toContain("text-white");
+    expect(el.className).toContain("hover:text-primary");
+    expect(el.className).toContain("hover:bg-primary/10");
   });
 
-  it("variant=danger adds danger classes", () => {
+  it("variant=danger adds subtle muted-to-red classes (row delete convention)", () => {
     render(
       <IconButton data-testid="btn" variant="danger">
         X
       </IconButton>,
     );
     const el = screen.getByTestId("btn");
-    expect(el.className).toContain("text-accent-red");
+    expect(el.className).toContain("hover:text-accent-red");
+    expect(el.className).toContain("hover:bg-accent-red/10");
+    expect(el.className).toContain("focus-visible:ring-accent-red");
+    expect(el.className).not.toContain("focus-visible:ring-primary");
+  });
+
+  it("variant=filled adds filled primary classes (prominent button convention)", () => {
+    render(
+      <IconButton data-testid="btn" variant="filled">
+        X
+      </IconButton>,
+    );
+    const el = screen.getByTestId("btn");
+    expect(el.className).toContain("bg-primary");
+    expect(el.className).toContain("text-white");
+    expect(el.className).toContain("hover:bg-primary/90");
+    expect(el.className).not.toContain("bg-transparent");
+    expect(el.className).not.toContain("text-text-muted");
   });
 });
 
@@ -295,6 +334,34 @@ describe("IconButton — loading", () => {
       </IconButton>,
     );
     expect(screen.getByTestId("btn")).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("variant=filled loading uses onPrimary spinner tone (white border classes)", () => {
+    render(
+      <IconButton data-testid="btn" variant="filled" loading aria-label="x">
+        X
+      </IconButton>,
+    );
+    const spinner = screen
+      .getByTestId("btn")
+      .querySelector("[class*='animate-spin']");
+    expect(spinner).not.toBeNull();
+    expect(spinner!.className).toContain("border-white/30");
+    expect(spinner!.className).toContain("border-t-white");
+  });
+
+  it("non-filled loading variant uses onSurface spinner tone (primary border classes)", () => {
+    render(
+      <IconButton data-testid="btn" variant="primary" loading aria-label="x">
+        X
+      </IconButton>,
+    );
+    const spinner = screen
+      .getByTestId("btn")
+      .querySelector("[class*='animate-spin']");
+    expect(spinner).not.toBeNull();
+    expect(spinner!.className).toContain("border-primary/30");
+    expect(spinner!.className).toContain("border-t-primary");
   });
 });
 

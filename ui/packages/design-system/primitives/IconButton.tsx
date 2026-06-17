@@ -6,20 +6,24 @@ import { cn } from "./cn";
 // Public types
 // ---------------------------------------------------------------------------
 
-export type IconButtonVariant = "ghost" | "primary" | "danger";
+export type IconButtonVariant = "ghost" | "primary" | "danger" | "filled";
 export type IconButtonSize = "sm" | "md" | "lg";
 
 // ---------------------------------------------------------------------------
 // Static maps
 // ---------------------------------------------------------------------------
 
+// Icon-button variants intentionally rest at text-text-muted and accent on hover,
+// so `primary` and `danger` here differ from the always-filled Button variants of the same name.
 const VARIANT: Record<IconButtonVariant, string> = {
   ghost:
-    "bg-transparent text-text-primary hover:bg-hover-subtle focus-visible:ring-primary",
+    "hover:text-text-primary hover:bg-hover-subtle",
   primary:
-    "bg-primary text-white hover:bg-primary/90 focus-visible:ring-primary",
+    "hover:text-primary hover:bg-primary/10",
   danger:
-    "bg-transparent text-accent-red hover:bg-accent-red/10 focus-visible:ring-accent-red",
+    "hover:text-accent-red hover:bg-accent-red/10 focus-visible:ring-accent-red",
+  filled:
+    "bg-primary text-white hover:bg-primary/90",
 };
 
 const SIZE: Record<IconButtonSize, string> = {
@@ -29,8 +33,8 @@ const SIZE: Record<IconButtonSize, string> = {
 };
 
 const BASE =
-  "inline-flex items-center justify-center shrink-0 transition-all duration-150 select-none" +
-  " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background" +
+  "inline-flex items-center justify-center shrink-0 transition-all duration-150 select-none text-text-muted bg-transparent" +
+  " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary" +
   " disabled:opacity-50 disabled:cursor-not-allowed";
 
 // ---------------------------------------------------------------------------
@@ -111,7 +115,7 @@ export function IconButton<T extends ElementType = "button">({
       {loading ? (
         <Spinner
           size="sm"
-          tone={variant === "primary" ? "onPrimary" : "onSurface"}
+          tone={variant === "filled" ? "onPrimary" : "onSurface"}
         />
       ) : (
         children

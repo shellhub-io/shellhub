@@ -30,7 +30,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   surface:
     "bg-surface border border-border text-text-primary hover:border-border-light hover:bg-white/[0.04] focus-visible:ring-primary",
   ghost:
-    "bg-transparent text-text-primary hover:bg-hover-subtle focus-visible:ring-primary",
+    "bg-transparent text-text-secondary hover:text-text-primary hover:bg-hover-subtle focus-visible:ring-primary",
   destructive:
     "bg-accent-red text-white hover:bg-accent-red/90 focus-visible:ring-accent-red",
   dangerSoft:
