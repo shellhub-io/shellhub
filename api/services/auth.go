@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"net"
 	"slices"
 	"strings"
@@ -166,7 +167,11 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 				Status:   string(models.DeviceStatusAccepted),
 			}
 			if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
-				log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
+				if errors.Is(err, ErrDeviceLicenseLimit) {
+					log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
+				} else {
+					log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
+				}
 			}
 		}
 	} else {
@@ -191,7 +196,11 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 					Status:   string(models.DeviceStatusAccepted),
 				}
 				if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
-					log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed for re-registered device; device remains pending")
+					if errors.Is(err, ErrDeviceLicenseLimit) {
+						log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
+					} else {
+						log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed for re-registered device; device remains pending")
+					}
 				} else {
 					device.Status = models.DeviceStatusAccepted
 					device.StatusUpdatedAt = clock.Now()

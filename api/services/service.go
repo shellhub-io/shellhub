@@ -17,14 +17,15 @@ type APIService struct {
 var _ Service = (*APIService)(nil)
 
 type service struct {
-	store     store.Store
-	privKey   *rsa.PrivateKey
-	pubKey    *rsa.PublicKey
-	cache     cache.Cache
-	client    internalclient.Client
-	locator   geoip.Locator
-	validator *validator.Validator
-	billing   BillingProvider
+	store            store.Store
+	privKey          *rsa.PrivateKey
+	pubKey           *rsa.PublicKey
+	cache            cache.Cache
+	client           internalclient.Client
+	locator          geoip.Locator
+	validator        *validator.Validator
+	billing          BillingProvider
+	licenseEvaluator LicenseEvaluator
 }
 
 //go:generate mockery --name Service --filename services.go
@@ -71,6 +72,12 @@ func WithBilling(billing BillingProvider) Option {
 	}
 }
 
+func WithLicenseEvaluator(le LicenseEvaluator) Option {
+	return func(service *APIService) {
+		service.licenseEvaluator = le
+	}
+}
+
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c internalclient.Client, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
@@ -82,14 +89,15 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 
 	service := &APIService{
 		service: &service{
-			store,
-			privKey,
-			pubKey,
-			cache,
-			c,
-			geoip.NewNullGeoLite(),
-			validator.New(),
-			nil, // billing (injected via WithBilling option)
+			store:            store,
+			privKey:          privKey,
+			pubKey:           pubKey,
+			cache:            cache,
+			client:           c,
+			locator:          geoip.NewNullGeoLite(),
+			validator:        validator.New(),
+			billing:          nil, // injected via WithBilling option
+			licenseEvaluator: nil, // injected via WithLicenseEvaluator option
 		},
 	}
 

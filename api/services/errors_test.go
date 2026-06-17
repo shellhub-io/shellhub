@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -16,5 +17,14 @@ func TestNewErrPublicKeyDataInvalid_data_field(t *testing.T) {
 	_, ok := value.FieldByName("Data")
 	if !ok {
 		t.Fatal("public key model does not contains Data field")
+	}
+}
+
+// TestErrDeviceLicenseLimit asserts that ErrDeviceLicenseLimit is a distinct sentinel
+// from ErrDeviceLimit: they share the same layer and code but differ by message,
+// so errors.Is must return false when comparing one against the other.
+func TestErrDeviceLicenseLimit(t *testing.T) {
+	if errors.Is(ErrDeviceLicenseLimit, ErrDeviceLimit) {
+		t.Error("ErrDeviceLicenseLimit must NOT match ErrDeviceLimit via errors.Is")
 	}
 }
