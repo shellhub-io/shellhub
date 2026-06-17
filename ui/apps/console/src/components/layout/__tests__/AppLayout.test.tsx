@@ -4,6 +4,9 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../AppLayout";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
+import { getConfig, defaultConfig } from "@/env";
+
+const mockGetConfig = vi.mocked(getConfig);
 
 const mockUseNamespaces = vi.fn<
   () => {
@@ -13,6 +16,11 @@ const mockUseNamespaces = vi.fn<
     refetch: () => void;
   }
 >();
+
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: vi.fn() };
+});
 
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
@@ -56,9 +64,18 @@ vi.mock("@/common/ConnectivityBanner", () => ({
   default: () => null,
 }));
 
+vi.mock("@/components/common/DeviceLimitBanner", () => ({
+  default: () => <div data-testid="device-limit-banner" />,
+}));
+
+vi.mock("@/components/common/LicenseBanner", () => ({
+  default: () => <div data-testid="license-banner" />,
+}));
+
 afterEach(cleanup);
 
 beforeEach(() => {
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
   mockUseNamespaces.mockReturnValue({
     namespaces: [],
     isLoading: false,
@@ -117,6 +134,45 @@ describe("AppLayout", () => {
       renderLayout();
       expect(screen.getByTestId("app-bar")).toBeInTheDocument();
       expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+    });
+  });
+
+  describe("enterprise banners", () => {
+    it("mounts LicenseBanner and DeviceLimitBanner when enterprise and not cloud", () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        enterprise: true,
+        cloud: false,
+      });
+      renderLayout();
+      expect(screen.getByTestId("device-limit-banner")).toBeInTheDocument();
+      expect(screen.getByTestId("license-banner")).toBeInTheDocument();
+    });
+
+    it("does not mount the enterprise banners on a community instance", () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        enterprise: false,
+        cloud: false,
+      });
+      renderLayout();
+      expect(
+        screen.queryByTestId("device-limit-banner"),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId("license-banner")).not.toBeInTheDocument();
+    });
+
+    it("does not mount the enterprise banners when cloud is true (even if enterprise is true)", () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        enterprise: true,
+        cloud: true,
+      });
+      renderLayout();
+      expect(
+        screen.queryByTestId("device-limit-banner"),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId("license-banner")).not.toBeInTheDocument();
     });
   });
 });

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { isSdkError } from "@/api/errors";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import {
   useAcceptDevice,
   useRejectDevice,
   useRemoveDevice,
 } from "@/hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 
 interface ActionDevice {
   uid: string;
@@ -74,25 +74,17 @@ function DeviceActionDialog({
       }
     } catch (err: unknown) {
       const status = getErrorStatus(err);
-      if (action === "accept" && status === 402 && onBillingWarning) {
+      if (action !== "accept") {
+        setError(`Failed to ${action} device.`);
+        return;
+      }
+
+      if (status === 402 && onBillingWarning) {
         onBillingWarning();
         return;
       }
-      if (action === "accept" && status === 402) {
-        setError(
-          "Couldn't accept the device. Check your billing status and try again.",
-        );
-      } else if (action === "accept" && status === 403) {
-        setError(
-          "You reached the maximum amount of accepted devices in this namespace.",
-        );
-      } else if (action === "accept" && status === 409) {
-        setError(
-          "A device with that name already exists. Rename it and try again.",
-        );
-      } else {
-        setError(`Failed to ${action} device.`);
-      }
+
+      setError(getAcceptDeviceErrorMessage(err));
       return;
     }
     onSuccess?.();
@@ -120,20 +112,8 @@ function DeviceActionDialog({
       description={description}
       confirmLabel={config.confirm}
       variant={config.variant}
-    >
-      {error && (
-        <p
-          role="alert"
-          className="text-xs font-mono text-accent-red mb-2 flex items-center gap-1.5"
-        >
-          <ExclamationCircleIcon
-            className="w-3.5 h-3.5 shrink-0"
-            strokeWidth={2}
-          />
-          {error}
-        </p>
-      )}
-    </ConfirmDialog>
+      errorMessage={error}
+    />
   );
 }
 

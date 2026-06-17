@@ -4,6 +4,7 @@ import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import LicenseBanner from "../common/LicenseBanner";
+import DeviceLimitBanner from "@/components/common/DeviceLimitBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
@@ -14,8 +15,11 @@ import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
+import { getConfig } from "@/env";
 
 export default function AppLayout() {
+  const { enterprise, cloud } = getConfig();
+  const isEnterprise = enterprise && !cloud;
   const { pathname } = useLocation();
   const { namespaces } = useNamespaces();
   const hasVisibleTerminal = useTerminalStore((s) =>
@@ -33,7 +37,12 @@ export default function AppLayout() {
         className={`flex flex-col h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden" : ""}`}
       >
         <ConnectivityBanner />
-        <LicenseBanner />
+        {isEnterprise && (
+          <>
+            <LicenseBanner />
+            <DeviceLimitBanner />
+          </>
+        )}
         <div className="flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div

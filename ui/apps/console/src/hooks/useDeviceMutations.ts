@@ -13,7 +13,16 @@ import { createTag, pushTagToDevice } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useAcceptDevice() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  // "getStats" is included so the DeviceLimitBanner and admin dashboard stats card
+  // reflect the updated accepted-device count immediately after a successful accept.
+  // Invalidation fires on success only — a failed 402 does not change the count.
+  // If the banner is not mounted the fresh count loads on next mount (observer-driven).
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+    "getStats",
+  );
   return useMutation({
     ...acceptDeviceMutation(),
     onSuccess: invalidate,
@@ -21,7 +30,11 @@ export function useAcceptDevice() {
 }
 
 export function useRejectDevice() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+  );
   return useMutation({
     ...updateDeviceStatusMutation(),
     onSuccess: invalidate,
@@ -29,7 +42,16 @@ export function useRejectDevice() {
 }
 
 export function useRemoveDevice() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  // "getStats" is included so the DeviceLimitBanner clears freed slots and the
+  // admin dashboard stats card reflects the reduced count after a successful remove.
+  // Invalidation fires on success only — a failed request does not change the count.
+  // If the banner is not mounted the fresh count loads on next mount (observer-driven).
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+    "getStats",
+  );
   return useMutation({
     ...deleteDeviceMutation(),
     onSuccess: invalidate,
@@ -37,7 +59,11 @@ export function useRemoveDevice() {
 }
 
 export function useRenameDevice() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+  );
   return useMutation({
     ...updateDeviceMutation(),
     onSuccess: invalidate,
@@ -61,11 +87,19 @@ export function useDeleteDeviceCustomField() {
 }
 
 export function useAddDeviceTag() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices", "getTags");
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+    "getTags",
+  );
   return useMutation({
     mutationFn: async (options: { path: { uid: string; name: string } }) => {
       try {
-        await createTag({ body: { name: options.path.name }, throwOnError: true });
+        await createTag({
+          body: { name: options.path.name },
+          throwOnError: true,
+        });
       } catch (e) {
         if (!isSdkError(e) || e.status !== 409) throw e;
       }
@@ -76,7 +110,11 @@ export function useAddDeviceTag() {
 }
 
 export function useRemoveDeviceTag() {
-  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  const invalidate = useInvalidateByIds(
+    "getDevices",
+    "getDevice",
+    "getStatusDevices",
+  );
   return useMutation({
     ...pullTagFromDeviceMutation(),
     onSuccess: invalidate,
