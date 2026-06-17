@@ -12,6 +12,7 @@ import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { Spinner } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
+import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 
 export default function PendingDevices() {
   const navigate = useNavigate();
@@ -21,7 +22,14 @@ export default function PendingDevices() {
     uid: string;
     action: "accepted" | "rejected";
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Centralized close so every close path clears the error state together.
+  const closeDropdown = () => {
+    setOpen(false);
+    setError(null);
+  };
 
   const {
     devices,
@@ -36,10 +44,11 @@ export default function PendingDevices() {
   const acceptMutation = useAcceptDevice();
   const rejectMutation = useRejectDevice();
 
-  useClickOutside(containerRef, () => setOpen(false));
+  useClickOutside(containerRef, closeDropdown);
 
   const handleAction = async (uid: string, action: "accepted" | "rejected") => {
     setActing(uid);
+    setError(null);
     try {
       if (action === "accepted") {
         await acceptMutation.mutateAsync({ path: { uid } });
@@ -52,8 +61,10 @@ export default function PendingDevices() {
         setFlash(null);
         setActing(null);
       }, 600);
-    } catch {
+    } catch (err) {
       setActing(null);
+      const error = action === "accepted" ? getAcceptDeviceErrorMessage(err) : "Failed to reject device.";
+      setError(error);
     }
   };
 
@@ -61,7 +72,10 @@ export default function PendingDevices() {
     <div ref={containerRef} className="relative">
       {/* Trigger */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => (open ? closeDropdown() : setOpen(true))}
+        aria-label={
+          count > 0 ? `Pending Devices (${count})` : "Pending Devices"
+        }
         className="relative flex items-center justify-center w-8 h-8 rounded-lg border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
         <CpuChipIcon className="w-[18px] h-[18px] text-text-secondary" />
@@ -90,7 +104,8 @@ export default function PendingDevices() {
               )}
             </div>
             <button
-              onClick={() => setOpen(false)}
+              onClick={closeDropdown}
+              aria-label="Close"
               className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
             >
               <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
@@ -99,6 +114,15 @@ export default function PendingDevices() {
 
           {/* Body */}
           <div className="max-h-[280px] overflow-y-auto">
+            {/* Inline error banner — rendered at the top of the body above the list */}
+            {error && (
+              <p
+                role="alert"
+                className="mx-3 mt-3 px-3 py-2 rounded-md text-2xs font-mono text-accent-red bg-accent-red/10 border border-accent-red/20"
+              >
+                {error}
+              </p>
+            )}
             {loading && devices.length === 0 ? (
               <PageLoader label="Loading..." showLabel padding="sm" />
             ) : devices.length === 0 ? (
@@ -166,6 +190,7 @@ export default function PendingDevices() {
                                 void handleAction(d.uid, "accepted")
                               }
                               disabled={isActing}
+                              aria-label="Accept"
                               className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
                               title="Accept"
                             >
@@ -187,6 +212,7 @@ export default function PendingDevices() {
                                 void handleAction(d.uid, "rejected")
                               }
                               disabled={isActing}
+                              aria-label="Reject"
                               className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
                               title="Reject"
                             >
@@ -210,7 +236,7 @@ export default function PendingDevices() {
             <div className="px-4 py-2.5 border-t border-border">
               <button
                 onClick={() => {
-                  setOpen(false);
+                  closeDropdown();
                   void navigate("/devices");
                 }}
                 className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"

@@ -1,8 +1,13 @@
 import { useCallback, useState } from "react";
-import { XMarkIcon, ArrowRightIcon, BookOpenIcon } from "@heroicons/react/24/outline";
+import {
+  XMarkIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+} from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import type { NormalizedDevice } from "@/hooks/useDevices";
+import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 import BaseDialog from "@/components/common/BaseDialog";
 import WizardStep1Welcome from "./WizardStep1Welcome";
 import WizardStep2Install from "./WizardStep2Install";
@@ -18,13 +23,17 @@ const TOTAL_STEPS = 4;
 
 export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
   const [step, setStep] = useState(1);
-  const [pendingDevice, setPendingDevice] = useState<NormalizedDevice | null>(null);
+  const [pendingDevice, setPendingDevice] = useState<NormalizedDevice | null>(
+    null,
+  );
   const [accepting, setAccepting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
     setStep(1);
     setPendingDevice(null);
     setAccepting(false);
+    setError(null);
   });
 
   const acceptMutation = useAcceptDevice();
@@ -36,12 +45,13 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
   const handleAccept = async () => {
     if (!pendingDevice) return;
+    setError(null);
     setAccepting(true);
     try {
       await acceptMutation.mutateAsync({ path: { uid: pendingDevice.uid } });
       setStep(4);
-    } catch {
-      // Keep on step 3 — user can retry
+    } catch (err) {
+      setError(getAcceptDeviceErrorMessage(err));
     } finally {
       setAccepting(false);
     }
@@ -119,23 +129,28 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
         {step === 4 && <WizardStep4Complete device={pendingDevice} />}
       </main>
 
+      {/* Inline error — shown between scrollable content and footer on step 3 */}
+      {step === 3 && error && (
+        <p role="alert" className="shrink-0 px-6 py-2 text-xs text-accent-red">
+          {error}
+        </p>
+      )}
+
       {/* Footer */}
       <footer className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-between">
-        {step === 2
-          ? (
-            <a
-              href="https://docs.shellhub.io/user-guides/devices/adding"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
-            >
-              <BookOpenIcon className="w-4 h-4" />
-              Docs
-            </a>
-          )
-          : (
-            <span />
-          )}
+        {step === 2 ? (
+          <a
+            href="https://docs.shellhub.io/user-guides/devices/adding"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
+          >
+            <BookOpenIcon className="w-4 h-4" />
+            Docs
+          </a>
+        ) : (
+          <span />
+        )}
 
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
@@ -149,18 +164,14 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
           {step === 1 && (
             <PrimaryButton onClick={() => setStep(2)}>
-              Next
-              {" "}
-              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
 
           {step === 2 && (
             // Disabled — polling in WizardStep2Install auto-advances to step 3
             <PrimaryButton disabled>
-              Next
-              {" "}
-              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
 
@@ -178,8 +189,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
             // Finish always closes directly. canClose blocks ESC/backdrop on
             // earlier steps; the Finish button is intentionally unrestricted.
             <PrimaryButton onClick={onClose}>
-              Finish
-              {" "}
+              Finish{" "}
               <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
