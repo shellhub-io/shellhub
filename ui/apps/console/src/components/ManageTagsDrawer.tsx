@@ -159,7 +159,7 @@ export default function ManageTagsDrawer({
             />
             <IconButton
               type="submit"
-              variant="primary"
+              variant="filled"
               size="lg"
               loading={submitting}
               disabled={!newNameValid}

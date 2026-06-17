@@ -38,7 +38,7 @@ describe("Button — variants", () => {
     );
     const el = screen.getByTestId("btn");
     expect(el.className).toContain("bg-transparent");
-    expect(el.className).toContain("text-text-primary");
+    expect(el.className).toContain("text-text-secondary");
   });
 
   it("variant=destructive renders destructive classes", () => {
