@@ -65,7 +65,7 @@ jobs:
           path: sbom-${{ matrix.project }}-*.cdx.json
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4
 
       - name: Attach SBOM to '${{ matrix.project }}' image
         run: |
@@ -137,7 +137,7 @@ jobs:
           path: sbom-api-enterprise-*.cdx.json
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4
 
       - name: Attach SBOM to api-enterprise image
         run: |

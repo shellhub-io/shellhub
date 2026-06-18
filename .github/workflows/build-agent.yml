@@ -132,7 +132,7 @@ jobs:
           path: sbom-agent-*.cdx.json
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4
 
       - name: Attach SBOM to agent image
         run: |
