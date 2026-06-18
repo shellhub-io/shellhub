@@ -228,12 +228,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           track_progress: true
           trigger_phrase: "/review"
-          settings: |
-            {
-              "env": {
-                "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-              }
-            }
           prompt: |
             You are the lead reviewer for this PR in shellhub-io/shellhub (Community Edition).
 
