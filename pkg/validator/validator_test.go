@@ -461,6 +461,122 @@ func TestAPIKeyName(t *testing.T) {
 	}
 }
 
+func TestAPIKeyExpiresAt(t *testing.T) {
+	tests := []struct {
+		description string
+		value       int
+		want        bool
+	}{
+		{
+			description: "fails when expires_at is 0",
+			value:       0,
+			want:        false,
+		},
+		{
+			description: "fails when expires_at is 7",
+			value:       7,
+			want:        false,
+		},
+		{
+			description: "fails when expires_at is 1000",
+			value:       1000,
+			want:        false,
+		},
+		{
+			description: "succeeds when expires_at is -1 (never expires)",
+			value:       -1,
+			want:        true,
+		},
+		{
+			description: "succeeds when expires_at is 30",
+			value:       30,
+			want:        true,
+		},
+		{
+			description: "succeeds when expires_at is 60",
+			value:       60,
+			want:        true,
+		},
+		{
+			description: "succeeds when expires_at is 90",
+			value:       90,
+			want:        true,
+		},
+		{
+			description: "succeeds when expires_at is 365",
+			value:       365,
+			want:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			data := struct {
+				ExpiresAt int `validate:"api-key_expires-at"`
+			}{
+				ExpiresAt: tt.value,
+			}
+
+			ok, _ := New().Struct(data)
+
+			assert.Equal(t, tt.want, ok)
+		})
+	}
+}
+
+func TestMemberRole(t *testing.T) {
+	tests := []struct {
+		description string
+		value       string
+		want        bool
+	}{
+		{
+			description: "fails when role is empty",
+			value:       "",
+			want:        false,
+		},
+		{
+			description: "fails when role is superuser",
+			value:       "superuser",
+			want:        false,
+		},
+		{
+			description: "succeeds when role is owner",
+			value:       "owner",
+			want:        true,
+		},
+		{
+			description: "succeeds when role is administrator",
+			value:       "administrator",
+			want:        true,
+		},
+		{
+			description: "succeeds when role is operator",
+			value:       "operator",
+			want:        true,
+		},
+		{
+			description: "succeeds when role is observer",
+			value:       "observer",
+			want:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			data := struct {
+				Role string `validate:"member_role"`
+			}{
+				Role: tt.value,
+			}
+
+			ok, _ := New().Struct(data)
+
+			assert.Equal(t, tt.want, ok)
+		})
+	}
+}
+
 func TestCertPEM(t *testing.T) {
 	tests := []struct {
 		description string
