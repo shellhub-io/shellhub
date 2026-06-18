@@ -80,6 +80,8 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
 		"SHELL=" + shell,
+		"USER=" + u.Username,
+		"LOGNAME=" + u.Username,
 		"SHELLHUB_HOST=" + host,
 		// NOTE: We need to set the SSH_CLIENT because some applications (like bash) check for it to enable some
 		// features or load some files (like .bashrc). Currently, we don't have this information, so we set a fake one.

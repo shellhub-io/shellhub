@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -149,4 +150,45 @@ func TestCheckCredentialSwitch(t *testing.T) {
 
 		assert.NoError(t, err)
 	})
+}
+
+func containsEnv(envs []string, entry string) bool {
+	for _, v := range envs {
+		if v == entry {
+			return true
+		}
+	}
+
+	return false
+}
+
+func TestNewCmdNativeEnv(t *testing.T) {
+	tests := []struct {
+		name string
+		user *osauth.User
+		want []string
+	}{
+		{
+			name: "USER and LOGNAME are set from username",
+			user: &osauth.User{
+				Username: "bob",
+				HomeDir:  "/",
+				Shell:    "/bin/sh",
+			},
+			want: []string{
+				"USER=bob",
+				"LOGNAME=bob",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := NewCmd(tt.user, "/bin/sh", "xterm", "myhost", nil, "/bin/sh")
+
+			for _, entry := range tt.want {
+				assert.True(t, containsEnv(cmd.Env, entry))
+			}
+		})
+	}
 }
