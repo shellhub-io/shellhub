@@ -857,6 +857,10 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
+			// Regression: the agent must enforce the AcceptEnv allowlist (LANG and
+			// LC_* only). LC_TEST passes through; TEST_VAR1 is silently dropped.
+			// Setenv still returns no error — the SSH protocol accepts the request;
+			// the agent silently drops blocked vars.
 			name: "connection EXEC with environment variables",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				config := &ssh.ClientConfig{
@@ -875,15 +879,20 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 				defer sess.Close()
 
-				err = sess.Setenv("TEST_VAR1", "test_value1")
-				require.NoError(t, err)
-				err = sess.Setenv("TEST_VAR2", "test_value2")
-				require.NoError(t, err)
-
-				output, err := sess.Output("echo -n $TEST_VAR1-$TEST_VAR2")
+				// LC_TEST matches the "LC_*" allowlist — it must reach the remote shell.
+				err = sess.Setenv("LC_TEST", "allowed")
 				require.NoError(t, err)
 
-				assert.Equal(t, "test_value1-test_value2", string(output))
+				// TEST_VAR1 is outside the allowlist — the agent drops it silently.
+				// The SSH protocol still accepts the env-request, so Setenv returns nil.
+				err = sess.Setenv("TEST_VAR1", "blocked")
+				require.NoError(t, err)
+
+				output, err := sess.Output("echo -n $LC_TEST:$TEST_VAR1")
+				require.NoError(t, err)
+
+				// LC_TEST is "allowed"; TEST_VAR1 expands to "" because the agent dropped it.
+				assert.Equal(t, "allowed:", string(output))
 			},
 		},
 		{

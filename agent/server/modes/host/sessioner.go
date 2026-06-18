@@ -283,7 +283,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		term = "xterm"
 	}
 
-	cmd := command.NewCmd(user, shell, term, *s.deviceName, session.Environ(), shell, "-c", session.RawCommand())
+	cmd := command.NewCmd(user, shell, term, *s.deviceName, acceptClientEnv(session.Environ()), shell, "-c", session.RawCommand())
 
 	wg := &sync.WaitGroup{}
 	if sIsPty {
