@@ -60,8 +60,8 @@ vi.mock("@/terminal/TerminalManager", () => ({
   default: () => null,
 }));
 
-vi.mock("@/common/ConnectivityBanner", () => ({
-  default: () => null,
+vi.mock("@/components/common/ConnectivityBanner", () => ({
+  default: () => <div data-testid="connectivity-banner" />,
 }));
 
 vi.mock("@/components/common/DeviceLimitBanner", () => ({
@@ -134,6 +134,13 @@ describe("AppLayout", () => {
       renderLayout();
       expect(screen.getByTestId("app-bar")).toBeInTheDocument();
       expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+    });
+  });
+
+  describe("ConnectivityBanner", () => {
+    it("is always mounted", () => {
+      renderLayout();
+      expect(screen.getByTestId("connectivity-banner")).toBeInTheDocument();
     });
   });
 

@@ -1,3 +1,4 @@
+import NoticeBanner from "@/components/common/NoticeBanner";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAdminStats } from "@/hooks/useAdminStats";
 
@@ -39,36 +40,15 @@ export default function DeviceLimitBanner() {
     license != null &&
     (over || approaching);
 
-  const isErrorSeverity = over;
+  const severity = over ? "error" : "warning";
 
   const message = over
-    ? "Your licensed device limit has been reached — new devices can't connect until you remove devices or contact ShellHub sales to raise the limit."
-    : "You're approaching your licensed device limit — contact ShellHub sales to raise it before new devices are blocked.";
+    ? "You've reached your licensed device limit. New devices can't connect until you contact the ShellHub team to raise the limit or remove some."
+    : "You're approaching your licensed device limit. Contact the ShellHub team to raise it before new devices are blocked.";
 
   return (
-    <div
-      aria-hidden={!visible ? true : undefined}
-      {...(!visible ? { inert: "" } : {})}
-      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-        visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-      }`}
-    >
-      <div className="overflow-hidden">
-        <div
-          className={`${isErrorSeverity ? "bg-accent-red/[0.06] border-accent-red/10" : "bg-accent-yellow/[0.06] border-accent-yellow/10"} px-5 py-1.5 flex items-center gap-2 border-b`}
-          role={isErrorSeverity ? "alert" : "status"}
-          aria-live={isErrorSeverity ? "assertive" : "polite"}
-        >
-          <span
-            className={`inline-flex rounded-full h-1.5 w-1.5 shrink-0 ${isErrorSeverity ? "bg-accent-red" : "bg-accent-yellow"}`}
-          />
-          <p
-            className={`text-xs font-mono ${isErrorSeverity ? "text-accent-red" : "text-accent-yellow"}`}
-          >
-            {message}
-          </p>
-        </div>
-      </div>
-    </div>
+    <NoticeBanner visible={visible} severity={severity}>
+      {message}
+    </NoticeBanner>
   );
 }

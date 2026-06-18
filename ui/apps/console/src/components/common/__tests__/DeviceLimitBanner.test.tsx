@@ -110,9 +110,11 @@ describe("DeviceLimitBanner", () => {
       render(<DeviceLimitBanner />);
       expect(screen.getByRole("alert")).toBeInTheDocument();
       expect(
-        screen.getByText(/your licensed device limit has been reached/i),
+        screen.getByText(/you've reached your licensed device limit/i),
       ).toBeInTheDocument();
-      expect(screen.getByText(/contact ShellHub sales/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/contact the ShellHub team/i),
+      ).toBeInTheDocument();
     });
 
     it("shows RED (role=alert) when cap=10 and registered=10", () => {
@@ -153,7 +155,9 @@ describe("DeviceLimitBanner", () => {
       expect(
         screen.getByText(/you're approaching your licensed device limit/i),
       ).toBeInTheDocument();
-      expect(screen.getByText(/contact ShellHub sales/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/contact the ShellHub team/i),
+      ).toBeInTheDocument();
     });
 
     it("shows YELLOW (role=status) when cap=10 and registered=9 (90% boundary)", () => {
@@ -216,9 +220,15 @@ describe("DeviceLimitBanner", () => {
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is absent while license is loading", () => {
+    it("is absent while license is loading (even when over-limit data is present)", () => {
+      // data present + over-limit would normally show the banner; isLoading must suppress it.
+      // Using data: undefined would hide the banner via the license != null guard, not the
+      // licenseLoading guard — so the guard under test would never actually be exercised.
       mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: undefined, isLoading: true }),
+        makeLicenseQueryResult({ data: makeLicense(100), isLoading: true }),
+      );
+      mockUseAdminStats.mockReturnValue(
+        makeStatsResult({ stats: { registered_devices: 100 } }),
       );
       render(<DeviceLimitBanner />);
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
