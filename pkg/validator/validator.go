@@ -41,6 +41,12 @@ const (
 	// PrivateKeyPEMTag contains the rule to validate a private key.
 	PrivateKeyPEMTag = "privateKeyPEM"
 	CertPEMTag       = "certPEM"
+	// APIKeyNameTag contains the rule to validate an API key's name.
+	APIKeyNameTag = "api-key_name"
+	// APIKeyExpiresAtTag contains the rule to validate an API key's expiration value.
+	APIKeyExpiresAtTag = "api-key_expires-at" //nolint:gosec // G101: not a credential, this is a validator tag name
+	// MemberRoleTag contains the rule to validate a namespace member's role.
+	MemberRoleTag = "member_role"
 )
 
 // Rules is a slice that contains all validation rules.
@@ -87,7 +93,7 @@ var Rules = []Rule{
 	// and `_`. URL-reserved characters (e.g. @, /, #) are intentionally excluded
 	// because the name is used as a path parameter in PATCH and DELETE endpoints.
 	{
-		Tag: "api-key_name",
+		Tag: APIKeyNameTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^[a-zA-Z0-9_-]{3,20}$`).MatchString(field.Field().String())
 		},
@@ -95,7 +101,7 @@ var Rules = []Rule{
 	},
 	// api-key_expires-at reports whether a given int is in [ 30 60 90 365 -1 ].
 	{
-		Tag: "api-key_expires-at",
+		Tag: APIKeyExpiresAtTag,
 		Handler: func(field validator.FieldLevel) bool {
 			if !field.Field().CanInt() {
 				return false
@@ -109,7 +115,7 @@ var Rules = []Rule{
 	},
 	// member_role reports whether a given string is a valid role or not
 	{
-		Tag: "member_role",
+		Tag: MemberRoleTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return authorizer.RoleFromString(field.Field().String()) != authorizer.RoleInvalid
 		},
