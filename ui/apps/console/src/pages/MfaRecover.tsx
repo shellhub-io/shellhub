@@ -118,7 +118,7 @@ export default function MfaRecover() {
               value={recoveryCode}
               onChange={(e) => setRecoveryCode(e.target.value)}
               required
-              autoFocus
+
               className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
               placeholder="Enter recovery code"
             />

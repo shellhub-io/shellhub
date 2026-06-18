@@ -46,7 +46,7 @@ vi.mock("../WizardStep2Install", () => ({
   default: ({ onDeviceDetected }: { onDeviceDetected: () => void }) => (
     <div data-testid="step-2-install">
       Step 2 content
-      <button onClick={onDeviceDetected} data-testid="simulate-device-detected">
+      <button type="button" onClick={onDeviceDetected} data-testid="simulate-device-detected">
         Simulate device detected
       </button>
     </div>
@@ -63,6 +63,7 @@ vi.mock("../WizardStep3Device", () => ({
     <div data-testid="step-3-device">
       Step 3 content
       <button
+        type="button"
         onClick={() =>
           onDeviceLoaded({ uid: "dev-uid-123", name: "my-device" })
         }

@@ -129,7 +129,7 @@ export default function UpdatePassword() {
             placeholder="••••••••"
             error={passwordError ?? undefined}
             hint="5–32 characters"
-            autoFocus
+
             required
           />
 

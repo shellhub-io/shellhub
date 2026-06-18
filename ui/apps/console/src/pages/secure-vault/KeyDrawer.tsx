@@ -187,7 +187,7 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
           onChange={handleNameChange}
           maxLength={255}
           placeholder="e.g. Production Server"
-          autoFocus={open}
+
           error={nameError ?? undefined}
         />
 

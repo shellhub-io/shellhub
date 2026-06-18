@@ -31,6 +31,7 @@ export default function UserMenu() {
   return (
     <div ref={containerRef} className="relative">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         aria-label={`Account menu for ${user}`}
         aria-haspopup="true"
@@ -69,6 +70,7 @@ export default function UserMenu() {
           {/* Menu items */}
           <div className="p-1.5">
             <button
+              type="button"
               onClick={() => {
                 setOpen(false);
                 void navigate("/profile");
@@ -82,6 +84,7 @@ export default function UserMenu() {
             </button>
             {namespaces.length > 0 && (
               <button
+                type="button"
                 onClick={() => {
                   setOpen(false);
                   void navigate("/settings");
@@ -99,6 +102,7 @@ export default function UserMenu() {
           {/* Logout */}
           <div className="p-1.5 border-t border-border">
             <button
+              type="button"
               onClick={handleLogout}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-accent-red/5 transition-colors group"
             >

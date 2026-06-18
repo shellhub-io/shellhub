@@ -153,7 +153,7 @@ function GenerateKeyDrawer({
             placeholder="e.g. ci-pipeline"
             error={nameError || undefined}
             maxLength={20}
-            autoFocus={open}
+
           />
           <RoleSelector value={role} onChange={setRole} />
           <RadioGroupField

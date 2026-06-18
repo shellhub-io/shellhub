@@ -14,6 +14,7 @@ export default function VaultLockedBanner({ onUnlock }: Props) {
         </p>
       </div>
       <button
+        type="button"
         onClick={onUnlock}
         aria-label="Unlock vault to access SSH keys"
         className="shrink-0 px-3.5 py-1.5 text-xs font-semibold text-primary hover:text-white bg-primary/10 hover:bg-primary rounded-lg transition-all"

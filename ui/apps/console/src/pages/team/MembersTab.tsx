@@ -110,6 +110,7 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
           <div className="flex items-center justify-end gap-1">
             <RestrictedAction action="namespace:editMember">
               <button
+                type="button"
                 onClick={() => setEditTarget(m)}
                 className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
                 title="Edit role"
@@ -119,6 +120,7 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
             </RestrictedAction>
             <RestrictedAction action="namespace:removeMember">
               <button
+                type="button"
                 onClick={() => setRemoveTarget(m)}
                 className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
                 title="Remove"
@@ -141,6 +143,7 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
         </p>
         <RestrictedAction action="namespace:addMember">
           <button
+            type="button"
             onClick={() => setAddOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >

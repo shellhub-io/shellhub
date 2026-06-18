@@ -63,9 +63,4 @@ describe("NamespaceNameField", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByText(NAMESPACE_NAME_HINT)).toBeInTheDocument();
   });
-
-  it("autofocuses the input when autoFocus is true", () => {
-    renderField({ autoFocus: true });
-    expect(screen.getByLabelText("Namespace Name")).toHaveFocus();
-  });
 });

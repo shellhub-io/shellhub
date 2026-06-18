@@ -100,6 +100,7 @@ export default function AdminUsers() {
             <PencilSquareIcon className="w-4 h-4" />
           </IconButton>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               void loginAs(user.id);
@@ -148,6 +149,7 @@ export default function AdminUsers() {
         description="Manage all user accounts in the instance"
       >
         <button
+          type="button"
           onClick={() => setCreateOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
         >

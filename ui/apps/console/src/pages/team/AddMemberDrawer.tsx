@@ -93,7 +93,7 @@ function AddMemberDrawer({
           }}
           placeholder="user@example.com"
           hint="Must have an existing ShellHub account"
-          autoFocus={open}
+
           error={emailError}
         />
         <RoleSelector value={role} onChange={setRole} />

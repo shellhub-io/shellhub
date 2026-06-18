@@ -322,6 +322,7 @@ export default function AddDevice() {
       {!selectedMethod.manual && (
         <div className="mb-6">
           <button
+            type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="flex items-center gap-1.5 text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
           >

@@ -44,7 +44,7 @@ function CloudForm({
           resetError();
         }}
         error={displayError}
-        autoFocus
+
       />
     </form>
   );

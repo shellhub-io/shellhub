@@ -255,6 +255,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
       {/* Controls */}
       <div className="relative flex items-center gap-3 px-4 py-3 bg-surface border-t border-border shrink-0">
         <button
+          type="button"
           onClick={handlePlayPause}
           className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center shrink-0 transition-colors"
           aria-label={isPlaying ? "Pause" : "Play"}
@@ -296,6 +297,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
         </select>
 
         <button
+          type="button"
           onClick={() => setShowShortcuts((v) => !v)}
           className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors shrink-0 ${
             showShortcuts

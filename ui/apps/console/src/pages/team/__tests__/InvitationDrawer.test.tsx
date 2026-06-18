@@ -43,7 +43,7 @@ vi.mock("../../../components/common/Drawer", () => ({
     return (
       <div role="dialog" aria-label={title}>
         <h2>{title}</h2>
-        <button onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>Close</button>
         {children}
         {footer ?? null}
       </div>
@@ -53,7 +53,7 @@ vi.mock("../../../components/common/Drawer", () => ({
 
 vi.mock("../../../components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
-    <button aria-label="Copy" data-copy={text}>
+    <button type="button" aria-label="Copy" data-copy={text}>
       Copy
     </button>
   ),

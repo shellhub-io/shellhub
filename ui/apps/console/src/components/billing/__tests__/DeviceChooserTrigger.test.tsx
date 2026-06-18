@@ -34,7 +34,7 @@ vi.mock("../DeviceChooserDialog", () => ({
       ? React.createElement(
           "div",
           { "data-testid": "device-chooser-dialog" },
-          React.createElement("button", { onClick: onClose }, "Dismiss"),
+          React.createElement("button", { type: "button", onClick: onClose }, "Dismiss"),
         )
       : null,
 }));

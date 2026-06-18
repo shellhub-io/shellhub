@@ -91,7 +91,7 @@ export default function ForgotPassword() {
               onChange={setAccount}
               placeholder="username or email"
               autoComplete="username"
-              autoFocus
+
               required
             />
 

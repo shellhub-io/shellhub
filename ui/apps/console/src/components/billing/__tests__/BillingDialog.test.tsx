@@ -37,12 +37,13 @@ vi.mock("../BillingPayment", () => ({
       { "data-testid": "billing-payment" },
       React.createElement(
         "button",
-        { onClick: onHasDefault, "data-testid": "trigger-has-default" },
+        { type: "button", onClick: onHasDefault, "data-testid": "trigger-has-default" },
         "Set default",
       ),
       React.createElement(
         "button",
         {
+          type: "button",
           onClick: onNoPaymentMethods,
           "data-testid": "trigger-no-payment-methods",
         },

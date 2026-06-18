@@ -207,7 +207,7 @@ export default function SignUp() {
               error={fieldError("name")}
               placeholder="Your name"
               autoComplete="name"
-              autoFocus
+
             />
 
             <InputField

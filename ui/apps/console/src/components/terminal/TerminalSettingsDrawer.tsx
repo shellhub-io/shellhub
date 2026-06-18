@@ -85,6 +85,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         <div className="space-y-0.5">
           {TERMINAL_FONTS.map((font) => (
             <button
+              type="button"
               key={font}
               onClick={() => setFontFamily(font)}
               className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150 ${
@@ -117,6 +118,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         </div>
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => setFontSize(fontSize - 1)}
             disabled={fontSize <= 8}
             className="rounded-md border border-border bg-hover-subtle p-1.5 text-text-muted hover:text-text-primary hover:bg-hover-medium disabled:opacity-faint transition-colors"
@@ -134,6 +136,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
             />
           </div>
           <button
+            type="button"
             onClick={() => setFontSize(fontSize + 1)}
             disabled={fontSize >= 24}
             className="rounded-md border border-border bg-hover-subtle p-1.5 text-text-muted hover:text-text-primary hover:bg-hover-medium disabled:opacity-faint transition-colors"
@@ -220,6 +223,7 @@ function ThemeCard({
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`relative rounded-lg border p-2 text-left transition-all duration-150 ${
         selected

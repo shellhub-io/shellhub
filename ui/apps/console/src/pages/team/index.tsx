@@ -47,6 +47,7 @@ export default function Team() {
       <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5 w-fit mb-6 animate-fade-in">
         {tabs.map((t) => (
           <button
+            type="button"
             key={t.value}
             onClick={() => setTab(t.value)}
             className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${

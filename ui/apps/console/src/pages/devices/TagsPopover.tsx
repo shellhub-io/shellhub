@@ -131,6 +131,7 @@ function TagsPopover({
             <div className="flex items-center gap-1">
               {tags.map((tag) => (
                 <button
+                  type="button"
                   key={tag}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -152,6 +153,7 @@ function TagsPopover({
           )}
         {canEditTags && (
           <button
+            type="button"
             ref={triggerRef}
             onClick={(e) => {
               e.stopPropagation();
@@ -186,6 +188,7 @@ function TagsPopover({
                       <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
                       {tag}
                       <button
+                        type="button"
                         onClick={() => void handleRemove(tag)}
                         disabled={loading}
                         className="hover:text-white transition-colors disabled:opacity-dim ml-0.5"
@@ -215,7 +218,7 @@ function TagsPopover({
                       }
                     }}
                     placeholder="Search or create tag..."
-                    autoFocus
+
                     className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
                   {input.trim() && input.trim().length < 3 && (
@@ -238,6 +241,7 @@ function TagsPopover({
                     <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
                       {suggestions.map((tag) => (
                         <button
+                          type="button"
                           key={tag}
                           onClick={() => void handleAdd(tag)}
                           disabled={loading}
@@ -252,6 +256,7 @@ function TagsPopover({
                       ))}
                       {isNew && (
                         <button
+                          type="button"
                           onClick={() => void handleAdd(input.trim())}
                           disabled={loading}
                           className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"

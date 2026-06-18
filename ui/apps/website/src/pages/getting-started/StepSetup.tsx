@@ -49,6 +49,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
       <Reveal delay={0.15}>
         <div className="flex items-center justify-between">
           <button
+            type="button"
             onClick={onBack}
             className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-text-secondary border border-border rounded-xl hover:text-text-primary hover:border-border-light hover:bg-white/[0.04] transition-all duration-300 group"
           >

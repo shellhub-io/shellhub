@@ -146,10 +146,10 @@ export default function MfaDisableDialog({
           {mode === "totp" ? (
             <>
               <div>
-                <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
+                <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                   Verification Code
-                </label>
-                <div className="flex gap-2 justify-center">
+                </p>
+                <div className="flex gap-2 justify-center" role="group" aria-label="Verification Code">
                   {otp.code.map((digit, index) => (
                     <input
                       key={index}
@@ -160,7 +160,7 @@ export default function MfaDisableDialog({
                       value={digit}
                       onChange={(e) => otp.handleChange(index, e.target.value)}
                       onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                      autoFocus={index === 0}
+                      aria-label={`Digit ${index + 1}`}
                       className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
                     />
                   ))}
@@ -180,14 +180,17 @@ export default function MfaDisableDialog({
           ) : mode === "recovery" ? (
             <>
               <div>
-                <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+                <label
+                  htmlFor="disable-mfa-recovery-code"
+                  className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
+                >
                   Recovery Code
                 </label>
                 <input
+                  id="disable-mfa-recovery-code"
                   type="text"
                   value={recoveryCode}
                   onChange={(e) => setRecoveryCode(e.target.value)}
-                  autoFocus
                   className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
                   placeholder="Enter recovery code"
                 />

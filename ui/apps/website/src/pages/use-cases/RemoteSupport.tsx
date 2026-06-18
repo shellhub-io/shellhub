@@ -400,13 +400,14 @@ export default function RemoteSupport() {
 
                     {/* Playback controls */}
                     <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
-                      <button className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0">
+                      <button type="button" aria-label="Play" className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0">
                         <svg
                           width="14"
                           height="14"
                           viewBox="0 0 24 24"
                           fill={C.cyan}
                           stroke="none"
+                          aria-hidden="true"
                         >
                           <polygon points="6 4 20 12 6 20 6 4" />
                         </svg>

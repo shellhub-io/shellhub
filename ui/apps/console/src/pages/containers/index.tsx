@@ -190,6 +190,7 @@ export default function Containers() {
             container.online ? (
               <RestrictedAction action="device:connect">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     const existing = useTerminalStore
@@ -234,6 +235,7 @@ export default function Containers() {
             <div className="flex items-center justify-end gap-1.5">
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ container, action: "accept" });
@@ -245,6 +247,7 @@ export default function Containers() {
               </RestrictedAction>
               <RestrictedAction action="device:reject">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ container, action: "reject" });
@@ -271,6 +274,7 @@ export default function Containers() {
           <div className="flex items-center justify-end gap-1.5">
             <RestrictedAction action="device:accept">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ container, action: "accept" });
@@ -282,6 +286,7 @@ export default function Containers() {
             </RestrictedAction>
             <RestrictedAction action="device:remove">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ container, action: "remove" });
@@ -306,6 +311,7 @@ export default function Containers() {
         description="Manage and monitor Docker containers connected via ShellHub Connector"
       >
         <button
+          type="button"
           onClick={() => setAddConnectorOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
         >
@@ -323,6 +329,7 @@ export default function Containers() {
         >
           {statusTabs.map((tab) => (
             <button
+              type="button"
               key={tab.value}
               role="tab"
               aria-selected={status === tab.value}
@@ -374,6 +381,7 @@ export default function Containers() {
                 <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
                 {tag}
                 <button
+                  type="button"
                   onClick={() => removeFilterTag(tag)}
                   aria-label={`Remove ${tag} filter`}
                   className="hover:text-white transition-colors ml-0.5"
@@ -383,6 +391,7 @@ export default function Containers() {
               </span>
             ))}
             <button
+              type="button"
               onClick={clearFilterTags}
               className="text-2xs text-text-muted hover:text-text-primary transition-colors font-mono"
             >

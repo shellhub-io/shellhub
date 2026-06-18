@@ -106,7 +106,7 @@ export default function EditNamespaceDrawer({
           id="edit-ns-name"
           value={name}
           onChange={setName}
-          autoFocus={open}
+
           error={nameValidationError}
         />
 

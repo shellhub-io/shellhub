@@ -35,7 +35,7 @@ vi.mock("@/components/common/Drawer", () => ({
     return (
       <div role="dialog" aria-label={title}>
         <h2>{title}</h2>
-        <button onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>Close</button>
         {children}
         {footer ?? null}
       </div>

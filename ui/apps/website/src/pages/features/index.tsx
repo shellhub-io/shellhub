@@ -341,13 +341,14 @@ function SessionRecording() {
 
                   {/* Playback controls */}
                   <div className="flex items-center gap-3">
-                    <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
+                    <button type="button" aria-label="Rewind" className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
                       <svg
                         className="w-4 h-4 text-text-secondary"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={2}
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -356,13 +357,14 @@ function SessionRecording() {
                         />
                       </svg>
                     </button>
-                    <button className="w-10 h-10 rounded-lg bg-accent-cyan/15 border border-accent-cyan/25 flex items-center justify-center hover:bg-accent-cyan/25 transition-colors">
+                    <button type="button" aria-label="Pause" className="w-10 h-10 rounded-lg bg-accent-cyan/15 border border-accent-cyan/25 flex items-center justify-center hover:bg-accent-cyan/25 transition-colors">
                       <svg
                         className="w-5 h-5 text-accent-cyan"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={2}
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -371,13 +373,14 @@ function SessionRecording() {
                         />
                       </svg>
                     </button>
-                    <button className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
+                    <button type="button" aria-label="Fast forward" className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors">
                       <svg
                         className="w-4 h-4 text-text-secondary"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={2}
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"

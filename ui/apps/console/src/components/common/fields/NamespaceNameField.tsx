@@ -9,7 +9,6 @@ interface NamespaceNameFieldProps {
   value: string;
   onChange: (value: string) => void;
   error?: string | null;
-  autoFocus?: boolean;
 }
 
 export default function NamespaceNameField({
@@ -17,7 +16,6 @@ export default function NamespaceNameField({
   value,
   onChange,
   error,
-  autoFocus,
 }: NamespaceNameFieldProps) {
   return (
     <InputField
@@ -27,7 +25,7 @@ export default function NamespaceNameField({
       onChange={(v) => onChange(v.toLowerCase())}
       placeholder="my-namespace"
       maxLength={NAMESPACE_NAME_MAX_LENGTH}
-      autoFocus={autoFocus}
+
       error={error ?? undefined}
       hint={NAMESPACE_NAME_HINT}
     />

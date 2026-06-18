@@ -29,7 +29,7 @@ vi.mock("../AnnouncementModal", () => ({
     open ? (
       <div data-testid="announcement-modal">
         <span data-testid="modal-title">{announcement.title}</span>
-        <button onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>Close</button>
       </div>
     ) : null,
 }));

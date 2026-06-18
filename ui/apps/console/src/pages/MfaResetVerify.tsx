@@ -84,11 +84,13 @@ export default function MfaResetVerify() {
 
           {/* Main Email Code */}
           <div>
-            <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
+            <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
               Main Email Code
-            </label>
+            </p>
             <div
               className="flex justify-center gap-2 mb-2"
+              role="group"
+              aria-label="Main Email Code"
               onPaste={otpMain.handlePaste}
             >
               {otpMain.code.map((char, index) => (
@@ -101,7 +103,7 @@ export default function MfaResetVerify() {
                   aria-label={`Main email code character ${index + 1} of 5`}
                   onChange={(e) => otpMain.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpMain.handleKeyDown(index, e)}
-                  autoFocus={index === 0}
+
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
                 />
               ))}
@@ -113,11 +115,13 @@ export default function MfaResetVerify() {
 
           {/* Recovery Email Code */}
           <div>
-            <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
+            <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
               Recovery Email Code
-            </label>
+            </p>
             <div
               className="flex justify-center gap-2 mb-2"
+              role="group"
+              aria-label="Recovery Email Code"
               onPaste={otpRecovery.handlePaste}
             >
               {otpRecovery.code.map((char, index) => (

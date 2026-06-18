@@ -145,6 +145,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
             {tag}
             {canEditTags && (
               <button
+                type="button"
                 onClick={() => void handleRemove(tag)}
                 aria-label={`Remove tag ${tag}`}
                 className="hover:text-white transition-colors"
@@ -174,6 +175,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
             />
             <button
+              type="button"
               onClick={() => void handleAdd()}
               disabled={adding || !input.trim()}
               aria-label="Add tag"
@@ -240,6 +242,7 @@ function RenameSection({
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
         <button
+          type="button"
           onClick={() => {
             setName(currentName);
             setEditing(true);
@@ -265,11 +268,12 @@ function RenameSection({
             if (e.key === "Enter") void handleSave();
             if (e.key === "Escape") setEditing(false);
           }}
-          autoFocus
+
           aria-label="Container name"
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
         <button
+          type="button"
           onClick={() => void handleSave()}
           disabled={saving}
           aria-label="Save name"
@@ -278,6 +282,7 @@ function RenameSection({
           <CheckIcon className="w-4 h-4" strokeWidth={2} />
         </button>
         <button
+          type="button"
           onClick={() => setEditing(false)}
           aria-label="Cancel rename"
           className="p-1.5 rounded-md text-text-muted hover:bg-hover-medium transition-all"
@@ -420,6 +425,7 @@ export default function ContainerDetails() {
             <>
               <RestrictedAction action="device:connect">
                 <button
+                  type="button"
                   onClick={() => {
                     if (existingSession) {
                       restoreTerminal(existingSession.id);
@@ -436,6 +442,7 @@ export default function ContainerDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:remove">
                 <button
+                  type="button"
                   onClick={() =>
                     setOperation({
                       container: { uid: container.uid, name: container.name },
@@ -455,6 +462,7 @@ export default function ContainerDetails() {
             <>
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={() => setOperation({ container, action: "accept" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -463,6 +471,7 @@ export default function ContainerDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:reject">
                 <button
+                  type="button"
                   onClick={() => setOperation({ container, action: "reject" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -475,6 +484,7 @@ export default function ContainerDetails() {
             <>
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={() => setOperation({ container, action: "accept" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
@@ -483,6 +493,7 @@ export default function ContainerDetails() {
               </RestrictedAction>
               <RestrictedAction action="device:remove">
                 <button
+                  type="button"
                   onClick={() => setOperation({ container, action: "remove" })}
                   className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
                 >

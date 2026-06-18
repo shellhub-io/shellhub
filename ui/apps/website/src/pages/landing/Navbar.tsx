@@ -187,6 +187,7 @@ function MobileDropdown({
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-all"
         style={{ color: C.textSec }}
@@ -341,6 +342,7 @@ export function Navbar({
         onClick={() => setActiveMenu(null)}
       />
 
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- nav onClick delegates to child links only */}
       <nav
         id="shellhub-nav"
         className="fixed top-0 left-0 right-0 z-50 h-14 transition-all duration-300"
@@ -364,6 +366,7 @@ export function Navbar({
 
           {/* Mobile toggle */}
           <button
+            type="button"
             data-testid="mobile-nav-toggle"
             className="lg:hidden p-2 transition-colors"
             style={{ color: C.textSec }}
@@ -399,6 +402,7 @@ export function Navbar({
           >
             {menuItems.map(({ id, label }) => (
               <button
+                type="button"
                 key={id}
                 aria-expanded={activeMenu === id}
                 onClick={() => setActiveMenu(activeMenu === id ? null : id)}

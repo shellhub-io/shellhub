@@ -33,7 +33,7 @@ afterEach(() => {
 function CopyConsumer({ text = "test-text" }: { text?: string }) {
   const { copy, copied } = useCopy();
   return (
-    <button data-testid="copy-btn" onClick={() => copy(text)}>
+    <button type="button" data-testid="copy-btn" onClick={() => copy(text)}>
       {copied ? "Copied!" : "Copy"}
     </button>
   );

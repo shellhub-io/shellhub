@@ -250,6 +250,7 @@ export default function PublicKeys() {
         >
           <RestrictedAction action="publicKey:create">
             <button
+              type="button"
               onClick={openNew}
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
@@ -278,6 +279,7 @@ export default function PublicKeys() {
       >
         <RestrictedAction action="publicKey:create">
           <button
+            type="button"
             onClick={openNew}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >

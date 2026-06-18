@@ -223,6 +223,7 @@ export function SupportedPlatforms() {
                   href={p.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={p.name}
                   className="bg-surface border border-border rounded-xl p-4 hover:border-border-light transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-3">
@@ -235,6 +236,7 @@ export function SupportedPlatforms() {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={1.5}
+                        aria-hidden="true"
                       >
                         {p.icon}
                       </svg>

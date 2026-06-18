@@ -55,6 +55,7 @@ export default function TerminalTaskbar({
               {s.deviceName}
             </span>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 close(s.id);

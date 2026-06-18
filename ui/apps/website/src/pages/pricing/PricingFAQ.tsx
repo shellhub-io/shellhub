@@ -34,7 +34,10 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   return (
     <Reveal delay={index * 0.04}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label={q}
         className="w-full text-left py-5 border-b border-border group"
       >
         <div className="flex items-center justify-between gap-4">
@@ -45,6 +48,7 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
+            aria-hidden="true"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>

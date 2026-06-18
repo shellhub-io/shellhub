@@ -19,10 +19,10 @@ function Trap({
 
   return (
     <div>
-      <button>Outside</button>
+      <button type="button">Outside</button>
       <div ref={ref} data-testid="container">
         {buttons.map((label) => (
-          <button key={label}>{label}</button>
+          <button type="button" key={label}>{label}</button>
         ))}
       </div>
     </div>
@@ -37,11 +37,11 @@ function ToggleTrap() {
 
   return (
     <div>
-      <button data-testid="trigger" onClick={() => setActive((v) => !v)}>
+      <button type="button" data-testid="trigger" onClick={() => setActive((v) => !v)}>
         Toggle
       </button>
       <div ref={ref} data-testid="container">
-        <button>Inside</button>
+        <button type="button">Inside</button>
       </div>
     </div>
   );

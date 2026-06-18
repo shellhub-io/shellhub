@@ -207,7 +207,7 @@ function KeyDrawer({
           value={name}
           onChange={setName}
           placeholder="Name used to identify the public key"
-          autoFocus={open}
+
         />
 
         {/* Username access */}

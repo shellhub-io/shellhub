@@ -37,6 +37,7 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
 
   return (
     <button
+      type="button"
       onClick={(e) => void handleClick(e)}
       disabled={closing}
       title="Close session"
@@ -180,6 +181,7 @@ export default function Sessions() {
           {s.recorded && (
             <RestrictedAction action="session:play">
               <button
+                type="button"
                 onClick={(e) => void handlePlayClick(e, s.uid)}
                 disabled={logsLoading && playTarget === s.uid}
                 title="Play recording"

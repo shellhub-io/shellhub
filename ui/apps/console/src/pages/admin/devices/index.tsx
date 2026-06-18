@@ -188,6 +188,7 @@ export default function AdminDevices() {
         >
           {statusTabs.map((tab) => (
             <button
+              type="button"
               key={tab.value}
               role="tab"
               aria-selected={status === tab.value}

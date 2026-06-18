@@ -32,7 +32,7 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
     if (!open || !announcement) return null;
     return (
       <div role="dialog" aria-label={`Delete ${announcement.title}`}>
-        <button onClick={onClose}>Cancel delete</button>
+        <button type="button" onClick={onClose}>Cancel delete</button>
       </div>
     );
   },

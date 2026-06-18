@@ -31,7 +31,7 @@ vi.mock("../SessionPlayerDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="player-dialog">
-        <button onClick={onClose}>Close Player</button>
+        <button type="button" onClick={onClose}>Close Player</button>
       </div>
     ) : null,
 }));

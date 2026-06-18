@@ -86,6 +86,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
         {step < TOTAL_STEPS ? (
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all"
             aria-label="Close wizard"
@@ -155,6 +156,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
             <button
+              type="button"
               onClick={onClose}
               className="px-4 py-2 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-hover-medium transition-all"
             >
@@ -212,6 +214,7 @@ function PrimaryButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={disabled || loading}
       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200

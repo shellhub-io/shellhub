@@ -58,6 +58,7 @@ function renderCopyWarning(
       <CopyWarning macro={macro} bypass={bypass}>
         {({ copy, copied }) => (
           <button
+            type="button"
             data-testid="copy-btn"
             onClick={() => copy("test-text")}
           >
@@ -388,6 +389,7 @@ describe("CopyWarning", () => {
             <CopyWarning ref={ref}>
               {() => (
                 <button
+                  type="button"
                   data-testid="setup-btn"
                   onClick={() => { handleRef.current = ref.current; }}
                 >

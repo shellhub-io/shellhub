@@ -21,8 +21,7 @@ export default function CommandPaletteTrigger({
 }) {
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
 
-  const shared = {
-    type: "button" as const,
+  const sharedHandlers = {
     onClick: () => {
       openPalette();
       onActivate?.();
@@ -35,7 +34,8 @@ export default function CommandPaletteTrigger({
   if (!expanded) {
     return (
       <button
-        {...shared}
+        type="button"
+        {...sharedHandlers}
         title="Quick connect (⌘K)"
         className="w-full flex items-center justify-center px-3 py-2 rounded-md border border-transparent text-text-secondary hover:text-text-primary hover:bg-hover-subtle transition-all duration-150"
       >
@@ -50,7 +50,8 @@ export default function CommandPaletteTrigger({
 
   return (
     <button
-      {...shared}
+      type="button"
+      {...sharedHandlers}
       className={`${INPUT} group flex items-center gap-2.5 text-left hover:border-primary/40`}
     >
       <MagnifyingGlassIcon
