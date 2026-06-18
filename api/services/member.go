@@ -119,6 +119,14 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, err)
 	}
 
+	// A member cannot change their own role through this endpoint. The dangerous case
+	// is an administrator self-demoting: they would lose NamespaceEditMember and be
+	// unable to reach this endpoint again. Reject all self-targeting here (including
+	// no-op empty-role writes). To leave a namespace, use LeaveNamespace instead.
+	if active.ID == member.ID {
+		return NewErrAuthForbidden()
+	}
+
 	// Guard against BFLA: the active member must have authority over the passive
 	// member's *current* role, not only over the requested new role. Without this
 	// check an administrator could demote an owner by supplying a lower target role
@@ -171,6 +179,13 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 	passive, ok := namespace.FindMember(req.MemberID)
 	if !ok {
 		return nil, NewErrNamespaceMemberNotFound(req.MemberID, err)
+	}
+
+	// A member cannot remove themselves through this endpoint; doing so bypasses the
+	// LeaveNamespace flow (which the UI uses and which blocks the owner from leaving
+	// a namespace without a successor). Self-removal must go through LeaveNamespace.
+	if active.ID == passive.ID {
+		return nil, NewErrAuthForbidden()
 	}
 
 	if !active.Role.HasAuthority(passive.Role) {

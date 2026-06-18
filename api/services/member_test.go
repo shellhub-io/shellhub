@@ -804,8 +804,9 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: nil,
 		},
 		{
-			// An owner must not be able to self-demote; doing so would leave the namespace
-			// without an owner.
+			// An owner must not be able to self-demote. The self-target guard (active.ID ==
+			// member.ID) runs before the BFLA current-role guard, so this now returns
+			// NewErrAuthForbidden() instead of NewErrRoleInvalid().
 			description: "[community|enterprise|cloud] BFLA: fails when owner tries to self-demote",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -836,7 +837,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrAuthForbidden(),
 		},
 		{
 			// A lower-privileged member sending an omitted/empty role against a
@@ -979,6 +980,48 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					Once()
 			},
 			expected: NewErrRoleInvalid(),
+		},
+		{
+			// An administrator self-targeting this endpoint must be rejected. A
+			// self-demotion would strip NamespaceEditMember authority and lock the
+			// caller out permanently. To leave a namespace, use LeaveNamespace instead.
+			description: "[community|enterprise|cloud] BFLA: fails when a member targets themselves (self-demote)",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000000",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000002",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+							{
+								ID:   "000000000000000000000002",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+				// NO NamespaceUpdateMembership call — guard returns early
+				// NO cacheMock.Delete call — guard returns early
+			},
+			expected: NewErrAuthForbidden(),
 		},
 	}
 
@@ -1161,6 +1204,45 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			expected: Expected{
 				namespace: nil,
 				err:       NewErrRoleInvalid(),
+			},
+		},
+		{
+			description: "[community|enterprise|cloud] BFLA: fails when a member tries to remove themselves",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000000",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000002",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+							{
+								ID:   "000000000000000000000002",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrAuthForbidden(),
 			},
 		},
 		{
