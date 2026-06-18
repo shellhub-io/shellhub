@@ -119,6 +119,22 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(req.MemberID, err)
 	}
 
+	// Guard against BFLA: the active member must have authority over the passive
+	// member's *current* role, not only over the requested new role. Without this
+	// check an administrator could demote an owner by supplying a lower target role
+	// that satisfies the existing check, an owner could self-demote leaving the
+	// namespace without an owner, or a lower-privileged actor could force writes
+	// (including token invalidation) against a higher-privileged passive member via
+	// an omitted-role (no-op) request.
+	//
+	// Note: HasAuthority treats RoleInvalid passive as the lowest rank, so the check
+	// below passes for any valid active role acting on a corrupted/legacy member. That
+	// allows the owner (or any higher-ranked member) to repair or remove such a record
+	// via the normal API path instead of requiring direct DB intervention.
+	if !active.Role.HasAuthority(member.Role) {
+		return NewErrRoleInvalid()
+	}
+
 	if req.MemberRole != authorizer.RoleInvalid {
 		if !active.Role.HasAuthority(req.MemberRole) {
 			return NewErrRoleInvalid()

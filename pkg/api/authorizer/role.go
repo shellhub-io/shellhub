@@ -99,7 +99,12 @@ func (r Role) HasPermission(permission Permission) bool {
 }
 
 // HasAuthority reports whether the role r has greater or equal authority compared to the passive role.
-// It always returns false if either role is invalid or if the passive role is [RoleOwner].
+// It always returns false if the active role is invalid or if the passive role is [RoleOwner].
+// A passive role of [RoleInvalid] is treated as the lowest rank (code 0); any valid active role
+// outranks it, so HasAuthority returns true. This allows owners (and other privileged members) to
+// repair or remove members whose stored role is empty or corrupted, rather than permanently locking
+// them out. Callers that must reject a passive [RoleInvalid] (e.g. update-membership) should add
+// that check explicitly at the call site.
 func (r Role) HasAuthority(passive Role) bool {
-	return passive != RoleOwner && r.code() >= passive.code()
+	return r != RoleInvalid && passive != RoleOwner && r.code() >= passive.code()
 }

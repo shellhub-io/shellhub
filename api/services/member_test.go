@@ -426,6 +426,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 func TestService_UpdateNamespaceMember(t *testing.T) {
 	envMock := new(envmock.Backend)
 	storeMock := new(storemock.Store)
+	cacheMock := new(cachemock.Cache)
 
 	envs.DefaultBackend = envMock
 
@@ -575,12 +576,22 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrRoleInvalid(),
 		},
 		{
-			description: "[community|enterprise|cloud] fails when the active member's role cannot act over passive member's role",
+			// The current-role guard catches any attempt by a lower-privileged actor to
+			// act on a higher-privileged passive member regardless of the requested new
+			// role. Here active=operator, passive=admin, MemberRole=observer: the new-role
+			// guard (active.Role.HasAuthority(req.MemberRole)) would pass because
+			// Operator.HasAuthority(Observer)==true, but the current-role guard
+			// (active.Role.HasAuthority(member.Role)) rejects it because
+			// Operator.HasAuthority(Administrator)==false. Setting MemberRole=observer
+			// (below the active operator) isolates the current-role guard from the
+			// new-role guard, so removing the current-role guard would turn this into a
+			// pass-through and break this test.
+			description: "[community|enterprise|cloud] BFLA: fails when operator tries to act on an admin (current-role guard)",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: authorizer.RoleAdministrator,
+				MemberRole: authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -690,12 +701,288 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
+		// BFLA: the active member must have authority over the passive member's current
+		// role, not only over the requested new role. These cases cover that guard.
+		{
+			// An admin must not be able to modify an owner, even when the new role is
+			// below owner level — the passive member's current role must also be checked.
+			description: "[community|enterprise|cloud] BFLA: fails when admin tries to demote an owner",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000001",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+			},
+			expected: NewErrRoleInvalid(),
+		},
+		{
+			// An admin acting on an equal-rank admin with a lower new role (demotion) is
+			// permitted. This case discriminates the current-role guard (line 128) from the
+			// new-role guard (line 132): the current-role guard checks
+			// Admin.HasAuthority(Admin)=true (passive's *current* role), while the new-role
+			// guard checks Admin.HasAuthority(Observer)=true (the requested *new* role). Both
+			// pass here. Removing the current-role guard would leave this as a pass-through,
+			// but the companion rejection test (operator-demotes-admin) would break, proving
+			// the guard's necessity. Together the two cases pin the >= semantics of the
+			// current-role check without conflating it with the new-role check.
+			description: "[community|enterprise|cloud] succeeds when admin demotes equal-rank admin",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000002",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			// An owner must not be able to self-demote; doing so would leave the namespace
+			// without an owner.
+			description: "[community|enterprise|cloud] BFLA: fails when owner tries to self-demote",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000000",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+			},
+			expected: NewErrRoleInvalid(),
+		},
+		{
+			// A lower-privileged member sending an omitted/empty role against a
+			// higher-privileged passive member must be rejected. The current-role guard must
+			// run unconditionally (not only when req.MemberRole != RoleInvalid) to prevent a
+			// lower-privileged actor from performing a write (NamespaceUpdateMembership) and
+			// token-invalidation (AuthUncacheToken) against a member they have no authority
+			// over. Without this guard an admin could force-invalidate an owner's cached auth
+			// token via a no-op role update.
+			description: "[community|enterprise|cloud] BFLA: fails when admin targets owner with empty role",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleInvalid,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000001",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleAdministrator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+			},
+			expected: NewErrRoleInvalid(),
+		},
+		{
+			// A member record with an empty/invalid role (legacy or corrupted data) must
+			// be repairable via the normal API path. HasAuthority treats RoleInvalid as the
+			// lowest rank (code 0), so any valid active role can act on the corrupted member.
+			// This prevents a permanent lock-out where the member could never be fixed or
+			// removed without direct DB intervention. Low-privileged actors cannot exploit
+			// this because they would still need to pass the new-role guard for the
+			// requested role, and they cannot assign RoleInvalid as a new role either.
+			description: "[community|enterprise|cloud] succeeds when owner repairs a member with an invalid/empty role",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000002",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleInvalid, // corrupted/legacy record
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			// A lower-privileged actor must NOT be able to exploit a corrupted passive
+			// record to force-write or force-invalidate tokens. The current-role guard
+			// (HasAuthority(RoleInvalid)==true) passes for any valid role, but the
+			// new-role guard still rejects an admin trying to promote the invalid member
+			// to administrator (Admin.HasAuthority(Administrator)==true passes the
+			// new-role check). However, a lower actor (observer) cannot request a role
+			// above their own authority (Observer.HasAuthority(Observer)==true but
+			// Observer.HasAuthority(Administrator)==false). Test that operator cannot
+			// assign admin to a corrupted member, verifying new-role guard still applies.
+			description: "[community|enterprise|cloud] BFLA: fails when operator tries to promote invalid-role member to administrator",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleAdministrator,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000002",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOperator,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleInvalid, // corrupted/legacy record
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+			},
+			expected: NewErrRoleInvalid(),
+		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock, clientMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -707,6 +994,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+	cacheMock.AssertExpectations(t)
 }
 
 func TestService_RemoveNamespaceMember(t *testing.T) {
@@ -1033,6 +1321,77 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			expected: Expected{
 				namespace: nil,
 				err:       store.ErrInternal,
+			},
+		},
+		{
+			// A member record with a corrupted/legacy role (RoleInvalid) must not become
+			// permanently un-removable. HasAuthority treats RoleInvalid as the lowest rank
+			// so any valid active role can act on it. The owner must be able to remove the
+			// corrupted member to restore namespace integrity without DB intervention.
+			description: "[community|enterprise|cloud] succeeds when owner removes a member with an invalid/empty role",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleInvalid, // corrupted/legacy record
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Username: "jane_doe"},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleInvalid}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
+					Members: []models.Member{
+						{
+							ID:   "000000000000000000000000",
+							Role: authorizer.RoleOwner,
+						},
+					},
+				},
+				err: nil,
 			},
 		},
 	}
