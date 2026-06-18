@@ -244,7 +244,7 @@ export default function ManageTagsDrawer({
                           }
                           void handleRename(tag.name, true);
                         }}
-                        autoFocus
+
                         className={`w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all ${
                           editNameChanged && !editNameValid
                             ? "border-accent-red/50 focus:ring-accent-red/20"

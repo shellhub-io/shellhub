@@ -231,7 +231,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Name */}
             <div>
-              <label className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label htmlFor="signup-name" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
                 Name
               </label>
               <div className="relative">
@@ -239,6 +239,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   <UserIcon />
                 </span>
                 <input
+                  id="signup-name"
                   type="text"
                   value={name}
                   onChange={(e) => {
@@ -247,7 +248,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   }}
                   placeholder="Your name"
                   className={INPUT_BASE}
-                  autoFocus
+
                 />
               </div>
               {fieldErrors.name && (
@@ -259,7 +260,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Email */}
             <div>
-              <label className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label htmlFor="signup-email" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
                 Email
               </label>
               <div className="relative">
@@ -267,6 +268,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   <MailIcon />
                 </span>
                 <input
+                  id="signup-email"
                   type="email"
                   value={email}
                   onChange={(e) => {
@@ -289,7 +291,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Password */}
             <div>
-              <label className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label htmlFor="signup-password" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -297,6 +299,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   <LockIcon />
                 </span>
                 <input
+                  id="signup-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
@@ -360,7 +363,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Confirm password */}
             <div>
-              <label className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label htmlFor="signup-confirm-password" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
                 Confirm password
               </label>
               <div className="relative">
@@ -368,6 +371,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   <LockIcon />
                 </span>
                 <input
+                  id="signup-confirm-password"
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => {

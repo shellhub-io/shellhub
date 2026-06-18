@@ -14,7 +14,6 @@ import type { UserFormApi, UserFormMode } from "./useUserForm";
 interface UserFormFieldsProps {
   form: UserFormApi<UserFormMode>;
   idPrefix: string;
-  autoFocus?: boolean;
   /** Edit only: false when the user is already confirmed (cannot un-confirm). */
   canChangeConfirmed?: boolean;
   /** Edit only: true when editing your own admin user (cannot self-demote). */
@@ -24,7 +23,6 @@ interface UserFormFieldsProps {
 export default function UserFormFields({
   form,
   idPrefix,
-  autoFocus,
   canChangeConfirmed = true,
   disableAdmin = false,
 }: UserFormFieldsProps) {
@@ -42,7 +40,7 @@ export default function UserFormFields({
         error={errors.name}
         errorRole="status"
         placeholder={isCreate ? "John Doe" : undefined}
-        autoFocus={autoFocus}
+
         maxLength={NAME_MAX_LENGTH}
         required
       />

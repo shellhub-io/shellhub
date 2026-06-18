@@ -130,6 +130,7 @@ export default function UserDetails() {
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => setEditOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
           >
@@ -138,6 +139,7 @@ export default function UserDetails() {
           </button>
           {isSamlOnly && (
             <button
+              type="button"
               onClick={() => setResetPasswordOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
               title="Enable local authentication for this SAML-only user"
@@ -147,6 +149,7 @@ export default function UserDetails() {
             </button>
           )}
           <button
+            type="button"
             onClick={() => id && void loginAs(id)}
             disabled={loginAsId === id}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all ${
@@ -163,6 +166,7 @@ export default function UserDetails() {
             {loginAsErrorId === id ? "Retry Login" : "Login as User"}
           </button>
           <button
+            type="button"
             onClick={() => setDeleteOpen(true)}
             className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
             title="Delete user"

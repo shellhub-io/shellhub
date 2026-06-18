@@ -48,7 +48,7 @@ vi.mock("@/components/common/Drawer", () => ({
     return (
       <div>
         <h2>{title}</h2>
-        <button onClick={onClose}>Close Drawer</button>
+        <button type="button" onClick={onClose}>Close Drawer</button>
         <div>{children}</div>
         {footer && <div>{footer as React.ReactNode}</div>}
       </div>

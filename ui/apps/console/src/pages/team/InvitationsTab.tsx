@@ -314,6 +314,7 @@ function InvitationsTab({ tenantId }: { tenantId: string }) {
         </div>
         <RestrictedAction action="namespace:addMember">
           <button
+            type="button"
             onClick={() => setInviteOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >

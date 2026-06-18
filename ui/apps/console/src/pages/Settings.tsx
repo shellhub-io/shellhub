@@ -166,7 +166,6 @@ function EditNameDrawer({
           id="edit-ns-name"
           value={name}
           onChange={setName}
-          autoFocus={open}
           error={validationError}
         />
         {error && (
@@ -227,7 +226,7 @@ function DeleteDialog({
           value={confirm}
           onChange={setConfirm}
           placeholder={namespaceName}
-          autoFocus
+
         />
       </div>
       {error && <p className="text-2xs text-accent-red mb-3">{error}</p>}

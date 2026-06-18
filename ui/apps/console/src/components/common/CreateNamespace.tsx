@@ -55,7 +55,7 @@ function CloudForm() {
               setValidationError(null);
               createNs.reset();
             }}
-            autoFocus
+
             error={displayError}
           />
         </div>

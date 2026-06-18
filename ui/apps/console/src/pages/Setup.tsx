@@ -231,7 +231,7 @@ export default function Setup() {
                 onBlur={() => handleBlur("name")}
                 error={showError("name")}
                 placeholder="Your name"
-                autoFocus
+
                 maxLength={64}
               />
 

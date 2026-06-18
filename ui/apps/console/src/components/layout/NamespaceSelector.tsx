@@ -63,6 +63,7 @@ export default function NamespaceSelector({
   return (
     <div ref={containerRef} className="relative">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         aria-label={isAdminContext ? "Admin Console" : currentNamespace?.name ?? "Select Namespace"}
         aria-haspopup="true"
@@ -152,6 +153,7 @@ export default function NamespaceSelector({
               </p>
               {availableNamespaces.map((ns) => (
                 <button
+                  type="button"
                   key={ns.tenant_id}
                   onClick={() => void handleSwitch(ns.tenant_id)}
                   className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
@@ -185,6 +187,7 @@ export default function NamespaceSelector({
           {showAdminLink && (
             <div className="p-2 border-t border-border">
               <button
+                type="button"
                 onClick={() => {
                   setOpen(false);
                   void navigate("/admin");
@@ -210,6 +213,7 @@ export default function NamespaceSelector({
           {!isAdminContext && (
             <div className="p-2 border-t border-border">
               <button
+                type="button"
                 onClick={handleCreate}
                 className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
               >

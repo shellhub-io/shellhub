@@ -76,7 +76,7 @@ export default function RenameSection({
             if (e.key === "Escape") setEditing(false);
           }}
           aria-label="Device name"
-          autoFocus
+
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
         <button

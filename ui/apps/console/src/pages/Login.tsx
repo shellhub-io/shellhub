@@ -271,7 +271,7 @@ export default function Login() {
               onChange={setUsername}
               placeholder="username"
               autoComplete="username"
-              autoFocus
+
               required
             />
 

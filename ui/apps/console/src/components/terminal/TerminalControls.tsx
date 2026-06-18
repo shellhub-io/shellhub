@@ -51,6 +51,7 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
         {/* macOS-style traffic light controls */}
         <div className="flex items-center gap-2 ml-1.5 group/lights">
           <button
+            type="button"
             onClick={() => close(session.id)}
             className="w-3.5 h-3.5 rounded-full bg-[#ff5f57] border border-[#e0443e] flex items-center justify-center transition-all hover:brightness-110 active:brightness-90"
             title="Close"
@@ -61,6 +62,7 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
             />
           </button>
           <button
+            type="button"
             onClick={() => minimize(session.id)}
             className="w-3.5 h-3.5 rounded-full bg-[#febc2e] border border-[#dea123] flex items-center justify-center transition-all hover:brightness-110 active:brightness-90"
             title="Minimize"
@@ -71,8 +73,10 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
             />
           </button>
           <button
+            type="button"
             onClick={() => toggleFullscreen(session.id)}
             className="w-3.5 h-3.5 rounded-full bg-[#28c840] border border-[#1aab29] flex items-center justify-center transition-all hover:brightness-110 active:brightness-90"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
           >
             <svg
@@ -95,6 +99,7 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
 
         {/* Settings */}
         <button
+          type="button"
           onClick={() => setSettingsOpen(true)}
           className="p-1.5 rounded-md text-white/30 hover:text-white/60 transition-colors"
           title="Terminal Settings"

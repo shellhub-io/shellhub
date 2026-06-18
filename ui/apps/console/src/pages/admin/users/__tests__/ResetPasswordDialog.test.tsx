@@ -23,7 +23,7 @@ vi.mock("@/components/common/BaseDialog", () => ({
     if (!open) return null;
     return (
       <div role="dialog">
-        <button onClick={onClose}>Close Dialog</button>
+        <button type="button" onClick={onClose}>Close Dialog</button>
         {children}
       </div>
     );

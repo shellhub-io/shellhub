@@ -74,11 +74,13 @@ export default function MfaLogin() {
           {error && <Alert variant="error">{error}</Alert>}
 
           <div>
-            <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
+            <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
               Verification Code
-            </label>
+            </p>
             <div
               className="flex gap-2 justify-center"
+              role="group"
+              aria-label="Verification Code"
               onPaste={otp.handlePaste}
             >
               {otp.code.map((digit, index) => (
@@ -92,7 +94,7 @@ export default function MfaLogin() {
                   aria-label={`Digit ${index + 1} of 6`}
                   onChange={(e) => otp.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                  autoFocus={index === 0}
+
                   className="w-12 h-12 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
                 />
               ))}

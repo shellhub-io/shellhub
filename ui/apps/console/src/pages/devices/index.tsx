@@ -181,6 +181,7 @@ export default function Devices() {
             device.online ? (
               <RestrictedAction action="device:connect">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     const existing = useTerminalStore
@@ -225,6 +226,7 @@ export default function Devices() {
             <div className="flex items-center justify-end gap-1.5">
               <RestrictedAction action="device:accept">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ device, action: "accept" });
@@ -236,6 +238,7 @@ export default function Devices() {
               </RestrictedAction>
               <RestrictedAction action="device:reject">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ device, action: "reject" });
@@ -262,6 +265,7 @@ export default function Devices() {
           <div className="flex items-center justify-end gap-1.5">
             <RestrictedAction action="device:accept">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ device, action: "accept" });
@@ -273,6 +277,7 @@ export default function Devices() {
             </RestrictedAction>
             <RestrictedAction action="device:remove">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ device, action: "remove" });
@@ -312,6 +317,7 @@ export default function Devices() {
         <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
           {statusTabs.map((tab) => (
             <button
+              type="button"
               key={tab.value}
               onClick={() => handleStatusChange(tab.value)}
               className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
@@ -361,6 +367,7 @@ export default function Devices() {
                 <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
                 {tag}
                 <button
+                  type="button"
                   onClick={() => removeFilterTag(tag)}
                   className="hover:text-white transition-colors ml-0.5"
                 >
@@ -369,6 +376,7 @@ export default function Devices() {
               </span>
             ))}
             <button
+              type="button"
               onClick={clearFilterTags}
               className="text-2xs text-text-muted hover:text-text-primary transition-colors font-mono"
             >

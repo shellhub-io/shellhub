@@ -124,7 +124,6 @@ export default function EmptyState({
         {/* Feature highlights */}
         {features?.length ? (
           <ul
-            role="list"
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
           >
             {features.map((feature, idx) => (

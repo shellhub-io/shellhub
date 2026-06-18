@@ -98,7 +98,6 @@ function ChangePasswordDrawer({
           value={currentPassword}
           onChange={setCurrentPassword}
           placeholder="Enter current master password"
-          autoFocus={open}
           suppressPasswordManager
         />
 
@@ -365,7 +364,7 @@ export default function VaultSettingsSection() {
             value={resetConfirmText}
             onChange={setResetConfirmText}
             placeholder="RESET"
-            autoFocus
+
           />
         </div>
       </ConfirmDialog>

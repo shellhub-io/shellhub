@@ -231,7 +231,7 @@ export default function RuleDrawer({
           value={priority}
           onChange={setPriority}
           placeholder="e.g. 100"
-          autoFocus={open}
+
           hint="Higher values are evaluated first. Must be greater than 0."
           error={priorityError || undefined}
         />

@@ -183,6 +183,7 @@ export default function MfaEnableDrawer({
         step === 1 ? (
           <>
             <button
+              type="button"
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
             >
@@ -190,6 +191,7 @@ export default function MfaEnableDrawer({
             </button>
             {showRecoveryEmailInput ? (
               <button
+                type="button"
                 onClick={() => void handleSaveRecoveryEmail()}
                 disabled={loading || !recoveryEmail.trim()}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -199,6 +201,7 @@ export default function MfaEnableDrawer({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => void handleConfirmExistingEmail()}
                 disabled={loading}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -211,12 +214,14 @@ export default function MfaEnableDrawer({
         ) : step === 2 ? (
           <>
             <button
+              type="button"
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={() => void handleNextToQr()}
               disabled={!codesSaved || loading || recoveryCodes.length === 0}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
@@ -227,12 +232,14 @@ export default function MfaEnableDrawer({
         ) : step === 3 ? (
           <>
             <button
+              type="button"
               onClick={() => setStep(2)}
               className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
             >
               Back
             </button>
             <button
+              type="button"
               onClick={() => void handleEnableMfa()}
               disabled={loading || !isCodeComplete || !qrLink || !secret}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
@@ -243,6 +250,7 @@ export default function MfaEnableDrawer({
           </>
         ) : (
           <button
+            type="button"
             onClick={handleDone}
             className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >
@@ -273,15 +281,18 @@ export default function MfaEnableDrawer({
 
             {showRecoveryEmailInput ? (
               <div>
-                <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+                <label
+                  htmlFor="enable-mfa-recovery-email"
+                  className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
+                >
                   Recovery Email
                 </label>
                 <input
+                  id="enable-mfa-recovery-email"
                   type="email"
                   value={recoveryEmail}
                   onChange={(e) => setRecoveryEmail(e.target.value)}
                   required
-                  autoFocus
                   className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   placeholder="recovery@example.com"
                 />
@@ -308,6 +319,7 @@ export default function MfaEnableDrawer({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setUserWantsNewEmail(true)}
                   className="w-full px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary border border-border rounded-lg hover:bg-hover-subtle transition-colors"
                 >
@@ -346,12 +358,14 @@ export default function MfaEnableDrawer({
                   </div>
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={() => void handleDownload(recoveryCodes)}
                       className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
                     >
                       Download
                     </button>
                     <button
+                      type="button"
                       onClick={() => void handleCopy(recoveryCodes)}
                       className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
                     >
@@ -410,10 +424,14 @@ export default function MfaEnableDrawer({
                   </div>
 
                   <div>
-                    <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+                    <label
+                      htmlFor="enable-mfa-manual-key"
+                      className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
+                    >
                       Manual Entry Key
                     </label>
                     <input
+                      id="enable-mfa-manual-key"
                       type="text"
                       value={secret}
                       readOnly
@@ -434,10 +452,10 @@ export default function MfaEnableDrawer({
             </div>
 
             <div>
-              <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
+              <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                 Verification Code
-              </label>
-              <div className="flex gap-2 justify-center">
+              </p>
+              <div className="flex gap-2 justify-center" role="group" aria-label="Verification Code">
                 {otp.code.map((digit, index) => (
                   <input
                     key={index}
@@ -448,7 +466,7 @@ export default function MfaEnableDrawer({
                     value={digit}
                     onChange={(e) => otp.handleChange(index, e.target.value)}
                     onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                    autoFocus={index === 0}
+                    aria-label={`Digit ${index + 1}`}
                     className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
                 ))}

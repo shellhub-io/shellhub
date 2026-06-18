@@ -56,6 +56,7 @@ function InvitationCard({
       </p>
       <div className="flex items-center gap-1.5 mt-2.5">
         <button
+          type="button"
           onClick={() => onAccept(invitation)}
           disabled={expired}
           className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary rounded-md text-2xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-colors"
@@ -64,6 +65,7 @@ function InvitationCard({
           Accept
         </button>
         <button
+          type="button"
           onClick={() => onDecline(invitation)}
           className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-hover-subtle hover:bg-hover-medium border border-border text-text-secondary hover:text-text-primary rounded-md text-2xs font-semibold transition-colors"
         >

@@ -80,7 +80,7 @@ function EditKeyDrawer({
           value={name}
           onChange={setName}
           maxLength={20}
-          autoFocus={open}
+
         />
         <RoleSelector value={role} onChange={setRole} />
 

@@ -85,6 +85,7 @@ function TagFilterDropdown({
   return (
     <>
       <button
+        type="button"
         ref={triggerRef}
         onClick={() => setOpen(!open)}
         className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md border transition-all duration-150 ${
@@ -120,7 +121,6 @@ function TagFilterDropdown({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search tags..."
-                autoFocus
                 className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
               />
             </div>
@@ -136,6 +136,7 @@ function TagFilterDropdown({
                   const active = filterTags.includes(tag);
                   return (
                     <button
+                      type="button"
                       key={tag}
                       onClick={() => {
                         if (active) onRemove(tag);
@@ -172,6 +173,7 @@ function TagFilterDropdown({
             <div className="p-2 border-t border-border space-y-1">
               {hasActive && (
                 <button
+                  type="button"
                   onClick={() => {
                     onClearAll();
                     setOpen(false);
@@ -183,6 +185,7 @@ function TagFilterDropdown({
               )}
               {onManageTags && (
                 <button
+                  type="button"
                   onClick={() => {
                     setOpen(false);
                     onManageTags();

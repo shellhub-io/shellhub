@@ -43,6 +43,7 @@ export default function StatCard(props: StatCardProps) {
 
       {props.onClick ? (
         <button
+          type="button"
           onClick={props.onClick}
           className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
         >

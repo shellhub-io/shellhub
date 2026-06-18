@@ -58,8 +58,8 @@ vi.mock("../../../components/common/ConfirmDialog", () => ({
     return (
       <div role="dialog">
         <h2>{title}</h2>
-        <button onClick={onClose}>{cancelLabel}</button>
-        <button onClick={() => void onConfirm()}>{confirmLabel}</button>
+        <button type="button" onClick={onClose}>{cancelLabel}</button>
+        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
       </div>
     );
   },
@@ -70,7 +70,7 @@ vi.mock("../InvitationDrawer", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="invitation-drawer">
-        <button onClick={onClose}>Close Invite Drawer</button>
+        <button type="button" onClick={onClose}>Close Invite Drawer</button>
       </div>
     ) : null,
 }));
@@ -79,7 +79,7 @@ vi.mock("../EditInvitationDrawer", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="edit-invitation-drawer">
-        <button onClick={onClose}>Close Edit Drawer</button>
+        <button type="button" onClick={onClose}>Close Edit Drawer</button>
       </div>
     ) : null,
 }));

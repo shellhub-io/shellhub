@@ -106,7 +106,7 @@ export function ComparisonTable() {
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-4 pr-4 text-sm font-medium text-text-secondary w-[40%]" />
+                  <th className="text-left py-4 pr-4 text-sm font-medium text-text-secondary w-[40%]" scope="col"><span className="sr-only">Feature</span></th>
                   <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">Community</th>
                   <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">
                     <span className="text-primary">Cloud</span>

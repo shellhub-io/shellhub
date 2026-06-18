@@ -78,7 +78,7 @@ export default function NewAnnouncement() {
           onChange={setTitle}
           placeholder="Announcement title"
           maxLength={TITLE_MAX}
-          autoFocus
+
         />
 
         {/* Content editor */}

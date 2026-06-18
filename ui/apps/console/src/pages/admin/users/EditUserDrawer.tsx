@@ -85,7 +85,7 @@ export default function EditUserDrawer({
         <UserFormFields
           form={form}
           idPrefix="edit-user"
-          autoFocus={open}
+
           canChangeConfirmed={canChangeConfirmed}
           disableAdmin={disableAdmin}
         />

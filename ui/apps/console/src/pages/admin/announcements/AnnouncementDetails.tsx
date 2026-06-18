@@ -83,6 +83,7 @@ export default function AnnouncementDetails() {
             Edit
           </Link>
           <button
+            type="button"
             onClick={() => setDeleteOpen(true)}
             className="p-2.5 border border-border rounded-lg text-text-muted hover:text-accent-red hover:border-accent-red/30 transition-colors"
             aria-label="Delete announcement"

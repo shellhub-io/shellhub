@@ -207,7 +207,7 @@ function InvitationDrawer({
             placeholder="user@example.com"
             error={emailError || undefined}
             hint="If no account matches this email, we'll send a sign-up link."
-            autoFocus={open}
+
           />
 
           <RoleSelector value={role} onChange={setRole} />

@@ -128,6 +128,7 @@ export default function NamespaceDetails() {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => setEditOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
           >
@@ -135,6 +136,7 @@ export default function NamespaceDetails() {
             Edit
           </button>
           <button
+            type="button"
             onClick={() => setDeleteOpen(true)}
             className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
             title="Delete namespace"

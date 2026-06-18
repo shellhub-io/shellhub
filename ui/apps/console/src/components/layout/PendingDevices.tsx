@@ -72,6 +72,7 @@ export default function PendingDevices() {
     <div ref={containerRef} className="relative">
       {/* Trigger */}
       <button
+        type="button"
         onClick={() => (open ? closeDropdown() : setOpen(true))}
         aria-label={
           count > 0 ? `Pending Devices (${count})` : "Pending Devices"
@@ -104,6 +105,7 @@ export default function PendingDevices() {
               )}
             </div>
             <button
+              type="button"
               onClick={closeDropdown}
               aria-label="Close"
               className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
@@ -186,6 +188,7 @@ export default function PendingDevices() {
                         ) : (
                           <div className="flex items-center gap-1 shrink-0">
                             <button
+                              type="button"
                               onClick={() =>
                                 void handleAction(d.uid, "accepted")
                               }
@@ -208,6 +211,7 @@ export default function PendingDevices() {
                               )}
                             </button>
                             <button
+                              type="button"
                               onClick={() =>
                                 void handleAction(d.uid, "rejected")
                               }
@@ -235,6 +239,7 @@ export default function PendingDevices() {
           {count > 0 && (
             <div className="px-4 py-2.5 border-t border-border">
               <button
+                type="button"
                 onClick={() => {
                   closeDropdown();
                   void navigate("/devices");

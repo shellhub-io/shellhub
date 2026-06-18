@@ -267,6 +267,8 @@ function TimeoutSelector({
         <button
           type="button"
           onClick={handleToggle}
+          aria-labelledby="endpoint-expiration-label"
+          aria-pressed={hasExpiration}
           className={`relative w-9 h-5 rounded-full transition-colors ${hasExpiration ? "bg-primary" : "bg-border"}`}
         >
           <span
@@ -302,7 +304,7 @@ function TimeoutSelector({
               onChange={handleCustomValueChange}
               placeholder="Value in seconds"
               variant="mono"
-              autoFocus
+
               error={error || undefined}
             />
           )}
@@ -591,7 +593,7 @@ function EndpointDrawer({
                       placeholder="e.g. 192.168.1.100"
                       variant="mono"
                       error={hostError}
-                      autoFocus
+
                     />
                   </div>
                   <div className="w-24">

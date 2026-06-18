@@ -7,6 +7,8 @@ import unusedImports from "eslint-plugin-unused-imports";
 import stylisticPlugin from "@stylistic/eslint-plugin";
 import vitestPlugin from "@vitest/eslint-plugin";
 import globals from "globals";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import reactPlugin from "eslint-plugin-react";
 
 export default defineConfig([
   globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "packages/design-system/**", "**/src/client"]),
@@ -21,6 +23,51 @@ export default defineConfig([
     },
   },
   stylisticPlugin.configs.recommended,
+
+  // Accessibility — catches missing aria-labels, bad roles, inaccessible interactive elements
+  jsxA11y.flatConfigs.recommended,
+  {
+    rules: {
+      // Icon-only interactive elements must have an accessible label.
+      // Catches close buttons, icon buttons, etc. that render no visible text.
+      "jsx-a11y/control-has-associated-label": ["error", {
+        ignoreElements: ["audio", "canvas", "embed", "input", "textarea", "tr", "video"],
+        ignoreRoles: ["grid", "listbox", "menu", "menubar", "radiogroup", "row", "tablist", "toolbar", "tree", "treegrid"],
+      }],
+
+      // Interactive elements (role=button, etc.) must be keyboard-focusable.
+      // Catches <div onClick> that omit tabIndex and keyboard handlers.
+      "jsx-a11y/interactive-supports-focus": "warn",
+
+      // Prevents attaching mouse/pointer handlers to static, non-interactive elements
+      // without a corresponding keyboard handler.
+      "jsx-a11y/no-static-element-interactions": "warn",
+
+      // Any element with an onClick must also handle Enter/Space via onKeyDown/onKeyUp/onKeyPress.
+      "jsx-a11y/click-events-have-key-events": "warn",
+    },
+  },
+
+  // React — button types, dangerous HTML, safe anchor targets
+  {
+    plugins: { react: reactPlugin },
+    settings: { react: { version: "detect" } },
+    rules: {
+      // Same goal as jsx-a11y/button-has-type but from the React side.
+      // Together they cover both JSX and DOM-level checks.
+      "react/button-has-type": "error",
+
+      // Prevents dangerouslySetInnerHTML from being introduced silently.
+      "react/no-danger": "warn",
+
+      // <a target="_blank"> without rel="noreferrer" is a security/privacy issue.
+      "react/jsx-no-target-blank": "error",
+
+      // Enforces self-closing tags on components/elements with no children.
+      "react/self-closing-comp": "warn",
+    },
+  },
+
   {
     plugins: {
       "react-hooks": reactHooks,

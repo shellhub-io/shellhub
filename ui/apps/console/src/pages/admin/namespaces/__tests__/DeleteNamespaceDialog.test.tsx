@@ -33,8 +33,8 @@ vi.mock("@/components/common/ConfirmDialog", () => ({
       <div role="dialog" aria-label={title}>
         <h2>{title}</h2>
         <div>{description}</div>
-        <button onClick={onClose}>Cancel</button>
-        <button onClick={() => void onConfirm()}>{confirmLabel}</button>
+        <button type="button" onClick={onClose}>Cancel</button>
+        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
       </div>
     );
   },

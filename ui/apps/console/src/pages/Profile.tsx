@@ -422,7 +422,7 @@ export function EditProfileDrawer({
           hint="1-64 characters"
           error={nameError ?? undefined}
           maxLength={64}
-          autoFocus={open}
+
         />
         <InputField
           id="profile-username"
@@ -550,7 +550,7 @@ function ChangePasswordDrawer({
           value={current}
           onChange={setCurrent}
           autoComplete="current-password"
-          autoFocus={open}
+
         />
         <PasswordField
           id="change-pw-new"

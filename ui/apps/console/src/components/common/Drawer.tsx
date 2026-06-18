@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface DrawerProps {
   open: boolean;
@@ -31,7 +32,9 @@ export default function Drawer({
   footer,
   bodyClassName,
 }: DrawerProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
   useEscapeKey(onClose, open);
+  useFocusTrap(panelRef, open);
 
   return (
     <>
@@ -42,6 +45,7 @@ export default function Drawer({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         className={`fixed inset-y-0 right-0 z-[70] w-full ${WIDTH_MAP[width]} bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}

@@ -69,7 +69,7 @@ export default function CreateUserDrawer({
         className="space-y-5"
         noValidate
       >
-        <UserFormFields form={form} idPrefix="create-user" autoFocus={open} />
+        <UserFormFields form={form} idPrefix="create-user" />
         {submitError && (
           <p role="alert" className="text-2xs text-accent-red">
             {submitError}

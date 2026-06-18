@@ -24,6 +24,7 @@ export default function Pagination({
       </span>
       <div className="flex items-center gap-1">
         <button
+          type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           className="px-2.5 py-1 text-xs font-mono text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
@@ -34,6 +35,7 @@ export default function Pagination({
           {page} / {totalPages}
         </span>
         <button
+          type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
           className="px-2.5 py-1 text-xs font-mono text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"

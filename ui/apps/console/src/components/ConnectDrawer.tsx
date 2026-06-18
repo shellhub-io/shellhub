@@ -304,7 +304,7 @@ export default function ConnectDrawer({
             value={state.username}
             onChange={(v) => dispatch({ type: "setUsername", value: v })}
             placeholder="e.g. root"
-            autoFocus={open}
+
           />
 
           {/* Auth Method */}

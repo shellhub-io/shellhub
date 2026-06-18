@@ -100,6 +100,7 @@ function ApiKeysTab() {
         <div className="flex items-center justify-end gap-1">
           <RestrictedAction action="apiKey:edit">
             <button
+              type="button"
               onClick={() => setEditTarget(key)}
               className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
               title="Edit"
@@ -109,6 +110,7 @@ function ApiKeysTab() {
           </RestrictedAction>
           <RestrictedAction action="apiKey:delete">
             <button
+              type="button"
               onClick={() => setDeleteTarget(key)}
               className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
               title="Delete"
@@ -130,6 +132,7 @@ function ApiKeysTab() {
         </p>
         <RestrictedAction action="apiKey:create">
           <button
+            type="button"
             onClick={() => setGenerateOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >

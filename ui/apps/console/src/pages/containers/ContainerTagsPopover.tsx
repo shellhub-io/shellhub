@@ -144,6 +144,7 @@ function ContainerTagsPopover({
           <div className="flex items-center gap-1">
             {tags.map((tag) => (
               <button
+                type="button"
                 key={tag}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -164,6 +165,7 @@ function ContainerTagsPopover({
         )}
         {canEditTags && (
           <button
+            type="button"
             ref={triggerRef}
             onClick={(e) => {
               e.stopPropagation();
@@ -181,6 +183,7 @@ function ContainerTagsPopover({
       {/* Popover — portaled to body */}
       {open &&
         createPortal(
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
           <div
             ref={popoverRef}
             role="dialog"
@@ -201,6 +204,7 @@ function ContainerTagsPopover({
                       <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
                       {tag}
                       <button
+                        type="button"
                         onClick={() => void handleRemove(tag)}
                         disabled={loading}
                         aria-label={`Remove tag ${tag}`}
@@ -231,7 +235,7 @@ function ContainerTagsPopover({
                       }
                     }}
                     placeholder="Search or create tag..."
-                    autoFocus
+
                     aria-label="Search or create tag"
                     className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
@@ -255,6 +259,7 @@ function ContainerTagsPopover({
                       <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
                         {suggestions.map((tag) => (
                           <button
+                            type="button"
                             key={tag}
                             onClick={() => void handleAdd(tag)}
                             disabled={loading}
@@ -269,6 +274,7 @@ function ContainerTagsPopover({
                         ))}
                         {isNew && (
                           <button
+                            type="button"
                             onClick={() => void handleAdd(input.trim())}
                             disabled={loading}
                             className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
