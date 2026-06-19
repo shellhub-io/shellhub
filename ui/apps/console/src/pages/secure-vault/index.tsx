@@ -30,7 +30,7 @@ import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatDate } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const VAULT_FEATURES: EmptyStateFeature[] = [
   {
@@ -135,14 +135,13 @@ export default function SecureVault() {
           description="Store and encrypt your SSH private keys with a master password. Your keys never leave your browser and are protected at rest."
           features={VAULT_FEATURES}
         >
-          <button
-            type="button"
+          <Button
+            size="lg"
             onClick={() => setSetupOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            icon={<ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />
             Set Up Secure Vault
-          </button>
+          </Button>
         </EmptyState>
         <VaultSetupDialog
           open={setupOpen}
@@ -163,14 +162,13 @@ export default function SecureVault() {
           description="Enter your master password to access your SSH keys and connect to devices."
           features={VAULT_FEATURES}
         >
-          <button
-            type="button"
+          <Button
+            size="lg"
             onClick={() => setUnlockOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            icon={<LockClosedIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <LockClosedIcon className="w-4 h-4" strokeWidth={2} />
             Unlock Vault
-          </button>
+          </Button>
         </EmptyState>
         <VaultUnlockDialog
           open={unlockOpen}
@@ -270,14 +268,12 @@ export default function SecureVault() {
             title="Secure Vault"
             description="Manage your encrypted SSH private keys."
           >
-            <button
-              type="button"
+            <Button
               onClick={openNew}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+              icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
               Add Private Key
-            </button>
+            </Button>
           </PageHeader>
 
           <SearchField

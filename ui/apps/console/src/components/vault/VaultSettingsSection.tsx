@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Card, Spinner } from "@shellhub/design-system/primitives";
+import { Card, Button } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
@@ -72,22 +72,17 @@ function ChangePasswordDrawer({
       title="Change Master Password"
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            loading={loading}
           >
-            {loading && <Spinner size="sm" tone="onPrimary" />}
             Update Password
-          </button>
+          </Button>
         </>
       }
     >

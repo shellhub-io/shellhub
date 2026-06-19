@@ -1,4 +1,4 @@
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 import { docsUrl } from "@/links";
 import { Reveal, CopyBtn } from "../landing/components";
 
@@ -48,26 +48,28 @@ export function StepSetup({ onBack }: StepSetupProps) {
 
       <Reveal delay={0.15}>
         <div className="flex items-center justify-between">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            className="group"
             onClick={onBack}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-text-secondary border border-border rounded-xl hover:text-text-primary hover:border-border-light hover:bg-white/[0.04] transition-all duration-300 group"
+            icon={
+              <svg
+                className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                />
+              </svg>
+            }
           >
-            <svg
-              className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-              />
-            </svg>
             Back
-          </button>
+          </Button>
 
           <a
             href={`${docsUrl}/getting-started`}

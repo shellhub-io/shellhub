@@ -1,4 +1,5 @@
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useCopy } from "@/hooks/useCopy";
 
 const sizes = {
@@ -22,54 +23,42 @@ export default function CopyButton({
 
   if (showLabel) {
     return (
-      <button
-        type="button"
+      <Button
+        size="sm"
+        variant={copied ? "successSoft" : "secondary"}
+        icon={
+          copied ? (
+            <CheckIcon className="w-3 h-3" strokeWidth={2.5} />
+          ) : (
+            <DocumentDuplicateIcon className="w-3 h-3" />
+          )
+        }
         onClick={(e) => {
           e.stopPropagation();
           copy(text);
         }}
-        className={`shrink-0 px-3 py-1.5 rounded-md text-2xs font-semibold transition-all ${
-          copied
-            ? "bg-accent-green/15 text-accent-green border border-accent-green/25"
-            : "bg-hover-medium text-text-muted hover:text-text-primary hover:bg-hover-strong border border-transparent"
-        } ${className}`}
+        className={`shrink-0 ${className}`}
       >
-        <span className="flex items-center gap-1">
-          {copied
-            ? (
-              <>
-                <CheckIcon className="w-3 h-3" strokeWidth={2.5} />
-                Copied
-              </>
-            )
-            : (
-              <>
-                <DocumentDuplicateIcon className="w-3 h-3" />
-                Copy
-              </>
-            )}
-        </span>
-      </button>
+        {copied ? "Copied" : "Copy"}
+      </Button>
     );
   }
 
   return (
-    <button
-      type="button"
+    <IconButton
+      size={size}
+      title="Copy"
       onClick={(e) => {
         e.stopPropagation();
         copy(text);
       }}
-      className={`${s.button} text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all ${className}`}
-      title="Copy"
+      className={className}
     >
-      {copied
-        ? (
-          <CheckIcon className={`${s.icon} text-accent-green`} strokeWidth={2} />
-        )
-        : (
-          <DocumentDuplicateIcon className={s.icon} />
-        )}
-    </button>
+      {copied ? (
+        <CheckIcon className={`${s.icon} text-accent-green`} strokeWidth={2} />
+      ) : (
+        <DocumentDuplicateIcon className={s.icon} />
+      )}
+    </IconButton>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useId } from "react";
+import { Button } from "@shellhub/design-system/primitives";
 import {
   ServerStackIcon,
   GlobeAltIcon,
@@ -76,23 +77,18 @@ export default function VaultSyncPromoDialog({ open, onClose, onSync }: Props) {
         </ul>
 
         <div className="flex flex-col gap-3">
-          <button
-            type="button"
+          <Button
+            fullWidth
             onClick={() => {
               onClose();
               onSync();
             }}
-            className="w-full px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >
             Sync vault
-          </button>
-          <button
-            type="button"
-            onClick={close}
-            className="w-full px-5 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          </Button>
+          <Button variant="ghost" fullWidth onClick={close}>
             Keep it on this device
-          </button>
+          </Button>
         </div>
 
         <div className="flex justify-center mt-4">

@@ -18,7 +18,7 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -36,15 +36,15 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={(e) => void handleClick(e)}
-      disabled={closing}
+    <IconButton
+      variant="danger"
       title="Close session"
-      className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-dim"
+      aria-label="Close session"
+      disabled={closing}
+      onClick={(e) => void handleClick(e)}
     >
       <XCircleIcon className="w-4 h-4" strokeWidth={2} />
-    </button>
+    </IconButton>
   );
 }
 
@@ -180,20 +180,16 @@ export default function Sessions() {
         <div className="flex items-center justify-end gap-1">
           {s.recorded && (
             <RestrictedAction action="session:play">
-              <button
-                type="button"
-                onClick={(e) => void handlePlayClick(e, s.uid)}
+              <Button
+                size="sm"
+                icon={<PlayIcon className="w-3 h-3" />}
+                loading={logsLoading && playTarget === s.uid}
                 disabled={logsLoading && playTarget === s.uid}
                 title="Play recording"
-                className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-2xs font-semibold rounded-md hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-dim"
+                onClick={(e) => void handlePlayClick(e, s.uid)}
               >
-                {logsLoading && playTarget === s.uid ? (
-                  <Spinner size="xs" tone="onSurface" />
-                ) : (
-                  <PlayIcon className="w-3 h-3" />
-                )}
                 Play
-              </button>
+              </Button>
             </RestrictedAction>
           )}
           {s.active && (

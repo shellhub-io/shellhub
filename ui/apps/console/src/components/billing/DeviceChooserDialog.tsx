@@ -23,7 +23,7 @@ import {
 } from "@/hooks/useDeviceChooser";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 5;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -266,32 +266,23 @@ export default function DeviceChooserDialog({
       )}
 
       <footer className="px-6 py-4 mt-4 border-t border-border shrink-0 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={choice.isPending}
-          className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
+        <Button variant="ghost" onClick={onClose} disabled={choice.isPending}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
           onClick={goSubscribe}
           disabled={choice.isPending}
-          className="px-4 py-2.5 rounded-lg text-sm font-semibold transition-all bg-card hover:bg-hover-medium border border-border hover:border-border-light text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Subscribe
-        </button>
-        <button
-          type="button"
-          onClick={() => void accept()}
+        </Button>
+        <Button
+          loading={choice.isPending}
           disabled={acceptDisabled}
-          aria-disabled={acceptDisabled}
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all bg-primary text-white hover:bg-primary-600 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
+          onClick={() => void accept()}
         >
-          {choice.isPending && <Spinner size="sm" tone="onPrimary" />}
           {choice.isPending ? "Saving…" : "Accept"}
-        </button>
+        </Button>
       </footer>
     </BaseDialog>
   );
@@ -596,14 +587,13 @@ function SelectedChips({
           className="inline-flex items-center gap-1 bg-card border border-border rounded px-1.5 py-0.5 text-xs text-text-secondary"
         >
           <span className="truncate max-w-[180px]">{d.name}</span>
-          <button
-            type="button"
-            onClick={() => onRemove(d)}
+          <IconButton
+            size="sm"
             aria-label={`Remove ${d.name ?? "device"} from selection`}
-            className="text-text-muted hover:text-text-primary transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50"
+            onClick={() => onRemove(d)}
           >
             <XMarkIcon className="w-3 h-3" strokeWidth={2.5} />
-          </button>
+          </IconButton>
         </li>
       ))}
     </ul>

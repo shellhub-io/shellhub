@@ -36,7 +36,12 @@ import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import ConfirmDialog from "../components/common/ConfirmDialog";
-import { Badge, Card } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 import SessionTypeBadge from "./sessions/SessionTypeBadge";
 
 /* ── timeline builder ────────────────────────────── */
@@ -406,14 +411,14 @@ export default function SessionDetails() {
               />
               {session.active && (
                 <RestrictedAction action="session:close">
-                  <button
-                    type="button"
+                  <Button
+                    variant="dangerSoft"
+                    size="sm"
+                    icon={<XCircleIcon className="w-3 h-3" strokeWidth={2} />}
                     onClick={() => setShowClose(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 border border-accent-red/30 text-accent-red hover:bg-accent-red/10 rounded-md text-2xs font-mono font-medium transition-all"
                   >
-                    <XCircleIcon className="w-3 h-3" strokeWidth={2} />
                     close
-                  </button>
+                  </Button>
                 </RestrictedAction>
               )}
             </div>
@@ -425,38 +430,39 @@ export default function SessionDetails() {
           {session.recorded && (
             <>
               <RestrictedAction action="session:play">
-                <button
-                  type="button"
-                  onClick={() => void handlePlayRecording()}
+                <Button
+                  icon={<PlayIcon className="w-4 h-4" />}
+                  loading={logsLoading}
                   disabled={logsLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
+                  onClick={() => void handlePlayRecording()}
                 >
-                  <PlayIcon className="w-4 h-4" />
                   {logsLoading ? "Loading…" : "Play Recording"}
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="session:removeRecord">
-                <button
+                <IconButton
+                  variant="danger"
+                  size="lg"
                   type="button"
-                  onClick={() => setShowDeleteLogs(true)}
-                  className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
                   title="Delete recording"
+                  aria-label="Delete recording"
+                  className="border border-border"
+                  onClick={() => setShowDeleteLogs(true)}
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </IconButton>
               </RestrictedAction>
             </>
           )}
           {session.active && (
             <RestrictedAction action="session:close">
-              <button
-                type="button"
+              <Button
+                variant="dangerSoft"
+                icon={<XCircleIcon className="w-4 h-4" strokeWidth={2} />}
                 onClick={() => setShowClose(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-hover-subtle text-accent-red border border-accent-red/30 rounded-lg text-sm font-semibold transition-all"
               >
-                <XCircleIcon className="w-4 h-4" strokeWidth={2} />
                 Close Session
-              </button>
+              </Button>
             </RestrictedAction>
           )}
         </div>

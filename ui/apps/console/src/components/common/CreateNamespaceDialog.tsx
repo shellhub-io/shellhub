@@ -4,7 +4,12 @@ import {
   BookOpenIcon,
   FolderPlusIcon,
 } from "@heroicons/react/24/outline";
-import { Card, IconBadge, Spinner } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Card,
+  IconBadge,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
 import NamespaceNameField from "./fields/NamespaceNameField";
@@ -166,14 +171,9 @@ export default function CreateNamespaceDialog({
           </h2>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all"
-          aria-label="Close dialog"
-        >
+        <IconButton onClick={onClose} aria-label="Close dialog">
           <XMarkIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
       </header>
 
       {/* Body */}
@@ -205,28 +205,18 @@ export default function CreateNamespaceDialog({
         </a>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-hover-medium transition-all"
-          >
+          <Button variant="ghost" onClick={onClose}>
             {isCloud ? "Cancel" : "Close"}
-          </button>
+          </Button>
           {isCloud && (
-            <button
+            <Button
               type="submit"
               form={FORM_ID}
-              disabled={
-                createNs.isPending || name.length < NAMESPACE_NAME_MIN_LENGTH
-              }
-              className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+              loading={createNs.isPending}
+              disabled={name.length < NAMESPACE_NAME_MIN_LENGTH}
             >
-              {createNs.isPending ? (
-                <Spinner size="sm" tone="onPrimary" className="inline-block" />
-              ) : (
-                "Create"
-              )}
-            </button>
+              Create
+            </Button>
           )}
         </div>
       </footer>

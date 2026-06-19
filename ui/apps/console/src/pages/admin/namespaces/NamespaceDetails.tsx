@@ -16,7 +16,12 @@ import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import PageLoader from "@/components/common/PageLoader";
-import { Badge, Card } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -127,23 +132,23 @@ export default function NamespaceDetails() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            icon={<PencilSquareIcon className="w-4 h-4" />}
             onClick={() => setEditOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
           >
-            <PencilSquareIcon className="w-4 h-4" />
             Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => setDeleteOpen(true)}
-            className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+          </Button>
+          <IconButton
+            variant="danger"
+            size="lg"
             title="Delete namespace"
             aria-label={`Delete ${namespace.name}`}
+            className="border border-border"
+            onClick={() => setDeleteOpen(true)}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       </div>
 

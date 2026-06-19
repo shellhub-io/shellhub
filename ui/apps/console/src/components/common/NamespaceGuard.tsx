@@ -9,7 +9,7 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 
 function MinimalHeader() {
   return (
@@ -58,14 +58,12 @@ function FetchErrorPage({
           again.
         </p>
 
-        <button
-          type="button"
+        <Button
+          icon={<ArrowPathIcon className="w-4 h-4" strokeWidth={2} />}
           onClick={onRetry}
-          className="inline-flex items-center gap-2.5 px-5 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
         >
-          <ArrowPathIcon className="w-4 h-4" strokeWidth={2} />
           Try again
-        </button>
+        </Button>
       </div>
     </div>
   );

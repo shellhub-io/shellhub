@@ -271,7 +271,6 @@ export default function Login() {
               onChange={setUsername}
               placeholder="username"
               autoComplete="username"
-
               required
             />
 
@@ -327,24 +326,17 @@ export default function Login() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => void handleSsoLogin()}
+          <Button
+            variant={ssoOnly ? "primary" : "secondary"}
+            fullWidth
+            loading={ssoLoading}
             disabled={ssoLoading}
+            icon={<ArrowRightEndOnRectangleIcon className="w-4 h-4" />}
             data-testid="sso-btn"
-            className={`w-full py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 ${
-              ssoOnly
-                ? "bg-primary hover:bg-primary-600 text-white"
-                : "bg-card border border-border hover:border-border-light text-text-primary"
-            }`}
+            onClick={() => void handleSsoLogin()}
           >
-            {ssoLoading ? (
-              <Spinner size="sm" tone={ssoOnly ? "onPrimary" : "onSurface"} />
-            ) : (
-              <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
-            )}
             Login with SSO
-          </button>
+          </Button>
         </div>
       )}
 

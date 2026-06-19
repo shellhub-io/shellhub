@@ -684,7 +684,6 @@ export default function Profile() {
             description="Credentials used to authenticate into your account"
           >
             <Button
-              size="sm"
               variant="secondary"
               onClick={() => setPwDrawerOpen(true)}
             >
@@ -707,7 +706,6 @@ export default function Profile() {
             >
               {mfaEnabled ? (
                 <Button
-                  size="sm"
                   variant="secondary"
                   onClick={() => setMfaDisableOpen(true)}
                 >
@@ -715,7 +713,6 @@ export default function Profile() {
                 </Button>
               ) : (
                 <Button
-                  size="sm"
                   variant="secondary"
                   onClick={() => setMfaEnableOpen(true)}
                 >

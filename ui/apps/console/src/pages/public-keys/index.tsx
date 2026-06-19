@@ -24,7 +24,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { PublicKeyResponse as PublicKey } from "@/client";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -249,14 +249,13 @@ export default function PublicKeys() {
           footnote="Supports RSA, DSA, ECDSA, and ED25519 key types."
         >
           <RestrictedAction action="publicKey:create">
-            <button
-              type="button"
+            <Button
+              size="lg"
               onClick={openNew}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
               Add your first key
-            </button>
+            </Button>
           </RestrictedAction>
         </EmptyState>
 
@@ -278,14 +277,12 @@ export default function PublicKeys() {
         description="Manage SSH public keys for passwordless authentication to your devices."
       >
         <RestrictedAction action="publicKey:create">
-          <button
-            type="button"
+          <Button
             onClick={openNew}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
             Add Public Key
-          </button>
+          </Button>
         </RestrictedAction>
       </PageHeader>
 

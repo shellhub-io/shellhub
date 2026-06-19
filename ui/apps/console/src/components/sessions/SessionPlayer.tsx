@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { create, type AsciinemaPlayer } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
-import { Card } from "@shellhub/design-system/primitives";
+import { Card, IconButton } from "@shellhub/design-system/primitives";
 
 type Speed = 0.5 | 1 | 1.5 | 2;
 
@@ -254,18 +254,19 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
       {/* Controls */}
       <div className="relative flex items-center gap-3 px-4 py-3 bg-surface border-t border-border shrink-0">
-        <button
-          type="button"
-          onClick={handlePlayPause}
-          className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center shrink-0 transition-colors"
+        <IconButton
+          variant="filled"
+          size="lg"
+          className="rounded-full"
           aria-label={isPlaying ? "Pause" : "Play"}
+          onClick={handlePlayPause}
         >
           {isPlaying ? (
             <PauseIcon className="w-3.5 h-3.5 text-white" />
           ) : (
             <PlayIcon className="w-3.5 h-3.5 text-white ml-0.5" />
           )}
-        </button>
+        </IconButton>
 
         <span className="text-xs font-mono tabular-nums text-text-secondary shrink-0">
           {formatTime(currentTime)} / {formatTime(duration)}
@@ -296,19 +297,19 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
           <option value={2}>2x</option>
         </select>
 
-        <button
-          type="button"
-          onClick={() => setShowShortcuts((v) => !v)}
-          className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors shrink-0 ${
+        <IconButton
+          variant={showShortcuts ? "primary" : "ghost"}
+          className={
             showShortcuts
               ? "bg-primary/10 text-primary border border-primary/20"
-              : "text-text-muted hover:text-text-primary hover:bg-card border border-transparent"
-          }`}
+              : "border border-transparent"
+          }
           aria-label="Keyboard shortcuts"
           title="Keyboard shortcuts"
+          onClick={() => setShowShortcuts((v) => !v)}
         >
           <KeyboardIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
 
         {/* Shortcuts popover */}
         {showShortcuts && (

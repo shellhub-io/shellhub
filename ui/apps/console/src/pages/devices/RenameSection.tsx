@@ -4,6 +4,7 @@ import {
   CheckIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useRenameDevice } from "@/hooks/useDeviceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
@@ -47,18 +48,17 @@ export default function RenameSection({
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
         {canRename && (
-          <button
-            type="button"
+          <IconButton
+            variant="primary"
+            aria-label="Rename device"
+            title="Rename"
             onClick={() => {
               setName(currentName);
               setEditing(true);
             }}
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-            aria-label="Rename device"
-            title="Rename"
           >
             <PencilSquareIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         )}
       </div>
     );
@@ -76,26 +76,24 @@ export default function RenameSection({
             if (e.key === "Escape") setEditing(false);
           }}
           aria-label="Device name"
-
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
-        <button
+        <IconButton
+          variant="primary"
           type="button"
-          onClick={() => void handleSave()}
-          disabled={saving}
           aria-label="Save device name"
-          className="p-1.5 rounded-md text-accent-green hover:bg-accent-green/10 transition-all"
+          disabled={saving}
+          onClick={() => void handleSave()}
         >
           <CheckIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
-        <button
+        </IconButton>
+        <IconButton
           type="button"
-          onClick={() => setEditing(false)}
           aria-label="Cancel rename"
-          className="p-1.5 rounded-md text-text-muted hover:bg-hover-medium transition-all"
+          onClick={() => setEditing(false)}
         >
           <XMarkIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
+        </IconButton>
       </div>
       {error && <p className="text-2xs text-accent-red mt-1">{error}</p>}
     </div>

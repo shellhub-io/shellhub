@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { Button } from "@shellhub/design-system/primitives";
 
 interface Props {
   children: ReactNode;
@@ -41,13 +42,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h1>
           <p className="text-sm text-text-secondary mb-6">{error.message}</p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Reload page
-          </button>
+          <Button onClick={() => window.location.reload()}>Reload page</Button>
         </div>
       </div>
     );

@@ -23,6 +23,7 @@ import { formatRelative } from "@/utils/date";
 import { RoleBadge } from "@/pages/team/constants";
 import { isInvitationExpired } from "@/utils/invitations";
 import PageLoader from "@/components/common/PageLoader";
+import { Button } from "@shellhub/design-system/primitives";
 
 function InvitationCard({
   invitation,
@@ -55,23 +56,24 @@ function InvitationCard({
         )}
       </p>
       <div className="flex items-center gap-1.5 mt-2.5">
-        <button
-          type="button"
-          onClick={() => onAccept(invitation)}
+        <Button
+          size="sm"
+          icon={<CheckIcon className="w-3 h-3" strokeWidth={2.5} />}
           disabled={expired}
-          className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary rounded-md text-2xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-colors"
+          className="flex-1"
+          onClick={() => onAccept(invitation)}
         >
-          <CheckIcon className="w-3 h-3" strokeWidth={2.5} />
           Accept
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<XMarkIcon className="w-3 h-3" strokeWidth={2.5} />}
+          className="flex-1"
           onClick={() => onDecline(invitation)}
-          className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-hover-subtle hover:bg-hover-medium border border-border text-text-secondary hover:text-text-primary rounded-md text-2xs font-semibold transition-colors"
         >
-          <XMarkIcon className="w-3 h-3" strokeWidth={2.5} />
           Decline
-        </button>
+        </Button>
       </div>
     </li>
   );

@@ -1,22 +1,29 @@
-import { CheckCircleIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  BookOpenIcon,
+  ChatBubbleLeftRightIcon,
+} from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import CopyButton from "@/components/common/CopyButton";
+import { Button } from "@shellhub/design-system/primitives";
 
 interface WizardStep4CompleteProps {
   device: NormalizedDevice | null;
 }
 
-export default function WizardStep4Complete({ device }: WizardStep4CompleteProps) {
+export default function WizardStep4Complete({
+  device,
+}: WizardStep4CompleteProps) {
   const username = useAuthStore((s) => s.username);
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: ns } = useNamespace(tenantId);
   const namespace = ns?.name;
   const hostname = window.location.hostname;
 
-  const sshCmd
-    = device && username && namespace
+  const sshCmd =
+    device && username && namespace
       ? `ssh ${username}@${namespace}.${device.name}@${hostname}`
       : null;
 
@@ -25,13 +32,14 @@ export default function WizardStep4Complete({ device }: WizardStep4CompleteProps
       {/* Success card */}
       <div className="bg-accent-green/8 border border-accent-green/20 rounded-xl px-5 py-6 flex flex-col items-center text-center gap-3">
         <div className="w-12 h-12 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-          <CheckCircleIcon className="w-6 h-6 text-accent-green" strokeWidth={1.5} />
+          <CheckCircleIcon
+            className="w-6 h-6 text-accent-green"
+            strokeWidth={1.5}
+          />
         </div>
         <div>
           <p className="text-base font-mono font-bold text-text-primary">
-            {device?.name ?? "Your device"}
-            {" "}
-            is online.
+            {device?.name ?? "Your device"} is online.
           </p>
           <p className="text-xs text-text-muted mt-1">
             Accepted and ready for SSH connections.
@@ -58,25 +66,32 @@ export default function WizardStep4Complete({ device }: WizardStep4CompleteProps
       )}
 
       {/* Resource links */}
-      <nav aria-label="Resources" className="flex flex-wrap items-center justify-center gap-4">
-        <a
+      <nav
+        aria-label="Resources"
+        className="flex flex-wrap items-center justify-center gap-4"
+      >
+        <Button
+          variant="secondary"
+          as="a"
+          size="sm"
           href="https://docs.shellhub.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background border border-border text-xs text-text-secondary hover:text-text-primary hover:border-border-light transition-all duration-200"
+          icon={<BookOpenIcon className="w-4 h-4" />}
         >
-          <BookOpenIcon className="w-4 h-4" />
           Documentation
-        </a>
-        <a
+        </Button>
+        <Button
+          variant="secondary"
+          as="a"
+          size="sm"
           href="https://gitter.im/shellhub-io/community"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background border border-border text-xs text-text-secondary hover:text-text-primary hover:border-border-light transition-all duration-200"
+          icon={<ChatBubbleLeftRightIcon className="w-4 h-4" />}
         >
-          <ChatBubbleLeftRightIcon className="w-4 h-4" />
           Community
-        </a>
+        </Button>
       </nav>
     </div>
   );

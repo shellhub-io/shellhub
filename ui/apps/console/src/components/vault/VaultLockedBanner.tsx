@@ -1,4 +1,5 @@
 import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 
 interface Props {
   onUnlock: () => void;
@@ -13,14 +14,14 @@ export default function VaultLockedBanner({ onUnlock }: Props) {
           Your vault is locked. Unlock it to view and manage your SSH keys.
         </p>
       </div>
-      <button
-        type="button"
+      <Button
+        size="sm"
         onClick={onUnlock}
         aria-label="Unlock vault to access SSH keys"
-        className="shrink-0 px-3.5 py-1.5 text-xs font-semibold text-primary hover:text-white bg-primary/10 hover:bg-primary rounded-lg transition-all"
+        className="shrink-0"
       >
         Unlock
-      </button>
+      </Button>
     </div>
   );
 }

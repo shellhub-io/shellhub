@@ -29,7 +29,7 @@ import InfoItem from "./devices/InfoItem";
 import TagsSection from "./devices/TagsSection";
 import RenameSection from "./devices/RenameSection";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -171,8 +171,8 @@ export default function DeviceDetails() {
           {device.status === "accepted" && (
             <>
               <RestrictedAction action="device:connect">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => {
                     if (existingSession) {
                       restoreTerminal(existingSession.id);
@@ -181,66 +181,68 @@ export default function DeviceDetails() {
                     }
                   }}
                   disabled={!device.online}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+                  icon={
+                    <ChevronDoubleRightIcon
+                      className="w-4 h-4"
+                      strokeWidth={2}
+                    />
+                  }
                 >
-                  <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
                   Connect
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:remove">
-                <button
+                <IconButton
+                  variant="danger"
+                  size="lg"
                   type="button"
-                  onClick={() => setShowDelete(true)}
-                  className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
-                  aria-label="Delete device"
                   title="Delete device"
+                  aria-label="Delete device"
+                  className="border border-border"
+                  onClick={() => setShowDelete(true)}
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </IconButton>
               </RestrictedAction>
             </>
           )}
           {device.status === "pending" && (
             <>
               <RestrictedAction action="device:accept">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => setOperation({ device, action: "accept" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Accept
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:reject">
-                <button
-                  type="button"
+                <Button
+                  variant="warning"
                   onClick={() => setOperation({ device, action: "reject" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Reject
-                </button>
+                </Button>
               </RestrictedAction>
             </>
           )}
           {device.status === "rejected" && (
             <>
               <RestrictedAction action="device:accept">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => setOperation({ device, action: "accept" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Accept
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:remove">
-                <button
-                  type="button"
+                <Button
+                  variant="destructive"
                   onClick={() => setOperation({ device, action: "remove" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Remove
-                </button>
+                </Button>
               </RestrictedAction>
             </>
           )}

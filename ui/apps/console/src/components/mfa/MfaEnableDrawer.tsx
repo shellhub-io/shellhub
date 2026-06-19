@@ -4,7 +4,7 @@ import {
   CheckCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import { IconBadge, Spinner } from "@shellhub/design-system/primitives";
+import { IconBadge, Button } from "@shellhub/design-system/primitives";
 import Alert from "@/components/common/Alert";
 import Drawer from "../common/Drawer";
 import CheckboxField from "@/components/common/fields/CheckboxField";
@@ -182,80 +182,54 @@ export default function MfaEnableDrawer({
       footer={
         step === 1 ? (
           <>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={handleClose}>
               Cancel
-            </button>
+            </Button>
             {showRecoveryEmailInput ? (
-              <button
-                type="button"
+              <Button
                 onClick={() => void handleSaveRecoveryEmail()}
-                disabled={loading || !recoveryEmail.trim()}
-                className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                disabled={!recoveryEmail.trim()}
+                loading={loading}
               >
-                {loading && <Spinner size="sm" tone="onPrimary" />}
                 Save & Continue
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
+              <Button
                 onClick={() => void handleConfirmExistingEmail()}
-                disabled={loading}
-                className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                loading={loading}
               >
-                {loading && <Spinner size="sm" tone="onPrimary" />}
                 Continue
-              </button>
+              </Button>
             )}
           </>
         ) : step === 2 ? (
           <>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={handleClose}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={() => void handleNextToQr()}
-              disabled={!codesSaved || loading || recoveryCodes.length === 0}
-              className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+              disabled={!codesSaved || recoveryCodes.length === 0}
+              loading={loading}
             >
               Next Step
-            </button>
+            </Button>
           </>
         ) : step === 3 ? (
           <>
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-            >
+            <Button variant="ghost" onClick={() => setStep(2)}>
               Back
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={() => void handleEnableMfa()}
-              disabled={loading || !isCodeComplete || !qrLink || !secret}
-              className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              disabled={!isCodeComplete || !qrLink || !secret}
+              loading={loading}
             >
-              {loading && <Spinner size="sm" tone="onPrimary" />}
               Verify & Enable
-            </button>
+            </Button>
           </>
         ) : (
-          <button
-            type="button"
-            onClick={handleDone}
-            className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-          >
-            Done
-          </button>
+          <Button onClick={handleDone}>Done</Button>
         )
       }
     >
@@ -318,13 +292,13 @@ export default function MfaEnableDrawer({
                   </div>
                 </div>
 
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  fullWidth
                   onClick={() => setUserWantsNewEmail(true)}
-                  className="w-full px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary border border-border rounded-lg hover:bg-hover-subtle transition-colors"
                 >
                   Use a different recovery email
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -357,20 +331,20 @@ export default function MfaEnableDrawer({
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
                       onClick={() => void handleDownload(recoveryCodes)}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
+                      className="flex-1"
                     >
                       Download
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="secondary"
                       onClick={() => void handleCopy(recoveryCodes)}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
+                      className="flex-1"
                     >
                       Copy
-                    </button>
+                    </Button>
                   </div>
                 </>
               ) : (
@@ -455,7 +429,11 @@ export default function MfaEnableDrawer({
               <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                 Verification Code
               </p>
-              <div className="flex gap-2 justify-center" role="group" aria-label="Verification Code">
+              <div
+                className="flex gap-2 justify-center"
+                role="group"
+                aria-label="Verification Code"
+              >
                 {otp.code.map((digit, index) => (
                   <input
                     key={index}

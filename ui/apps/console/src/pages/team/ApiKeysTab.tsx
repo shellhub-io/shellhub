@@ -4,6 +4,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
@@ -99,24 +100,24 @@ function ApiKeysTab() {
       render: (key) => (
         <div className="flex items-center justify-end gap-1">
           <RestrictedAction action="apiKey:edit">
-            <button
-              type="button"
-              onClick={() => setEditTarget(key)}
-              className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+            <IconButton
+              variant="primary"
               title="Edit"
+              aria-label="Edit API key"
+              onClick={() => setEditTarget(key)}
             >
               <PencilSquareIcon className="w-4 h-4" />
-            </button>
+            </IconButton>
           </RestrictedAction>
           <RestrictedAction action="apiKey:delete">
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(key)}
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+            <IconButton
+              variant="danger"
               title="Delete"
+              aria-label="Delete API key"
+              onClick={() => setDeleteTarget(key)}
             >
               <TrashIcon className="w-4 h-4" />
-            </button>
+            </IconButton>
           </RestrictedAction>
         </div>
       ),
@@ -131,14 +132,12 @@ function ApiKeysTab() {
           {totalCount !== 1 ? "s" : ""}
         </p>
         <RestrictedAction action="apiKey:create">
-          <button
-            type="button"
+          <Button
             onClick={() => setGenerateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+            icon={<KeyIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <KeyIcon className="w-4 h-4" strokeWidth={2} />
             Generate Key
-          </button>
+          </Button>
         </RestrictedAction>
       </div>
 

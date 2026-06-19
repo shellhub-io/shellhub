@@ -18,7 +18,11 @@ import {
   NAMESPACE_NAME_MIN_LENGTH,
   validateNamespaceName,
 } from "@/utils/validation";
-import { Spinner } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  IconButton,
+  Spinner,
+} from "@shellhub/design-system/primitives";
 
 /* ─── Cloud/Enterprise form ─── */
 function CloudForm() {
@@ -55,23 +59,19 @@ function CloudForm() {
               setValidationError(null);
               createNs.reset();
             }}
-
             error={displayError}
           />
         </div>
-        <button
+        <Button
           type="submit"
+          loading={createNs.isPending}
           disabled={
             createNs.isPending || name.length < NAMESPACE_NAME_MIN_LENGTH
           }
-          className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
+          className="shrink-0"
         >
-          {createNs.isPending ? (
-            <Spinner tone="onPrimary" className="block" />
-          ) : (
-            "Create"
-          )}
-        </button>
+          {createNs.isPending ? "Creating..." : "Create"}
+        </Button>
       </div>
     </form>
   );
@@ -91,11 +91,11 @@ function CopyBlock({ command }: { command: string }) {
     <div className="relative bg-background border border-border rounded-lg p-3.5 pr-11 font-mono text-xs text-text-secondary leading-relaxed">
       <span className="text-primary/60">$ </span>
       {command}
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+      <IconButton
+        variant="primary"
         title="Copy command"
+        onClick={handleCopy}
+        className="absolute top-2.5 right-2.5"
       >
         {copied ? (
           <CheckIcon
@@ -105,7 +105,7 @@ function CopyBlock({ command }: { command: string }) {
         ) : (
           <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
         )}
-      </button>
+      </IconButton>
     </div>
   );
 }
@@ -170,16 +170,7 @@ function CommunityInstructions() {
         </p>
       </div>
 
-      <button
-        type="button"
-        disabled={!ready}
-        onClick={handleContinue}
-        className={`w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-          ready
-            ? "bg-primary hover:bg-primary-600 text-white cursor-pointer"
-            : "bg-primary/30 text-white/50 cursor-not-allowed"
-        }`}
-      >
+      <Button fullWidth disabled={!ready} onClick={handleContinue}>
         {ready ? (
           "You're in! Go to dashboard"
         ) : (
@@ -188,7 +179,7 @@ function CommunityInstructions() {
             Waiting for namespace access...
           </>
         )}
-      </button>
+      </Button>
 
       {/* Upgrade tip */}
       <div className="flex items-start gap-2.5 bg-primary/5 border border-primary/10 rounded-lg p-3">

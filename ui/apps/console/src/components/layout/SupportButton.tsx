@@ -2,15 +2,9 @@ import { useState } from "react";
 import { LifebuoyIcon } from "@heroicons/react/24/outline";
 import { useChatwootContext } from "@/hooks/useChatwoot";
 import SupportPaywallDialog from "./SupportPaywallDialog";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Spinner, IconButton } from "@shellhub/design-system/primitives";
 
 const GITHUB_ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new";
-
-const ICON_BUTTON_BASE =
-  "inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 focus-visible:outline-offset-2";
-
-const ICON_BUTTON_ENABLED =
-  "text-text-secondary hover:bg-hover-medium hover:text-text-primary border border-transparent hover:border-border";
 
 export default function SupportButton() {
   const { status, openWidget } = useChatwootContext();
@@ -25,7 +19,7 @@ export default function SupportButton() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Report an issue on GitHub"
-        className={`${ICON_BUTTON_BASE} ${ICON_BUTTON_ENABLED}`}
+        className="inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 focus-visible:outline-offset-2 text-text-secondary hover:bg-hover-medium hover:text-text-primary border border-transparent hover:border-border"
       >
         <LifebuoyIcon className="w-[18px] h-[18px]" aria-hidden="true" />
       </a>
@@ -51,21 +45,18 @@ export default function SupportButton() {
 
   return (
     <>
-      <button
-        type="button"
+      <IconButton
         onClick={handleClick}
         aria-disabled={isLoading || undefined}
         aria-label={ariaLabel}
-        className={`${ICON_BUTTON_BASE} ${
-          isLoading ? "text-text-muted cursor-wait" : ICON_BUTTON_ENABLED
-        }`}
+        className={isLoading ? "cursor-wait" : undefined}
       >
         {isLoading ? (
           <Spinner size="sm" tone="subtle" className="block" />
         ) : (
           <LifebuoyIcon className="w-[18px] h-[18px]" aria-hidden="true" />
         )}
-      </button>
+      </IconButton>
       <SupportPaywallDialog
         open={paywallOpen && status === "no-subscription"}
         onClose={() => setPaywallOpen(false)}

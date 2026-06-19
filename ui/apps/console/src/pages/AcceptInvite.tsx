@@ -16,7 +16,7 @@ import {
 } from "@/hooks/useInvitationMutations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 
 type Branch =
   | { kind: "loading" }
@@ -195,13 +195,15 @@ export default function AcceptInvite() {
             title="Invalid Invitation"
             description="This invitation link is missing required parameters. Please use the link from the original email."
             action={
-              <Link
+              <Button
+                as={Link}
                 to="/login"
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                iconRight={
+                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
+                }
               >
                 Back to Login
-                <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-              </Link>
+              </Button>
             }
           />
         )}
@@ -218,13 +220,15 @@ export default function AcceptInvite() {
             title="Invitation Unavailable"
             description={branch.message}
             action={
-              <Link
+              <Button
+                as={Link}
                 to="/login"
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                iconRight={
+                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
+                }
               >
                 Back to Login
-                <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-              </Link>
+              </Button>
             }
           />
         )}
@@ -249,14 +253,14 @@ export default function AcceptInvite() {
               </>
             }
             action={
-              <button
-                type="button"
+              <Button
                 onClick={handleSignOut}
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                iconRight={
+                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
+                }
               >
                 Sign Out
-                <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-              </button>
+              </Button>
             }
           />
         )}
@@ -277,21 +281,15 @@ export default function AcceptInvite() {
               be automatically switched to it after accepting.
             </p>
             <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmKind("decline")}
-                className="px-5 py-2.5 text-sm font-semibold text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-              >
+              <Button variant="ghost" onClick={() => setConfirmKind("decline")}>
                 Decline
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
                 onClick={() => setConfirmKind("accept")}
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all"
               >
-                <CheckCircleIcon className="w-4 h-4" strokeWidth={2} />
                 Accept
-              </button>
+              </Button>
             </div>
           </div>
         )}

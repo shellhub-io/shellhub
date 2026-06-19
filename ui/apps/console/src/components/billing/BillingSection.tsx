@@ -15,7 +15,7 @@ import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
 import type { BillingStatus } from "@/client/types.gen";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 
 const BillingDialog = lazy(() => import("./BillingDialog"));
 
@@ -338,34 +338,29 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
             >
               <div className="flex items-center gap-2">
                 {canShowSubscribeButton && (
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => setWizardOpen(true)}
                     onMouseEnter={preloadStripe}
                     onFocus={preloadStripe}
-                    className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
                   >
                     Subscribe
-                  </button>
+                  </Button>
                 )}
                 {canReopenPortal && (
                   <div className="flex flex-col items-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => openPortal.mutate()}
-                      disabled={openPortal.isPending}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-card hover:bg-hover-medium border border-border hover:border-border-light text-text-primary rounded-lg text-sm font-medium transition-all disabled:opacity-dim disabled:cursor-not-allowed"
-                    >
-                      {openPortal.isPending ? (
-                        <Spinner tone="subtle" />
-                      ) : (
+                    <Button
+                      variant="secondary"
+                      loading={openPortal.isPending}
+                      icon={
                         <ArrowTopRightOnSquareIcon
                           className="w-4 h-4"
                           strokeWidth={2}
                         />
-                      )}
+                      }
+                      onClick={() => openPortal.mutate()}
+                    >
                       Open portal
-                    </button>
+                    </Button>
                     {openPortal.isError && (
                       <p role="alert" className="text-2xs text-accent-red">
                         Couldn't open the billing portal. Please try again.

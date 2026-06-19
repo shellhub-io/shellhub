@@ -1,4 +1,5 @@
 import { XMarkIcon, CommandLineIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 
 export default function TerminalTaskbar({
@@ -54,16 +55,16 @@ export default function TerminalTaskbar({
             >
               {s.deviceName}
             </span>
-            <button
-              type="button"
+            <IconButton
+              size="sm"
+              aria-label="Close"
               onClick={(e) => {
                 e.stopPropagation();
                 close(s.id);
               }}
-              className="p-0.5 rounded text-text-muted/50 hover:text-accent-red hover:bg-accent-red/10 transition-all duration-150"
             >
               <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-            </button>
+            </IconButton>
           </div>
         );
       })}

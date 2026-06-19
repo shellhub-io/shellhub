@@ -19,7 +19,7 @@ import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
-import { Badge, IconButton, Spinner } from "@shellhub/design-system/primitives";
+import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -99,31 +99,28 @@ export default function AdminUsers() {
           >
             <PencilSquareIcon className="w-4 h-4" />
           </IconButton>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              void loginAs(user.id);
-            }}
+          <IconButton
+            variant="primary"
+            loading={loginAsId === user.id}
             disabled={loginAsId === user.id}
-            className={`p-1.5 rounded-md transition-colors disabled:opacity-dim disabled:cursor-not-allowed ${
+            className={
               loginAsError === user.id
                 ? "text-accent-red hover:text-accent-red hover:bg-accent-red/5"
-                : "text-text-muted hover:text-primary hover:bg-primary/5"
-            }`}
+                : undefined
+            }
             title={
               loginAsError === user.id
                 ? "Login failed \u2014 click to retry"
                 : "Login as user"
             }
             aria-label={`Login as ${user.name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              void loginAs(user.id);
+            }}
           >
-            {loginAsId === user.id ? (
-              <Spinner className="block" />
-            ) : (
-              <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
-            )}
-          </button>
+            <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
+          </IconButton>
           <IconButton
             variant="danger"
             title="Delete user"
@@ -148,14 +145,12 @@ export default function AdminUsers() {
         title="Users"
         description="Manage all user accounts in the instance"
       >
-        <button
-          type="button"
+        <Button
           onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+          icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
         >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
           Create User
-        </button>
+        </Button>
       </PageHeader>
 
       <SearchField

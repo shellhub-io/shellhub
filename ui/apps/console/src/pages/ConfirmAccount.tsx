@@ -4,7 +4,7 @@ import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
 import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 
 export default function ConfirmAccount() {
   const [searchParams] = useSearchParams();
@@ -56,23 +56,19 @@ export default function ConfirmAccount() {
           </Alert>
         )}
 
-        <button
-          type="button"
-          onClick={() => void handleResend()}
+        <Button
+          fullWidth
+          loading={resendLoading}
           disabled={resendLoading || resendCooldown > 0}
-          className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mb-5 flex items-center justify-center gap-2"
+          onClick={() => void handleResend()}
+          className="mb-5"
         >
-          {resendLoading ? (
-            <>
-              <Spinner size="sm" tone="onPrimary" />
-              Sending...
-            </>
-          ) : resendCooldown > 0 ? (
-            `Resend Email (${resendCooldown}s)`
-          ) : (
-            "Resend Email"
-          )}
-        </button>
+          {resendLoading
+            ? "Sending..."
+            : resendCooldown > 0
+              ? `Resend Email (${resendCooldown}s)`
+              : "Resend Email"}
+        </Button>
 
         <p className="text-xs text-text-muted">
           Back to{" "}

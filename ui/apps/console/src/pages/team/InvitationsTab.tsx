@@ -25,7 +25,7 @@ import {
 import { ExpiredBadge, RoleBadge } from "./constants";
 import InvitationDrawer from "./InvitationDrawer";
 import EditInvitationDrawer from "./EditInvitationDrawer";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -313,14 +313,12 @@ function InvitationsTab({ tenantId }: { tenantId: string }) {
           </div>
         </div>
         <RestrictedAction action="namespace:addMember">
-          <button
-            type="button"
+          <Button
             onClick={() => setInviteOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+            icon={<UserPlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <UserPlusIcon className="w-4 h-4" strokeWidth={2} />
             Invite Member
-          </button>
+          </Button>
         </RestrictedAction>
       </div>
 

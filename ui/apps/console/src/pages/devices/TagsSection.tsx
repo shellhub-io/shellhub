@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { TagIcon, XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { useAddDeviceTag, useRemoveDeviceTag } from "@/hooks/useDeviceMutations";
+import { IconButton } from "@shellhub/design-system/primitives";
+import {
+  useAddDeviceTag,
+  useRemoveDeviceTag,
+} from "@/hooks/useDeviceMutations";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
 const LABEL =
@@ -103,15 +107,15 @@ export default function TagsSection({ uid, tags }: TagsSectionProps) {
               aria-label="New tag"
               className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
             />
-            <button
-              type="button"
-              onClick={() => void handleAdd()}
+            <IconButton
+              variant="primary"
+              size="sm"
               disabled={adding || !input.trim()}
               aria-label="Add tag"
-              className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
+              onClick={() => void handleAdd()}
             >
               <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
+            </IconButton>
           </div>
         )}
       </div>

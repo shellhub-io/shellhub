@@ -3,6 +3,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   Bars3Icon,
 } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
 import { getInitials } from "@/utils/string";
 import NamespaceSelector from "./NamespaceSelector";
@@ -26,14 +27,13 @@ export default function AdminAppBar({ onMenuToggle }: AdminAppBarProps) {
     <header className="h-14 bg-surface border-b border-border px-3 sm:px-5 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-1">
         {onMenuToggle && (
-          <button
-            type="button"
+          <IconButton
             onClick={onMenuToggle}
-            className="lg:hidden p-2 -ml-1 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-colors"
             aria-label="Open navigation menu"
+            className="lg:hidden -ml-1"
           >
             <Bars3Icon className="w-5 h-5" />
-          </button>
+          </IconButton>
         )}
         <NamespaceSelector isAdminContext />
       </div>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
+import { Button } from "@shellhub/design-system/primitives";
 
 export default function AccountCreated() {
   const navigate = useNavigate();
@@ -50,14 +51,12 @@ export default function AccountCreated() {
           the button below.
         </p>
 
-        <button
-          type="button"
+        <Button
+          iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
           onClick={handleRedirect}
-          className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
         >
           Redirect
-          <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
+        </Button>
       </div>
     </div>
   );

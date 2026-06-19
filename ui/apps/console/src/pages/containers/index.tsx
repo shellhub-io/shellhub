@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Alert from "@/components/common/Alert";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const statusTabs: { label: string; value: DeviceStatus }[] = [
   { label: "Accepted", value: "accepted" },
@@ -189,8 +190,9 @@ export default function Containers() {
           render: (container) =>
             container.online ? (
               <RestrictedAction action="device:connect">
-                <button
-                  type="button"
+                <Button
+                  variant="successSoft"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     const existing = useTerminalStore
@@ -209,11 +211,15 @@ export default function Containers() {
                       });
                     }
                   }}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                  icon={
+                    <ChevronDoubleRightIcon
+                      className="w-3 h-3"
+                      strokeWidth={2}
+                    />
+                  }
                 >
-                  <ChevronDoubleRightIcon className="w-3 h-3" strokeWidth={2} />
                   Connect
-                </button>
+                </Button>
               </RestrictedAction>
             ) : (
               <span className="text-2xs text-text-muted/30 font-mono">
@@ -234,28 +240,28 @@ export default function Containers() {
           render: (container) => (
             <div className="flex items-center justify-end gap-1.5">
               <RestrictedAction action="device:accept">
-                <button
-                  type="button"
+                <Button
+                  variant="successSoft"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ container, action: "accept" });
                   }}
-                  className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
                 >
                   Accept
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:reject">
-                <button
-                  type="button"
+                <Button
+                  variant="warningSoft"
+                  size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActionTarget({ container, action: "reject" });
                   }}
-                  className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/20 border border-accent-yellow/20 transition-all"
                 >
                   Reject
-                </button>
+                </Button>
               </RestrictedAction>
             </div>
           ),
@@ -273,28 +279,28 @@ export default function Containers() {
         render: (container) => (
           <div className="flex items-center justify-end gap-1.5">
             <RestrictedAction action="device:accept">
-              <button
-                type="button"
+              <Button
+                variant="successSoft"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ container, action: "accept" });
                 }}
-                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
               >
                 Accept
-              </button>
+              </Button>
             </RestrictedAction>
             <RestrictedAction action="device:remove">
-              <button
-                type="button"
+              <Button
+                variant="dangerSoft"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActionTarget({ container, action: "remove" });
                 }}
-                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-red/10 text-accent-red hover:bg-accent-red/20 border border-accent-red/20 transition-all"
               >
                 Remove
-              </button>
+              </Button>
             </RestrictedAction>
           </div>
         ),
@@ -310,14 +316,12 @@ export default function Containers() {
         title="Containers"
         description="Manage and monitor Docker containers connected via ShellHub Connector"
       >
-        <button
-          type="button"
+        <Button
           onClick={() => setAddConnectorOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+          icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
         >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
           Add Docker Host
-        </button>
+        </Button>
       </PageHeader>
 
       {/* Filter bar */}
@@ -380,23 +384,19 @@ export default function Containers() {
               >
                 <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
                 {tag}
-                <button
-                  type="button"
-                  onClick={() => removeFilterTag(tag)}
+                <IconButton
+                  size="sm"
                   aria-label={`Remove ${tag} filter`}
-                  className="hover:text-white transition-colors ml-0.5"
+                  className="ml-0.5"
+                  onClick={() => removeFilterTag(tag)}
                 >
                   <XMarkIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
-                </button>
+                </IconButton>
               </span>
             ))}
-            <button
-              type="button"
-              onClick={clearFilterTags}
-              className="text-2xs text-text-muted hover:text-text-primary transition-colors font-mono"
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilterTags}>
               Clear all
-            </button>
+            </Button>
           </div>
         </div>
       )}

@@ -10,7 +10,7 @@ import {
 import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 
@@ -63,7 +63,10 @@ export default function PendingDevices() {
       }, 600);
     } catch (err) {
       setActing(null);
-      const error = action === "accepted" ? getAcceptDeviceErrorMessage(err) : "Failed to reject device.";
+      const error =
+        action === "accepted"
+          ? getAcceptDeviceErrorMessage(err)
+          : "Failed to reject device.";
       setError(error);
     }
   };
@@ -104,14 +107,9 @@ export default function PendingDevices() {
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              onClick={closeDropdown}
-              aria-label="Close"
-              className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-            >
+            <IconButton size="sm" onClick={closeDropdown} aria-label="Close">
               <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-            </button>
+            </IconButton>
           </div>
 
           {/* Body */}
@@ -187,44 +185,32 @@ export default function PendingDevices() {
                           </span>
                         ) : (
                           <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
+                            <IconButton
+                              variant="primary"
+                              title="Accept"
+                              aria-label="Accept device"
+                              disabled={isActing}
+                              loading={isActing}
                               onClick={() =>
                                 void handleAction(d.uid, "accepted")
                               }
-                              disabled={isActing}
-                              aria-label="Accept"
-                              className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
-                              title="Accept"
                             >
-                              {isActing ? (
-                                <Spinner
-                                  size="sm"
-                                  tone="subtle"
-                                  className="block"
-                                />
-                              ) : (
-                                <CheckIcon
-                                  className="w-3.5 h-3.5"
-                                  strokeWidth={2.5}
-                                />
-                              )}
-                            </button>
-                            <button
-                              type="button"
+                              <CheckIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+                            </IconButton>
+                            <IconButton
+                              variant="danger"
+                              title="Reject"
+                              aria-label="Reject device"
+                              disabled={isActing}
                               onClick={() =>
                                 void handleAction(d.uid, "rejected")
                               }
-                              disabled={isActing}
-                              aria-label="Reject"
-                              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
-                              title="Reject"
                             >
                               <XMarkIcon
                                 className="w-3.5 h-3.5"
                                 strokeWidth={2.5}
                               />
-                            </button>
+                            </IconButton>
                           </div>
                         )}
                       </div>
@@ -238,17 +224,20 @@ export default function PendingDevices() {
           {/* Footer */}
           {count > 0 && (
             <div className="px-4 py-2.5 border-t border-border">
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="ghost"
+                fullWidth
+                iconRight={
+                  <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
+                }
                 onClick={() => {
                   closeDropdown();
                   void navigate("/devices");
                 }}
-                className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 View all pending devices
-                <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
-              </button>
+              </Button>
             </div>
           )}
         </div>

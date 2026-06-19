@@ -26,7 +26,7 @@ import {
 } from "@/utils/license";
 import type { GetLicenseResponse } from "@/client/types.gen";
 import PageLoader from "@/components/common/PageLoader";
-import { Card, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -370,14 +370,14 @@ function LicenseUpload() {
 
             {/* Sibling of the drop zone — clicking it does NOT re-open the file picker */}
             {file && (
-              <button
-                type="button"
+              <IconButton
+                size="sm"
+                aria-label="Remove file"
                 onClick={clearFile}
-                aria-label="Remove selected file"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-text-muted hover:text-text-primary hover:bg-hover-strong transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2"
               >
                 <XMarkIcon className="w-3.5 h-3.5" aria-hidden="true" />
-              </button>
+              </IconButton>
             )}
           </div>
 
@@ -396,25 +396,18 @@ function LicenseUpload() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => void handleUpload()}
+          <Button
+            loading={upload.isPending}
             disabled={!canUpload}
-            aria-busy={upload.isPending}
             aria-label={
               upload.isPending
                 ? "Uploading license file"
                 : "Upload license file"
             }
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            onClick={() => void handleUpload()}
           >
-            {upload.isPending ? (
-              <Spinner size="md" tone="onPrimary" />
-            ) : (
-              <ArrowUpTrayIcon className="w-4 h-4" aria-hidden="true" />
-            )}
             {upload.isPending ? "Uploading..." : "Upload"}
-          </button>
+          </Button>
           {feedback && (
             <p
               role={feedback.type === "error" ? "alert" : "status"}

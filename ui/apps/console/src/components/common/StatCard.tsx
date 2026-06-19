@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 
 interface StatCardBaseProps {
   icon: ReactNode;
@@ -42,20 +42,13 @@ export default function StatCard(props: StatCardProps) {
       </p>
 
       {props.onClick ? (
-        <button
-          type="button"
-          onClick={props.onClick}
-          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-        >
+        <Button variant="ghost" size="sm" onClick={props.onClick}>
           {linkLabel} &rarr;
-        </button>
+        </Button>
       ) : (
-        <Link
-          to={props.linkTo}
-          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-        >
+        <Button variant="ghost" size="sm" as={Link} to={props.linkTo}>
           {linkLabel} &rarr;
-        </Link>
+        </Button>
       )}
     </Card>
   );

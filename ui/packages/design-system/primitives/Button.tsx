@@ -13,6 +13,8 @@ export type ButtonVariant =
   | "ghost"
   | "destructive"
   | "dangerSoft"
+  | "warningSoft"
+  | "successSoft"
   | "success"
   | "warning"
   | "outline";
@@ -35,6 +37,10 @@ const VARIANT: Record<ButtonVariant, string> = {
     "bg-accent-red text-white hover:bg-accent-red/90 focus-visible:ring-accent-red",
   dangerSoft:
     "bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 focus-visible:ring-accent-red",
+  warningSoft:
+    "bg-accent-yellow/10 hover:bg-accent-yellow/20 text-accent-yellow border border-accent-yellow/20 focus-visible:ring-accent-yellow",
+  successSoft:
+    "bg-accent-green/10 hover:bg-accent-green/20 text-accent-green border border-accent-green/20 focus-visible:ring-accent-green",
   success:
     "bg-accent-green/90 hover:bg-accent-green text-white focus-visible:ring-accent-green",
   warning:
@@ -51,7 +57,7 @@ const SIZE: Record<ButtonSize, string> = {
 };
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 select-none" +
+  "inline-flex items-center justify-center gap-2 font-medium transition-all duration-300 select-none" +
   " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background" +
   " disabled:opacity-50 disabled:cursor-not-allowed";
 
