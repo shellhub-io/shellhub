@@ -91,6 +91,7 @@ export default function AppLayout() {
               >
                 <Outlet />
               </main>
+              <div className="content-seam pointer-events-none absolute inset-0 z-10" />
             </div>
           </div>
         </div>

@@ -25,7 +25,7 @@ export default function PageHeader({
       className={`relative -mx-8 -mt-8 px-8 py-6 mb-8 border-b border-border ${
         variant === "decorated"
           ? "animate-fade-in overflow-hidden"
-          : "bg-surface"
+          : "bg-surface page-header-band"
       }`}
     >
       {variant === "decorated" && (

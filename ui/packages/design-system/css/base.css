@@ -1,10 +1,58 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
+  /* Dark theme (default). Channels are space-separated RGB for Tailwind's
+     `rgb(var(--x) / <alpha-value>)` tokens defined in tailwind.preset.js. */
   :root {
     --color-primary-rgb: 102, 122, 204;
     --dialog-backdrop-bg: rgba(0, 0, 0, 0.7);
     --dialog-backdrop-blur: 4px;
+
+    --c-background: 24 25 27;
+    --c-surface: 30 33 39;
+    --c-card: 34 37 43;
+    --c-border: 44 47 54;
+    --c-border-light: 56 61 71;
+    --c-text-primary: 225 228 234;
+    --c-text-secondary: 139 143 153;
+    --c-text-muted: 129 135 156;
+    --c-hover: 255 255 255;
+    --c-scrollbar: 44 47 54;
+    --c-scrollbar-hover: 56 61 71;
+  }
+
+  /* Pin a subtree to the dark token set regardless of the active theme.
+     Used for the app chrome (top bar + sidebar), which stays dark in light mode. */
+  .theme-dark {
+    --c-background: 24 25 27;
+    --c-surface: 30 33 39;
+    --c-card: 34 37 43;
+    --c-border: 44 47 54;
+    --c-border-light: 56 61 71;
+    --c-text-primary: 225 228 234;
+    --c-text-secondary: 139 143 153;
+    --c-text-muted: 129 135 156;
+    --c-hover: 255 255 255;
+    --c-scrollbar: 44 47 54;
+    --c-scrollbar-hover: 56 61 71;
+    color-scheme: dark;
+  }
+
+  /* Light theme — applied by toggling `class="light"` on <html>. */
+  html.light {
+    --dialog-backdrop-bg: rgba(17, 19, 24, 0.45);
+
+    --c-background: 238 240 243;
+    --c-surface: 255 255 255;
+    --c-card: 255 255 255;
+    --c-border: 224 227 233;
+    --c-border-light: 203 209 217;
+    --c-text-primary: 26 28 31;
+    --c-text-secondary: 90 96 107;
+    --c-text-muted: 134 141 153;
+    --c-hover: 17 24 39;
+    --c-scrollbar: 203 209 217;
+    --c-scrollbar-hover: 168 176 188;
   }
 
   body {
@@ -35,7 +83,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2C2F36 transparent;
+    scrollbar-color: rgb(var(--c-scrollbar)) transparent;
   }
 
   ::-webkit-scrollbar {
@@ -48,16 +96,32 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #2C2F36;
+    background: rgb(var(--c-scrollbar));
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #383D47;
+    background: rgb(var(--c-scrollbar-hover));
   }
 }
 
 @layer components {
+  /* Soft seam between the dark chrome (top bar + sidebar) and the light content.
+     Only in light mode — in dark mode chrome and content match, so no shadow. */
+  .content-seam {
+    box-shadow: none;
+  }
+
+  html.light .content-seam {
+    box-shadow: inset 8px 8px 14px -10px rgba(15, 18, 24, 0.35);
+  }
+
+  /* Page header keeps its default look (bg-surface + bottom border); in light
+     it just gains a soft drop shadow so it reads as a raised sheet. */
+  html.light .page-header-band {
+    box-shadow: 0 2px 5px rgb(var(--c-border) / 0.9);
+  }
+
   .grid-bg {
     background-image:
       linear-gradient(rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px),
