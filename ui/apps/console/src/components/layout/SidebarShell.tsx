@@ -143,7 +143,7 @@ export default function SidebarShell({
 
   return (
     <aside
-      className={`bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
+      className={`theme-dark bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
         hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]"
       }`}
     >

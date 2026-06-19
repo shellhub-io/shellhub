@@ -27,9 +27,7 @@ type CrossfadeAction =
   | { type: "fade-out-done" }
   | { type: "settle-idle" };
 
-const activeSessionOf = (
-  sessions: TerminalSession[],
-): TerminalSession | null =>
+const activeSessionOf = (sessions: TerminalSession[]): TerminalSession | null =>
   sessions.find((s) => s.state !== "minimized") ?? null;
 
 // Pure reducer for the left-content crossfade state machine — safe under
@@ -118,7 +116,7 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
 
   return (
     <header
-      className={`relative z-50 h-14 border-b px-3 sm:px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
+      className={`theme-dark relative z-50 h-14 border-b px-3 sm:px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
         displayed ? "border-transparent" : "bg-surface border-border"
       }`}
       style={displayed ? { backgroundColor: themeBg } : undefined}

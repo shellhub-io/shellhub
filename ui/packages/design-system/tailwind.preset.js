@@ -14,14 +14,16 @@ export default {
           600: "#5468b3",
           700: "#4a5c9e",
         },
-        background: "#18191B",
-        surface: "#1E2127",
-        card: "#22252B",
-        border: "#2C2F36",
-        "border-light": "#383D47",
-        "text-primary": "#E1E4EA",
-        "text-secondary": "#8B8F99",
-        "text-muted": "#81879C",
+        // Semantic tokens are driven by CSS variables (see design-system/css/base.css)
+        // so the whole UI can flip between dark (default) and light themes.
+        background: "rgb(var(--c-background) / <alpha-value>)",
+        surface: "rgb(var(--c-surface) / <alpha-value>)",
+        card: "rgb(var(--c-card) / <alpha-value>)",
+        border: "rgb(var(--c-border) / <alpha-value>)",
+        "border-light": "rgb(var(--c-border-light) / <alpha-value>)",
+        "text-primary": "rgb(var(--c-text-primary) / <alpha-value>)",
+        "text-secondary": "rgb(var(--c-text-secondary) / <alpha-value>)",
+        "text-muted": "rgb(var(--c-text-muted) / <alpha-value>)",
         accent: {
           green: "#82a568",
           red: "#D8737B",
@@ -29,9 +31,10 @@ export default {
           blue: "#56a2e1",
           cyan: "#4e9aa3",
         },
-        "hover-subtle": "rgba(255, 255, 255, 0.03)",
-        "hover-medium": "rgba(255, 255, 255, 0.05)",
-        "hover-strong": "rgba(255, 255, 255, 0.08)",
+        // Hover overlays flip from white-on-dark to black-on-light via --c-hover.
+        "hover-subtle": "rgb(var(--c-hover) / 0.03)",
+        "hover-medium": "rgb(var(--c-hover) / 0.05)",
+        "hover-strong": "rgb(var(--c-hover) / 0.08)",
       },
       fontFamily: {
         sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
