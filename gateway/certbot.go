@@ -16,19 +16,17 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+
+	"github.com/shellhub-io/shellhub/gateway/internal/certbot"
 )
 
-// Executor provides an interface for executing system commands.
-// This interface allows for easy mocking in tests and provides
-// a clean abstraction over the exec package.
-//
-//go:generate mockery --name=Executor --filename=executor.go
-type Executor interface {
-	// Command creates a new *exec.Cmd with the given name and arguments.
-	Command(name string, arg ...string) *exec.Cmd
-	// Run executes the given command and waits for it to complete.
-	Run(cmd *exec.Cmd) error
-}
+// Executor is the interface for executing system commands.
+// It is defined in the internal/certbot package and re-exported here for convenience.
+type Executor = certbot.Executor
+
+// Ticker is the interface for time-based operations with context support.
+// It is defined in the internal/certbot package and re-exported here for convenience.
+type Ticker = certbot.Ticker
 
 // executor is the default implementation of the Executor interface.
 type executor struct{}
@@ -46,22 +44,6 @@ func (e *executor) Command(name string, arg ...string) *exec.Cmd {
 // Run executes the given command and waits for it to complete.
 func (e *executor) Run(cmd *exec.Cmd) error {
 	return cmd.Run()
-}
-
-// Ticker provides an interface for time-based operations with context support.
-// This interface allows for easy mocking in tests and provides a clean
-// abstraction over the time package's ticker functionality.
-//
-//go:generate mockery --name=Ticker --filename=ticker.go
-type Ticker interface {
-	// Init creates a new time.Ticker internally with the specified duration.
-	// The ticker will respect the provided context for cancellation.
-	Init(context.Context, time.Duration)
-	// Tick returns a channel that receives the current time on each tick.
-	// If the ticker wasn't initialized, the channel will be nil.
-	Tick() chan time.Time
-	// Stop stops the ticker. If the ticker wasn't initialized, this is a no-op.
-	Stop()
 }
 
 // ticker is the default implementation of the Ticker interface.

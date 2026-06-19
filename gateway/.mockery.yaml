@@ -1,0 +1,18 @@
+# v3 mockery configuration for gateway module.
+# Global defaults – individual packages/interfaces may override.
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+structname: "{{.InterfaceName}}"
+filename: "{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  # ── gateway/internal/certbot ─────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/gateway/internal/certbot:
+    interfaces:
+      Executor:
+        config:
+          filename: executor.go
+      Ticker:
+        config:
+          filename: ticker.go

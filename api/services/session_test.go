@@ -57,7 +57,7 @@ func TestListSessions(t *testing.T) {
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -90,7 +90,7 @@ func TestListSessions(t *testing.T) {
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
@@ -171,7 +171,7 @@ func TestGetSession(t *testing.T) {
 			uid:  models.UID("victim-uid"),
 			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
 				queryOptionsMock.On("InNamespace", "attacker-tenant").Return(nil).Once()
-				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "victim-uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "victim-uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, goerrors.New("not found")).Once()
 			},
 			expected: Expected{
@@ -186,7 +186,7 @@ func TestGetSession(t *testing.T) {
 			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
 				queryOptionsMock.On("InNamespace", "tenant-a").Return(nil).Once()
 				session := &models.Session{UID: "uid", TenantID: "tenant-a"}
-				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(session, nil).Once()
 			},
 			expected: Expected{

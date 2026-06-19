@@ -28,7 +28,6 @@ type service struct {
 	licenseEvaluator LicenseEvaluator
 }
 
-//go:generate mockery --name Service --filename services.go
 type Service interface {
 	TagsService
 	DeviceService

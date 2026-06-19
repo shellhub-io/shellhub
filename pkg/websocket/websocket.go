@@ -10,8 +10,6 @@ import (
 )
 
 // Conn represents a WebSocket connection.
-//
-//go:generate mockery --name=Conn --filename=conn.go
 type Conn interface {
 	Close() error
 	LocalAddr() net.Addr
@@ -44,8 +42,6 @@ type Conn interface {
 }
 
 // Upgrader should be implemented by structures that want to be able to convert an HTTP request into WebSocket connection.
-//
-//go:generate mockery --name=Upgrader --filename=upgrader.go
 type Upgrader interface {
 	Upgrade(res http.ResponseWriter, req *http.Request) (Conn, error)
 }

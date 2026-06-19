@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	gatewayMocks "github.com/shellhub-io/shellhub/gateway/mocks"
+	gatewayMocks "github.com/shellhub-io/shellhub/gateway/internal/certbot/mocks"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -97,7 +97,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 				Token:    "test",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot",
+				executorMock.On("Command", "certbot", []string{
 					"certonly",
 					"--non-interactive",
 					"--agree-tos",
@@ -109,7 +109,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"/etc/shellhub-gateway/digitalocean.ini",
 					"-d",
 					"*.localhost",
-				).Return(exec.Command("")).Once()
+				}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to run the command")).Once()
 			},
@@ -123,7 +123,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 				Token:    "test",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot",
+				executorMock.On("Command", "certbot", []string{
 					"certonly",
 					"--non-interactive",
 					"--agree-tos",
@@ -135,7 +135,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"/etc/shellhub-gateway/digitalocean.ini",
 					"-d",
 					"*.localhost",
-				).Return(exec.Command("")).Once()
+				}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -150,7 +150,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 			},
 			staging: true,
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot",
+				executorMock.On("Command", "certbot", []string{
 					"certonly",
 					"--non-interactive",
 					"--agree-tos",
@@ -163,7 +163,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"-d",
 					"*.localhost",
 					"--staging",
-				).Return(exec.Command("")).Once()
+				}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -178,7 +178,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 				Token:    "test",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot",
+				executorMock.On("Command", "certbot", []string{
 					"certonly",
 					"--non-interactive",
 					"--agree-tos",
@@ -190,7 +190,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"/etc/shellhub-gateway/cloudflare.ini",
 					"-d",
 					"*.localhost",
-				).Return(exec.Command("")).Once()
+				}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -207,7 +207,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 				AcmeDNSSubdomain: "test-subdomain",
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot",
+				executorMock.On("Command", "certbot", []string{
 					"certonly",
 					"--non-interactive",
 					"--agree-tos",
@@ -219,7 +219,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"/etc/shellhub-gateway/acmedns.json",
 					"-d",
 					"*.localhost",
-				).Return(exec.Command("")).Once()
+				}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -258,7 +258,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 				Staging: false,
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to run the renew command")).Once()
 			},
 			expected: errors.New("failed to run the renew command"),
@@ -269,7 +269,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 				Staging: false,
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot", "renew").Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
 			expected: nil,
@@ -280,7 +280,7 @@ func TestCertBot_executeRenewCertificates(t *testing.T) {
 				Staging: true,
 			},
 			expectCalls: func(executorMock *gatewayMocks.Executor) {
-				executorMock.On("Command", "certbot", "renew", "--staging").Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew", "--staging"}).Return(exec.Command("")).Once()
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
 			expected: nil,
@@ -326,9 +326,7 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Once()
 			},
@@ -348,9 +346,7 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Twice()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Twice()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Twice()
 			},
@@ -369,16 +365,12 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(errors.New("failed to renew")).Once()
 
 				ch <- time.Now()
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -397,9 +389,7 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},
@@ -419,9 +409,7 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-				).Return(exec.Command("")).Twice()
+				executorMock.On("Command", "certbot", []string{"renew"}).Return(exec.Command("")).Twice()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Twice()
 			},
@@ -440,10 +428,7 @@ func TestCertBot_renewCertificates(t *testing.T) {
 				ch <- time.Now()
 				tickerMock.On("Tick").Return(ch).Once()
 
-				executorMock.On("Command", "certbot",
-					"renew",
-					"--staging",
-				).Return(exec.Command("")).Once()
+				executorMock.On("Command", "certbot", []string{"renew", "--staging"}).Return(exec.Command("")).Once()
 
 				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
 			},

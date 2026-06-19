@@ -1,0 +1,107 @@
+# v3 mockery configuration for api module.
+# Global defaults – individual packages/interfaces may override.
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+structname: "{{.InterfaceName}}"
+filename: "{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  # ── pkg/cache ────────────────────────────────────────────────────────────
+  # Cache must be generated twice: once inside pkg/cache/mocks (canonical) and
+  # once inside api/store/mocks (consumed by the API service tests).
+  github.com/shellhub-io/shellhub/pkg/cache:
+    interfaces:
+      Cache:
+        configs:
+          - dir: "{{.InterfaceDir}}/mocks"
+            filename: cache.go
+          - dir: "{{.ConfigDir}}/store/mocks"
+            filename: cache.go
+
+  # ── pkg/clock ────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/clock:
+    interfaces:
+      Clock:
+
+  # ── pkg/envs ─────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/envs:
+    interfaces:
+      Backend:
+        config:
+          filename: envs.go
+
+  # ── pkg/geoip ────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/geoip:
+    interfaces:
+      Locator:
+        config:
+          filename: Locator.go
+
+  # ── pkg/hash ─────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/hash:
+    interfaces:
+      Hasher:
+        config:
+          filename: hash.go
+
+  # ── pkg/uuid ─────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/uuid:
+    interfaces:
+      UUID:
+        config:
+          structname: Uuid
+          filename: uuid.go
+
+  # ── pkg/websocket ─────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/websocket:
+    interfaces:
+      Conn:
+        config:
+          filename: conn.go
+      Upgrader:
+        config:
+          filename: upgrader.go
+
+  # ── pkg/worker ───────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/worker:
+    interfaces:
+      Client:
+        config:
+          filename: client.go
+      Server:
+        config:
+          filename: server.go
+
+  # ── pkg/api/client ───────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/api/client:
+    interfaces:
+      Client:
+        config:
+          filename: client.go
+
+  # ── pkg/api/client/reverser ──────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/api/client/reverser:
+    interfaces:
+      Reverser:
+
+  # ── pkg/api/internalclient ───────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/pkg/api/internalclient:
+    interfaces:
+      Client:
+        config:
+          filename: internalclient.go
+
+  # ── api/services ─────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/api/services:
+    interfaces:
+      Service:
+        config:
+          filename: services.go
+      LicenseEvaluator:
+
+  # ── api/store ────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/api/store:
+    interfaces:
+      Store:
+      QueryOptions:

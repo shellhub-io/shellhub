@@ -1,0 +1,15 @@
+# v3 mockery configuration for ssh module.
+# Global defaults – individual packages/interfaces may override.
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+structname: "{{.InterfaceName}}"
+filename: "{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  # ── ssh/web ──────────────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/ssh/web:
+    interfaces:
+      Socket:
+        config:
+          filename: socket.go

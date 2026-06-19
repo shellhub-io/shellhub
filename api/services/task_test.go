@@ -161,7 +161,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("database error")).
 					Once()
 			},
@@ -175,7 +175,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -189,7 +189,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 1000, nil).
 					Once()
 				queryOptionsMock.
@@ -205,7 +205,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("page error")).
 					Once()
 			},
@@ -219,7 +219,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 2, nil).
 					Once()
 				queryOptionsMock.
@@ -235,7 +235,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -260,7 +260,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 3, nil).
 					Once()
 				queryOptionsMock.
@@ -276,7 +276,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -310,7 +310,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 3, nil).
 					Once()
 				queryOptionsMock.
@@ -326,7 +326,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -360,7 +360,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 2001, nil).
 					Once()
 				queryOptionsMock.
@@ -376,7 +376,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -402,7 +402,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-2", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
@@ -428,7 +428,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Device{}, 2001, nil).
 					Once()
 				storeMock.

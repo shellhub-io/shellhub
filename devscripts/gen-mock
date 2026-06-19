@@ -1,24 +1,41 @@
 #!/bin/sh
 
-# This script is used to generate/update mock objects for testing
+# Mock regeneration lives here.
+#
+# Each service has a .mockery.yaml (v3) at its module root. This script runs
+# `mockery` (no per-interface flags) inside the correct container so the Go
+# module context matches the container's GOPATH/workspace layout.
+#
+# Usage: run this script from the shellhub repo root.
+#   ./devscripts/gen-mock
+#
+# Containers covered:
+#   api     — pkg/* and api mocks  (always present)
+#   gateway — gateway mocks        (always present)
+#   ssh     — ssh mocks            (always present)
+#   agent   — agent mocks          (only when the agent overlay is active,
+#              i.e. docker-compose.agent.yml is in COMPOSE_FILE)
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-           exec api go generate ./... 
+set -eu
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Backend --dir ../pkg/envs/ --output ../pkg/envs/mocks --filename envs.go
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
+BIN="$SCRIPT_DIR/../bin/docker-compose"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Clock --dir ../pkg/clock/ --output ../pkg/clock/mocks --filename clock.go
+echo "==> Generating api mocks..."
+"$BIN" exec api sh -c 'cd /go/src/github.com/shellhub-io/shellhub/api && mockery'
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Uuid --dir ../pkg/uuid/ --output ../pkg/uuid/mocks --filename uuid.go
+echo "==> Generating gateway mocks..."
+"$BIN" exec gateway sh -c 'cd /go/src/github.com/shellhub-io/shellhub/gateway && mockery'
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec api mockery --name Client --dir ../pkg/api/internalclient --output ../pkg/api/internalclient/mocks --filename internalclient.go
+echo "==> Generating ssh mocks..."
+"$BIN" exec ssh sh -c 'cd /go/src/github.com/shellhub-io/shellhub/ssh && mockery'
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec api mockery --name Client --dir ../pkg/api/client --output ../pkg/api/client/mocks --filename client.go
-
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec ssh mockery --name Session --output ./mocks --filename session.go --srcpkg github.com/gliderlabs/ssh
+# The agent container is only available when the agent overlay is active.
+# Guard with a ps liveness check so the script does not abort in environments
+# that do not include docker-compose.agent.yml.
+if "$BIN" ps --services --filter status=running 2>/dev/null | grep -q '^agent$'; then
+    echo "==> Generating agent mocks..."
+    "$BIN" exec agent sh -c 'cd /go/src/github.com/shellhub-io/shellhub/agent && mockery'
+else
+    echo "==> Skipping agent mocks (agent container not running)."
+fi

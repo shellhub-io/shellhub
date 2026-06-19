@@ -1,7 +1,5 @@
 package services
 
-//go:generate mockery --name LicenseEvaluator --filename license_evaluator.go
-
 import (
 	"context"
 

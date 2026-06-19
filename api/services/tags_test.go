@@ -187,7 +187,7 @@ func TestService_PushTagTo(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -211,7 +211,7 @@ func TestService_PushTagTo(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -239,7 +239,7 @@ func TestService_PushTagTo(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -313,7 +313,7 @@ func TestService_PullTagFrom(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -337,11 +337,11 @@ func TestService_PullTagFrom(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
-					On("TagPullFromTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, "device_00000000-0000-4000-0000-000000000000").
+					On("TagPullFromTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, []string{"device_00000000-0000-4000-0000-000000000000"}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -365,11 +365,11 @@ func TestService_PullTagFrom(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
-					On("TagPullFromTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, "device_00000000-0000-4000-0000-000000000000").
+					On("TagPullFromTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, []string{"device_00000000-0000-4000-0000-000000000000"}).
 					Return(nil).
 					Once()
 			},
@@ -459,7 +459,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -500,7 +500,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Tag{{Name: "production", TenantID: "tenant1"}}, 1, nil).
 					Once()
 			},
@@ -579,7 +579,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -605,7 +605,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}, nil).
 					Once()
 				storeMock.
@@ -638,7 +638,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(tag, nil).
 					Once()
 				storeMock.
@@ -674,7 +674,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(tag, nil).
 					Once()
 				storeMock.
@@ -754,7 +754,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -778,7 +778,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(tag, nil).
 					Once()
 
@@ -811,7 +811,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(tag, nil).
 					Once()
 
@@ -847,7 +847,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
+					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
 					Return(tag, nil).
 					Once()
 

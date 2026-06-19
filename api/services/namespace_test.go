@@ -61,7 +61,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -89,7 +89,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Namespace{
 							{
@@ -225,7 +225,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Namespace{
 							{
@@ -333,7 +333,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Namespace{}, 0, nil).
 					Once()
 			},

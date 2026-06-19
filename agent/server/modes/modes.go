@@ -10,8 +10,6 @@ type Mode interface {
 }
 
 // Authenticator defines the authentication methods used by the SSH's server.
-//
-//go:generate mockery --name=Authenticator --filename=authenticator.go
 type Authenticator interface {
 	// Password must be implemented to deal with password authentication.
 	Password(ctx gliderssh.Context, user string, password string) bool
@@ -21,7 +19,8 @@ type Authenticator interface {
 
 // Sessioner defines the session methods used by the SSH's server to deal wihth determining the type of session.
 //
-//go:generate mockery --name=Sessioner --filename=sessioner.go
+// Sessioner is intentionally not mocked; concrete host.Sessioner / connector.Sessioner are
+// used directly in tests. Do not add a go:generate mockery directive here.
 type Sessioner interface {
 	Subsystemer
 	// Shell must be implemented to deal with shell session.

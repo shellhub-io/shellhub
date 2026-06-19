@@ -36,7 +36,6 @@ type publicAPI interface {
 	NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error)
 }
 
-//go:generate mockery --name=Client --filename=client.go
 type Client interface {
 	commonAPI
 	publicAPI

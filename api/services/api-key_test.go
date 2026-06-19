@@ -436,7 +436,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -467,7 +467,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.APIKey{
 							{
@@ -575,7 +575,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -607,7 +607,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -650,7 +650,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -697,7 +697,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -744,7 +744,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -797,7 +797,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -822,7 +822,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -851,7 +851,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.

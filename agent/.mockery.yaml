@@ -1,0 +1,22 @@
+# v3 mockery configuration for agent module.
+# Global defaults – individual packages/interfaces may override.
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+structname: "{{.InterfaceName}}"
+filename: "{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  # ── agent/pkg/osauth ─────────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/agent/pkg/osauth:
+    interfaces:
+      Backend:
+        config:
+          filename: backend.go
+
+  # ── agent/server/modes ───────────────────────────────────────────────────
+  github.com/shellhub-io/shellhub/agent/server/modes:
+    interfaces:
+      Authenticator:
+        config:
+          filename: authenticator.go
