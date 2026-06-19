@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import PageLoader from "@/components/common/PageLoader";
-import { Card, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;
 
@@ -116,7 +116,6 @@ export default function EditAnnouncement() {
           onChange={setTitle}
           placeholder="Announcement title"
           maxLength={TITLE_MAX}
-
         />
 
         {/* Content editor */}
@@ -137,16 +136,13 @@ export default function EditAnnouncement() {
           >
             Cancel
           </Link>
-          <button
+          <Button
             type="submit"
+            loading={updateAnnouncement.isPending}
             disabled={!canSubmit || updateAnnouncement.isPending}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateAnnouncement.isPending && (
-              <Spinner size="sm" tone="onPrimary" />
-            )}
             Save
-          </button>
+          </Button>
         </div>
       </Card>
     </div>

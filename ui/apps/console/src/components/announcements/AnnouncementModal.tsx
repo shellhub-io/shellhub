@@ -5,7 +5,11 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
 import { MegaphoneIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { IconBadge } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  IconBadge,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 import { formatDateShort } from "@/utils/date";
 import { isAllowedUrl } from "@/utils/url";
@@ -82,14 +86,14 @@ export default function AnnouncementModal({
             </p>
           </div>
         </div>
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           onClick={onClose}
-          className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-border/40 transition-colors shrink-0 -mt-0.5 -mr-1"
           aria-label="Close announcement"
+          className="-mt-0.5 -mr-1"
         >
           <XMarkIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
       </div>
 
       <div className="p-6 overflow-y-auto max-h-[60vh]">
@@ -100,13 +104,9 @@ export default function AnnouncementModal({
       </div>
 
       <div className="flex justify-end gap-2 p-5 border-t border-border">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
+        <Button variant="ghost" onClick={onClose}>
           Got it
-        </button>
+        </Button>
       </div>
     </BaseDialog>
   );

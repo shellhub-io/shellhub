@@ -33,7 +33,7 @@ import InputField from "@/components/common/fields/InputField";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Settings Card ─── */
@@ -226,7 +226,6 @@ function DeleteDialog({
           value={confirm}
           onChange={setConfirm}
           placeholder={namespaceName}
-
         />
       </div>
       {error && <p className="text-2xs text-accent-red mb-3">{error}</p>}
@@ -287,13 +286,14 @@ function BannerPreview({
         description="Message shown when users connect via SSH"
       >
         {canEdit && (
-          <Link
+          <IconButton
+            as={Link}
             to="/settings/banner"
-            className="inline-flex p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
             title="Edit"
+            aria-label="Edit"
           >
             <PencilSquareIcon className="w-4 h-4" />
-          </Link>
+          </IconButton>
         )}
       </SettingsRow>
     );
@@ -320,13 +320,14 @@ function BannerPreview({
         </button>
         <div className="flex items-center gap-1 shrink-0">
           {canEdit && (
-            <Link
+            <IconButton
+              as={Link}
               to="/settings/banner"
-              className="inline-flex p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
               title="Edit"
+              aria-label="Edit"
             >
               <PencilSquareIcon className="w-4 h-4" />
-            </Link>
+            </IconButton>
           )}
           <button
             type="button"
@@ -462,14 +463,15 @@ export default function Settings() {
                 {ns.name}
               </span>
               {canRename && (
-                <button
+                <IconButton
+                  variant="primary"
                   type="button"
-                  onClick={() => setEditNameOpen(true)}
-                  className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
                   title="Rename"
+                  aria-label="Rename namespace"
+                  onClick={() => setEditNameOpen(true)}
                 >
                   <PencilSquareIcon className="w-4 h-4" />
-                </button>
+                </IconButton>
               )}
             </div>
           </SettingsRow>

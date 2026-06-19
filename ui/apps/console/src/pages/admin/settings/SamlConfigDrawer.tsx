@@ -11,7 +11,7 @@ import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { INPUT } from "@/utils/styles";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 
 type SamlSettings = NonNullable<GetAuthenticationSettingsResponse>["saml"];
 
@@ -205,22 +205,16 @@ export default function SamlConfigDrawer({
 
   const footer = (
     <>
-      <button
-        type="button"
-        onClick={onClose}
-        className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary border border-border hover:border-border-light rounded-lg transition-all"
-      >
+      <Button variant="ghost" onClick={onClose}>
         Cancel
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        loading={saving}
+        disabled={hasErrors}
         onClick={() => void handleSave()}
-        disabled={hasErrors || saving}
-        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
       >
-        {saving && <Spinner size="sm" tone="onPrimary" />}
         Save Configuration
-      </button>
+      </Button>
     </>
   );
 

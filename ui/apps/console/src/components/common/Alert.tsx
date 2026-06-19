@@ -6,6 +6,7 @@ import {
   InformationCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 export type AlertVariant = "error" | "success" | "warning" | "info";
 
@@ -23,7 +24,10 @@ interface AlertProps {
   className?: string;
 }
 
-type IconComponent = (props: { className?: string; strokeWidth?: number }) => React.ReactElement | null;
+type IconComponent = (props: {
+  className?: string;
+  strokeWidth?: number;
+}) => React.ReactElement | null;
 
 type VariantConfig = {
   bg: string;
@@ -69,7 +73,12 @@ const VARIANT: Record<AlertVariant, VariantConfig> = {
   },
 };
 
-export default function Alert({ variant, children, onDismiss, className }: AlertProps) {
+export default function Alert({
+  variant,
+  children,
+  onDismiss,
+  className,
+}: AlertProps) {
   const { bg, border, text, Icon, role, ariaLive } = VARIANT[variant];
 
   return (
@@ -89,14 +98,14 @@ export default function Alert({ variant, children, onDismiss, className }: Alert
       <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
       <span className="flex-1 min-w-0">{children}</span>
       {onDismiss && (
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           aria-label="Dismiss alert"
           onClick={onDismiss}
-          className="ml-1 hover:opacity-70 transition-opacity shrink-0 -mr-0.5"
+          className="ml-1 shrink-0 -mr-0.5"
         >
           <XMarkIcon className="w-3 h-3" />
-        </button>
+        </IconButton>
       )}
     </div>
   );

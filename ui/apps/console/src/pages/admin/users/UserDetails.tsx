@@ -19,7 +19,12 @@ import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
-import { Badge, Card, Spinner } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -129,51 +134,42 @@ export default function UserDetails() {
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            icon={<PencilSquareIcon className="w-4 h-4" />}
             onClick={() => setEditOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
           >
-            <PencilSquareIcon className="w-4 h-4" />
             Edit
-          </button>
+          </Button>
           {isSamlOnly && (
-            <button
-              type="button"
-              onClick={() => setResetPasswordOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 border border-border text-text-secondary hover:text-text-primary hover:border-border-light rounded-lg text-sm font-semibold transition-all"
+            <Button
+              variant="secondary"
+              icon={<KeyIcon className="w-4 h-4" />}
               title="Enable local authentication for this SAML-only user"
+              onClick={() => setResetPasswordOpen(true)}
             >
-              <KeyIcon className="w-4 h-4" />
               Set Password
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            onClick={() => id && void loginAs(id)}
+          <Button
+            variant={loginAsErrorId === id ? "destructive" : "primary"}
+            icon={<ArrowRightStartOnRectangleIcon className="w-4 h-4" />}
+            loading={loginAsId === id}
             disabled={loginAsId === id}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all ${
-              loginAsErrorId === id
-                ? "bg-accent-red hover:bg-accent-red/80 text-white"
-                : "bg-primary hover:bg-primary-600 text-white"
-            }`}
+            onClick={() => id && void loginAs(id)}
           >
-            {loginAsId === id ? (
-              <Spinner tone="onPrimary" />
-            ) : (
-              <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
-            )}
             {loginAsErrorId === id ? "Retry Login" : "Login as User"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setDeleteOpen(true)}
-            className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+          </Button>
+          <IconButton
+            variant="danger"
+            size="lg"
             title="Delete user"
             aria-label={`Delete ${user.name}`}
+            className="border border-border"
+            onClick={() => setDeleteOpen(true)}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       </div>
 

@@ -26,7 +26,7 @@ import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 
 /* ─── Types ─── */
 type Method =
@@ -278,18 +278,22 @@ export default function AddDevice() {
                   {selectedMethod.label} requires manual setup. Follow the
                   platform-specific documentation for step-by-step instructions.
                 </p>
-                <a
+                <Button
+                  variant="warningSoft"
+                  as="a"
+                  size="sm"
                   href={selectedMethod.docsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20 rounded-lg text-xs font-medium hover:bg-accent-yellow/15 transition-all"
+                  iconRight={
+                    <ArrowTopRightOnSquareIcon
+                      className="w-3 h-3"
+                      strokeWidth={2}
+                    />
+                  }
                 >
                   View {selectedMethod.label} guide
-                  <ArrowTopRightOnSquareIcon
-                    className="w-3 h-3"
-                    strokeWidth={2}
-                  />
-                </a>
+                </Button>
               </div>
             </div>
           </Card>

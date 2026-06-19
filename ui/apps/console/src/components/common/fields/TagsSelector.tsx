@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useTags } from "@/hooks/useTags";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import FieldLabel from "@/components/common/fields/FieldLabel";
@@ -61,16 +62,16 @@ export default function TagsSelector({
               className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium"
             >
               {tag}
-              <button
-                type="button"
+              <IconButton
+                size="sm"
+                aria-label="Remove tag"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggle(tag);
                 }}
-                className="hover:text-white transition-colors"
               >
                 <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-              </button>
+              </IconButton>
             </span>
           ))}
           <input

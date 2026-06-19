@@ -4,6 +4,7 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import type { NormalizedDevice } from "@/hooks/useDevices";
@@ -85,14 +86,9 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
         </div>
 
         {step < TOTAL_STEPS ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all"
-            aria-label="Close wizard"
-          >
+          <IconButton onClick={onClose} aria-label="Close wizard">
             <XMarkIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         ) : (
           // Spacer preserves the justify-between layout on the final step
           // without placing a focusable or ARIA-hidden interactive element in the tree.
@@ -155,73 +151,58 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-hover-medium transition-all"
-            >
+            <Button variant="ghost" onClick={onClose}>
               Close
-            </button>
+            </Button>
           )}
 
           {step === 1 && (
-            <PrimaryButton onClick={() => setStep(2)}>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              onClick={() => setStep(2)}
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Next
+            </Button>
           )}
 
           {step === 2 && (
             // Disabled — polling in WizardStep2Install auto-advances to step 3
-            <PrimaryButton disabled>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              disabled
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Next
+            </Button>
           )}
 
           {step === 3 && (
-            <PrimaryButton
+            <Button
               onClick={() => void handleAccept()}
-              disabled={!pendingDevice || accepting}
+              disabled={!pendingDevice}
               loading={accepting}
             >
               {accepting ? "Accepting…" : "Accept"}
-            </PrimaryButton>
+            </Button>
           )}
 
           {step === TOTAL_STEPS && (
             // Finish always closes directly. canClose blocks ESC/backdrop on
             // earlier steps; the Finish button is intentionally unrestricted.
-            <PrimaryButton onClick={onClose}>
-              Finish{" "}
-              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              onClick={onClose}
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Finish
+            </Button>
           )}
         </div>
       </footer>
     </BaseDialog>
-  );
-}
-
-function PrimaryButton({
-  children,
-  onClick,
-  disabled = false,
-  loading = false,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200
-        bg-primary text-white hover:bg-primary-600 active:scale-[0.98]
-        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
-    >
-      {children}
-    </button>
   );
 }

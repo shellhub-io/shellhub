@@ -1,4 +1,5 @@
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import { LISTBOX_ID, icons } from "./items";
 
@@ -31,14 +32,14 @@ export default function PaletteHeader({
     <div className="flex items-center gap-3 px-4 border-b border-border shrink-0">
       {drillDevice ? (
         <>
-          <button
-            type="button"
+          <IconButton
+            size="sm"
             onClick={onBack}
             aria-label="Back to devices"
-            className="shrink-0 -ml-1 p-1 rounded text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+            className="-ml-1"
           >
             <ChevronLeftIcon className="w-5 h-5" />
-          </button>
+          </IconButton>
           <div className="shrink-0 flex items-center gap-1.5 min-w-0">
             <span className="text-text-muted" aria-hidden="true">
               {icons.devices}

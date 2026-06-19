@@ -1,7 +1,5 @@
-import {
-  KeyIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { KeyIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaRecoveryCodesModalProps {
@@ -55,13 +53,9 @@ export default function MfaRecoveryCodesModal({
           </div>
 
           <div className="flex justify-end pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-            >
+            <Button variant="ghost" onClick={onClose}>
               Close
-            </button>
+            </Button>
           </div>
         </div>
       </div>

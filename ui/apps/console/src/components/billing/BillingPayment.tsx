@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Card, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import {
   Elements,
@@ -237,8 +237,7 @@ function BillingPaymentInner({
         <p role="alert" className="text-sm text-accent-red text-center">
           {error}
         </p>
-        <button
-          type="button"
+        <Button
           onClick={() => {
             bootstrapRef.current = false;
             setError("");
@@ -246,10 +245,9 @@ function BillingPaymentInner({
             setRetryCount((c) => c + 1);
           }}
           disabled={createCustomer.isPending}
-          className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-primary-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -326,29 +324,29 @@ function BillingPaymentInner({
                     <StarSolidIcon className="w-4 h-4" />
                   </span>
                 ) : (
-                  <button
+                  <IconButton
+                    variant="primary"
                     type="button"
-                    onClick={() => void handleSetDefault(pm.id)}
-                    disabled={setDefaultPm.isPending}
-                    className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors disabled:opacity-40"
-                    aria-label={`Set ${pm.brand} ending ${pm.number.slice(-4)} as default`}
                     title="Set as default"
+                    aria-label={`Set ${pm.brand} ending ${pm.number.slice(-4)} as default`}
+                    disabled={setDefaultPm.isPending}
+                    onClick={() => void handleSetDefault(pm.id)}
                   >
                     <StarOutlineIcon className="w-4 h-4" />
-                  </button>
+                  </IconButton>
                 )}
-                <button
+                <IconButton
+                  variant="danger"
                   type="button"
-                  onClick={() => void handleDetach(pm.id)}
-                  disabled={detachPm.isPending || pm.default}
-                  className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-40 disabled:hover:text-text-muted disabled:hover:bg-transparent"
-                  aria-label={`Remove ${pm.brand} ending ${pm.number.slice(-4)}`}
                   title={
                     pm.default ? "Cannot remove the default card" : "Remove"
                   }
+                  aria-label={`Remove ${pm.brand} ending ${pm.number.slice(-4)}`}
+                  disabled={detachPm.isPending || pm.default}
+                  onClick={() => void handleDetach(pm.id)}
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </IconButton>
               </div>
             </Card>
           ))}
@@ -356,14 +354,15 @@ function BillingPaymentInner({
       )}
 
       {!isAddingCard && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          fullWidth
+          icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           onClick={() => setIsAddingCard(true)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-card border border-dashed border-border hover:border-primary/40 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+          className="border border-dashed border-border hover:border-primary/40 bg-card"
         >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
           Add payment method
-        </button>
+        </Button>
       )}
 
       {isAddingCard && (
@@ -388,27 +387,24 @@ function BillingPaymentInner({
           </div>
 
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={() => {
                 setIsAddingCard(false);
                 setCardComplete(false);
                 setError("");
               }}
               disabled={submitting}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors disabled:opacity-40"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              loading={submitting}
+              disabled={!stripe || !cardComplete}
               onClick={() => void handleAddCard()}
-              disabled={!stripe || !cardComplete || submitting}
-              className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {submitting && <Spinner tone="onPrimary" />}
               Save card
-            </button>
+            </Button>
           </div>
         </Card>
       )}

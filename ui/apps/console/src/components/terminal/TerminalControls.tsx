@@ -5,6 +5,7 @@ import {
   Cog6ToothIcon,
   MinusIcon,
 } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 import type { TerminalSession } from "@/stores/terminalStore";
 import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
@@ -13,8 +14,8 @@ import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
 export function TerminalInfo({ session }: { session: TerminalSession }) {
   const status = useTerminalStore(
     (s) =>
-      s.sessions.find((ss) => ss.id === session.id)?.connectionStatus
-      ?? "disconnected",
+      s.sessions.find((ss) => ss.id === session.id)?.connectionStatus ??
+      "disconnected",
   );
 
   return (
@@ -89,23 +90,25 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d={isFullscreen
-                  ? "M8 4v4H4M20 8h-4V4M16 20v-4h4M4 16h4v4"
-                  : "M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"}
+                d={
+                  isFullscreen
+                    ? "M8 4v4H4M20 8h-4V4M16 20v-4h4M4 16h4v4"
+                    : "M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"
+                }
               />
             </svg>
           </button>
         </div>
 
         {/* Settings */}
-        <button
-          type="button"
+        <IconButton
+          title="Terminal settings"
+          aria-label="Terminal settings"
           onClick={() => setSettingsOpen(true)}
-          className="p-1.5 rounded-md text-white/30 hover:text-white/60 transition-colors"
-          title="Terminal Settings"
+          className="text-white/30 hover:text-white/60"
         >
           <Cog6ToothIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
       </div>
 
       {createPortal(

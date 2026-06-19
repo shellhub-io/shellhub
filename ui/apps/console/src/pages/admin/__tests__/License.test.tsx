@@ -28,12 +28,28 @@ const validLicense = {
   starts_at: 1704110400,
   expires_at: 1735732800,
   allowed_regions: [] as string[],
-  customer: { id: "cust-xxx", name: "Test Customer", email: "test@example.com", company: "Test Co" },
-  features: { devices: -1, session_recording: true, firewall_rules: true, reports: false, login_link: false, billing: false },
+  customer: {
+    id: "cust-xxx",
+    name: "Test Customer",
+    email: "test@example.com",
+    company: "Test Co",
+  },
+  features: {
+    devices: -1,
+    session_recording: true,
+    firewall_rules: true,
+    reports: false,
+    login_link: false,
+    billing: false,
+  },
 };
 const expiredLicense = { ...validLicense, expired: true, grace_period: false };
 const aboutToExpireLicense = { ...validLicense, about_to_expire: true };
-const gracePeriodLicense = { ...validLicense, expired: true, grace_period: true };
+const gracePeriodLicense = {
+  ...validLicense,
+  expired: true,
+  grace_period: true,
+};
 const regionalLicense = { ...validLicense, allowed_regions: ["BR", "US"] };
 
 const mockMutateAsync = vi.fn();
@@ -51,8 +67,16 @@ function setupHooks({
   error?: object;
   isPending?: boolean;
 }) {
-  vi.mocked(useAdminLicense).mockReturnValue({ data, isLoading, isError, error } as never);
-  vi.mocked(useUploadLicense).mockReturnValue({ mutateAsync: mockMutateAsync, isPending } as never);
+  vi.mocked(useAdminLicense).mockReturnValue({
+    data,
+    isLoading,
+    isError,
+    error,
+  } as never);
+  vi.mocked(useUploadLicense).mockReturnValue({
+    mutateAsync: mockMutateAsync,
+    isPending,
+  } as never);
 }
 
 function renderPage() {
@@ -63,7 +87,8 @@ function renderPage() {
       </MemoryRouter>
     </ClipboardProvider>,
   );
-  const fileInput = () => result.container.querySelector<HTMLInputElement>("#license-file")!;
+  const fileInput = () =>
+    result.container.querySelector<HTMLInputElement>("#license-file")!;
   return { ...result, fileInput };
 }
 
@@ -85,15 +110,23 @@ describe("AdminLicense", () => {
       setupHooks({ isError: true, error: { status: 500 } });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Failed to load license information")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load license information"),
+      ).toBeInTheDocument();
     });
 
     it("shows no-license info alert and upload section when license data is null", () => {
       setupHooks({ data: null });
       renderPage();
-      expect(screen.getByText("You do not have an installed license")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /choose a \.dat file/i })).toBeInTheDocument();
-      expect(screen.queryByText("Failed to load license information")).not.toBeInTheDocument();
+      expect(
+        screen.getByText("You do not have an installed license"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /choose a \.dat file/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("Failed to load license information"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -101,7 +134,9 @@ describe("AdminLicense", () => {
     it("renders upload section but no license details", () => {
       setupHooks({ data: undefined });
       renderPage();
-      expect(screen.getByRole("button", { name: /choose a \.dat file/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /choose a \.dat file/i }),
+      ).toBeInTheDocument();
       expect(screen.queryByText("License Information")).not.toBeInTheDocument();
     });
   });
@@ -111,14 +146,18 @@ describe("AdminLicense", () => {
       setupHooks({ data: {} });
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("You do not have an installed license")).toBeInTheDocument();
+      expect(
+        screen.getByText("You do not have an installed license"),
+      ).toBeInTheDocument();
     });
 
     it("shows info alert when about_to_expire", () => {
       setupHooks({ data: aboutToExpireLicense });
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("Your license is about to expire!")).toBeInTheDocument();
+      expect(
+        screen.getByText("Your license is about to expire!"),
+      ).toBeInTheDocument();
     });
 
     it("shows warning when expired + grace period", () => {
@@ -138,9 +177,13 @@ describe("AdminLicense", () => {
     it("shows no alert when license is valid", () => {
       setupHooks({ data: validLicense });
       renderPage();
-      expect(screen.queryByText(/license has expired/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/license has expired/i),
+      ).not.toBeInTheDocument();
       expect(screen.queryByText(/about to expire/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/do not have an installed license/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/do not have an installed license/i),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -233,7 +276,9 @@ describe("AdminLicense", () => {
     it("renders drop zone and hidden file input", () => {
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      expect(screen.getByRole("button", { name: /choose a \.dat file/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /choose a \.dat file/i }),
+      ).toBeInTheDocument();
       expect(fileInput()).toBeInTheDocument();
     });
 
@@ -246,17 +291,23 @@ describe("AdminLicense", () => {
     it("shows validation error for wrong file extension", () => {
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      const badFile = new File(["content"], "license.txt", { type: "text/plain" });
+      const badFile = new File(["content"], "license.txt", {
+        type: "text/plain",
+      });
       fireEvent.change(fileInput(), { target: { files: [badFile] } });
-      expect(screen.getByText("Only .dat files are allowed")).toBeInTheDocument();
+      expect(
+        screen.getByText("Only .dat files are allowed"),
+      ).toBeInTheDocument();
     });
 
     it("shows remove button and clears file on click", async () => {
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      const validFile = new File(["content"], "license.dat", { type: "application/octet-stream" });
+      const validFile = new File(["content"], "license.dat", {
+        type: "application/octet-stream",
+      });
       await userEvent.upload(fileInput(), validFile);
-      const removeBtn = screen.getByRole("button", { name: /remove selected file/i });
+      const removeBtn = screen.getByRole("button", { name: /remove file/i });
       expect(removeBtn).toBeInTheDocument();
       await userEvent.click(removeBtn);
       expect(screen.getByRole("button", { name: /upload/i })).toBeDisabled();
@@ -266,23 +317,31 @@ describe("AdminLicense", () => {
       mockMutateAsync.mockResolvedValue(undefined);
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      const validFile = new File(["license-content"], "license.dat", { type: "application/octet-stream" });
+      const validFile = new File(["license-content"], "license.dat", {
+        type: "application/octet-stream",
+      });
       await userEvent.upload(fileInput(), validFile);
       const uploadBtn = screen.getByRole("button", { name: /upload/i });
       expect(uploadBtn).not.toBeDisabled();
       await userEvent.click(uploadBtn);
-      expect(mockMutateAsync).toHaveBeenCalledWith({ body: { file: validFile } });
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        body: { file: validFile },
+      });
     });
 
     it("shows success message after upload", async () => {
       mockMutateAsync.mockResolvedValue(undefined);
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      const validFile = new File(["license-content"], "license.dat", { type: "application/octet-stream" });
+      const validFile = new File(["license-content"], "license.dat", {
+        type: "application/octet-stream",
+      });
       await userEvent.upload(fileInput(), validFile);
       await userEvent.click(screen.getByRole("button", { name: /upload/i }));
       await waitFor(() =>
-        expect(screen.getByText("License uploaded successfully.")).toBeInTheDocument(),
+        expect(
+          screen.getByText("License uploaded successfully."),
+        ).toBeInTheDocument(),
       );
     });
 
@@ -290,11 +349,15 @@ describe("AdminLicense", () => {
       mockMutateAsync.mockRejectedValue(new Error("upload failed"));
       setupHooks({ data: {} });
       const { fileInput } = renderPage();
-      const validFile = new File(["license-content"], "license.dat", { type: "application/octet-stream" });
+      const validFile = new File(["license-content"], "license.dat", {
+        type: "application/octet-stream",
+      });
       await userEvent.upload(fileInput(), validFile);
       await userEvent.click(screen.getByRole("button", { name: /upload/i }));
       await waitFor(() =>
-        expect(screen.getByText("Failed to upload the license.")).toBeInTheDocument(),
+        expect(
+          screen.getByText("Failed to upload the license."),
+        ).toBeInTheDocument(),
       );
     });
   });

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 
 // ---- Shared nav style constants ----
 
@@ -189,19 +190,13 @@ export default function SidebarShell({
         >
           {footerLabel}
         </p>
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           onClick={onToggle}
           tabIndex={expanded ? 0 : -1}
           aria-label={toggleLabel}
           title={toggleTitle}
-          className={`p-1 rounded-md transition-all duration-200 ${
-            expanded ? "opacity-100" : "opacity-0"
-          } ${
-            pinned
-              ? "text-primary bg-primary/10"
-              : "text-text-muted hover:text-text-primary hover:bg-hover-subtle"
-          }`}
+          className={`duration-200 ${expanded ? "opacity-100" : "opacity-0"} ${pinned ? "text-primary bg-primary/10" : ""}`}
         >
           <ChevronLeftIcon
             className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -209,7 +204,7 @@ export default function SidebarShell({
             }`}
             strokeWidth={2}
           />
-        </button>
+        </IconButton>
       </div>
     </aside>
   );

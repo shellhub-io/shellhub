@@ -36,7 +36,7 @@ import {
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
-import { Badge, Spinner } from "@shellhub/design-system/primitives";
+import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
 
 /* ─── Constants ─── */
 
@@ -142,17 +142,18 @@ function DeviceSelector({
             <span className="text-sm text-text-primary truncate">
               {selected.name}
             </span>
-            <button
-              type="button"
+            <IconButton
+              size="sm"
+              aria-label="Clear selected device"
+              className="ml-auto"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange(null);
                 setSearch("");
               }}
-              className="ml-auto shrink-0 p-0.5 text-text-muted hover:text-text-primary transition-colors"
             >
               <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-            </button>
+            </IconButton>
           </div>
         ) : (
           <input
@@ -304,7 +305,6 @@ function TimeoutSelector({
               onChange={handleCustomValueChange}
               placeholder="Value in seconds"
               variant="mono"
-
               error={error || undefined}
             />
           )}
@@ -425,28 +425,17 @@ function EndpointDrawer({
       subtitle="Tunnel HTTP traffic to a service on your device."
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            onClick={() => void handleSubmit()}
+            loading={submitting}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            onClick={() => void handleSubmit()}
           >
-            {submitting ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Creating...
-              </>
-            ) : (
-              "Create Endpoint"
-            )}
-          </button>
+            {submitting ? "Creating..." : "Create Endpoint"}
+          </Button>
         </>
       }
     >
@@ -593,7 +582,6 @@ function EndpointDrawer({
                       placeholder="e.g. 192.168.1.100"
                       variant="mono"
                       error={hostError}
-
                     />
                   </div>
                   <div className="w-24">
@@ -798,15 +786,15 @@ function EndpointCard({
         {/* Right: delete action */}
         <div className="flex items-center shrink-0">
           <RestrictedAction action="webEndpoint:delete">
-            <button
+            <IconButton
+              variant="danger"
               type="button"
-              onClick={onDelete}
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-red/50"
-              aria-label={`Delete web endpoint ${endpoint.full_address}`}
               title="Delete"
+              aria-label={`Delete web endpoint ${endpoint.full_address}`}
+              onClick={onDelete}
             >
               <TrashIcon className="w-4 h-4" aria-hidden="true" />
-            </button>
+            </IconButton>
           </RestrictedAction>
         </div>
       </div>
@@ -902,18 +890,19 @@ function WebEndpointsContent() {
           footnote="No VPN, no SSH port forwarding — just a URL."
         >
           <RestrictedAction action="webEndpoint:create">
-            <button
-              type="button"
+            <Button
+              size="lg"
               onClick={openNew}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              icon={
+                <PlusIcon
+                  className="w-4 h-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             >
-              <PlusIcon
-                className="w-4 h-4"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
               Create your first endpoint
-            </button>
+            </Button>
           </RestrictedAction>
         </EmptyState>
       ) : (
@@ -925,18 +914,18 @@ function WebEndpointsContent() {
             description="Unique URLs that tunnel HTTP traffic to services on your devices."
           >
             <RestrictedAction action="webEndpoint:create">
-              <button
-                type="button"
+              <Button
                 onClick={openNew}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                icon={
+                  <PlusIcon
+                    className="w-4 h-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
               >
-                <PlusIcon
-                  className="w-4 h-4"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
                 New Endpoint
-              </button>
+              </Button>
             </RestrictedAction>
           </PageHeader>
 

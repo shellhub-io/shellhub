@@ -231,7 +231,10 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Name */}
             <div>
-              <label htmlFor="signup-name" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label
+                htmlFor="signup-name"
+                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+              >
                 Name
               </label>
               <div className="relative">
@@ -248,7 +251,6 @@ export function StepSignup({ onBack }: StepSignupProps) {
                   }}
                   placeholder="Your name"
                   className={INPUT_BASE}
-
                 />
               </div>
               {fieldErrors.name && (
@@ -260,7 +262,10 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Email */}
             <div>
-              <label htmlFor="signup-email" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label
+                htmlFor="signup-email"
+                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+              >
                 Email
               </label>
               <div className="relative">
@@ -291,7 +296,10 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Password */}
             <div>
-              <label htmlFor="signup-password" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label
+                htmlFor="signup-password"
+                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+              >
                 Password
               </label>
               <div className="relative">
@@ -363,7 +371,10 @@ export function StepSignup({ onBack }: StepSignupProps) {
 
             {/* Confirm password */}
             <div>
-              <label htmlFor="signup-confirm-password" className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5">
+              <label
+                htmlFor="signup-confirm-password"
+                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+              >
                 Confirm password
               </label>
               <div className="relative">
@@ -479,26 +490,30 @@ export function StepSignup({ onBack }: StepSignupProps) {
             </Button>
 
             {/* Back */}
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
+              fullWidth
+              className="group"
               onClick={onBack}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-1.5 text-xs font-medium text-text-muted hover:text-text-secondary transition-colors group"
+              icon={
+                <svg
+                  className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform duration-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg>
+              }
             >
-              <svg
-                className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform duration-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
-              </svg>
               Back to options
-            </button>
+            </Button>
           </form>
         </Card>
       </Reveal>

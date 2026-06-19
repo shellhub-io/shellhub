@@ -1,4 +1,5 @@
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import { optionId, type BadgeVariant, type CommandItem } from "./items";
 
 const badgeStyles: Record<BadgeVariant, string> = {
@@ -77,20 +78,18 @@ export default function CommandRow({
         </kbd>
       )}
       {item.onDrillIn && (
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           tabIndex={-1}
           aria-label={`Show actions for ${item.label}`}
           onClick={(e) => {
             e.stopPropagation();
             item.onDrillIn?.();
           }}
-          className={`shrink-0 p-0.5 rounded transition-colors hover:text-primary hover:bg-hover-medium ${
-            isActive ? "text-primary" : "text-text-muted/40"
-          }`}
+          className={isActive ? "text-primary" : "text-text-muted/40"}
         >
           <ChevronRightIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
       )}
     </div>
   );

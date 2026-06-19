@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "@/hooks/useCountdown";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaRecoveryTimeoutModalProps {
@@ -85,22 +85,17 @@ export default function MfaRecoveryTimeoutModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-          >
+          <Button variant="ghost" onClick={onClose}>
             Close
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={hasAccess || isExpired}
+            loading={disabling}
             onClick={() => void handleDisable()}
-            disabled={hasAccess || disabling || isExpired}
-            className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {disabling && <Spinner tone="onPrimary" />}
             Disable MFA
-          </button>
+          </Button>
         </div>
 
         {/* Explanation note */}

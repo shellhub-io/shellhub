@@ -38,7 +38,7 @@ import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -174,15 +174,15 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               aria-label="Add tag"
               className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
             />
-            <button
-              type="button"
-              onClick={() => void handleAdd()}
+            <IconButton
+              variant="primary"
+              size="sm"
               disabled={adding || !input.trim()}
               aria-label="Add tag"
-              className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
+              onClick={() => void handleAdd()}
             >
               <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
+            </IconButton>
           </div>
         )}
       </div>
@@ -241,18 +241,17 @@ function RenameSection({
     return (
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
-        <button
-          type="button"
+        <IconButton
+          variant="primary"
+          title="Rename container"
+          aria-label="Rename container"
           onClick={() => {
             setName(currentName);
             setEditing(true);
           }}
-          className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-          title="Rename container"
-          aria-label="Rename container"
         >
           <PencilSquareIcon className="w-4 h-4" />
-        </button>
+        </IconButton>
       </div>
     );
   }
@@ -268,27 +267,23 @@ function RenameSection({
             if (e.key === "Enter") void handleSave();
             if (e.key === "Escape") setEditing(false);
           }}
-
           aria-label="Container name"
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          disabled={saving}
+        <IconButton
+          variant="primary"
           aria-label="Save name"
-          className="p-1.5 rounded-md text-accent-green hover:bg-accent-green/10 transition-all"
+          disabled={saving}
+          onClick={() => void handleSave()}
         >
           <CheckIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditing(false)}
+        </IconButton>
+        <IconButton
           aria-label="Cancel rename"
-          className="p-1.5 rounded-md text-text-muted hover:bg-hover-medium transition-all"
+          onClick={() => setEditing(false)}
         >
           <XMarkIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
+        </IconButton>
       </div>
       {error && (
         <p role="alert" className="text-2xs text-accent-red mt-1">
@@ -424,8 +419,8 @@ export default function ContainerDetails() {
           {container.status === "accepted" && (
             <>
               <RestrictedAction action="device:connect">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => {
                     if (existingSession) {
                       restoreTerminal(existingSession.id);
@@ -434,71 +429,72 @@ export default function ContainerDetails() {
                     }
                   }}
                   disabled={!container.online}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+                  icon={
+                    <ChevronDoubleRightIcon
+                      className="w-4 h-4"
+                      strokeWidth={2}
+                    />
+                  }
                 >
-                  <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
                   Connect
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:remove">
-                <button
-                  type="button"
+                <IconButton
+                  variant="danger"
+                  size="lg"
+                  title="Remove container"
+                  aria-label="Remove container"
+                  className="border border-border"
                   onClick={() =>
                     setOperation({
                       container: { uid: container.uid, name: container.name },
                       action: "remove",
                     })
                   }
-                  className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
-                  title="Remove container"
-                  aria-label="Remove container"
                 >
                   <TrashIcon className="w-4 h-4" />
-                </button>
+                </IconButton>
               </RestrictedAction>
             </>
           )}
           {container.status === "pending" && (
             <>
               <RestrictedAction action="device:accept">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => setOperation({ container, action: "accept" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Accept
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:reject">
-                <button
-                  type="button"
+                <Button
+                  variant="warning"
                   onClick={() => setOperation({ container, action: "reject" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Reject
-                </button>
+                </Button>
               </RestrictedAction>
             </>
           )}
           {container.status === "rejected" && (
             <>
               <RestrictedAction action="device:accept">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
                   onClick={() => setOperation({ container, action: "accept" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Accept
-                </button>
+                </Button>
               </RestrictedAction>
               <RestrictedAction action="device:remove">
-                <button
-                  type="button"
+                <Button
+                  variant="destructive"
                   onClick={() => setOperation({ container, action: "remove" })}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
                 >
                   Remove
-                </button>
+                </Button>
               </RestrictedAction>
             </>
           )}

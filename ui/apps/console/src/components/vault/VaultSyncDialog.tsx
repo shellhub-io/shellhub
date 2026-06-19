@@ -13,7 +13,7 @@ import {
 } from "@/utils/vault-migrate";
 import BaseDialog from "@/components/common/BaseDialog";
 import Alert from "@/components/common/Alert";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 
 type Direction = "to-server" | "to-local";
 
@@ -127,11 +127,12 @@ function SyncForm({
             role="group"
             aria-label="Choose which vault to keep"
           >
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              fullWidth
+              className="flex-col items-start justify-start"
               disabled={working}
               onClick={() => void run(() => adoptServerVault(scope))}
-              className="w-full text-left px-4 py-3 rounded-lg border border-border hover:border-border-light hover:bg-hover-subtle transition-colors disabled:opacity-dim disabled:cursor-not-allowed"
             >
               <span className="block text-sm font-medium text-text-primary">
                 Keep the synced vault
@@ -139,12 +140,13 @@ function SyncForm({
               <span className="block text-2xs text-text-muted mt-0.5">
                 Deletes the keys stored in this browser.
               </span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="outline"
+              fullWidth
+              className="flex-col items-start justify-start"
               disabled={working}
               onClick={() => void run(() => migrateLocalToServer(scope))}
-              className="w-full text-left px-4 py-3 rounded-lg border border-border hover:border-border-light hover:bg-hover-subtle transition-colors disabled:opacity-dim disabled:cursor-not-allowed"
             >
               <span className="block text-sm font-medium text-text-primary">
                 Keep this device's vault
@@ -152,7 +154,7 @@ function SyncForm({
               <span className="block text-2xs text-text-muted mt-0.5">
                 Replaces the synced vault on the server.
               </span>
-            </button>
+            </Button>
           </div>
         </>
       ) : (
@@ -190,18 +192,13 @@ function SyncForm({
       )}
 
       <div className="flex justify-end gap-2 pt-4">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={working}
-          className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-        >
+        <Button variant="ghost" onClick={onClose} disabled={working}>
           Cancel
-        </button>
+        </Button>
         {!checking && !(toServer && conflict) && (
-          <button
-            type="button"
-            disabled={working || (toServer && !!error)}
+          <Button
+            disabled={toServer && !!error}
+            loading={working}
             onClick={() =>
               void run(() =>
                 toServer
@@ -209,11 +206,9 @@ function SyncForm({
                   : migrateServerToLocal(scope),
               )
             }
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {working && <Spinner tone="onPrimary" />}
             {toServer ? "Sync vault" : "Move vault"}
-          </button>
+          </Button>
         )}
       </div>
     </div>

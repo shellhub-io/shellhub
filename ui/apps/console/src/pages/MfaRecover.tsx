@@ -6,7 +6,7 @@ import { useAuthStore } from "../stores/authStore";
 import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 
 export default function MfaRecover() {
   const {
@@ -118,7 +118,6 @@ export default function MfaRecover() {
               value={recoveryCode}
               onChange={(e) => setRecoveryCode(e.target.value)}
               required
-
               className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
               placeholder="Enter recovery code"
             />
@@ -127,20 +126,15 @@ export default function MfaRecover() {
             </p>
           </div>
 
-          <button
+          <Button
+            variant="warning"
+            fullWidth
             type="submit"
+            loading={loading}
             disabled={loading || !recoveryCode.trim()}
-            className="w-full bg-accent-yellow hover:bg-accent-yellow/80 text-background py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <>
-                <Spinner size="sm" tone="onPrimary" />
-                Recovering...
-              </>
-            ) : (
-              "Recover Account"
-            )}
-          </button>
+            {loading ? "Recovering..." : "Recover Account"}
+          </Button>
 
           <div className="text-center pt-2 space-y-2">
             <Link

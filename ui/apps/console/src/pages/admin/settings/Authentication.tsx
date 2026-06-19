@@ -15,7 +15,7 @@ import PageHeader from "../../../components/common/PageHeader";
 import CopyButton from "../../../components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
 import PageLoader from "@/components/common/PageLoader";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
@@ -284,28 +284,28 @@ export default function AdminAuthentication() {
               {/* Actions */}
               <div className="flex items-center gap-3 pt-1">
                 {saml.auth_url && (
-                  <a
+                  <Button
+                    variant="outline"
+                    as="a"
+                    size="sm"
                     href={saml.auth_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary border border-border hover:border-border-light hover:text-text-primary rounded-lg transition-all"
                     title="Opens a new window directly calling the authentication URL"
+                    icon={
+                      <ArrowTopRightOnSquareIcon
+                        className="w-3.5 h-3.5"
+                        strokeWidth={2}
+                      />
+                    }
                   >
-                    <ArrowTopRightOnSquareIcon
-                      className="w-3.5 h-3.5"
-                      strokeWidth={2}
-                    />
                     Test Auth Integration
-                  </a>
+                  </Button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setDrawerOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-600 text-white text-xs font-semibold rounded-lg transition-all"
-                >
+                <Button size="sm" onClick={() => setDrawerOpen(true)}>
                   Edit Configuration
-                </button>
+                </Button>
               </div>
             </div>
           )}

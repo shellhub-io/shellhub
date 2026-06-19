@@ -7,7 +7,10 @@ import {
   PencilIcon,
 } from "@heroicons/react/24/outline";
 import { useTags } from "@/hooks/useTags";
-import { useAddDeviceTag, useRemoveDeviceTag } from "@/hooks/useDeviceMutations";
+import {
+  useAddDeviceTag,
+  useRemoveDeviceTag,
+} from "@/hooks/useDeviceMutations";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -72,10 +75,10 @@ function TagsPopover({
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (
-        popoverRef.current
-        && !popoverRef.current.contains(e.target as Node)
-        && triggerRef.current
-        && !triggerRef.current.contains(e.target as Node)
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
       }
@@ -113,44 +116,42 @@ function TagsPopover({
   const suggestions = allTags.filter(
     (t) => !tags.includes(t) && t.toLowerCase().includes(input.toLowerCase()),
   );
-  const isNew
-    = input.trim().length >= 3
-      && input.trim().length <= 255
-      && !allTags.includes(input.trim())
-      && !tags.includes(input.trim());
-  const inputValid
-    = !input.trim()
-      || (/^[a-zA-Z0-9]+$/.test(input.trim()) && input.trim().length <= 255);
+  const isNew =
+    input.trim().length >= 3 &&
+    input.trim().length <= 255 &&
+    !allTags.includes(input.trim()) &&
+    !tags.includes(input.trim());
+  const inputValid =
+    !input.trim() ||
+    (/^[a-zA-Z0-9]+$/.test(input.trim()) && input.trim().length <= 255);
 
   return (
     <>
       {/* Trigger — inline in the table cell */}
       <div className="flex items-center gap-1 min-h-[28px] group/tags">
-        {tags.length > 0
-          ? (
-            <div className="flex items-center gap-1">
-              {tags.map((tag) => (
-                <button
-                  type="button"
-                  key={tag}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFilterTag(tag);
-                  }}
-                  title={`Filter by "${tag}"`}
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-medium hover:bg-primary/20 transition-all cursor-pointer"
-                >
-                  <TagIcon className="w-2 h-2" strokeWidth={2} />
-                  {tag}
-                </button>
-              ))}
-            </div>
-          )
-          : (
-            <span className="text-2xs text-text-muted/30 group-hover/tags:text-text-muted transition-colors">
-              No tags
-            </span>
-          )}
+        {tags.length > 0 ? (
+          <div className="flex items-center gap-1">
+            {tags.map((tag) => (
+              <button
+                type="button"
+                key={tag}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFilterTag(tag);
+                }}
+                title={`Filter by "${tag}"`}
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-medium hover:bg-primary/20 transition-all cursor-pointer"
+              >
+                <TagIcon className="w-2 h-2" strokeWidth={2} />
+                {tag}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span className="text-2xs text-text-muted/30 group-hover/tags:text-text-muted transition-colors">
+            No tags
+          </span>
+        )}
         {canEditTags && (
           <button
             type="button"
@@ -161,6 +162,7 @@ function TagsPopover({
             }}
             className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:!text-primary hover:bg-primary/10 transition-all shrink-0"
             title="Manage tags"
+            aria-label="Manage tags"
           >
             <PencilIcon className="w-3 h-3" strokeWidth={2} />
           </button>
@@ -168,8 +170,8 @@ function TagsPopover({
       </div>
 
       {/* Popover — portaled to body */}
-      {open
-        && createPortal(
+      {open &&
+        createPortal(
           <div
             ref={popoverRef}
             className="fixed z-50 w-[300px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
@@ -191,6 +193,7 @@ function TagsPopover({
                         type="button"
                         onClick={() => void handleRemove(tag)}
                         disabled={loading}
+                        aria-label={`Remove tag ${tag}`}
                         className="hover:text-white transition-colors disabled:opacity-dim ml-0.5"
                       >
                         <XMarkIcon className="w-2.5 h-2.5" strokeWidth={2} />
@@ -209,16 +212,15 @@ function TagsPopover({
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (
-                        e.key === "Enter"
-                        && input.trim().length >= 3
-                        && inputValid
+                        e.key === "Enter" &&
+                        input.trim().length >= 3 &&
+                        inputValid
                       ) {
                         e.preventDefault();
                         void handleAdd(input.trim());
                       }
                     }}
                     placeholder="Search or create tag..."
-
                     className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
                   {input.trim() && input.trim().length < 3 && (
@@ -235,43 +237,43 @@ function TagsPopover({
                   )}
 
                   {/* Suggestions dropdown */}
-                  {(suggestions.length > 0 || isNew)
-                    && input.trim()
-                    && inputValid && (
-                    <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
-                      {suggestions.map((tag) => (
-                        <button
-                          type="button"
-                          key={tag}
-                          onClick={() => void handleAdd(tag)}
-                          disabled={loading}
-                          className="w-full text-left px-2.5 py-1.5 text-2xs text-text-primary hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
-                        >
-                          <TagIcon
-                            className="w-2.5 h-2.5 text-primary shrink-0"
-                            strokeWidth={2}
-                          />
-                          {tag}
-                        </button>
-                      ))}
-                      {isNew && (
-                        <button
-                          type="button"
-                          onClick={() => void handleAdd(input.trim())}
-                          disabled={loading}
-                          className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
-                        >
-                          <PlusIcon
-                            className="w-2.5 h-2.5 shrink-0"
-                            strokeWidth={2}
-                          />
-                          Create &ldquo;
-                          {input.trim()}
-                          &rdquo;
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  {(suggestions.length > 0 || isNew) &&
+                    input.trim() &&
+                    inputValid && (
+                      <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
+                        {suggestions.map((tag) => (
+                          <button
+                            type="button"
+                            key={tag}
+                            onClick={() => void handleAdd(tag)}
+                            disabled={loading}
+                            className="w-full text-left px-2.5 py-1.5 text-2xs text-text-primary hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
+                          >
+                            <TagIcon
+                              className="w-2.5 h-2.5 text-primary shrink-0"
+                              strokeWidth={2}
+                            />
+                            {tag}
+                          </button>
+                        ))}
+                        {isNew && (
+                          <button
+                            type="button"
+                            onClick={() => void handleAdd(input.trim())}
+                            disabled={loading}
+                            className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
+                          >
+                            <PlusIcon
+                              className="w-2.5 h-2.5 shrink-0"
+                              strokeWidth={2}
+                            />
+                            Create &ldquo;
+                            {input.trim()}
+                            &rdquo;
+                          </button>
+                        )}
+                      </div>
+                    )}
                 </div>
               ) : (
                 <p className="text-2xs text-text-muted">

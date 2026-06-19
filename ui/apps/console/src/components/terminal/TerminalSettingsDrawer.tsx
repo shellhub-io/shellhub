@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useTerminalThemeStore,
   TERMINAL_FONTS,
@@ -46,19 +47,17 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
       title="Terminal Settings"
       width="sm"
       bodyClassName="flex-1 overflow-y-auto"
-      footer={(
+      footer={
         <>
           <span className="text-2xs font-mono text-text-muted mr-auto">
             {themeName}
           </span>
           <span className="text-2xs font-mono text-text-muted/60">
-            {fontFamily}
-            {" "}
-            {fontSize}
+            {fontFamily} {fontSize}
             px
           </span>
         </>
-      )}
+      }
     >
       {/* Theme Picker */}
       <div className="border-b border-border p-4">
@@ -117,14 +116,14 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
           Font Size
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setFontSize(fontSize - 1)}
+          <IconButton
+            aria-label="Decrease font size"
             disabled={fontSize <= 8}
-            className="rounded-md border border-border bg-hover-subtle p-1.5 text-text-muted hover:text-text-primary hover:bg-hover-medium disabled:opacity-faint transition-colors"
+            onClick={() => setFontSize(fontSize - 1)}
+            className="border border-border bg-hover-subtle"
           >
             <MinusIcon className="w-3.5 h-3.5" strokeWidth={2} />
-          </button>
+          </IconButton>
           <div className="flex-1">
             <input
               type="range"
@@ -135,14 +134,14 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
               className="w-full accent-primary h-1"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => setFontSize(fontSize + 1)}
+          <IconButton
+            aria-label="Increase font size"
             disabled={fontSize >= 24}
-            className="rounded-md border border-border bg-hover-subtle p-1.5 text-text-muted hover:text-text-primary hover:bg-hover-medium disabled:opacity-faint transition-colors"
+            onClick={() => setFontSize(fontSize + 1)}
+            className="border border-border bg-hover-subtle"
           >
             <PlusIcon className="w-3.5 h-3.5" strokeWidth={2} />
-          </button>
+          </IconButton>
           <span className="font-mono text-[13px] text-text-secondary w-7 text-right">
             {fontSize}
           </span>
@@ -165,20 +164,15 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         >
           <div style={{ color: theme.colors.green }}>$ ssh root@device</div>
           <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.cyan }}>ShellHub</span>
-            {" "}
+            <span style={{ color: theme.colors.cyan }}>ShellHub</span>{" "}
             <span style={{ color: theme.colors.yellow }}>
               {getConfig().version || "v0.0.0"}
-            </span>
-            {" "}
+            </span>{" "}
             <span style={{ color: theme.colors.green }}>connected</span>
           </div>
           <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.brightBlack }}>~</span>
-            {" "}
-            <span style={{ color: theme.colors.red }}>3</span>
-            {" "}
-            devices online
+            <span style={{ color: theme.colors.brightBlack }}>~</span>{" "}
+            <span style={{ color: theme.colors.red }}>3</span> devices online
           </div>
           <div className="mt-1">
             <span style={{ color: theme.colors.green }}>$</span>

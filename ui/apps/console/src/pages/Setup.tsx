@@ -7,7 +7,7 @@ import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -206,14 +206,13 @@ export default function Setup() {
                 />
               </div>
 
-              <button
-                type="button"
+              <Button
+                fullWidth
                 disabled={!surveyCompleted}
                 onClick={() => setStep(STEP_ACCOUNT)}
-                className="w-full bg-primary hover:bg-primary-600 text-white py-2.5 px-4 rounded-md text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200"
               >
                 Continue
-              </button>
+              </Button>
             </div>
           )}
 
@@ -231,7 +230,6 @@ export default function Setup() {
                 onBlur={() => handleBlur("name")}
                 error={showError("name")}
                 placeholder="Your name"
-
                 maxLength={64}
               />
 
@@ -279,28 +277,22 @@ export default function Setup() {
 
               <div className="flex gap-3 pt-1">
                 {showOnboarding && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
                     onClick={() => setStep(STEP_ONBOARDING)}
-                    className="flex-1 bg-card hover:bg-border/50 border border-border text-text-secondary py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-200"
                   >
                     Back
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   type="submit"
+                  loading={loading}
                   disabled={disableCreateAccountButton}
-                  className={`${showOnboarding ? "flex-[2]" : "w-full"} bg-primary hover:bg-primary-600 text-white py-2.5 px-4 rounded-md text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2`}
+                  className={showOnboarding ? "flex-[2]" : "w-full"}
                 >
-                  {loading ? (
-                    <>
-                      <Spinner size="sm" tone="onPrimary" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </button>
+                  {loading ? "Creating..." : "Create Account"}
+                </Button>
               </div>
             </form>
           )}

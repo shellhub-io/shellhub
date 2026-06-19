@@ -190,13 +190,13 @@ export default function ManageTagsDrawer({
                 />
                 {error}
               </p>
-              <button
-                type="button"
+              <IconButton
+                size="sm"
+                aria-label="Dismiss error"
                 onClick={() => setError(null)}
-                className="p-0.5 rounded text-accent-red/60 hover:text-accent-red transition-colors shrink-0"
               >
                 <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-              </button>
+              </IconButton>
             </div>
           </div>
         )}

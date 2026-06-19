@@ -13,7 +13,7 @@ import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
 import { formatDateFull } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
-import { Card } from "@shellhub/design-system/primitives";
+import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -75,21 +75,23 @@ export default function AnnouncementDetails() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Link
+          <Button
+            variant="outline"
+            as={Link}
             to={`/admin/announcements/${announcement.uuid}/edit`}
-            className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary hover:border-border-light transition-colors"
+            icon={<PencilSquareIcon className="w-4 h-4" />}
           >
-            <PencilSquareIcon className="w-4 h-4" />
             Edit
-          </Link>
-          <button
-            type="button"
-            onClick={() => setDeleteOpen(true)}
-            className="p-2.5 border border-border rounded-lg text-text-muted hover:text-accent-red hover:border-accent-red/30 transition-colors"
+          </Button>
+          <IconButton
+            variant="danger"
+            size="lg"
             aria-label="Delete announcement"
+            className="border border-border hover:border-accent-red/30"
+            onClick={() => setDeleteOpen(true)}
           >
             <TrashIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         </div>
       </div>
 

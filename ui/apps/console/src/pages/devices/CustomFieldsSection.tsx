@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useSetDeviceCustomField,
   useDeleteDeviceCustomField,
@@ -97,14 +98,15 @@ export default function CustomFieldsSection({
                   </button>
                 </div>
               ) : (
-                <button
+                <IconButton
+                  variant="danger"
+                  size="sm"
                   type="button"
-                  onClick={() => setConfirmKey(key)}
                   aria-label={`Remove custom field ${key}`}
-                  className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+                  onClick={() => setConfirmKey(key)}
                 >
                   <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-                </button>
+                </IconButton>
               ))}
           </div>
         ))}
@@ -146,15 +148,15 @@ export default function CustomFieldsSection({
             aria-label="Custom field value"
             className="w-32 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
           />
-          <button
-            type="button"
-            onClick={() => void handleAdd()}
+          <IconButton
+            variant="primary"
+            size="sm"
             disabled={adding || !keyInput.trim() || !valueInput.trim()}
             aria-label="Add custom field"
-            className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
+            onClick={() => void handleAdd()}
           >
             <PlusIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
+          </IconButton>
         </div>
       )}
       {error && <p className="text-2xs text-accent-red mt-1.5">{error}</p>}

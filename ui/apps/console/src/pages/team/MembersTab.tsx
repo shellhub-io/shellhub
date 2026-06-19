@@ -5,6 +5,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
 import { useRemoveMember } from "@/hooks/useMemberMutations";
@@ -109,24 +110,24 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
         return (
           <div className="flex items-center justify-end gap-1">
             <RestrictedAction action="namespace:editMember">
-              <button
-                type="button"
-                onClick={() => setEditTarget(m)}
-                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+              <IconButton
+                variant="primary"
                 title="Edit role"
+                aria-label="Edit role"
+                onClick={() => setEditTarget(m)}
               >
                 <PencilSquareIcon className="w-4 h-4" />
-              </button>
+              </IconButton>
             </RestrictedAction>
             <RestrictedAction action="namespace:removeMember">
-              <button
-                type="button"
-                onClick={() => setRemoveTarget(m)}
-                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+              <IconButton
+                variant="danger"
                 title="Remove"
+                aria-label="Remove member"
+                onClick={() => setRemoveTarget(m)}
               >
                 <TrashIcon className="w-4 h-4" />
-              </button>
+              </IconButton>
             </RestrictedAction>
           </div>
         );
@@ -142,14 +143,12 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
           {sorted.length !== 1 ? "s" : ""}
         </p>
         <RestrictedAction action="namespace:addMember">
-          <button
-            type="button"
+          <Button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
             Add Member
-          </button>
+          </Button>
         </RestrictedAction>
       </div>
 

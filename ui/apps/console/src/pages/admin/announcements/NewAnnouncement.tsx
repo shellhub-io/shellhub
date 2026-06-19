@@ -6,7 +6,7 @@ import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import { Card, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Card } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;
 
@@ -78,7 +78,6 @@ export default function NewAnnouncement() {
           onChange={setTitle}
           placeholder="Announcement title"
           maxLength={TITLE_MAX}
-
         />
 
         {/* Content editor */}
@@ -95,16 +94,13 @@ export default function NewAnnouncement() {
           >
             Cancel
           </Link>
-          <button
+          <Button
             type="submit"
+            loading={createAnnouncement.isPending}
             disabled={!canSubmit || createAnnouncement.isPending}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {createAnnouncement.isPending && (
-              <Spinner size="sm" tone="onPrimary" />
-            )}
             Create
-          </button>
+          </Button>
         </div>
       </Card>
     </div>

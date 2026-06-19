@@ -8,7 +8,7 @@ import Alert from "@/components/common/Alert";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaDisableDialogProps {
@@ -168,13 +168,13 @@ export default function MfaDisableDialog({
               </div>
 
               <div className="text-center">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setMode("recovery")}
-                  className="text-xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   Use recovery code instead
-                </button>
+                </Button>
               </div>
             </>
           ) : mode === "recovery" ? (
@@ -197,23 +197,25 @@ export default function MfaDisableDialog({
               </div>
 
               <div className="text-center space-y-2">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  fullWidth
                   onClick={() => setMode("totp")}
-                  className="block w-full text-xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   ← Use authenticator code
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  fullWidth
                   onClick={() => {
                     setMode("email-reset");
                     setEmailRequested(false);
                   }}
-                  className="block w-full text-xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   Lost recovery codes? Request email reset
-                </button>
+                </Button>
               </div>
             </>
           ) : (
@@ -227,24 +229,22 @@ export default function MfaDisableDialog({
                     </p>
                   </div>
 
-                  <button
-                    type="button"
+                  <Button
+                    fullWidth
+                    loading={requestingEmail}
                     onClick={() => void handleRequestEmailReset()}
-                    disabled={requestingEmail}
-                    className="w-full px-4 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-dim disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {requestingEmail && <Spinner tone="onPrimary" />}
                     Send Verification Codes
-                  </button>
+                  </Button>
 
                   <div className="text-center">
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setMode("recovery")}
-                      className="text-xs text-text-muted hover:text-text-secondary transition-colors"
                     >
                       ← Use recovery code
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -278,13 +278,9 @@ export default function MfaDisableDialog({
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="w-full px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-                  >
+                  <Button fullWidth onClick={onClose}>
                     Close
-                  </button>
+                  </Button>
                 </div>
               )}
             </>
@@ -293,21 +289,17 @@ export default function MfaDisableDialog({
           {/* Actions */}
           {mode !== "email-reset" && (
             <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
-              >
+              <Button variant="secondary" onClick={onClose}>
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                disabled={submitting || !isComplete}
-                className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                variant="destructive"
+                disabled={!isComplete}
+                loading={submitting}
               >
-                {submitting && <Spinner tone="onPrimary" />}
                 Disable MFA
-              </button>
+              </Button>
             </div>
           )}
         </form>

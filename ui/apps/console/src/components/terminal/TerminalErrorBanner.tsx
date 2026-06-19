@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 import type { TerminalError } from "./terminalErrors";
 
@@ -49,27 +50,25 @@ export default function TerminalErrorBanner({
               <span className="w-px h-3.5 bg-border-light" />
             )}
             {error.reconnect && (
-              <button
-                type="button"
+              <Button
+                size="sm"
                 onClick={() => {
                   useTerminalStore.getState().closeAndReconnect(sessionId);
                 }}
-                className="px-2.5 py-1 bg-primary hover:bg-primary-600 text-white rounded text-xs font-semibold transition-colors"
               >
                 Retry
-              </button>
+              </Button>
             )}
           </div>
         )}
       </div>
-      <button
-        type="button"
-        aria-label="Close"
+      <IconButton
+        size="sm"
+        aria-label="Dismiss"
         onClick={() => useTerminalStore.getState().close(sessionId)}
-        className="text-text-muted hover:text-text-primary transition-colors p-0.5 shrink-0"
       >
         <XMarkIcon className="w-3.5 h-3.5" />
-      </button>
+      </IconButton>
     </div>
   );
 }

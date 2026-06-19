@@ -99,7 +99,7 @@ describe("ApiKeysTab — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
     render(<ApiKeysTab />);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Delete API key" }));
     return user;
   }
 

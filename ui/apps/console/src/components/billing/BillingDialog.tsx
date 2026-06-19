@@ -1,4 +1,4 @@
-import { ReactNode, startTransition, useCallback, useState } from "react";
+import { startTransition, useCallback, useState } from "react";
 import { isSdkError } from "@/api/errors";
 import {
   ArrowRightIcon,
@@ -11,7 +11,7 @@ import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
 import BillingSuccessful from "./BillingSuccessful";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const STEPS = ["Overview", "Payment method", "Review", "Success"] as const;
 const TOTAL_STEPS = STEPS.length;
@@ -114,15 +114,13 @@ export default function BillingDialog({
         </div>
 
         {step < TOTAL_STEPS ? (
-          <button
-            type="button"
+          <IconButton
             onClick={handleClose}
             disabled={createSubscription.isPending}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all disabled:opacity-40"
             aria-label="Close wizard"
           >
             <XMarkIcon className="w-4 h-4" />
-          </button>
+          </IconButton>
         ) : (
           <div className="w-7 h-7" aria-hidden="true" />
         )}
@@ -168,88 +166,75 @@ export default function BillingDialog({
       {/* Footer */}
       <footer className="px-6 py-4 mt-4 border-t border-border shrink-0 flex items-center justify-between">
         {step > 1 && step < TOTAL_STEPS ? (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            icon={<ChevronLeftIcon className="w-3.5 h-3.5" strokeWidth={2.5} />}
             onClick={goBack}
             disabled={createSubscription.isPending}
-            className="inline-flex items-center gap-1 text-xs font-medium text-text-muted hover:text-text-secondary transition-colors disabled:opacity-40"
           >
-            <ChevronLeftIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             Back
-          </button>
+          </Button>
         ) : (
           <span />
         )}
 
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={handleClose}
               disabled={createSubscription.isPending}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-hover-medium transition-all disabled:opacity-40"
             >
               Close
-            </button>
+            </Button>
           )}
 
           {step === 1 && (
-            <PrimaryButton onClick={goNext}>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              onClick={goNext}
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Next
+            </Button>
           )}
 
           {step === 2 && (
-            <PrimaryButton onClick={goNext} disabled={!hasDefault}>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              onClick={goNext}
+              disabled={!hasDefault}
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Next
+            </Button>
           )}
 
           {step === 3 && (
-            <PrimaryButton
+            <Button
               onClick={() => void subscribe()}
-              disabled={createSubscription.isPending}
               loading={createSubscription.isPending}
             >
               {createSubscription.isPending
                 ? "Subscribing…"
                 : "Confirm subscription"}
-            </PrimaryButton>
+            </Button>
           )}
 
           {step === TOTAL_STEPS && (
-            <PrimaryButton onClick={handleClose}>
-              Done <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </PrimaryButton>
+            <Button
+              onClick={handleClose}
+              iconRight={
+                <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              }
+            >
+              Done
+            </Button>
           )}
         </div>
       </footer>
     </BaseDialog>
-  );
-}
-
-function PrimaryButton({
-  children,
-  onClick,
-  disabled = false,
-  loading = false,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200
-        bg-primary text-white hover:bg-primary-600 active:scale-[0.98]
-        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
-    >
-      {loading && <Spinner size="sm" tone="onPrimary" />}
-      {children}
-    </button>
   );
 }

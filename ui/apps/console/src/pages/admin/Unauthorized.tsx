@@ -11,6 +11,7 @@ import { useAuthStore } from "@/stores/authStore";
 import EmptyState, {
   type EmptyStateFeature,
 } from "@/components/common/EmptyState";
+import { Button } from "@shellhub/design-system/primitives";
 
 const highlights: EmptyStateFeature[] = [
   {
@@ -53,25 +54,26 @@ export default function AdminUnauthorized() {
       footnote="If you believe you should have admin access, contact your system administrator."
     >
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <button
-          type="button"
+        <Button
+          size="lg"
+          icon={<ArrowLeftIcon className="w-4 h-4" aria-hidden="true" />}
           onClick={() => void navigate("/dashboard")}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <ArrowLeftIcon className="w-4 h-4" aria-hidden="true" />
           Go to ShellHub
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          icon={
+            <ArrowRightStartOnRectangleIcon
+              className="w-4 h-4"
+              aria-hidden="true"
+            />
+          }
           onClick={handleLogout}
-          className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-lg text-sm font-medium text-text-secondary hover:bg-hover-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <ArrowRightStartOnRectangleIcon
-            className="w-4 h-4"
-            aria-hidden="true"
-          />
           Logout
-        </button>
+        </Button>
       </div>
     </EmptyState>
   );
