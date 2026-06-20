@@ -130,17 +130,13 @@ var (
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
-	ErrRoleInvalid                     = errors.New("role is invalid", ErrLayer, ErrCodeForbidden)
+	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
 	ErrSetupForbidden                  = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 )
-
-func NewErrRoleInvalid() error {
-	return ErrRoleInvalid
-}
 
 // NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
 func NewErrNoContentChange(err error, next error) error {
@@ -470,6 +466,10 @@ func NewErrDeviceMaxDevicesReached(count int) error {
 
 func NewErrAuthForbidden() error {
 	return NewErrForbidden(ErrAuthForbidden, nil)
+}
+
+func NewErrRoleForbidden() error {
+	return NewErrForbidden(ErrRoleForbidden, nil)
 }
 
 func NewErrUserDelete(err error) error {

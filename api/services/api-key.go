@@ -54,7 +54,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 
 	if req.OptRole != "" {
 		if !req.Role.HasAuthority(req.OptRole) {
-			return nil, NewErrRoleInvalid()
+			return nil, NewErrRoleForbidden()
 		}
 
 		req.Role = req.OptRole
@@ -114,10 +114,16 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	// If req.Role is not empty, it must be lower than the user's role.
+	// If req.Role is not empty, the requesting user must be a namespace member
+	// with sufficient authority to assign that role.
 	if req.Role != "" {
-		if m, ok := ns.FindMember(req.UserID); !ok || !m.Role.HasAuthority(req.Role) {
-			return NewErrRoleInvalid()
+		m, ok := ns.FindMember(req.UserID)
+		if !ok {
+			return NewErrNamespaceMemberNotFound(req.UserID, nil)
+		}
+
+		if !m.Role.HasAuthority(req.Role) {
+			return NewErrRoleForbidden()
 		}
 	}
 

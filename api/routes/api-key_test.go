@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/api/services"
 	servicemock "github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -677,6 +678,35 @@ func TestUpdateAPIKey(t *testing.T) {
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusBadRequest},
+		},
+		{
+			description: "fails when member is not found",
+			name:        "dev",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-ID":         "000000000000000000000000",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+			},
+			body: map[string]string{
+				"name": "prod",
+				"role": "administrator",
+			},
+			requiredMocks: func() {
+				svcMock.On(
+					"UpdateAPIKey",
+					mock.Anything,
+					&requests.UpdateAPIKey{
+						UserID:      "000000000000000000000000",
+						TenantID:    "00000000-0000-4000-0000-000000000000",
+						CurrentName: "dev",
+						Name:        "prod",
+						Role:        "administrator",
+					}).
+					Return(services.NewErrNamespaceMemberNotFound("000000000000000000000000", nil)).
+					Once()
+			},
+			expected: Expected{status: http.StatusNotFound},
 		},
 		{
 			description: "succeeds",

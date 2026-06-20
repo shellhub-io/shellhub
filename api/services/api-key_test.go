@@ -123,7 +123,7 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 			expected: Expected{
 				res: nil,
-				err: NewErrRoleInvalid(),
+				err: NewErrRoleForbidden(),
 			},
 		},
 		{
@@ -540,6 +540,23 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", errors.New("error")),
 		},
 		{
+			description: "fails when user is not a member of the namespace",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{}}, nil).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
+		},
+		{
 			description: "fails when role is greater than user's role",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
@@ -554,7 +571,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			description: "fails when api key does not exist for resolve",
