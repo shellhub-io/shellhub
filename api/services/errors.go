@@ -138,7 +138,7 @@ var (
 	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 )
 
-// NewErrNotFound returns an error with the ErrDataNotFound and wrap an error.
+// NewErrNoContentChange returns an error to be used when an operation results in no content change.
 func NewErrNoContentChange(err error, next error) error {
 	return errors.Wrap(err, next)
 }
