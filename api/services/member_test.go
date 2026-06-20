@@ -150,7 +150,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 			expected: Expected{
 				namespace: nil,
-				err:       NewErrRoleInvalid(),
+				err:       NewErrRoleForbidden(),
 			},
 		},
 		{
@@ -187,7 +187,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 			expected: Expected{
 				namespace: nil,
-				err:       NewErrRoleInvalid(),
+				err:       NewErrRoleForbidden(),
 			},
 		},
 		{
@@ -573,7 +573,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			// The current-role guard catches any attempt by a lower-privileged actor to
@@ -620,7 +620,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			description: "[community|enterprise|cloud] fails when cannot update the member",
@@ -747,7 +747,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			// An admin acting on an equal-rank admin with a lower new role (demotion) is
@@ -806,7 +806,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 		{
 			// An owner must not be able to self-demote. The self-target guard (active.ID ==
 			// member.ID) runs before the BFLA current-role guard, so this now returns
-			// NewErrAuthForbidden() instead of NewErrRoleInvalid().
+			// NewErrAuthForbidden() instead of NewErrRoleForbidden().
 			description: "[community|enterprise|cloud] BFLA: fails when owner tries to self-demote",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -881,7 +881,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			// A member record with an empty/invalid role (legacy or corrupted data) must
@@ -979,7 +979,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 			},
-			expected: NewErrRoleInvalid(),
+			expected: NewErrRoleForbidden(),
 		},
 		{
 			// An administrator self-targeting this endpoint must be rejected. A
@@ -1203,7 +1203,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			},
 			expected: Expected{
 				namespace: nil,
-				err:       NewErrRoleInvalid(),
+				err:       NewErrRoleForbidden(),
 			},
 		},
 		{

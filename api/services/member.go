@@ -67,7 +67,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	}
 
 	if !active.Role.HasAuthority(req.MemberRole) {
-		return nil, NewErrRoleInvalid()
+		return nil, NewErrRoleForbidden()
 	}
 
 	if len(memberAddHooks) > 0 {
@@ -140,12 +140,12 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 	// allows the owner (or any higher-ranked member) to repair or remove such a record
 	// via the normal API path instead of requiring direct DB intervention.
 	if !active.Role.HasAuthority(member.Role) {
-		return NewErrRoleInvalid()
+		return NewErrRoleForbidden()
 	}
 
 	if req.MemberRole != authorizer.RoleInvalid {
 		if !active.Role.HasAuthority(req.MemberRole) {
-			return NewErrRoleInvalid()
+			return NewErrRoleForbidden()
 		}
 
 		member.Role = req.MemberRole
@@ -189,7 +189,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 	}
 
 	if !active.Role.HasAuthority(passive.Role) {
-		return nil, NewErrRoleInvalid()
+		return nil, NewErrRoleForbidden()
 	}
 
 	if err := s.removeMember(ctx, namespace, passive); err != nil { //nolint:revive
