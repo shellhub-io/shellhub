@@ -27,7 +27,10 @@ export default function StatCard(props: StatCardProps) {
 
   return (
     <Card className="rounded-lg p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all duration-300">
-      <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-5">
+      <div
+        aria-hidden="true"
+        className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-5"
+      >
         {icon}
       </div>
 
