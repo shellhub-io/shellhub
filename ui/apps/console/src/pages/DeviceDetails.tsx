@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import { LABEL_BASE } from "@/utils/styles";
 import {
   TrashIcon,
   InformationCircleIcon,
@@ -32,8 +33,6 @@ import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 /* ─── Shared styles ─── */
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ─── Page ─── */
@@ -253,7 +252,7 @@ export default function DeviceDetails() {
       {device.status === "accepted" && (
         <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className={LABEL}>SSHID</p>
+            <p className={LABEL_BASE}>SSHID</p>
             <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
               {sshid}
             </code>
@@ -307,7 +306,7 @@ export default function DeviceDetails() {
               mono
             />
             <div>
-              <dt className={LABEL}>Platform</dt>
+              <dt className={LABEL_BASE}>Platform</dt>
               <dd className="mt-1">
                 {device.info?.platform ? (
                   <PlatformBadge platform={device.info.platform} />
@@ -331,11 +330,11 @@ export default function DeviceDetails() {
           </h3>
           <dl className="space-y-3">
             <div>
-              <dt className={LABEL}>Created</dt>
+              <dt className={LABEL_BASE}>Created</dt>
               <dd className={VALUE}>{formatDateFull(device.created_at)}</dd>
             </div>
             <div>
-              <dt className={LABEL}>Last Seen</dt>
+              <dt className={LABEL_BASE}>Last Seen</dt>
               <dd className="flex items-center gap-2 mt-0.5">
                 <span className="text-sm text-text-primary font-medium">
                   {formatRelative(device.last_seen)}
@@ -346,7 +345,7 @@ export default function DeviceDetails() {
               </dd>
             </div>
             <div>
-              <dt className={LABEL}>Status Updated</dt>
+              <dt className={LABEL_BASE}>Status Updated</dt>
               <dd className={VALUE}>
                 {formatDateFull(device.status_update_at ?? "")}
               </dd>
