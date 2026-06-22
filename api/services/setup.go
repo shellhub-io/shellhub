@@ -64,7 +64,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 				return NewErrUserDuplicated([]string{field}, err)
 			}
 
-			return NewErrUserDuplicated([]string{req.Username}, err)
+			return NewErrUserUnhandledDuplicate()
 		}
 
 		return err
