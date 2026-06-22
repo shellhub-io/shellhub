@@ -192,24 +192,6 @@ type UserChanges struct {
 	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
 }
 
-// UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries
-// to identify conflicts.
-type UserConflicts struct {
-	Email    string
-	Username string
-}
-
-// Distinct removes the c attributes whether it's equal to the user attribute.
-func (c *UserConflicts) Distinct(user *User) {
-	if c.Email == user.Email {
-		c.Email = ""
-	}
-
-	if c.Username == user.Username {
-		c.Username = ""
-	}
-}
-
 type UserInfo struct {
 	// OwnedNamespaces are the namespaces where the user is the owner.
 	OwnedNamespaces []Namespace

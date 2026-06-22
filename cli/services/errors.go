@@ -16,7 +16,6 @@ var (
 	ErrUserPasswordInvalid         = errors.New("user password is invalid")
 	ErrUserEmailExists             = errors.New("user email already exists")
 	ErrUserNameExists              = errors.New("user name already exists")
-	ErrUserNameAndEmailExists      = errors.New("user name and email already exists")
 	ErrFailedNamespaceAddMember    = errors.New("could not add this member to this namespace")
 	ErrUserUnhandledDuplicate      = errors.New("unhandled duplicated field for the user")
 	ErrFailedListNamespaces        = errors.New("failed to list namespaces")

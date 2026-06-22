@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	stderrors "errors"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func TestSetup(t *testing.T) {
 	uuid.DefaultBackend = uuidMock
 	uuidMock.On("Generate").Return(tenant)
 
-	now := time.Now()
+	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	clockMock.On("Now").Return(now)
 
 	ctx := context.TODO()
@@ -76,7 +77,7 @@ func TestSetup(t *testing.T) {
 			expected: NewErrUserPasswordInvalid(errors.New("error", "", 0)),
 		},
 		{
-			description: "Fail when cannot create the user",
+			description: "Fail when cannot create the user due to duplicate field",
 			req: requests.Setup{
 				Email:    "teste@google.com",
 				Name:     "userteste",
@@ -112,9 +113,56 @@ func TestSetup(t *testing.T) {
 					},
 					Admin: true,
 				}
-				storeMock.On("UserCreate", ctx, user).Return("", errors.New("error", "", 0)).Once()
+
+				dupErr := stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})
+				storeMock.On("UserCreate", ctx, user).Return("", dupErr).Once()
 			},
-			expected: NewErrUserDuplicated([]string{"userteste"}, errors.New("error", "", 0)),
+			expected: NewErrUserDuplicated(
+				[]string{"username"},
+				stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"}),
+			),
+		},
+		{
+			description: "Fail when cannot create the user due to a generic store error",
+			req: requests.Setup{
+				Email:    "teste@google.com",
+				Name:     "userteste",
+				Username: "userteste",
+				Password: "secret",
+			},
+			requiredMocks: func() {
+				storeMock.On("SystemGet", ctx).Return(&models.System{
+					Setup: false,
+				}, nil).Once()
+
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
+				user := &models.User{
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					CreatedAt: now,
+					UserData: models.UserData{
+						Name:     "userteste",
+						Email:    "teste@google.com",
+						Username: "userteste",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+					Admin: true,
+				}
+
+				storeMock.On("UserCreate", ctx, user).Return("", store.ErrInternal).Once()
+			},
+			expected: store.ErrInternal,
 		},
 		{
 			description: "Fail when cannot create namespace, and user deletion fails",

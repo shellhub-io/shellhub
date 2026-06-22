@@ -19,10 +19,11 @@ func TestPgStore(t *testing.T) {
 		suite.TestUserResolve(t)
 		suite.TestUserCreate(t)
 		suite.TestUserCreatePasswordRoundTrip(t)
-		suite.TestUserConflicts(t)
+		suite.TestUserCreateDuplicate(t)
 		suite.TestUserUpdate(t)
 		suite.TestUserDelete(t)
 		suite.TestUserGetInfo(t)
+		suite.TestUserConflictsRemoved(t)
 	})
 
 	runSubSuite(t, "NamespaceStore", func(suite *storetest.Suite, t *testing.T) {

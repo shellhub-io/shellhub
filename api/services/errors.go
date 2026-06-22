@@ -76,6 +76,7 @@ var (
 	ErrUserNotFound                    = errors.New("user not found", ErrLayer, ErrCodeNotFound)
 	ErrUserInvalid                     = errors.New("user invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserDuplicated                  = errors.New("user duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrUserUnhandledDuplicate          = errors.New("unhandled duplicated field for the user", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserPasswordDuplicated          = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeInvalid)
@@ -247,6 +248,13 @@ func NewErrUserInvalid(data map[string]interface{}, next error) error {
 // NewErrUserDuplicated returns an error when the user is duplicated.
 func NewErrUserDuplicated(values []string, next error) error {
 	return NewErrDuplicated(ErrUserDuplicated, values, next)
+}
+
+// NewErrUserUnhandledDuplicate returns an error to be used when a duplicate-key violation
+// is returned by the store for a user field that is not explicitly handled by the caller.
+// It carries ErrCodeDuplicated so the echo handler maps it to HTTP 409.
+func NewErrUserUnhandledDuplicate() error {
+	return errors.Wrap(ErrUserUnhandledDuplicate, nil)
 }
 
 // NewErrUserPasswordInvalid returns an error when the user's password is invalid.

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -32,18 +33,20 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
 	}
 
-	conflictsTarget := &models.UserConflicts{Email: req.Email, Username: req.Username}
-	conflictsTarget.Distinct(user)
-	if conflicts, has, _ := s.store.UserConflicts(ctx, conflictsTarget); has {
-		return conflicts, NewErrUserDuplicated(conflicts, nil)
-	}
-
 	updatedUser, err := applyUserChanges(user, req)
 	if err != nil {
 		return []string{}, err
 	}
 
 	if err := s.store.UserUpdate(ctx, updatedUser); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			if field, ok := store.DuplicatedField(err); ok {
+				return []string{field}, NewErrUserDuplicated([]string{field}, err)
+			}
+
+			return []string{}, NewErrUserUnhandledDuplicate()
+		}
+
 		return []string{}, NewErrUserUpdate(user, err)
 	}
 

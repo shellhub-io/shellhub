@@ -45,7 +45,6 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestUserList(t)
 		s.TestUserResolve(t)
 		s.TestUserCreate(t)
-		s.TestUserConflicts(t)
 		s.TestUserUpdate(t)
 		s.TestUserDelete(t)
 		s.TestUserGetInfo(t)
