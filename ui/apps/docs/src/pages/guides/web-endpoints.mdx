@@ -8,26 +8,32 @@ import EditionBanner from '../../components/EditionBanner.astro';
 
 # Web Endpoints
 
-Access HTTP services running on your devices through ShellHub — without opening ports or configuring firewalls. Web endpoints create a public URL that proxies HTTP requests through the agent's existing connection.
+Access HTTP services running on your devices through ShellHub — without opening ports or configuring firewalls. A web endpoint is a unique public URL that tunnels HTTP traffic to a service running on one of your [devices](/guides/devices), reachable by host IP and port. Requests flow through the agent's existing connection, so you don't open ports or configure firewalls.
 
 <EditionBanner />
 
+The **Web Endpoints** page lists every endpoint in your namespace. Each row shows the generated public URL, the local target it forwards to (e.g. `127.0.0.1:5432`), the time remaining before it expires, and a delete action.
+
+![The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining](/img/web-endpoints/web-endpoints.png)
+
 ## How it works
 
-1. A device runs an HTTP service on a local port (e.g., `:8080`)
-2. You create a web endpoint in ShellHub pointing to that port
+1. A device runs an HTTP service reachable at a host and port (e.g., `127.0.0.1:8080`)
+2. You create a web endpoint in ShellHub pointing to that target
 3. ShellHub generates a public URL that routes requests through the gateway to the device
 
 No additional ports are opened on the device. Traffic flows through the same outbound WebSocket connection the agent already maintains.
 
+The target host can be the device itself or any machine reachable on the device's network — the agent forwards the request from where it runs.
+
 ## Creating a web endpoint
 
-In the ShellHub dashboard:
+From the **Web Endpoints** page in the ShellHub dashboard:
 
-1. Go to **Devices** and select the device
-2. Click the **Web Endpoints** tab
-3. Click **Add Endpoint**
-4. Enter the local port of the service on the device (e.g., `8080`)
+1. Click **New Endpoint**
+2. Choose the [device](/guides/devices) that will forward the traffic
+3. Enter the **host** and **port** of the service (e.g., `127.0.0.1` and `8080`)
+4. Set a **TTL** (lifetime) for the endpoint — choose a fixed duration, or leave it unlimited to keep the endpoint until you delete it
 5. Click **Create**
 
 ShellHub generates a unique URL like:
@@ -49,8 +55,9 @@ Open this URL in your browser to access the service running on the device.
 
 - HTTP traffic only — web endpoints proxy HTTP/HTTPS, not arbitrary TCP
 - The device must be online and connected to ShellHub
-- Endpoint URLs are unique per endpoint and change when recreated
-- Each endpoint maps to a single port on the device
+- Endpoints expire according to their TTL. The remaining time is shown on the Web Endpoints page, and an endpoint with a fixed lifetime has its timer reset each time its URL is accessed. After expiration the endpoint becomes inaccessible until you recreate it
+- Recreating an endpoint with the same host and port reuses the previous URL
+- Each endpoint maps to a single host and port
 
 ## Security
 

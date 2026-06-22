@@ -45,6 +45,12 @@ $ ./bin/docker-compose ps
 
 All services should show `Up` status.
 
+### Migrating from a pre-v0.24.0 release (MongoDB)
+
+ShellHub used MongoDB before **v0.24.0**, which switched to PostgreSQL as the only supported backend. The MongoDB-to-PostgreSQL migration runs **only on v0.23.x** — there is no in-place migration on v0.24.0 or later.
+
+If your instance still has data in MongoDB, upgrade to a **v0.23.x** release first and let the migration complete (the default `SHELLHUB_DATABASE=migrate` triggers it on startup; watch the API logs until it finishes). Only then upgrade to v0.24.0 or newer, where `SHELLHUB_DATABASE=postgres` is the default. Jumping straight from MongoDB to v0.24.0+ leaves that data behind, so keep your MongoDB backup until you have verified PostgreSQL is working.
+
 ## Enterprise Edition
 
 ### 1. Authenticate with the Docker registry
@@ -52,7 +58,7 @@ All services should show `Up` status.
 Enterprise images are hosted in a private registry. Log in with the credentials provided with your Enterprise license:
 
 ```bash
-$ docker login registry.shellhub.io
+$ docker login registry.infra.ossystems.io
 ```
 
 ### 2. Stop, pull, and start

@@ -6,7 +6,7 @@ description: Install the ShellHub agent as a Docker container
 
 # Docker
 
-The default and recommended way to install the ShellHub agent. Requires Docker or Podman on the device.
+The default and recommended way to install the ShellHub agent. Requires Docker (minimum version `18.06`) or Podman (minimum version `5.0.0`) installed and properly set up on the device.
 
 ## Installation
 
@@ -21,6 +21,17 @@ $ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
 > **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
 
 This downloads and runs the agent as a Docker container with automatic restart on reboot.
+
+The script accepts optional URL parameters to override agent defaults:
+
+- `keepalive_interval` — interval, in seconds, between keepalive messages
+- `preferred_hostname` — hostname to report instead of the value derived from the network interface MAC address
+
+For example:
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID&preferred_hostname=my-device" | sh
+```
 
 ### Manual Docker run
 
@@ -42,7 +53,9 @@ $ docker run -d \
     shellhubio/agent
 ```
 
-The `--privileged` and `--net host` flags are required for the agent to manage SSH sessions and access the host's network stack.
+The `--privileged` and `--net host` flags are required for the agent to manage SSH sessions and access the host's network stack. `SHELLHUB_PRIVATE_KEY` points at a path on the host (mounted under `/host`); the key file is generated on first run if it doesn't yet exist.
+
+You can pass additional optional environment variables with extra `-e` flags, for example `-e SHELLHUB_KEEPALIVE_INTERVAL=30` or `-e SHELLHUB_PREFERRED_HOSTNAME=my-device`. See the [Agent Overview](/agent/overview) for the full configuration reference.
 
 > **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address in `SHELLHUB_SERVER_ADDRESS`.
 

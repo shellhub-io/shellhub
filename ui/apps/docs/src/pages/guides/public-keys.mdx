@@ -6,14 +6,18 @@ description: Manage SSH keys centrally with fine-grained access control
 
 # Public Keys
 
-Upload your SSH public key once to ShellHub and use it to authenticate across all your devices. No need to copy keys to each machine.
+Upload your SSH public key once to ShellHub and use it to authenticate across all your devices. No need to copy keys to each machine. Key-based authentication is passwordless and more secure than passwords, which are vulnerable to brute-force login attempts.
+
+![The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions](/img/public-keys/public-keys.png)
+
+The **Public Keys** page lists every key registered in your namespace along with its scope, fingerprint, and the date it was added. From here you can add a new key, edit an existing one, or remove it.
 
 ## How it works
 
 Traditional SSH key management requires placing your public key in `~/.ssh/authorized_keys` on every device. With ShellHub, keys are stored on the server and checked during connection:
 
 1. You upload your public key to ShellHub
-2. When you connect via SSH, the server checks your key against the stored keys
+2. When you [connect via SSH](/guides/connecting), the server checks your key against the stored keys
 3. If a match is found and the filters allow access, authentication succeeds
 
 No keys are copied to the devices themselves.

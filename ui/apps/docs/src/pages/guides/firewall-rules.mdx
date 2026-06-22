@@ -12,6 +12,8 @@ import EditionBanner from '../../components/EditionBanner.astro';
 
 Define rules that allow or deny SSH connections based on source IP, username, and target device. Rules are evaluated before the connection reaches the device.
 
+![The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns](/img/firewall/firewall-rules.png)
+
 ## How it works
 
 When an SSH connection comes in, ShellHub evaluates your firewall rules before granting access:
@@ -30,6 +32,8 @@ This gives you centralized network-level access control without touching individ
 3. Set the rule's priority, policy, and status
 4. Configure source IP, username, and device filters
 5. Save
+
+![The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields](/img/firewall/add-rule.png)
 
 The rule takes effect immediately for new connections.
 

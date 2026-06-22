@@ -200,8 +200,13 @@ Only containers with that Docker label are registered as devices.
 
 > **Note:** Connector mode requires Docker or Podman. It is not supported by Snap or standalone.
 
+## After installation
+
+Once the agent starts, the device registers with the server but is **not** connectable yet — it appears in the dashboard with a **Pending** status. You must accept it before it can be used: open the [Devices](/guides/devices) view and accept the pending device. After it is accepted, the device shows as **Online** and is ready for SSH sessions.
+
 ## Next steps
 
 - [Agent Overview](/agent/overview) — How the agent works and full configuration reference
+- [Devices](/guides/devices) — Accept the pending device and manage your fleet
 - [Docker](/agent/docker) — Manual Docker installation and advanced options
 - [Connecting](/guides/connecting) — Connect to your device after installation

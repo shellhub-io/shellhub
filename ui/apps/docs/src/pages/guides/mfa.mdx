@@ -1,0 +1,67 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Multi-Factor Authentication
+description: Protect your ShellHub account with TOTP-based two-factor authentication
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Multi-Factor Authentication
+
+<EditionBanner />
+
+Multi-Factor Authentication (MFA) adds a second verification step to your account login. With MFA enabled, you provide a time-based one-time password (TOTP) from an authenticator app in addition to your password. It is configured per user account and works with any TOTP app, such as Google Authenticator, 1Password, or Authy.
+
+## How it works
+
+When MFA is active, every login requires two factors:
+
+1. Your password
+2. A 6-digit TOTP code from your authenticator app
+
+If you lose access to your authenticator, you can regain entry using a one-time recovery code or your recovery email.
+
+## Enabling MFA
+
+Open your **Profile** page and find the **Security** section, then click **Enable MFA**.
+
+![The Profile page Security section with the Enable MFA option](/img/account/profile.png)
+
+The setup runs in two steps.
+
+### Step 1 — Set a recovery email
+
+Provide a recovery email address. This is required and is used to regain access if you ever lose both your authenticator app and your recovery codes.
+
+![The Enable MFA drawer on Step 1, setting the recovery email](/img/account/mfa-enable.png)
+
+### Step 2 — Scan the QR code
+
+Open your authenticator app and scan the displayed TOTP QR code (or enter the secret manually). Enter the 6-digit code your app generates to confirm, then complete the setup.
+
+ShellHub then displays a list of **recovery codes**. Save them somewhere safe — they are shown only once. Each recovery code can be used a single time and is invalidated after use.
+
+## Logging in with MFA
+
+After enabling MFA, the login flow gains a second step:
+
+1. Enter your email and password as usual
+2. When prompted, enter the current 6-digit code from your authenticator app
+3. Submit to complete the login
+
+## Account recovery
+
+If you lose access to your authenticator app, you can still get back into your account.
+
+| You have | How to recover |
+|----------|----------------|
+| A recovery code | Choose to use a recovery code at the MFA prompt and enter one of your saved codes. Each code works only once. |
+| Only your recovery email | Request recovery via your recovery email. ShellHub sends a code that lets you disable MFA and regain access. |
+
+On Enterprise instances, self-service recovery by email may be unavailable — contact your instance administrator to reset MFA on your account.
+
+## Next steps
+
+- [Local Authentication](/guides/local-authentication) — Built-in username and password sign-in
+- [Single Sign-On (SAML)](/guides/sso) — Sign in through an external identity provider
+- [Settings](/guides/settings) — Manage your account and namespace

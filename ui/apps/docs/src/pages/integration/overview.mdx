@@ -22,13 +22,13 @@ ShellHub works with the tools you already use. Because every device is reachable
 All SSH-based integrations follow the same pattern:
 
 1. Connect to the ShellHub gateway (e.g., `cloud.shellhub.io`) on port 22
-2. Use the device's SSHID as the target: `username@device.namespace`
+2. Use the device's SSHID as the target: `username@namespace.device`
 3. Authenticate with password or public key
 
 The gateway routes the connection to the correct device through the agent's reverse tunnel. From the client's perspective, it behaves like a normal SSH connection.
 
 ```bash
-$ ssh user@device.namespace@cloud.shellhub.io
+$ ssh user@namespace.device@cloud.shellhub.io
 ```
 
 ## Public key authentication

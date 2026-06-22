@@ -1,0 +1,64 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Single Sign-On (SAML)
+description: Let users sign in to ShellHub through an external SAML identity provider
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Single Sign-On (SAML)
+
+<EditionBanner />
+
+SAML Single Sign-On lets users authenticate through an external identity provider (IdP) instead of registering credentials directly in ShellHub. ShellHub acts as the service provider (SP), trusting your IdP to verify identities. One IdP can be active at a time per instance.
+
+SSO is configured by an instance **admin** in the **Admin Console**. Once enabled, users see a **Login with SSO** button on the login page.
+
+## Enabling SAML
+
+In the **Admin Console**, go to **Settings → Authentication** and toggle **SAML Authentication** on, then configure your IdP.
+
+![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+
+You can configure the IdP in one of two ways:
+
+| Method | When to use |
+|--------|-------------|
+| **Metadata URL** | Your IdP publishes a metadata URL. Enable *Use IdP Metadata URL* and paste it — ShellHub imports the configuration automatically. |
+| **Manual entry** | Enter the IdP's sign-in URL, entity ID, and X.509 certificate directly in the form. |
+
+After saving, configure your IdP to allow callbacks to ShellHub's authentication endpoint:
+
+```
+https://<your-instance>/api/user/saml/auth
+```
+
+## Attribute mapping
+
+ShellHub identifies users from attributes in the SAML assertion. Two attributes are required:
+
+- **Email** — the primary identifier for the user (default attribute: `emailaddress`)
+- **Display name** — shown throughout the interface (default attribute: `displayname`)
+
+If your IdP uses different attribute names, override them under **Advanced Settings → SAML Mappings**. Mapping is case-insensitive. Authentication fails if a required attribute is missing from the assertion.
+
+## Signed AuthnRequests (optional)
+
+For added security, you can sign the SAML authentication requests ShellHub sends to your IdP. Enable **Sign authorization requests** under **Advanced Settings**: ShellHub generates an X.509 certificate (valid for one year) and signs every request with it. Download the SP certificate and register it with your IdP so it can verify request authenticity.
+
+The certificate is regenerated when you disable and re-enable SAML or change the configuration while signing is enabled — update your IdP with the new certificate afterward.
+
+## How SSO login works
+
+When a user clicks **Login with SSO**, ShellHub handles the assertion based on whether the account already exists:
+
+- **First-time users** — ShellHub creates the account automatically, importing the email and name from the assertion. These accounts have no password and rely on the IdP.
+- **Existing users** — ShellHub matches the assertion email to the existing account and enables SAML for it, preserving any existing login methods (a user with a password can still sign in either way).
+
+Switching to a new IdP migrates existing SAML users automatically, with no action required from them.
+
+## Next steps
+
+- [Local Authentication](/guides/local-authentication) — Built-in username and password sign-in
+- [Multi-Factor Authentication](/guides/mfa) — Add TOTP-based 2FA to accounts
+- [Administration](/self-hosted/administration) — Manage your ShellHub instance

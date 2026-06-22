@@ -23,27 +23,31 @@ $ git clone https://github.com/shellhub-io/shellhub.git
 $ cd shellhub
 ```
 
-### 2. Generate cryptographic keys
+### 2. Enable development mode
+
+Set the environment to development in `.env.override`:
 
 ```bash
-$ make keygen
+$ echo "SHELLHUB_ENV=development" >> .env.override
 ```
 
-### 3. Start in development mode
+### 3. Start the environment
 
 ```bash
-$ make start ARGS="SHELLHUB_ENV=development"
+$ make start
 ```
 
-This starts all services with hot reload enabled. Code changes in Go services trigger automatic rebuilds, and frontend changes are picked up by Vite's HMR.
+`make start` generates the required cryptographic keys (equivalent to `make keygen`) and brings the whole stack up through the `./bin/docker-compose` wrapper. In development mode, all services run with hot reload: code changes in Go services trigger automatic rebuilds, and frontend changes are picked up by Vite's HMR. Wait for all services to be ready before continuing.
+
+> Avoid running `docker-compose` directly (unless you know what you're doing); always use the `./bin/docker-compose` wrapper.
 
 ### 4. Create a user and namespace
 
-Use the CLI to create your development account:
+Use the CLI to create your development account. In development mode, the namespace must use the hardcoded tenant ID as its fourth argument:
 
 ```bash
 $ ./bin/cli user create dev password123 dev@example.com
-$ ./bin/cli namespace create dev-namespace dev
+$ ./bin/cli namespace create dev-namespace dev 00000000-0000-4000-0000-000000000000
 ```
 
 ### 5. Access the dashboard
@@ -58,17 +62,18 @@ For local development, use the hardcoded tenant ID:
 00000000-0000-4000-0000-000000000000
 ```
 
-This is the default tenant ID used by the development namespace. You'll need it when configuring a local agent.
+This is the default tenant ID used by the development namespace. It is hardcoded into agent initialization in development mode, so don't change it. When you open the dashboard for the first time, accept the pending device.
 
 ## Connecting a local agent
 
-To test the agent locally, run it against your development instance:
+The development stack already includes a built-in agent, so a device appears automatically. To register additional devices, use the helper scripts:
 
 ```bash
-$ curl -sSf "http://localhost/install.sh?tenant_id=00000000-0000-4000-0000-000000000000" | sh
+$ ./devscripts/add-device --fake 00000000-0000-4000-0000-000000000000    # API-only fake device
+$ ./devscripts/add-device --agent 00000000-0000-4000-0000-000000000000   # real agent (SSH, SCP, tunnel)
 ```
 
-Or run the agent from source (see [Agent Development](/developers/agent-development)).
+To build and run the agent from source, see [Agent Development](/developers/agent-development).
 
 ## Project structure
 
@@ -80,9 +85,10 @@ shellhub/
 ├── gateway/     # Nginx gateway with Go templates
 ├── pkg/         # Shared Go packages
 ├── ssh/         # SSH service (Go)
-├── ui/          # Web dashboard (Vue.js)
-├── ui-react/    # New React UI (in development)
+├── ui/          # Web dashboard (React — apps/console)
+├── openapi/     # OpenAPI specification and tooling
 ├── bin/         # Helper scripts (setup, cli, docker-compose)
+├── devscripts/  # Development helpers (add-device, run-agent)
 ├── docker-compose.yml      # Production config
 └── docker-compose.dev.yml  # Development overrides
 ```
@@ -91,14 +97,13 @@ shellhub/
 
 | Command | Description |
 |---------|-------------|
-| `make start` | Start in production mode |
-| `make start ARGS="SHELLHUB_ENV=development"` | Start in development mode |
+| `make start` | Generate keys and start all services (development or production, based on `SHELLHUB_ENV`) |
 | `make stop` | Stop all services |
 | `make restart` | Restart all services |
 | `make keygen` | Generate cryptographic keys |
 | `./bin/docker-compose logs -f api` | Follow API logs |
 | `./bin/cli user create <user> <pass> <email>` | Create a user |
-| `./bin/cli namespace create <ns> <owner>` | Create a namespace |
+| `./bin/cli namespace create <ns> <owner> <tenant-id>` | Create a namespace (dev tenant ID required in development mode) |
 
 ## Next steps
 

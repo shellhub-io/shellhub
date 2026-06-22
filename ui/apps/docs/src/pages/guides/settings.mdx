@@ -10,21 +10,33 @@ import EditionBanner from '../../components/EditionBanner.astro';
 
 Namespace settings control behavior that applies to all devices and sessions within the namespace. Only the Owner and Administrators can modify settings.
 
+![Namespace Settings page](/img/settings/namespace-settings.png)
+
+## General
+
+The **General** section identifies the namespace:
+
+- **Name** — the namespace display name. It also forms part of the SSHID used to connect (`<username>@<namespace>.<hostname>`).
+- **Type** — whether the namespace is a **team** or **user** namespace.
+- **Tenant ID** — the unique identifier for the namespace, with a copy button. Use this identifier when integrating with the [ShellHub API](/developers/api-reference) or registering agents. See [Namespaces](/guides/namespaces) for how the Tenant ID ties devices and members together.
+
 ## Session recording
 
 <EditionBanner />
 
+The **SSH** section controls behavior for SSH connections to the namespace.
+
 When enabled, ShellHub records all terminal I/O during SSH sessions. Recordings can be replayed in the dashboard for auditing, compliance, and troubleshooting.
 
-Toggle **Session Recording** to start capturing new sessions. Existing sessions are not affected.
+Toggle **Session Recording** On to start capturing new sessions. Existing sessions are not affected.
 
 See [Session Recording](/guides/session-recording) for details on playback, storage, and privacy considerations.
 
 ## Connection announcement
 
-Display a message to users before they connect to a device. Use it to notify about maintenance windows, acceptable use policies, or recording notices.
+The **SSH Banner** is a message shown to users when they connect via SSH. Use it to notify about maintenance windows, acceptable use policies, or recording notices.
 
-When set, users see the announcement text before their SSH session starts.
+The banner supports multiple lines, and the settings page shows a preview of how it will appear. When set, users see the banner text before their SSH session starts.
 
 ## MFA requirement
 

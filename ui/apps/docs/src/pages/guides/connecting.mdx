@@ -16,26 +16,38 @@ Supports copy/paste, terminal resizing, and multiple simultaneous tabs.
 
 ## Native SSH
 
-Connect with any standard SSH client using the device's SSHID — a virtual address that routes your connection through ShellHub to the right device.
+Connect with any standard SSH client (anything supporting SSH 2.0 or later) using the device's SSHID — a virtual address that routes your connection through ShellHub to the right device.
 
 > **New to SSHID?** It's ShellHub's virtual addressing system for SSH. [See how it works →](/getting-started/how-it-works#sshid--virtual-hosting-for-ssh)
+
+### Find the SSHID
+
+Open the device from the [Devices](/guides/devices) page. Its SSHID is shown at the top of the device details page, with a copy button next to it.
+
+![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
 
 ### SSHID format
 
 ```
-<username>@<namespace>.<device-name>.<server>
+<namespace>.<device-name>@<server>
+```
+
+To connect, prefix the SSHID with the operating-system user you want to log in as:
+
+```
+<username>@<namespace>.<device-name>@<server>
 ```
 
 ### OpenSSH
 
 ```bash
-$ ssh root@myteam.web-server.shellhub.example.com
+$ ssh root@myteam.web-server@shellhub.example.com
 ```
 
 If your server uses a non-default SSH port:
 
 ```bash
-$ ssh -p 2222 root@myteam.web-server.shellhub.example.com
+$ ssh -p 2222 root@myteam.web-server@shellhub.example.com
 ```
 
 ### SSH config

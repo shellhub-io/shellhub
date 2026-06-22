@@ -10,16 +10,16 @@ Manage your ShellHub-connected devices with Ansible. Since ShellHub provides sta
 
 ## Inventory
 
-Create an Ansible inventory using the ShellHub SSHID format. Each host is `user@device.namespace@gateway`:
+Create an Ansible inventory using the ShellHub SSHID format. The `ansible_user` is the SSHID `username@namespace.device`, and `ansible_host` is the ShellHub gateway:
 
 ```ini
 [webservers]
-web-01 ansible_host=cloud.shellhub.io ansible_user=root@web-01.my-namespace
-web-02 ansible_host=cloud.shellhub.io ansible_user=root@web-02.my-namespace
+web-01 ansible_host=cloud.shellhub.io ansible_user=root@my-namespace.web-01
+web-02 ansible_host=cloud.shellhub.io ansible_user=root@my-namespace.web-02
 
 [edge-devices]
-sensor-gw ansible_host=cloud.shellhub.io ansible_user=admin@sensor-gateway.my-namespace
-camera-01 ansible_host=cloud.shellhub.io ansible_user=admin@camera-node-01.my-namespace
+sensor-gw ansible_host=cloud.shellhub.io ansible_user=admin@my-namespace.sensor-gateway
+camera-01 ansible_host=cloud.shellhub.io ansible_user=admin@my-namespace.camera-node-01
 ```
 
 > **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.

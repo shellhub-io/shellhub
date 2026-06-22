@@ -8,6 +8,18 @@ description: Monitor and manage your fleet of Linux devices
 
 Devices are Linux machines running the ShellHub agent. Once connected, you can monitor their status, organize them with tags, and open SSH sessions from anywhere.
 
+![ShellHub Devices page listing accepted devices](/img/devices/device-list.png)
+
+## Adding a device
+
+Click **Add Device** on the Devices page and choose an installation method — **Auto Detect** (recommended), **Docker**, or **Standalone**. ShellHub generates a one-line install command that already carries your namespace's **Tenant ID** and the **server address**, so all you have to do is run it on the target machine.
+
+![ShellHub Add Device page showing the installation method chooser and the one-line install command](/img/devices/add-device.png)
+
+Once the agent starts, the device registers and appears in the **Pending** tab. You must accept it before anyone can connect — see [Accepting and rejecting](#accepting-and-rejecting) below.
+
+For other installation methods, see the [Agent Overview](/agent/overview). For details on what the generated command does, see the [Install Script](/agent/install-script).
+
 ## Lifecycle
 
 Every device goes through a simple lifecycle:
@@ -43,7 +55,7 @@ Every accepted device gets a unique SSH identifier:
 For example:
 
 ```bash
-$ ssh root@myteam.web-server.shellhub.example.com
+$ ssh root@myteam.web-server@shellhub.example.com
 ```
 
 This works with any standard SSH client. See [Connecting via SSH](/guides/connecting) for details.
@@ -55,6 +67,8 @@ From the **Devices** page:
 - **Pending** tab — Accept or reject new devices
 - **Accepted** tab — View active devices, remove access if needed
 - **Rejected** tab — Re-accept previously rejected devices
+
+![ShellHub Devices page on the Pending tab where new devices await acceptance](/img/devices/devices-pending.png)
 
 ## Renaming
 

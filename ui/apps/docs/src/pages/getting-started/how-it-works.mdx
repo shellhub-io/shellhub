@@ -74,13 +74,13 @@ With thousands of devices connecting through a single gateway, ShellHub needs a 
 ShellHub applies this concept to SSH through the **SSHID** — a unique address that encodes the target device, namespace, and user into a standard SSH username:
 
 ```
-username@device.namespace@server
+username@namespace.device@server
 ```
 
 For example:
 
 ```bash
-$ ssh root@raspberrypi.mycompany@cloud.shellhub.io
+$ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 ```
 
 Here's what each part means:
@@ -88,8 +88,8 @@ Here's what each part means:
 | Part | Value | Purpose |
 |------|-------|---------|
 | `root` | SSH username | The Linux user on the device |
-| `raspberrypi` | Device hostname | Identifies which device in the namespace |
 | `mycompany` | Namespace | Identifies which workspace (team/project) |
+| `raspberrypi` | Device hostname | Identifies which device in the namespace |
 | `cloud.shellhub.io` | Server | The ShellHub gateway address |
 
 When the gateway receives this connection, it parses the SSHID, looks up the device `raspberrypi` in the `mycompany` namespace, and routes the session through the agent's reverse tunnel — all transparently.
@@ -104,7 +104,7 @@ Here's the full path of an SSH session:
 
 <DiagramConnectionFlow />
 
-1. You run `ssh root@raspberrypi.mycompany@cloud.shellhub.io`
+1. You run `ssh root@mycompany.raspberrypi@cloud.shellhub.io`
 2. The **Gateway** receives the connection and forwards it to the **SSH Service**
 3. The SSH Service **parses the SSHID** to identify the namespace and device
 4. It **authenticates you** — password, public key, or MFA

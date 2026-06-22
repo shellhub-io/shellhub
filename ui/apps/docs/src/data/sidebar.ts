@@ -94,6 +94,9 @@ export const sidebar: SidebarSection[] = [
         href: "/guides/firewall-rules",
         featured: true,
       },
+      { label: "Multi-Factor Authentication", href: "/guides/mfa" },
+      { label: "Single Sign-On (SAML)", href: "/guides/sso" },
+      { label: "Local Authentication", href: "/guides/local-authentication" },
     ],
   },
   {

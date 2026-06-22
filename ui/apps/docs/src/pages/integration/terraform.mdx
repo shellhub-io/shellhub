@@ -116,13 +116,13 @@ EOF
 
 ## Setting the hostname
 
-Use `SHELLHUB_PREFERRED_HOSTNAME` to give each device a predictable name in the dashboard:
+Use `PREFERRED_HOSTNAME` to give each device a predictable name in the dashboard:
 
 ```hcl
 user_data = <<-EOF
   #!/bin/bash
   curl -fsSL https://get.docker.com | sh
-  export SHELLHUB_PREFERRED_HOSTNAME="${var.device_name}"
+  export PREFERRED_HOSTNAME="${var.device_name}"
   curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
 EOF
 ```

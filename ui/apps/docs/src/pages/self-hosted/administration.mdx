@@ -24,6 +24,8 @@ To grant admin privileges:
 $ ./bin/cli user create <username> <password> <email> --admin
 ```
 
+> **Note:** The password can contain any characters, but its length must be between 5 and 32 characters.
+
 ### Delete a user
 
 ```bash
@@ -48,7 +50,9 @@ Namespaces can also be managed through the dashboard. The CLI is useful for scri
 $ ./bin/cli namespace create <namespace> <owner-username>
 ```
 
-An optional third argument sets the tenant ID. The `--type` flag sets the namespace type (`team` or `personal`, default: `team`).
+An optional third argument sets the tenant ID (a UUID, generated automatically when omitted). The `--type` flag sets the namespace type (`team` or `personal`, default: `team`).
+
+> **Note:** The namespace must be a valid [RFC1123](https://www.rfc-editor.org/rfc/rfc1123) hostname and must not contain dots.
 
 ### Delete a namespace
 

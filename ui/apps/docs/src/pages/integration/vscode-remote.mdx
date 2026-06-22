@@ -21,7 +21,7 @@ Add your ShellHub devices to your SSH config file (`~/.ssh/config`):
 ```
 Host my-device
     HostName cloud.shellhub.io
-    User root@device-name.my-namespace
+    User root@my-namespace.device-name
     IdentityFile ~/.ssh/id_ed25519
     Port 22
 ```
@@ -29,7 +29,7 @@ Host my-device
 Replace:
 - `my-device` — A friendly name for this connection (shown in VS Code)
 - `root` — The SSH username on the device
-- `device-name.my-namespace` — The device's SSHID (hostname + namespace)
+- `my-namespace.device-name` — Your namespace followed by the device hostname (the SSHID, minus the server)
 - `cloud.shellhub.io` — Your ShellHub server address
 
 > **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
@@ -50,12 +50,12 @@ Add one entry per device in your SSH config:
 ```
 Host edge-gateway
     HostName cloud.shellhub.io
-    User admin@gateway.production
+    User admin@production.gateway
     IdentityFile ~/.ssh/id_ed25519
 
 Host dev-board
     HostName cloud.shellhub.io
-    User root@rpi4.lab
+    User root@lab.rpi4
     IdentityFile ~/.ssh/id_ed25519
 ```
 
