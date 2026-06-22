@@ -19,10 +19,17 @@ Run ShellHub on your own infrastructure using Docker Compose. This guide covers 
 
 ### 1. Clone the repository
 
+Clone the repository and check out the latest stable release tag rather than tracking the development branch:
+
 ```bash
 $ git clone https://github.com/shellhub-io/shellhub.git
 $ cd shellhub
+$ git checkout v0.25.1
 ```
+
+Replace `v0.25.1` with the latest release from the [releases page](https://github.com/shellhub-io/shellhub/releases).
+
+All commands in this guide use the `./bin/docker-compose` wrapper, which extends Docker Compose with ShellHub-specific defaults. The `make` targets call it for you — use it directly (in place of `docker compose`) when you need to interact with the stack.
 
 ### 2. Generate cryptographic keys
 
@@ -46,7 +53,9 @@ The first run downloads all container images — expect a few minutes depending 
 $ ./bin/docker-compose ps
 ```
 
-All services should show `Up` status. ShellHub is now accessible at `http://localhost`.
+All services should show `Up` status. ShellHub is now accessible at `http://localhost`. Once started, the stack restarts automatically on boot until you explicitly stop it.
+
+If a service fails to start or stays unhealthy, see [Troubleshooting](/self-hosted/troubleshooting).
 
 ### 4. Create your admin account
 

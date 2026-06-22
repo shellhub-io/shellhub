@@ -10,10 +10,10 @@ Here's what ShellHub offers for remote device access, organized by capability.
 
 ## Native SSH support
 
-Connect to any registered device using your existing SSH client — OpenSSH, PuTTY, JuiceSSH, or any tool that speaks SSH. No plugins, no custom clients. Just use the device's [SSHID](/getting-started/how-it-works#sshid) as the target:
+Connect to any registered device using your existing SSH client — OpenSSH, PuTTY, JuiceSSH, or any tool that speaks SSH. No plugins, no custom clients. Just use the device's [SSHID](/getting-started/how-it-works#sshid--virtual-hosting-for-ssh) as the target:
 
 ```bash
-$ ssh root@device.namespace@cloud.shellhub.io
+$ ssh root@namespace.device@cloud.shellhub.io
 ```
 
 ShellHub acts as a transparent SSH proxy. Your SSH client connects to the ShellHub server, which routes the session to the correct device through the agent's tunnel.
@@ -29,8 +29,8 @@ The web terminal uses xterm.js for a full terminal experience with copy/paste, s
 Transfer files to and from your devices using standard SCP and SFTP tools:
 
 ```bash
-$ scp myfile.txt root@device.namespace@cloud.shellhub.io:/tmp/
-$ sftp root@device.namespace@cloud.shellhub.io
+$ scp myfile.txt root@namespace.device@cloud.shellhub.io:/tmp/
+$ sftp root@namespace.device@cloud.shellhub.io
 ```
 
 Works with any SCP/SFTP client — FileZilla, WinSCP, or the command-line tools you already use.

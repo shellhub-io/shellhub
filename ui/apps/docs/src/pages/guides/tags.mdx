@@ -10,15 +10,22 @@ Tags are labels you assign to devices to organize your fleet. Use them to group 
 
 ## Assigning tags
 
-Open a device's details page and add tags in the tag field. Each device supports up to 3 tags. Tag names can contain lowercase letters, numbers, and hyphens.
+On the **Devices** page, open a device's **Actions** menu and click **Edit tags**. Enter tags separated by commas or spaces (for example, `production, web`), then save. Each device supports up to 3 tags, and tag names can contain lowercase letters, numbers, and hyphens.
 
 ## Filtering
 
-On the **Devices** page, click a tag to filter the list. Combine tags for more specific views.
+On the **Devices** page, use the **Tags** menu to filter the list by one or more tags. Combine tags for more specific views.
 
-## Tags + public keys
+## Managing tags globally
 
-Tags are especially useful with [public key authentication](/guides/public-keys). When you create a public key, you can restrict it to devices with specific tags.
+Manage every tag in your namespace from one place: go to **Settings → Tags**, where you can rename or remove any tag across all devices.
+
+## Tags + access control
+
+Tags drive two of ShellHub's access-control features:
+
+- **[Public keys](/guides/public-keys)** — restrict a public key to devices with specific tags, so the key only authenticates against those devices.
+- **[Firewall rules](/guides/firewall-rules)** — scope a rule to tagged devices, applying allow/deny policies to a group instead of individual hosts.
 
 For example:
 
@@ -36,6 +43,6 @@ This gives you environment-level access control without managing individual devi
 | `us-east`, `eu-west` | Geographic location |
 | `web`, `database`, `worker` | Server role |
 
-## Managing tags
+## Editing tags
 
-Tags can be added or removed at any time without affecting device connectivity. Removing a tag immediately updates any public key filters that reference it.
+Tags can be added or removed at any time without affecting device connectivity. Removing a tag immediately updates any public key or firewall rule filters that reference it.

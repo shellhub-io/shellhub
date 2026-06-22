@@ -10,7 +10,7 @@ Add the ShellHub agent to your Yocto-based Linux image using the meta-shellhub l
 
 ## Prerequisites
 
-- Yocto Project (kirkstone or later)
+- Yocto Project (scarthgap or another supported release — the meta-shellhub branches map to Yocto releases)
 - Internet access to fetch the agent source during build
 
 ## Setup
@@ -32,6 +32,7 @@ BBLAYERS += "/path/to/meta-shellhub"
 ### 3. Configure in `local.conf`
 
 ```bash
+CORE_IMAGE_EXTRA_INSTALL += "packagegroup-shellhub-runtime"
 SHELLHUB_TENANT_ID = "YOUR_TENANT_ID"
 ```
 

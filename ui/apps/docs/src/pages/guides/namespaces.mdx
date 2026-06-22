@@ -22,7 +22,7 @@ Your first namespace is created when you set up ShellHub. To create additional n
 
 ## Switching namespaces
 
-Click the namespace selector in the header to see all namespaces you belong to. Select one to switch — the dashboard, devices, sessions, and all other pages update to show that namespace's data.
+Click the namespace selector in the top bar to see every namespace you belong to. Select one to switch — the dashboard, devices, sessions, and all other pages update to show that namespace's data. Your active namespace is always shown in the selector, so you can confirm which one you're working in at a glance.
 
 ## What's inside a namespace
 
@@ -37,7 +37,17 @@ Click the namespace selector in the header to see all namespaces you belong to. 
 | Team members | Yes — members and roles are per namespace |
 | Settings | Yes — recording, announcements, MFA are per namespace |
 
-A user can be a member of multiple namespaces with different roles in each.
+A user can be a member of multiple namespaces with different roles in each — see [Team](/guides/team) to manage members and roles.
+
+## Finding your Tenant ID
+
+Every namespace has a unique **Tenant ID**. This is how ShellHub identifies a namespace — agents use it to connect their devices to the right namespace, and it's the identifier you use when integrating with the ShellHub API.
+
+To find it, open **Settings** and look at the **General** section. The Tenant ID is listed there with a copy button.
+
+![Namespace Settings page showing the General information — Name, Type, and Tenant ID with a copy button](/img/settings/namespace-settings.png)
+
+Make sure you're in the correct namespace before copying — switch with the namespace selector if you manage more than one. See [Settings](/guides/settings) for the rest of the namespace configuration.
 
 ## Namespace in SSHIDs
 
@@ -50,7 +60,7 @@ The namespace is part of every device's SSHID:
 For example:
 
 ```bash
-$ ssh root@myteam.web-server.shellhub.example.com
+$ ssh root@myteam.web-server@shellhub.example.com
 ```
 
 Here `myteam` is the namespace. Your team will type it in every SSH command, so keep it short and descriptive.

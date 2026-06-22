@@ -25,9 +25,9 @@ The agent is configured through environment variables, regardless of installatio
 |----------|:--------:|-------------|
 | `SHELLHUB_SERVER_ADDRESS` | Yes | ShellHub server URL (e.g., `https://cloud.shellhub.io`) |
 | `SHELLHUB_TENANT_ID` | Yes | Your namespace's tenant ID |
-| `SHELLHUB_PRIVATE_KEY` | No | Path to the agent's private key file (auto-generated if not set) |
-| `SHELLHUB_PREFERRED_HOSTNAME` | No | Override the device hostname reported to the server |
-| `SHELLHUB_KEEPALIVE_INTERVAL` | No | Interval between keepalive pings (default: 30s) |
+| `SHELLHUB_PRIVATE_KEY` | Yes | Path to the agent's private key file. The path is required; the key itself is generated on first run if the file doesn't exist. |
+| `SHELLHUB_PREFERRED_HOSTNAME` | No | Override the device hostname reported to the server (otherwise derived from the network interface MAC address) |
+| `SHELLHUB_KEEPALIVE_INTERVAL` | No | Interval in seconds between keepalive pings (default: `30`) |
 
 The **tenant ID** identifies which namespace the device belongs to. Find it in the ShellHub dashboard under **Settings > Namespace**.
 
@@ -44,7 +44,7 @@ Choose the method that fits your platform:
 
 For embedded Linux platforms, see [Buildroot](/embedded-linux/buildroot) and [Yocto](/embedded-linux/yocto).
 
-For platforms without a pre-built package, you can [build the agent from source](/developers/agent-development).
+For platforms without a pre-built package, you can [build the agent from source](/agent/building-from-source).
 
 ## Device identity
 

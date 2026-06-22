@@ -10,7 +10,7 @@ Build the ShellHub agent from source for platforms without a pre-built package, 
 
 ## Prerequisites
 
-- Go 1.24+
+- Go 1.25+ (see the agent's `go.mod` for the exact version)
 - Git
 
 ## Building
@@ -22,6 +22,12 @@ $ go build -o shellhub-agent
 ```
 
 This produces a single binary: `shellhub-agent`.
+
+To stamp the binary with a version (otherwise it reports `latest`), pass the version through `ldflags`. Clone a tagged release first if you want a stable version:
+
+```bash
+$ go build -ldflags "-X main.AgentVersion=$(git describe --tags)" -o shellhub-agent
+```
 
 ## Running
 

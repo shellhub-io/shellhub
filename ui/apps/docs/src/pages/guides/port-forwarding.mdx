@@ -21,7 +21,7 @@ $ ssh -L <local-port>:localhost:<remote-port> <sshid>
 Forward PostgreSQL from a device to your workstation:
 
 ```bash
-$ ssh -L 5432:localhost:5432 root@myteam.db-server.shellhub.example.com
+$ ssh -L 5432:localhost:5432 root@myteam.db-server@shellhub.example.com
 ```
 
 Now connect your database client to `localhost:5432` — traffic flows through the ShellHub tunnel to the device.
@@ -31,7 +31,7 @@ Now connect your database client to `localhost:5432` — traffic flows through t
 Forward a web interface running on port 8080:
 
 ```bash
-$ ssh -L 8080:localhost:8080 root@myteam.monitoring.shellhub.example.com
+$ ssh -L 8080:localhost:8080 root@myteam.monitoring@shellhub.example.com
 ```
 
 Open `http://localhost:8080` in your browser.
@@ -41,7 +41,7 @@ Open `http://localhost:8080` in your browser.
 The device can forward to other hosts on its local network:
 
 ```bash
-$ ssh -L 3306:192.168.1.50:3306 root@myteam.gateway.shellhub.example.com
+$ ssh -L 3306:192.168.1.50:3306 root@myteam.gateway@shellhub.example.com
 ```
 
 This reaches a MySQL server at `192.168.1.50` through the ShellHub-connected device.
@@ -57,7 +57,7 @@ $ ssh -R <remote-port>:localhost:<local-port> <sshid>
 Example — make your local dev server available on the device:
 
 ```bash
-$ ssh -R 3000:localhost:3000 root@myteam.web-server.shellhub.example.com
+$ ssh -R 3000:localhost:3000 root@myteam.web-server@shellhub.example.com
 ```
 
 ## Dynamic port forwarding (SOCKS proxy)
@@ -65,7 +65,7 @@ $ ssh -R 3000:localhost:3000 root@myteam.web-server.shellhub.example.com
 Create a SOCKS proxy that routes all traffic through the remote device:
 
 ```bash
-$ ssh -D 1080 root@myteam.web-server.shellhub.example.com
+$ ssh -D 1080 root@myteam.web-server@shellhub.example.com
 ```
 
 Configure your browser or application to use `localhost:1080` as a SOCKS5 proxy. All traffic exits from the device's network — useful for accessing internal services or testing from the device's network perspective.
@@ -75,7 +75,7 @@ Configure your browser or application to use `localhost:1080` as a SOCKS5 proxy.
 Combine multiple `-L` flags in one command:
 
 ```bash
-$ ssh -L 5432:localhost:5432 -L 6379:localhost:6379 -L 8080:localhost:8080 root@myteam.app-server.shellhub.example.com
+$ ssh -L 5432:localhost:5432 -L 6379:localhost:6379 -L 8080:localhost:8080 root@myteam.app-server@shellhub.example.com
 ```
 
 ## SSH config
@@ -101,7 +101,7 @@ $ ssh myteam-db
 Run a tunnel in the background without opening an interactive shell:
 
 ```bash
-$ ssh -fNL 5432:localhost:5432 root@myteam.db-server.shellhub.example.com
+$ ssh -fNL 5432:localhost:5432 root@myteam.db-server@shellhub.example.com
 ```
 
 | Flag | Purpose |

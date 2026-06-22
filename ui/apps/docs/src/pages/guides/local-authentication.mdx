@@ -1,0 +1,36 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Local Authentication
+description: Manage built-in username and password sign-in for your ShellHub instance
+---
+
+# Local Authentication
+
+Local authentication is ShellHub's built-in sign-in method: users authenticate with an email and password stored securely in ShellHub's own database, with no external identity provider required. It is enabled by default, so users can register and sign in immediately after installation.
+
+## Enabling and disabling
+
+An instance **admin** controls local authentication from the **Admin Console** under **Settings → Authentication**, using the **Local Authentication** toggle.
+
+![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+
+When local authentication is **disabled**, the email-and-password login is turned off and users sign in through [SSO](/guides/sso) instead.
+
+At least one authentication method must remain enabled at all times. Before disabling local login, make sure an alternative such as SAML is configured and tested.
+
+## Enabling local login for a specific user
+
+You can grant a single user the ability to sign in with a password — useful, for example, for an SSO-provisioned account that needs a fallback login. This preserves the user's existing authentication methods and adds local login as an option.
+
+1. Go to **Users** in the Admin Console
+2. Find the target user and select **Enable Local Authentication**
+3. Confirm the action
+4. ShellHub generates a temporary password — securely share it with the user
+
+The user should change the temporary password after their first successful login.
+
+## Next steps
+
+- [Single Sign-On (SAML)](/guides/sso) — Sign in through an external identity provider
+- [Multi-Factor Authentication](/guides/mfa) — Add TOTP-based 2FA to accounts
+- [Administration](/self-hosted/administration) — Manage your ShellHub instance

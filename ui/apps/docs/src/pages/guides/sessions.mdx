@@ -6,7 +6,9 @@ description: Monitor and audit SSH sessions
 
 # Sessions
 
-Every SSH connection through ShellHub is tracked as a session. You get visibility into who connected to which device, when, and for how long.
+Every SSH connection through ShellHub is recorded as a session and stored on the server for auditing. You get visibility into who connected to which device, when, and for how long — without instrumenting anything on the devices themselves.
+
+![The Sessions page listing active and historical SSH sessions](/img/sessions/sessions-list.png)
 
 ## Viewing sessions
 
@@ -25,6 +27,14 @@ The **Sessions** page lists all sessions in the current namespace:
 
 - **Active** — Connection is open, user is connected
 - **Closed** — Session ended (user disconnected or connection dropped)
+
+## Session details
+
+Select any session to open its detail view. For audit purposes, ShellHub records metadata about the connection — the target device, the authenticating user, the client's source IP, whether authentication succeeded, and a timeline of activity from connection through close.
+
+![A session detail page showing the session flow timeline, details, device, and play recording button](/img/sessions/session-detail.png)
+
+The **Session flow** timeline walks through the session step by step — connection established from an IP, authenticated as a user, pseudo-terminal opened, commands executed, session recorded, and session closed. The **Details** panel shows the session UID, source IP, and start/end times, while the **Device** panel identifies the target. If the session was recorded, use **Play Recording** to replay it.
 
 ## Session recording
 

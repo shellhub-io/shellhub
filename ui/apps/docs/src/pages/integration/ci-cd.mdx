@@ -39,7 +39,7 @@ jobs:
 
       - name: Deploy
         run: |
-          ssh root@web-server.my-namespace@cloud.shellhub.io \
+          ssh root@my-namespace.web-server@cloud.shellhub.io \
               "cd /app && git pull && systemctl restart myapp"
 ```
 
@@ -49,7 +49,7 @@ jobs:
       - name: Upload build artifacts
         run: |
           scp ./dist/app.tar.gz \
-              root@web-server.my-namespace@cloud.shellhub.io:/tmp/
+              root@my-namespace.web-server@cloud.shellhub.io:/tmp/
 ```
 
 ## GitLab CI
@@ -65,7 +65,7 @@ deploy:
     - chmod 600 ~/.ssh/id_ed25519
     - ssh-keyscan -p 22 cloud.shellhub.io >> ~/.ssh/known_hosts
   script:
-    - ssh root@web-server.my-namespace@cloud.shellhub.io "cd /app && git pull && systemctl restart myapp"
+    - ssh root@my-namespace.web-server@cloud.shellhub.io "cd /app && git pull && systemctl restart myapp"
   only:
     - main
 ```
@@ -76,7 +76,7 @@ Any system that can run SSH commands works with ShellHub. The pattern is always 
 
 1. Install an SSH client in the build environment
 2. Write the private key from a secret/variable to `~/.ssh/`
-3. Connect using the ShellHub SSHID format: `user@device.namespace@gateway`
+3. Connect using the ShellHub SSHID format: `user@namespace.device@gateway`
 
 This works with Jenkins, CircleCI, Drone, Bitbucket Pipelines, Azure DevOps, and any other CI/CD tool.
 

@@ -6,38 +6,54 @@ description: SSH into Docker containers running on your devices through ShellHub
 
 # Container Access
 
-ShellHub lets you SSH directly into Docker containers running on your devices. The agent detects running containers and exposes them as accessible targets — you connect to a container the same way you connect to a device.
+ShellHub lets you SSH directly into Docker containers running on a host. The **ShellHub Connector** runs on the Docker host, connects to the Docker API, and exposes the running containers as accessible targets — you connect to a container the same way you connect to a [device](/guides/devices).
 
 ## How it works
 
-When the ShellHub agent runs on a host with Docker, it can detect running containers and register them alongside the host device. Each container gets its own SSHID, so you can connect to it directly through the ShellHub gateway.
+The ShellHub Connector is the component that makes containers reachable. Installed on the Docker host, it talks to the Docker API, detects running containers, and registers each one in ShellHub. Every container gets its own SSHID, so you can connect to it directly through the ShellHub gateway.
 
 The connection path:
 
 ```
-You → ShellHub Gateway → Agent (on host) → Docker exec → Container shell
+You → ShellHub Gateway → Connector (on host) → Docker exec → Container shell
 ```
 
-No SSH server needs to run inside the container. The agent handles the bridge between the SSH session and the container's shell.
+No SSH server needs to run inside the container. The Connector bridges the SSH session and the container's shell.
+
+## Registering a Docker host
+
+To add Docker containers to ShellHub, install the ShellHub Connector on the Docker host. Open the **Containers** page and click **Add Container** to open the *Registering a Docker Host* drawer.
+
+![ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command](/img/containers/add-docker-host.png)
+
+The easiest way is the one-line install script. It installs and starts the Connector, which connects to the Docker API and exposes the running containers within ShellHub:
+
+```bash
+$ curl -sSf <server>/install.sh | TENANT_ID=<tenant> SERVER_ADDRESS=<server> sh -s connector
+```
+
+The `connector` argument tells the [install script](/agent/install-script) to set up the Connector rather than a regular device agent. Substitute your server address and namespace tenant ID, both shown in the drawer.
+
+Once the Connector is running, any Docker containers on the host automatically appear under the **Pending** tab on the Containers page. Accept a container to allow SSH access to it — the Containers page lists containers across **Accepted**, **Pending**, and **Rejected** tabs, the same acceptance flow used for [devices](/guides/devices).
 
 ## Connecting to a container
 
-Use the container's SSHID just like a regular device:
+Once accepted, use the container's SSHID just like a regular device:
 
 ```bash
-$ ssh root@myteam.my-container.shellhub.example.com
+$ ssh root@myteam.my-container@shellhub.example.com
 ```
 
-From the web dashboard, containers appear on the **Containers** page with a terminal icon for web-based access.
+From the web dashboard, accepted containers appear on the **Containers** page with a terminal icon for web-based access.
 
 ## Container visibility
 
-The agent lists containers that are:
+The Connector lists containers that are:
 
 - **Running** — Stopped or paused containers are not shown
-- **On the same Docker host** — The agent only sees containers on the machine where it's installed
+- **On the same Docker host** — The Connector only sees containers on the machine where it's installed
 
-When a container starts or stops, the agent updates ShellHub automatically.
+When a container starts or stops, the Connector updates ShellHub automatically.
 
 ## Use cases
 
@@ -49,6 +65,6 @@ When a container starts or stops, the agent updates ShellHub automatically.
 
 ## Limitations
 
-- The ShellHub agent must run on the Docker host, not inside the container
-- Container access requires Docker to be installed and the Docker socket accessible to the agent
+- The ShellHub Connector must run on the Docker host, not inside the container
+- Container access requires Docker to be installed and the Docker API accessible to the Connector
 - If a container is recreated (new container ID), it appears as a new entry

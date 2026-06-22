@@ -37,6 +37,18 @@ Agent
 
 If the connection drops, the agent retries with exponential backoff. The device's identity (private key) ensures it reconnects as the same device, not as a new registration.
 
+## Configuration
+
+The agent is configured entirely through environment variables, all prefixed with `SHELLHUB_`:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SHELLHUB_SERVER_ADDRESS` | Yes | The ShellHub server address the agent connects to (e.g. `http://localhost:80` for a local dev instance). |
+| `SHELLHUB_PRIVATE_KEY` | Yes | Path to the device private key. If the file does not exist, the agent generates a new key there. |
+| `SHELLHUB_TENANT_ID` | Yes | Tenant ID used to associate the device with a namespace. Use `00000000-0000-4000-0000-000000000000` for the local dev environment. |
+| `SHELLHUB_KEEPALIVE_INTERVAL` | No | Interval, in seconds, between keepalive messages sent to the server. Defaults to `30`. |
+| `SHELLHUB_PREFERRED_HOSTNAME` | No | Hint to the server to use this value as the device hostname when available. |
+
 ## Running tests
 
 ```bash

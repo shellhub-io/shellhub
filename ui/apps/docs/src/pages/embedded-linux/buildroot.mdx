@@ -15,32 +15,35 @@ Embed the ShellHub agent into custom Linux images using the Buildroot external t
 
 ## Setup
 
-### 1. Clone the ShellHub Buildroot package
+### 1. Clone Buildroot and the ShellHub external tree
+
+Clone upstream Buildroot and the ShellHub external tree side by side:
 
 ```bash
-$ git clone https://github.com/shellhub-io/shellhub-buildroot.git
+$ git clone git://git.buildroot.net/buildroot
+$ git clone https://github.com/shellhub-io/buildroot.git shellhub
 ```
 
 ### 2. Add as BR2_EXTERNAL
 
-When building your Buildroot image, reference the ShellHub external tree:
+From the Buildroot directory, start from a defconfig and then open menuconfig, always passing the ShellHub external tree:
 
 ```bash
-$ make BR2_EXTERNAL=/path/to/shellhub-buildroot menuconfig
+$ make BR2_EXTERNAL=../shellhub qemu_x86_64_defconfig
+$ make BR2_EXTERNAL=../shellhub menuconfig
 ```
 
-Enable the ShellHub agent package in the menuconfig interface.
+Select **ShellHub** under **External options** in the menuconfig interface.
 
 ### 3. Configure the agent
 
-Create a root filesystem overlay to set the agent's environment variables. For example, create the file `board/your-board/rootfs_overlay/etc/shellhub-agent.env`:
+The external tree provides a root filesystem overlay for the agent's environment variables. Edit `../shellhub/rootfs_overlay/etc/default/shellhub-agent`:
 
 ```bash
-SERVER_ADDRESS=https://cloud.shellhub.io
-TENANT_ID=YOUR_TENANT_ID
+SERVER_ADDRESS="https://cloud.shellhub.io"
+TENANT_ID="<your-tenant-id-here>"
+PRIVATE_KEY="/etc/shellhub-agent.key"
 ```
-
-Then set `BR2_ROOTFS_OVERLAY="board/your-board/rootfs_overlay"` in your Buildroot config.
 
 The agent reads these variables at boot:
 
@@ -53,20 +56,27 @@ The agent reads these variables at boot:
 ### 4. Build
 
 ```bash
-$ make
+$ make BR2_EXTERNAL=../shellhub rootfs-ext2
 ```
 
 The resulting image includes the ShellHub agent, which starts automatically on boot.
 
 ## Testing with QEMU
 
-Test your image locally before flashing:
+Test your image locally before flashing by booting it with QEMU:
 
 ```bash
-$ make run
+$ qemu-system-x86_64 \
+    -kernel output/images/bzImage \
+    -drive file=output/images/rootfs.ext2,format=raw \
+    -append "root=/dev/sda console=ttyS0" \
+    -m 512M \
+    -nographic \
+    -netdev user,id=n0,hostfwd=tcp::2222-:22 \
+    -device virtio-net-pci,netdev=n0
 ```
 
-Or run the image directly with QEMU. The agent connects to the configured ShellHub server on startup, and the device appears in the dashboard.
+The agent connects to the configured ShellHub server on startup, and the device appears in the dashboard.
 
 ## Verifying
 

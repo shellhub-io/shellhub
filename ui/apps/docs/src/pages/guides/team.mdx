@@ -12,15 +12,17 @@ The Team page is where you manage who has access to your namespace and what they
 
 Members are users who have access to the current namespace. Each member has a role that determines their permissions.
 
+![The Team page showing the Members tab with members and their roles](/img/team/members.png)
+
 ### Adding a member
 
 1. Go to **Team** in the sidebar
 2. Click **Add Member**
-3. Enter the user's username (they need an existing ShellHub account)
+3. Enter the user's email address (they need an existing ShellHub account)
 4. Select a role
 5. Click **Add Member**
 
-The user gets access immediately — no invitation flow, no email confirmation.
+An invitation is sent to that email, and the user gains access once they accept it.
 
 ### Roles
 
@@ -51,7 +53,7 @@ Hover over a member row and click the delete icon. The member loses access to th
 
 ## API Keys
 
-API keys let you authenticate with the ShellHub REST API without using your personal credentials. Use them for CI/CD pipelines, automation scripts, Terraform, Ansible, and other integrations.
+API keys let you authenticate with the ShellHub REST API without using your personal credentials. Use them for CI/CD pipelines, automation scripts, Terraform, Ansible, and other integrations. See the [API reference](/developers/api-reference) for the full list of endpoints.
 
 ### Generating a key
 
@@ -66,10 +68,10 @@ API keys let you authenticate with the ShellHub REST API without using your pers
 
 ### Using a key
 
-Pass the API key in the `Authorization` header:
+Pass the API key in the `X-API-Key` header:
 
 ```bash
-$ curl -H "Authorization: Bearer <your-api-key>" \
+$ curl -H "X-API-Key: <your-api-key>" \
   https://shellhub.example.com/api/devices
 ```
 

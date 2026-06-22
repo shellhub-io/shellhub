@@ -19,15 +19,15 @@ Install the ShellHub agent on a Raspberry Pi running Raspberry Pi OS (Debian-bas
 The fastest way. SSH into your Pi (or open a terminal) and run:
 
 ```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
 ```
 
-The script detects your Pi's architecture (armhf or arm64) and installs the appropriate agent binary.
+Replace `YOUR_TENANT_ID` with your namespace's tenant ID (found in the namespace selector or Settings page). The script detects your Pi's architecture (armhf or arm64) and installs the appropriate agent binary.
 
-For self-hosted ShellHub, pass your server address:
+For self-hosted ShellHub, replace the URL with your server address:
 
 ```bash
-$ curl -sSf https://your-server.example.com/install.sh | sh
+$ curl -sSf "https://your-server.example.com/install.sh?tenant_id=YOUR_TENANT_ID" | sh
 ```
 
 After installation, the agent starts automatically and the Pi appears as **Pending** in the ShellHub dashboard. Accept it to start connecting.
@@ -78,7 +78,7 @@ Once the agent is running and the device is accepted:
 **Native SSH** — Use the SSHID:
 
 ```bash
-$ ssh pi@mynamespace.raspberrypi.cloud.shellhub.io
+$ ssh pi@mynamespace.raspberrypi@cloud.shellhub.io
 ```
 
 Replace `pi` with your Pi's username, `mynamespace` with your namespace, and `raspberrypi` with the device hostname shown in the dashboard.

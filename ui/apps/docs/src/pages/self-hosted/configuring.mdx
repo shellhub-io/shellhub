@@ -69,6 +69,8 @@ $ make restart
 | `SHELLHUB_ANNOUNCEMENTS` | `false` | Show release announcements in the dashboard |
 | `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Allow SSH connections with empty passwords |
 
+> **Note:** With the Connector enabled, container access is restricted for security. Password authentication is denied for users without a password set in the container's `/etc/shadow` (set one with `passwd`); such users can still connect using public-key authentication.
+
 ### Performance
 
 | Variable | Default | Description |

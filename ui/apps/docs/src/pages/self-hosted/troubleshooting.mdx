@@ -40,7 +40,7 @@ SHELLHUB_SSH_PORT=2222
 
 Then restart: `make restart`
 
-Users connect with: `ssh -p 2222 user@device.namespace@your-server.com`
+Users connect with: `ssh -p 2222 user@namespace.device@your-server.com`
 
 **Option B:** Move the host's SSH to a different port. Edit `/etc/ssh/sshd_config`:
 
@@ -85,7 +85,7 @@ Common causes: wrong server address in the agent config, DNS resolution failure,
 
 1. Check the container's logs: `./bin/docker-compose logs <service>`
 2. Check available memory: `free -h` — ShellHub needs at least 1 GB of RAM
-3. Check disk space: `df -h` — Docker and MongoDB both need free disk space
+3. Check disk space: `df -h` — Docker and PostgreSQL both need free disk space
 4. Look for port conflicts: another process may be binding the same port
 
 ### Forgot admin password
@@ -100,17 +100,14 @@ See [Administration](/self-hosted/administration) for more CLI commands.
 
 ### Database connection errors
 
-**MongoDB:**
-
-1. Check logs: `./bin/docker-compose logs mongo`
-2. Verify the container is running: `./bin/docker-compose ps mongo`
-3. Check disk space — MongoDB needs free space for its journal files
-
-**PostgreSQL** (if using `SHELLHUB_DATABASE=postgres`):
+ShellHub uses PostgreSQL as its database backend (MongoDB was removed in v0.24.0):
 
 1. Check logs: `./bin/docker-compose logs postgres`
 2. Verify the container is running: `./bin/docker-compose ps postgres`
 3. Confirm credentials in `.env.override` match what PostgreSQL expects
+4. Check disk space — PostgreSQL needs free space for its data files
+
+> **Note:** Instances still running a pre-v0.24.0 release use MongoDB instead. Check `./bin/docker-compose logs mongo` and see [Upgrade](/self-hosted/upgrading) to migrate to PostgreSQL.
 
 ### SSL certificate issues
 
