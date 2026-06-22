@@ -31,10 +31,6 @@ type Tag struct {
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
-type TagChanges struct {
-	Name string `bson:"name,omitempty"`
-}
-
 type TagConflicts struct {
 	Name string
 }
