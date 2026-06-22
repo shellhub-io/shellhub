@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -57,7 +59,15 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 
 	insertedID, err := s.store.UserCreate(ctx, user)
 	if err != nil {
-		return NewErrUserDuplicated([]string{req.Username}, err)
+		if errors.Is(err, store.ErrDuplicate) {
+			if field, ok := store.DuplicatedField(err); ok {
+				return NewErrUserDuplicated([]string{field}, err)
+			}
+
+			return NewErrUserDuplicated([]string{req.Username}, err)
+		}
+
+		return err
 	}
 
 	namespace := &models.Namespace{

@@ -44,6 +44,41 @@ func TestFromSQLError(t *testing.T) {
 			},
 		},
 		{
+			name:  "23505 with users_email_key joins DuplicateFieldError with email",
+			input: &pgconn.PgError{Code: "23505", ConstraintName: "users_email_key"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrDuplicate))
+
+				var df store.DuplicateFieldError
+				require.True(t, errors.As(result, &df))
+				assert.Equal(t, "email", df.Field)
+			},
+		},
+		{
+			name:  "23505 with users_username_key joins DuplicateFieldError with username",
+			input: &pgconn.PgError{Code: "23505", ConstraintName: "users_username_key"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrDuplicate))
+
+				var df store.DuplicateFieldError
+				require.True(t, errors.As(result, &df))
+				assert.Equal(t, "username", df.Field)
+			},
+		},
+		{
+			name:  "23505 with unrelated constraint returns bare ErrDuplicate without DuplicateFieldError",
+			input: &pgconn.PgError{Code: "23505", ConstraintName: "some_other_unique_key"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrDuplicate))
+
+				var df store.DuplicateFieldError
+				assert.False(t, errors.As(result, &df), "expected no DuplicateFieldError for unknown constraint")
+			},
+		},
+		{
 			name:  "generic unmapped error wraps with store.ErrInternal",
 			input: fmt.Errorf("some unexpected db error"),
 			check: func(t *testing.T, result error) {

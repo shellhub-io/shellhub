@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	stderrors "errors"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -172,41 +173,6 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
-			description: "Fail when conflict fields exists",
-			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
-				RecoveryEmail: "recovery@test.com",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(
-						&models.User{
-							ID: "000000000000000000000000",
-							UserData: models.UserData{
-								Name:          "James Smith",
-								Username:      "james_smith",
-								Email:         "james.smith@test.com",
-								RecoveryEmail: "recover@test.com",
-							},
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
-					Return([]string{"email"}, true, nil).
-					Once()
-			},
-			expected: Expected{
-				conflicts: []string{"email"},
-				err:       NewErrUserDuplicated([]string{"email"}, nil),
-			},
-		},
-		{
 			description: "Fails when the current password doesn't match with user's password",
 			req: &requests.UpdateUser{
 				UserID:          "000000000000000000000000",
@@ -235,10 +201,6 @@ func TestUpdateUser(t *testing.T) {
 						},
 						nil,
 					).
-					Once()
-				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
-					Return([]string{}, false, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
@@ -284,10 +246,6 @@ func TestUpdateUser(t *testing.T) {
 					Return(user, nil).
 					Once()
 				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
 					On("UserUpdate", ctx, updatedUser).
 					Return(errors.New("error", "", 0)).
 					Once()
@@ -306,6 +264,135 @@ func TestUpdateUser(t *testing.T) {
 					},
 					errors.New("error", "", 0),
 				),
+			},
+		},
+		{
+			description: "Fail when UserUpdate returns duplicate email",
+			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "James Smith",
+						Username:      "james_smith",
+						Email:         "james.smith@shellhub.io",
+						RecoveryEmail: "recover@test.com",
+					},
+				}
+				updatedUser := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "John Doe",
+						Username:      "john_doe",
+						Email:         "john.doe@test.com",
+						RecoveryEmail: "recovery@test.com",
+					},
+				}
+
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				storeMock.
+					On("UserUpdate", ctx, updatedUser).
+					Return(stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{"email"},
+				err:       NewErrUserDuplicated([]string{"email"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})),
+			},
+		},
+		{
+			description: "Fail when UserUpdate returns duplicate username",
+			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "James Smith",
+						Username:      "james_smith",
+						Email:         "james.smith@shellhub.io",
+						RecoveryEmail: "recover@test.com",
+					},
+				}
+				updatedUser := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "John Doe",
+						Username:      "john_doe",
+						Email:         "john.doe@test.com",
+						RecoveryEmail: "recovery@test.com",
+					},
+				}
+
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				storeMock.
+					On("UserUpdate", ctx, updatedUser).
+					Return(stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{"username"},
+				err:       NewErrUserDuplicated([]string{"username"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})),
+			},
+		},
+		{
+			description: "Fail when UserUpdate returns unhandled duplicate (no field info)",
+			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "recovery@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "James Smith",
+						Username:      "james_smith",
+						Email:         "james.smith@shellhub.io",
+						RecoveryEmail: "recover@test.com",
+					},
+				}
+				updatedUser := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "John Doe",
+						Username:      "john_doe",
+						Email:         "john.doe@test.com",
+						RecoveryEmail: "recovery@test.com",
+					},
+				}
+
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				storeMock.
+					On("UserUpdate", ctx, updatedUser).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{},
+				err:       NewErrUserUnhandledDuplicate(),
 			},
 		},
 		{
@@ -332,10 +419,6 @@ func TestUpdateUser(t *testing.T) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
-					Once()
-				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{}).
-					Return([]string{}, false, nil).
 					Once()
 				hashMock.
 					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
@@ -394,10 +477,6 @@ func TestUpdateUser(t *testing.T) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
-					Once()
-				storeMock.
-					On("UserConflicts", ctx, &models.UserConflicts{Username: "john_doe", Email: "john.doe@test.com"}).
-					Return([]string{}, false, nil).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).

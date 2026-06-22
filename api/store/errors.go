@@ -1,6 +1,11 @@
 package store
 
-import "github.com/shellhub-io/shellhub/pkg/errors"
+import (
+	stderrors "errors"
+	"fmt"
+
+	"github.com/shellhub-io/shellhub/pkg/errors"
+)
 
 // ErrLayer is an error level. Each error defined at this level, is container to it.
 // ErrLayer is the errors' level for store's error.
@@ -21,8 +26,24 @@ var (
 	ErrInternal         = errors.New("internal store error", ErrLayer, ErrCodeInternal)
 )
 
-// Errors used by Cloud.
-var (
-	ErrDuplicateUser  = errors.New("user already exists", ErrLayer, ErrCodeDuplicated)
-	ErrDuplicateEmail = errors.New("email address is already in use", ErrLayer, ErrCodeDuplicated)
-)
+// DuplicateFieldError carries the name of the field that caused a duplicate-key violation.
+// It is a plain Go error type (not a pkg/errors.Error) so that echo's error chain never
+// matches it directly; callers use DuplicatedField to extract the field name.
+type DuplicateFieldError struct {
+	Field string
+}
+
+func (e DuplicateFieldError) Error() string {
+	return fmt.Sprintf("duplicate field: %s", e.Field)
+}
+
+// DuplicatedField extracts the field name from a DuplicateFieldError wrapped inside err.
+// It returns ("", false) when no DuplicateFieldError is present or when Field is empty.
+func DuplicatedField(err error) (string, bool) {
+	var df DuplicateFieldError
+	if stderrors.As(err, &df) && df.Field != "" {
+		return df.Field, true
+	}
+
+	return "", false
+}

@@ -26,52 +26,6 @@ func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error)
 	return user.ID, nil
 }
 
-func (pg *Pg) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {
-	db := pg.GetConnection(ctx)
-
-	if target.Email == "" && target.Username == "" {
-		return []string{}, false, nil
-	}
-
-	users := make([]entity.User, 0)
-	query := db.NewSelect().
-		Model(&users).
-		Column("email", "username").
-		WhereGroup(" OR ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			if target.Email != "" {
-				q = q.Where("email = ?", target.Email)
-			}
-
-			if target.Username != "" {
-				q = q.Where("username = ?", target.Username)
-			}
-
-			return q
-		})
-
-	if err := query.Scan(ctx); err != nil {
-		return nil, false, fromSQLError(err)
-	}
-
-	seen := make(map[string]bool)
-	for _, user := range users {
-		if target.Email != "" && user.Email == target.Email {
-			seen["email"] = true
-		}
-
-		if target.Username != "" && user.Username == target.Username {
-			seen["username"] = true
-		}
-	}
-
-	conflicts := make([]string, 0, len(seen))
-	for field := range seen {
-		conflicts = append(conflicts, field)
-	}
-
-	return conflicts, len(conflicts) > 0, nil
-}
-
 func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	db := pg.GetConnection(ctx)
 

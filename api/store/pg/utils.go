@@ -11,6 +11,32 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// constraintToField maps a PostgreSQL unique-constraint name on the users table to
+// the user-facing field name it protects. The constraint names here are defined in
+// migration 001_initial_schema — renaming those constraints silently breaks this mapping.
+//
+// Only constraints from the users table are listed; other tables' 23505 violations
+// will return an empty string and fall through to a bare store.ErrDuplicate.
+func constraintToField(constraint string) string {
+	switch constraint {
+	case constraintUsersEmailKey:
+		return "email"
+	case constraintUsersUsernameKey:
+		return "username"
+	default:
+		return ""
+	}
+}
+
+// constraintUsersEmailKey and constraintUsersUsernameKey are the PostgreSQL unique-constraint
+// names for the users table, as created by migration 001_initial_schema.
+// WARNING: renaming these constraints in a migration silently breaks the constraintToField
+// mapping — update both together.
+const (
+	constraintUsersEmailKey    = "users_email_key"
+	constraintUsersUsernameKey = "users_username_key"
+)
+
 func fromSQLError(err error) error {
 	switch err {
 	case nil:
@@ -21,6 +47,10 @@ func fromSQLError(err error) error {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" { // unique_violation
+				if field := constraintToField(pgErr.ConstraintName); field != "" {
+					return errors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: field})
+				}
+
 				return store.ErrDuplicate
 			}
 		}

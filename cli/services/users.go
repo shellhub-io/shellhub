@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"slices"
+	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -18,22 +18,6 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		Name:     input.Username,
 		Email:    input.Email,
 		Username: input.Username,
-	}
-
-	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
-		containsEmail := slices.Contains(conflicts, "email")
-		containsUsername := slices.Contains(conflicts, "username")
-
-		switch {
-		case containsUsername && containsEmail:
-			return nil, ErrUserNameAndEmailExists
-		case containsUsername:
-			return nil, ErrUserNameExists
-		case containsEmail:
-			return nil, ErrUserEmailExists
-		default:
-			return nil, ErrUserUnhandledDuplicate
-		}
 	}
 
 	password, err := models.HashUserPassword(input.Password)
@@ -60,6 +44,22 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			field, ok := store.DuplicatedField(err)
+			if !ok {
+				return nil, ErrUserUnhandledDuplicate
+			}
+
+			switch field {
+			case "email":
+				return nil, ErrUserEmailExists
+			case "username":
+				return nil, ErrUserNameExists
+			default:
+				return nil, ErrUserUnhandledDuplicate
+			}
+		}
+
 		return nil, ErrCreateNewUser
 	}
 

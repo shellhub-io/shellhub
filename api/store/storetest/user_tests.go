@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -10,6 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// TestUserConflictsRemoved asserts that UserConflicts has been deleted from the
+// UserStore interface. The method was replaced by the duplicate-detection path
+// inside UserCreate (ErrDuplicate / DuplicatedField).
+func (s *Suite) TestUserConflictsRemoved(t *testing.T) {
+	ifaceType := reflect.TypeOf((*store.UserStore)(nil)).Elem()
+	_, ok := ifaceType.MethodByName("UserConflicts")
+	assert.False(t, ok, "UserStore.UserConflicts must be removed from the interface")
+}
 
 func (s *Suite) TestUserList(t *testing.T) {
 	ctx := context.Background()
@@ -180,71 +190,51 @@ func (s *Suite) TestUserCreatePasswordRoundTrip(t *testing.T) {
 	})
 }
 
-func (s *Suite) TestUserConflicts(t *testing.T) {
+// TestUserCreateDuplicate verifies that UserCreate enforces unique constraints on
+// email and username at the real-database level, returning store.ErrDuplicate with
+// the correct field name reported by store.DuplicatedField.
+func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	t.Run("no conflicts when target is empty", func(t *testing.T) {
+	t.Run("duplicate email is rejected with ErrDuplicate and field=email", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
 
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{})
-		require.NoError(t, err)
-		assert.Empty(t, conflicts)
-		assert.False(t, ok)
-	})
+		s.CreateUser(t, WithUsername("baseline_user"), WithEmail("shared@test.com"))
 
-	t.Run("no conflicts with non existing email", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{Email: "other@test.com"})
-		require.NoError(t, err)
-		assert.Empty(t, conflicts)
-		assert.False(t, ok)
-	})
-
-	t.Run("no conflicts with non existing username", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{Username: "other"})
-		require.NoError(t, err)
-		assert.Empty(t, conflicts)
-		assert.False(t, ok)
-	})
-
-	t.Run("conflict detected with existing email", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{Email: "john.doe@test.com"})
-		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"email"}, conflicts)
-		assert.True(t, ok)
-	})
-
-	t.Run("conflict detected with existing username", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{Username: "john_doe"})
-		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"username"}, conflicts)
-		assert.True(t, ok)
-	})
-
-	t.Run("conflict detected with existing username and email", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-		s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		conflicts, ok, err := st.UserConflicts(ctx, &models.UserConflicts{
-			Email:    "john.doe@test.com",
-			Username: "john_doe",
+		_, err := st.UserCreate(ctx, &models.User{
+			UserData: models.UserData{
+				Name:     "second user",
+				Username: "other_user",
+				Email:    "shared@test.com",
+			},
+			Password: models.UserPassword{Hash: "somehash"},
 		})
-		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"username", "email"}, conflicts)
+		assert.ErrorIs(t, err, store.ErrDuplicate)
+
+		field, ok := store.DuplicatedField(err)
 		assert.True(t, ok)
+		assert.Equal(t, "email", field)
+	})
+
+	t.Run("duplicate username is rejected with ErrDuplicate and field=username", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateUser(t, WithUsername("shared_name"), WithEmail("first@test.com"))
+
+		_, err := st.UserCreate(ctx, &models.User{
+			UserData: models.UserData{
+				Name:     "second user",
+				Username: "shared_name",
+				Email:    "second@test.com",
+			},
+			Password: models.UserPassword{Hash: "somehash"},
+		})
+		assert.ErrorIs(t, err, store.ErrDuplicate)
+
+		field, ok := store.DuplicatedField(err)
+		assert.True(t, ok)
+		assert.Equal(t, "username", field)
 	})
 }
 
