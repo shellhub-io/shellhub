@@ -123,6 +123,48 @@ func TestSetup(t *testing.T) {
 			),
 		},
 		{
+			description: "Fail when cannot create the user due to unhandled duplicate (no field info)",
+			req: requests.Setup{
+				Email:    "teste@google.com",
+				Name:     "userteste",
+				Username: "userteste",
+				Password: "secret",
+			},
+			requiredMocks: func() {
+				storeMock.On("SystemGet", ctx).Return(&models.System{
+					Setup: false,
+				}, nil).Once()
+
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
+				user := &models.User{
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					CreatedAt: now,
+					UserData: models.UserData{
+						Name:     "userteste",
+						Email:    "teste@google.com",
+						Username: "userteste",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+					Admin: true,
+				}
+
+				storeMock.On("UserCreate", ctx, user).Return("", store.ErrDuplicate).Once()
+			},
+			expected: NewErrUserUnhandledDuplicate(),
+		},
+		{
 			description: "Fail when cannot create the user due to a generic store error",
 			req: requests.Setup{
 				Email:    "teste@google.com",
