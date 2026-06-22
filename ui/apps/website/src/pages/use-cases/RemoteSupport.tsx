@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Badge, Button, Card } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
+import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -269,552 +270,507 @@ export default function RemoteSupport() {
       </section>
 
       {/* ── Session Recording Mockup ─────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <Reveal>
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-accent-cyan mb-3">
-                  Session Recording
-                </p>
-                <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Record every session. Replay any time.
-                </h2>
-                <p className="text-sm text-text-secondary leading-relaxed mb-8">
-                  Every SSH session is automatically captured and stored. Replay
-                  sessions to review what happened during a support interaction,
-                  verify that procedures were followed, or train new engineers
-                  on troubleshooting workflows.
-                </p>
-              </Reveal>
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <SectionHeader
+              align="left"
+              size="sub"
+              className="mb-8"
+              eyebrowColor="cyan"
+              eyebrow="Session Recording"
+              title="Record every session. Replay any time."
+              subtitle="Every SSH session is automatically captured and stored. Replay sessions to review what happened during a support interaction, verify that procedures were followed, or train new engineers on troubleshooting workflows."
+            />
 
-              <div className="space-y-3">
-                {[
-                  {
-                    label: "Full terminal replay",
-                    desc: "Watch sessions frame by frame, exactly as they happened",
-                  },
-                  {
-                    label: "Searchable archive",
-                    desc: "Find sessions by user, device, date range, or keyword",
-                  },
-                  {
-                    label: "Compliance-ready exports",
-                    desc: "Export session recordings for external audits and compliance reports",
-                  },
-                  {
-                    label: "Incident investigation",
-                    desc: "Pinpoint exactly what command caused an issue, down to the second",
-                  },
-                ].map((item, i) => (
-                  <Reveal key={i} delay={i * 0.04}>
-                    <div className="flex items-start gap-3">
-                      <svg
-                        className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">
-                          {item.label}
-                        </p>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-
-            {/* Session player mockup */}
-            <Reveal delay={0.1}>
-              <ShimmerCard>
-                <Card className="overflow-hidden">
-                  <div className="p-6">
-                    {/* Window chrome */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                      <span className="ml-2 text-2xs text-text-muted font-mono">
-                        Session Replay
-                      </span>
-                    </div>
-
-                    {/* Terminal area */}
-                    <div className="bg-[#111214] rounded-lg border border-border p-4 font-mono text-2xs leading-relaxed mb-4">
-                      <p className="text-accent-green">
-                        john@prod-server-03:~$
-                        <span className="text-text-primary ml-2">
-                          ls -la /var/log/nginx/
-                        </span>
+            <div className="space-y-3">
+              {[
+                {
+                  label: "Full terminal replay",
+                  desc: "Watch sessions frame by frame, exactly as they happened",
+                },
+                {
+                  label: "Searchable archive",
+                  desc: "Find sessions by user, device, date range, or keyword",
+                },
+                {
+                  label: "Compliance-ready exports",
+                  desc: "Export session recordings for external audits and compliance reports",
+                },
+                {
+                  label: "Incident investigation",
+                  desc: "Pinpoint exactly what command caused an issue, down to the second",
+                },
+              ].map((item, i) => (
+                <Reveal key={i} delay={i * 0.04}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">
+                        {item.label}
                       </p>
-                      <p className="text-text-muted mt-1">total 2184</p>
-                      <p className="text-text-muted">
-                        drwxr-xr-x 2 root root 4096 Feb 14 09:00 .
-                      </p>
-                      <p className="text-text-muted">
-                        -rw-r----- 1 root adm 842560 Feb 14 14:31 access.log
-                      </p>
-                      <p className="text-text-muted">
-                        -rw-r----- 1 root adm 194720 Feb 14 14:28 error.log
-                      </p>
-                      <p className="text-accent-green mt-2">
-                        john@prod-server-03:~$
-                        <span className="text-text-primary ml-2">
-                          systemctl status nginx
-                        </span>
-                      </p>
-                      <p className="text-text-muted mt-1">
-                        <span className="text-accent-green">●</span>{" "}
-                        nginx.service - A high performance web server
-                      </p>
-                      <p className="text-text-muted">
-                        {"   "}Loaded: loaded
-                        (/lib/systemd/system/nginx.service; enabled)
-                      </p>
-                      <p className="text-text-muted">
-                        {"   "}Active:{" "}
-                        <span className="text-accent-green">
-                          active (running)
-                        </span>{" "}
-                        since Fri 2026-02-14 09:00:12 UTC
-                      </p>
-                      <p className="text-accent-green mt-2">
-                        john@prod-server-03:~$
-                        <span className="text-text-primary ml-2 animate-pulse">
-                          _
-                        </span>
-                      </p>
-                    </div>
-
-                    {/* Playback controls */}
-                    <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
-                      <button type="button" aria-label="Play" className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0">
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill={C.cyan}
-                          stroke="none"
-                          aria-hidden="true"
-                        >
-                          <polygon points="6 4 20 12 6 20 6 4" />
-                        </svg>
-                      </button>
-
-                      {/* Timeline */}
-                      <div className="flex-1 relative">
-                        <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-primary"
-                            style={{ width: "30%" }}
-                          />
-                        </div>
-                      </div>
-
-                      <span className="text-2xs text-text-muted font-mono shrink-0">
-                        00:03:42 / 00:12:15
-                      </span>
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-2xs text-text-muted font-mono">
-                        User:{" "}
-                        <span className="text-text-secondary">
-                          john@company.com
-                        </span>
-                        <span className="mx-2 text-border">|</span>
-                        Device:{" "}
-                        <span className="text-text-secondary">
-                          prod-server-03
-                        </span>
-                        <span className="mx-2 text-border">|</span>
-                        Duration:{" "}
-                        <span className="text-text-secondary">12m 15s</span>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {item.desc}
                       </p>
                     </div>
                   </div>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+                </Reveal>
+              ))}
+            </div>
           </div>
+
+          {/* Session player mockup */}
+          <Reveal delay={0.1}>
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  {/* Window chrome */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+                    <span className="ml-2 text-2xs text-text-muted font-mono">
+                      Session Replay
+                    </span>
+                  </div>
+
+                  {/* Terminal area */}
+                  <div className="bg-[#111214] rounded-lg border border-border p-4 font-mono text-2xs leading-relaxed mb-4">
+                    <p className="text-accent-green">
+                      john@prod-server-03:~$
+                      <span className="text-text-primary ml-2">
+                        ls -la /var/log/nginx/
+                      </span>
+                    </p>
+                    <p className="text-text-muted mt-1">total 2184</p>
+                    <p className="text-text-muted">
+                      drwxr-xr-x 2 root root 4096 Feb 14 09:00 .
+                    </p>
+                    <p className="text-text-muted">
+                      -rw-r----- 1 root adm 842560 Feb 14 14:31 access.log
+                    </p>
+                    <p className="text-text-muted">
+                      -rw-r----- 1 root adm 194720 Feb 14 14:28 error.log
+                    </p>
+                    <p className="text-accent-green mt-2">
+                      john@prod-server-03:~$
+                      <span className="text-text-primary ml-2">
+                        systemctl status nginx
+                      </span>
+                    </p>
+                    <p className="text-text-muted mt-1">
+                      <span className="text-accent-green">●</span> nginx.service
+                      - A high performance web server
+                    </p>
+                    <p className="text-text-muted">
+                      {"   "}Loaded: loaded (/lib/systemd/system/nginx.service;
+                      enabled)
+                    </p>
+                    <p className="text-text-muted">
+                      {"   "}Active:{" "}
+                      <span className="text-accent-green">
+                        active (running)
+                      </span>{" "}
+                      since Fri 2026-02-14 09:00:12 UTC
+                    </p>
+                    <p className="text-accent-green mt-2">
+                      john@prod-server-03:~$
+                      <span className="text-text-primary ml-2 animate-pulse">
+                        _
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* Playback controls */}
+                  <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
+                    <button
+                      type="button"
+                      aria-label="Play"
+                      className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill={C.cyan}
+                        stroke="none"
+                        aria-hidden="true"
+                      >
+                        <polygon points="6 4 20 12 6 20 6 4" />
+                      </svg>
+                    </button>
+
+                    {/* Timeline */}
+                    <div className="flex-1 relative">
+                      <div className="h-1.5 bg-border rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-primary"
+                          style={{ width: "30%" }}
+                        />
+                      </div>
+                    </div>
+
+                    <span className="text-2xs text-text-muted font-mono shrink-0">
+                      00:03:42 / 00:12:15
+                    </span>
+                  </div>
+
+                  {/* Metadata */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-2xs text-text-muted font-mono">
+                      User:{" "}
+                      <span className="text-text-secondary">
+                        john@company.com
+                      </span>
+                      <span className="mx-2 text-border">|</span>
+                      Device:{" "}
+                      <span className="text-text-secondary">
+                        prod-server-03
+                      </span>
+                      <span className="mx-2 text-border">|</span>
+                      Duration:{" "}
+                      <span className="text-text-secondary">12m 15s</span>
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </ShimmerCard>
+          </Reveal>
         </div>
-      </section>
+      </Section>
 
       {/* ── Audit Trail Mockup ───────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Audit log table mockup */}
-            <Reveal delay={0.1} className="order-2 lg:order-1">
-              <ShimmerCard>
-                <Card className="overflow-hidden">
-                  <div className="p-6">
-                    {/* Window chrome */}
-                    <div className="flex items-center gap-2 mb-5">
-                      <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                      <span className="ml-2 text-2xs text-text-muted font-mono">
-                        Audit Log
-                      </span>
-                    </div>
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Audit log table mockup */}
+          <Reveal delay={0.1} className="order-2 lg:order-1">
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  {/* Window chrome */}
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+                    <span className="ml-2 text-2xs text-text-muted font-mono">
+                      Audit Log
+                    </span>
+                  </div>
 
-                    {/* Table header */}
-                    <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
-                      <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                        Time
-                      </span>
-                      <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                        User
-                      </span>
-                      <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                        Action
-                      </span>
-                      <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                        Device
-                      </span>
-                      <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                        Duration
-                      </span>
-                    </div>
+                  {/* Table header */}
+                  <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
+                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                      Time
+                    </span>
+                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                      User
+                    </span>
+                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                      Action
+                    </span>
+                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                      Device
+                    </span>
+                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                      Duration
+                    </span>
+                  </div>
 
-                    {/* Rows */}
-                    <div className="space-y-1">
-                      {auditRows.map((row, i) => (
-                        <div
-                          key={i}
-                          className={`grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center ${
-                            i % 2 === 0 ? "bg-surface" : "bg-transparent"
-                          }`}
-                        >
-                          <span className="text-2xs font-mono text-text-muted">
-                            {row.time}
-                          </span>
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div
-                              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0"
-                              style={{
-                                background: `${row.color}20`,
-                                color: row.color,
-                              }}
-                            >
-                              {row.initials}
-                            </div>
-                            <span className="text-2xs text-text-secondary truncate">
-                              {row.name}
-                            </span>
+                  {/* Rows */}
+                  <div className="space-y-1">
+                    {auditRows.map((row, i) => (
+                      <div
+                        key={i}
+                        className={`grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center ${
+                          i % 2 === 0 ? "bg-surface" : "bg-transparent"
+                        }`}
+                      >
+                        <span className="text-2xs font-mono text-text-muted">
+                          {row.time}
+                        </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0"
+                            style={{
+                              background: `${row.color}20`,
+                              color: row.color,
+                            }}
+                          >
+                            {row.initials}
                           </div>
-                          <span className="text-2xs text-text-secondary font-mono">
-                            {row.action}
-                          </span>
-                          <span className="text-2xs text-text-secondary font-mono truncate">
-                            {row.device}
-                          </span>
-                          <span className="text-2xs text-text-muted font-mono">
-                            {row.duration}
+                          <span className="text-2xs text-text-secondary truncate">
+                            {row.name}
                           </span>
                         </div>
-                      ))}
-                    </div>
+                        <span className="text-2xs text-text-secondary font-mono">
+                          {row.action}
+                        </span>
+                        <span className="text-2xs text-text-secondary font-mono truncate">
+                          {row.device}
+                        </span>
+                        <span className="text-2xs text-text-muted font-mono">
+                          {row.duration}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
 
-                    {/* Footer */}
-                    <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                      <span className="text-2xs text-text-muted">
-                        Showing 4 of 1,247 entries
-                      </span>
-                      <span className="text-2xs text-primary font-medium">
-                        View all &rarr;
-                      </span>
+                  {/* Footer */}
+                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                    <span className="text-2xs text-text-muted">
+                      Showing 4 of 1,247 entries
+                    </span>
+                    <span className="text-2xs text-primary font-medium">
+                      View all &rarr;
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            </ShimmerCard>
+          </Reveal>
+
+          {/* Text */}
+          <div className="order-1 lg:order-2">
+            <SectionHeader
+              align="left"
+              size="sub"
+              className="mb-8"
+              eyebrowColor="green"
+              eyebrow="Audit Trail"
+              title="Full accountability for every connection"
+              subtitle="Every session is logged with the user identity, target device, timestamps, and duration. Build compliance reports, investigate incidents, and prove to auditors exactly who did what, when, and for how long."
+            />
+
+            <div className="space-y-3">
+              {[
+                {
+                  label: "Immutable log entries",
+                  desc: "Audit records cannot be altered or deleted by users",
+                },
+                {
+                  label: "Filter and search",
+                  desc: "Find events by user, device, date, or action type instantly",
+                },
+                {
+                  label: "Compliance reporting",
+                  desc: "Generate reports for SOC 2, ISO 27001, and internal audits",
+                },
+                {
+                  label: "Real-time monitoring",
+                  desc: "View active sessions and who is currently connected to which device",
+                },
+              ].map((item, i) => (
+                <Reveal key={i} delay={i * 0.04}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Pain Points ──────────────────────────────────────────── */}
+      <Section>
+        <SectionHeader
+          eyebrow="The Problem"
+          title="Why traditional remote support falls short"
+          subtitle="Legacy workflows leave gaps in security, visibility, and compliance that put your organization at risk."
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {painPoints.map((p, i) => (
+            <Reveal key={i} delay={i * 0.06}>
+              <ShimmerCard className="h-full">
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-2 h-2 rounded-full mb-4"
+                    style={{ background: p.color }}
+                  />
+                  <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {p.desc}
+                  </p>
                 </Card>
               </ShimmerCard>
             </Reveal>
-
-            {/* Text */}
-            <div className="order-1 lg:order-2">
-              <Reveal>
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-accent-green mb-3">
-                  Audit Trail
-                </p>
-                <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Full accountability for every connection
-                </h2>
-                <p className="text-sm text-text-secondary leading-relaxed mb-8">
-                  Every session is logged with the user identity, target device,
-                  timestamps, and duration. Build compliance reports,
-                  investigate incidents, and prove to auditors exactly who did
-                  what, when, and for how long.
-                </p>
-              </Reveal>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    label: "Immutable log entries",
-                    desc: "Audit records cannot be altered or deleted by users",
-                  },
-                  {
-                    label: "Filter and search",
-                    desc: "Find events by user, device, date, or action type instantly",
-                  },
-                  {
-                    label: "Compliance reporting",
-                    desc: "Generate reports for SOC 2, ISO 27001, and internal audits",
-                  },
-                  {
-                    label: "Real-time monitoring",
-                    desc: "View active sessions and who is currently connected to which device",
-                  },
-                ].map((item, i) => (
-                  <Reveal key={i} delay={i * 0.04}>
-                    <div className="flex items-start gap-3">
-                      <svg
-                        className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">
-                          {item.label}
-                        </p>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
-
-      {/* ── Pain Points ──────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              The Problem
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Why traditional remote support falls short
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Legacy workflows leave gaps in security, visibility, and
-              compliance that put your organization at risk.
-            </p>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {painPoints.map((p, i) => (
-              <Reveal key={i} delay={i * 0.06}>
-                <ShimmerCard className="h-full">
-                  <Card hover className="p-6 h-full">
-                    <div
-                      className="w-2 h-2 rounded-full mb-4"
-                      style={{ background: p.color }}
-                    />
-                    <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {p.desc}
-                    </p>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      </Section>
 
       {/* ── Key Features ─────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Features
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Built for audited, accountable support
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Everything your support team needs to connect securely,
-              troubleshoot efficiently, and maintain a complete compliance
-              record.
-            </p>
-          </Reveal>
+      <Section>
+        <SectionHeader
+          eyebrow="Features"
+          title="Built for audited, accountable support"
+          subtitle="Everything your support team needs to connect securely, troubleshoot efficiently, and maintain a complete compliance record."
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((f, i) => (
-              <Reveal key={i} delay={i * 0.04}>
-                <ShimmerCard>
-                  <Card hover className="p-6 h-full">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                      style={{
-                        background: `${f.color}15`,
-                        borderColor: `${f.color}25`,
-                      }}
-                    >
-                      {f.icon}
-                    </div>
-                    <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {f.desc}
-                    </p>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((f, i) => (
+            <Reveal key={i} delay={i * 0.04}>
+              <ShimmerCard>
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                    style={{
+                      background: `${f.color}15`,
+                      borderColor: `${f.color}25`,
+                    }}
+                  >
+                    {f.icon}
+                  </div>
+                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {f.desc}
+                  </p>
+                </Card>
+              </ShimmerCard>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
 
       {/* ── Support Workflow ──────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Workflow
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              From ticket to resolution — fully audited
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              A streamlined support workflow that captures everything for
-              compliance without slowing your team down.
-            </p>
-          </Reveal>
+      <Section>
+        <SectionHeader
+          eyebrow="Workflow"
+          title="From ticket to resolution — fully audited"
+          subtitle="A streamlined support workflow that captures everything for compliance without slowing your team down."
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connecting arrows (desktop only) */}
-            <div className="hidden md:block absolute top-1/2 left-[calc(33.33%-12px)] w-[calc(33.33%+24px)] -translate-y-1/2 pointer-events-none z-0">
-              <svg
-                className="w-full h-8"
-                viewBox="0 0 400 32"
-                fill="none"
-                preserveAspectRatio="none"
-              >
-                <line
-                  x1="0"
-                  y1="16"
-                  x2="180"
-                  y2="16"
-                  stroke={C.border}
-                  strokeWidth="1"
-                  strokeDasharray="6 4"
-                />
-                <polygon points="180,12 188,16 180,20" fill={C.textMuted} />
-                <line
-                  x1="210"
-                  y1="16"
-                  x2="390"
-                  y2="16"
-                  stroke={C.border}
-                  strokeWidth="1"
-                  strokeDasharray="6 4"
-                />
-                <polygon points="390,12 398,16 390,20" fill={C.textMuted} />
-              </svg>
-            </div>
-
-            {workflowSteps.map((step, i) => (
-              <Reveal key={i} delay={i * 0.08}>
-                <ShimmerCard className="h-full">
-                  <Card hover className="relative p-6 h-full overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 w-full h-0.5"
-                      style={{
-                        background: `linear-gradient(90deg, ${step.color}00, ${step.color}, ${step.color}00)`,
-                      }}
-                    />
-                    <div className="flex items-center gap-3 mb-4">
-                      <span
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold font-mono border"
-                        style={{
-                          background: `${step.color}15`,
-                          borderColor: `${step.color}25`,
-                          color: step.color,
-                        }}
-                      >
-                        {step.num}
-                      </span>
-                      <h4 className="text-sm font-semibold">{step.title}</h4>
-                    </div>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {step.desc}
-                    </p>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          {/* Connecting arrows (desktop only) */}
+          <div className="hidden md:block absolute top-1/2 left-[calc(33.33%-12px)] w-[calc(33.33%+24px)] -translate-y-1/2 pointer-events-none z-0">
+            <svg
+              className="w-full h-8"
+              viewBox="0 0 400 32"
+              fill="none"
+              preserveAspectRatio="none"
+            >
+              <line
+                x1="0"
+                y1="16"
+                x2="180"
+                y2="16"
+                stroke={C.border}
+                strokeWidth="1"
+                strokeDasharray="6 4"
+              />
+              <polygon points="180,12 188,16 180,20" fill={C.textMuted} />
+              <line
+                x1="210"
+                y1="16"
+                x2="390"
+                y2="16"
+                stroke={C.border}
+                strokeWidth="1"
+                strokeDasharray="6 4"
+              />
+              <polygon points="390,12 398,16 390,20" fill={C.textMuted} />
+            </svg>
           </div>
+
+          {workflowSteps.map((step, i) => (
+            <Reveal key={i} delay={i * 0.08}>
+              <ShimmerCard className="h-full">
+                <Card hover className="relative p-6 h-full overflow-hidden">
+                  <div
+                    className="absolute top-0 left-0 w-full h-0.5"
+                    style={{
+                      background: `linear-gradient(90deg, ${step.color}00, ${step.color}, ${step.color}00)`,
+                    }}
+                  />
+                  <div className="flex items-center gap-3 mb-4">
+                    <span
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold font-mono border"
+                      style={{
+                        background: `${step.color}15`,
+                        borderColor: `${step.color}25`,
+                        color: step.color,
+                      }}
+                    >
+                      {step.num}
+                    </span>
+                    <h4 className="text-sm font-semibold">{step.title}</h4>
+                  </div>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {step.desc}
+                  </p>
+                </Card>
+              </ShimmerCard>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
 
       {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal>
-            <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-              <ConnectionGrid />
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
+      <Section>
+        <Reveal>
+          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
+            <ConnectionGrid />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
 
-              <div className="relative z-10">
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-                  Ready to get started?
-                </p>
-                <h2 className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Secure support starts here
-                </h2>
-                <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed mb-8">
-                  Enable audited, accountable remote support for your team in
-                  minutes. No VPN required, no SSH keys to manage, no audit
-                  gaps.
-                </p>
+            <div className="relative z-10">
+              <SectionHeader
+                variant="cta"
+                eyebrow="Ready to get started?"
+                title="Secure support starts here"
+                subtitle="Enable audited, accountable remote support for your team in minutes. No VPN required, no SSH keys to manage, no audit gaps."
+              />
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button
-                    as={Link}
-                    to="/getting-started"
-                    variant="primary"
-                    size="xl"
-                    glow
-                    iconRight={<ArrowRight />}
-                  >
-                    Get Started Free
-                  </Button>
-                  <Button as={Link} to="/pricing" variant="outline" size="xl">
-                    View Pricing
-                  </Button>
-                </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  as={Link}
+                  to="/getting-started"
+                  variant="primary"
+                  size="xl"
+                  glow
+                  iconRight={<ArrowRight />}
+                >
+                  Get Started Free
+                </Button>
+                <Button as={Link} to="/pricing" variant="outline" size="xl">
+                  View Pricing
+                </Button>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+          </div>
+        </Reveal>
+      </Section>
     </SiteLayout>
   );
 }

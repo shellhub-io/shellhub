@@ -28,7 +28,7 @@ export function Hero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
-          <span className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB]">
+          <span className="text-2xs font-mono font-semibold uppercase tracking-label text-primary">
             Open Source SSH Gateway
           </span>
         </div>

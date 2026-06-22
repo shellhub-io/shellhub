@@ -1,30 +1,34 @@
+import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "./components";
 import { docsUrl } from "@/links";
 
 export function SupportedPlatforms() {
   return (
-    <section className="py-24 border-t border-border relative overflow-hidden">
+    <Section className="relative overflow-hidden" container={false}>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/[0.03] rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto px-8 relative z-10">
-        <Reveal className="text-center mb-14">
-          <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-            Supported Platforms
-          </p>
-          <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-            One agent. <span className="text-primary">Every platform.</span>
-          </h2>
-          <p className="text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
-            The ShellHub agent runs on{" "}
-            <span className="inline-block px-1.5 py-0.5 bg-border/40 rounded text-2xs font-mono font-medium text-text-primary/90">
-              x86
-            </span>{" "}
-            and{" "}
-            <span className="inline-block px-1.5 py-0.5 bg-border/40 rounded text-2xs font-mono font-medium text-text-primary/90">
-              ARM
-            </span>{" "}
-            — from Docker containers to embedded Linux and FreeBSD.
-          </p>
-        </Reveal>
+        <SectionHeader
+          eyebrow="Supported Platforms"
+          title={
+            <>
+              One agent. <span className="text-primary">Every platform.</span>
+            </>
+          }
+          subtitle={
+            <>
+              The ShellHub agent runs on{" "}
+              <span className="inline-block px-1.5 py-0.5 bg-border/40 rounded text-2xs font-mono font-medium text-text-primary/90">
+                x86
+              </span>{" "}
+              and{" "}
+              <span className="inline-block px-1.5 py-0.5 bg-border/40 rounded text-2xs font-mono font-medium text-text-primary/90">
+                ARM
+              </span>{" "}
+              — from Docker containers to embedded Linux and FreeBSD.
+            </>
+          }
+          subtitleClassName="max-w-xl"
+        />
 
         {/* Bento Grid — 12-col for precise control */}
         <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 auto-rows-auto">
@@ -274,7 +278,7 @@ export function SupportedPlatforms() {
             href={docsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#7B8EDB] hover:gap-2.5 transition-all group"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
           >
             View all supported platforms
             <svg
@@ -293,6 +297,6 @@ export function SupportedPlatforms() {
           </a>
         </Reveal>
       </div>
-    </section>
+    </Section>
   );
 }

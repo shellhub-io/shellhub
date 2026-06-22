@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "../landing/components";
 
 const faqs = [
@@ -41,7 +42,9 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
         className="w-full text-left py-5 border-b border-border group"
       >
         <div className="flex items-center justify-between gap-4">
-          <h4 className="text-sm font-semibold group-hover:text-primary transition-colors">{q}</h4>
+          <h4 className="text-sm font-semibold group-hover:text-primary transition-colors">
+            {q}
+          </h4>
           <svg
             className={`w-4 h-4 text-text-muted shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}
             fill="none"
@@ -50,7 +53,11 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
             strokeWidth={2}
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
           </svg>
         </div>
         <div
@@ -58,7 +65,9 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
             open ? "max-h-40 opacity-100 mt-3" : "max-h-0 opacity-0"
           }`}
         >
-          <p className="text-sm text-text-secondary leading-relaxed pr-8">{a}</p>
+          <p className="text-sm text-text-secondary leading-relaxed pr-8">
+            {a}
+          </p>
         </div>
       </button>
     </Reveal>
@@ -67,23 +76,14 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
 
 export function PricingFAQ() {
   return (
-    <section className="py-24">
-      <div className="max-w-3xl mx-auto px-8">
-        <Reveal className="text-center mb-14">
-          <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-            FAQ
-          </p>
-          <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight">
-            Frequently asked questions
-          </h2>
-        </Reveal>
+    <Section bordered={false} containerClassName="max-w-3xl">
+      <SectionHeader eyebrow="FAQ" title="Frequently asked questions" />
 
-        <div>
-          {faqs.map((faq, i) => (
-            <FAQItem key={i} q={faq.q} a={faq.a} index={i} />
-          ))}
-        </div>
+      <div>
+        {faqs.map((faq, i) => (
+          <FAQItem key={i} q={faq.q} a={faq.a} index={i} />
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }

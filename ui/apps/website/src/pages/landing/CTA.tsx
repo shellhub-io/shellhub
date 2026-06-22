@@ -1,11 +1,16 @@
 import { Button } from "@shellhub/design-system/primitives";
+import { Section } from "@/components/marketing";
 import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ConnectionGrid } from "./components";
 import { signupUrl } from "@/links";
 
 export function CTA() {
   return (
-    <section className="py-24 text-center relative overflow-hidden grid-bg">
+    <Section
+      container={false}
+      bordered={false}
+      className="text-center grid-bg relative overflow-hidden"
+    >
       <ConnectionGrid />
       <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent pointer-events-none" />
       <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-80 h-80 bg-primary/6 rounded-full blur-3xl pointer-events-none" />
@@ -36,6 +41,6 @@ export function CTA() {
           </Button>
         </Reveal>
       </div>
-    </section>
+    </Section>
   );
 }

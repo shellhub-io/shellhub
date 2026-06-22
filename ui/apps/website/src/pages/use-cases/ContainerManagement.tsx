@@ -7,6 +7,8 @@ import {
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
+import { Section, SectionHeader } from "@/components/marketing";
+import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -554,30 +556,111 @@ export default function ContainerManagement() {
       </section>
 
       {/* ═══════ Before / After ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Before &amp; After
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              From three steps to one
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              See how ShellHub eliminates the multi-step dance of connecting to
-              containers on remote hosts.
-            </p>
+      <Section>
+        <SectionHeader
+          eyebrow="Before & After"
+          title="From three steps to one"
+          subtitle="See how ShellHub eliminates the multi-step dance of connecting to containers on remote hosts."
+        />
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Without ShellHub */}
+          <Reveal delay={0}>
+            <ShimmerCard className="h-full">
+              <Card hover className="p-8 flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-text-secondary"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18 18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold">Without ShellHub</h3>
+                    <p className="text-2xs text-text-muted">
+                      Manual, multi-step
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fake terminal */}
+                <div className="bg-[#111214] rounded-lg border border-border overflow-hidden flex-1">
+                  <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
+                    <div className="w-2.5 h-2.5 rounded-full bg-accent-red/50" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-accent-yellow/50" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-accent-green/50" />
+                    <span className="ml-2 text-2xs text-text-muted font-mono">
+                      Terminal
+                    </span>
+                  </div>
+                  <div className="p-4 font-mono text-xs leading-relaxed space-y-2">
+                    <p>
+                      <span className="text-text-muted">
+                        # Step 1: SSH into the Docker host
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-accent-green">$</span>{" "}
+                      <span className="text-text-secondary">
+                        ssh root@192.168.1.42
+                      </span>
+                    </p>
+                    <p className="text-text-muted text-2xs">
+                      Enter password...
+                    </p>
+                    <p>
+                      <span className="text-text-muted">
+                        # Step 2: Find the container
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-accent-green">$</span>{" "}
+                      <span className="text-text-secondary">
+                        docker ps | grep api
+                      </span>
+                    </p>
+                    <p className="text-text-muted text-2xs">
+                      abc123f8... api-server
+                    </p>
+                    <p>
+                      <span className="text-text-muted">
+                        # Step 3: Exec into it
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-accent-green">$</span>{" "}
+                      <span className="text-text-secondary">
+                        docker exec -it abc123 /bin/bash
+                      </span>
+                    </p>
+                    <p className="text-text-muted text-2xs mt-2">
+                      No audit. No access control. No recording.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </ShimmerCard>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Without ShellHub */}
-            <Reveal delay={0}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-8 flex flex-col h-full">
+          {/* With ShellHub */}
+          <Reveal delay={0.1}>
+            <ShimmerCard className="h-full">
+              <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+                <div className="relative flex-1 flex flex-col">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
+                    <IconBadge color="primary">
                       <svg
-                        className="w-5 h-5 text-text-secondary"
+                        className="w-5 h-5 text-primary"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -586,528 +669,378 @@ export default function ContainerManagement() {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          d="M6 18 18 6M6 6l12 12"
+                          d="m4.5 12.75 6 6 9-13.5"
                         />
                       </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold">Without ShellHub</h3>
-                      <p className="text-2xs text-text-muted">
-                        Manual, multi-step
-                      </p>
-                    </div>
+                    </IconBadge>
+                    <Badge shape="pill" color="green">
+                      Recommended
+                    </Badge>
                   </div>
 
+                  <h3 className="text-sm font-bold mb-1">With ShellHub</h3>
+                  <p className="text-2xs text-primary mb-6">
+                    One command, fully recorded
+                  </p>
+
                   {/* Fake terminal */}
-                  <div className="bg-[#111214] rounded-lg border border-border overflow-hidden flex-1">
+                  <div className="bg-[#111214] rounded-lg border border-primary/20 overflow-hidden flex-1">
                     <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
                       <div className="w-2.5 h-2.5 rounded-full bg-accent-red/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-accent-yellow/50" />
                       <div className="w-2.5 h-2.5 rounded-full bg-accent-green/50" />
-                      <span className="ml-2 text-2xs text-text-muted font-mono">
+                      <span className="ml-2 text-2xs text-primary font-mono">
                         Terminal
                       </span>
                     </div>
                     <div className="p-4 font-mono text-xs leading-relaxed space-y-2">
                       <p>
                         <span className="text-text-muted">
-                          # Step 1: SSH into the Docker host
+                          # One step. That's it.
                         </span>
                       </p>
                       <p>
                         <span className="text-accent-green">$</span>{" "}
-                        <span className="text-text-secondary">
-                          ssh root@192.168.1.42
+                        <span className="text-text-primary">
+                          ssh user@api-server.production
                         </span>
+                      </p>
+                      <p className="text-accent-green text-2xs mt-1">
+                        Connected to api-server
                       </p>
                       <p className="text-text-muted text-2xs">
-                        Enter password...
-                      </p>
-                      <p>
-                        <span className="text-text-muted">
-                          # Step 2: Find the container
-                        </span>
-                      </p>
-                      <p>
-                        <span className="text-accent-green">$</span>{" "}
-                        <span className="text-text-secondary">
-                          docker ps | grep api
-                        </span>
+                        Session recorded: #ses-4a82f1
                       </p>
                       <p className="text-text-muted text-2xs">
-                        abc123f8... api-server
+                        Access policy: production-operators
                       </p>
-                      <p>
-                        <span className="text-text-muted">
-                          # Step 3: Exec into it
-                        </span>
+                      <p className="text-text-muted text-2xs">MFA verified</p>
+                      <p className="mt-3">
+                        <span className="text-accent-cyan">
+                          root@api-server:~#
+                        </span>{" "}
+                        <span className="inline-block w-2 h-3.5 bg-text-primary animate-pulse" />
                       </p>
-                      <p>
-                        <span className="text-accent-green">$</span>{" "}
-                        <span className="text-text-secondary">
-                          docker exec -it abc123 /bin/bash
-                        </span>
-                      </p>
-                      <p className="text-text-muted text-2xs mt-2">
-                        No audit. No access control. No recording.
+                    </div>
+                  </div>
+
+                  {/* Status badges */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {[
+                      { label: "Recorded", color: C.green },
+                      { label: "Access-controlled", color: C.primary },
+                      { label: "MFA", color: C.yellow },
+                      { label: "Audited", color: C.cyan },
+                    ].map((b) => (
+                      <span
+                        key={b.label}
+                        className="px-2 py-0.5 text-2xs font-mono border rounded-full"
+                        style={{
+                          color: b.color,
+                          borderColor: `${b.color}30`,
+                          background: `${b.color}10`,
+                        }}
+                      >
+                        {b.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ShimmerCard>
+          </Reveal>
+        </div>
+      </Section>
+
+      {/* ═══════ Architecture Diagram ═══════ */}
+      <Section>
+        <SectionHeader
+          eyebrow="Architecture"
+          title="How container SSH works"
+          subtitle="The ShellHub agent runs alongside your containers on the Docker host, routing SSH connections to individual containers through the gateway."
+        />
+
+        <Reveal>
+          <ShimmerCard>
+            <Card hover className="p-6 sm:p-8 overflow-hidden">
+              <ArchitectureDiagram />
+            </Card>
+          </ShimmerCard>
+        </Reveal>
+      </Section>
+
+      {/* ═══════ Pain Points ═══════ */}
+      <Section>
+        <SectionHeader
+          eyebrow="The Problem"
+          title="Why docker exec falls short"
+          subtitle="Docker exec was designed for local debugging, not for production access at scale."
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {painPoints.map((p, i) => (
+            <Reveal key={i} delay={i * 0.06}>
+              <ShimmerCard className="h-full">
+                <Card hover className="p-6 h-full">
+                  <div className="flex items-start gap-4">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
+                      style={{
+                        background: `${p.color}15`,
+                        borderColor: `${p.color}25`,
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={p.color}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      >
+                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+                        <path d="M12 15.75h.007v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {p.desc}
                       </p>
                     </div>
                   </div>
                 </Card>
               </ShimmerCard>
             </Reveal>
-
-            {/* With ShellHub */}
-            <Reveal delay={0.1}>
-              <ShimmerCard className="h-full">
-                <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)] overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
-                  <div className="relative flex-1 flex flex-col">
-                    <div className="flex items-center gap-3 mb-6">
-                      <IconBadge color="primary">
-                        <svg
-                          className="w-5 h-5 text-primary"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m4.5 12.75 6 6 9-13.5"
-                          />
-                        </svg>
-                      </IconBadge>
-                      <Badge shape="pill" color="green">
-                        Recommended
-                      </Badge>
-                    </div>
-
-                    <h3 className="text-sm font-bold mb-1">With ShellHub</h3>
-                    <p className="text-2xs text-primary mb-6">
-                      One command, fully recorded
-                    </p>
-
-                    {/* Fake terminal */}
-                    <div className="bg-[#111214] rounded-lg border border-primary/20 overflow-hidden flex-1">
-                      <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
-                        <div className="w-2.5 h-2.5 rounded-full bg-accent-red/50" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-accent-yellow/50" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-accent-green/50" />
-                        <span className="ml-2 text-2xs text-primary font-mono">
-                          Terminal
-                        </span>
-                      </div>
-                      <div className="p-4 font-mono text-xs leading-relaxed space-y-2">
-                        <p>
-                          <span className="text-text-muted">
-                            # One step. That's it.
-                          </span>
-                        </p>
-                        <p>
-                          <span className="text-accent-green">$</span>{" "}
-                          <span className="text-text-primary">
-                            ssh user@api-server.production
-                          </span>
-                        </p>
-                        <p className="text-accent-green text-2xs mt-1">
-                          Connected to api-server
-                        </p>
-                        <p className="text-text-muted text-2xs">
-                          Session recorded: #ses-4a82f1
-                        </p>
-                        <p className="text-text-muted text-2xs">
-                          Access policy: production-operators
-                        </p>
-                        <p className="text-text-muted text-2xs">MFA verified</p>
-                        <p className="mt-3">
-                          <span className="text-accent-cyan">
-                            root@api-server:~#
-                          </span>{" "}
-                          <span className="inline-block w-2 h-3.5 bg-text-primary animate-pulse" />
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Status badges */}
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {[
-                        { label: "Recorded", color: C.green },
-                        { label: "Access-controlled", color: C.primary },
-                        { label: "MFA", color: C.yellow },
-                        { label: "Audited", color: C.cyan },
-                      ].map((b) => (
-                        <span
-                          key={b.label}
-                          className="px-2 py-0.5 text-2xs font-mono border rounded-full"
-                          style={{
-                            color: b.color,
-                            borderColor: `${b.color}30`,
-                            background: `${b.color}10`,
-                          }}
-                        >
-                          {b.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </ShimmerCard>
-            </Reveal>
-          </div>
+          ))}
         </div>
-      </section>
-
-      {/* ═══════ Architecture Diagram ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Architecture
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              How container SSH works
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              The ShellHub agent runs alongside your containers on the Docker
-              host, routing SSH connections to individual containers through the
-              gateway.
-            </p>
-          </Reveal>
-
-          <Reveal>
-            <ShimmerCard>
-              <Card hover className="p-6 sm:p-8 overflow-hidden">
-                <ArchitectureDiagram />
-              </Card>
-            </ShimmerCard>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ═══════ Pain Points ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              The Problem
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Why docker exec falls short
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Docker exec was designed for local debugging, not for production
-              access at scale.
-            </p>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {painPoints.map((p, i) => (
-              <Reveal key={i} delay={i * 0.06}>
-                <ShimmerCard className="h-full">
-                  <Card hover className="p-6 h-full">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
-                        style={{
-                          background: `${p.color}15`,
-                          borderColor: `${p.color}25`,
-                        }}
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke={p.color}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        >
-                          <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-                          <path d="M12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2">
-                          {p.title}
-                        </h4>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {p.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      </Section>
 
       {/* ═══════ Key Features ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Features
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Built for container workflows
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Everything you need to manage SSH access to containers at scale,
-              from access control to session recording.
-            </p>
-          </Reveal>
+      <Section>
+        <SectionHeader
+          eyebrow="Features"
+          title="Built for container workflows"
+          subtitle="Everything you need to manage SSH access to containers at scale, from access control to session recording."
+        />
 
-          {/* Big feature card: Per-Container Access Control */}
-          <Reveal className="mb-6">
-            <ShimmerCard>
-              <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)]">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
-                <div className="relative grid lg:grid-cols-2 gap-8 p-8">
-                  {/* Left: description */}
-                  <div className="flex flex-col justify-center">
-                    <IconBadge color="primary" className="mb-4">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={C.primary}
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      >
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                        <path d="M16 3.13a4 4 0 010 7.75" />
-                      </svg>
-                    </IconBadge>
-                    <h3 className="text-lg font-bold mb-2">
-                      Per-Container Access Control
-                    </h3>
-                    <p className="text-sm text-text-secondary leading-relaxed mb-6">
-                      Define who can access which containers with role-based
-                      policies. Assign roles at the container level, not just
-                      the host. Restrict shell access, enforce MFA, and audit
-                      every connection attempt.
-                    </p>
-                    <ul className="space-y-2.5">
-                      {[
-                        "Container-level permissions, not host-level",
-                        "Role-based policies per user or group",
-                        "MFA enforcement per container",
-                        "Deny-by-default access model",
-                      ].map((item) => (
-                        <li
-                          key={item}
-                          className="flex items-center gap-2.5 text-sm text-text-secondary"
-                        >
-                          <svg
-                            className="w-4 h-4 text-accent-green shrink-0"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m4.5 12.75 6 6 9-13.5"
-                            />
-                          </svg>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+        {/* Big feature card: Per-Container Access Control */}
+        <Reveal className="mb-6">
+          <ShimmerCard>
+            <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+              <div className="relative grid lg:grid-cols-2 gap-8 p-8">
+                {/* Left: description */}
+                <div className="flex flex-col justify-center">
+                  <IconBadge color="primary" className="mb-4">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={C.primary}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    >
+                      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                      <path d="M16 3.13a4 4 0 010 7.75" />
+                    </svg>
+                  </IconBadge>
+                  <h3 className="text-lg font-bold mb-2">
+                    Per-Container Access Control
+                  </h3>
+                  <p className="text-sm text-text-secondary leading-relaxed mb-6">
+                    Define who can access which containers with role-based
+                    policies. Assign roles at the container level, not just the
+                    host. Restrict shell access, enforce MFA, and audit every
+                    connection attempt.
+                  </p>
+                  <ul className="space-y-2.5">
+                    {[
+                      "Container-level permissions, not host-level",
+                      "Role-based policies per user or group",
+                      "MFA enforcement per container",
+                      "Deny-by-default access model",
+                    ].map((item) => (
+                      <FeatureListItem key={item} color="green">
+                        {item}
+                      </FeatureListItem>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Right: permissions table mockup */}
+                <div className="bg-surface rounded-xl border border-border overflow-hidden">
+                  <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
+                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
+                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
+                    <span className="ml-2 text-2xs text-text-muted font-mono">
+                      Container Permissions
+                    </span>
                   </div>
 
-                  {/* Right: permissions table mockup */}
-                  <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
-                      <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                      <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                      <span className="ml-2 text-2xs text-text-muted font-mono">
-                        Container Permissions
+                  {/* Table header */}
+                  <div className="grid grid-cols-4 gap-2 px-5 py-2.5 border-b border-border text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    <span>Container</span>
+                    <span>User</span>
+                    <span>Role</span>
+                    <span>Access</span>
+                  </div>
+
+                  {/* Table rows */}
+                  {permRows.map((row, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-4 gap-2 px-5 py-3 border-b border-border last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <span className="text-xs font-mono text-text-primary truncate">
+                        {row.container}
                       </span>
-                    </div>
-
-                    {/* Table header */}
-                    <div className="grid grid-cols-4 gap-2 px-5 py-2.5 border-b border-border text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      <span>Container</span>
-                      <span>User</span>
-                      <span>Role</span>
-                      <span>Access</span>
-                    </div>
-
-                    {/* Table rows */}
-                    {permRows.map((row, i) => (
-                      <div
-                        key={i}
-                        className="grid grid-cols-4 gap-2 px-5 py-3 border-b border-border last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                      <span className="text-xs text-text-secondary truncate">
+                        {row.user}
+                      </span>
+                      <span
+                        className="px-2 py-0.5 text-2xs font-mono rounded-full w-fit border"
+                        style={{
+                          color: row.accent,
+                          borderColor: `${row.accent}30`,
+                          background: `${row.accent}10`,
+                        }}
                       >
-                        <span className="text-xs font-mono text-text-primary truncate">
-                          {row.container}
-                        </span>
-                        <span className="text-xs text-text-secondary truncate">
-                          {row.user}
-                        </span>
-                        <span
-                          className="px-2 py-0.5 text-2xs font-mono rounded-full w-fit border"
-                          style={{
-                            color: row.accent,
-                            borderColor: `${row.accent}30`,
-                            background: `${row.accent}10`,
-                          }}
-                        >
-                          {row.role}
-                        </span>
-                        <span className="text-xs text-text-muted">
-                          {row.level}
-                        </span>
-                      </div>
-                    ))}
-
-                    <div className="px-5 py-3 flex items-center justify-between border-t border-border">
-                      <span className="text-2xs text-text-muted">
-                        4 policies in production
+                        {row.role}
                       </span>
-                      <span className="text-2xs text-primary font-medium">
-                        Manage &rarr;
+                      <span className="text-xs text-text-muted">
+                        {row.level}
                       </span>
                     </div>
+                  ))}
+
+                  <div className="px-5 py-3 flex items-center justify-between border-t border-border">
+                    <span className="text-2xs text-text-muted">
+                      4 policies in production
+                    </span>
+                    <span className="text-2xs text-primary font-medium">
+                      Manage &rarr;
+                    </span>
                   </div>
                 </div>
               </div>
-            </ShimmerCard>
-          </Reveal>
+            </div>
+          </ShimmerCard>
+        </Reveal>
 
-          {/* 2x2 smaller feature cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {smallFeatures.map((f, i) => (
-              <Reveal key={i} delay={i * 0.04}>
-                <ShimmerCard className="h-full">
-                  <Card hover className="p-6 h-full">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                      style={{
-                        background: `${f.color}15`,
-                        borderColor: `${f.color}25`,
-                      }}
-                    >
-                      {f.icon}
-                    </div>
-                    <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+        {/* 2x2 smaller feature cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {smallFeatures.map((f, i) => (
+            <Reveal key={i} delay={i * 0.04}>
+              <ShimmerCard className="h-full">
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                    style={{
+                      background: `${f.color}15`,
+                      borderColor: `${f.color}25`,
+                    }}
+                  >
+                    {f.icon}
+                  </div>
+                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {f.desc}
+                  </p>
+                </Card>
+              </ShimmerCard>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ═══════ How It Works ═══════ */}
+      <Section>
+        <SectionHeader
+          eyebrow="How It Works"
+          title="Three steps to container SSH"
+          subtitle="Go from zero to SSH-accessible containers in minutes, not hours."
+        />
+
+        <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Connecting line (visible on md+) */}
+          <div className="hidden md:block absolute top-[52px] left-[16.66%] right-[16.66%] h-[1px] z-0">
+            <div
+              className="w-full h-full"
+              style={{
+                background: `linear-gradient(to right, ${C.primary}40, ${C.cyan}40, ${C.green}40)`,
+              }}
+            />
+          </div>
+
+          {steps.map((s, i) => (
+            <Reveal key={i} delay={i * 0.08}>
+              <div className="relative text-center">
+                {/* Step number circle */}
+                <div
+                  className="relative z-10 w-[60px] h-[60px] rounded-full mx-auto mb-6 flex items-center justify-center border text-lg font-bold font-mono"
+                  style={{
+                    background: `${s.color}12`,
+                    borderColor: `${s.color}30`,
+                    color: s.color,
+                  }}
+                >
+                  {s.num}
+                </div>
+                <ShimmerCard>
+                  <Card hover className="p-6">
+                    <h4 className="text-sm font-semibold mb-2">{s.title}</h4>
                     <p className="text-xs text-text-secondary leading-relaxed">
-                      {f.desc}
+                      {s.desc}
                     </p>
                   </Card>
                 </ShimmerCard>
-              </Reveal>
-            ))}
-          </div>
+              </div>
+            </Reveal>
+          ))}
         </div>
-      </section>
-
-      {/* ═══════ How It Works ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              How It Works
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Three steps to container SSH
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Go from zero to SSH-accessible containers in minutes, not hours.
-            </p>
-          </Reveal>
-
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Connecting line (visible on md+) */}
-            <div className="hidden md:block absolute top-[52px] left-[16.66%] right-[16.66%] h-[1px] z-0">
-              <div
-                className="w-full h-full"
-                style={{
-                  background: `linear-gradient(to right, ${C.primary}40, ${C.cyan}40, ${C.green}40)`,
-                }}
-              />
-            </div>
-
-            {steps.map((s, i) => (
-              <Reveal key={i} delay={i * 0.08}>
-                <div className="relative text-center">
-                  {/* Step number circle */}
-                  <div
-                    className="relative z-10 w-[60px] h-[60px] rounded-full mx-auto mb-6 flex items-center justify-center border text-lg font-bold font-mono"
-                    style={{
-                      background: `${s.color}12`,
-                      borderColor: `${s.color}30`,
-                      color: s.color,
-                    }}
-                  >
-                    {s.num}
-                  </div>
-                  <ShimmerCard>
-                    <Card hover className="p-6">
-                      <h4 className="text-sm font-semibold mb-2">{s.title}</h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        {s.desc}
-                      </p>
-                    </Card>
-                  </ShimmerCard>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      </Section>
 
       {/* ═══════ CTA ═══════ */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal>
-            <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-              <ConnectionGrid />
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/[0.06] via-transparent to-primary/[0.04] pointer-events-none" />
+      <Section>
+        <Reveal>
+          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
+            <ConnectionGrid />
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/[0.06] via-transparent to-primary/[0.04] pointer-events-none" />
 
-              <div className="relative z-10">
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-accent-cyan mb-3">
-                  Ready to simplify container access?
-                </p>
-                <h2 className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Manage your containers remotely
-                </h2>
-                <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed mb-8">
-                  Install the ShellHub agent and get instant SSH access to
-                  containers on any remote host. Free to start, no credit card
-                  required.
-                </p>
+            <div className="relative z-10">
+              <SectionHeader
+                variant="cta"
+                eyebrowColor="cyan"
+                eyebrow="Ready to simplify container access?"
+                title="Manage your containers remotely"
+                subtitle="Install the ShellHub agent and get instant SSH access to containers on any remote host. Free to start, no credit card required."
+              />
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button
-                    as={Link}
-                    to="/getting-started"
-                    variant="primary"
-                    size="xl"
-                    glow
-                    iconRight={<ArrowRight />}
-                  >
-                    Get Started Free
-                  </Button>
-                  <Button as={Link} to="/pricing" variant="outline" size="xl">
-                    Compare Plans
-                  </Button>
-                </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  as={Link}
+                  to="/getting-started"
+                  variant="primary"
+                  size="xl"
+                  glow
+                  iconRight={<ArrowRight />}
+                >
+                  Get Started Free
+                </Button>
+                <Button as={Link} to="/pricing" variant="outline" size="xl">
+                  Compare Plans
+                </Button>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+          </div>
+        </Reveal>
+      </Section>
     </SiteLayout>
   );
 }
