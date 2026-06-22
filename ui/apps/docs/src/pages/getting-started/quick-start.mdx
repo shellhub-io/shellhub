@@ -39,17 +39,21 @@ Run this on any Linux device you want to manage. The agent installs as a Docker 
 
 > **Tip:** The agent needs Docker or Podman on the device. For other installation methods (Snap, FreeBSD, Buildroot, Yocto), see [Agent](/agent/overview).
 
+![ShellHub Add Device page showing the installation method chooser and the one-line install command](/img/devices/device-add.gif)
+
 ### 3. Accept the device
 
 Open the **Devices** page from the left nav. Your new device appears with **Pending** status, listed with its hostname, SSHID, and operating system. Click **Accept** to approve it — its status moves to **Online** and it's ready to connect.
 
-![Devices list](/img/devices/device-list.png)
+![ShellHub Devices page on the Pending tab where new devices await acceptance](/img/devices/device-pending.gif)
 
 For everything you can do from here — searching, tagging, renaming, and removing devices — see [Devices](/guides/devices).
 
 ### 4. Connect
 
 Click the terminal icon next to the device to open a web SSH session. Enter the device username and password — you're in.
+
+![Device connecting](/img/devices/device-connect.gif)
 
 To connect with your own SSH client:
 

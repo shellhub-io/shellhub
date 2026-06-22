@@ -25,21 +25,27 @@ If you lose access to your authenticator, you can regain entry using a one-time 
 
 Open your **Profile** page and find the **Security** section, then click **Enable MFA**.
 
-![The Profile page Security section with the Enable MFA option](/img/account/profile.png)
+![The Profile page Security section with the Enable MFA option](/img/account/mfa-enable.gif)
 
-The setup runs in two steps.
+The setup runs in three steps.
 
 ### Step 1 — Set a recovery email
 
 Provide a recovery email address. This is required and is used to regain access if you ever lose both your authenticator app and your recovery codes.
 
-![The Enable MFA drawer on Step 1, setting the recovery email](/img/account/mfa-enable.png)
+![Recovery mail](/img/account/mfa-recovery-mail.png)
 
-### Step 2 — Scan the QR code
+### Step 2 - Save 
+
+Download or copy the recovery codes, check "I have saved my recovery codes in a secure location" and then click "Next Step".
+
+![Recovery codes screen](/img/account/mfa-recovery-codes.png)
+
+### Step 3 — Scan the QR code
 
 Open your authenticator app and scan the displayed TOTP QR code (or enter the secret manually). Enter the 6-digit code your app generates to confirm, then complete the setup.
 
-ShellHub then displays a list of **recovery codes**. Save them somewhere safe — they are shown only once. Each recovery code can be used a single time and is invalidated after use.
+![MFA QR Code waiting to be scanned](/img/account/mfa-setup.png)
 
 ## Logging in with MFA
 
@@ -48,6 +54,8 @@ After enabling MFA, the login flow gains a second step:
 1. Enter your email and password as usual
 2. When prompted, enter the current 6-digit code from your authenticator app
 3. Submit to complete the login
+
+![Login requiring 6-digit code](/img/account/mfa-login.png)
 
 ## Account recovery
 
@@ -59,6 +67,8 @@ If you lose access to your authenticator app, you can still get back into your a
 | Only your recovery email | Request recovery via your recovery email. ShellHub sends a code that lets you disable MFA and regain access. |
 
 On Enterprise instances, self-service recovery by email may be unavailable — contact your instance administrator to reset MFA on your account.
+
+
 
 ## Next steps
 
