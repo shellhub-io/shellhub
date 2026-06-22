@@ -14,7 +14,7 @@ import (
 func TestSessionFromModel(t *testing.T) {
 	now := time.Now()
 
-	clockMock := clockmock.NewClock(t)
+	clockMock := clockmock.NewMockClock(t)
 	oldClock := clock.DefaultBackend
 	clock.DefaultBackend = clockMock
 	t.Cleanup(func() { clock.DefaultBackend = oldClock })
@@ -177,7 +177,7 @@ func TestSessionToModel(t *testing.T) {
 func TestActiveSessionFromModel(t *testing.T) {
 	now := time.Now()
 
-	clockMock := clockmock.NewClock(t)
+	clockMock := clockmock.NewMockClock(t)
 	oldClock := clock.DefaultBackend
 	clock.DefaultBackend = clockMock
 	t.Cleanup(func() { clock.DefaultBackend = oldClock })

@@ -12,7 +12,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-//go:generate mockery --name Socket --filename socket.go
 type Socket interface {
 	io.ReadWriteCloser
 }

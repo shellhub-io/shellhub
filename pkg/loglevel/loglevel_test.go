@@ -10,7 +10,9 @@ import (
 )
 
 func TestSetLevels(t *testing.T) {
-	mocks := &envMocks.Backend{}
+	mocks := envMocks.NewMockBackend(t)
+	prevBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevBackend })
 	envs.DefaultBackend = mocks
 
 	cases := []struct {
@@ -70,7 +72,9 @@ func formatterToString(formatter logrus.Formatter) LogFormat {
 }
 
 func TestSetFormat(t *testing.T) {
-	mocks := &envMocks.Backend{}
+	mocks := envMocks.NewMockBackend(t)
+	prevBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevBackend })
 	envs.DefaultBackend = mocks
 
 	cases := []struct {

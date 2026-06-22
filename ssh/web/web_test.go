@@ -15,7 +15,7 @@ import (
 
 func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 	e := echo.New()
-	cache := new(cachemock.Cache)
+	cache := new(cachemock.MockCache)
 
 	NewSSHServerBridge(e, cache)
 

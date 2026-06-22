@@ -17,7 +17,7 @@ import (
 )
 
 func TestGetSystemInfo(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -70,7 +70,7 @@ func TestGetSystemInfo(t *testing.T) {
 }
 
 func TestGetStats(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string

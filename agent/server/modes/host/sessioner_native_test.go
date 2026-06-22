@@ -128,7 +128,7 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 // + return err — BEFORE launching any goroutine or reaching cmd.ProcessState.ExitCode().
 func TestHeredoc_StartFailure(t *testing.T) {
 	// Mock osauth so generateShellCmd produces a cmd with a non-existent binary.
-	osauthMock := &osauthMocks.Backend{}
+	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
 	// Point the shell at a path that does not exist so cmd.Start() will fail with
@@ -212,7 +212,7 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 // containers, etc.).
 func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	// Mock osauth so LookupUser succeeds without touching /etc/passwd.
-	osauthMock := &osauthMocks.Backend{}
+	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
 	fakeUser := &osauth.User{

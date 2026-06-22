@@ -72,7 +72,7 @@ func mcpToolResult(t *testing.T, rec *httptest.ResponseRecorder) (string, bool) 
 // caller's own namespace when no tenant_id argument is supplied -- the MCP
 // credential is scoped to a single namespace.
 func TestMCPGetNamespaceDefaultsToCaller(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("GetNamespace", gomock.Anything, mcpCallerTenant).
 		Return(&models.Namespace{TenantID: mcpCallerTenant, Name: "dev"}, nil).
@@ -91,7 +91,7 @@ func TestMCPGetNamespaceDefaultsToCaller(t *testing.T) {
 // tenant's namespace by passing an explicit tenant_id. The service must never
 // be reached.
 func TestMCPGetNamespaceRejectsOtherTenant(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	rec := mcpCall(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(),
 		`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"shellhub_get_namespace","arguments":{"tenant_id":"11111111-1111-4000-0000-000000000000"}}}`)
@@ -106,7 +106,7 @@ func TestMCPGetNamespaceRejectsOtherTenant(t *testing.T) {
 // namespaces is an account-level action blocked for API keys (BlockAPIKey on
 // GetNamespaceList), so the MCP server must not expose it as a tool.
 func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	rec := mcpCall(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleOwner.String(),
 		`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
@@ -133,7 +133,7 @@ func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
 // TestMCPListDevices ensures status and pagination args reach the REST list
 // handler and the response is wrapped as {total, devices}.
 func TestMCPListDevices(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("ListDevices", gomock.Anything, gomock.MatchedBy(func(r *requests.DeviceList) bool {
 			return r.TenantID == mcpCallerTenant &&
@@ -155,7 +155,7 @@ func TestMCPListDevices(t *testing.T) {
 
 // TestMCPGetDevice ensures the uid arg becomes the path parameter.
 func TestMCPGetDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("GetDevice", gomock.Anything, models.UID("uid1")).
 		Return(&models.Device{UID: "uid1", Name: "dev1"}, nil).
@@ -173,7 +173,7 @@ func TestMCPGetDevice(t *testing.T) {
 // TestMCPUpdateDeviceStatus ensures uid and status become path parameters and
 // an owner (who has DeviceAccept) succeeds.
 func TestMCPUpdateDeviceStatus(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("UpdateDeviceStatus", gomock.Anything, gomock.MatchedBy(func(r *requests.DeviceUpdateStatus) bool {
 			return r.UID == "uid1" && r.Status == "accepted"
@@ -195,7 +195,7 @@ func TestMCPUpdateDeviceStatus(t *testing.T) {
 // before the handler runs. The tool no longer checks permissions itself -- the
 // middleware does. The service must never be reached.
 func TestMCPUpdateDeviceStatusForbidden(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	rec := mcpCall(t, NewRouter(mock), mcpCallerTenant, authorizer.RoleObserver.String(),
 		mcpToolCall("shellhub_update_device_status", `{"uid":"uid1","status":"accepted"}`))
@@ -208,7 +208,7 @@ func TestMCPUpdateDeviceStatusForbidden(t *testing.T) {
 
 // TestMCPDeleteDevice ensures the uid arg becomes the path parameter.
 func TestMCPDeleteDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("DeleteDevice", gomock.Anything, models.UID("uid1"), mcpCallerTenant).
 		Return(nil).
@@ -225,7 +225,7 @@ func TestMCPDeleteDevice(t *testing.T) {
 
 // TestMCPRenameDevice ensures the name arg is sent as the JSON body.
 func TestMCPRenameDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("RenameDevice", gomock.Anything, models.UID("uid1"), "newname", mcpCallerTenant).
 		Return(nil).
@@ -243,7 +243,7 @@ func TestMCPRenameDevice(t *testing.T) {
 // TestMCPGetStats ensures the tool reaches the stats handler scoped to the
 // caller's tenant.
 func TestMCPGetStats(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("GetStats", gomock.Anything, gomock.MatchedBy(func(r *requests.GetStats) bool {
 			return r.TenantID == mcpCallerTenant
@@ -265,7 +265,7 @@ func TestMCPGetStats(t *testing.T) {
 // TestMCPListSessions ensures pagination reaches the list handler and the
 // response is wrapped as {total, sessions}.
 func TestMCPListSessions(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("ListSessions", gomock.Anything, gomock.MatchedBy(func(r *requests.ListSessions) bool {
 			return r.TenantID == mcpCallerTenant && r.Paginator.Page == 1 && r.Paginator.PerPage == 20
@@ -285,7 +285,7 @@ func TestMCPListSessions(t *testing.T) {
 
 // TestMCPGetSession ensures the uid arg becomes the path parameter.
 func TestMCPGetSession(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 	mock.
 		On("GetSession", gomock.Anything, models.UID("sess1")).
 		Return(&models.Session{UID: "sess1"}, nil).

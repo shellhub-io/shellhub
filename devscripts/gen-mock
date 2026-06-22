@@ -1,24 +1,38 @@
 #!/bin/sh
 
-# This script is used to generate/update mock objects for testing
+# Generate/update mock objects for testing using mockery v3.
+#
+# Each module requires its own mockery run with GOWORK=off so that mockery
+# resolves imports against that module's go.mod instead of a workspace root.
+#
+# The api container mounts both the root module (pkg/) and the api/ sub-module,
+# so it is exec'd twice.  The gateway, ssh, and agent containers each have their
+# own module directory containing a .mockery.yaml.
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-           exec api go generate ./... 
+# Resolve the repo root relative to this script's location so the script works
+# when invoked from any directory (not just the repo root).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DC="$REPO_ROOT/bin/docker-compose"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Backend --dir ../pkg/envs/ --output ../pkg/envs/mocks --filename envs.go
+REPO=/go/src/github.com/shellhub-io/shellhub
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Clock --dir ../pkg/clock/ --output ../pkg/clock/mocks --filename clock.go
+# Root module (pkg/ shared packages)
+"$DC" exec api \
+    sh -c "cd $REPO && GOWORK=off mockery"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	       exec api mockery --name Uuid --dir ../pkg/uuid/ --output ../pkg/uuid/mocks --filename uuid.go
+# api/ sub-module
+"$DC" exec api \
+    sh -c "cd $REPO/api && GOWORK=off mockery"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec api mockery --name Client --dir ../pkg/api/internalclient --output ../pkg/api/internalclient/mocks --filename internalclient.go
+# gateway module
+"$DC" exec gateway \
+    sh -c "cd $REPO/gateway && GOWORK=off mockery"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec api mockery --name Client --dir ../pkg/api/client --output ../pkg/api/client/mocks --filename client.go
+# ssh module
+"$DC" exec ssh \
+    sh -c "cd $REPO/ssh && GOWORK=off mockery"
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-	exec ssh mockery --name Session --output ./mocks --filename session.go --srcpkg github.com/gliderlabs/ssh
+# agent module
+"$DC" exec agent \
+    sh -c "cd $REPO/agent && GOWORK=off mockery"

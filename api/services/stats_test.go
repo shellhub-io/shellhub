@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetStats(t *testing.T) {
-	storeMock := &mocks.Store{}
+	storeMock := mocks.NewMockStore(t)
 
 	ctx := context.Background()
 

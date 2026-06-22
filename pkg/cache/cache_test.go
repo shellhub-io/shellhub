@@ -15,7 +15,7 @@ func TestGet(t *testing.T) {
 		Value bool
 	}
 
-	cache := new(cacheMock.Cache)
+	cache := cacheMock.NewMockCache(t)
 
 	type Expected struct {
 		value *Test
@@ -84,6 +84,4 @@ func TestGet(t *testing.T) {
 			})
 		})
 	}
-
-	cache.AssertExpectations(t)
 }

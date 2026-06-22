@@ -19,24 +19,26 @@ import (
 var (
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
-	clientMock *mocks.Client
-	envMock    *env_mocks.Backend
-	clockMock  *clockmocks.Clock
-	hashMock   *hashmock.Hasher
+	clientMock *mocks.MockClient
+	envMock    *env_mocks.MockBackend
+	clockMock  *clockmocks.MockClock
+	hashMock   *hashmock.MockHasher
 	now        time.Time
 )
 
 func TestMain(m *testing.M) {
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
 	publicKey = &privateKey.PublicKey
-	clientMock = &mocks.Client{}
-	clockMock = &clockmocks.Clock{}
-	envMock = &env_mocks.Backend{}
+	// Capture now before swapping clock.DefaultBackend so that clock.Now()
+	// uses the real wall-clock backend and returns a valid timestamp.
+	now = clock.Now()
+	clientMock = &mocks.MockClient{}
+	clockMock = &clockmocks.MockClock{}
+	envMock = &env_mocks.MockBackend{}
 	clock.DefaultBackend = clockMock
 	envs.DefaultBackend = envMock
-	hashMock = &hashmock.Hasher{}
+	hashMock = &hashmock.MockHasher{}
 	hash.Backend = hashMock
-	now = time.Now()
 	code := m.Run()
 	os.Exit(code)
 }

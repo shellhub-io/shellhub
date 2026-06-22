@@ -23,13 +23,13 @@ func TestUserCreate(t *testing.T) {
 		err  error
 	}
 
-	mock := new(mocks.Store)
-	hashMock := &hashmock.Hasher{}
+	mock := new(mocks.MockStore)
+	hashMock := &hashmock.MockHasher{}
 	hash.Backend = hashMock
 	ctx := context.TODO()
 	now := clock.Now()
 
-	mockClock := new(clockmock.Clock)
+	mockClock := new(clockmock.MockClock)
 	clock.DefaultBackend = mockClock
 	mockClock.On("Now").Return(now)
 
@@ -351,7 +351,7 @@ func TestUserCreate(t *testing.T) {
 }
 
 func TestUserDelete(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	cases := []struct {
@@ -480,8 +480,8 @@ func TestUserDelete(t *testing.T) {
 }
 
 func TestUserResetPassword(t *testing.T) {
-	mock := new(mocks.Store)
-	hashMock := &hashmock.Hasher{}
+	mock := new(mocks.MockStore)
+	hashMock := &hashmock.MockHasher{}
 	hash.Backend = hashMock
 
 	ctx := context.TODO()
@@ -565,7 +565,7 @@ func TestUserResetPassword(t *testing.T) {
 }
 
 func TestUserList(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	storeErr := errors.New("store error")
@@ -651,7 +651,7 @@ func TestUserResolve(t *testing.T) {
 		err  error
 	}
 
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	cases := []struct {

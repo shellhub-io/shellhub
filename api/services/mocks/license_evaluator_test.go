@@ -11,7 +11,7 @@ import (
 
 func TestLicenseEvaluatorMock_CanAcceptDevice(t *testing.T) {
 	t.Run("returns true when device can be accepted", func(t *testing.T) {
-		m := new(mocks.LicenseEvaluator)
+		m := mocks.NewMockLicenseEvaluator(t)
 		m.On("CanAcceptDevice", context.Background()).Return(true, nil)
 
 		ok, err := m.CanAcceptDevice(context.Background())
@@ -22,7 +22,7 @@ func TestLicenseEvaluatorMock_CanAcceptDevice(t *testing.T) {
 	})
 
 	t.Run("returns false when device limit reached", func(t *testing.T) {
-		m := new(mocks.LicenseEvaluator)
+		m := mocks.NewMockLicenseEvaluator(t)
 		m.On("CanAcceptDevice", context.Background()).Return(false, nil)
 
 		ok, err := m.CanAcceptDevice(context.Background())
@@ -33,7 +33,7 @@ func TestLicenseEvaluatorMock_CanAcceptDevice(t *testing.T) {
 	})
 
 	t.Run("returns error when check fails", func(t *testing.T) {
-		m := new(mocks.LicenseEvaluator)
+		m := mocks.NewMockLicenseEvaluator(t)
 		expected := errors.New("license fetch error")
 		m.On("CanAcceptDevice", context.Background()).Return(false, expected)
 

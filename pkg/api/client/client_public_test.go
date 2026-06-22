@@ -415,7 +415,7 @@ func TestAuthPublicKey(t *testing.T) {
 }
 
 func TestReverseListener(t *testing.T) {
-	mock := new(reversermock.Reverser)
+	mock := reversermock.NewMockReverser(t)
 
 	tests := []struct {
 		description   string

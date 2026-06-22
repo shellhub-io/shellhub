@@ -25,7 +25,7 @@ func TestCreateAPIKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(servicemock.Service)
+	svcMock := servicemock.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -280,7 +280,7 @@ func TestListAPIKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(servicemock.Service)
+	svcMock := servicemock.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -563,7 +563,7 @@ func TestUpdateAPIKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(servicemock.Service)
+	svcMock := servicemock.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -763,7 +763,7 @@ func TestDeleteAPIKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(servicemock.Service)
+	svcMock := servicemock.NewMockService(t)
 
 	cases := []struct {
 		description   string

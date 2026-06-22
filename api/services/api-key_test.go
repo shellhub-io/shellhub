@@ -28,7 +28,7 @@ func TestCreateAPIKey(t *testing.T) {
 		err error
 	}
 
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	cases := []struct {
 		description   string
@@ -250,13 +250,7 @@ func TestCreateAPIKey(t *testing.T) {
 					).
 					Once()
 
-				uuidMock := &uuidmock.Uuid{}
-				uuid.DefaultBackend = uuidMock
-				uuidMock.
-					On("Generate").
-					Return("cdfd3cb0-c44e-4e54-b931-6d57713ad159").
-					Once()
-
+				// req.Key is already provided, so uuid.Generate() is not called.
 				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
 				hashedKey := hex.EncodeToString(keySum[:])
 
@@ -328,7 +322,7 @@ func TestCreateAPIKey(t *testing.T) {
 					).
 					Once()
 
-				uuidMock := &uuidmock.Uuid{}
+				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.
 					On("Generate").
@@ -404,8 +398,8 @@ func TestListAPIKey(t *testing.T) {
 		err     error
 	}
 
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -436,7 +430,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -467,7 +461,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.APIKey{
 							{
@@ -512,8 +506,8 @@ func TestListAPIKey(t *testing.T) {
 }
 
 func TestUpdateAPIKey(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -592,7 +586,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -624,7 +618,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -667,7 +661,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -714,7 +708,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -761,7 +755,7 @@ func TestUpdateAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -792,8 +786,8 @@ func TestUpdateAPIKey(t *testing.T) {
 }
 
 func TestDeleteAPIKey(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -814,7 +808,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -839,7 +833,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -868,7 +862,7 @@ func TestDeleteAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.

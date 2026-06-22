@@ -20,8 +20,8 @@ import (
 )
 
 func TestListSessions(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
@@ -57,7 +57,7 @@ func TestListSessions(t *testing.T) {
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -90,7 +90,7 @@ func TestListSessions(t *testing.T) {
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
@@ -135,14 +135,14 @@ func TestGetSession(t *testing.T) {
 		name          string
 		ctx           context.Context
 		uid           models.UID
-		requiredMocks func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions)
+		requiredMocks func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expected      Expected
 	}{
 		{
 			name: "fails when session is not found",
 			ctx:  ctx,
 			uid:  models.UID("_uid"),
-			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
 					Return(nil, goerrors.New("error")).Once()
 			},
@@ -155,7 +155,7 @@ func TestGetSession(t *testing.T) {
 			name: "succeeds without tenant in context",
 			ctx:  ctx,
 			uid:  models.UID("uid"),
-			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				session := &models.Session{UID: "uid"}
 				storeMock.On("SessionResolve", ctx, store.SessionUIDResolver, "uid").
 					Return(session, nil).Once()
@@ -169,9 +169,9 @@ func TestGetSession(t *testing.T) {
 			name: "scopes by caller tenant and returns not found for a session in another namespace",
 			ctx:  contextWithTenant("attacker-tenant"),
 			uid:  models.UID("victim-uid"),
-			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", "attacker-tenant").Return(nil).Once()
-				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "victim-uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "victim-uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, goerrors.New("not found")).Once()
 			},
 			expected: Expected{
@@ -183,10 +183,10 @@ func TestGetSession(t *testing.T) {
 			name: "scopes by caller tenant and returns session in the same namespace",
 			ctx:  contextWithTenant("tenant-a"),
 			uid:  models.UID("uid"),
-			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", "tenant-a").Return(nil).Once()
 				session := &models.Session{UID: "uid", TenantID: "tenant-a"}
-				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionResolve", mock.Anything, store.SessionUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(session, nil).Once()
 			},
 			expected: Expected{
@@ -198,8 +198,8 @@ func TestGetSession(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			storeMock := new(storemock.Store)
-			queryOptionsMock := new(storemock.QueryOptions)
+			storeMock := storemock.NewMockStore(t)
+			queryOptionsMock := storemock.NewMockQueryOptions(t)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requiredMocks(storeMock, queryOptionsMock)
 
@@ -213,11 +213,11 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	mock := new(storemock.Store)
+	mock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
 
-	locator := &mocksGeoIp.Locator{}
+	locator := mocksGeoIp.NewMockLocator(t)
 
 	type Expected struct {
 		session *models.Session
@@ -284,7 +284,7 @@ func TestCreateSession(t *testing.T) {
 }
 
 func TestDeactivateSession(t *testing.T) {
-	mock := new(storemock.Store)
+	mock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
 
@@ -347,7 +347,7 @@ func TestDeactivateSession(t *testing.T) {
 }
 
 func TestUpdateSession(t *testing.T) {
-	mockStore := new(storemock.Store)
+	mockStore := storemock.NewMockStore(t)
 	ctx := context.Background()
 	uid := models.UID("test-uid")
 	updateModel := models.SessionUpdate{}

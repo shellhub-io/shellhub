@@ -33,7 +33,7 @@ func (r *singleRead) Read(p []byte) (int, error) {
 }
 
 func TestRedirToWs_Regression_EndNegative(t *testing.T) {
-	mock := mocks.NewSocket(t)
+	mock := mocks.NewMockSocket(t)
 	mock.On("Write", []byte{}).Return(0, nil).Once()
 
 	conn := NewConn(mock)
@@ -52,7 +52,7 @@ func TestRedirToWs_Regression_EndNegative(t *testing.T) {
 
 func TestRedirToWs_Regression_ZeroReadThenEOF(t *testing.T) {
 	conn := &Conn{
-		Socket: mocks.NewSocket(t),
+		Socket: mocks.NewMockSocket(t),
 	}
 
 	reader := iotest.TimeoutReader(&zeroReadNoEOFReader{})

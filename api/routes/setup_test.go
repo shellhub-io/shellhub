@@ -16,12 +16,12 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	envMock := new(envMocks.Backend)
+	envMock := envMocks.NewMockBackend(t)
 	envs.DefaultBackend = envMock
 
 	envMock.On("Get", "SHELLHUB_CLOUD").Return("false")
 
-	servicesMock := new(serviceMocks.Service)
+	servicesMock := serviceMocks.NewMockService(t)
 
 	tests := []struct {
 		description   string

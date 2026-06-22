@@ -30,12 +30,18 @@ import (
 )
 
 func TestAuthDevice(t *testing.T) {
-	storeMock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
-	clockMock := new(clockmock.Clock)
-	uuidMock := new(uuidmock.Uuid)
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
+	clockMock := clockmock.NewMockClock(t)
+	uuidMock := uuidmock.NewMockUUID(t)
 
-	now := time.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	prevClock := clock.DefaultBackend
+	prevUUID := uuid.DefaultBackend
+	t.Cleanup(func() {
+		clock.DefaultBackend = prevClock
+		uuid.DefaultBackend = prevUUID
+	})
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now)
 	uuid.DefaultBackend = uuidMock
@@ -1091,8 +1097,8 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestService_AuthLocalUser(t *testing.T) {
-	mock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
+	mock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
 
 	ctx := context.TODO()
 
@@ -1515,7 +1521,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
 					Return(nil).
 					Once()
-				uuidMock := &uuidmock.Uuid{}
+				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.
 					On("Generate").
@@ -1615,14 +1621,9 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
-				clockMock := new(clockmock.Clock)
+				clockMock := clockmock.NewMockClock(t)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
-
-				cacheMock.
-					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
-					Return(nil).
-					Once()
 
 				mock.
 					On("UserUpdate", ctx, updatedUser).
@@ -1739,7 +1740,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
-				clockMock := new(clockmock.Clock)
+				clockMock := clockmock.NewMockClock(t)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
@@ -1865,7 +1866,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(ns, nil).
 					Once()
 
-				clockMock := new(clockmock.Clock)
+				clockMock := clockmock.NewMockClock(t)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
@@ -1992,7 +1993,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(ns, nil).
 					Once()
 
-				clockMock := new(clockmock.Clock)
+				clockMock := clockmock.NewMockClock(t)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
 
@@ -2087,14 +2088,9 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil, errors.New("error", "layer", 0)).
 					Once()
 
-				clockMock := new(clockmock.Clock)
+				clockMock := clockmock.NewMockClock(t)
 				clock.DefaultBackend = clockMock
 				clockMock.On("Now").Return(now)
-
-				cacheMock.
-					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
-					Return(int64(0), 0, nil).
-					Once()
 
 				cacheMock.
 					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
@@ -2157,8 +2153,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 }
 
 func TestCreateUserToken(t *testing.T) {
-	storeMock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
 
 	type Expected struct {
 		res *models.UserAuthResponse
@@ -2335,9 +2331,6 @@ func TestCreateUserToken(t *testing.T) {
 					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000", testifymock.Anything, time.Hour*72).
 					Return(nil).
@@ -2400,9 +2393,6 @@ func TestCreateUserToken(t *testing.T) {
 						nil,
 					).
 					Once()
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
 				cacheMock.
 					On("Set", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000", testifymock.Anything, time.Hour*72).
 					Return(nil).
@@ -2454,9 +2444,6 @@ func TestCreateUserToken(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
 				cacheMock.
 					On("Set", ctx, "token_000000000000000000000000", testifymock.Anything, time.Hour*72).
 					Return(nil).
@@ -2507,8 +2494,8 @@ func TestAuthAPIKey(t *testing.T) {
 		err    error
 	}
 
-	storeMock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
 
 	tests := []struct {
 		description   string
@@ -2638,12 +2625,18 @@ func newLogHook() *logHook {
 // does NOT propagate the error to the caller and emits the distinct license-limit warning
 // instead of the generic auto-accept warning.
 func TestAuthDevice_AutoAcceptLicenseLimitNewDevice(t *testing.T) {
-	storeMock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
-	clockMock := new(clockmock.Clock)
-	uuidMock := new(uuidmock.Uuid)
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
+	clockMock := clockmock.NewMockClock(t)
+	uuidMock := uuidmock.NewMockUUID(t)
 
-	now := time.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	prevClock := clock.DefaultBackend
+	prevUUID := uuid.DefaultBackend
+	t.Cleanup(func() {
+		clock.DefaultBackend = prevClock
+		uuid.DefaultBackend = prevUUID
+	})
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now)
 	uuid.DefaultBackend = uuidMock
@@ -2769,12 +2762,18 @@ func TestAuthDevice_AutoAcceptLicenseLimitNewDevice(t *testing.T) {
 // ErrDeviceLicenseLimit does NOT propagate the error to the caller and emits the distinct
 // license-limit warning.
 func TestAuthDevice_AutoAcceptLicenseLimitReRegistered(t *testing.T) {
-	storeMock := new(mocks.Store)
-	cacheMock := new(mockcache.Cache)
-	clockMock := new(clockmock.Clock)
-	uuidMock := new(uuidmock.Uuid)
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
+	clockMock := clockmock.NewMockClock(t)
+	uuidMock := uuidmock.NewMockUUID(t)
 
-	now := time.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	prevClock := clock.DefaultBackend
+	prevUUID := uuid.DefaultBackend
+	t.Cleanup(func() {
+		clock.DefaultBackend = prevClock
+		uuid.DefaultBackend = prevUUID
+	})
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now)
 	uuid.DefaultBackend = uuidMock

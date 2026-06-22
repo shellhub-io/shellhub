@@ -22,7 +22,7 @@ import (
 )
 
 func TestAuthDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedResponse *models.DeviceAuthResponse
@@ -96,7 +96,6 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func() {
 				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
-				mock.On("SetDevicePosition", gomock.Anything, models.UID(""), "").Return(nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -144,7 +143,7 @@ func TestAuthDevice(t *testing.T) {
 }
 
 func TestAuthLocalUser(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		body    *models.UserAuthResponse
@@ -351,7 +350,7 @@ func TestAuthLocalUser(t *testing.T) {
 }
 
 func TestCreateUserToken(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	type Expected struct {
 		body   *models.UserAuthResponse
@@ -464,7 +463,7 @@ func TestCreateUserToken(t *testing.T) {
 }
 
 func TestAuthPublicKey(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedResponse *models.PublicKeyAuthResponse
@@ -542,7 +541,7 @@ func TestHandler_AuthRequest_with_authorization_header(t *testing.T) {
 		headers map[string]string
 	}
 
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 

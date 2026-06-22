@@ -24,8 +24,8 @@ import (
 )
 
 func TestListNamespaces(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
@@ -61,7 +61,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -89,7 +89,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Namespace{
 							{
@@ -225,7 +225,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.Namespace{
 							{
@@ -333,7 +333,7 @@ func TestListNamespaces(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("NamespaceList", ctx, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Namespace{}, 0, nil).
 					Once()
 			},
@@ -360,7 +360,7 @@ func TestListNamespaces(t *testing.T) {
 }
 
 func TestGetNamespace(t *testing.T) {
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
 
@@ -488,19 +488,25 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
-	envMock := new(envmock.Backend)
-	storeMock := new(storemock.Store)
-	clockMock := new(clockmock.Clock)
+	envMock := envmock.NewMockBackend(t)
+	storeMock := storemock.NewMockStore(t)
+	clockMock := clockmock.NewMockClock(t)
 
+	prevEnvsBackend := envs.DefaultBackend
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() {
+		envs.DefaultBackend = prevEnvsBackend
+		clock.DefaultBackend = prevClockBackend
+	})
 	envs.DefaultBackend = envMock
 	clock.DefaultBackend = clockMock
 
-	now := time.Now()
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clockMock.On("Now").Return(now)
 
 	ctx := context.TODO()
 
-	uuidMock := &uuidmocks.Uuid{}
+	uuidMock := uuidmocks.NewMockUUID(t)
 	uuid.DefaultBackend = uuidMock
 
 	type Expected struct {
@@ -658,12 +664,11 @@ func TestCreateNamespace(t *testing.T) {
 					Return("false").
 					Once()
 				// --
-				// envs.IsCloud = false
+				// envs.IsCloud = false: Get("SHELLHUB_CLOUD") once
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
-				// --
+					Once()
 				storeMock.
 					On(
 						"NamespaceCreate",
@@ -801,22 +806,20 @@ func TestCreateNamespace(t *testing.T) {
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
 					Once()
-				// envs.IsCommunity = true
+				// IsCommunity: Get("SHELLHUB_CLOUD") + Get("SHELLHUB_ENTERPRISE")
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
+					Once()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
 					Once()
-				// --
-				// envs.IsCloud = false
+				// IsCloud: Get("SHELLHUB_CLOUD")
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				// --
 				storeMock.
 					On(
 						"NamespaceCreate",
@@ -895,21 +898,20 @@ func TestCreateNamespace(t *testing.T) {
 					Return(nil, false, nil).
 					Once()
 				// envs.IsCommunity = true
+				// IsCommunity: Get("SHELLHUB_CLOUD") + Get("SHELLHUB_ENTERPRISE")
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
+					Once()
 				envMock.
 					On("Get", "SHELLHUB_ENTERPRISE").
 					Return("false").
 					Once()
-				// --
-				// envs.IsCloud = false
+				// IsCloud: Get("SHELLHUB_CLOUD")
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				// --
 				uuidMock.
 					On("Generate").
 					Return("4de9253f-4a2a-49e7-a748-26e7a009bd2e").
@@ -993,21 +995,18 @@ func TestCreateNamespace(t *testing.T) {
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Twice()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
-				// --
-				// envs.IsCloud = true
+				// IsCommunity short-circuits after Get("SHELLHUB_CLOUD")="true" (&&-false branch);
+				// Get("SHELLHUB_ENTERPRISE") is never called.
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				// --
+				// IsCloud: Get("SHELLHUB_CLOUD")
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+				// IsCloud = true → MaxDevices = 3
 				storeMock.
 					On(
 						"NamespaceCreate",
@@ -1028,7 +1027,7 @@ func TestCreateNamespace(t *testing.T) {
 								SessionRecord:          true,
 								ConnectionAnnouncement: "",
 							},
-							MaxDevices: -1,
+							MaxDevices: 3,
 						},
 					).
 					Return("00000000-0000-4000-0000-000000000000", nil).
@@ -1051,7 +1050,7 @@ func TestCreateNamespace(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: "",
 					},
-					MaxDevices: -1,
+					MaxDevices: 3,
 				},
 				err: nil,
 			},
@@ -1087,21 +1086,17 @@ func TestCreateNamespace(t *testing.T) {
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
 					Once()
+				// IsCommunity short-circuits after Get("SHELLHUB_CLOUD")="true" (&&-false branch);
+				// Get("SHELLHUB_ENTERPRISE") is never called.
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
-				// --
-				// envs.IsCloud = true
+				// IsCloud: Get("SHELLHUB_CLOUD")
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
-					Twice()
-				// --
+					Once()
 				storeMock.
 					On(
 						"NamespaceCreate",
@@ -1167,7 +1162,7 @@ func TestCreateNamespace(t *testing.T) {
 }
 
 func TestEditNamespace(t *testing.T) {
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
 
@@ -1355,7 +1350,7 @@ func TestEditNamespace(t *testing.T) {
 }
 
 func TestEditSessionRecord(t *testing.T) {
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	cases := []struct {
 		name          string
@@ -1462,7 +1457,7 @@ func TestEditSessionRecord(t *testing.T) {
 }
 
 func TestEditDeviceAutoAccept(t *testing.T) {
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	cases := []struct {
 		name             string
@@ -1569,7 +1564,7 @@ func TestEditDeviceAutoAccept(t *testing.T) {
 }
 
 func TestDeleteNamespace(t *testing.T) {
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
 

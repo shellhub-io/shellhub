@@ -22,7 +22,7 @@ func TestUpdateUser(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -149,7 +149,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateUserPassword(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title             string

@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name=Client --filename=internalclient.go
 type Client interface {
 	deviceAPI
 	namespaceAPI
