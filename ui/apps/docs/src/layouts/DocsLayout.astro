@@ -431,5 +431,67 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         }
       });
     </script>
+
+    <script>
+      // Code block copy button
+      if (navigator.clipboard) {
+        document.querySelectorAll(".prose pre").forEach((pre) => {
+          try {
+            const parent = pre.parentNode;
+            if (!parent) return; // skip detached <pre>
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "code-block";
+            parent.insertBefore(wrapper, pre);
+            wrapper.appendChild(pre);
+
+            const btn = document.createElement("button");
+            btn.className = "code-copy-btn";
+            btn.type = "button";
+            btn.setAttribute("aria-label", "Copy code");
+            btn.innerHTML = `
+              <svg class="icon-copy" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg class="icon-check" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            `;
+
+            let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+            let failTimeout: ReturnType<typeof setTimeout> | undefined;
+
+            btn.addEventListener("click", () => {
+              const code = pre.querySelector("code");
+              const codeText = code?.textContent;
+              const text = (
+                codeText && codeText.length ? codeText : pre.textContent ?? ""
+              ).replace(/\n+$/, "");
+              navigator.clipboard.writeText(text).then(() => {
+                clearTimeout(copyTimeout);
+                clearTimeout(failTimeout);
+                btn.classList.add("copied");
+                btn.setAttribute("aria-label", "Copied!");
+                copyTimeout = setTimeout(() => {
+                  btn.classList.remove("copied");
+                  btn.setAttribute("aria-label", "Copy code");
+                }, 1500);
+              }).catch(() => {
+                clearTimeout(copyTimeout);
+                clearTimeout(failTimeout);
+                btn.classList.remove("copied");
+                btn.setAttribute("aria-label", "Copy failed");
+                failTimeout = setTimeout(() => btn.setAttribute("aria-label", "Copy code"), 2000);
+              });
+            });
+
+            wrapper.appendChild(btn);
+          } catch (_e) {
+            // DOM error on this block — skip it, continue with remaining blocks
+          }
+        });
+      }
+    </script>
   </body>
 </html>
