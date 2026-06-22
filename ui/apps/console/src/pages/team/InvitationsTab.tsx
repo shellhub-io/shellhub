@@ -330,8 +330,6 @@ function InvitationsTab({ tenantId }: { tenantId: string }) {
         loadingMessage="Loading invitations..."
         page={page}
         totalPages={totalPages}
-        totalCount={totalCount}
-        itemLabel="invitation"
         onPageChange={setPage}
         rowClassName={(inv) =>
           inv.status === "pending" && isInvitationExpired(inv.expires_at)

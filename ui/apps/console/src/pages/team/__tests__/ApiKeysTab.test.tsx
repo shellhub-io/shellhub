@@ -95,6 +95,38 @@ beforeEach(() => {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
+describe("ApiKeysTab — pagination count display", () => {
+  it("does not pass totalCount to DataTable so count is shown only in the header (single page)", () => {
+    render(<ApiKeysTab />);
+
+    // The header renders "1 key" exactly once — the Pagination below the table
+    // must NOT duplicate it (totalCount is intentionally not forwarded to DataTable).
+    const countMatches = screen.getAllByText(/\b1 key\b/);
+    expect(countMatches).toHaveLength(1);
+  });
+
+  it("renders Prev/Next navigation buttons when there are more than PER_PAGE keys", () => {
+    // 25 total keys, 10 on the current page -> totalPages=3, page=1
+    const keys = Array.from({ length: 10 }, (_, i) =>
+      makeApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
+    );
+    vi.mocked(useApiKeys).mockReturnValue({
+      apiKeys: keys,
+      totalCount: 25,
+      isLoading: false,
+      error: null,
+    });
+
+    render(<ApiKeysTab />);
+
+    // Prev/Next buttons must exist even though totalCount is not passed to DataTable
+    expect(screen.getByRole("button", { name: /prev/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+    // Page indicator
+    expect(screen.getByText("1 / 3")).toBeInTheDocument();
+  });
+});
+
 describe("ApiKeysTab — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();

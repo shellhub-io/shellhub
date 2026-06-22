@@ -154,14 +154,35 @@ beforeEach(() => {
 
 describe("InvitationsTab", () => {
   describe("rendering", () => {
-    it("shows the invitation count from totalCount", () => {
+    it("shows the invitation count from totalCount exactly once in the header (not duplicated in the DataTable pagination footer)", () => {
       mockInvitations.mockReturnValue({
         invitations: [],
         totalCount: 5,
         isLoading: false,
       });
       renderTab();
-      expect(screen.getByText(/5 invitation/i)).toBeInTheDocument();
+      // The count label must appear exactly once — in the dedicated header paragraph.
+      // totalCount is intentionally not forwarded to DataTable to avoid duplication.
+      expect(screen.getAllByText(/5 invitations/i)).toHaveLength(1);
+    });
+
+    it("renders Prev/Next navigation buttons when there are more than PER_PAGE invitations", () => {
+      // 25 total invitations, 10 on the current page -> totalPages=3, page=1
+      const invitations = Array.from({ length: 10 }, (_, i) =>
+        makeInvitation({ user: { id: `u${i}`, email: `user${i}@example.com` } }),
+      );
+      mockInvitations.mockReturnValue({
+        invitations,
+        totalCount: 25,
+        isLoading: false,
+      });
+      renderTab();
+
+      // Prev/Next buttons must exist even though totalCount is not passed to DataTable
+      expect(screen.getByRole("button", { name: /prev/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+      // Page indicator
+      expect(screen.getByText("1 / 3")).toBeInTheDocument();
     });
 
     it("uses singular 'invitation' when count is 1", () => {

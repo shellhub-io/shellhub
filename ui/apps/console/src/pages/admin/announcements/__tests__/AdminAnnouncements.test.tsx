@@ -378,10 +378,10 @@ describe("AdminAnnouncements", () => {
       });
       renderPage();
       expect(
-        screen.queryByRole("button", { name: /prev/i }),
+        screen.queryByRole("button", { name: "Previous page" }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /next/i }),
+        screen.queryByRole("button", { name: "Next page" }),
       ).not.toBeInTheDocument();
     });
 
@@ -396,8 +396,12 @@ describe("AdminAnnouncements", () => {
         totalCount: 25,
       });
       renderPage();
-      expect(screen.getByRole("button", { name: "Prev" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Previous page" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Next page" }),
+      ).toBeInTheDocument();
     });
 
     it("renders the item count label in the pagination area", () => {
