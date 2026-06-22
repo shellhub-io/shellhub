@@ -75,7 +75,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
             href={`${docsUrl}/getting-started`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#7B8EDB] hover:gap-2.5 transition-all group"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
           >
             Full documentation
             <svg

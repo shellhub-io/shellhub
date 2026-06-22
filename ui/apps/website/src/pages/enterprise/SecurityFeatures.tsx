@@ -1,4 +1,5 @@
 import { Card } from "@shellhub/design-system/primitives";
+import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -124,45 +125,36 @@ const features = [
 
 export function SecurityFeatures() {
   return (
-    <section className="py-24">
-      <div className="max-w-7xl mx-auto px-8">
-        <Reveal className="text-center mb-14">
-          <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-            Security & Authentication
-          </p>
-          <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-            Enterprise-grade security, built in
-          </h2>
-          <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-            Meet compliance requirements with SSO, MFA enforcement, session
-            recording, and complete audit logging.
-          </p>
-        </Reveal>
+    <Section bordered={false}>
+      <SectionHeader
+        eyebrow="Security & Authentication"
+        title="Enterprise-grade security, built in"
+        subtitle="Meet compliance requirements with SSO, MFA enforcement, session recording, and complete audit logging."
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {features.map((f, i) => (
+          <Reveal key={i} delay={i * 0.04}>
+            <ShimmerCard>
+              <Card hover className="p-6 h-full">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                  style={{
+                    background: `${f.color}15`,
+                    borderColor: `${f.color}25`,
+                  }}
+                >
+                  {f.icon}
+                </div>
+                <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {f.desc}
+                </p>
+              </Card>
+            </ShimmerCard>
+          </Reveal>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }

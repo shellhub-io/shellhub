@@ -233,7 +233,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
             <div>
               <label
                 htmlFor="signup-name"
-                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
               >
                 Name
               </label>
@@ -264,7 +264,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
             <div>
               <label
                 htmlFor="signup-email"
-                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
               >
                 Email
               </label>
@@ -298,7 +298,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
             <div>
               <label
                 htmlFor="signup-password"
-                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
               >
                 Password
               </label>
@@ -373,7 +373,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
             <div>
               <label
                 htmlFor="signup-confirm-password"
-                className="block text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-text-muted mb-1.5"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
               >
                 Confirm password
               </label>

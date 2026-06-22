@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
+import { Section } from "@/components/marketing";
+import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
 
 const tiers = [
@@ -68,92 +70,77 @@ const tiers = [
 
 export function TierCards() {
   return (
-    <section className="py-12">
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {tiers.map((tier, i) => (
-            <Reveal key={tier.name} delay={i * 0.08}>
-              <ShimmerCard className="h-full">
-                <div
-                  className={`relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden ${
-                    tier.highlighted
-                      ? "bg-card border border-primary/30 hover:border-primary/50 shadow-[0_0_40px_rgba(102,122,204,0.15)]"
-                      : "bg-card border border-border hover:border-border-light"
-                  }`}
-                >
-                  {tier.highlighted && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent pointer-events-none" />
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-                    </>
-                  )}
+    <Section bordered={false} padding="md">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {tiers.map((tier, i) => (
+          <Reveal key={tier.name} delay={i * 0.08}>
+            <ShimmerCard className="h-full">
+              <div
+                className={`relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden ${
+                  tier.highlighted
+                    ? "bg-card border border-primary/30 hover:border-primary/50 shadow-[0_0_40px_rgba(102,122,204,0.15)]"
+                    : "bg-card border border-border hover:border-border-light"
+                }`}
+              >
+                {tier.highlighted && (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+                  </>
+                )}
 
-                  <div className="relative">
-                    <div className="flex items-center gap-3 mb-4">
-                      <h3 className="text-lg font-bold">{tier.name}</h3>
-                      <span
-                        className={`px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full ${tier.badgeClass}`}
-                      >
-                        {tier.badge}
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <span className="text-3xl font-bold">{tier.price}</span>
-                    </div>
-                    <p className="text-2xs text-text-muted mb-4">
-                      {tier.priceSuffix}
-                    </p>
-                    <p className="text-sm text-text-secondary leading-relaxed mb-6">
-                      {tier.desc}
-                    </p>
-
-                    <ul className="space-y-2.5 mb-8 flex-1">
-                      {tier.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-center gap-2.5 text-sm text-text-secondary"
-                        >
-                          <svg
-                            className={`w-4 h-4 shrink-0 ${tier.highlighted ? "text-accent-green" : "text-text-muted"}`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m4.5 12.75 6 6 9-13.5"
-                            />
-                          </svg>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      as={Link}
-                      to={tier.ctaHref}
-                      variant={tier.highlighted ? "primary" : "surface"}
-                      size="lg"
-                      glow={tier.highlighted}
-                      fullWidth
-                      className={
-                        tier.highlighted
-                          ? undefined
-                          : "hover:scale-[1.02] active:scale-[0.98]"
-                      }
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className="text-lg font-bold">{tier.name}</h3>
+                    <span
+                      className={`px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full ${tier.badgeClass}`}
                     >
-                      {tier.cta}
-                    </Button>
+                      {tier.badge}
+                    </span>
                   </div>
+
+                  <div className="mb-2">
+                    <span className="text-3xl font-bold">{tier.price}</span>
+                  </div>
+                  <p className="text-2xs text-text-muted mb-4">
+                    {tier.priceSuffix}
+                  </p>
+                  <p className="text-sm text-text-secondary leading-relaxed mb-6">
+                    {tier.desc}
+                  </p>
+
+                  <ul className="space-y-2.5 mb-8 flex-1">
+                    {tier.features.map((feature) => (
+                      <FeatureListItem
+                        key={feature}
+                        color={tier.highlighted ? "green" : "muted"}
+                      >
+                        {feature}
+                      </FeatureListItem>
+                    ))}
+                  </ul>
+
+                  <Button
+                    as={Link}
+                    to={tier.ctaHref}
+                    variant={tier.highlighted ? "primary" : "surface"}
+                    size="lg"
+                    glow={tier.highlighted}
+                    fullWidth
+                    className={
+                      tier.highlighted
+                        ? undefined
+                        : "hover:scale-[1.02] active:scale-[0.98]"
+                    }
+                  >
+                    {tier.cta}
+                  </Button>
                 </div>
-              </ShimmerCard>
-            </Reveal>
-          ))}
-        </div>
+              </div>
+            </ShimmerCard>
+          </Reveal>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }

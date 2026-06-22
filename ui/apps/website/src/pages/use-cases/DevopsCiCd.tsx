@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Badge, Button, Card } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
+import { Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -366,392 +367,342 @@ export default function DevopsCiCd() {
       </section>
 
       {/* ── Ansible Integration ──────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <Reveal>
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-                  Ansible Integration
-                </p>
-                <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Use ShellHub as your SSH transport for Ansible
-                </h2>
-                <p className="text-sm text-text-secondary leading-relaxed mb-8">
-                  Point your Ansible inventory at ShellHub device identifiers
-                  and run playbooks against devices behind NAT, CGNAT, or
-                  firewalls -- no VPN required. ShellHub acts as a transparent
-                  SSH gateway so existing playbooks work without modification.
-                </p>
-              </Reveal>
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <SectionHeader
+              align="left"
+              size="sub"
+              className="mb-8"
+              eyebrow="Ansible Integration"
+              title="Use ShellHub as your SSH transport for Ansible"
+              subtitle="Point your Ansible inventory at ShellHub device identifiers and run playbooks against devices behind NAT, CGNAT, or firewalls -- no VPN required. ShellHub acts as a transparent SSH gateway so existing playbooks work without modification."
+            />
 
-              <div className="space-y-3">
-                {[
-                  {
-                    label: "Standard SSH connection",
-                    desc: "No custom connection plugins -- Ansible uses its built-in SSH transport",
-                  },
-                  {
-                    label: "NAT traversal included",
-                    desc: "Reach devices that have no public IP or inbound ports",
-                  },
-                  {
-                    label: "Fleet targeting with tags",
-                    desc: "Build dynamic inventories based on ShellHub device tags",
-                  },
-                  {
-                    label: "Session-level audit trail",
-                    desc: "Every Ansible task is logged with full session recording",
-                  },
-                ].map((item, i) => (
-                  <Reveal key={i} delay={i * 0.04}>
-                    <div className="flex items-start gap-3">
-                      <svg
-                        className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">
-                          {item.label}
-                        </p>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
+            <div className="space-y-3">
+              {[
+                {
+                  label: "Standard SSH connection",
+                  desc: "No custom connection plugins -- Ansible uses its built-in SSH transport",
+                },
+                {
+                  label: "NAT traversal included",
+                  desc: "Reach devices that have no public IP or inbound ports",
+                },
+                {
+                  label: "Fleet targeting with tags",
+                  desc: "Build dynamic inventories based on ShellHub device tags",
+                },
+                {
+                  label: "Session-level audit trail",
+                  desc: "Every Ansible task is logged with full session recording",
+                },
+              ].map((item, i) => (
+                <Reveal key={i} delay={i * 0.04}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-
-            <Reveal delay={0.1}>
-              <ShimmerCard>
-                <Card className="overflow-hidden">
-                  <TerminalChrome title="ansible-playbook">
-                    <div className="space-y-0">
-                      {ansibleLines.map((line, i) => (
-                        <CodeLine key={i} {...line} />
-                      ))}
-                    </div>
-                  </TerminalChrome>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Terraform Integration ────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <Reveal delay={0.1} className="order-2 lg:order-1">
-              <ShimmerCard>
-                <Card className="overflow-hidden">
-                  <TerminalChrome title="main.tf">
-                    <div className="space-y-0">
-                      {terraformLines.map((line, i) => (
-                        <CodeLine key={i} {...line} />
-                      ))}
-                    </div>
-                  </TerminalChrome>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
-
-            <div className="order-1 lg:order-2">
-              <Reveal>
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-                  Terraform Integration
-                </p>
-                <h2 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Infrastructure as code for device provisioning
-                </h2>
-                <p className="text-sm text-text-secondary leading-relaxed mb-8">
-                  Define your device fleet declaratively with Terraform.
-                  Provision namespaces, assign tags, configure firewall rules,
-                  and manage access policies -- all versioned in Git and applied
-                  through your standard IaC workflow.
-                </p>
-              </Reveal>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    label: "Declarative device management",
-                    desc: "Define fleet topology and access policies as HCL resources",
-                  },
-                  {
-                    label: "GitOps-friendly",
-                    desc: "Version your device configuration alongside application code",
-                  },
-                  {
-                    label: "Drift detection",
-                    desc: "Terraform plan shows configuration differences before applying",
-                  },
-                  {
-                    label: "Reproducible environments",
-                    desc: "Spin up identical staging and production fleets from the same config",
-                  },
-                ].map((item, i) => (
-                  <Reveal key={i} delay={i * 0.04}>
-                    <div className="flex items-start gap-3">
-                      <svg
-                        className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">
-                          {item.label}
-                        </p>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── CI/CD Pipeline ───────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              CI/CD Pipeline
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Deploy to remote devices from any CI system
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              GitHub Actions, GitLab CI, Jenkins -- any pipeline that can run
-              SSH can deploy through ShellHub.
-            </p>
-          </Reveal>
 
           <Reveal delay={0.1}>
-            <ShimmerCard className="max-w-3xl mx-auto">
-              <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(102,122,204,0.1)]">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
-                <div className="relative">
-                  <TerminalChrome title=".github/workflows/deploy.yml">
-                    {/* Pipeline step indicators */}
-                    <div className="flex items-center gap-6 mb-6 pb-5 border-b border-border">
-                      {pipelineSteps.map((step, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-accent-green/15 border border-accent-green/30 flex items-center justify-center">
-                            <svg
-                              className="w-3 h-3 text-accent-green"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m4.5 12.75 6 6 9-13.5"
-                              />
-                            </svg>
-                          </div>
-                          <span className="text-2xs font-mono text-text-secondary">
-                            {step.label}
-                          </span>
-                          {i < pipelineSteps.length - 1 && (
-                            <svg
-                              className="w-3 h-3 text-text-muted ml-2"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Workflow YAML */}
-                    <div className="space-y-0 mb-6">
-                      {pipelineDeployLines.map((line, i) => (
-                        <CodeLine key={i} {...line} />
-                      ))}
-                    </div>
-
-                    {/* Status bar */}
-                    <div className="pt-4 border-t border-border flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
-                        <span className="text-2xs font-mono text-accent-green">
-                          Pipeline succeeded
-                        </span>
-                      </div>
-                      <span className="text-2xs text-text-muted font-mono">
-                        2 devices updated in 34s
-                      </span>
-                    </div>
-                  </TerminalChrome>
-                </div>
-              </div>
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <TerminalChrome title="ansible-playbook">
+                  <div className="space-y-0">
+                    {ansibleLines.map((line, i) => (
+                      <CodeLine key={i} {...line} />
+                    ))}
+                  </div>
+                </TerminalChrome>
+              </Card>
             </ShimmerCard>
           </Reveal>
         </div>
-      </section>
+      </Section>
 
-      {/* ── Pain Points ──────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              The Problem
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              Why automating remote deployments is hard
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Traditional approaches to device automation break down when
-              devices are behind NAT, on unstable networks, or spread across
-              locations.
-            </p>
+      {/* ── Terraform Integration ────────────────────────────────── */}
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <Reveal delay={0.1} className="order-2 lg:order-1">
+            <ShimmerCard>
+              <Card className="overflow-hidden">
+                <TerminalChrome title="main.tf">
+                  <div className="space-y-0">
+                    {terraformLines.map((line, i) => (
+                      <CodeLine key={i} {...line} />
+                    ))}
+                  </div>
+                </TerminalChrome>
+              </Card>
+            </ShimmerCard>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {painPoints.map((p, i) => (
-              <Reveal key={i} delay={i * 0.06}>
-                <ShimmerCard>
-                  <Card hover className="p-6 h-full">
-                    <div
-                      className="w-2 h-2 rounded-full mb-4"
-                      style={{ background: p.color }}
-                    />
-                    <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {p.desc}
-                    </p>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+          <div className="order-1 lg:order-2">
+            <SectionHeader
+              align="left"
+              size="sub"
+              className="mb-8"
+              eyebrow="Terraform Integration"
+              title="Infrastructure as code for device provisioning"
+              subtitle="Define your device fleet declaratively with Terraform. Provision namespaces, assign tags, configure firewall rules, and manage access policies -- all versioned in Git and applied through your standard IaC workflow."
+            />
 
-      {/* ── Key Features ─────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="text-center mb-14">
-            <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-              Capabilities
-            </p>
-            <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-              ShellHub features for DevOps teams
-            </h2>
-            <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed">
-              Everything your automation toolchain needs to securely deploy to
-              remote and edge devices at scale.
-            </p>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((f, i) => (
-              <Reveal key={i} delay={i * 0.04}>
-                <ShimmerCard>
-                  <Card hover className="p-6 h-full">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                      style={{
-                        background: `${f.color}15`,
-                        borderColor: `${f.color}25`,
-                      }}
+            <div className="space-y-3">
+              {[
+                {
+                  label: "Declarative device management",
+                  desc: "Define fleet topology and access policies as HCL resources",
+                },
+                {
+                  label: "GitOps-friendly",
+                  desc: "Version your device configuration alongside application code",
+                },
+                {
+                  label: "Drift detection",
+                  desc: "Terraform plan shows configuration differences before applying",
+                },
+                {
+                  label: "Reproducible environments",
+                  desc: "Spin up identical staging and production fleets from the same config",
+                },
+              ].map((item, i) => (
+                <Reveal key={i} delay={i * 0.04}>
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
                     >
-                      {f.icon}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
-                    <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {f.desc}
-                    </p>
-                  </Card>
-                </ShimmerCard>
-              </Reveal>
-            ))}
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="py-24 border-t border-border">
-        <div className="max-w-7xl mx-auto px-8">
-          <Reveal>
-            <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-              <ConnectionGrid />
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
+      {/* ── CI/CD Pipeline ───────────────────────────────────────── */}
+      <Section>
+        <SectionHeader
+          eyebrow="CI/CD Pipeline"
+          title="Deploy to remote devices from any CI system"
+          subtitle="GitHub Actions, GitLab CI, Jenkins -- any pipeline that can run SSH can deploy through ShellHub."
+        />
 
-              <div className="relative z-10">
-                <p className="text-2xs font-mono font-semibold uppercase tracking-[0.15em] text-[#7B8EDB] mb-3">
-                  Ready to automate?
-                </p>
-                <h2 className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
-                  Automate your device deployments today
-                </h2>
-                <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed mb-8">
-                  Connect ShellHub to your CI/CD pipeline and start deploying to
-                  remote devices in minutes -- no VPN, no static IPs, no hassle.
-                </p>
+        <Reveal delay={0.1}>
+          <ShimmerCard className="max-w-3xl mx-auto">
+            <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(102,122,204,0.1)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+              <div className="relative">
+                <TerminalChrome title=".github/workflows/deploy.yml">
+                  {/* Pipeline step indicators */}
+                  <div className="flex items-center gap-6 mb-6 pb-5 border-b border-border">
+                    {pipelineSteps.map((step, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-accent-green/15 border border-accent-green/30 flex items-center justify-center">
+                          <svg
+                            className="w-3 h-3 text-accent-green"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m4.5 12.75 6 6 9-13.5"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-2xs font-mono text-text-secondary">
+                          {step.label}
+                        </span>
+                        {i < pipelineSteps.length - 1 && (
+                          <svg
+                            className="w-3 h-3 text-text-muted ml-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                  </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button
-                    as={Link}
-                    to="/getting-started"
-                    variant="primary"
-                    size="xl"
-                    glow
-                    iconRight={<ArrowRight />}
-                  >
-                    Get Started Free
-                  </Button>
-                  <Button
-                    as="a"
-                    href={docsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="outline"
-                    size="xl"
-                  >
-                    Read the Docs
-                  </Button>
-                </div>
+                  {/* Workflow YAML */}
+                  <div className="space-y-0 mb-6">
+                    {pipelineDeployLines.map((line, i) => (
+                      <CodeLine key={i} {...line} />
+                    ))}
+                  </div>
+
+                  {/* Status bar */}
+                  <div className="pt-4 border-t border-border flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
+                      <span className="text-2xs font-mono text-accent-green">
+                        Pipeline succeeded
+                      </span>
+                    </div>
+                    <span className="text-2xs text-text-muted font-mono">
+                      2 devices updated in 34s
+                    </span>
+                  </div>
+                </TerminalChrome>
               </div>
             </div>
-          </Reveal>
+          </ShimmerCard>
+        </Reveal>
+      </Section>
+
+      {/* ── Pain Points ──────────────────────────────────────────── */}
+      <Section>
+        <SectionHeader
+          eyebrow="The Problem"
+          title="Why automating remote deployments is hard"
+          subtitle="Traditional approaches to device automation break down when devices are behind NAT, on unstable networks, or spread across locations."
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {painPoints.map((p, i) => (
+            <Reveal key={i} delay={i * 0.06}>
+              <ShimmerCard>
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-2 h-2 rounded-full mb-4"
+                    style={{ background: p.color }}
+                  />
+                  <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {p.desc}
+                  </p>
+                </Card>
+              </ShimmerCard>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
+
+      {/* ── Key Features ─────────────────────────────────────────── */}
+      <Section>
+        <SectionHeader
+          eyebrow="Capabilities"
+          title="ShellHub features for DevOps teams"
+          subtitle="Everything your automation toolchain needs to securely deploy to remote and edge devices at scale."
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((f, i) => (
+            <Reveal key={i} delay={i * 0.04}>
+              <ShimmerCard>
+                <Card hover className="p-6 h-full">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+                    style={{
+                      background: `${f.color}15`,
+                      borderColor: `${f.color}25`,
+                    }}
+                  >
+                    {f.icon}
+                  </div>
+                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {f.desc}
+                  </p>
+                </Card>
+              </ShimmerCard>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── CTA ──────────────────────────────────────────────────── */}
+      <Section>
+        <Reveal>
+          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
+            <ConnectionGrid />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
+
+            <div className="relative z-10">
+              <SectionHeader
+                variant="cta"
+                eyebrow="Ready to automate?"
+                title="Automate your device deployments today"
+                subtitle="Connect ShellHub to your CI/CD pipeline and start deploying to remote devices in minutes -- no VPN, no static IPs, no hassle."
+              />
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  as={Link}
+                  to="/getting-started"
+                  variant="primary"
+                  size="xl"
+                  glow
+                  iconRight={<ArrowRight />}
+                >
+                  Get Started Free
+                </Button>
+                <Button
+                  as="a"
+                  href={docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="outline"
+                  size="xl"
+                >
+                  Read the Docs
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </Section>
     </SiteLayout>
   );
 }

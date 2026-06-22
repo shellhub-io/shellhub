@@ -5,6 +5,7 @@ import {
   Card,
   IconBadge,
 } from "@shellhub/design-system/primitives";
+import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
 
 interface StepPathProps {
@@ -45,25 +46,9 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
                   "Managed updates",
                   "No maintenance",
                 ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2.5 text-sm text-text-secondary"
-                  >
-                    <svg
-                      className="w-4 h-4 text-accent-green shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                  <FeatureListItem key={item} color="green">
                     {item}
-                  </li>
+                  </FeatureListItem>
                 ))}
               </ul>
 
@@ -113,25 +98,9 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
               <ul className="space-y-2.5 mb-8 flex-1">
                 {["Open source", "Your data stays yours", "Docker Compose"].map(
                   (item) => (
-                    <li
-                      key={item}
-                      className="flex items-center gap-2.5 text-sm text-text-secondary"
-                    >
-                      <svg
-                        className="w-4 h-4 text-text-muted shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                    <FeatureListItem key={item} color="muted">
                       {item}
-                    </li>
+                    </FeatureListItem>
                   ),
                 )}
               </ul>
