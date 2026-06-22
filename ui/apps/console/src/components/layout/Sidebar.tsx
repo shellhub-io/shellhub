@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 import { getConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
 import {
@@ -155,7 +155,7 @@ export default function Sidebar({
     state.sessions.some((session) => session.state === "fullscreen"),
   );
 
-  const sections = useMemo(() => buildSections(), []);
+  const sections = buildSections();
 
   const handleNavClick = useCallback(() => {
     minimizeAll();
