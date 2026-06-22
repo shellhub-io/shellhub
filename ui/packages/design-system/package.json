@@ -8,7 +8,8 @@
     "./css/base.css": "./css/base.css",
     "./components": "./components/index.ts",
     "./constants": "./constants.ts",
-    "./primitives": "./primitives/index.ts"
+    "./primitives": "./primitives/index.ts",
+    "./cn": "./primitives/cn.ts"
   },
   "scripts": {
     "test": "vitest run",
