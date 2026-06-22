@@ -77,7 +77,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
 
     <!-- Body: Sidebar + Content + TOC -->
     <div class="relative max-w-7xl mx-auto grid grid-cols-12 gap-8 px-8">
-      <div class="docs-grid-bg"></div>
+      <div class="grid-bg grid-bg-fade absolute inset-0 pointer-events-none"></div>
 
       <!-- Left Sidebar (off-canvas drawer on mobile, static column on md+) -->
       <aside id="docs-sidebar" class="fixed top-14 left-0 h-[calc(100vh-56px)] w-72 z-40 bg-background overflow-y-auto pt-8 pb-12 border-r border-border -translate-x-full md:translate-x-0 md:static md:col-span-3 md:w-auto md:h-[calc(100vh-56px)] md:z-auto md:bg-transparent md:border-r-0 md:sticky md:top-14">
