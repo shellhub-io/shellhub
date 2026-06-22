@@ -55,4 +55,13 @@ describe("StatCard", () => {
       screen.getByRole("button", { name: /view pending/i }),
     ).toBeInTheDocument();
   });
+
+  it("hides the decorative icon wrapper from assistive technology", () => {
+    renderLink();
+    // closest() is robust to any intermediate wrapper the icon slot might add.
+    expect(screen.getByText("icon").closest("[aria-hidden]")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  });
 });
