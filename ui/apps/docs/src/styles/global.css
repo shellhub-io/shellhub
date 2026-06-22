@@ -330,6 +330,86 @@ html {
 
 /* Code blocks */
 
+.code-block {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.prose .code-block pre {
+  margin-bottom: 0;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: theme('colors.hover-strong');
+  border: 1px solid theme('colors.border');
+  border-radius: 6px;
+  color: theme('colors.text-muted');
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+
+.code-block:hover .code-copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch devices: always show the button (no :hover available) */
+@media (hover: none) {
+  .code-copy-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.code-copy-btn:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid theme('colors.primary.DEFAULT');
+  outline-offset: 2px;
+}
+
+.code-copy-btn:hover {
+  background: theme('colors.hover-strong');
+  color: theme('colors.text-secondary');
+}
+
+.code-copy-btn.copied {
+  color: theme('colors.accent.green');
+  border-color: theme('colors.accent.green / 30%');
+}
+
+.code-copy-btn svg {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.code-copy-btn .icon-copy {
+  display: block;
+}
+
+.code-copy-btn .icon-check {
+  display: none;
+}
+
+.code-copy-btn.copied .icon-copy {
+  display: none;
+}
+
+.code-copy-btn.copied .icon-check {
+  display: block;
+}
+
 .prose pre {
   position: relative;
   background: #141517;
