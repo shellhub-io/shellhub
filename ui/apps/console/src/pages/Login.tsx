@@ -68,8 +68,7 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
 }
 
 export default function Login() {
-  const isCloud = getConfig().cloud;
-  const isEnterprise = getConfig().enterprise;
+  const { cloud: isCloud, enterprise: isEnterprise } = getConfig();
   const location = useLocation();
   const rawState = location.state as Record<string, unknown> | null;
   const notice =
