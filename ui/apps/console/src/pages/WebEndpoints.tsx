@@ -36,6 +36,7 @@ import {
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
+import Pagination from "@/components/common/Pagination";
 import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
 
 /* ─── Constants ─── */
@@ -975,44 +976,17 @@ function WebEndpointsContent() {
                 ))}
               </ul>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <nav
-                  aria-label="Pagination"
-                  className="flex items-center justify-between mt-4 px-1"
-                >
-                  <span className="text-xs font-mono text-text-muted">
-                    {totalCount} endpoint
-                    {totalCount !== 1 ? "s" : ""}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setPage(page - 1)}
-                      disabled={page <= 1}
-                      aria-label="Previous page"
-                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded"
-                    >
-                      Prev
-                    </button>
-                    <span
-                      className="text-xs font-mono text-text-muted px-2"
-                      aria-current="page"
-                    >
-                      {page} /{totalPages}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setPage(page + 1)}
-                      disabled={page >= totalPages}
-                      aria-label="Next page"
-                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </nav>
-              )}
+              {/* Pagination — the shared component shows the count whenever
+                  there are endpoints and only renders Prev/Next on multiple
+                  pages; empty/no-results states are handled by the branches
+                  above, so it never renders a "0 endpoints" bar here. */}
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                itemLabel="endpoint"
+                onPageChange={setPage}
+              />
             </>
           )}
         </>

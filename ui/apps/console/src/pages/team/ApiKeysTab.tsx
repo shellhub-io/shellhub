@@ -149,8 +149,6 @@ function ApiKeysTab() {
         loadingMessage="Loading API keys..."
         page={page}
         totalPages={totalPages}
-        totalCount={totalCount}
-        itemLabel="key"
         onPageChange={setPage}
         // border-l-2 on every row (transparent by default) keeps the row
         // height stable when the red border appears on expired keys.
