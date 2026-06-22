@@ -175,23 +175,6 @@ type UserTokenRecover struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
-// UserChanges specifies the attributes that can be updated for a user. Any zero values in this
-// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
-type UserChanges struct {
-	LastLogin          time.Time        `bson:"last_login,omitempty"`
-	Name               string           `bson:"name,omitempty"`
-	Username           string           `bson:"username,omitempty"`
-	Email              string           `bson:"email,omitempty"`
-	RecoveryEmail      string           `bson:"recovery_email,omitempty"`
-	Password           string           `bson:"password,omitempty"`
-	Status             UserStatus       `bson:"status,omitempty"`
-	ExternalID         *string          `bson:"external_id,omitempty"`
-	PreferredNamespace *string          `bson:"preferences.preferred_namespace,omitempty"`
-	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
-	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
-	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
-}
-
 type UserInfo struct {
 	// OwnedNamespaces are the namespaces where the user is the owner.
 	OwnedNamespaces []Namespace
