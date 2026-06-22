@@ -11,7 +11,7 @@ import (
 )
 
 func TestConnReadMessage_input(t *testing.T) {
-	socket := new(mocks.Socket)
+	socket := new(mocks.MockSocket)
 	conn := NewConn(socket)
 
 	type Expected struct {
@@ -89,7 +89,7 @@ func TestConnReadMessage_input(t *testing.T) {
 }
 
 func TestConnReadMessage_resize(t *testing.T) {
-	socket := new(mocks.Socket)
+	socket := new(mocks.MockSocket)
 	conn := NewConn(socket)
 
 	type Expected struct {

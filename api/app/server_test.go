@@ -28,8 +28,8 @@ func TestLicenseEvaluatorWiring(t *testing.T) {
 		services.RegisterLicenseEvaluator(nil)
 
 		s := &Server{env: &Env{}}
-		mockStore := &storemock.Store{}
-		mockCache := &cachemock.Cache{}
+		mockStore := storemock.NewMockStore(t)
+		mockCache := cachemock.NewMockCache(t)
 
 		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
 		require.NoError(t, err)
@@ -44,8 +44,8 @@ func TestLicenseEvaluatorWiring(t *testing.T) {
 		})
 
 		s := &Server{env: &Env{}}
-		mockStore := &storemock.Store{}
-		mockCache := &cachemock.Cache{}
+		mockStore := storemock.NewMockStore(t)
+		mockCache := cachemock.NewMockCache(t)
 
 		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
 		require.NoError(t, err)
@@ -60,8 +60,8 @@ func TestLicenseEvaluatorWiring(t *testing.T) {
 		})
 
 		s := &Server{env: &Env{}}
-		mockStore := &storemock.Store{}
-		mockCache := &cachemock.Cache{}
+		mockStore := storemock.NewMockStore(t)
+		mockCache := cachemock.NewMockCache(t)
 
 		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
 		require.NoError(t, err)
@@ -76,8 +76,8 @@ func TestLicenseEvaluatorWiring(t *testing.T) {
 		})
 
 		s := &Server{env: &Env{}}
-		mockStore := &storemock.Store{}
-		mockCache := &cachemock.Cache{}
+		mockStore := storemock.NewMockStore(t)
+		mockCache := cachemock.NewMockCache(t)
 
 		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
 		require.Error(t, err)

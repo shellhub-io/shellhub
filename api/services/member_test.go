@@ -12,8 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
-	"github.com/shellhub-io/shellhub/pkg/clock"
-	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -27,7 +25,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		err       error
 	}
 
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	cases := []struct {
 		description   string
@@ -424,10 +422,12 @@ func TestService_AddNamespaceMember(t *testing.T) {
 }
 
 func TestService_UpdateNamespaceMember(t *testing.T) {
-	envMock := new(envmock.Backend)
-	storeMock := new(storemock.Store)
-	cacheMock := new(cachemock.Cache)
+	envMock := envmock.NewMockBackend(t)
+	storeMock := storemock.NewMockStore(t)
+	cacheMock := cachemock.NewMockCache(t)
 
+	prevEnvsBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
 	envs.DefaultBackend = envMock
 
 	cases := []struct {
@@ -1046,9 +1046,11 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 		err       error
 	}
 
-	envMock := new(envmock.Backend)
-	storeMock := new(storemock.Store)
+	envMock := envmock.NewMockBackend(t)
+	storeMock := storemock.NewMockStore(t)
 
+	prevEnvsBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
 	envs.DefaultBackend = envMock
 
 	cases := []struct {
@@ -1498,8 +1500,8 @@ func TestService_LeaveNamespace(t *testing.T) {
 		err error
 	}
 
-	storeMock := new(storemock.Store)
-	cacheMock := new(cachemock.Cache)
+	storeMock := storemock.NewMockStore(t)
+	cacheMock := cachemock.NewMockCache(t)
 
 	cases := []struct {
 		description   string
@@ -1769,9 +1771,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
 				cacheMock.
 					On("Set", ctx, "token_000000000000000000000000", mock.Anything, time.Hour*72).
 					Return(nil).

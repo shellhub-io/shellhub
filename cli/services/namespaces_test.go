@@ -25,10 +25,10 @@ func TestNamespaceCreate(t *testing.T) {
 	}
 	now := time.Now()
 
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
-	mockClock := new(clockmock.Clock)
+	mockClock := new(clockmock.MockClock)
 	clock.DefaultBackend = mockClock
 	mockClock.On("Now").Return(now)
 
@@ -48,7 +48,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-4000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
@@ -61,7 +61,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
@@ -104,7 +104,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
@@ -165,7 +165,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
@@ -226,7 +226,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
@@ -287,7 +287,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
@@ -348,7 +348,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
+				envMock := &env_mocks.MockBackend{}
 				envs.DefaultBackend = envMock
 				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
 				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
@@ -423,8 +423,8 @@ func TestNamespaceAddMember(t *testing.T) {
 		err       error
 	}
 
-	mock := new(mocks.Store)
-	mockClock := new(clockmock.Clock)
+	mock := new(mocks.MockStore)
+	mockClock := new(clockmock.MockClock)
 	clock.DefaultBackend = mockClock
 
 	ctx := context.TODO()
@@ -532,7 +532,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 		err  error
 	}
 
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 
 	ctx := context.TODO()
 	now := time.Now()
@@ -654,7 +654,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 }
 
 func TestNamespaceDelete(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 
 	ctx := context.TODO()
 
@@ -733,7 +733,7 @@ func TestNamespaceList(t *testing.T) {
 		err        error
 	}
 
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	cases := []struct {
@@ -787,7 +787,7 @@ func TestNamespaceResolve(t *testing.T) {
 		err       error
 	}
 
-	mock := new(mocks.Store)
+	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	cases := []struct {

@@ -21,7 +21,7 @@ import (
 )
 
 func TestGetPublicKeys(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession []models.PublicKey
@@ -136,7 +136,7 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 
 			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys?filter="+tc.filter, nil)
 			req.Header.Set("Content-Type", "application/json")
@@ -154,7 +154,7 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 }
 
 func TestGetPublicKey(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.PublicKey
@@ -255,7 +255,7 @@ func TestDeletePublicKey(t *testing.T) {
 		status int
 	}
 
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -363,7 +363,7 @@ func TestDeletePublicKey(t *testing.T) {
 }
 
 func TestCreatePrivateKey(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string

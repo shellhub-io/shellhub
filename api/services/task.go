@@ -75,7 +75,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Data: []query.Filter{
 				{
 					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "removed_at", Operator: "lt", Value: time.Now().AddDate(0, 0, -30)},
+					Params: &query.FilterProperty{Name: "removed_at", Operator: "lt", Value: clock.Now().AddDate(0, 0, -30)},
 				},
 			},
 		}

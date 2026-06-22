@@ -21,8 +21,6 @@ import (
 // Executor provides an interface for executing system commands.
 // This interface allows for easy mocking in tests and provides
 // a clean abstraction over the exec package.
-//
-//go:generate mockery --name=Executor --filename=executor.go
 type Executor interface {
 	// Command creates a new *exec.Cmd with the given name and arguments.
 	Command(name string, arg ...string) *exec.Cmd
@@ -51,8 +49,6 @@ func (e *executor) Run(cmd *exec.Cmd) error {
 // Ticker provides an interface for time-based operations with context support.
 // This interface allows for easy mocking in tests and provides a clean
 // abstraction over the time package's ticker functionality.
-//
-//go:generate mockery --name=Ticker --filename=ticker.go
 type Ticker interface {
 	// Init creates a new time.Ticker internally with the specified duration.
 	// The ticker will respect the provided context for cancellation.

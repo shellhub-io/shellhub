@@ -24,7 +24,7 @@ import (
 )
 
 func TestGetDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.Device
@@ -94,7 +94,7 @@ func TestGetDevice(t *testing.T) {
 }
 
 func TestResolveDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		device *models.Device
@@ -177,7 +177,7 @@ func TestResolveDevice(t *testing.T) {
 }
 
 func TestDeleteDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -227,7 +227,7 @@ func TestDeleteDevice(t *testing.T) {
 }
 
 func TestRenameDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -295,7 +295,7 @@ func TestRenameDevice(t *testing.T) {
 }
 
 func TestGetDeviceList(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		devices []models.Device
@@ -435,7 +435,7 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			mock := new(mocks.Service)
+			mock := mocks.NewMockService(t)
 
 			urlVal := url.Values{}
 			urlVal.Set("page", "1")
@@ -488,7 +488,7 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			mock := new(mocks.Service)
+			mock := mocks.NewMockService(t)
 
 			var captured *requests.DeviceList
 			mock.
@@ -546,7 +546,7 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 }
 
 func TestOfflineDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -597,7 +597,7 @@ func TestOfflineDevice(t *testing.T) {
 }
 
 func TestLookupDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.Device
@@ -678,7 +678,7 @@ func TestLookupDevice(t *testing.T) {
 }
 
 func TestUpdateDevice(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description    string

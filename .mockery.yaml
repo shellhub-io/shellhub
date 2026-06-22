@@ -1,0 +1,55 @@
+log-level: "info"
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: "mocks"
+structname: "Mock{{.InterfaceName}}"
+filename: "mock_{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  github.com/shellhub-io/shellhub/pkg/cache:
+    interfaces:
+      Cache:
+
+  github.com/shellhub-io/shellhub/pkg/clock:
+    interfaces:
+      Clock:
+
+  github.com/shellhub-io/shellhub/pkg/envs:
+    interfaces:
+      Backend:
+
+  github.com/shellhub-io/shellhub/pkg/hash:
+    interfaces:
+      Hasher:
+
+  github.com/shellhub-io/shellhub/pkg/uuid:
+    interfaces:
+      UUID:
+        config:
+          filename: "mock_uuid.go"
+
+  github.com/shellhub-io/shellhub/pkg/geoip:
+    interfaces:
+      Locator:
+
+  github.com/shellhub-io/shellhub/pkg/websocket:
+    interfaces:
+      Conn:
+      Upgrader:
+
+  github.com/shellhub-io/shellhub/pkg/api/internalclient:
+    interfaces:
+      Client:
+
+  github.com/shellhub-io/shellhub/pkg/api/client:
+    interfaces:
+      Client:
+
+  github.com/shellhub-io/shellhub/pkg/api/client/reverser:
+    interfaces:
+      Reverser:
+
+  github.com/shellhub-io/shellhub/pkg/worker:
+    interfaces:
+      Client:
+      Server:

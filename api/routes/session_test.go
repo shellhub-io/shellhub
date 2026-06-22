@@ -26,7 +26,7 @@ import (
 )
 
 func TestGetSessionList(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession []models.Session
@@ -106,7 +106,7 @@ func TestGetSessionList(t *testing.T) {
 }
 
 func TestGetSession(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.Session
@@ -178,7 +178,7 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -271,7 +271,7 @@ func TestCreateSession(t *testing.T) {
 }
 
 func TestFinishSession(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -323,8 +323,8 @@ func TestFinishSession(t *testing.T) {
 }
 
 func TestEventSession(t *testing.T) {
-	mock := new(mocks.Service)
-	webSocketUpgraderMock := new(websocketmocks.Upgrader)
+	mock := mocks.NewMockService(t)
+	webSocketUpgraderMock := websocketmocks.NewMockUpgrader(t)
 
 	cases := []struct {
 		description   string
@@ -347,7 +347,7 @@ func TestEventSession(t *testing.T) {
 			uid:         "123",
 			seat:        0,
 			requiredMocks: func(_ string) {
-				conn := new(websocketmocks.Conn)
+				conn := websocketmocks.NewMockConn(t)
 				conn.On("Close").Return(nil).Once()
 				conn.On("ReadJSON", gomock.Anything).Return(io.EOF).Once()
 
@@ -360,7 +360,7 @@ func TestEventSession(t *testing.T) {
 			uid:         "123",
 			seat:        0,
 			requiredMocks: func(_ string) {
-				conn := new(websocketmocks.Conn)
+				conn := websocketmocks.NewMockConn(t)
 				conn.On("Close").Return(nil).Once()
 				conn.On("ReadJSON", gomock.Anything).Return(errors.New("")).Once()
 
@@ -373,7 +373,7 @@ func TestEventSession(t *testing.T) {
 			uid:         "123",
 			seat:        0,
 			requiredMocks: func(_ string) {
-				conn := new(websocketmocks.Conn)
+				conn := websocketmocks.NewMockConn(t)
 				conn.On("Close").Return(nil).Once()
 				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
 					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
@@ -392,9 +392,8 @@ func TestEventSession(t *testing.T) {
 			uid:         "123",
 			seat:        0,
 			requiredMocks: func(uid string) {
-				conn := new(websocketmocks.Conn)
+				conn := websocketmocks.NewMockConn(t)
 				conn.On("Close").Return(nil).Once()
-				conn.On("NextReader").Return().Once()
 				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
 					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
 
@@ -415,9 +414,8 @@ func TestEventSession(t *testing.T) {
 			uid:         "123",
 			seat:        0,
 			requiredMocks: func(uid string) {
-				conn := new(websocketmocks.Conn)
+				conn := websocketmocks.NewMockConn(t)
 				conn.On("Close").Return(nil).Once()
-				conn.On("NextReader").Return().Once()
 				conn.On("ReadJSON", gomock.Anything).Return(nil).Once().Run(func(args gomock.Arguments) {
 					req := args.Get(0).(*requests.SessionEvent) //nolint:forcetypeassert
 

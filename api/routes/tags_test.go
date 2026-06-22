@@ -21,7 +21,7 @@ import (
 )
 
 func TestGetTags(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description    string
@@ -132,7 +132,7 @@ func TestDeleteTag(t *testing.T) {
 		description    string
 		url            string
 		headers        map[string]string
-		requiredMocks  func(svcMock *mocks.Service)
+		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
@@ -143,7 +143,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-Role":      authorizer.RoleObserver.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -153,7 +153,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-Role": authorizer.RoleObserver.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -164,7 +164,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -183,7 +183,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -201,7 +201,7 @@ func TestDeleteTag(t *testing.T) {
 				"X-Role": authorizer.RoleOwner.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -216,7 +216,7 @@ func TestDeleteTag(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequest(http.MethodDelete, tc.url, nil)
@@ -249,7 +249,7 @@ func TestCreateTag(t *testing.T) {
 		url           string
 		headers       map[string]string
 		body          map[string]interface{}
-		requiredMocks func(svcMock *mocks.Service)
+		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
 	}{
 		{
@@ -264,7 +264,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusForbidden},
 		},
 		{
@@ -278,7 +278,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusForbidden},
 		},
 		{
@@ -293,7 +293,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "a",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusBadRequest},
 		},
 		{
@@ -308,7 +308,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("CreateTag", gomock.Anything, &requests.CreateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -331,7 +331,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("CreateTag", gomock.Anything, &requests.CreateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -357,7 +357,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("CreateTag", gomock.Anything, &requests.CreateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -382,7 +382,7 @@ func TestCreateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "production",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("CreateTag", gomock.Anything, &requests.CreateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -400,7 +400,7 @@ func TestCreateTag(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
 			data, err := json.Marshal(tc.body)
@@ -446,7 +446,7 @@ func TestUpdateTag(t *testing.T) {
 		url           string
 		headers       map[string]string
 		body          map[string]interface{}
-		requiredMocks func(svcMock *mocks.Service)
+		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
 	}{
 		{
@@ -461,7 +461,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusForbidden},
 		},
 		{
@@ -475,7 +475,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusForbidden},
 		},
 		{
@@ -490,7 +490,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "ab",
 			},
-			requiredMocks: func(_ *mocks.Service) {},
+			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      Expected{status: http.StatusBadRequest},
 		},
 		{
@@ -505,7 +505,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("UpdateTag", gomock.Anything, &requests.UpdateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -529,7 +529,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("UpdateTag", gomock.Anything, &requests.UpdateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -552,7 +552,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("UpdateTag", gomock.Anything, &requests.UpdateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -576,7 +576,7 @@ func TestUpdateTag(t *testing.T) {
 			body: map[string]interface{}{
 				"name": "staging",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("UpdateTag", gomock.Anything, &requests.UpdateTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -595,7 +595,7 @@ func TestUpdateTag(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
 			data, err := json.Marshal(tc.body)
@@ -633,7 +633,7 @@ func TestPushTagToDevice(t *testing.T) {
 		description    string
 		url            string
 		headers        map[string]string
-		requiredMocks  func(svcMock *mocks.Service)
+		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
@@ -644,7 +644,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleObserver.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -654,7 +654,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role": authorizer.RoleObserver.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -665,7 +665,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -676,7 +676,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -696,7 +696,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -715,7 +715,7 @@ func TestPushTagToDevice(t *testing.T) {
 				"X-Role": authorizer.RoleOwner.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -731,7 +731,7 @@ func TestPushTagToDevice(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequest(http.MethodPost, tc.url, nil)
@@ -759,7 +759,7 @@ func TestPullTagFromDevice(t *testing.T) {
 		description    string
 		url            string
 		headers        map[string]string
-		requiredMocks  func(svcMock *mocks.Service)
+		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
@@ -770,7 +770,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleObserver.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -780,7 +780,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role": authorizer.RoleObserver.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
@@ -791,7 +791,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks:  func(_ *mocks.Service) {},
+			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -802,7 +802,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -822,7 +822,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role":      authorizer.RoleOwner.String(),
 				"X-ID":        "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -841,7 +841,7 @@ func TestPullTagFromDevice(t *testing.T) {
 				"X-Role": authorizer.RoleOwner.String(),
 				"X-ID":   "000000000000000000000000",
 			},
-			requiredMocks: func(svcMock *mocks.Service) {
+			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
 						TenantID: "00000000-0000-4000-0000-000000000000",
@@ -857,7 +857,7 @@ func TestPullTagFromDevice(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			svcMock := new(mocks.Service)
+			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequest(http.MethodDelete, tc.url, nil)

@@ -21,14 +21,18 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	storeMock := new(mocks.Store)
+	storeMock := mocks.NewMockStore(t)
 
-	clockMock := new(clockmock.Clock)
+	clockMock := clockmock.NewMockClock(t)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
 	clock.DefaultBackend = clockMock
 
 	tenant := "00000000-0000-4000-0000-000000000000"
 
-	uuidMock := new(uuidmock.Uuid)
+	uuidMock := uuidmock.NewMockUUID(t)
+	prevUUIDBackend := uuid.DefaultBackend
+	t.Cleanup(func() { uuid.DefaultBackend = prevUUIDBackend })
 	uuid.DefaultBackend = uuidMock
 	uuidMock.On("Generate").Return(tenant)
 
@@ -259,11 +263,6 @@ func TestSetup(t *testing.T) {
 					Setup: false,
 				}, nil).Once()
 
-				clockMock.On("Now").Return(now).Twice()
-
-				uuidMock := &uuidmock.Uuid{}
-				uuidMock.On("Generate").Return("random_uuid").Once()
-
 				hashMock.
 					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
@@ -349,11 +348,6 @@ func TestSetup(t *testing.T) {
 					Setup: false,
 				}, nil).Once()
 
-				clockMock.On("Now").Return(now).Twice()
-
-				uuidMock := &uuidmock.Uuid{}
-				uuidMock.On("Generate").Return("random_uuid").Once()
-
 				hashMock.
 					On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
@@ -403,8 +397,6 @@ func TestSetup(t *testing.T) {
 				hashMock.On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
-
-				clockMock.On("Now").Return(now).Twice()
 
 				user := &models.User{
 					Origin:    models.UserOriginLocal,

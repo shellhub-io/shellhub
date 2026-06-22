@@ -27,8 +27,8 @@ import (
 )
 
 func TestListDevices(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
@@ -70,7 +70,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -107,7 +107,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -135,8 +135,8 @@ func TestListDevices(t *testing.T) {
 }
 
 func TestListDevices_status_removed(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
@@ -182,7 +182,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -223,7 +223,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{{Name: "dev"}}, 1, nil).
 					Once()
 			},
@@ -255,8 +255,8 @@ func TestListDevices_status_removed(t *testing.T) {
 }
 
 func TestListDevices_tenant_not_empty(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
@@ -355,7 +355,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -408,7 +408,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -461,7 +461,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -514,7 +514,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -553,14 +553,14 @@ func TestGetDevice(t *testing.T) {
 		description   string
 		ctx           context.Context
 		uid           models.UID
-		requiredMocks func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions)
+		requiredMocks func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expected      Expected
 	}{
 		{
 			description: "fails when the store get device fails",
 			ctx:         ctx,
 			uid:         models.UID("_uid"),
-			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid").Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{
@@ -572,7 +572,7 @@ func TestGetDevice(t *testing.T) {
 			description: "succeeds without tenant in context",
 			ctx:         ctx,
 			uid:         models.UID("uid"),
-			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				device := &models.Device{UID: "uid"}
 				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 			},
@@ -585,9 +585,9 @@ func TestGetDevice(t *testing.T) {
 			description: "scopes by caller tenant and returns not found for a device in another namespace",
 			ctx:         contextWithTenant("attacker-tenant"),
 			uid:         models.UID("victim-uid"),
-			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", "attacker-tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "victim-uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "victim-uid", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(nil, errors.New("not found", "", 0)).Once()
 			},
 			expected: Expected{
@@ -599,10 +599,10 @@ func TestGetDevice(t *testing.T) {
 			description: "scopes by caller tenant and returns device in the same namespace",
 			ctx:         contextWithTenant("tenant-a"),
 			uid:         models.UID("uid"),
-			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+			requiredMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", "tenant-a").Return(nil).Once()
 				device := &models.Device{UID: "uid", TenantID: "tenant-a"}
-				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "uid", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(device, nil).Once()
 			},
 			expected: Expected{
@@ -614,8 +614,8 @@ func TestGetDevice(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			storeMock := new(storemock.Store)
-			queryOptionsMock := new(storemock.QueryOptions)
+			storeMock := storemock.NewMockStore(t)
+			queryOptionsMock := storemock.NewMockQueryOptions(t)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requiredMocks(storeMock, queryOptionsMock)
 
@@ -643,8 +643,8 @@ func contextWithTenant(tenantID string) context.Context {
 }
 
 func TestResolveDevice(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
@@ -687,7 +687,7 @@ func TestResolveDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -709,7 +709,7 @@ func TestResolveDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
@@ -731,7 +731,7 @@ func TestResolveDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "hostname", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "hostname", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -753,7 +753,7 @@ func TestResolveDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "hostname", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "hostname", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
@@ -775,7 +775,7 @@ func TestResolveDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
 					Return(&models.Device{UID: "uid"}, nil).
 					Once()
 			},
@@ -800,13 +800,13 @@ func TestResolveDevice(t *testing.T) {
 }
 
 func TestDeleteDevice(t *testing.T) {
-	now := time.Now()
-	clockMock := new(clockmock.Clock)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
 	clock.DefaultBackend = clockMock
 
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
@@ -828,7 +828,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -850,7 +850,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -876,7 +876,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -911,7 +911,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -938,7 +938,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -973,7 +973,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -999,7 +999,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -1038,8 +1038,8 @@ func TestDeleteDevice(t *testing.T) {
 }
 
 func TestRenameDevice(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -1061,7 +1061,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -1079,7 +1079,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 			},
@@ -1097,7 +1097,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 			},
@@ -1117,7 +1117,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -1140,7 +1140,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -1167,7 +1167,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -1198,8 +1198,8 @@ func TestRenameDevice(t *testing.T) {
 }
 
 func TestLookupDevice(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
@@ -1253,9 +1253,7 @@ func TestLookupDevice(t *testing.T) {
 						"DeviceResolve",
 						ctx,
 						store.DeviceHostnameResolver,
-						"name",
-						mock.AnythingOfType("store.QueryOption"),
-						mock.AnythingOfType("store.QueryOption"),
+						"name", mock.AnythingOfType("[]store.QueryOption"),
 					).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
@@ -1287,9 +1285,7 @@ func TestLookupDevice(t *testing.T) {
 						"DeviceResolve",
 						ctx,
 						store.DeviceHostnameResolver,
-						"name",
-						mock.AnythingOfType("store.QueryOption"),
-						mock.AnythingOfType("store.QueryOption"),
+						"name", mock.AnythingOfType("[]store.QueryOption"),
 					).
 					Return(device, nil).
 					Once()
@@ -1314,12 +1310,12 @@ func TestLookupDevice(t *testing.T) {
 }
 
 func TestOfflineDevice(t *testing.T) {
-	now := time.Now()
-	clockMock := new(clockmock.Clock)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
 	clock.DefaultBackend = clockMock
 
-	storeMock := new(storemock.Store)
+	storeMock := storemock.NewMockStore(t)
 
 	cases := []struct {
 		name     string
@@ -1432,16 +1428,20 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	deviceMergeHooks = nil
 	t.Cleanup(func() { deviceMergeHooks = savedHooks })
 
-	now := time.Now()
-	clockMock := new(clockmock.Clock)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
 	clock.DefaultBackend = clockMock
 
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
-	envMock := new(envsmocks.Backend)
+	envMock := envsmocks.NewMockBackend(t)
+	prevEnvsBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
 	envs.DefaultBackend = envMock
 
 	ctx := context.Background()
@@ -1483,7 +1483,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "nonexistent-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "nonexistent-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("device not found", "", 0)).
 					Once()
 			},
@@ -1506,7 +1506,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "accepted-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "accepted-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "accepted-device",
@@ -1538,7 +1538,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "accepted-device",
@@ -1586,7 +1586,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "device-to-pending", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "device-to-pending", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -1637,7 +1637,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "device-to-reject", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "device-to-reject", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -1672,7 +1672,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "conflicting-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "conflicting-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "conflicting-device",
@@ -1693,7 +1693,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "old-device",
@@ -1705,16 +1705,9 @@ func TestUpdateDeviceStatus(t *testing.T) {
 						nil,
 					).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once (WithDeviceStatus+InNamespace) and reused for the hostname lookup.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "old-device",
@@ -1776,7 +1769,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(newDevice, nil).
 					Once()
 				queryOptionsMock.
@@ -1788,19 +1781,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
 				// Merge operations
@@ -1853,7 +1839,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "conflicting-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "conflicting-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "conflicting-device",
@@ -1874,19 +1860,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "duplicate-name", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "duplicate-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "existing-device",
@@ -1925,7 +1904,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "limit-device",
@@ -1946,19 +1925,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2001,7 +1973,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "pending-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "pending-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				queryOptionsMock.
@@ -2013,19 +1985,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2071,7 +2036,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "limit-device",
@@ -2092,19 +2057,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2147,7 +2105,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "pending-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "pending-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				queryOptionsMock.
@@ -2159,19 +2117,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2220,19 +2171,23 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	deviceMergeHooks = nil
 	t.Cleanup(func() { deviceMergeHooks = savedHooks })
 
-	now := time.Now()
-	clockMock := new(clockmock.Clock)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
 	clock.DefaultBackend = clockMock
 
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
-	envMock := new(envsmocks.Backend)
+	envMock := envsmocks.NewMockBackend(t)
+	prevEnvsBackend := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
 	envs.DefaultBackend = envMock
 
-	licenseEvaluator := servicemocks.NewLicenseEvaluator(t)
+	licenseEvaluator := servicemocks.NewMockLicenseEvaluator(t)
 
 	ctx := context.Background()
 
@@ -2260,7 +2215,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-limited-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-limited-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						&models.Device{
 							UID:      "license-limited-device",
@@ -2281,19 +2236,12 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2341,7 +2289,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-ok-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-ok-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				queryOptionsMock.
@@ -2353,19 +2301,12 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2425,7 +2366,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-error-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "license-error-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				queryOptionsMock.
@@ -2437,19 +2378,12 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
@@ -2524,7 +2458,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "new-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(newDevice, nil).
 					Once()
 				queryOptionsMock.
@@ -2536,19 +2470,12 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
+				// opts is built once and reused for hostname lookup — no second WithDeviceStatus/InNamespace call.
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
 				// licenseEvaluatorMock.CanAcceptDevice must NOT be called on the merge path
@@ -2608,9 +2535,9 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 }
 
 func TestDeviceUpdate(t *testing.T) {
-	now := time.Now()
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -2632,7 +2559,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2656,11 +2583,11 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Twice()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "name"}, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]string{"name"}, true, nil).
 					Once()
 			},
@@ -2684,7 +2611,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 			},
@@ -2713,11 +2640,11 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Twice()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -2750,11 +2677,11 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Twice()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "newname"}, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -2782,7 +2709,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 			},
@@ -2804,8 +2731,8 @@ func TestDeviceUpdate(t *testing.T) {
 }
 
 func TestSetDeviceCustomField(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -2828,7 +2755,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2856,7 +2783,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 			},
@@ -2880,7 +2807,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2908,7 +2835,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2940,7 +2867,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2966,8 +2893,8 @@ func TestSetDeviceCustomField(t *testing.T) {
 }
 
 func TestDeleteDeviceCustomField(t *testing.T) {
-	storeMock := new(storemock.Store)
-	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
@@ -2989,7 +2916,7 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -3012,7 +2939,7 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -3039,7 +2966,7 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.

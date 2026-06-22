@@ -20,7 +20,7 @@ func TestUpdateUser(t *testing.T) {
 		err       error
 	}
 
-	storeMock := new(mocks.Store)
+	storeMock := mocks.NewMockStore(t)
 
 	cases := []struct {
 		description   string
@@ -506,7 +506,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdatePasswordUser(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := mocks.NewMockStore(t)
 
 	ctx := context.Background()
 

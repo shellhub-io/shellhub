@@ -19,8 +19,8 @@ func (m *mockLicenseEvaluator) CanAcceptDevice(_ context.Context) (bool, error) 
 
 func TestWithLicenseEvaluator(t *testing.T) {
 	t.Run("licenseEvaluator is nil without the option", func(t *testing.T) {
-		store := &storemock.Store{}
-		cache := &cachemock.Cache{}
+		store := storemock.NewMockStore(t)
+		cache := cachemock.NewMockCache(t)
 
 		svc := NewService(store, privateKey, publicKey, cache, clientMock)
 		require.NotNil(t, svc)
@@ -29,8 +29,8 @@ func TestWithLicenseEvaluator(t *testing.T) {
 	})
 
 	t.Run("WithLicenseEvaluator injects a non-nil evaluator", func(t *testing.T) {
-		store := &storemock.Store{}
-		cache := &cachemock.Cache{}
+		store := storemock.NewMockStore(t)
+		cache := cachemock.NewMockCache(t)
 
 		evaluator := &mockLicenseEvaluator{}
 		svc := NewService(store, privateKey, publicKey, cache, clientMock,

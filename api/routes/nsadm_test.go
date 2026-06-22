@@ -23,7 +23,7 @@ import (
 )
 
 func TestCreateNamespace(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.Namespace
@@ -89,7 +89,7 @@ func TestCreateNamespace(t *testing.T) {
 }
 
 func TestGetNamespace(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	type Expected struct {
 		expectedSession *models.Namespace
@@ -169,7 +169,7 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestDeleteNamespace(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	cases := []struct {
 		title          string
@@ -248,7 +248,7 @@ func TestDeleteNamespace(t *testing.T) {
 }
 
 func TestEditNamespace(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -355,7 +355,7 @@ func TestEditNamespace(t *testing.T) {
 }
 
 func TestEditDeviceAutoAccept(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -460,7 +460,7 @@ func TestEditDeviceAutoAccept(t *testing.T) {
 }
 
 func TestHandler_LeaveNamespace(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description   string
@@ -598,7 +598,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 	for _, route := range routes {
 		for _, shape := range shapes {
 			t.Run(route.description+" ("+shape.name+")", func(t *testing.T) {
-				mock := new(mocks.Service)
+				mock := mocks.NewMockService(t)
 
 				// Seed the mock with a realistic victim namespace so the
 				// handler would have something to serialize on vulnerable
@@ -640,7 +640,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 }
 
 func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
@@ -654,7 +654,7 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 }
 
 func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
-	mock := new(mocks.Service)
+	mock := mocks.NewMockService(t)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
@@ -705,7 +705,7 @@ func namespaceListHasFilterName(name string) interface{} {
 }
 
 func TestGetNamespaceList(t *testing.T) {
-	svcMock := new(mocks.Service)
+	svcMock := mocks.NewMockService(t)
 
 	cases := []struct {
 		description    string

@@ -32,7 +32,7 @@ func ExampleNewAgent() {
 }
 
 func TestLoadConfigFromEnv(t *testing.T) {
-	envMock := new(env_mocks.Backend)
+	envMock := new(env_mocks.MockBackend)
 	envs.DefaultBackend = envMock
 
 	type expected struct {
@@ -249,7 +249,7 @@ func TestNewAgentWithConfig(t *testing.T) {
 }
 
 func TestAgent_GetInfo(t *testing.T) {
-	clientMocks := new(client_mocks.Client)
+	clientMocks := new(client_mocks.MockClient)
 
 	type expected struct {
 		info *models.Info

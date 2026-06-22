@@ -32,6 +32,8 @@ services:
       - ./tests:/go/src/github.com/shellhub-io/shellhub/tests
       - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
+      - ./.mockery.yaml:/go/src/github.com/shellhub-io/shellhub/.mockery.yaml
+      - ./go.sum:/go/src/github.com/shellhub-io/shellhub/go.sum
     environment:
       - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}

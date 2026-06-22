@@ -166,7 +166,7 @@ func TestShell_StartPtyError(t *testing.T) {
 
 	// Mock osauth so generateShellCmd (and any subsequent LookupUser call) can
 	// return a real user without touching /etc/passwd.
-	osauthMock := &osauthMocks.Backend{}
+	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
 	fakeUser := &osauth.User{
@@ -257,7 +257,7 @@ func TestExec_InitPtyError(t *testing.T) {
 	}
 
 	// Mock osauth so LookupUser succeeds without touching /etc/passwd.
-	osauthMock := &osauthMocks.Backend{}
+	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
 	fakeUser := &osauth.User{

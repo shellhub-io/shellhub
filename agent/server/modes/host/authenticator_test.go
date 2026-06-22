@@ -27,7 +27,7 @@ func TestPublicKey(t *testing.T) {
 	privKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 	key, _ := gossh.NewPublicKey(&privKey.PublicKey)
 
-	osauthMock := &osauthMocks.Backend{}
+	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 
 	tests := []struct {
@@ -36,7 +36,7 @@ func TestPublicKey(t *testing.T) {
 		name          string
 		user          string
 		key           gliderssh.PublicKey
-		requiredMocs  func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend)
+		requiredMocs  func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend)
 		expected      bool
 	}{
 		{
@@ -45,12 +45,12 @@ func TestPublicKey(t *testing.T) {
 			},
 			authenticator: &Authenticator{
 				deviceName: stringToRef("device"),
-				api:        new(clientMocks.Client),
+				api:        new(clientMocks.MockClient),
 			},
 			name: "return false when user is not found",
 			user: "",
 			key:  nil,
-			requiredMocs: func(_ *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(_ *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "").Return(nil, osauth.ErrUserNotFound).Once()
 			},
 			expected: false,
@@ -65,12 +65,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "return false when public key api request fails",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(nil, errors.New("error")).Once()
 			},
@@ -86,12 +86,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "return false when public key signature is invalid",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: "signature",
@@ -109,12 +109,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "return true when public key signature does not implement crypto.PublicKey",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
@@ -132,12 +132,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "fail when public key returned by crypto.PublicKey is not a pointer to a rsa.PublicKey",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
@@ -155,12 +155,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "return false when public key returned by crypto.PublicKey does not pass on rsa.VerifyPKCS1v15",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 				apiMock.On("AuthPublicKey", mock.Anything, "token").Return(&models.PublicKeyAuthResponse{
 					Signature: base64.StdEncoding.EncodeToString([]byte("signature")),
@@ -178,12 +178,12 @@ func TestPublicKey(t *testing.T) {
 				},
 				singleUserPassword: "",
 				deviceName:         stringToRef("device"),
-				api:                new(clientMocks.Client),
+				api:                new(clientMocks.MockClient),
 			},
 			name: "return true when public key signature is valid",
 			user: "",
 			key:  key,
-			requiredMocs: func(apiMock *clientMocks.Client, osauthMock *osauthMocks.Backend) {
+			requiredMocs: func(apiMock *clientMocks.MockClient, osauthMock *osauthMocks.MockBackend) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 
 				type Signature struct {
@@ -213,7 +213,7 @@ func TestPublicKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.requiredMocs(tt.authenticator.api.(*clientMocks.Client), osauthMock)
+			tt.requiredMocs(tt.authenticator.api.(*clientMocks.MockClient), osauthMock)
 
 			ok := tt.authenticator.PublicKey(tt.ctx, tt.user, tt.key)
 			assert.Equal(t, tt.expected, ok)
@@ -222,7 +222,7 @@ func TestPublicKey(t *testing.T) {
 }
 
 func TestPassword(t *testing.T) {
-	mock := &osauthMocks.Backend{}
+	mock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = mock
 
 	tests := []struct {
