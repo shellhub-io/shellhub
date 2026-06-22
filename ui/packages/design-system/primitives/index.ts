@@ -1,5 +1,6 @@
 // primitives/index.ts — public surface of the design-system primitives.
-// cn is intentionally NOT exported here; import it directly from "./cn" within the package.
+// cn is intentionally NOT exported from this component barrel. Within the package, import it
+// from "./cn". External consumers should import it via the "@shellhub/design-system/cn" subpath.
 
 export { Button } from "./Button";
 export type { ButtonVariant, ButtonSize } from "./Button";
