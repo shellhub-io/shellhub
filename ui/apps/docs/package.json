@@ -10,7 +10,10 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "sync": "astro sync",
-    "lint": "eslint \"src/**/*.ts\""
+    "lint": "eslint \"src/**/*.ts\"",
+    "shots:seed": "node screenshots/seed.mjs",
+    "shots:capture": "node screenshots/capture.mjs",
+    "shots": "node screenshots/seed.mjs && node screenshots/capture.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",
@@ -22,5 +25,8 @@
     "astro": "^5.7.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
   }
 }
