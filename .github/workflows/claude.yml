@@ -60,7 +60,7 @@ jobs:
           fi
 
       - name: Checkout shellhub
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.pr-ref.outputs.sha || '' }}
 
@@ -91,7 +91,7 @@ jobs:
           fi
 
       - name: Checkout cloud (context)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: shellhub-io/cloud
           token: ${{ steps.app-token.outputs.token }}
@@ -100,7 +100,7 @@ jobs:
           path: cloud
 
       - name: Checkout claude config
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: shellhub-io/claude
           token: ${{ steps.app-token.outputs.token }}

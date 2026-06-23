@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get release version
         id: get_version
@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - name: Checkout shellhub source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: shellhub
 
@@ -95,7 +95,7 @@ jobs:
           repositories: cloud
 
       - name: Checkout cloud source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: shellhub-io/cloud
           token: ${{ steps.cloud-token.outputs.token }}
