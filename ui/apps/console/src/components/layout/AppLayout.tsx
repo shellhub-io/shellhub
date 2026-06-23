@@ -10,6 +10,7 @@ import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger"
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
 import { SidebarMobileDrawer } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
+import SkipToContentLink from "./SkipToContentLink";
 import CommandPalette from "@/components/commandPalette/CommandPalette";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -36,6 +37,7 @@ export default function AppLayout() {
       <div
         className={`flex flex-col h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden" : ""}`}
       >
+        <SkipToContentLink />
         <ConnectivityBanner />
         {isEnterprise && (
           <>
@@ -82,6 +84,8 @@ export default function AppLayout() {
             <div className="relative size-full">
               <div className="grid-bg scanline absolute inset-0 -z-10" />
               <main
+                id="main-content"
+                tabIndex={-1}
                 key={pathname}
                 className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto"
               >
