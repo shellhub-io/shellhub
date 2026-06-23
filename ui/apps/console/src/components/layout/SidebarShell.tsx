@@ -157,11 +157,13 @@ export default function SidebarShell({
           <img
             src="/logo.svg"
             alt="ShellHub"
+            aria-hidden={!expanded}
             className={`h-8 transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0 absolute"}`}
           />
           <img
             src="/cloud-icon.svg"
             alt="ShellHub"
+            aria-hidden={expanded}
             className={`h-6 w-6 transition-opacity duration-200 ${expanded ? "opacity-0 absolute" : "opacity-100"}`}
           />
         </NavLink>

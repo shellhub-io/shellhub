@@ -46,4 +46,18 @@ describe("SidebarShell", () => {
     const button = screen.getByRole("button", { name: "Close sidebar" });
     expect(button).toHaveAttribute("title", "Close sidebar");
   });
+
+  it("exposes only the expanded logo to assistive tech when expanded", () => {
+    renderSidebarShell({ expanded: true });
+
+    // Both logos stay in the DOM (CSS opacity crossfade); aria-hidden keeps the
+    // collapsed icon out of the accessibility tree so "ShellHub" is announced once.
+    expect(screen.getAllByRole("img", { name: "ShellHub" })).toHaveLength(1);
+  });
+
+  it("exposes only the collapsed logo to assistive tech when collapsed", () => {
+    renderSidebarShell({ expanded: false });
+
+    expect(screen.getAllByRole("img", { name: "ShellHub" })).toHaveLength(1);
+  });
 });
