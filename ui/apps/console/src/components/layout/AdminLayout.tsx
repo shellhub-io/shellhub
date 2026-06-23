@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import AdminAppBar from "./AdminAppBar";
 import { SidebarMobileDrawer } from "./SidebarShell";
+import SkipToContentLink from "./SkipToContentLink";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
 export default function AdminLayout() {
@@ -11,6 +12,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      <SkipToContentLink />
       <div className="flex flex-1 min-h-0">
         {isDesktop ? (
           <div
@@ -47,6 +49,8 @@ export default function AdminLayout() {
           <div className="relative size-full">
             <div className="grid-bg scanline absolute inset-0 -z-10" />
             <main
+              id="main-content"
+              tabIndex={-1}
               key={pathname}
               className="page-enter absolute inset-0 p-8 pb-4 overflow-y-auto"
             >

@@ -144,6 +144,44 @@ describe("AppLayout", () => {
     });
   });
 
+  describe("skip link", () => {
+    it("renders the skip link pointing at main content", () => {
+      renderLayout();
+      const link = screen.getByRole("link", { name: /skip to main content/i });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute("href", "#main-content");
+    });
+
+    it("exposes the main landmark with id and tabindex", () => {
+      renderLayout();
+      const main = screen.getByRole("main");
+      expect(main).toHaveAttribute("id", "main-content");
+      expect(main).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("renders the skip link before the main content in the DOM", () => {
+      renderLayout();
+      const link = screen.getByRole("link", { name: /skip to main content/i });
+      const main = screen.getByRole("main");
+      expect(
+        link.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it("renders the skip link when the sidebar is visible", () => {
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [{ tenant_id: "t1", name: "ns1" }],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderLayout();
+      expect(
+        screen.getByRole("link", { name: /skip to main content/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe("enterprise banners", () => {
     it("mounts LicenseBanner and DeviceLimitBanner when enterprise and not cloud", () => {
       mockGetConfig.mockReturnValue({
