@@ -313,6 +313,66 @@ func main() {
 		},
 	})
 
+	shareCmd := &cobra.Command{ // nolint: exhaustruct
+		Use:   "share [-- command...]",
+		Short: "Share a local terminal over a public link",
+		Long: `Spawn a command (or your login shell) inside a PTY and expose it as a public shared
+terminal — like tmate or upterm. Open the link in a browser to watch the session live, without
+signing in. The share is read-only by default; use --write to let guests type. The share always
+ends when the command exits; --duration sets an additional time limit (--duration 0 disables it).
+You keep using the terminal normally.`,
+		Args: cobra.ArbitraryArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			loglevel.SetLogLevel()
+
+			cfg, _, err := LoadConfigFromEnv()
+			if err != nil {
+				log.WithError(err).Fatal("Failed to load the configuration from the environmental variables")
+			}
+
+			name, _ := cmd.Flags().GetString("name")
+			writable, _ := cmd.Flags().GetBool("write")
+
+			// User precedence: explicit --user flag, else the SHELLHUB_SHARE_USER env (set by the
+			// host wrapper to the invoking user), else the flag default.
+			user, _ := cmd.Flags().GetString("user")
+			if !cmd.Flags().Changed("user") {
+				if envUser := os.Getenv("SHELLHUB_SHARE_USER"); envUser != "" {
+					user = envUser
+				}
+			}
+
+			// Resolve the lifetime: flag not set -> server default (0); set to 0 -> no expiry (-1);
+			// set to a positive duration -> that many seconds.
+			ttlSeconds := 0
+			if cmd.Flags().Changed("duration") {
+				duration, _ := cmd.Flags().GetDuration("duration")
+				if duration <= 0 {
+					ttlSeconds = -1
+				} else {
+					ttlSeconds = int(duration.Seconds())
+				}
+			}
+
+			opts := ShareOptions{
+				Command:    args,
+				Name:       name,
+				Writable:   writable,
+				TTLSeconds: ttlSeconds,
+				User:       user,
+			}
+
+			if err := NewShareSession(cfg, opts).Run(cmd.Context()); err != nil {
+				log.WithError(err).Fatal("Failed to share the terminal")
+			}
+		},
+	}
+	shareCmd.Flags().String("name", "", "Optional label for the share, shown in the namespace's list")
+	shareCmd.Flags().Bool("write", false, "Allow guests to type into the session (collaborative mode)")
+	shareCmd.Flags().Duration("duration", 0, "Time limit for the share (e.g. 30m, 2h); 0 means no time limit")
+	shareCmd.Flags().String("user", "root", "Host user to run the command as")
+	rootCmd.AddCommand(shareCmd)
+
 	registerInstallerCommands(rootCmd)
 
 	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct

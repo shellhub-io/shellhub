@@ -12,6 +12,7 @@ import {
   CubeIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
+  ShareIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 import CommandPaletteTrigger from "./CommandPaletteTrigger";
@@ -47,6 +48,11 @@ function buildSections(): NavSection[] {
       to: "/sessions",
       label: "Sessions",
       icon: <CommandLineIcon className={navIcon} />,
+    },
+    {
+      to: "/shared-terminals",
+      label: "Shared Terminals",
+      icon: <ShareIcon className={navIcon} />,
     },
   ];
 

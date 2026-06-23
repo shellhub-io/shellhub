@@ -9,12 +9,13 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/ssh/web/pkg/token"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
+func NewSSHServerBridge(router *echo.Echo, cache cache.Cache, shares *share.Registry) {
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
 
 	manager := newManager(30 * time.Second)
@@ -127,6 +128,7 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 			creds,
 			Dimensions{cols, rows},
 			Info{IP: ip},
+			shares,
 		); err != nil {
 			exit(wsconn, err)
 

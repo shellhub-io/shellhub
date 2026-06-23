@@ -59,7 +59,7 @@ const STORAGE_KEYS = {
   fontSize: "terminalFontSize",
 };
 
-const FALLBACK_THEME: TerminalTheme = {
+export const FALLBACK_THEME: TerminalTheme = {
   name: "ShellHub Dark",
   dark: true,
   preview: { background: "#18191B", foreground: "#667ACC" },

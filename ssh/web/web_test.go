@@ -5,9 +5,11 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/ssh/web/share"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/websocket"
@@ -17,7 +19,7 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 	e := echo.New()
 	cache := new(cachemock.Cache)
 
-	NewSSHServerBridge(e, cache)
+	NewSSHServerBridge(e, cache, share.NewRegistry(time.Hour))
 
 	server := httptest.NewServer(e)
 	defer server.Close()
