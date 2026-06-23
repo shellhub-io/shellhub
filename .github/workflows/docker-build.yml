@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Build '${{ matrix.project }}' Docker container
         uses: docker/build-push-action@v7
