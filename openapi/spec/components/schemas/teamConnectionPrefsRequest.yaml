@@ -1,0 +1,12 @@
+type: object
+description: Payload to save the caller's own auth preference for a team connection.
+properties:
+  username:
+    type: string
+    example: root
+  auth_method:
+    type: string
+    example: key
+  key_fingerprint:
+    type: string
+    example: SHA256:abcd

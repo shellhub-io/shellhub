@@ -1,0 +1,39 @@
+post:
+  operationId: acceptKnownHost
+  summary: Trust a host key
+  description: Trust (store) a host key for an external target's scope.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/knownHostAcceptRequest.yaml
+  responses:
+    '200':
+      description: Success to trust the host key.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/knownHost.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '422':
+      description: The supplied public key could not be parsed.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: invalid_key
+    '500':
+      $ref: ../components/responses/500.yaml

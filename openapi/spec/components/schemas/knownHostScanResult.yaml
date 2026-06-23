@@ -1,0 +1,29 @@
+type: object
+description: A scanned host key plus its verification status against what is stored.
+properties:
+  key_type:
+    type: string
+    example: ssh-ed25519
+  fingerprint:
+    type: string
+    example: SHA256:abcd
+  public_key:
+    type: string
+    example: ssh-ed25519 AAAAC3Nz...
+  status:
+    description: Verification status of the scanned key.
+    type: string
+    enum:
+      - unverified
+      - trusted
+      - changed
+    example: unverified
+  stored:
+    description: The currently stored known host, when one exists.
+    allOf:
+      - $ref: knownHost.yaml
+required:
+  - key_type
+  - fingerprint
+  - public_key
+  - status

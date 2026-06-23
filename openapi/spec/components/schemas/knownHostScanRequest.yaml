@@ -1,0 +1,20 @@
+type: object
+description: Payload to scan an external target's host key.
+properties:
+  host:
+    type: string
+    example: 10.0.0.5
+  port:
+    type: integer
+    example: 22
+  scope:
+    description: Whether the known host is personal or namespace-shared.
+    type: string
+    enum:
+      - personal
+      - namespace
+    example: personal
+required:
+  - host
+  - port
+  - scope

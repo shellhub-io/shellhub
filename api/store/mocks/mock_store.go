@@ -717,6 +717,358 @@ func (_c *MockStore_ActiveSessionUpdate_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// ConnectionCreate provides a mock function for the type MockStore
+func (_mock *MockStore) ConnectionCreate(ctx context.Context, connection *models.Connection) (string, error) {
+	ret := _mock.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Connection) (string, error)); ok {
+		return returnFunc(ctx, connection)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Connection) string); ok {
+		r0 = returnFunc(ctx, connection)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.Connection) error); ok {
+		r1 = returnFunc(ctx, connection)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_ConnectionCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionCreate'
+type MockStore_ConnectionCreate_Call struct {
+	*mock.Call
+}
+
+// ConnectionCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - connection *models.Connection
+func (_e *MockStore_Expecter) ConnectionCreate(ctx any, connection any) *MockStore_ConnectionCreate_Call {
+	return &MockStore_ConnectionCreate_Call{Call: _e.mock.On("ConnectionCreate", ctx, connection)}
+}
+
+func (_c *MockStore_ConnectionCreate_Call) Run(run func(ctx context.Context, connection *models.Connection)) *MockStore_ConnectionCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Connection
+		if args[1] != nil {
+			arg1 = args[1].(*models.Connection)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ConnectionCreate_Call) Return(insertedID string, err error) *MockStore_ConnectionCreate_Call {
+	_c.Call.Return(insertedID, err)
+	return _c
+}
+
+func (_c *MockStore_ConnectionCreate_Call) RunAndReturn(run func(ctx context.Context, connection *models.Connection) (string, error)) *MockStore_ConnectionCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConnectionDelete provides a mock function for the type MockStore
+func (_mock *MockStore) ConnectionDelete(ctx context.Context, connection *models.Connection) error {
+	ret := _mock.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Connection) error); ok {
+		r0 = returnFunc(ctx, connection)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_ConnectionDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionDelete'
+type MockStore_ConnectionDelete_Call struct {
+	*mock.Call
+}
+
+// ConnectionDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - connection *models.Connection
+func (_e *MockStore_Expecter) ConnectionDelete(ctx any, connection any) *MockStore_ConnectionDelete_Call {
+	return &MockStore_ConnectionDelete_Call{Call: _e.mock.On("ConnectionDelete", ctx, connection)}
+}
+
+func (_c *MockStore_ConnectionDelete_Call) Run(run func(ctx context.Context, connection *models.Connection)) *MockStore_ConnectionDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Connection
+		if args[1] != nil {
+			arg1 = args[1].(*models.Connection)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ConnectionDelete_Call) Return(err error) *MockStore_ConnectionDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_ConnectionDelete_Call) RunAndReturn(run func(ctx context.Context, connection *models.Connection) error) *MockStore_ConnectionDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConnectionList provides a mock function for the type MockStore
+func (_mock *MockStore) ConnectionList(ctx context.Context, opts ...store.QueryOption) ([]models.Connection, int, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, opts)
+	} else {
+		tmpRet = _mock.Called(ctx)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionList")
+	}
+
+	var r0 []models.Connection
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Connection, int, error)); ok {
+		return returnFunc(ctx, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Connection); ok {
+		r0 = returnFunc(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_ConnectionList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionList'
+type MockStore_ConnectionList_Call struct {
+	*mock.Call
+}
+
+// ConnectionList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) ConnectionList(ctx any, opts ...any) *MockStore_ConnectionList_Call {
+	return &MockStore_ConnectionList_Call{Call: _e.mock.On("ConnectionList",
+		append([]any{ctx}, opts...)...)}
+}
+
+func (_c *MockStore_ConnectionList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_ConnectionList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 1 {
+			variadicArgs = args[1].([]store.QueryOption)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ConnectionList_Call) Return(connections []models.Connection, count int, err error) *MockStore_ConnectionList_Call {
+	_c.Call.Return(connections, count, err)
+	return _c
+}
+
+func (_c *MockStore_ConnectionList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.Connection, int, error)) *MockStore_ConnectionList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConnectionResolve provides a mock function for the type MockStore
+func (_mock *MockStore) ConnectionResolve(ctx context.Context, resolver store.ConnectionResolver, value string, opts ...store.QueryOption) (*models.Connection, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, resolver, value, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, resolver, value)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionResolve")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) (*models.Connection, error)); ok {
+		return returnFunc(ctx, resolver, value, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) *models.Connection); ok {
+		r0 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.ConnectionResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_ConnectionResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionResolve'
+type MockStore_ConnectionResolve_Call struct {
+	*mock.Call
+}
+
+// ConnectionResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resolver store.ConnectionResolver
+//   - value string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) ConnectionResolve(ctx any, resolver any, value any, opts ...any) *MockStore_ConnectionResolve_Call {
+	return &MockStore_ConnectionResolve_Call{Call: _e.mock.On("ConnectionResolve",
+		append([]any{ctx, resolver, value}, opts...)...)}
+}
+
+func (_c *MockStore_ConnectionResolve_Call) Run(run func(ctx context.Context, resolver store.ConnectionResolver, value string, opts ...store.QueryOption)) *MockStore_ConnectionResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.ConnectionResolver
+		if args[1] != nil {
+			arg1 = args[1].(store.ConnectionResolver)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ConnectionResolve_Call) Return(connection *models.Connection, err error) *MockStore_ConnectionResolve_Call {
+	_c.Call.Return(connection, err)
+	return _c
+}
+
+func (_c *MockStore_ConnectionResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.ConnectionResolver, value string, opts ...store.QueryOption) (*models.Connection, error)) *MockStore_ConnectionResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConnectionUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) ConnectionUpdate(ctx context.Context, connection *models.Connection) error {
+	ret := _mock.Called(ctx, connection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Connection) error); ok {
+		r0 = returnFunc(ctx, connection)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_ConnectionUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionUpdate'
+type MockStore_ConnectionUpdate_Call struct {
+	*mock.Call
+}
+
+// ConnectionUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - connection *models.Connection
+func (_e *MockStore_Expecter) ConnectionUpdate(ctx any, connection any) *MockStore_ConnectionUpdate_Call {
+	return &MockStore_ConnectionUpdate_Call{Call: _e.mock.On("ConnectionUpdate", ctx, connection)}
+}
+
+func (_c *MockStore_ConnectionUpdate_Call) Run(run func(ctx context.Context, connection *models.Connection)) *MockStore_ConnectionUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Connection
+		if args[1] != nil {
+			arg1 = args[1].(*models.Connection)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ConnectionUpdate_Call) Return(err error) *MockStore_ConnectionUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_ConnectionUpdate_Call) RunAndReturn(run func(ctx context.Context, connection *models.Connection) error) *MockStore_ConnectionUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceConflicts provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	var tmpRet mock.Arguments
@@ -1498,6 +1850,224 @@ func (_c *MockStore_GetStats_Call) Return(stats *models.Stats, err error) *MockS
 }
 
 func (_c *MockStore_GetStats_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.Stats, error)) *MockStore_GetStats_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// KnownHostDelete provides a mock function for the type MockStore
+func (_mock *MockStore) KnownHostDelete(ctx context.Context, tenantID string, ownerID string, host string, port int) error {
+	ret := _mock.Called(ctx, tenantID, ownerID, host, port)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KnownHostDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, int) error); ok {
+		r0 = returnFunc(ctx, tenantID, ownerID, host, port)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_KnownHostDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KnownHostDelete'
+type MockStore_KnownHostDelete_Call struct {
+	*mock.Call
+}
+
+// KnownHostDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - ownerID string
+//   - host string
+//   - port int
+func (_e *MockStore_Expecter) KnownHostDelete(ctx any, tenantID any, ownerID any, host any, port any) *MockStore_KnownHostDelete_Call {
+	return &MockStore_KnownHostDelete_Call{Call: _e.mock.On("KnownHostDelete", ctx, tenantID, ownerID, host, port)}
+}
+
+func (_c *MockStore_KnownHostDelete_Call) Run(run func(ctx context.Context, tenantID string, ownerID string, host string, port int)) *MockStore_KnownHostDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 int
+		if args[4] != nil {
+			arg4 = args[4].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_KnownHostDelete_Call) Return(err error) *MockStore_KnownHostDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_KnownHostDelete_Call) RunAndReturn(run func(ctx context.Context, tenantID string, ownerID string, host string, port int) error) *MockStore_KnownHostDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// KnownHostResolve provides a mock function for the type MockStore
+func (_mock *MockStore) KnownHostResolve(ctx context.Context, tenantID string, ownerID string, host string, port int) (*models.KnownHost, error) {
+	ret := _mock.Called(ctx, tenantID, ownerID, host, port)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KnownHostResolve")
+	}
+
+	var r0 *models.KnownHost
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, int) (*models.KnownHost, error)); ok {
+		return returnFunc(ctx, tenantID, ownerID, host, port)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, int) *models.KnownHost); ok {
+		r0 = returnFunc(ctx, tenantID, ownerID, host, port)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.KnownHost)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, int) error); ok {
+		r1 = returnFunc(ctx, tenantID, ownerID, host, port)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_KnownHostResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KnownHostResolve'
+type MockStore_KnownHostResolve_Call struct {
+	*mock.Call
+}
+
+// KnownHostResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - ownerID string
+//   - host string
+//   - port int
+func (_e *MockStore_Expecter) KnownHostResolve(ctx any, tenantID any, ownerID any, host any, port any) *MockStore_KnownHostResolve_Call {
+	return &MockStore_KnownHostResolve_Call{Call: _e.mock.On("KnownHostResolve", ctx, tenantID, ownerID, host, port)}
+}
+
+func (_c *MockStore_KnownHostResolve_Call) Run(run func(ctx context.Context, tenantID string, ownerID string, host string, port int)) *MockStore_KnownHostResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 int
+		if args[4] != nil {
+			arg4 = args[4].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_KnownHostResolve_Call) Return(knownHost *models.KnownHost, err error) *MockStore_KnownHostResolve_Call {
+	_c.Call.Return(knownHost, err)
+	return _c
+}
+
+func (_c *MockStore_KnownHostResolve_Call) RunAndReturn(run func(ctx context.Context, tenantID string, ownerID string, host string, port int) (*models.KnownHost, error)) *MockStore_KnownHostResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// KnownHostUpsert provides a mock function for the type MockStore
+func (_mock *MockStore) KnownHostUpsert(ctx context.Context, knownHost *models.KnownHost) error {
+	ret := _mock.Called(ctx, knownHost)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KnownHostUpsert")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.KnownHost) error); ok {
+		r0 = returnFunc(ctx, knownHost)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_KnownHostUpsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KnownHostUpsert'
+type MockStore_KnownHostUpsert_Call struct {
+	*mock.Call
+}
+
+// KnownHostUpsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - knownHost *models.KnownHost
+func (_e *MockStore_Expecter) KnownHostUpsert(ctx any, knownHost any) *MockStore_KnownHostUpsert_Call {
+	return &MockStore_KnownHostUpsert_Call{Call: _e.mock.On("KnownHostUpsert", ctx, knownHost)}
+}
+
+func (_c *MockStore_KnownHostUpsert_Call) Run(run func(ctx context.Context, knownHost *models.KnownHost)) *MockStore_KnownHostUpsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.KnownHost
+		if args[1] != nil {
+			arg1 = args[1].(*models.KnownHost)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_KnownHostUpsert_Call) Return(err error) *MockStore_KnownHostUpsert_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_KnownHostUpsert_Call) RunAndReturn(run func(ctx context.Context, knownHost *models.KnownHost) error) *MockStore_KnownHostUpsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

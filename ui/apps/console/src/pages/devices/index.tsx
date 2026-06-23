@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useConnections } from "@/hooks/useConnections";
 import type { DeviceStatus } from "@/client";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -81,6 +82,15 @@ export default function Devices() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
+
+  // If this device already has a saved connection, open the drawer against it so
+  // its auth preference (method + key) is prefilled, instead of a blank connect.
+  const { connections } = useConnections();
+  const savedConnection = connectTarget
+    ? (connections.find(
+        (c) => c.kind === "device" && c.device_uid === connectTarget.uid,
+      ) ?? null)
+    : null;
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const nsName = currentNamespace?.name ?? "";
@@ -449,6 +459,7 @@ export default function Devices() {
       <ConnectDrawer
         open={!!connectTarget}
         onClose={() => setConnectTarget(null)}
+        connection={savedConnection}
         deviceUid={connectTarget?.uid ?? ""}
         deviceName={connectTarget?.name ?? ""}
         sshid={connectTarget?.sshid ?? ""}

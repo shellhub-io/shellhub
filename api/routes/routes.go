@@ -151,6 +151,18 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PUT(SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
 	publicAPI.DELETE(DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
 
+	publicAPI.GET(ListConnectionsURL, routesmiddleware.Authorize(gateway.Handler(handler.ListConnections)))
+	publicAPI.GET(GetConnectionURL, routesmiddleware.Authorize(gateway.Handler(handler.GetConnection)))
+	publicAPI.GET(ConnectionStatusURL, routesmiddleware.Authorize(gateway.Handler(handler.ConnectionStatus)))
+	publicAPI.POST(CreateConnectionURL, gateway.Handler(handler.CreateConnection), routesmiddleware.RequiresPermission(authorizer.ConnectionCreate))
+	publicAPI.PUT(UpdateConnectionURL, gateway.Handler(handler.UpdateConnection), routesmiddleware.RequiresPermission(authorizer.ConnectionUpdate))
+	publicAPI.DELETE(DeleteConnectionURL, gateway.Handler(handler.DeleteConnection), routesmiddleware.RequiresPermission(authorizer.ConnectionDelete))
+
+	publicAPI.POST(ScanKnownHostURL, routesmiddleware.Authorize(gateway.Handler(handler.ScanKnownHost)))
+	publicAPI.POST(AcceptKnownHostURL, routesmiddleware.Authorize(gateway.Handler(handler.AcceptKnownHost)))
+	publicAPI.GET(GetKnownHostURL, routesmiddleware.Authorize(gateway.Handler(handler.GetKnownHost)))
+	publicAPI.DELETE(DeleteKnownHostURL, routesmiddleware.Authorize(gateway.Handler(handler.DeleteKnownHost)))
+
 	publicAPI.GET(URLGetTags, gateway.Handler(handler.GetTags))
 	publicAPI.POST(URLCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
 	publicAPI.PATCH(URLUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))

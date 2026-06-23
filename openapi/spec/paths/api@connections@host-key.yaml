@@ -1,0 +1,78 @@
+get:
+  operationId: getKnownHost
+  summary: Get a stored host key
+  description: Return the stored known host for an external target, or null if none.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: host
+      in: query
+      required: true
+      schema:
+        type: string
+    - name: port
+      in: query
+      required: true
+      schema:
+        type: integer
+    - name: scope
+      in: query
+      required: true
+      schema:
+        type: string
+        enum:
+          - personal
+          - namespace
+  responses:
+    '200':
+      description: The stored known host, or null.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/knownHost.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteKnownHost
+  summary: Forget a stored host key
+  description: Forget the stored host key for an external target's scope.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: host
+      in: query
+      required: true
+      schema:
+        type: string
+    - name: port
+      in: query
+      required: true
+      schema:
+        type: integer
+    - name: scope
+      in: query
+      required: true
+      schema:
+        type: string
+        enum:
+          - personal
+          - namespace
+  responses:
+    '200':
+      description: Success to forget the host key.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

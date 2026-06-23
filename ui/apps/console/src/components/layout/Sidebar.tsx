@@ -12,9 +12,11 @@ import {
   CubeIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
+  ServerStackIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 import CommandPaletteTrigger from "./CommandPaletteTrigger";
+import ProBadge from "@/components/common/ProBadge";
 
 interface NavItem {
   to: string;
@@ -37,6 +39,11 @@ function buildSections(): NavSection[] {
       to: "/devices",
       label: "Devices",
       icon: <CpuChipIcon className={navIcon} />,
+    },
+    {
+      to: "/connections",
+      label: "Connections",
+      icon: <ServerStackIcon className={navIcon} />,
     },
     {
       to: "/containers",
@@ -111,14 +118,6 @@ function buildSections(): NavSection[] {
       ],
     },
   ];
-}
-
-function ProBadge() {
-  return (
-    <span className="text-2xs font-mono font-semibold text-accent-yellow/80 bg-accent-yellow/10 px-1.5 py-0.5 rounded">
-      Pro
-    </span>
-  );
 }
 
 function BetaBadge() {

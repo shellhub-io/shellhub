@@ -41,6 +41,8 @@ type Service interface {
 	SetupService
 	SystemService
 	APIKeyService
+	ConnectionService
+	KnownHostService
 
 	// Store returns the underlying store instance.
 	//

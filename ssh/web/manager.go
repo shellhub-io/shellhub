@@ -29,9 +29,11 @@ func (m *manager) save(id string, data *Credentials) {
 	})
 }
 
-// get gets the credentials if it time period have not ended.
+// get consumes the credentials for id, if the TTL has not elapsed. The token is
+// single-use: it is deleted on first read so a leaked token (it travels as a
+// query param) can't be replayed within the TTL window.
 func (m *manager) get(id string) (*Credentials, bool) {
-	l, ok := m.credentials.Load(id)
+	l, ok := m.credentials.LoadAndDelete(id)
 	if !ok {
 		return nil, false
 	}

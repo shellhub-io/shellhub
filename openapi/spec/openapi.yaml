@@ -30,6 +30,9 @@ components:
         An API key is an alternative to the standard JWT authentication.
         Authentication with this method is namespace-related and is not tied to any user.
 tags:
+  - name: connections
+    x-displayName: Connections
+    description: Saved SSH connections (personal and team) and trusted host keys.
   - name: internal
     description: Requests executed internally by ShellHub server.
   - name: external
@@ -318,3 +321,23 @@ paths:
     $ref: paths/admin@api@announcements.yaml
   /admin/api/announcements/{uuid}:
     $ref: paths/admin@api@announcements@{uuid}.yaml
+  /api/connections:
+    $ref: paths/api@connections.yaml
+  /api/connections/{id}:
+    $ref: paths/api@connections@{id}.yaml
+  /api/connections/{id}/status:
+    $ref: paths/api@connections@{id}@status.yaml
+  /api/connections/host-key:
+    $ref: paths/api@connections@host-key.yaml
+  /api/connections/host-key/scan:
+    $ref: paths/api@connections@host-key@scan.yaml
+  /api/connections/host-key/accept:
+    $ref: paths/api@connections@host-key@accept.yaml
+  /api/connections/team:
+    $ref: paths/api@connections@team.yaml
+  /api/connections/team/{id}:
+    $ref: paths/api@connections@team@{id}.yaml
+  /api/connections/team/{id}/status:
+    $ref: paths/api@connections@team@{id}@status.yaml
+  /api/connections/team/{id}/prefs:
+    $ref: paths/api@connections@team@{id}@prefs.yaml

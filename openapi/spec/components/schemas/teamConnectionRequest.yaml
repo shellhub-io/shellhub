@@ -1,0 +1,24 @@
+type: object
+description: Payload to create or update a team connection's shared target.
+properties:
+  label:
+    type: string
+    example: db-primary
+  kind:
+    type: string
+    enum:
+      - external
+      - device
+    example: external
+  host:
+    type: string
+    example: 10.0.0.5
+  port:
+    type: integer
+    example: 22
+  device_uid:
+    type: string
+    example: a1b2c3d4
+required:
+  - label
+  - kind

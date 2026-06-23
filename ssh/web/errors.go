@@ -33,6 +33,10 @@ var (
 	ErrConfiguration           = fmt.Errorf("failed to create communication configuration")
 	ErrInvalidVersion          = fmt.Errorf("failed to parse device version")
 	ErrUnsuportedPublicKeyAuth = fmt.Errorf("connections using public keys are not permitted when the agent version is 0.5.x or earlier")
+	ErrHostKeyMismatch         = fmt.Errorf("the host key does not match the trusted one for this connection")
+	ErrHostKeyUnverified       = fmt.Errorf("no verified host key for this connection")
+	ErrEgressBlocked           = fmt.Errorf("the address is not a permitted connection target")
+	ErrUnreachableHost         = fmt.Errorf("could not reach the host")
 )
 
 var (

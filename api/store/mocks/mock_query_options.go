@@ -144,6 +144,59 @@ func (_c *MockQueryOptions_Match_Call) RunAndReturn(run func(fs *query.Filters) 
 	return _c
 }
 
+// OwnedBy provides a mock function for the type MockQueryOptions
+func (_mock *MockQueryOptions) OwnedBy(userID string) store.QueryOption {
+	ret := _mock.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OwnedBy")
+	}
+
+	var r0 store.QueryOption
+	if returnFunc, ok := ret.Get(0).(func(string) store.QueryOption); ok {
+		r0 = returnFunc(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+	return r0
+}
+
+// MockQueryOptions_OwnedBy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OwnedBy'
+type MockQueryOptions_OwnedBy_Call struct {
+	*mock.Call
+}
+
+// OwnedBy is a helper method to define mock.On call
+//   - userID string
+func (_e *MockQueryOptions_Expecter) OwnedBy(userID any) *MockQueryOptions_OwnedBy_Call {
+	return &MockQueryOptions_OwnedBy_Call{Call: _e.mock.On("OwnedBy", userID)}
+}
+
+func (_c *MockQueryOptions_OwnedBy_Call) Run(run func(userID string)) *MockQueryOptions_OwnedBy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockQueryOptions_OwnedBy_Call) Return(queryOption store.QueryOption) *MockQueryOptions_OwnedBy_Call {
+	_c.Call.Return(queryOption)
+	return _c
+}
+
+func (_c *MockQueryOptions_OwnedBy_Call) RunAndReturn(run func(userID string) store.QueryOption) *MockQueryOptions_OwnedBy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Paginate provides a mock function for the type MockQueryOptions
 func (_mock *MockQueryOptions) Paginate(paginator *query.Paginator) store.QueryOption {
 	ret := _mock.Called(paginator)

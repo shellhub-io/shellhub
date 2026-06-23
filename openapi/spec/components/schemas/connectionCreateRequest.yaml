@@ -1,0 +1,41 @@
+type: object
+description: Payload to create a personal connection.
+properties:
+  label:
+    description: Human-friendly name for the connection.
+    type: string
+    example: db-primary
+  kind:
+    type: string
+    enum:
+      - external
+      - device
+    example: external
+  host:
+    description: Dial host (required for an external connection).
+    type: string
+    example: 10.0.0.5
+  port:
+    description: Dial port (required for an external connection).
+    type: integer
+    example: 22
+  device_uid:
+    description: Target device UID (required for a device connection).
+    type: string
+    example: a1b2c3d4
+  username:
+    type: string
+    example: root
+  auth_method:
+    type: string
+    example: key
+  key_fingerprint:
+    type: string
+    example: SHA256:abcd
+  force:
+    description: Save even if the external target is currently unreachable.
+    type: boolean
+    example: false
+required:
+  - label
+  - kind

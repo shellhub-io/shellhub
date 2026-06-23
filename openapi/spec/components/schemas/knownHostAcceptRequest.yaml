@@ -1,0 +1,31 @@
+type: object
+description: Payload to trust (store) a host key for an external target.
+properties:
+  host:
+    type: string
+    example: 10.0.0.5
+  port:
+    type: integer
+    example: 22
+  scope:
+    type: string
+    enum:
+      - personal
+      - namespace
+    example: personal
+  key_type:
+    type: string
+    example: ssh-ed25519
+  public_key:
+    type: string
+    example: ssh-ed25519 AAAAC3Nz...
+  fingerprint:
+    type: string
+    example: SHA256:abcd
+required:
+  - host
+  - port
+  - scope
+  - key_type
+  - public_key
+  - fingerprint

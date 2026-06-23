@@ -152,6 +152,31 @@ func (*queryOptions) WithMember(userID string) store.QueryOption {
 	}
 }
 
+func (*queryOptions) OwnedBy(userID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		// owner_id is a uuid-typed column. A blank or non-UUID user id can never
+		// own a row, so short-circuit to a clean not-found instead of letting the
+		// uuid cast raise SQLSTATE 22P02.
+		if _, err := uuid.Parse(userID); err != nil {
+			return store.ErrNoDocuments
+		}
+
+		col := "owner_id"
+		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
+			col = alias + ".owner_id"
+		}
+
+		wrapper.query = wrapper.query.Where("? = ?", bun.Ident(col), userID)
+
+		return nil
+	}
+}
+
 func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 	return func(ctx context.Context) error {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)
