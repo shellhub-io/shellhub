@@ -1,6 +1,6 @@
 export function ConnectionGrid() {
   return (
-    <div className="connection-grid">
+    <div className="connection-grid" aria-hidden="true">
       <div className="connection-line" style={{ top: "15%", left: 0, width: "55%", animationDelay: "0s" }} />
       <div className="connection-line" style={{ top: "35%", left: "25%", width: "75%", animationDelay: "1.5s" }} />
       <div className="connection-line" style={{ top: "55%", left: "10%", width: "50%", animationDelay: "0.8s" }} />

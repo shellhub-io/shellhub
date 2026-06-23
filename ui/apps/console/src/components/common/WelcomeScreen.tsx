@@ -15,7 +15,7 @@ interface WelcomeScreenProps {
 
 function ConnectionGrid() {
   return (
-    <div className="connection-grid">
+    <div className="connection-grid" aria-hidden="true">
       {/* Horizontal lines */}
       <div
         className="connection-line"
