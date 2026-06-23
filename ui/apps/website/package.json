@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@shellhub/design-system": "*",
-    "axios": "^1.7.9",
+    "axios": "^1.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
