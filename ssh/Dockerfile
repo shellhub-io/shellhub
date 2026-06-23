@@ -55,7 +55,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/ssh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # production stage
-FROM alpine:3.24.0 AS production
+FROM alpine:3.24.1 AS production
 
 RUN apk add curl
 
