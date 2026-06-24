@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
-import { Badge, Button, Card } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  WindowChrome,
+} from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
@@ -334,118 +339,102 @@ export default function RemoteSupport() {
           {/* Session player mockup */}
           <Reveal delay={0.1}>
             <ShimmerCard>
-              <Card className="overflow-hidden">
-                <div className="p-6">
-                  {/* Window chrome */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Session Replay
+              <WindowChrome variant="terminal" title="Session Replay">
+                {/* Terminal area */}
+                <div className="bg-[#111214] rounded-lg border border-border p-4 font-mono text-2xs leading-relaxed mb-4">
+                  <p className="text-accent-green">
+                    john@prod-server-03:~$
+                    <span className="text-text-primary ml-2">
+                      ls -la /var/log/nginx/
                     </span>
-                  </div>
-
-                  {/* Terminal area */}
-                  <div className="bg-[#111214] rounded-lg border border-border p-4 font-mono text-2xs leading-relaxed mb-4">
-                    <p className="text-accent-green">
-                      john@prod-server-03:~$
-                      <span className="text-text-primary ml-2">
-                        ls -la /var/log/nginx/
-                      </span>
-                    </p>
-                    <p className="text-text-muted mt-1">total 2184</p>
-                    <p className="text-text-muted">
-                      drwxr-xr-x 2 root root 4096 Feb 14 09:00 .
-                    </p>
-                    <p className="text-text-muted">
-                      -rw-r----- 1 root adm 842560 Feb 14 14:31 access.log
-                    </p>
-                    <p className="text-text-muted">
-                      -rw-r----- 1 root adm 194720 Feb 14 14:28 error.log
-                    </p>
-                    <p className="text-accent-green mt-2">
-                      john@prod-server-03:~$
-                      <span className="text-text-primary ml-2">
-                        systemctl status nginx
-                      </span>
-                    </p>
-                    <p className="text-text-muted mt-1">
-                      <span className="text-accent-green">●</span> nginx.service
-                      - A high performance web server
-                    </p>
-                    <p className="text-text-muted">
-                      {"   "}Loaded: loaded (/lib/systemd/system/nginx.service;
-                      enabled)
-                    </p>
-                    <p className="text-text-muted">
-                      {"   "}Active:{" "}
-                      <span className="text-accent-green">
-                        active (running)
-                      </span>{" "}
-                      since Fri 2026-02-14 09:00:12 UTC
-                    </p>
-                    <p className="text-accent-green mt-2">
-                      john@prod-server-03:~$
-                      <span className="text-text-primary ml-2 animate-pulse">
-                        _
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* Playback controls */}
-                  <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
-                    <button
-                      type="button"
-                      aria-label="Play"
-                      className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill={C.cyan}
-                        stroke="none"
-                        aria-hidden="true"
-                      >
-                        <polygon points="6 4 20 12 6 20 6 4" />
-                      </svg>
-                    </button>
-
-                    {/* Timeline */}
-                    <div className="flex-1 relative">
-                      <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-primary"
-                          style={{ width: "30%" }}
-                        />
-                      </div>
-                    </div>
-
-                    <span className="text-2xs text-text-muted font-mono shrink-0">
-                      00:03:42 / 00:12:15
+                  </p>
+                  <p className="text-text-muted mt-1">total 2184</p>
+                  <p className="text-text-muted">
+                    drwxr-xr-x 2 root root 4096 Feb 14 09:00 .
+                  </p>
+                  <p className="text-text-muted">
+                    -rw-r----- 1 root adm 842560 Feb 14 14:31 access.log
+                  </p>
+                  <p className="text-text-muted">
+                    -rw-r----- 1 root adm 194720 Feb 14 14:28 error.log
+                  </p>
+                  <p className="text-accent-green mt-2">
+                    john@prod-server-03:~$
+                    <span className="text-text-primary ml-2">
+                      systemctl status nginx
                     </span>
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-2xs text-text-muted font-mono">
-                      User:{" "}
-                      <span className="text-text-secondary">
-                        john@company.com
-                      </span>
-                      <span className="mx-2 text-border">|</span>
-                      Device:{" "}
-                      <span className="text-text-secondary">
-                        prod-server-03
-                      </span>
-                      <span className="mx-2 text-border">|</span>
-                      Duration:{" "}
-                      <span className="text-text-secondary">12m 15s</span>
-                    </p>
-                  </div>
+                  </p>
+                  <p className="text-text-muted mt-1">
+                    <span className="text-accent-green">●</span> nginx.service -
+                    A high performance web server
+                  </p>
+                  <p className="text-text-muted">
+                    {"   "}Loaded: loaded (/lib/systemd/system/nginx.service;
+                    enabled)
+                  </p>
+                  <p className="text-text-muted">
+                    {"   "}Active:{" "}
+                    <span className="text-accent-green">active (running)</span>{" "}
+                    since Fri 2026-02-14 09:00:12 UTC
+                  </p>
+                  <p className="text-accent-green mt-2">
+                    john@prod-server-03:~$
+                    <span className="text-text-primary ml-2 animate-pulse">
+                      _
+                    </span>
+                  </p>
                 </div>
-              </Card>
+
+                {/* Playback controls */}
+                <div className="flex items-center gap-3 bg-surface rounded-lg border border-border p-3">
+                  <button
+                    type="button"
+                    aria-label="Play"
+                    className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill={C.cyan}
+                      stroke="none"
+                      aria-hidden="true"
+                    >
+                      <polygon points="6 4 20 12 6 20 6 4" />
+                    </svg>
+                  </button>
+
+                  {/* Timeline */}
+                  <div className="flex-1 relative">
+                    <div className="h-1.5 bg-border rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-primary"
+                        style={{ width: "30%" }}
+                      />
+                    </div>
+                  </div>
+
+                  <span className="text-2xs text-text-muted font-mono shrink-0">
+                    00:03:42 / 00:12:15
+                  </span>
+                </div>
+
+                {/* Metadata */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-2xs text-text-muted font-mono">
+                    User:{" "}
+                    <span className="text-text-secondary">
+                      john@company.com
+                    </span>
+                    <span className="mx-2 text-border">|</span>
+                    Device:{" "}
+                    <span className="text-text-secondary">prod-server-03</span>
+                    <span className="mx-2 text-border">|</span>
+                    Duration:{" "}
+                    <span className="text-text-secondary">12m 15s</span>
+                  </p>
+                </div>
+              </WindowChrome>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -457,87 +446,75 @@ export default function RemoteSupport() {
           {/* Audit log table mockup */}
           <Reveal delay={0.1} className="order-2 lg:order-1">
             <ShimmerCard>
-              <Card className="overflow-hidden">
-                <div className="p-6">
-                  {/* Window chrome */}
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Audit Log
-                    </span>
-                  </div>
+              <WindowChrome variant="terminal" title="Audit Log">
+                {/* Table header */}
+                <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
+                  <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    Time
+                  </span>
+                  <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    User
+                  </span>
+                  <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    Action
+                  </span>
+                  <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    Device
+                  </span>
+                  <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
+                    Duration
+                  </span>
+                </div>
 
-                  {/* Table header */}
-                  <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
-                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      Time
-                    </span>
-                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      User
-                    </span>
-                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      Action
-                    </span>
-                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      Device
-                    </span>
-                    <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
-                      Duration
-                    </span>
-                  </div>
-
-                  {/* Rows */}
-                  <div className="space-y-1">
-                    {auditRows.map((row, i) => (
-                      <div
-                        key={i}
-                        className={`grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center ${
-                          i % 2 === 0 ? "bg-surface" : "bg-transparent"
-                        }`}
-                      >
-                        <span className="text-2xs font-mono text-text-muted">
-                          {row.time}
-                        </span>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0"
-                            style={{
-                              background: `${row.color}20`,
-                              color: row.color,
-                            }}
-                          >
-                            {row.initials}
-                          </div>
-                          <span className="text-2xs text-text-secondary truncate">
-                            {row.name}
-                          </span>
+                {/* Rows */}
+                <div className="space-y-1">
+                  {auditRows.map((row, i) => (
+                    <div
+                      key={i}
+                      className={`grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center ${
+                        i % 2 === 0 ? "bg-surface" : "bg-transparent"
+                      }`}
+                    >
+                      <span className="text-2xs font-mono text-text-muted">
+                        {row.time}
+                      </span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0"
+                          style={{
+                            background: `${row.color}20`,
+                            color: row.color,
+                          }}
+                        >
+                          {row.initials}
                         </div>
-                        <span className="text-2xs text-text-secondary font-mono">
-                          {row.action}
-                        </span>
-                        <span className="text-2xs text-text-secondary font-mono truncate">
-                          {row.device}
-                        </span>
-                        <span className="text-2xs text-text-muted font-mono">
-                          {row.duration}
+                        <span className="text-2xs text-text-secondary truncate">
+                          {row.name}
                         </span>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                    <span className="text-2xs text-text-muted">
-                      Showing 4 of 1,247 entries
-                    </span>
-                    <span className="text-2xs text-primary font-medium">
-                      View all &rarr;
-                    </span>
-                  </div>
+                      <span className="text-2xs text-text-secondary font-mono">
+                        {row.action}
+                      </span>
+                      <span className="text-2xs text-text-secondary font-mono truncate">
+                        {row.device}
+                      </span>
+                      <span className="text-2xs text-text-muted font-mono">
+                        {row.duration}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </Card>
+
+                {/* Footer */}
+                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                  <span className="text-2xs text-text-muted">
+                    Showing 4 of 1,247 entries
+                  </span>
+                  <span className="text-2xs text-primary font-medium">
+                    View all &rarr;
+                  </span>
+                </div>
+              </WindowChrome>
             </ShimmerCard>
           </Reveal>
 

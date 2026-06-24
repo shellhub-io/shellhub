@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
-import { Badge, Button, Card } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  WindowChrome,
+} from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
@@ -260,26 +265,6 @@ const pipelineDeployLines: { text: string; color?: string; dim?: boolean }[] = [
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function TerminalChrome({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="p-6">
-      <div className="flex items-center gap-2 mb-5">
-        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-        <span className="ml-2 text-2xs text-text-muted font-mono">{title}</span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 function CodeLine({
   text,
   color,
@@ -429,15 +414,13 @@ export default function DevopsCiCd() {
 
           <Reveal delay={0.1}>
             <ShimmerCard>
-              <Card className="overflow-hidden">
-                <TerminalChrome title="ansible-playbook">
-                  <div className="space-y-0">
-                    {ansibleLines.map((line, i) => (
-                      <CodeLine key={i} {...line} />
-                    ))}
-                  </div>
-                </TerminalChrome>
-              </Card>
+              <WindowChrome variant="terminal" title="ansible-playbook">
+                <div className="space-y-0 overflow-x-auto">
+                  {ansibleLines.map((line, i) => (
+                    <CodeLine key={i} {...line} />
+                  ))}
+                </div>
+              </WindowChrome>
             </ShimmerCard>
           </Reveal>
         </div>
@@ -448,15 +431,13 @@ export default function DevopsCiCd() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <Reveal delay={0.1} className="order-2 lg:order-1">
             <ShimmerCard>
-              <Card className="overflow-hidden">
-                <TerminalChrome title="main.tf">
-                  <div className="space-y-0">
-                    {terraformLines.map((line, i) => (
-                      <CodeLine key={i} {...line} />
-                    ))}
-                  </div>
-                </TerminalChrome>
-              </Card>
+              <WindowChrome variant="terminal" title="main.tf">
+                <div className="space-y-0 overflow-x-auto">
+                  {terraformLines.map((line, i) => (
+                    <CodeLine key={i} {...line} />
+                  ))}
+                </div>
+              </WindowChrome>
             </ShimmerCard>
           </Reveal>
 
@@ -530,73 +511,72 @@ export default function DevopsCiCd() {
 
         <Reveal delay={0.1}>
           <ShimmerCard className="max-w-3xl mx-auto">
-            <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(102,122,204,0.1)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                <TerminalChrome title=".github/workflows/deploy.yml">
-                  {/* Pipeline step indicators */}
-                  <div className="flex items-center gap-6 mb-6 pb-5 border-b border-border">
-                    {pipelineSteps.map((step, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-accent-green/15 border border-accent-green/30 flex items-center justify-center">
-                          <svg
-                            className="w-3 h-3 text-accent-green"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m4.5 12.75 6 6 9-13.5"
-                            />
-                          </svg>
-                        </div>
-                        <span className="text-2xs font-mono text-text-secondary">
-                          {step.label}
-                        </span>
-                        {i < pipelineSteps.length - 1 && (
-                          <svg
-                            className="w-3 h-3 text-text-muted ml-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Workflow YAML */}
-                  <div className="space-y-0 mb-6">
-                    {pipelineDeployLines.map((line, i) => (
-                      <CodeLine key={i} {...line} />
-                    ))}
-                  </div>
-
-                  {/* Status bar */}
-                  <div className="pt-4 border-t border-border flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
-                      <span className="text-2xs font-mono text-accent-green">
-                        Pipeline succeeded
-                      </span>
+            <WindowChrome
+              variant="terminal"
+              title=".github/workflows/deploy.yml"
+              className="border-primary/30 shadow-[0_0_40px_rgba(102,122,204,0.1)]"
+            >
+              {/* Pipeline step indicators */}
+              <div className="flex items-center gap-6 mb-6 pb-5 border-b border-border">
+                {pipelineSteps.map((step, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-accent-green/15 border border-accent-green/30 flex items-center justify-center">
+                      <svg
+                        className="w-3 h-3 text-accent-green"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
                     </div>
-                    <span className="text-2xs text-text-muted font-mono">
-                      2 devices updated in 34s
+                    <span className="text-2xs font-mono text-text-secondary">
+                      {step.label}
                     </span>
+                    {i < pipelineSteps.length - 1 && (
+                      <svg
+                        className="w-3 h-3 text-text-muted ml-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                        />
+                      </svg>
+                    )}
                   </div>
-                </TerminalChrome>
+                ))}
               </div>
-            </div>
+
+              {/* Workflow YAML */}
+              <div className="space-y-0 mb-6 overflow-x-auto">
+                {pipelineDeployLines.map((line, i) => (
+                  <CodeLine key={i} {...line} />
+                ))}
+              </div>
+
+              {/* Status bar */}
+              <div className="pt-4 border-t border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
+                  <span className="text-2xs font-mono text-accent-green">
+                    Pipeline succeeded
+                  </span>
+                </div>
+                <span className="text-2xs text-text-muted font-mono">
+                  2 devices updated in 34s
+                </span>
+              </div>
+            </WindowChrome>
           </ShimmerCard>
         </Reveal>
       </Section>

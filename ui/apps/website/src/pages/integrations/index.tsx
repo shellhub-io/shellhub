@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   IconBadge,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -11,35 +12,6 @@ import { Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
-
-/* ------------------------------------------------------------------ */
-/*  Terminal chrome (macOS-style dots + optional title)                */
-/* ------------------------------------------------------------------ */
-function TerminalChrome({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <ShimmerCard>
-      <Card className="overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-surface/60">
-          <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-          <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-          <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-          <span className="ml-2 text-2xs text-text-muted font-mono">
-            {title}
-          </span>
-        </div>
-        <div className="p-5 font-mono text-2xs leading-[1.7] overflow-x-auto">
-          {children}
-        </div>
-      </Card>
-    </ShimmerCard>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Syntax-highlighted line helpers                                    */
@@ -196,77 +168,84 @@ export default function Integrations() {
 
           {/* Right terminal mockup */}
           <Reveal delay={0.1}>
-            <TerminalChrome title="ansible-playbook">
-              <Comment># Deploy firmware update via ShellHub SSH</Comment>
-              <Ln>
-                <Val>$</Val> ansible-playbook -i inventory.yml deploy.yml
-              </Ln>
-              <div className="mt-3" />
-              <Ln color={C.textSec}>
-                PLAY [Update edge devices] ****************************
-              </Ln>
-              <div className="mt-2" />
-              <Ln color={C.textSec}>
-                TASK [Gathering Facts] ********************************
-              </Ln>
-              <Ln>
-                <Str>ok</Str>: [gateway-east-01.d0a1c2.<Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Str>ok</Str>: [sensor-rack-07.d0a1c2.<Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Str>ok</Str>: [plc-floor-03.d0a1c2.<Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <div className="mt-2" />
-              <Ln color={C.textSec}>
-                TASK [Copy firmware binary] ****************************
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [gateway-east-01.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [sensor-rack-07.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [plc-floor-03.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <div className="mt-2" />
-              <Ln color={C.textSec}>
-                TASK [Apply update &amp; restart] **************************
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [gateway-east-01.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [sensor-rack-07.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <Ln>
-                <Val>changed</Val>: [plc-floor-03.d0a1c2.
-                <Cyn>shellhub.io</Cyn>]
-              </Ln>
-              <div className="mt-3" />
-              <Ln color={C.textSec}>
-                PLAY RECAP ********************************************
-              </Ln>
-              <Ln>
-                gateway-east-01 : <Str>ok=3</Str> <Val>changed=2</Val>{" "}
-                unreachable=0 failed=<Str>0</Str>
-              </Ln>
-              <Ln>
-                sensor-rack-07 &nbsp;: <Str>ok=3</Str> <Val>changed=2</Val>{" "}
-                unreachable=0 failed=<Str>0</Str>
-              </Ln>
-              <Ln>
-                plc-floor-03 &nbsp;&nbsp;&nbsp;: <Str>ok=3</Str>{" "}
-                <Val>changed=2</Val> unreachable=0 failed=<Str>0</Str>
-              </Ln>
-            </TerminalChrome>
+            <ShimmerCard>
+              <WindowChrome
+                variant="terminal"
+                title="ansible-playbook"
+                bodyClassName="overflow-x-auto"
+              >
+                <Comment># Deploy firmware update via ShellHub SSH</Comment>
+                <Ln>
+                  <Val>$</Val> ansible-playbook -i inventory.yml deploy.yml
+                </Ln>
+                <div className="mt-3" />
+                <Ln color={C.textSec}>
+                  PLAY [Update edge devices] ****************************
+                </Ln>
+                <div className="mt-2" />
+                <Ln color={C.textSec}>
+                  TASK [Gathering Facts] ********************************
+                </Ln>
+                <Ln>
+                  <Str>ok</Str>: [gateway-east-01.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Str>ok</Str>: [sensor-rack-07.d0a1c2.<Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Str>ok</Str>: [plc-floor-03.d0a1c2.<Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <div className="mt-2" />
+                <Ln color={C.textSec}>
+                  TASK [Copy firmware binary] ****************************
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [gateway-east-01.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [sensor-rack-07.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [plc-floor-03.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <div className="mt-2" />
+                <Ln color={C.textSec}>
+                  TASK [Apply update &amp; restart] **************************
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [gateway-east-01.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [sensor-rack-07.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <Ln>
+                  <Val>changed</Val>: [plc-floor-03.d0a1c2.
+                  <Cyn>shellhub.io</Cyn>]
+                </Ln>
+                <div className="mt-3" />
+                <Ln color={C.textSec}>
+                  PLAY RECAP ********************************************
+                </Ln>
+                <Ln>
+                  gateway-east-01 : <Str>ok=3</Str> <Val>changed=2</Val>{" "}
+                  unreachable=0 failed=<Str>0</Str>
+                </Ln>
+                <Ln>
+                  sensor-rack-07 &nbsp;: <Str>ok=3</Str> <Val>changed=2</Val>{" "}
+                  unreachable=0 failed=<Str>0</Str>
+                </Ln>
+                <Ln>
+                  plc-floor-03 &nbsp;&nbsp;&nbsp;: <Str>ok=3</Str>{" "}
+                  <Val>changed=2</Val> unreachable=0 failed=<Str>0</Str>
+                </Ln>
+              </WindowChrome>
+            </ShimmerCard>
           </Reveal>
         </div>
       </Section>
@@ -286,130 +265,118 @@ export default function Integrations() {
 
         <Reveal delay={0.1}>
           <ShimmerCard className="max-w-3xl mx-auto">
-            <div className="relative bg-card border border-accent-green/25 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(130,165,104,0.08)]">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-green/[0.04] via-transparent to-transparent pointer-events-none" />
-              <div className="relative">
-                {/* Tab bar */}
-                <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-surface/60">
-                  <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                  <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                  <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                  <span className="ml-2 text-2xs text-text-muted font-mono">
-                    .github/workflows/deploy.yml
-                  </span>
-                  <div className="ml-auto flex items-center gap-1.5">
-                    <Badge shape="pill" color="green">
-                      Passing
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* YAML content */}
-                <div className="p-5 font-mono text-2xs leading-[1.7] overflow-x-auto">
-                  <Ln>
-                    <Kw>name</Kw>: <Str>Deploy to Edge Devices</Str>
-                  </Ln>
-                  <Ln>
-                    <Kw>on</Kw>:
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>push</Kw>:
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>branches</Kw>: [<Str>main</Str>]
-                  </Ln>
-                  <div className="mt-2" />
-                  <Ln>
-                    <Kw>jobs</Kw>:
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>deploy</Kw>:
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>runs-on</Kw>: <Str>ubuntu-latest</Str>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>steps</Kw>:
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    - <Kw>name</Kw>: <Str>Configure ShellHub SSH</Str>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>run</Kw>: |
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>mkdir -p ~/.ssh</Dim>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>
-                      echo{" "}
-                      <Str>"$&#123;&#123; secrets.SSH_KEY &#125;&#125;"</Str>{" "}
-                      &gt; ~/.ssh/id_rsa
-                    </Dim>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>chmod 600 ~/.ssh/id_rsa</Dim>
-                  </Ln>
-                  <div className="mt-2" />
-                  <Ln>
-                    {" "}
-                    - <Kw>name</Kw>: <Str>Deploy application</Str>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>run</Kw>: |
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>
-                      ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
-                    </Dim>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>
-                      {" "}
-                      <Str>
-                        "cd /opt/app &amp;&amp; git pull &amp;&amp; systemctl
-                        restart app"
-                      </Str>
-                    </Dim>
-                  </Ln>
-                  <div className="mt-2" />
-                  <Ln>
-                    {" "}
-                    - <Kw>name</Kw>: <Str>Verify deployment</Str>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Kw>run</Kw>: |
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>
-                      ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
-                    </Dim>
-                  </Ln>
-                  <Ln>
-                    {" "}
-                    <Dim>
-                      {" "}
-                      <Str>"curl -sf http://localhost:8080/health"</Str>
-                    </Dim>
-                  </Ln>
-                </div>
-              </div>
-            </div>
+            <WindowChrome
+              variant="terminal"
+              title=".github/workflows/deploy.yml"
+              titleBarSlot={
+                <Badge shape="pill" color="green">
+                  Passing
+                </Badge>
+              }
+              className="border-accent-green/25 shadow-[0_0_40px_rgba(130,165,104,0.08)]"
+              bodyClassName="overflow-x-auto"
+            >
+              <Ln>
+                <Kw>name</Kw>: <Str>Deploy to Edge Devices</Str>
+              </Ln>
+              <Ln>
+                <Kw>on</Kw>:
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>push</Kw>:
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>branches</Kw>: [<Str>main</Str>]
+              </Ln>
+              <div className="mt-2" />
+              <Ln>
+                <Kw>jobs</Kw>:
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>deploy</Kw>:
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>runs-on</Kw>: <Str>ubuntu-latest</Str>
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>steps</Kw>:
+              </Ln>
+              <Ln>
+                {" "}
+                - <Kw>name</Kw>: <Str>Configure ShellHub SSH</Str>
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>run</Kw>: |
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>mkdir -p ~/.ssh</Dim>
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>
+                  echo <Str>"$&#123;&#123; secrets.SSH_KEY &#125;&#125;"</Str>{" "}
+                  &gt; ~/.ssh/id_rsa
+                </Dim>
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>chmod 600 ~/.ssh/id_rsa</Dim>
+              </Ln>
+              <div className="mt-2" />
+              <Ln>
+                {" "}
+                - <Kw>name</Kw>: <Str>Deploy application</Str>
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>run</Kw>: |
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>
+                  ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
+                </Dim>
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>
+                  {" "}
+                  <Str>
+                    "cd /opt/app &amp;&amp; git pull &amp;&amp; systemctl
+                    restart app"
+                  </Str>
+                </Dim>
+              </Ln>
+              <div className="mt-2" />
+              <Ln>
+                {" "}
+                - <Kw>name</Kw>: <Str>Verify deployment</Str>
+              </Ln>
+              <Ln>
+                {" "}
+                <Kw>run</Kw>: |
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>
+                  ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
+                </Dim>
+              </Ln>
+              <Ln>
+                {" "}
+                <Dim>
+                  {" "}
+                  <Str>"curl -sf http://localhost:8080/health"</Str>
+                </Dim>
+              </Ln>
+            </WindowChrome>
           </ShimmerCard>
         </Reveal>
       </Section>
@@ -873,23 +840,29 @@ export default function Integrations() {
             />
 
             <Reveal delay={0.05}>
-              <TerminalChrome title="terminal">
-                <Comment># Connect to a specific container</Comment>
-                <Ln>
-                  <Val>$</Val> ssh <Cyn>root@web-app.host01.ns.shellhub.io</Cyn>
-                </Ln>
-                <Ln color={C.textSec}>
-                  Connected to web-app (container: a1b2c3d4)
-                </Ln>
-                <Ln color={C.textMuted}>&nbsp;</Ln>
-                <Ln>
-                  <Val>root@web-app:~#</Val>{" "}
-                  <Dim>curl localhost:8080/health</Dim>
-                </Ln>
-                <Ln>
-                  <Str>{'{"status":"healthy","uptime":"14d 6h"}'}</Str>
-                </Ln>
-              </TerminalChrome>
+              <ShimmerCard>
+                <WindowChrome
+                  variant="terminal"
+                  bodyClassName="overflow-x-auto"
+                >
+                  <Comment># Connect to a specific container</Comment>
+                  <Ln>
+                    <Val>$</Val> ssh{" "}
+                    <Cyn>root@web-app.host01.ns.shellhub.io</Cyn>
+                  </Ln>
+                  <Ln color={C.textSec}>
+                    Connected to web-app (container: a1b2c3d4)
+                  </Ln>
+                  <Ln color={C.textMuted}>&nbsp;</Ln>
+                  <Ln>
+                    <Val>root@web-app:~#</Val>{" "}
+                    <Dim>curl localhost:8080/health</Dim>
+                  </Ln>
+                  <Ln>
+                    <Str>{'{"status":"healthy","uptime":"14d 6h"}'}</Str>
+                  </Ln>
+                </WindowChrome>
+              </ShimmerCard>
             </Reveal>
           </div>
         </div>

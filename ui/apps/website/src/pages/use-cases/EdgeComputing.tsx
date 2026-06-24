@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   IconBadge,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
@@ -537,74 +538,64 @@ export default function EdgeComputing() {
                 </div>
 
                 {/* Terminal mockup */}
-                <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Terminal
+                <WindowChrome variant="terminal" bodyClassName="space-y-1">
+                  <div>
+                    <span style={{ color: C.green }}>user@ops-laptop</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span style={{ color: C.text }}>
+                      ssh admin@edge-nyc-01.production
                     </span>
                   </div>
-                  <div className="p-4 font-mono text-2xs leading-relaxed space-y-1">
-                    <div>
-                      <span style={{ color: C.green }}>user@ops-laptop</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span style={{ color: C.text }}>
-                        ssh admin@edge-nyc-01.production
-                      </span>
-                    </div>
-                    <div style={{ color: C.textMuted }}>
-                      Connecting via ShellHub tunnel...
-                    </div>
-                    <div style={{ color: C.green }}>
-                      Connection established (NAT traversal)
-                    </div>
-                    <div>&nbsp;</div>
-                    <div>
-                      <span style={{ color: C.green }}>admin@edge-nyc-01</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span style={{ color: C.text }}>uname -a</span>
-                    </div>
-                    <div style={{ color: C.textSec }}>
-                      Linux edge-nyc-01 5.15.0 #1 SMP x86_64
-                    </div>
-                    <div>
-                      <span style={{ color: C.green }}>admin@edge-nyc-01</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span style={{ color: C.text }}>
-                        systemctl status edge-service
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ color: C.green }}>●</span>{" "}
-                      <span style={{ color: C.textSec }}>
-                        edge-service.service - Edge Compute Service
-                      </span>
-                    </div>
-                    <div style={{ color: C.green }}>
-                      &nbsp;&nbsp;Active: active (running) since Mon 2026-02-14
-                    </div>
-                    <div>
-                      <span style={{ color: C.green }}>admin@edge-nyc-01</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span
-                        className="animate-pulse"
-                        style={{ color: C.primary }}
-                      >
-                        _
-                      </span>
-                    </div>
+                  <div style={{ color: C.textMuted }}>
+                    Connecting via ShellHub tunnel...
                   </div>
-                </div>
+                  <div style={{ color: C.green }}>
+                    Connection established (NAT traversal)
+                  </div>
+                  <div>&nbsp;</div>
+                  <div>
+                    <span style={{ color: C.green }}>admin@edge-nyc-01</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span style={{ color: C.text }}>uname -a</span>
+                  </div>
+                  <div style={{ color: C.textSec }}>
+                    Linux edge-nyc-01 5.15.0 #1 SMP x86_64
+                  </div>
+                  <div>
+                    <span style={{ color: C.green }}>admin@edge-nyc-01</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span style={{ color: C.text }}>
+                      systemctl status edge-service
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: C.green }}>●</span>{" "}
+                    <span style={{ color: C.textSec }}>
+                      edge-service.service - Edge Compute Service
+                    </span>
+                  </div>
+                  <div style={{ color: C.green }}>
+                    &nbsp;&nbsp;Active: active (running) since Mon 2026-02-14
+                  </div>
+                  <div>
+                    <span style={{ color: C.green }}>admin@edge-nyc-01</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span
+                      className="animate-pulse"
+                      style={{ color: C.primary }}
+                    >
+                      _
+                    </span>
+                  </div>
+                </WindowChrome>
               </div>
             </div>
           </ShimmerCard>
@@ -645,43 +636,38 @@ export default function EdgeComputing() {
                 </p>
 
                 {/* Browser mockup */}
-                <div className="bg-surface rounded-lg border border-border overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-                    <div className="w-2 h-2 rounded-full bg-accent-red/50" />
-                    <div className="w-2 h-2 rounded-full bg-accent-yellow/50" />
-                    <div className="w-2 h-2 rounded-full bg-accent-green/50" />
-                    <div className="flex-1 mx-2 px-2 py-0.5 bg-background rounded text-2xs font-mono text-text-muted truncate">
-                      shellhub.io/terminal/edge-chi-03
-                    </div>
+                <WindowChrome
+                  variant="browser"
+                  size="sm"
+                  path="/terminal/edge-chi-03"
+                  bodyClassName="space-y-0.5"
+                >
+                  <div>
+                    <span style={{ color: C.green }}>admin@edge-chi-03</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span style={{ color: C.text }}>df -h /data</span>
                   </div>
-                  <div className="p-3 font-mono text-2xs space-y-0.5">
-                    <div>
-                      <span style={{ color: C.green }}>admin@edge-chi-03</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span style={{ color: C.text }}>df -h /data</span>
-                    </div>
-                    <div style={{ color: C.textSec }}>
-                      Filesystem&nbsp;&nbsp;Size&nbsp;&nbsp;Used&nbsp;&nbsp;Avail&nbsp;&nbsp;Use%
-                    </div>
-                    <div style={{ color: C.textSec }}>
-                      /dev/sda1&nbsp;&nbsp;&nbsp;500G&nbsp;&nbsp;312G&nbsp;&nbsp;188G&nbsp;&nbsp;&nbsp;62%
-                    </div>
-                    <div>
-                      <span style={{ color: C.green }}>admin@edge-chi-03</span>
-                      <span style={{ color: C.textMuted }}>:</span>
-                      <span style={{ color: C.blue }}>~</span>
-                      <span style={{ color: C.textMuted }}>$</span>{" "}
-                      <span
-                        className="animate-pulse"
-                        style={{ color: C.primary }}
-                      >
-                        _
-                      </span>
-                    </div>
+                  <div style={{ color: C.textSec }}>
+                    Filesystem&nbsp;&nbsp;Size&nbsp;&nbsp;Used&nbsp;&nbsp;Avail&nbsp;&nbsp;Use%
                   </div>
-                </div>
+                  <div style={{ color: C.textSec }}>
+                    /dev/sda1&nbsp;&nbsp;&nbsp;500G&nbsp;&nbsp;312G&nbsp;&nbsp;188G&nbsp;&nbsp;&nbsp;62%
+                  </div>
+                  <div>
+                    <span style={{ color: C.green }}>admin@edge-chi-03</span>
+                    <span style={{ color: C.textMuted }}>:</span>
+                    <span style={{ color: C.blue }}>~</span>
+                    <span style={{ color: C.textMuted }}>$</span>{" "}
+                    <span
+                      className="animate-pulse"
+                      style={{ color: C.primary }}
+                    >
+                      _
+                    </span>
+                  </div>
+                </WindowChrome>
               </Card>
             </ShimmerCard>
           </Reveal>

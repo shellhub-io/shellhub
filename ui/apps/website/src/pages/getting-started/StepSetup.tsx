@@ -1,6 +1,7 @@
-import { Button, Card } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
+import { CommandBlock } from "@/components/marketing";
 import { docsUrl } from "@/links";
-import { Reveal, CopyBtn } from "../landing/components";
+import { Reveal } from "../landing/components";
 
 const DOCKER_CMD = "docker run -d -p 80:80 shellhubio/shellhub";
 
@@ -12,23 +13,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
   return (
     <div className="max-w-xl mx-auto w-full">
       <Reveal>
-        <Card className="overflow-hidden mb-6">
-          <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border bg-surface">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-red/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-green/70" />
-            <span className="flex-1 text-center text-2xs font-mono text-text-secondary">
-              terminal
-            </span>
-          </div>
-          <div className="px-5 py-4 flex items-center justify-between gap-4">
-            <code className="font-mono text-sm text-text-secondary leading-relaxed">
-              <span className="text-primary">$ </span>
-              <span className="text-text-primary">{DOCKER_CMD}</span>
-            </code>
-            <CopyBtn text={DOCKER_CMD} />
-          </div>
-        </Card>
+        <CommandBlock command={DOCKER_CMD} className="mb-6" />
       </Reveal>
 
       <Reveal delay={0.1}>

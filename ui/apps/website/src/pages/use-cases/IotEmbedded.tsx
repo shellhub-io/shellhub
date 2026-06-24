@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   IconBadge,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -259,92 +260,80 @@ export default function IotEmbedded() {
           {/* Fake dashboard panel */}
           <Reveal delay={0.1}>
             <ShimmerCard>
-              <Card className="overflow-hidden">
-                <div className="p-6">
-                  {/* Window chrome */}
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Device Fleet
-                    </span>
-                  </div>
-
-                  {/* Table header */}
-                  <div className="flex items-center gap-3 px-3 py-2 mb-1">
-                    <span className="text-2xs text-text-muted font-mono uppercase tracking-wider w-5">
-                      St
-                    </span>
-                    <span className="text-2xs text-text-muted font-mono uppercase tracking-wider flex-1">
-                      Hostname
-                    </span>
-                    <span className="text-2xs text-text-muted font-mono uppercase tracking-wider w-24 hidden sm:block">
-                      IP
-                    </span>
-                    <span className="text-2xs text-text-muted font-mono uppercase tracking-wider flex-1 text-right">
-                      Tags
-                    </span>
-                  </div>
-
-                  {/* Device rows */}
-                  <div className="space-y-2">
-                    {fleetDevices.map((d, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 p-3 bg-surface rounded-lg border border-border hover:border-border-light transition-colors duration-200"
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{
-                            background:
-                              d.status === "online" ? C.green : C.textMuted,
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-mono font-medium truncate">
-                            {d.name}
-                          </p>
-                        </div>
-                        <span className="text-2xs text-text-muted font-mono w-24 hidden sm:block">
-                          {d.ip}
-                        </span>
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                          {d.tags.map((t, j) => (
-                            <span
-                              key={j}
-                              className="px-1.5 py-0.5 text-2xs font-mono rounded-full border"
-                              style={{
-                                background: `${t.color}10`,
-                                color: t.color,
-                                borderColor: `${t.color}20`,
-                              }}
-                            >
-                              {t.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: C.green }}
-                      />
-                      <span className="text-2xs text-text-muted">
-                        24 devices online
-                      </span>
-                    </div>
-                    <span className="text-2xs text-primary font-medium">
-                      View all &rarr;
-                    </span>
-                  </div>
+              <WindowChrome variant="browser" path="/devices">
+                {/* Table header */}
+                <div className="flex items-center gap-3 px-3 py-2 mb-1">
+                  <span className="text-2xs text-text-muted font-mono uppercase tracking-wider w-5">
+                    St
+                  </span>
+                  <span className="text-2xs text-text-muted font-mono uppercase tracking-wider flex-1">
+                    Hostname
+                  </span>
+                  <span className="text-2xs text-text-muted font-mono uppercase tracking-wider w-24 hidden sm:block">
+                    IP
+                  </span>
+                  <span className="text-2xs text-text-muted font-mono uppercase tracking-wider flex-1 text-right">
+                    Tags
+                  </span>
                 </div>
-              </Card>
+
+                {/* Device rows */}
+                <div className="space-y-2">
+                  {fleetDevices.map((d, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 p-3 bg-surface rounded-lg border border-border hover:border-border-light transition-colors duration-200"
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          background:
+                            d.status === "online" ? C.green : C.textMuted,
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-mono font-medium truncate">
+                          {d.name}
+                        </p>
+                      </div>
+                      <span className="text-2xs text-text-muted font-mono w-24 hidden sm:block">
+                        {d.ip}
+                      </span>
+                      <div className="flex flex-1 items-center gap-1.5 flex-wrap justify-end">
+                        {d.tags.map((t, j) => (
+                          <span
+                            key={j}
+                            className="px-1.5 py-0.5 text-2xs font-mono rounded-full border"
+                            style={{
+                              background: `${t.color}10`,
+                              color: t.color,
+                              borderColor: `${t.color}20`,
+                            }}
+                          >
+                            {t.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: C.green }}
+                    />
+                    <span className="text-2xs text-text-muted">
+                      24 devices online
+                    </span>
+                  </div>
+                  <span className="text-2xs text-primary font-medium">
+                    View all &rarr;
+                  </span>
+                </div>
+              </WindowChrome>
             </ShimmerCard>
           </Reveal>
         </div>

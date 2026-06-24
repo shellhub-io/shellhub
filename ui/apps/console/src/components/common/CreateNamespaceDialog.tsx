@@ -6,9 +6,9 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Button,
-  Card,
   IconBadge,
   IconButton,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
@@ -49,7 +49,6 @@ function CloudForm({
           resetError();
         }}
         error={displayError}
-
       />
     </form>
   );
@@ -64,25 +63,16 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
       </p>
 
       {/* Command block */}
-      <Card className="overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-surface/50">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-red/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-accent-green/60" />
-          </div>
-          <span className="text-2xs font-mono text-text-muted/50">
-            terminal
-          </span>
-          <CopyButton text={CLI_COMMAND} showLabel />
-        </div>
-        <div className="p-4 overflow-x-auto">
-          <pre className="text-xs font-mono text-accent-cyan leading-relaxed whitespace-pre m-0">
-            <span className="text-text-muted select-none">$ </span>
-            {CLI_COMMAND}
-          </pre>
-        </div>
-      </Card>
+      <WindowChrome
+        variant="terminal"
+        size="sm"
+        titleBarSlot={<CopyButton text={CLI_COMMAND} showLabel />}
+      >
+        <pre className="text-accent-cyan whitespace-pre-wrap break-all m-0">
+          <span className="text-text-muted select-none">$ </span>
+          {CLI_COMMAND}
+        </pre>
+      </WindowChrome>
 
       {/* Name rules */}
       <div>
