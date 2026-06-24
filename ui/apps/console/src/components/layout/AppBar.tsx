@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { Bars3Icon } from "@heroicons/react/24/outline";
@@ -14,59 +14,107 @@ interface AppBarProps {
   onMenuToggle?: () => void;
 }
 
+type Phase = "idle" | "fading-out" | "swapped";
+
+interface CrossfadeState {
+  displayed: TerminalSession | null;
+  phase: Phase;
+  pending: TerminalSession | null;
+}
+
+type CrossfadeAction =
+  | { type: "active-changed"; session: TerminalSession | null }
+  | { type: "fade-out-done" }
+  | { type: "settle-idle" };
+
+const activeSessionOf = (
+  sessions: TerminalSession[],
+): TerminalSession | null =>
+  sessions.find((s) => s.state !== "minimized") ?? null;
+
+// Pure reducer for the left-content crossfade state machine — safe under
+// StrictMode double-invocation.
+function crossfadeReducer(
+  state: CrossfadeState,
+  action: CrossfadeAction,
+): CrossfadeState {
+  switch (action.type) {
+    case "active-changed": {
+      const next = action.session;
+      if (state.phase !== "idle") {
+        // Safety net: active session vanished mid fade-out — settle straight to idle.
+        if (state.phase === "fading-out" && !next) {
+          return { displayed: null, phase: "idle", pending: null };
+        }
+        // Already animating — stash the latest value to apply when the fade ends.
+        return { ...state, pending: next };
+      }
+      // Mode change (terminal <-> namespace) — start the crossfade.
+      if (!!next !== !!state.displayed) {
+        return { ...state, pending: next, phase: "fading-out" };
+      }
+      // Same mode, different session — instant swap (no flash).
+      if (next) {
+        return { ...state, displayed: next };
+      }
+      return state;
+    }
+    // Fade-out finished — swap in the pending content, then fade back in (see handler).
+    case "fade-out-done":
+      if (state.phase !== "fading-out") return state;
+      return { displayed: state.pending, pending: null, phase: "swapped" };
+    case "settle-idle":
+      return state.phase === "idle" ? state : { ...state, phase: "idle" };
+    default:
+      return state;
+  }
+}
+
 export default function AppBar({ onMenuToggle }: AppBarProps) {
-  const activeSession = useTerminalStore((s) =>
-    s.sessions.find((s) => s.state !== "minimized"),
-  );
   const themeBg = useTerminalThemeStore((s) => s.theme.colors.background);
 
-  const [displayed, setDisplayed] = useState<TerminalSession | null>(
-    activeSession ?? null,
+  const [{ displayed, phase }, dispatch] = useReducer(
+    crossfadeReducer,
+    null,
+    (): CrossfadeState => ({
+      displayed: activeSessionOf(useTerminalStore.getState().sessions),
+      phase: "idle",
+      pending: null,
+    }),
   );
-  const [phase, setPhase] = useState<"idle" | "fading-out" | "swapped">("idle");
-  const [pending, setPending] = useState<TerminalSession | null>(null);
-  const [trackedId, setTrackedId] = useState<string | undefined>(
-    activeSession?.id,
+
+  const prevIdRef = useRef<string | undefined>(
+    activeSessionOf(useTerminalStore.getState().sessions)?.id,
   );
 
   const visible = phase === "idle";
-  const currentId = activeSession?.id;
 
-  // Detect changes during render (React-blessed setState-during-render pattern)
-  if (currentId !== trackedId) {
-    setTrackedId(currentId);
+  // The crossfade is driven by store changes — an external event fired OUTSIDE
+  // React's render/effect cycle — not detected during render. Dispatching from the
+  // subscription callback (never during render, never synchronously in an effect
+  // body) keeps both react-hooks/set-state-in-render and set-state-in-effect happy
+  // while removing all render-phase state updates — the fix for the audit's
+  // concurrent-rendering concern (team#137). dispatch is stable so the effect runs
+  // once ([] deps); the listener fires on every store change but early-returns
+  // unless the active-session id actually changed.
+  useEffect(() => {
+    const unsubscribe = useTerminalStore.subscribe((state) => {
+      const next = activeSessionOf(state.sessions);
+      if (next?.id === prevIdRef.current) return;
+      prevIdRef.current = next?.id;
+      dispatch({ type: "active-changed", session: next });
+    });
+    return unsubscribe;
+  }, []);
 
-    if (phase === "fading-out" || phase === "swapped") {
-      // Already animating — stash the latest value
-      setPending(activeSession ?? null);
-    } else if (!!activeSession !== !!displayed) {
-      // Mode changed (terminal ↔ namespace) — start crossfade
-      setPending(activeSession ?? null);
-      setPhase("fading-out");
-    } else if (activeSession) {
-      // Same mode, different session — instant swap
-      setDisplayed(activeSession);
-    }
-  }
-
-  // Safety net: if fade-out gets stuck (e.g. transitionend never fires
-  // because the page re-mounts during navigation), skip straight to idle.
-  if (phase === "fading-out" && !activeSession && !pending) {
-    setDisplayed(null);
-    setPhase("idle");
-  }
-
+  // Fade-out transition ended — commit the swap, then fade back in over two paint frames.
   const handleTransitionEnd = useCallback(() => {
     if (phase !== "fading-out") return;
-
-    // Fade-out finished — swap content, then fade in after one paint frame
-    setDisplayed(pending);
-    setPending(null);
-    setPhase("swapped");
+    dispatch({ type: "fade-out-done" });
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => setPhase("idle"));
+      requestAnimationFrame(() => dispatch({ type: "settle-idle" }));
     });
-  }, [phase, pending]);
+  }, [phase]);
 
   return (
     <header
