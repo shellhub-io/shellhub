@@ -19,3 +19,10 @@ export type {
   StatusDotSize,
   StatusDotProps,
 } from "./StatusDot";
+export { WindowChrome } from "./WindowChrome";
+export type {
+  WindowChromeVariant,
+  WindowChromeSize,
+  WindowChromeAccent,
+  WindowChromeProps,
+} from "./WindowChrome";

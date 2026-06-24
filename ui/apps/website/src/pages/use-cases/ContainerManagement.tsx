@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   IconBadge,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -138,7 +139,7 @@ const permRows = [
   {
     container: "redis-cache",
     user: "ana@co.com",
-    role: "Viewer",
+    role: "Observer",
     level: "Read only",
     accent: C.cyan,
   },
@@ -147,7 +148,7 @@ const permRows = [
     user: "dev-team",
     role: "Operator",
     level: "Shell only",
-    accent: C.yellow,
+    accent: C.primary,
   },
 ];
 
@@ -593,16 +594,8 @@ export default function ContainerManagement() {
                 </div>
 
                 {/* Fake terminal */}
-                <div className="bg-[#111214] rounded-lg border border-border overflow-hidden flex-1">
-                  <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
-                    <div className="w-2.5 h-2.5 rounded-full bg-accent-red/50" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-accent-yellow/50" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-accent-green/50" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Terminal
-                    </span>
-                  </div>
-                  <div className="p-4 font-mono text-xs leading-relaxed space-y-2">
+                <WindowChrome variant="terminal" size="sm" className="flex-1">
+                  <div className="space-y-2">
                     <p>
                       <span className="text-text-muted">
                         # Step 1: SSH into the Docker host
@@ -646,7 +639,7 @@ export default function ContainerManagement() {
                       No audit. No access control. No recording.
                     </p>
                   </div>
-                </div>
+                </WindowChrome>
               </Card>
             </ShimmerCard>
           </Reveal>
@@ -684,16 +677,12 @@ export default function ContainerManagement() {
                   </p>
 
                   {/* Fake terminal */}
-                  <div className="bg-[#111214] rounded-lg border border-primary/20 overflow-hidden flex-1">
-                    <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border">
-                      <div className="w-2.5 h-2.5 rounded-full bg-accent-red/50" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-accent-yellow/50" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-accent-green/50" />
-                      <span className="ml-2 text-2xs text-primary font-mono">
-                        Terminal
-                      </span>
-                    </div>
-                    <div className="p-4 font-mono text-xs leading-relaxed space-y-2">
+                  <WindowChrome
+                    variant="terminal"
+                    size="sm"
+                    className="border-primary/20 flex-1"
+                  >
+                    <div className="space-y-2">
                       <p>
                         <span className="text-text-muted">
                           # One step. That's it.
@@ -722,7 +711,7 @@ export default function ContainerManagement() {
                         <span className="inline-block w-2 h-3.5 bg-text-primary animate-pulse" />
                       </p>
                     </div>
-                  </div>
+                  </WindowChrome>
 
                   {/* Status badges */}
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -873,16 +862,11 @@ export default function ContainerManagement() {
                 </div>
 
                 {/* Right: permissions table mockup */}
-                <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                  <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
-                    <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                    <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                    <span className="ml-2 text-2xs text-text-muted font-mono">
-                      Container Permissions
-                    </span>
-                  </div>
-
+                <WindowChrome
+                  variant="browser"
+                  path="/containers"
+                  bodyClassName="font-sans"
+                >
                   {/* Table header */}
                   <div className="grid grid-cols-4 gap-2 px-5 py-2.5 border-b border-border text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
                     <span>Container</span>
@@ -927,7 +911,7 @@ export default function ContainerManagement() {
                       Manage &rarr;
                     </span>
                   </div>
-                </div>
+                </WindowChrome>
               </div>
             </div>
           </ShimmerCard>

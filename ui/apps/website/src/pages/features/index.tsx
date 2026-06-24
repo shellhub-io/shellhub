@@ -1,73 +1,15 @@
 import { Link } from "react-router-dom";
-import { Badge, Button, Card } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  WindowChrome,
+} from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
-
-/* ─── Terminal Window Chrome ───────────────────────────────────── */
-function TerminalChrome({
-  title,
-  children,
-  accent = C.primary,
-}: {
-  title: string;
-  children: React.ReactNode;
-  accent?: string;
-}) {
-  return (
-    <Card className="overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-        <span className="ml-2 text-2xs text-text-muted font-mono">{title}</span>
-        <div
-          className="ml-auto w-2 h-2 rounded-full animate-pulse"
-          style={{ background: accent }}
-        />
-      </div>
-      <div className="p-5 font-mono text-xs leading-relaxed">{children}</div>
-    </Card>
-  );
-}
-
-/* ─── Browser Window Chrome ────────────────────────────────────── */
-function BrowserChrome({
-  url,
-  children,
-}: {
-  url: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card className="overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-        <div className="ml-3 flex-1 max-w-xs bg-surface border border-border rounded-md px-3 py-1 flex items-center gap-2">
-          <svg
-            className="w-3 h-3 text-text-muted shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-            />
-          </svg>
-          <span className="text-2xs text-text-muted truncate">{url}</span>
-        </div>
-      </div>
-      <div className="p-5">{children}</div>
-    </Card>
-  );
-}
 
 /* ─── Typed line helper ────────────────────────────────────────── */
 function Line({
@@ -222,38 +164,31 @@ function NativeSSH() {
         {/* Terminal Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
-            <Card className="overflow-hidden">
-              <TerminalChrome title="Terminal — ssh" accent={C.green}>
-                <Line
-                  prompt="$"
-                  cmd="ssh admin@rpi-gateway.production.shellhub"
-                />
-                <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
-                  <span className="text-accent-green">Connected to</span>{" "}
-                  <span className="text-primary">rpi-gateway</span>
-                  <span className="text-text-muted"> (production)</span>
-                </div>
-                <Line
-                  prompt="$"
-                  cmd="ssh deploy@sensor-node-04.staging.shellhub"
-                />
-                <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
-                  <span className="text-accent-green">Connected to</span>{" "}
-                  <span className="text-primary">sensor-node-04</span>
-                  <span className="text-text-muted"> (staging)</span>
-                </div>
-                <Line
-                  prompt="$"
-                  cmd="ssh root@edge-server.iot-fleet.shellhub"
-                />
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-                  <span className="text-text-muted text-2xs">
-                    Connecting via ShellHub gateway...
-                  </span>
-                </div>
-              </TerminalChrome>
-            </Card>
+            <WindowChrome
+              variant="terminal"
+              title="Terminal — ssh"
+              accent="green"
+            >
+              <Line cmd="ssh admin@rpi-gateway.production.shellhub" />
+              <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
+                <span className="text-accent-green">Connected to</span>{" "}
+                <span className="text-primary">rpi-gateway</span>
+                <span className="text-text-muted"> (production)</span>
+              </div>
+              <Line cmd="ssh deploy@sensor-node-04.staging.shellhub" />
+              <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
+                <span className="text-accent-green">Connected to</span>{" "}
+                <span className="text-primary">sensor-node-04</span>
+                <span className="text-text-muted"> (staging)</span>
+              </div>
+              <Line cmd="ssh root@edge-server.iot-fleet.shellhub" />
+              <div className="mt-2 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
+                <span className="text-text-muted text-2xs">
+                  Connecting via ShellHub gateway...
+                </span>
+              </div>
+            </WindowChrome>
           </ShimmerCard>
         </Reveal>
       </div>
@@ -555,63 +490,60 @@ function WebTerminal() {
         {/* Browser Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
-            <Card className="overflow-hidden">
-              <BrowserChrome url="shellhub.io/devices/rpi-gateway/terminal">
-                {/* Fake tabs row */}
-                <div className="flex items-center gap-1 mb-4">
-                  <div className="px-3 py-1.5 bg-surface border border-border rounded-t-lg text-2xs font-mono text-text-primary flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
-                    rpi-gateway
-                  </div>
-                  <div className="px-3 py-1.5 bg-card border border-border/50 rounded-t-lg text-2xs font-mono text-text-muted flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
-                    sensor-node-04
-                  </div>
+            <WindowChrome
+              variant="browser"
+              path="/devices/rpi-gateway/terminal"
+            >
+              {/* Fake tabs row */}
+              <div className="flex items-center gap-1 mb-4">
+                <div className="px-3 py-1.5 bg-surface border border-border rounded-t-lg text-2xs font-mono text-text-primary flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+                  rpi-gateway
                 </div>
+                <div className="px-3 py-1.5 bg-card border border-border/50 rounded-t-lg text-2xs font-mono text-text-muted flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
+                  sensor-node-04
+                </div>
+              </div>
 
-                {/* Terminal area inside browser */}
-                <div className="bg-[#15161A] rounded-lg border border-border p-4 font-mono text-xs">
-                  <div className="text-text-muted mb-1.5">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>$ docker ps
-                    --format &quot;table {"{{.Names}}"}\t{"{{.Status}}"}&quot;
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    NAMES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STATUS
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    nginx-proxy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    app-backend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-0.5">
-                    redis-cache&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-secondary mb-1.5">
-                    postgres-db&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3
-                    days
-                  </div>
-                  <div className="text-text-muted">
-                    <span className="text-accent-green">admin@rpi-gateway</span>
-                    :<span className="text-accent-blue">~</span>${" "}
-                    <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
-                  </div>
+              {/* Terminal area inside browser */}
+              <div className="bg-[#15161A] rounded-lg border border-border p-4">
+                <div className="text-text-muted mb-1.5">
+                  <span className="text-accent-green">admin@rpi-gateway</span>:
+                  <span className="text-accent-blue">~</span>$ docker ps
+                  --format &quot;table {"{{.Names}}"}\t{"{{.Status}}"}&quot;
                 </div>
+                <div className="text-text-secondary mb-0.5">
+                  NAMES&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;STATUS
+                </div>
+                <div className="text-text-secondary mb-0.5">
+                  nginx-proxy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3 days
+                </div>
+                <div className="text-text-secondary mb-0.5">
+                  app-backend&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3 days
+                </div>
+                <div className="text-text-secondary mb-0.5">
+                  redis-cache&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3 days
+                </div>
+                <div className="text-text-secondary mb-1.5">
+                  postgres-db&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Up 3 days
+                </div>
+                <div className="text-text-muted">
+                  <span className="text-accent-green">admin@rpi-gateway</span>:
+                  <span className="text-accent-blue">~</span>${" "}
+                  <span className="inline-block w-2 h-3.5 bg-text-primary/60 animate-pulse" />
+                </div>
+              </div>
 
-                {/* Status bar */}
-                <div className="mt-3 flex items-center justify-between text-2xs text-text-muted">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
-                    <span>Connected &middot; WebSocket</span>
-                  </div>
-                  <span className="font-mono">80x24</span>
+              {/* Status bar */}
+              <div className="mt-3 flex items-center justify-between text-2xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+                  <span>Connected &middot; WebSocket</span>
                 </div>
-              </BrowserChrome>
-            </Card>
+                <span className="font-mono">80x24</span>
+              </div>
+            </WindowChrome>
           </ShimmerCard>
         </Reveal>
       </div>
@@ -785,53 +717,51 @@ function FileTransfer() {
         {/* Terminal Mockup */}
         <Reveal delay={0.1}>
           <ShimmerCard>
-            <Card className="overflow-hidden">
-              <TerminalChrome title="Terminal — scp / sftp" accent={C.cyan}>
-                <div className="mb-4">
-                  <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
-                    SCP &mdash; Copy files to device
-                  </p>
-                  <Line
-                    prompt="$"
-                    cmd="scp firmware-v2.4.bin admin@rpi-gateway.production.shellhub:/opt/firmware/"
-                  />
-                  <div className="mt-1 flex items-center gap-3">
-                    <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden border border-border">
-                      <div className="h-full w-full bg-gradient-to-r from-accent-cyan to-primary rounded-full" />
-                    </div>
-                    <span className="text-accent-green text-2xs">100%</span>
+            <WindowChrome
+              variant="terminal"
+              title="Terminal — scp / sftp"
+              accent="cyan"
+            >
+              <div className="mb-4">
+                <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
+                  SCP &mdash; Copy files to device
+                </p>
+                <Line
+                  prompt="$"
+                  cmd="scp firmware-v2.4.bin admin@rpi-gateway.production.shellhub:/opt/firmware/"
+                />
+                <div className="mt-1 flex items-center gap-3">
+                  <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden border border-border">
+                    <div className="h-full w-full bg-gradient-to-r from-accent-cyan to-primary rounded-full" />
                   </div>
-                  <p className="text-text-muted text-2xs mt-1">
-                    firmware-v2.4.bin &nbsp; 24.3 MB &nbsp; 12.1MB/s &nbsp;
-                    00:02
-                  </p>
+                  <span className="text-accent-green text-2xs">100%</span>
                 </div>
+                <p className="text-text-muted text-2xs mt-1">
+                  firmware-v2.4.bin &nbsp; 24.3 MB &nbsp; 12.1MB/s &nbsp; 00:02
+                </p>
+              </div>
 
-                <div className="pt-4 border-t border-border">
-                  <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
-                    SFTP &mdash; Interactive session
-                  </p>
-                  <Line prompt="sftp>" cmd="ls /var/log/" />
-                  <div className="text-text-secondary ml-0">
-                    <p>
-                      syslog &nbsp;&nbsp; auth.log &nbsp;&nbsp; kern.log
-                      &nbsp;&nbsp; nginx/
-                    </p>
-                  </div>
-                  <Line
-                    prompt="sftp>"
-                    cmd="get /var/log/syslog ./diagnostics/"
-                  />
-                  <p className="text-text-muted text-2xs mt-1">
-                    Fetching /var/log/syslog to ./diagnostics/syslog
-                  </p>
-                  <p className="text-accent-green text-2xs">
-                    /var/log/syslog &nbsp; 100% &nbsp; 847KB &nbsp; 4.2MB/s
-                    &nbsp; 00:00
+              <div className="pt-4 border-t border-border">
+                <p className="text-text-muted text-2xs uppercase tracking-wider mb-2">
+                  SFTP &mdash; Interactive session
+                </p>
+                <Line prompt="sftp>" cmd="ls /var/log/" />
+                <div className="text-text-secondary ml-0">
+                  <p>
+                    syslog &nbsp;&nbsp; auth.log &nbsp;&nbsp; kern.log
+                    &nbsp;&nbsp; nginx/
                   </p>
                 </div>
-              </TerminalChrome>
-            </Card>
+                <Line prompt="sftp>" cmd="get /var/log/syslog ./diagnostics/" />
+                <p className="text-text-muted text-2xs mt-1">
+                  Fetching /var/log/syslog to ./diagnostics/syslog
+                </p>
+                <p className="text-accent-green text-2xs">
+                  /var/log/syslog &nbsp; 100% &nbsp; 847KB &nbsp; 4.2MB/s &nbsp;
+                  00:00
+                </p>
+              </div>
+            </WindowChrome>
           </ShimmerCard>
         </Reveal>
 

@@ -26,7 +26,7 @@ import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
-import { Button, Card } from "@shellhub/design-system/primitives";
+import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 
 /* ─── Types ─── */
 type Method =
@@ -298,27 +298,16 @@ export default function AddDevice() {
             </div>
           </Card>
         ) : (
-          <Card className="overflow-hidden">
-            {/* Terminal chrome */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-surface/50">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-red/60" />
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/60" />
-                <span className="w-2.5 h-2.5 rounded-full bg-accent-green/60" />
-              </div>
-              <span className="text-2xs font-mono text-text-muted/50">
-                terminal
-              </span>
-              <CopyButton text={command} showLabel />
-            </div>
-            {/* Command */}
-            <div className="p-4 overflow-x-auto">
-              <pre className="text-xs font-mono text-accent-cyan leading-relaxed whitespace-pre-wrap break-all">
-                <span className="text-text-muted select-none">$ </span>
-                {command}
-              </pre>
-            </div>
-          </Card>
+          <WindowChrome
+            variant="terminal"
+            size="sm"
+            titleBarSlot={<CopyButton text={command} showLabel />}
+          >
+            <pre className="text-accent-cyan whitespace-pre-wrap break-all">
+              <span className="text-text-muted select-none">$ </span>
+              {command}
+            </pre>
+          </WindowChrome>
         )}
       </div>
 

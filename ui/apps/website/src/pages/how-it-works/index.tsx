@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   IconBadge,
+  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -789,41 +790,31 @@ export default function HowItWorks() {
 
               <div className="md:pl-12">
                 <ShimmerCard>
-                  <Card className="overflow-hidden">
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                        <span className="ml-2 text-2xs text-text-muted font-mono">
-                          Terminal
+                  <WindowChrome variant="terminal">
+                    <div className="space-y-2 overflow-x-auto">
+                      <p>
+                        <span className="text-accent-green">$</span>{" "}
+                        <span className="text-text-secondary">
+                          curl -sSf https://cloud.shellhub.io/install.sh | sh
                         </span>
-                      </div>
-                      <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
-                        <p>
-                          <span className="text-accent-green">$</span>{" "}
-                          <span className="text-text-secondary">
-                            curl -sSf https://cloud.shellhub.io/install.sh | sh
-                          </span>
-                        </p>
-                        <p className="text-text-muted">
-                          # Downloading ShellHub agent v0.17.2...
-                        </p>
-                        <p className="text-text-muted">
-                          # Installing to /usr/local/bin/shellhub-agent
-                        </p>
-                        <p className="text-text-muted">
-                          # Registering systemd service...
-                        </p>
-                        <p className="text-accent-green">
-                          # Agent installed and running.
-                        </p>
-                        <p className="text-accent-green">
-                          # Device ID: a1b2c3d4-e5f6-7890
-                        </p>
-                      </div>
+                      </p>
+                      <p className="text-text-muted">
+                        # Downloading ShellHub agent v0.17.2...
+                      </p>
+                      <p className="text-text-muted">
+                        # Installing to /usr/local/bin/shellhub-agent
+                      </p>
+                      <p className="text-text-muted">
+                        # Registering systemd service...
+                      </p>
+                      <p className="text-accent-green">
+                        # Agent installed and running.
+                      </p>
+                      <p className="text-accent-green">
+                        # Device ID: a1b2c3d4-e5f6-7890
+                      </p>
                     </div>
-                  </Card>
+                  </WindowChrome>
                 </ShimmerCard>
               </div>
             </div>
@@ -1159,57 +1150,43 @@ export default function HowItWorks() {
 
               <div className="md:pl-12">
                 <ShimmerCard>
-                  <Card className="overflow-hidden">
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-3 h-3 rounded-full bg-accent-red/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-yellow/60" />
-                        <div className="w-3 h-3 rounded-full bg-accent-green/60" />
-                        <span className="ml-2 text-2xs text-text-muted font-mono">
-                          Terminal
+                  <WindowChrome variant="terminal">
+                    <div className="space-y-2 overflow-x-auto">
+                      <p>
+                        <span className="text-accent-green">$</span>{" "}
+                        <span className="text-text-secondary">
+                          ssh pi@a1b2c3d4-e5f6-7890.mycompany.shellhub.io
                         </span>
-                      </div>
-                      <div className="bg-surface rounded-lg p-4 font-mono text-xs leading-relaxed space-y-2 overflow-x-auto">
-                        <p>
-                          <span className="text-accent-green">$</span>{" "}
-                          <span className="text-text-secondary">
-                            ssh pi@a1b2c3d4-e5f6-7890.mycompany.shellhub.io
-                          </span>
-                        </p>
-                        <p className="text-text-muted">
-                          # Connecting through ShellHub gateway...
-                        </p>
-                        <p className="text-text-muted">
-                          # Authenticating with public key...
-                        </p>
-                        <p className="text-text-muted">
-                          # Session recording enabled.
-                        </p>
-                        <p>&nbsp;</p>
-                        <p>
-                          <span className="text-accent-green">
-                            pi@raspberrypi
-                          </span>
-                          :<span className="text-accent-blue">~</span>
-                          <span className="text-text-secondary">
-                            $ uname -a
-                          </span>
-                        </p>
-                        <p className="text-text-secondary">
-                          Linux raspberrypi 6.1.0-rpi7 armv7l GNU/Linux
-                        </p>
-                        <p>
-                          <span className="text-accent-green">
-                            pi@raspberrypi
-                          </span>
-                          :<span className="text-accent-blue">~</span>
-                          <span className="text-text-muted animate-pulse">
-                            _
-                          </span>
-                        </p>
-                      </div>
+                      </p>
+                      <p className="text-text-muted">
+                        # Connecting through ShellHub gateway...
+                      </p>
+                      <p className="text-text-muted">
+                        # Authenticating with public key...
+                      </p>
+                      <p className="text-text-muted">
+                        # Session recording enabled.
+                      </p>
+                      <p>&nbsp;</p>
+                      <p>
+                        <span className="text-accent-green">
+                          pi@raspberrypi
+                        </span>
+                        :<span className="text-accent-blue">~</span>
+                        <span className="text-text-secondary">$ uname -a</span>
+                      </p>
+                      <p className="text-text-secondary">
+                        Linux raspberrypi 6.1.0-rpi7 armv7l GNU/Linux
+                      </p>
+                      <p>
+                        <span className="text-accent-green">
+                          pi@raspberrypi
+                        </span>
+                        :<span className="text-accent-blue">~</span>
+                        <span className="text-text-muted animate-pulse">_</span>
+                      </p>
                     </div>
-                  </Card>
+                  </WindowChrome>
                 </ShimmerCard>
               </div>
             </div>
