@@ -35,66 +35,8 @@ import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
-
-/* ─── Settings Card ─── */
-
-function SettingsCard({
-  title,
-  children,
-  danger,
-}: {
-  title: string;
-  children: React.ReactNode;
-  danger?: boolean;
-}) {
-  return (
-    <div
-      className={`bg-card border rounded-xl overflow-hidden ${danger ? "border-accent-red/20 border-l-2 border-l-accent-red/40" : "border-border"}`}
-    >
-      <div
-        className={`px-5 py-3.5 border-b ${danger ? "border-accent-red/10" : "border-border"}`}
-      >
-        <h3
-          className={`text-sm font-semibold ${danger ? "text-accent-red" : "text-text-primary"}`}
-        >
-          {title}
-        </h3>
-      </div>
-      <div className="divide-y divide-border">{children}</div>
-    </div>
-  );
-}
-
-/* ─── Settings Row ─── */
-
-function SettingsRow({
-  icon,
-  title,
-  description,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-6 px-5 py-4">
-      <div className="flex items-start gap-3 min-w-0 flex-1">
-        <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
-          {icon}
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">{title}</p>
-          <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
-            {description}
-          </p>
-        </div>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-}
+import SettingsCard from "@/components/common/SettingsCard";
+import SettingsRow from "@/components/common/SettingsRow";
 
 /* ─── Edit Name Drawer ─── */
 
