@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Card, Button } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
@@ -19,6 +19,8 @@ import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import SettingsCard from "@/components/common/SettingsCard";
+import SettingsRow from "@/components/common/SettingsRow";
 function ChangePasswordDrawer({
   open,
   onClose,
@@ -215,112 +217,112 @@ export default function VaultSettingsSection() {
 
   if (status !== "unlocked") return null;
 
+  const storageDescription =
+    storageMode === "server"
+      ? "Synced with the ShellHub server. Click to move it to this device."
+      : "Stored in this browser only. Click to sync it to the ShellHub server.";
+
   return (
     <>
-      <div className="mt-8 animate-fade-in">
-        <h3 className="text-xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3">
-          Vault Settings
-        </h3>
-        <Card className="divide-y divide-border">
-          <button
-            type="button"
-            onClick={() => setChangeOpen(true)}
-            className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors rounded-t-lg"
+      <div className="mt-8 space-y-4 animate-fade-in">
+        <SettingsCard title="Vault Settings">
+          <SettingsRow
+            icon={<KeyIcon className="w-4 h-4" />}
+            title="Change Master Password"
+            description="Re-encrypt all keys with a new password."
           >
-            <KeyIcon className="w-4 h-4 text-text-muted shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary">
-                Change Master Password
-              </p>
-              <p className="text-2xs text-text-muted">
-                Re-encrypt all keys with a new password.
-              </p>
-            </div>
-          </button>
+            <Button
+              size="sm"
+              variant="secondary"
+              aria-label="Change master password"
+              onClick={() => setChangeOpen(true)}
+            >
+              Change
+            </Button>
+          </SettingsRow>
 
-          <div className="flex items-center gap-3 w-full px-4 py-3.5">
-            <LockClosedIcon className="w-4 h-4 text-text-muted shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-text-primary">
-                Auto-lock Timeout
-              </p>
-              <p className="text-2xs text-text-muted">
-                Automatically lock the vault after this period of inactivity.
-              </p>
-            </div>
+          <SettingsRow
+            icon={<LockClosedIcon className="w-4 h-4" />}
+            title="Auto-lock Timeout"
+            description="Automatically lock the vault after this period of inactivity."
+          >
             <AutoLockTimeoutSelect
               value={autoLockTimeoutMinutes}
               onChange={(minutes) =>
                 void updateAutoLockSettings({ autoLockTimeoutMinutes: minutes })
               }
             />
-          </div>
+          </SettingsRow>
 
-          <div className="flex items-center gap-3 w-full px-4 py-3.5">
-            <div className="min-w-0 flex-1">
-              <CheckboxField
-                id="vault-lock-on-hidden"
-                label="Lock when hidden"
-                description="Locks the vault about a minute after you switch away or minimize."
-                checked={lockOnHidden}
-                onChange={(checked) =>
-                  void updateAutoLockSettings({ lockOnHidden: checked })
-                }
-              />
-            </div>
-          </div>
+          <SettingsRow
+            icon={<LockClosedIcon className="w-4 h-4" />}
+            title="Lock when hidden"
+            description="Locks the vault about a minute after you switch away or minimize."
+          >
+            <CheckboxField
+              id="vault-lock-on-hidden"
+              label="Lock when hidden"
+              hideLabel
+              aria-label="Lock when hidden"
+              checked={lockOnHidden}
+              onChange={(checked) =>
+                void updateAutoLockSettings({ lockOnHidden: checked })
+              }
+            />
+          </SettingsRow>
 
           {isVaultServerEnabled() && (
-            <button
-              type="button"
-              onClick={() => setSyncOpen(true)}
-              className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors"
+            <SettingsRow
+              icon={<ServerStackIcon className="w-4 h-4" />}
+              title="Storage"
+              description={storageDescription}
             >
-              <ServerStackIcon className="w-4 h-4 text-text-muted shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary">Storage</p>
-                <p className="text-2xs text-text-muted">
-                  {storageMode === "server"
-                    ? "Synced with the ShellHub server. Click to move it to this device."
-                    : "Stored in this browser only. Click to sync it to the ShellHub server."}
-                </p>
-              </div>
-            </button>
+              <Button
+                size="sm"
+                variant="secondary"
+                aria-label="Change vault storage location"
+                onClick={() => setSyncOpen(true)}
+              >
+                {storageMode === "server" ? "Move" : "Sync"}
+              </Button>
+            </SettingsRow>
           )}
 
-          <button
-            type="button"
-            onClick={lock}
-            className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-hover-subtle transition-colors"
+          <SettingsRow
+            icon={<LockClosedIcon className="w-4 h-4" />}
+            title="Lock Vault"
+            description="Clear decrypted keys from memory."
           >
-            <LockClosedIcon className="w-4 h-4 text-text-muted shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary">
-                Lock Vault
-              </p>
-              <p className="text-2xs text-text-muted">
-                Clear decrypted keys from memory.
-              </p>
-            </div>
-          </button>
+            <Button
+              size="sm"
+              variant="secondary"
+              aria-label="Lock vault"
+              onClick={lock}
+            >
+              Lock
+            </Button>
+          </SettingsRow>
+        </SettingsCard>
 
-          <button
-            type="button"
-            onClick={() => {
-              setResetConfirmText("");
-              setResetOpen(true);
-            }}
-            className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-accent-red/5 transition-colors rounded-b-lg"
+        <SettingsCard title="Danger Zone" danger>
+          <SettingsRow
+            icon={<ExclamationTriangleIcon className="w-4 h-4" />}
+            title="Reset Vault"
+            description="Permanently delete all stored keys. This cannot be undone."
           >
-            <ExclamationTriangleIcon className="w-4 h-4 text-accent-red shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-accent-red">Reset Vault</p>
-              <p className="text-2xs text-text-muted">
-                Permanently delete all stored keys. This cannot be undone.
-              </p>
-            </div>
-          </button>
-        </Card>
+            <Button
+              size="sm"
+              variant="dangerSoft"
+              aria-label="Reset vault"
+              onClick={() => {
+                setResetConfirmText("");
+                setResetOpen(true);
+              }}
+            >
+              Reset
+            </Button>
+          </SettingsRow>
+        </SettingsCard>
       </div>
 
       <ChangePasswordDrawer
@@ -359,7 +361,6 @@ export default function VaultSettingsSection() {
             value={resetConfirmText}
             onChange={setResetConfirmText}
             placeholder="RESET"
-
           />
         </div>
       </ConfirmDialog>
