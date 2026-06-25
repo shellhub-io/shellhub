@@ -5,6 +5,7 @@ import {
 } from "@/hooks/useNamespaceMutations";
 import { getNamespaces } from "@/client";
 import { getConfig } from "@/env";
+import { isSdkError } from "@/api/errors";
 import {
   CommandLineIcon,
   SparklesIcon,
@@ -23,6 +24,7 @@ import { Button, Spinner } from "@shellhub/design-system/primitives";
 function CloudForm() {
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const createNs = useCreateNamespace();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -33,14 +35,29 @@ function CloudForm() {
       return;
     }
     setValidationError(null);
+    setSubmitError(null);
     try {
       await createNs.mutateAsync(name);
-    } catch {
-      // error is set in mutation
+    } catch (caught) {
+      if (isSdkError(caught)) {
+        if (caught.status === 409) {
+          setSubmitError("A namespace with this name already exists.");
+        } else if (caught.status === 403) {
+          setSubmitError(
+            "You have reached the namespace limit or do not have permission.",
+          );
+        } else if (caught.status === 400) {
+          setSubmitError("The namespace name is invalid.");
+        } else {
+          setSubmitError("An unexpected error occurred. Please try again.");
+        }
+      } else {
+        setSubmitError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
-  const displayError = validationError ?? createNs.error?.message ?? null;
+  const displayError = validationError ?? submitError ?? null;
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
@@ -52,6 +69,7 @@ function CloudForm() {
             onChange={(v) => {
               setName(v);
               setValidationError(null);
+              setSubmitError(null);
               createNs.reset();
             }}
             error={displayError}
