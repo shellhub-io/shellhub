@@ -398,6 +398,13 @@ jobs:
 
             ## Step 5: Update final summary
 
+            This step is MANDATORY and must be your FINAL action before ending — even if
+            there are zero new findings, even if every finding was already reported in a
+            previous review thread. NEVER end your turn while the tracking comment still
+            contains unchecked `- [ ]` checkboxes. If you have nothing else to do, your
+            last action MUST still be a mcp__github_comment__update_claude_comment call
+            that replaces the checklist with the final summary below.
+
             After Step 4 is complete, update the tracking comment one final time via
             mcp__github_comment__update_claude_comment to become the closing summary.
 
@@ -426,21 +433,24 @@ jobs:
                 If you've addressed the feedback and want a new review, tag
                 `@shellhub-io/admin` and a team member can trigger it.
 
-            ### If there are NO findings:
+            ### If there are NO new findings:
 
-            Update the tracking comment to:
+            This covers two cases: (a) no issues were found at all, and (b) a re-review
+            where every finding deduplicated against issues already reported in previous
+            review threads — i.e. nothing NEW to post. In either case you MUST still update
+            the tracking comment to:
 
                 <!-- claude-code-review -->
                 ## Code Review Complete
 
                 Reviewed N files across code quality, security, testing, language patterns,
-                and architecture — no issues found. The code looks good as-is.
+                and architecture — no new issues found. The code looks good as-is.
 
                 {For non-admin authors only:}
                 If you push additional changes and want a new review, tag
                 `@shellhub-io/admin` and a team member can trigger it.
 
-            Do NOT mention inline comments or `/review` follow-up when there are no findings
+            Do NOT mention inline comments or `/review` follow-up when there are no new findings
             (unless the author is non-admin, in which case include the tag guidance).
 
             In both cases, always update the tracking comment. Never skip Step 5.
@@ -449,3 +459,41 @@ jobs:
             --max-turns 50
             --model claude-opus-4-6
             --allowedTools "Task" "mcp__github_inline_comment__create_inline_comment" "mcp__github_comment__update_claude_comment" "Bash(gh api:*)" "Bash(gh pr diff:*)"
+
+      - name: Finalize tracking comment
+        if: always() && steps.gate.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          MARKER="<!-- claude-code-review -->"
+          # The tracking comment for THIS run links to this run id in its body.
+          COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq ".[] | select(.body | contains(\"$MARKER\")) | select(.body | contains(\"actions/runs/$RUN_ID\")) | .id" | head -1)
+
+          if [[ -z "$COMMENT_ID" ]]; then
+            echo "No tracking comment for run $RUN_ID; nothing to finalize."
+            exit 0
+          fi
+
+          BODY=$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
+
+          # A finalized summary has no unchecked checkboxes. If none remain, leave it.
+          if ! grep -qF -- '- [ ]' <<<"$BODY"; then
+            echo "Tracking comment already finalized; nothing to do."
+            exit 0
+          fi
+
+          echo "Tracking comment stuck mid-progress; rewriting to a terminal state."
+          FINAL_BODY=$(printf '%s\n' \
+            "$MARKER" \
+            "## Code Review Complete" \
+            "" \
+            "The automated review ran but did not post an updated summary — this usually means no new issues were found since the previous review. If you've pushed changes and want a fresh pass, comment \`/review\`." \
+            "" \
+            "_[View job]($RUN_URL)_")
+
+          gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$FINAL_BODY"
