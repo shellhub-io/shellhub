@@ -13,7 +13,9 @@ export interface ClipboardContextValue {
   triggerWarning: () => void;
 }
 
-export const ClipboardContext = createContext<ClipboardContextValue | null>(null);
+export const ClipboardContext = createContext<ClipboardContextValue | null>(
+  null,
+);
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,17 @@ interface UseCopyResult {
   copy: (text: string) => void;
   /** True for 1500 ms after a successful copy. Use for inline visual feedback. */
   copied: boolean;
+}
+
+/**
+ * Returns the `triggerWarning` function from the nearest `<ClipboardProvider>`.
+ *
+ * Throws when called outside a provider.
+ */
+export function useClipboardWarning(): () => void {
+  const ctx = useContext(ClipboardContext);
+  if (!ctx) throw new Error("useClipboardWarning must be used within <ClipboardProvider>");
+  return ctx.triggerWarning;
 }
 
 /**

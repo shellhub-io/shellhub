@@ -7,7 +7,12 @@ const COMMAND = "docker run -d -p 80:80 shellhubio/shellhub";
 const writeText = vi.fn();
 
 beforeEach(() => {
+  Object.defineProperty(globalThis, "isSecureContext", {
+    value: true,
+    configurable: true,
+  });
   writeText.mockReset();
+  writeText.mockResolvedValue(undefined);
   Object.defineProperty(navigator, "clipboard", {
     value: { writeText },
     configurable: true,

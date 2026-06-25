@@ -1,1 +1,5 @@
-export { Reveal, CopyBtn, ConnectionGrid, ShimmerCard } from "@shellhub/design-system/components";
+export {
+  Reveal,
+  ConnectionGrid,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
