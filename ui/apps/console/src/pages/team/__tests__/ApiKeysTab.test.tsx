@@ -127,6 +127,30 @@ describe("ApiKeysTab — pagination count display", () => {
   });
 });
 
+describe("ApiKeysTab — sorting", () => {
+  it("requests created_at/desc sort by default", () => {
+    render(<ApiKeysTab />);
+    expect(useApiKeys).toHaveBeenCalledWith(
+      expect.objectContaining({ sortBy: "created_at", orderBy: "desc" }),
+    );
+  });
+
+  it("toggles sort when the Name header is clicked", async () => {
+    const user = userEvent.setup();
+    render(<ApiKeysTab />);
+
+    await user.click(screen.getByRole("button", { name: "Sort by Name" }));
+    let calls = vi.mocked(useApiKeys).mock.calls;
+    let last = calls[calls.length - 1][0];
+    expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
+
+    await user.click(screen.getByRole("button", { name: "Sort by Name" }));
+    calls = vi.mocked(useApiKeys).mock.calls;
+    last = calls[calls.length - 1][0];
+    expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
+  });
+});
+
 describe("ApiKeysTab — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();

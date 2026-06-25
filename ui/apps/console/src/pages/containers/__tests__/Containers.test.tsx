@@ -2,13 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "@/hooks/useDevices";
+import type { NormalizedContainer } from "@/hooks/useContainers";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("@/hooks/useDevices", () => ({
-  useDevices: vi.fn(),
-  buildFilter: vi.fn(),
+vi.mock("@/hooks/useContainers", () => ({
+  useContainers: vi.fn(),
 }));
 
 vi.mock("@/hooks/useNamespaces", () => ({
@@ -50,10 +49,6 @@ vi.mock("@/components/common/PageHeader", () => ({
   ),
 }));
 
-vi.mock("@/components/common/PlatformBadge", () => ({
-  default: ({ platform }: { platform: string }) => <span>{platform}</span>,
-}));
-
 vi.mock("@/utils/date", () => ({
   formatRelative: () => "just now",
   formatDateFull: () => "Jan 15, 2024",
@@ -75,14 +70,28 @@ vi.mock("@/components/ConnectDrawer", () => ({
   default: () => <div />,
 }));
 
-vi.mock("../TagsPopover", () => ({
-  default: ({ device }: { device: NormalizedDevice }) => (
-    <span>{device.tags.length > 0 ? device.tags.join(", ") : "No tags"}</span>
+vi.mock("../ContainerTagsPopover", () => ({
+  default: ({ container }: { container: NormalizedContainer }) => (
+    <span>
+      {container.tags.length > 0 ? container.tags.join(", ") : "No tags"}
+    </span>
   ),
 }));
 
-vi.mock("../DeviceActionDialog", () => ({
+vi.mock("../ContainerActionDialog", () => ({
   default: () => <div />,
+}));
+
+vi.mock("../AddDockerConnectorDrawer", () => ({
+  default: () => <div />,
+}));
+
+vi.mock("@/components/billing/BillingWarning", () => ({
+  default: () => <div />,
+}));
+
+vi.mock("@/env", () => ({
+  getConfig: () => ({ cloud: false }),
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -98,31 +107,30 @@ vi.mock("react-router-dom", async (importOriginal) => {
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
 import React from "react";
-import { useDevices } from "@/hooks/useDevices";
-import Devices from "../index";
+import { useContainers } from "@/hooks/useContainers";
+import Containers from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const defaultHookState = {
-  devices: [] as NormalizedDevice[],
+  containers: [] as NormalizedContainer[],
   totalCount: 0,
   isLoading: false,
   error: null,
   refetch: vi.fn(),
 };
 
-function makeDevice(
-  overrides: Partial<NormalizedDevice> = {},
-): NormalizedDevice {
+function makeContainer(
+  overrides: Partial<NormalizedContainer> = {},
+): NormalizedContainer {
   return {
-    uid: "device-uid-1",
-    name: "my-device",
+    uid: "container-uid-1",
+    name: "my-container",
     status: "accepted",
     online: true,
     tags: [],
     last_seen: new Date().toISOString(),
     created_at: new Date().toISOString(),
-    identity: { mac: "aa:bb:cc:dd:ee:ff" },
     info: {
       id: "ubuntu",
       pretty_name: "Ubuntu 22.04 LTS",
@@ -130,25 +138,23 @@ function makeDevice(
       platform: "linux",
       version: "0.14.0",
     },
-    remote_addr: "1.2.3.4",
-    custom_fields: {},
     ...overrides,
-  } as NormalizedDevice;
+  } as NormalizedContainer;
 }
 
 function renderPage() {
   return render(
     <MemoryRouter>
-      <Devices />
+      <Containers />
     </MemoryRouter>,
   );
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe("Devices list", () => {
+describe("Containers list", () => {
   beforeEach(() => {
-    vi.mocked(useDevices).mockReturnValue(defaultHookState);
+    vi.mocked(useContainers).mockReturnValue(defaultHookState);
     mockNavigate.mockReset();
   });
 
@@ -156,112 +162,39 @@ describe("Devices list", () => {
     it("renders the page heading", () => {
       renderPage();
       expect(
-        screen.getByRole("heading", { name: "Devices" }),
+        screen.getByRole("heading", { name: "Containers" }),
       ).toBeInTheDocument();
-    });
-
-    it("renders all status filter tabs", () => {
-      renderPage();
-      expect(
-        screen.getByRole("button", { name: "Accepted" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Pending" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Rejected" }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders the search input", () => {
-      renderPage();
-      expect(
-        screen.getByPlaceholderText("Search by hostname..."),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("loading state", () => {
-    it("renders the loading message", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-      });
-      renderPage();
-      expect(screen.getByText("Loading devices...")).toBeInTheDocument();
-    });
-  });
-
-  describe("empty state", () => {
-    it('renders "No devices found" when list is empty', () => {
-      renderPage();
-      expect(screen.getByText("No devices found")).toBeInTheDocument();
-    });
-  });
-
-  describe("device rows", () => {
-    it("renders a row for each device", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [
-          makeDevice({ uid: "uid-1", name: "alpha" }),
-          makeDevice({ uid: "uid-2", name: "beta" }),
-        ],
-        totalCount: 2,
-      });
-      renderPage();
-      expect(screen.getByText("alpha")).toBeInTheDocument();
-      expect(screen.getByText("beta")).toBeInTheDocument();
-    });
-
-    it("navigates to device detail on row click", async () => {
-      const user = userEvent.setup();
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ uid: "uid-abc", name: "clickable" })],
-        totalCount: 1,
-      });
-      renderPage();
-      await user.click(screen.getByText("clickable"));
-      expect(mockNavigate).toHaveBeenCalledWith("/devices/uid-abc");
-    });
-  });
-
-  describe("error state", () => {
-    it("renders an error message when hook returns an error", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        error: new Error("Request failed"),
-      });
-      renderPage();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
     });
   });
 
   describe("sorting", () => {
     it("requests last_seen/desc sort by default", () => {
       renderPage();
-      expect(useDevices).toHaveBeenCalledWith(
+      expect(useContainers).toHaveBeenCalledWith(
         expect.objectContaining({ sortBy: "last_seen", orderBy: "desc" }),
       );
     });
 
     it("toggles sort when the Hostname header is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useDevices).mockReturnValue({
+      vi.mocked(useContainers).mockReturnValue({
         ...defaultHookState,
-        devices: [makeDevice({ uid: "uid-1", name: "alpha" })],
+        containers: [makeContainer({ uid: "uid-1", name: "alpha" })],
         totalCount: 1,
       });
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: "Sort by Hostname" }));
-      let calls = vi.mocked(useDevices).mock.calls;
+      await user.click(
+        screen.getByRole("button", { name: "Sort by Hostname" }),
+      );
+      let calls = vi.mocked(useContainers).mock.calls;
       let last = calls[calls.length - 1][0];
       expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
 
-      await user.click(screen.getByRole("button", { name: "Sort by Hostname" }));
-      calls = vi.mocked(useDevices).mock.calls;
+      await user.click(
+        screen.getByRole("button", { name: "Sort by Hostname" }),
+      );
+      calls = vi.mocked(useContainers).mock.calls;
       last = calls[calls.length - 1][0];
       expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
     });

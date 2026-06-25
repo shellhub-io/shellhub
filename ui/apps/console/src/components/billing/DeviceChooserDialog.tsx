@@ -73,7 +73,20 @@ export default function DeviceChooserDialog({
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<NormalizedDevice[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "last_seen">("last_seen");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
   const inFlightRef = useRef(false);
+
+  const handleSort = (field: string) => {
+    const f = field as "name" | "last_seen";
+    if (sortBy === f) {
+      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(f);
+      setOrderBy(f === "name" ? "asc" : "desc");
+    }
+    setPage(1);
+  };
 
   // Force the All tab whenever Suggested is empty so a refetch that returns
   // [] doesn't strand the user on a tab that would submit zero choices.
@@ -91,6 +104,8 @@ export default function DeviceChooserDialog({
     status: "accepted",
     search: debouncedSearch,
     enabled: tab === "all",
+    sortBy,
+    orderBy,
   });
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
@@ -239,6 +254,9 @@ export default function DeviceChooserDialog({
               totalPages={totalPages}
               totalCount={totalCount}
               onPageChange={setPage}
+              sortField={sortBy}
+              sortOrder={orderBy}
+              onSort={handleSort}
             />
             <SelectedChips
               selected={selected}
@@ -489,6 +507,9 @@ interface AllTabProps {
   totalPages: number;
   totalCount: number;
   onPageChange: (page: number) => void;
+  sortField: string;
+  sortOrder: "asc" | "desc";
+  onSort: (field: string) => void;
 }
 
 function AllTab({
@@ -500,6 +521,9 @@ function AllTab({
   totalPages,
   totalCount,
   onPageChange,
+  sortField,
+  sortOrder,
+  onSort,
 }: AllTabProps) {
   const isSelected = (d: NormalizedDevice) =>
     selected.some((s) => s.uid === d.uid);
@@ -534,6 +558,7 @@ function AllTab({
     {
       key: "name",
       header: "Hostname",
+      sortable: true,
       render: (d) => (
         <span className="text-sm font-medium text-text-primary">{d.name}</span>
       ),
@@ -546,6 +571,7 @@ function AllTab({
     {
       key: "last_seen",
       header: "Last Seen",
+      sortable: true,
       render: (d) => <LastSeenCell value={d.last_seen} />,
     },
   ];
@@ -564,6 +590,9 @@ function AllTab({
       totalCount={totalCount}
       itemLabel="device"
       onPageChange={onPageChange}
+      sortField={sortField}
+      sortOrder={sortOrder}
+      onSort={onSort}
     />
   );
 }

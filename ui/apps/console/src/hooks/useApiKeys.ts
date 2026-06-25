@@ -10,10 +10,17 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 interface UseApiKeysParams {
   page?: number;
   perPage?: number;
+  sortBy?: string;
+  orderBy?: "asc" | "desc";
 }
 
-export function useApiKeys({ page = 1, perPage = 10 }: UseApiKeysParams = {}) {
-  const options = { query: { page, per_page: perPage } } satisfies { query: ApiKeyListData["query"] };
+export function useApiKeys({
+  page = 1,
+  perPage = 10,
+  sortBy = "created_at",
+  orderBy = "desc",
+}: UseApiKeysParams = {}) {
+  const options = { query: { page, per_page: perPage, sort_by: sortBy, order_by: orderBy } } satisfies { query: ApiKeyListData["query"] };
 
   const result = useQuery<PaginatedResult<ApiKey>>({
     queryKey: apiKeyListQueryKey(options),

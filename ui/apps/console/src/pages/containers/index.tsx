@@ -41,6 +41,8 @@ const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 const VALID_STATUSES = new Set<string>(["accepted", "pending", "rejected"]);
 
+type SortField = "name" | "last_seen";
+
 export default function Containers() {
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") ?? "accepted";
@@ -68,6 +70,8 @@ export default function Containers() {
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<SortField>("last_seen");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
 
   const { containers, totalCount, isLoading, error, refetch } = useContainers({
     page,
@@ -75,6 +79,8 @@ export default function Containers() {
     status,
     search: debouncedSearch,
     filterTags,
+    sortBy,
+    orderBy,
   });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -86,6 +92,17 @@ export default function Containers() {
 
   const handleStatusChange = (newStatus: DeviceStatus) => {
     setStatus(newStatus);
+    setPage(1);
+  };
+
+  const handleSort = (field: string) => {
+    const f = field as SortField;
+    if (sortBy === f) {
+      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(f);
+      setOrderBy(f === "name" ? "asc" : "desc");
+    }
     setPage(1);
   };
 
@@ -107,8 +124,9 @@ export default function Containers() {
   const columns = useMemo<Column<NormalizedContainer>[]>(() => {
     const baseColumns: Column<NormalizedContainer>[] = [
       {
-        key: "hostname",
+        key: "name",
         header: "Hostname",
+        sortable: true,
         render: (container) => (
           <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
             {container.name}
@@ -137,6 +155,7 @@ export default function Containers() {
       {
         key: "last_seen",
         header: "Last Seen",
+        sortable: true,
         render: (container) => (
           <span className="text-xs text-text-secondary">
             {formatRelative(container.last_seen)}
@@ -421,6 +440,9 @@ export default function Containers() {
         onRowClick={(container) =>
           void navigate(`/containers/${container.uid}`)
         }
+        sortField={sortBy}
+        sortOrder={orderBy}
+        onSort={handleSort}
         emptyState={
           <div className="text-center">
             <CubeIcon

@@ -47,6 +47,8 @@ interface UseContainersParams {
   status?: DeviceStatus | "";
   search?: string;
   filterTags?: string[];
+  sortBy?: string;
+  orderBy?: "asc" | "desc";
 }
 
 export function useContainers({
@@ -55,11 +57,15 @@ export function useContainers({
   status = "",
   search = "",
   filterTags = [],
+  sortBy = "last_seen",
+  orderBy = "desc",
 }: UseContainersParams = {}) {
   const query: GetContainersData["query"] = { page, per_page: perPage };
   if (status) query.status = status;
   if (search || filterTags.length > 0)
     query.filter = buildFilter(search, filterTags);
+  query.sort_by = sortBy;
+  query.order_by = orderBy;
 
   const options = { query };
 
