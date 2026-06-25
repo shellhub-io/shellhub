@@ -338,12 +338,16 @@ describe("usePaginatedListState — scalar filter with allowlist", () => {
   });
 
   it("rejects values not in the allowlist and falls back to default", () => {
-    const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
-        defaults: FILTER_DEFAULTS,
-        constraints: { status: VALID_STATUSES },
-      }),
+    const { result } = renderHookWithRouter(
+      () =>
+        usePaginatedListState({
+          defaults: FILTER_DEFAULTS,
+          constraints: { status: VALID_STATUSES },
+        }),
+      { initialEntries: ["/?status=inactive"] },
     );
+
+    expect(result.current.params.status).toBe("inactive");
 
     act(() => {
       result.current.setFilter("status", "unknown");
@@ -474,6 +478,49 @@ describe("usePaginatedListState — array filters", () => {
     const sp = new URLSearchParams(result.current.searchString);
     expect(sp.getAll("tags")).toEqual(["staging", "api"]);
     expect(result.current.params.tags).toEqual(["staging", "api"]);
+  });
+});
+
+// ── mapArrayFilter (functional updater over committed URL state) ───────────────
+
+describe("usePaginatedListState — mapArrayFilter", () => {
+  it("applies the functional updater to the current array value", () => {
+    const { result } = renderHookWithRouter(
+      () =>
+        usePaginatedListState({
+          defaults: ARRAY_FILTER_DEFAULTS,
+          constraints: { tags: VALID_TAGS },
+        }),
+      { initialEntries: ["/?tags=web&tags=prod"] },
+    );
+
+    act(() => {
+      result.current.mapArrayFilter("tags", (tags) =>
+        tags.filter((t) => t !== "web"),
+      );
+    });
+
+    expect(result.current.params.tags).toEqual(["prod"]);
+    const sp = new URLSearchParams(result.current.searchString);
+    expect(sp.getAll("tags")).toEqual(["prod"]);
+  });
+
+  it("resets page to 1 when the array changes", () => {
+    const { result } = renderHookWithRouter(
+      () =>
+        usePaginatedListState({
+          defaults: ARRAY_FILTER_DEFAULTS,
+          constraints: { tags: VALID_TAGS },
+        }),
+      { initialEntries: ["/?page=4&tags=web"] },
+    );
+
+    act(() => {
+      result.current.mapArrayFilter("tags", (tags) => [...tags, "prod"]);
+    });
+
+    expect(result.current.params.page).toBe(1);
+    expect(result.current.params.tags).toEqual(["web", "prod"]);
   });
 });
 
