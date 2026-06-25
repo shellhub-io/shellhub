@@ -1,3 +1,5 @@
+import { ConnectionGrid } from "@shellhub/design-system/components";
+
 interface AmbientBackgroundProps {
   variant?: "default" | "error";
 }
@@ -28,73 +30,7 @@ export default function AmbientBackground({
         style={{ animationDelay: "2s" }}
       />
 
-      {/* Connection lines */}
-      <div
-        className="connection-line"
-        style={{ top: "18%", left: 0, width: "45%", animationDelay: "0s" }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "42%",
-          left: "35%",
-          width: "65%",
-          animationDelay: "1.5s",
-        }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "68%",
-          left: "10%",
-          width: "40%",
-          animationDelay: "0.8s",
-        }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "88%",
-          left: "50%",
-          width: "50%",
-          animationDelay: "2.5s",
-        }}
-      />
-      <div
-        className="connection-line-v"
-        style={{ left: "22%", top: 0, height: "55%", animationDelay: "0.5s" }}
-      />
-      <div
-        className="connection-line-v"
-        style={{
-          left: "58%",
-          top: "25%",
-          height: "75%",
-          animationDelay: "1.8s",
-        }}
-      />
-      <div
-        className="connection-line-v"
-        style={{ left: "82%", top: "10%", height: "45%", animationDelay: "3s" }}
-      />
-
-      {/* Dots */}
-      <div
-        className="connection-dot"
-        style={{ top: "18%", left: "22%", animationDelay: "0.3s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "42%", left: "58%", animationDelay: "1.2s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "68%", left: "22%", animationDelay: "2s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "42%", left: "82%", animationDelay: "0.8s" }}
-      />
+      <ConnectionGrid />
 
       {/* Grid */}
       <div className="absolute inset-0 grid-bg opacity-50" />

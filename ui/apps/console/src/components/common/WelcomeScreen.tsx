@@ -7,90 +7,11 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { ConnectionGrid } from "@shellhub/design-system/components";
 import { IconBadge } from "@shellhub/design-system/primitives";
 
 interface WelcomeScreenProps {
   namespaceName: string;
-}
-
-function ConnectionGrid() {
-  return (
-    <div className="connection-grid" aria-hidden="true">
-      {/* Horizontal lines */}
-      <div
-        className="connection-line"
-        style={{ top: "20%", left: 0, width: "60%", animationDelay: "0s" }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "45%",
-          left: "30%",
-          width: "70%",
-          animationDelay: "1.5s",
-        }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "70%",
-          left: "10%",
-          width: "50%",
-          animationDelay: "0.8s",
-        }}
-      />
-      <div
-        className="connection-line"
-        style={{
-          top: "85%",
-          left: "40%",
-          width: "60%",
-          animationDelay: "2.2s",
-        }}
-      />
-
-      {/* Vertical lines */}
-      <div
-        className="connection-line-v"
-        style={{ left: "25%", top: 0, height: "60%", animationDelay: "0.5s" }}
-      />
-      <div
-        className="connection-line-v"
-        style={{
-          left: "55%",
-          top: "20%",
-          height: "80%",
-          animationDelay: "1.8s",
-        }}
-      />
-      <div
-        className="connection-line-v"
-        style={{ left: "80%", top: "10%", height: "50%", animationDelay: "3s" }}
-      />
-
-      {/* Intersection dots */}
-      <div
-        className="connection-dot"
-        style={{ top: "20%", left: "25%", animationDelay: "0.3s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "45%", left: "55%", animationDelay: "1.2s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "70%", left: "25%", animationDelay: "2s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "45%", left: "80%", animationDelay: "0.8s" }}
-      />
-      <div
-        className="connection-dot"
-        style={{ top: "85%", left: "55%", animationDelay: "2.5s" }}
-      />
-    </div>
-  );
 }
 
 const steps = [
