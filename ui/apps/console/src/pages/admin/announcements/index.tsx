@@ -18,19 +18,28 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 
 const PER_PAGE = 10;
 
+type AdminAnnouncementsParams = {
+  page: number;
+};
+
+const DEFAULTS: AdminAnnouncementsParams = { page: 1 };
+
 export default function AdminAnnouncements() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const { params, setPage } = usePaginatedListState<AdminAnnouncementsParams>({
+    defaults: DEFAULTS,
+  });
   const [deleteTarget, setDeleteTarget] = useState<AnnouncementShort | null>(
     null,
   );
 
   const { announcements, totalCount, isLoading, error } = useAdminAnnouncements(
     {
-      page,
+      page: params.page,
       perPage: PER_PAGE,
     },
   );
@@ -128,7 +137,7 @@ export default function AdminAnnouncements() {
         label="Announcements"
         isLoading={isLoading}
         loadingMessage="Loading announcements..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="announcement"
@@ -152,8 +161,8 @@ export default function AdminAnnouncements() {
         onClose={() => setDeleteTarget(null)}
         announcement={deleteTarget}
         onDeleted={() => {
-          if (announcements.length <= 1 && page > 1) {
-            setPage(page - 1);
+          if (announcements.length <= 1 && params.page > 1) {
+            setPage(params.page - 1);
           }
         }}
       />

@@ -23,16 +23,19 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
   default: ({
     open,
     onClose,
+    onDeleted,
     announcement,
   }: {
     open: boolean;
     onClose: () => void;
+    onDeleted?: () => void;
     announcement: AnnouncementShort | null;
   }) => {
     if (!open || !announcement) return null;
     return (
       <div role="dialog" aria-label={`Delete ${announcement.title}`}>
         <button type="button" onClick={onClose}>Cancel delete</button>
+        <button type="button" onClick={() => { onClose(); onDeleted?.(); }}>Confirm delete</button>
       </div>
     );
   },
@@ -64,9 +67,9 @@ function makeAnnouncement(
   };
 }
 
-function renderPage() {
+function renderPage(initialEntries: string[] = ["/"]) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <AdminAnnouncements />
     </MemoryRouter>,
   );
@@ -415,6 +418,84 @@ describe("AdminAnnouncements", () => {
       });
       renderPage();
       expect(screen.getByText("25 announcements")).toBeInTheDocument();
+    });
+  });
+
+  describe("URL hydration (usePaginatedListState)", () => {
+    it("calls useAdminAnnouncements with page hydrated from ?page=2", () => {
+      renderPage(["/?page=2"]);
+      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+      );
+    });
+
+    it("calls useAdminAnnouncements with page=1 when URL has no page param", () => {
+      renderPage(["/"]);
+      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 }),
+      );
+    });
+  });
+
+  describe("URL writes (usePaginatedListState)", () => {
+    it("calls useAdminAnnouncements with page=2 when the user clicks Next page", async () => {
+      const user = userEvent.setup();
+      const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
+        makeAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
+      );
+      vi.mocked(useAdminAnnouncements).mockReturnValue({
+        ...defaultHookState,
+        announcements: manyAnnouncements,
+        totalCount: 30,
+      });
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: "Next page" }));
+
+      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+      );
+    });
+  });
+
+  describe("delete-last-row page decrement (usePaginatedListState)", () => {
+    it("decrements page from 2 to 1 via URL when deleting the last item on a page", async () => {
+      const user = userEvent.setup();
+
+      // Mount at page=2 with exactly 1 item (last item on that page)
+      vi.mocked(useAdminAnnouncements).mockReturnValue({
+        ...defaultHookState,
+        announcements: [makeAnnouncement({ title: "Last Item" })],
+        totalCount: 11, // enough for page 2 to exist
+      });
+
+      renderPage(["/?page=2"]);
+
+      // Sanity: hook was called with page=2
+      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+      );
+
+      // Open the delete dialog
+      await user.click(
+        screen.getByRole("button", { name: "Delete Last Item" }),
+      );
+      await waitFor(() => screen.getByRole("dialog"));
+
+      // Clear prior call history so the post-delete assertion can only match a
+      // call produced by the page decrement — not the page=1 calls from the
+      // initial mount/hydration. Without this the assertion passes vacuously.
+      vi.mocked(useAdminAnnouncements).mockClear();
+
+      // Confirm the delete (fires onDeleted which should decrement the page)
+      await user.click(screen.getByRole("button", { name: "Confirm delete" }));
+
+      // After deletion, the hook must be called with page=1
+      await waitFor(() => {
+        expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 1 }),
+        );
+      });
     });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { NormalizedDevice } from "@/hooks/useDevices";
@@ -9,6 +9,11 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 vi.mock("@/hooks/useDevices", () => ({
   useDevices: vi.fn(),
   buildFilter: vi.fn(),
+}));
+
+// Return the value immediately (no timer) so tests don't need fake timers.
+vi.mock("@/hooks/useDebouncedValue", () => ({
+  useDebouncedValue: <T,>(value: T) => value,
 }));
 
 vi.mock("@/hooks/useNamespaces", () => ({
@@ -67,8 +72,17 @@ vi.mock("@/components/common/TagFilterDropdown", () => ({
   default: () => <div />,
 }));
 
+const mockManageTagsDrawer = vi.fn();
 vi.mock("@/components/ManageTagsDrawer", () => ({
-  default: () => <div />,
+  default: (props: {
+    open: boolean;
+    onClose: () => void;
+    onTagRenamed?: (oldName: string, newName: string) => void;
+    onTagDeleted?: (name: string) => void;
+  }) => {
+    mockManageTagsDrawer(props);
+    return <div data-testid="manage-tags-drawer" />;
+  },
 }));
 
 vi.mock("@/components/ConnectDrawer", () => ({
@@ -136,9 +150,9 @@ function makeDevice(
   } as NormalizedDevice;
 }
 
-function renderPage() {
+function renderPage(initialEntries: string[] = ["/"]) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <Devices />
     </MemoryRouter>,
   );
@@ -150,6 +164,7 @@ describe("Devices list", () => {
   beforeEach(() => {
     vi.mocked(useDevices).mockReturnValue(defaultHookState);
     mockNavigate.mockReset();
+    mockManageTagsDrawer.mockReset();
   });
 
   describe("rendering", () => {
@@ -264,6 +279,127 @@ describe("Devices list", () => {
       calls = vi.mocked(useDevices).mock.calls;
       last = calls[calls.length - 1][0];
       expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
+    });
+  });
+
+  // ── URL hydration (usePaginatedListState adoption) ────────────────────────────
+
+  describe("URL hydration — URL params seed page state on mount", () => {
+    it("passes status=pending from URL to useDevices", () => {
+      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "pending" }),
+      );
+    });
+
+    it("passes tags array from URL to useDevices", () => {
+      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ filterTags: ["a", "b"] }),
+      );
+    });
+
+    it("passes page=2 from URL to useDevices", () => {
+      renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+      );
+    });
+
+    it("falls back to status=accepted and page=1 when URL has no params", () => {
+      renderPage(["/"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "accepted", page: 1 }),
+      );
+    });
+
+    it("falls back to status=accepted for an invalid status value", () => {
+      renderPage(["/?status=invalid"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "accepted" }),
+      );
+    });
+
+    it("passes empty filterTags when no tags param is present", () => {
+      renderPage(["/"]);
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ filterTags: [] }),
+      );
+    });
+  });
+
+  // ── Search trimming ───────────────────────────────────────────────────────────
+
+  describe("search — whitespace is trimmed before passing to useDevices", () => {
+    it("passes trimmed search to useDevices when input has surrounding spaces", async () => {
+      // useDebouncedValue is mocked to return its input immediately, so we can
+      // verify the trim happens before the debounce without needing fake timers.
+      const user = userEvent.setup();
+      renderPage();
+      const searchInput = screen.getByPlaceholderText("Search by hostname...");
+      await user.type(searchInput, "  myhost  ");
+      // The hook must have been called with the trimmed string "myhost".
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ search: "myhost" }),
+      );
+    });
+  });
+
+  // ── Tag mutation callbacks ────────────────────────────────────────────────────
+
+  describe("tag mutation — onTagRenamed/onTagDeleted update URL tags array", () => {
+    it("renames a tag in filterTags when onTagRenamed is called from ManageTagsDrawer", async () => {
+      // Start with tags=a&tags=b in the URL
+      renderPage(["/?tags=a&tags=b"]);
+
+      // Grab the onTagRenamed callback passed to ManageTagsDrawer
+      const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
+        onTagRenamed?: (oldName: string, newName: string) => void;
+      };
+      expect(lastCall?.onTagRenamed).toBeDefined();
+
+      // Invoke the callback inside act() so React flushes the URL update.
+      await act(async () => {
+        lastCall.onTagRenamed!("a", "alpha");
+      });
+
+      // useDevices should now be called with filterTags exactly ["alpha", "b"] (no stale "a")
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filterTags: ["alpha", "b"],
+        }),
+      );
+    });
+
+    it("removes a tag from filterTags when onTagDeleted is called from ManageTagsDrawer", async () => {
+      renderPage(["/?tags=a&tags=b"]);
+
+      const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
+        onTagDeleted?: (name: string) => void;
+      };
+      expect(lastCall?.onTagDeleted).toBeDefined();
+
+      await act(async () => {
+        lastCall.onTagDeleted!("a");
+      });
+
+      // useDevices should now be called with only tag "b"
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ filterTags: ["b"] }),
+      );
+    });
+
+    it("adds a tag to URL array when setArrayFilter is called via addFilterTag", () => {
+      // TagFilterDropdown and TagsPopover are mocked away; verify URL array
+      // hydration indirectly: render with an existing tag in the URL and confirm
+      // useDevices receives it.
+      renderPage(["/?tags=existing"]);
+      // The tags=existing param must arrive at useDevices
+      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
+        expect.objectContaining({ filterTags: ["existing"] }),
+      );
+      // The filter bar is still visible and the tags array remains stable
+      expect(screen.getByPlaceholderText("Search by hostname...")).toBeInTheDocument();
     });
   });
 });

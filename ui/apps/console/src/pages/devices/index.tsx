@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import type { DeviceStatus } from "@/client";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -36,34 +36,51 @@ import {
 } from "@shellhub/design-system/primitives";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
-const statusTabs: { label: string; value: DeviceStatus }[] = [
+const PER_PAGE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
+
+const VALID_STATUSES = ["accepted", "pending", "rejected"] as const;
+
+/** Stable module-level constant — avoids a new object identity every render,
+ *  which would invalidate the `update` useCallback in usePaginatedListState. */
+const CONSTRAINTS = { status: VALID_STATUSES } as const;
+
+type ValidStatus = (typeof VALID_STATUSES)[number];
+
+const statusTabs: { label: string; value: ValidStatus }[] = [
   { label: "Accepted", value: "accepted" },
   { label: "Pending", value: "pending" },
   { label: "Rejected", value: "rejected" },
 ];
 
-const PER_PAGE = 10;
-const SEARCH_DEBOUNCE_MS = 300;
+type DevicesParams = {
+  page: number;
+  search: string;
+  status: ValidStatus;
+  tags: string[];
+};
 
-const VALID_STATUSES = new Set<string>(["accepted", "pending", "rejected"]);
+const DEFAULTS: DevicesParams = {
+  page: 1,
+  search: "",
+  status: "accepted",
+  tags: [],
+};
 
 type SortField = "name" | "last_seen";
 
 export default function Devices() {
-  const [searchParams] = useSearchParams();
-  const initialStatus = searchParams.get("status") ?? "accepted";
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<DeviceStatus>(
-    VALID_STATUSES.has(initialStatus)
-      ? (initialStatus as DeviceStatus)
-      : "accepted",
-  );
-  const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [searchInput, setSearchInput] = useState("");
+  const { params, setPage, setSearch, setFilter, setArrayFilter, mapArrayFilter } =
+    usePaginatedListState<DevicesParams>({
+      defaults: DEFAULTS,
+      constraints: CONSTRAINTS,
+    });
+
   const debouncedSearch = useDebouncedValue(
-    searchInput.trim(),
+    params.search.trim(),
     SEARCH_DEBOUNCE_MS,
   );
+
   const [actionTarget, setActionTarget] = useState<{
     device: NormalizedDevice;
     action: "accept" | "reject" | "remove";
@@ -81,11 +98,11 @@ export default function Devices() {
   });
 
   const { devices, totalCount, isLoading, error, refetch } = useDevices({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
-    status,
+    status: params.status,
     search: debouncedSearch,
-    filterTags,
+    filterTags: params.tags,
     sortBy,
     orderBy,
   });
@@ -97,24 +114,25 @@ export default function Devices() {
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const nsName = currentNamespace?.name ?? "";
 
-  const handleStatusChange = (newStatus: DeviceStatus) => {
-    setStatus(newStatus);
-    setPage(1);
+  const handleStatusChange = (newStatus: ValidStatus) => {
+    setFilter("status", newStatus);
   };
 
-  const addFilterTag = (tag: string) => {
-    setFilterTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-    setPage(1);
-  };
+  const addFilterTag = useCallback(
+    (tag: string) => {
+      mapArrayFilter("tags", (tags) =>
+        tags.includes(tag) ? tags : [...tags, tag],
+      );
+    },
+    [mapArrayFilter],
+  );
 
   const removeFilterTag = (tag: string) => {
-    setFilterTags((prev) => prev.filter((t) => t !== tag));
-    setPage(1);
+    mapArrayFilter("tags", (tags) => tags.filter((t) => t !== tag));
   };
 
   const clearFilterTags = () => {
-    setFilterTags([]);
-    setPage(1);
+    setArrayFilter("tags", []);
   };
 
   const columns = useMemo<Column<NormalizedDevice>[]>(() => {
@@ -158,7 +176,7 @@ export default function Devices() {
       },
     ];
 
-    if (status === "accepted") {
+    if (params.status === "accepted") {
       return [
         {
           key: "online",
@@ -235,7 +253,7 @@ export default function Devices() {
       ];
     }
 
-    if (status === "pending") {
+    if (params.status === "pending") {
       return [
         ...baseColumns,
         {
@@ -311,7 +329,7 @@ export default function Devices() {
         ),
       },
     ];
-  }, [status, nsName]);
+  }, [params.status, nsName, addFilterTag]);
 
   return (
     <div>
@@ -341,7 +359,7 @@ export default function Devices() {
               key={tab.value}
               onClick={() => handleStatusChange(tab.value)}
               className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
-                status === tab.value
+                params.status === tab.value
                   ? "bg-primary/15 text-primary border border-primary/25"
                   : "text-text-muted hover:text-text-secondary border border-transparent"
               }`}
@@ -353,7 +371,7 @@ export default function Devices() {
 
         <div className="flex items-center gap-2">
           <TagFilterDropdown
-            filterTags={filterTags}
+            filterTags={params.tags}
             onAdd={addFilterTag}
             onRemove={removeFilterTag}
             onClearAll={clearFilterTags}
@@ -361,11 +379,8 @@ export default function Devices() {
           />
 
           <SearchField
-            value={searchInput}
-            onChange={(next) => {
-              setSearchInput(next);
-              setPage(1);
-            }}
+            value={params.search}
+            onChange={(next) => setSearch(next)}
             placeholder="Search by hostname..."
             aria-label="Search devices by hostname"
           />
@@ -373,13 +388,13 @@ export default function Devices() {
       </div>
 
       {/* Active tag filters */}
-      {filterTags.length > 0 && (
+      {params.tags.length > 0 && (
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
           <span className="text-2xs font-mono text-text-muted uppercase tracking-wider shrink-0">
             Filtering by:
           </span>
           <div className="flex items-center gap-1.5 flex-wrap">
-            {filterTags.map((tag) => (
+            {params.tags.map((tag) => (
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/15 text-primary text-2xs rounded-md font-medium border border-primary/20"
@@ -415,7 +430,7 @@ export default function Devices() {
         rowKey={(device) => device.uid}
         isLoading={isLoading}
         loadingMessage="Loading devices..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="device"
@@ -478,12 +493,14 @@ export default function Devices() {
           void refetch();
         }}
         onTagRenamed={(oldName, newName) => {
-          setFilterTags((prev) =>
-            prev.map((t) => (t === oldName ? newName : t)),
+          mapArrayFilter("tags", (tags) =>
+            tags.map((t) => (t === oldName ? newName : t)),
           );
         }}
         onTagDeleted={(name) => {
-          setFilterTags((prev) => prev.filter((t) => t !== name));
+          mapArrayFilter("tags", (tags) =>
+            tags.filter((t) => t !== name),
+          );
         }}
       />
     </div>

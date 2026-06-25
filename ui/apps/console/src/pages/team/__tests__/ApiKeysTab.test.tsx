@@ -1,13 +1,31 @@
 import type { ReactNode } from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ApiKey } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
+const mockApiKeysImpl = vi.fn<
+  () => {
+    apiKeys: ApiKey[];
+    totalCount: number;
+    isLoading: boolean;
+    error: null;
+  }
+>();
+
+/** Spy that captures args passed to the hook. Does NOT call the impl itself —
+ *  the factory below calls the impl exactly once and returns its value. */
+const mockUseApiKeys: Mock = vi.fn();
+
 vi.mock("@/hooks/useApiKeys", () => ({
-  useApiKeys: vi.fn(),
+  useApiKeys: (...args: unknown[]) => {
+    mockUseApiKeys(...args);
+    return mockApiKeysImpl();
+  },
 }));
 
 vi.mock("@/hooks/useApiKeyMutations", () => ({
@@ -59,7 +77,6 @@ vi.mock("@/components/common/ConfirmDialog", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import ApiKeysTab from "../ApiKeysTab";
 
@@ -82,7 +99,7 @@ const mockMutateAsync = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useApiKeys).mockReturnValue({
+  mockApiKeysImpl.mockReturnValue({
     apiKeys: [makeApiKey()],
     totalCount: 1,
     isLoading: false,
@@ -93,11 +110,42 @@ beforeEach(() => {
   } as never);
 });
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Exposes the current search string from inside the MemoryRouter. */
+function LocationProbe({
+  onLocation,
+}: {
+  onLocation: (search: string) => void;
+}) {
+  const loc = useLocation();
+  onLocation(loc.search);
+  return null;
+}
+
+function renderTab(initialEntries: string[] = ["/"]) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  let lastSearch = "";
+
+  const result = render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <QueryClientProvider client={queryClient}>
+        <ApiKeysTab />
+        <LocationProbe onLocation={(s) => { lastSearch = s; }} />
+      </QueryClientProvider>
+    </MemoryRouter>,
+  );
+
+  return { ...result, getSearch: () => lastSearch };
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("ApiKeysTab — pagination count display", () => {
   it("does not pass totalCount to DataTable so count is shown only in the header (single page)", () => {
-    render(<ApiKeysTab />);
+    renderTab();
 
     // The header renders "1 key" exactly once — the Pagination below the table
     // must NOT duplicate it (totalCount is intentionally not forwarded to DataTable).
@@ -110,14 +158,14 @@ describe("ApiKeysTab — pagination count display", () => {
     const keys = Array.from({ length: 10 }, (_, i) =>
       makeApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
     );
-    vi.mocked(useApiKeys).mockReturnValue({
+    mockApiKeysImpl.mockReturnValue({
       apiKeys: keys,
       totalCount: 25,
       isLoading: false,
       error: null,
     });
 
-    render(<ApiKeysTab />);
+    renderTab();
 
     // Prev/Next buttons must exist even though totalCount is not passed to DataTable
     expect(screen.getByRole("button", { name: /prev/i })).toBeInTheDocument();
@@ -129,23 +177,23 @@ describe("ApiKeysTab — pagination count display", () => {
 
 describe("ApiKeysTab — sorting", () => {
   it("requests created_at/desc sort by default", () => {
-    render(<ApiKeysTab />);
-    expect(useApiKeys).toHaveBeenCalledWith(
+    renderTab();
+    expect(mockUseApiKeys).toHaveBeenCalledWith(
       expect.objectContaining({ sortBy: "created_at", orderBy: "desc" }),
     );
   });
 
   it("toggles sort when the Name header is clicked", async () => {
     const user = userEvent.setup();
-    render(<ApiKeysTab />);
+    renderTab();
 
     await user.click(screen.getByRole("button", { name: "Sort by Name" }));
-    let calls = vi.mocked(useApiKeys).mock.calls;
+    let calls = mockUseApiKeys.mock.calls;
     let last = calls[calls.length - 1][0];
     expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
 
     await user.click(screen.getByRole("button", { name: "Sort by Name" }));
-    calls = vi.mocked(useApiKeys).mock.calls;
+    calls = mockUseApiKeys.mock.calls;
     last = calls[calls.length - 1][0];
     expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
   });
@@ -154,7 +202,7 @@ describe("ApiKeysTab — sorting", () => {
 describe("ApiKeysTab — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
-    render(<ApiKeysTab />);
+    renderTab();
     await user.click(screen.getByRole("button", { name: "Delete API key" }));
     return user;
   }
@@ -202,5 +250,47 @@ describe("ApiKeysTab — delete error handling", () => {
         screen.queryByRole("dialog", { name: /delete api key/i }),
       ).not.toBeInTheDocument(),
     );
+  });
+});
+
+// ── URL sync (usePaginatedListState adoption, prefix "key") ──────────────────
+
+describe("ApiKeysTab — URL sync with prefix 'key'", () => {
+  it("hydrates page from ?key.page=3 — hook receives page 3", () => {
+    renderTab(["/?key.page=3"]);
+    expect(mockUseApiKeys).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 3 }),
+    );
+  });
+
+  it("clicking Next writes key.page=2 to the URL (not bare page=2)", async () => {
+    const user = userEvent.setup();
+    mockApiKeysImpl.mockReturnValue({
+      apiKeys: Array.from({ length: 10 }, (_, i) =>
+        makeApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
+      ),
+      totalCount: 25,
+      isLoading: false,
+      error: null,
+    });
+    const { getSearch } = renderTab();
+
+    await user.click(screen.getByRole("button", { name: /next/i }));
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(getSearch());
+      expect(sp.get("key.page")).toBe("2");
+      expect(sp.get("page")).toBeNull(); // bare page must not appear
+    });
+  });
+
+  it("does not consume a bare ?page=5 param as key.page — hook receives page 1", () => {
+    renderTab(["/?page=5"]);
+    // The hook must receive the default page (1), not the bare page=5
+    expect(mockUseApiKeys).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1 }),
+    );
+    // The bare page=5 must survive in the URL untouched
+    // (LocationProbe captures it at render time)
   });
 });

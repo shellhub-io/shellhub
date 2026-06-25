@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { Webendpoint } from "@/client/types.gen";
 import WebEndpoints from "../WebEndpoints";
@@ -69,9 +70,9 @@ function setupDefaultMocks() {
   mockUseDebouncedValue.mockImplementation((v: unknown) => v);
 }
 
-function renderPage() {
+function renderPage(initialEntries: string[] = ["/"]) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <WebEndpoints />
     </MemoryRouter>,
   );
@@ -178,5 +179,98 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
     expect(
       screen.queryByRole("button", { name: /previous page/i }),
     ).not.toBeInTheDocument();
+  });
+});
+
+// ── URL hydration (usePaginatedListState adoption) ────────────────────────────
+
+describe("WebEndpoints — URL hydration", () => {
+  it("reads page=2 and search=myhost from the URL and passes them to useWebEndpoints", () => {
+    mockUseWebEndpoints.mockReturnValue({
+      webEndpoints: [makeEndpoint("ep1.example.com")],
+      totalCount: 1,
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage(["/?page=2&search=myhost"]);
+
+    expect(mockUseWebEndpoints).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2, addressFilter: "myhost" }),
+    );
+  });
+
+  it("falls back to page=1 and empty search when URL has no params", () => {
+    mockUseWebEndpoints.mockReturnValue({
+      webEndpoints: [],
+      totalCount: 0,
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage(["/"]);
+
+    expect(mockUseWebEndpoints).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1, addressFilter: "" }),
+    );
+  });
+});
+
+// ── Search resets page ────────────────────────────────────────────────────────
+
+describe("WebEndpoints — search resets page to 1", () => {
+  it("resets to page=1 when a new search term is typed while on page 2", async () => {
+    const user = userEvent.setup();
+
+    // Start on page 2 with existing results so the content branch (not EmptyState) renders.
+    mockUseWebEndpoints.mockReturnValue({
+      webEndpoints: [makeEndpoint("ep1.example.com")],
+      totalCount: 25,
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage(["/?page=2"]);
+
+    // Confirm initial render passes page=2
+    expect(mockUseWebEndpoints).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2 }),
+    );
+
+    // Type in the search field
+    const searchInput = screen.getByPlaceholderText(/search by address/i);
+    await user.type(searchInput, "x");
+
+    // After typing, the hook must now be called with page=1
+    expect(mockUseWebEndpoints).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1 }),
+    );
+  });
+});
+
+// ── Page change writes to URL ─────────────────────────────────────────────────
+
+describe("WebEndpoints — page change writes to URL", () => {
+  it("calls useWebEndpoints with page=2 after clicking the Next page button", async () => {
+    const user = userEvent.setup();
+
+    // 15 endpoints across 2 pages so Prev/Next controls are present.
+    mockUseWebEndpoints.mockReturnValue({
+      webEndpoints: Array.from({ length: 10 }, (_, i) =>
+        makeEndpoint(`ep${i + 1}.example.com`),
+      ),
+      totalCount: 15,
+      isLoading: false,
+      error: null,
+    });
+
+    renderPage(["/"]);
+
+    const nextButton = screen.getByRole("button", { name: /next page/i });
+    await user.click(nextButton);
+
+    expect(mockUseWebEndpoints).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2 }),
+    );
   });
 });

@@ -2,6 +2,7 @@ import { useState, useRef, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useWebEndpoints } from "@/hooks/useWebEndpoints";
 import {
   useCreateWebEndpoint,
@@ -133,7 +134,6 @@ function DeviceSelector({
         className={`flex items-center min-h-[42px] px-3.5 py-2 bg-card border rounded-lg cursor-text transition-all ${
           open ? "border-primary/50 ring-1 ring-primary/20" : "border-border"
         } ${error ? "border-accent-red/50" : ""}`}
-        onClick={() => setOpen(true)}
       >
         {selected ? (
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -806,13 +806,26 @@ function EndpointCard({
 /* ─── Page ─── */
 const SEARCH_DEBOUNCE_MS = 300;
 
+type WebEndpointsParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: WebEndpointsParams = {
+  page: 1,
+  search: "",
+};
+
 function WebEndpointsContent() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
+  const { params, setPage, setSearch } =
+    usePaginatedListState<WebEndpointsParams>({ defaults: DEFAULTS });
+  const debouncedSearch = useDebouncedValue(
+    params.search.trim(),
+    SEARCH_DEBOUNCE_MS,
+  );
 
   const { webEndpoints, totalCount, isLoading } = useWebEndpoints({
-    page,
+    page: params.page,
     addressFilter: debouncedSearch,
   });
   const deleteEndpoint = useDeleteWebEndpoint();
@@ -835,7 +848,8 @@ function WebEndpointsContent() {
       await deleteEndpoint.mutateAsync({
         path: { address: deleteTarget.address },
       });
-      if (webEndpoints.length === 1 && page > 1) setPage(page - 1);
+      if (webEndpoints.length === 1 && params.page > 1)
+        setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -932,11 +946,8 @@ function WebEndpointsContent() {
 
           <SearchField
             className="mb-4 animate-fade-in"
-            value={search}
-            onChange={(next) => {
-              setSearch(next);
-              setPage(1);
-            }}
+            value={params.search}
+            onChange={setSearch}
             placeholder="Search by address..."
             aria-label="Search web endpoints by address"
           />
@@ -981,7 +992,7 @@ function WebEndpointsContent() {
                   pages; empty/no-results states are handled by the branches
                   above, so it never renders a "0 endpoints" bar here. */}
               <Pagination
-                page={page}
+                page={params.page}
                 totalPages={totalPages}
                 totalCount={totalCount}
                 itemLabel="endpoint"

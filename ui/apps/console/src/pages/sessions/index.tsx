@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import {
   CommandLineIcon,
   ExclamationTriangleIcon,
@@ -24,6 +25,12 @@ import {
 } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
+
+type SessionsParams = {
+  page: number;
+};
+
+const DEFAULTS: SessionsParams = { page: 1 };
 
 function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   const [closing, setClosing] = useState(false);
@@ -52,9 +59,11 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
 }
 
 export default function Sessions() {
-  const [page, setPage] = useState(1);
+  const { params, setPage } = usePaginatedListState<SessionsParams>({
+    defaults: DEFAULTS,
+  });
   const { sessions, totalCount, isLoading, error } = useSessions({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
   });
   const closeSession = useCloseSession();
@@ -239,7 +248,7 @@ export default function Sessions() {
         rowKey={(s) => s.uid}
         isLoading={isLoading}
         loadingMessage="Loading sessions..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="session"

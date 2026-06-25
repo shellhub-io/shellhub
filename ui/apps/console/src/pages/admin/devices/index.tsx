@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   CpuChipIcon,
@@ -14,7 +13,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import DistroIcon from "@/components/common/DistroIcon";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useTableSort } from "@/hooks/useTableSort";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatRelative } from "@/utils/date";
 
@@ -30,7 +29,42 @@ const statusTabs: StatusTab[] = [
   { label: "Rejected", value: "rejected" },
 ];
 
-type SortField = "name" | "last_seen" | "status";
+const VALID_STATUSES = ["", "accepted", "pending", "rejected"] as const;
+const VALID_SORT_FIELDS = ["name", "last_seen", "status"] as const;
+const VALID_SORT_ORDERS = ["asc", "desc"] as const;
+
+/** Stable module-level constants — avoids new object/array identities every
+ *  render, which would invalidate the `update` and `handleSort` useCallbacks
+ *  in usePaginatedListState and cascade unnecessary re-renders to children. */
+const CONSTRAINTS = {
+  status: VALID_STATUSES,
+  sortField: VALID_SORT_FIELDS,
+  sortOrder: VALID_SORT_ORDERS,
+} as const;
+
+const SORT_FIELDS = [
+  { field: "name", initialOrder: "asc" as const },
+  { field: "last_seen", initialOrder: "desc" as const },
+  { field: "status", initialOrder: "desc" as const },
+];
+
+type SortField = typeof VALID_SORT_FIELDS[number];
+
+type AdminDevicesParams = {
+  page: number;
+  search: string;
+  sortField: SortField;
+  sortOrder: "asc" | "desc";
+  status: DeviceStatus | "";
+};
+
+const DEFAULTS: AdminDevicesParams = {
+  page: 1,
+  search: "",
+  sortField: "last_seen",
+  sortOrder: "desc",
+  status: "",
+};
 
 function TagChips({ tags }: { tags: string[] }) {
   if (tags.length === 0) {
@@ -55,30 +89,26 @@ function TagChips({ tags }: { tags: string[] }) {
 
 export default function AdminDevices() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
-  const [status, setStatus] = useState<DeviceStatus | "">("");
-  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
-    defaultField: "last_seen",
-    onSortChange: () => setPage(1),
-  });
+
+  const { params, setPage, setSearch, setFilter, handleSort } =
+    usePaginatedListState<AdminDevicesParams>({
+      defaults: DEFAULTS,
+      constraints: CONSTRAINTS,
+      sortFields: SORT_FIELDS,
+    });
+
+  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
 
   const { devices, totalCount, isLoading, error } = useAdminDevices({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
     search: debouncedSearch,
-    status,
-    sortBy,
-    orderBy,
+    status: params.status,
+    sortBy: params.sortField,
+    orderBy: params.sortOrder,
   });
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
-
-  const handleStatusChange = (newStatus: DeviceStatus | "") => {
-    setStatus(newStatus);
-    setPage(1);
-  };
 
   const columns: Column<NormalizedDevice>[] = [
     {
@@ -183,10 +213,10 @@ export default function AdminDevices() {
               type="button"
               key={tab.value}
               role="tab"
-              aria-selected={status === tab.value}
-              onClick={() => handleStatusChange(tab.value)}
+              aria-selected={params.status === tab.value}
+              onClick={() => setFilter("status", tab.value)}
               className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
-                status === tab.value
+                params.status === tab.value
                   ? "bg-primary/15 text-primary border border-primary/25"
                   : "text-text-muted hover:text-text-secondary border border-transparent"
               }`}
@@ -197,11 +227,8 @@ export default function AdminDevices() {
         </div>
 
         <SearchField
-          value={searchInput}
-          onChange={(next) => {
-            setSearchInput(next);
-            setPage(1);
-          }}
+          value={params.search}
+          onChange={(next) => setSearch(next)}
           placeholder="Search by hostname..."
           aria-label="Search devices by hostname"
         />
@@ -219,14 +246,14 @@ export default function AdminDevices() {
         rowKey={(device) => device.uid}
         isLoading={isLoading}
         loadingMessage="Loading devices..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="device"
         onPageChange={setPage}
         onRowClick={(device) => void navigate(`/admin/devices/${device.uid}`)}
-        sortField={sortBy}
-        sortOrder={orderBy}
+        sortField={params.sortField}
+        sortOrder={params.sortOrder}
         onSort={handleSort}
         emptyState={
           <div className="text-center">

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { FirewallRulesResponse } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -25,8 +26,7 @@ vi.mock("../RuleDrawer", () => ({
 }));
 
 // Flatten ConfirmDialog to a plain div so we can exercise the page's logic
-// without animations, portals, or BaseDialog internals. Matches the pattern
-// used in other page tests (DeleteNamespaceDialog, KeyDeleteDialog).
+// without animations, portals, or BaseDialog internals.
 vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
@@ -58,6 +58,20 @@ vi.mock("@/components/common/ConfirmDialog", () => ({
   },
 }));
 
+// Capture DataTable props on every render so we can assert pagination suppression.
+const capturedDataTableProps: Record<string, unknown>[] = [];
+vi.mock("@/components/common/DataTable", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/components/common/DataTable")>();
+  return {
+    ...actual,
+    default: (props: Record<string, unknown>) => {
+      capturedDataTableProps.push({ ...props });
+      return actual.default(props as unknown as Parameters<typeof actual.default>[0]);
+    },
+  };
+});
+
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
 import { useFirewallRules } from "@/hooks/useFirewallRules";
@@ -84,8 +98,17 @@ function makeRule(
 
 const mockMutateAsync = vi.fn();
 
+function renderPage(initialEntries: string[] = ["/"]) {
+  return render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <FirewallRules />
+    </MemoryRouter>,
+  );
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  capturedDataTableProps.length = 0;
   vi.mocked(useFirewallRules).mockReturnValue({
     rules: [makeRule()],
     totalCount: 1,
@@ -106,7 +129,7 @@ describe("FirewallRules — delete error handling", () => {
   // the dialog opens we scope dialog queries with `within(dialog)`.
   async function openDeleteDialog() {
     const user = userEvent.setup();
-    render(<FirewallRules />);
+    renderPage();
     await user.click(
       screen.getByRole("button", { name: /^delete firewall rule/i }),
     );
@@ -183,5 +206,131 @@ describe("FirewallRules — delete error handling", () => {
     );
     dialog = await getDialog();
     expect(within(dialog).queryByText("Transient")).not.toBeInTheDocument();
+  });
+});
+
+// ── usePaginatedListState adoption ───────────────────────────────────────────
+
+describe("FirewallRules — URL hydration", () => {
+  it("hydrates search from URL on mount", () => {
+    vi.mocked(useFirewallRules).mockReturnValue({
+      rules: [makeRule({ action: "allow" })],
+      totalCount: 1,
+      isLoading: false,
+      error: null,
+    });
+    renderPage(["/?search=allow"]);
+    expect(
+      screen.getByRole("searchbox", {
+        name: "Search firewall rules by action, priority, IP, or username",
+      }),
+    ).toHaveValue("allow");
+  });
+
+  it("hydrates page from URL and passes it to the hook", () => {
+    renderPage(["/?page=3"]);
+    expect(vi.mocked(useFirewallRules)).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 3 }),
+    );
+  });
+
+  it("calls useFirewallRules with page=1 when URL has no params", () => {
+    renderPage(["/"]);
+    expect(vi.mocked(useFirewallRules)).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1 }),
+    );
+  });
+
+  it("setSearch resets page to 1 in the URL", async () => {
+    const user = userEvent.setup();
+    renderPage(["/?page=3"]);
+
+    // Confirm page=3 was hydrated
+    expect(vi.mocked(useFirewallRules)).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 3 }),
+    );
+
+    await user.type(
+      screen.getByRole("searchbox", {
+        name: "Search firewall rules by action, priority, IP, or username",
+      }),
+      "allow",
+    );
+
+    await waitFor(() => {
+      const calls = vi.mocked(useFirewallRules).mock.calls;
+      const lastCall = calls.at(-1)![0];
+      expect(lastCall).toBeDefined();
+      expect(lastCall?.page).toBe(1);
+    });
+  });
+});
+
+describe("FirewallRules — pagination suppressed while searching", () => {
+  beforeEach(() => {
+    vi.mocked(useFirewallRules).mockReturnValue({
+      rules: [makeRule({ id: "r1", action: "allow", priority: 1 })],
+      totalCount: 1,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it("passes page/totalPages/onPageChange to DataTable when search is empty", () => {
+    renderPage();
+    const last = capturedDataTableProps.at(-1);
+    expect(last).toBeDefined();
+    expect(last).toHaveProperty("page");
+    expect(last).toHaveProperty("totalPages");
+    expect(last).toHaveProperty("onPageChange");
+  });
+
+  it("omits page/totalPages/onPageChange from DataTable while search is non-empty", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(
+      screen.getByRole("searchbox", {
+        name: "Search firewall rules by action, priority, IP, or username",
+      }),
+      "allow",
+    );
+
+    await waitFor(() => {
+      const last = capturedDataTableProps.at(-1);
+      expect(last).toBeDefined();
+      expect(last).not.toHaveProperty("page");
+      expect(last).not.toHaveProperty("totalPages");
+      expect(last).not.toHaveProperty("onPageChange");
+    });
+  });
+
+  it("re-enables pagination props after search is cleared", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const searchbox = screen.getByRole("searchbox", {
+      name: "Search firewall rules by action, priority, IP, or username",
+    });
+
+    await user.type(searchbox, "allow");
+
+    // Confirm pagination is suppressed
+    await waitFor(() => {
+      const last = capturedDataTableProps.at(-1);
+      expect(last).not.toHaveProperty("page");
+    });
+
+    // Clear the search
+    await user.clear(searchbox);
+
+    // Pagination should be restored
+    await waitFor(() => {
+      const last = capturedDataTableProps.at(-1);
+      expect(last).toBeDefined();
+      expect(last).toHaveProperty("page");
+      expect(last).toHaveProperty("totalPages");
+      expect(last).toHaveProperty("onPageChange");
+    });
   });
 });

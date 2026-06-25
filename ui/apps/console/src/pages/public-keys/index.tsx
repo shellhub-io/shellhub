@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { usePublicKeys } from "@/hooks/usePublicKeys";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -91,12 +92,24 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+type PublicKeysParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: PublicKeysParams = {
+  page: 1,
+  search: "",
+};
+
 export default function PublicKeys() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const { params, setPage, setSearch } = usePaginatedListState<PublicKeysParams>({
+    defaults: DEFAULTS,
+  });
+
+  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
   const { publicKeys, totalCount, isLoading } = usePublicKeys({
-    page,
+    page: params.page,
     search: debouncedSearch,
   });
   const deleteKey = useDeletePublicKey();
@@ -120,7 +133,7 @@ export default function PublicKeys() {
       await deleteKey.mutateAsync({
         path: { fingerprint: deleteTarget.fingerprint },
       });
-      if (publicKeys.length === 1 && page > 1) setPage(page - 1);
+      if (publicKeys.length === 1 && params.page > 1) setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -288,11 +301,8 @@ export default function PublicKeys() {
 
       <SearchField
         className="mb-4"
-        value={search}
-        onChange={(next) => {
-          setSearch(next);
-          setPage(1);
-        }}
+        value={params.search}
+        onChange={(next) => setSearch(next)}
         placeholder="Search by name or fingerprint..."
         aria-label="Search public keys by name or fingerprint"
       />
@@ -303,7 +313,7 @@ export default function PublicKeys() {
         rowKey={(pk) => pk.fingerprint}
         isLoading={isLoading}
         loadingMessage="Loading public keys..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="key"

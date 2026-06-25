@@ -22,6 +22,7 @@ import {
   isInvitationExpired,
   type InvitationStatus,
 } from "@/utils/invitations";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { ExpiredBadge, RoleBadge } from "./constants";
 import InvitationDrawer from "./InvitationDrawer";
 import EditInvitationDrawer from "./EditInvitationDrawer";
@@ -125,9 +126,37 @@ function resendErrorMessage(err: unknown): string {
   return "Failed to resend the invitation. Please try again.";
 }
 
+const STATUS_ALLOWLIST: readonly InvitationStatus[] = [
+  "pending",
+  "accepted",
+  "rejected",
+  "cancelled",
+];
+
+type InvListParams = {
+  page: number;
+  status: InvitationStatus;
+};
+
+const INV_LIST_DEFAULTS: InvListParams = { page: 1, status: "pending" };
+const INV_LIST_CONSTRAINTS: { status: readonly InvitationStatus[] } = {
+  status: STATUS_ALLOWLIST,
+};
+
 function InvitationsTab({ tenantId }: { tenantId: string }) {
-  const [status, setStatus] = useState<InvitationStatus>("pending");
-  const [page, setPage] = useState(1);
+  const {
+    params,
+    setPage,
+    setFilter,
+  } = usePaginatedListState<InvListParams>({
+    prefix: "inv",
+    defaults: INV_LIST_DEFAULTS,
+    constraints: INV_LIST_CONSTRAINTS,
+  });
+
+  const status = params.status;
+  const page = params.page;
+
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<MembershipInvitation | null>(
     null,
@@ -154,8 +183,7 @@ function InvitationsTab({ tenantId }: { tenantId: string }) {
   const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
 
   const handleStatusChange = (next: InvitationStatus) => {
-    setStatus(next);
-    setPage(1);
+    setFilter("status", next);
   };
 
   const rightHeader = rightColumnHeader(status);
