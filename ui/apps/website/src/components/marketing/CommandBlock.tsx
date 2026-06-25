@@ -1,5 +1,5 @@
 import { WindowChrome } from "@shellhub/design-system/primitives";
-import { CopyBtn } from "@shellhub/design-system/components";
+import { CopyButton } from "@shellhub/design-system/components";
 
 export interface CommandBlockProps {
   /** The shell command to display and copy. */
@@ -17,7 +17,7 @@ export function CommandBlock({ command, className }: CommandBlockProps) {
     <WindowChrome
       variant="terminal"
       className={className}
-      titleBarSlot={<CopyBtn text={command} />}
+      titleBarSlot={<CopyButton text={command} />}
     >
       <code className="text-sm text-accent-cyan">
         <span className="text-text-muted">$ </span>

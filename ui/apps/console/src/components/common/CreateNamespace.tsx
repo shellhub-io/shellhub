@@ -6,23 +6,18 @@ import {
 import { getNamespaces } from "@/client";
 import { getConfig } from "@/env";
 import {
-  CheckIcon,
   CommandLineIcon,
-  ClipboardDocumentIcon,
   SparklesIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "./AmbientBackground";
+import CopyButton from "@/components/common/CopyButton";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import {
   NAMESPACE_NAME_MIN_LENGTH,
   validateNamespaceName,
 } from "@/utils/validation";
-import {
-  Button,
-  IconButton,
-  Spinner,
-} from "@shellhub/design-system/primitives";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
 
 /* ─── Cloud/Enterprise form ─── */
 function CloudForm() {
@@ -79,33 +74,11 @@ function CloudForm() {
 
 /* ─── Community CLI instructions ─── */
 function CopyBlock({ command }: { command: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    void navigator.clipboard.writeText(command);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <div className="relative bg-background border border-border rounded-lg p-3.5 pr-11 font-mono text-xs text-text-secondary leading-relaxed">
       <span className="text-primary/60">$ </span>
       {command}
-      <IconButton
-        variant="primary"
-        title="Copy command"
-        onClick={handleCopy}
-        className="absolute top-2.5 right-2.5"
-      >
-        {copied ? (
-          <CheckIcon
-            className="w-3.5 h-3.5 text-accent-green"
-            strokeWidth={2}
-          />
-        ) : (
-          <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
-        )}
-      </IconButton>
+      <CopyButton text={command} className="absolute top-2.5 right-2.5" />
     </div>
   );
 }
