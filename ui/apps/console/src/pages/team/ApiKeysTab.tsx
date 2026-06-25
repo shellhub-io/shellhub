@@ -19,9 +19,28 @@ import EditKeyDrawer from "./EditKeyDrawer";
 
 const PER_PAGE = 10;
 
+type SortField = "name" | "created_at" | "expires_in";
+
 function ApiKeysTab() {
   const [page, setPage] = useState(1);
-  const { apiKeys, totalCount, isLoading } = useApiKeys({ page });
+  const [sortBy, setSortBy] = useState<SortField>("created_at");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
+  const { apiKeys, totalCount, isLoading } = useApiKeys({
+    page,
+    sortBy,
+    orderBy,
+  });
+
+  const handleSort = (field: string) => {
+    const f = field as SortField;
+    if (sortBy === f) {
+      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(f);
+      setOrderBy(f === "name" ? "asc" : "desc");
+    }
+    setPage(1);
+  };
   const deleteKey = useDeleteApiKey();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
@@ -53,6 +72,7 @@ function ApiKeysTab() {
     {
       key: "name",
       header: "Name",
+      sortable: true,
       render: (key) => {
         const expired = isExpired(key.expires_in);
         return (
@@ -71,8 +91,9 @@ function ApiKeysTab() {
       render: (key) => <RoleBadge role={key.role} />,
     },
     {
-      key: "created",
+      key: "created_at",
       header: "Created",
+      sortable: true,
       render: (key) => (
         <span className="text-xs text-text-secondary">
           {formatDateShort(key.created_at)}
@@ -80,8 +101,9 @@ function ApiKeysTab() {
       ),
     },
     {
-      key: "expires",
+      key: "expires_in",
       header: "Expires",
+      sortable: true,
       render: (key) => {
         const expired = isExpired(key.expires_in);
         return (
@@ -150,6 +172,9 @@ function ApiKeysTab() {
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
+        sortField={sortBy}
+        sortOrder={orderBy}
+        onSort={handleSort}
         // border-l-2 on every row (transparent by default) keeps the row
         // height stable when the red border appears on expired keys.
         // No hover darkening here — rows are not clickable.

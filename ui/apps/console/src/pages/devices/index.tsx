@@ -46,6 +46,8 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 const VALID_STATUSES = new Set<string>(["accepted", "pending", "rejected"]);
 
+type SortField = "name" | "last_seen";
+
 export default function Devices() {
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") ?? "accepted";
@@ -72,6 +74,8 @@ export default function Devices() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<SortField>("last_seen");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
 
   const { devices, totalCount, isLoading, error, refetch } = useDevices({
     page,
@@ -79,6 +83,8 @@ export default function Devices() {
     status,
     search: debouncedSearch,
     filterTags,
+    sortBy,
+    orderBy,
   });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -90,6 +96,17 @@ export default function Devices() {
 
   const handleStatusChange = (newStatus: DeviceStatus) => {
     setStatus(newStatus);
+    setPage(1);
+  };
+
+  const handleSort = (field: string) => {
+    const f = field as SortField;
+    if (sortBy === f) {
+      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(f);
+      setOrderBy(f === "name" ? "asc" : "desc");
+    }
     setPage(1);
   };
 
@@ -111,8 +128,9 @@ export default function Devices() {
   const columns = useMemo<Column<NormalizedDevice>[]>(() => {
     const baseColumns: Column<NormalizedDevice>[] = [
       {
-        key: "hostname",
+        key: "name",
         header: "Hostname",
+        sortable: true,
         render: (device) => (
           <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
             {device.name}
@@ -143,6 +161,7 @@ export default function Devices() {
       {
         key: "last_seen",
         header: "Last Seen",
+        sortable: true,
         render: (device) => <LastSeenCell value={device.last_seen} />,
       },
     ];
@@ -410,6 +429,9 @@ export default function Devices() {
         itemLabel="device"
         onPageChange={setPage}
         onRowClick={(device) => void navigate(`/devices/${device.uid}`)}
+        sortField={sortBy}
+        sortOrder={orderBy}
+        onSort={handleSort}
         emptyState={
           <div className="text-center">
             <CpuChipIcon

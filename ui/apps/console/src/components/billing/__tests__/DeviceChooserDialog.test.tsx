@@ -554,6 +554,25 @@ describe("DeviceChooserDialog", () => {
         expect.objectContaining({ perPage: 5 }),
       );
     });
+
+    it("requests last_seen/desc sort by default", () => {
+      renderDialog();
+      expect(mockUseDevices).toHaveBeenCalledWith(
+        expect.objectContaining({ sortBy: "last_seen", orderBy: "desc" }),
+      );
+    });
+
+    it("toggles sort to name/asc when the Hostname header is clicked", async () => {
+      const user = userEvent.setup();
+      renderDialog();
+      await user.click(screen.getByRole("tab", { name: "All" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sort by Hostname" }),
+      );
+      const last =
+        mockUseDevices.mock.calls[mockUseDevices.mock.calls.length - 1][0];
+      expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
+    });
   });
 
   // ── Tab keyboard navigation ──────────────────────────────────────────────────

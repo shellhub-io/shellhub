@@ -59,6 +59,8 @@ interface UseDevicesParams {
   search?: string;
   filterTags?: string[];
   enabled?: boolean;
+  sortBy?: string;
+  orderBy?: "asc" | "desc";
 }
 
 export function useDevices({
@@ -68,11 +70,15 @@ export function useDevices({
   search = "",
   filterTags = [],
   enabled = true,
+  sortBy = "last_seen",
+  orderBy = "desc",
 }: UseDevicesParams = {}) {
   const query: GetDevicesData["query"] = { page, per_page: perPage };
   if (status) query.status = status;
   if (search || filterTags.length > 0)
     query.filter = buildFilter(search, filterTags);
+  query.sort_by = sortBy;
+  query.order_by = orderBy;
 
   const options = { query };
 
