@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   parseListParams,
@@ -136,8 +136,16 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Parse the current URL into typed params (handles prefix translation).
+  // Thread the previous result through `prev` so array dimensions reuse their
+  // prior reference when content-equal, keeping memoized deps stable. The ref
+  // only caches a pure derived value, so reading/writing it during render is
+  // safe — disable react-hooks/refs for these two intentional accesses.
+  const paramsRef = useRef<T | undefined>(undefined);
   const stripped = stripPrefix(searchParams, defaults, prefix);
-  const params = parseListParams<T>(stripped, defaults, constraints);
+  // eslint-disable-next-line react-hooks/refs -- caches prior parse result for referential stability
+  const params = parseListParams<T>(stripped, defaults, constraints, paramsRef.current);
+  // eslint-disable-next-line react-hooks/refs -- stash this render's result for the next render
+  paramsRef.current = params;
 
   /**
    * Merge the given partial update into the URL.
