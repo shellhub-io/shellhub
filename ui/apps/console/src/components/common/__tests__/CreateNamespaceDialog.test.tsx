@@ -305,14 +305,37 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     expect(screen.getByPlaceholderText("my-namespace")).toHaveValue("myns");
   });
 
-  it("shows the mutation error message when creation fails", async () => {
-    const mutateAsync = vi
-      .fn<() => Promise<void>>()
-      .mockRejectedValue(new Error("name already taken"));
+  it("shows 'A namespace with this name already exists.' on 409 and does NOT call onClose", async () => {
+    const sdkError = { status: 409 };
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
-      error: new Error("name already taken"),
+      error: null,
+      reset: vi.fn(),
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    const { onClose } = renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("A namespace with this name already exists."),
+      ).toBeInTheDocument(),
+    );
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("shows the limit/permission message on 403", async () => {
+    const sdkError = { status: 403 };
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: null,
       reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
@@ -323,29 +346,86 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     await user.click(screen.getByRole("button", { name: "Create" }));
 
     await waitFor(() =>
-      expect(screen.getByText("name already taken")).toBeInTheDocument(),
+      expect(
+        screen.getByText("You have reached the namespace limit or do not have permission."),
+      ).toBeInTheDocument(),
     );
   });
 
-  it("clears the mutation error when the user types in the input", async () => {
-    const mutateAsync = vi
-      .fn<() => Promise<void>>()
-      .mockRejectedValue(new Error("name already taken"));
-    const reset = vi.fn();
+  it("shows the invalid-name message on 400", async () => {
+    const sdkError = { status: 400 };
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
-      error: new Error("name already taken"),
-      reset,
+      error: null,
+      reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     const user = userEvent.setup();
     renderDialog(true);
 
-    // Type to trigger onChange
-    await user.type(screen.getByPlaceholderText("my-namespace"), "a");
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
 
-    expect(reset).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(
+        screen.getByText("The namespace name is invalid."),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows the generic fallback message on 500", async () => {
+    const sdkError = { status: 500 };
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: null,
+      reset: vi.fn(),
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("An unexpected error occurred. Please try again."),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("clears the error text from the DOM when the user types after a failed submission", async () => {
+    const sdkError = { status: 409 };
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: null,
+      reset: vi.fn(),
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("A namespace with this name already exists."),
+      ).toBeInTheDocument(),
+    );
+
+    // Now type more — error must disappear
+    await user.type(screen.getByPlaceholderText("my-namespace"), "x");
+
+    expect(
+      screen.queryByText("A namespace with this name already exists."),
+    ).not.toBeInTheDocument();
   });
 
   it("calls onClose after successful creation", async () => {

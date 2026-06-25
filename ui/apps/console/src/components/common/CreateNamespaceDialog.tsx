@@ -1,4 +1,5 @@
 import { useState, useId, type FormEvent } from "react";
+import { isSdkError } from "@/api/errors";
 import {
   XMarkIcon,
   BookOpenIcon,
@@ -115,14 +116,14 @@ export default function CreateNamespaceDialog({
 
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const createNs = useCreateNamespace();
 
-  const displayError =
-    validationError ??
-    (createNs.error instanceof Error ? createNs.error.message : null);
+  const displayError = validationError ?? submitError ?? null;
 
   const resetError = () => {
     setValidationError(null);
+    setSubmitError(null);
     createNs.reset();
   };
 
@@ -134,11 +135,24 @@ export default function CreateNamespaceDialog({
       return;
     }
     setValidationError(null);
+    setSubmitError(null);
     try {
       await createNs.mutateAsync(name);
       onClose();
-    } catch {
-      // error is surfaced via displayError
+    } catch (caught) {
+      if (isSdkError(caught)) {
+        if (caught.status === 409) {
+          setSubmitError("A namespace with this name already exists.");
+        } else if (caught.status === 403) {
+          setSubmitError("You have reached the namespace limit or do not have permission.");
+        } else if (caught.status === 400) {
+          setSubmitError("The namespace name is invalid.");
+        } else {
+          setSubmitError("An unexpected error occurred. Please try again.");
+        }
+      } else {
+        setSubmitError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
