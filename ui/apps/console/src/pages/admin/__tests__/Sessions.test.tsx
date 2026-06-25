@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -24,6 +24,17 @@ import AdminSessions from "../Sessions";
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
+
+/** Exposes the current search string from inside the MemoryRouter. */
+function LocationProbe({
+  onLocation,
+}: {
+  onLocation: (search: string) => void;
+}) {
+  const loc = useLocation();
+  onLocation(loc.search);
+  return null;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeSession(overrides: Record<string, any> = {}) {
@@ -52,12 +63,15 @@ function setupHook(overrides: Record<string, any> = {}) {
   });
 }
 
-function renderPage() {
-  return render(
-    <MemoryRouter>
+function renderPage(initialEntries: string[] = ["/"]) {
+  let lastSearch = "";
+  const result = render(
+    <MemoryRouter initialEntries={initialEntries}>
       <AdminSessions />
+      <LocationProbe onLocation={(s) => { lastSearch = s; }} />
     </MemoryRouter>,
   );
+  return { ...result, getSearch: () => lastSearch };
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,6 +228,53 @@ describe("AdminSessions", () => {
       renderPage();
       // Pagination renders page info
       expect(screen.getByText(/25/)).toBeInTheDocument();
+    });
+  });
+
+  // ── URL-driven state (usePaginatedListState adoption) ────────────────────────
+
+  describe("URL hydration", () => {
+    it("calls useAdminSessionsList with page hydrated from ?page=3", () => {
+      renderPage(["/?page=3"]);
+      expect(vi.mocked(useAdminSessionsList)).toHaveBeenCalledWith(
+        3,
+        10,
+      );
+    });
+
+    it("calls useAdminSessionsList with page=1 when URL has no page param", () => {
+      renderPage(["/"]);
+      expect(vi.mocked(useAdminSessionsList)).toHaveBeenCalledWith(
+        1,
+        10,
+      );
+    });
+  });
+
+  describe("URL writes", () => {
+    it("writes ?page=2 to the URL when the user clicks Next page", async () => {
+      const user = userEvent.setup();
+      setupHook({
+        sessions: Array.from({ length: 10 }, (_, i) =>
+          makeSession({ uid: `s-${i}`, username: `u-${i}` }),
+        ),
+        totalCount: 30,
+      });
+      const { getSearch } = renderPage();
+
+      await user.click(screen.getByRole("button", { name: "Next page" }));
+
+      await waitFor(() => {
+        const sp = new URLSearchParams(getSearch());
+        expect(sp.get("page")).toBe("2");
+      });
+    });
+
+    it("omits ?page from the URL when on the default page 1", () => {
+      const { getSearch } = renderPage(["/"]);
+      // The URL must not contain a 'page' param when on the default first page.
+      const sp = new URLSearchParams(getSearch());
+      expect(sp.get("page")).toBeNull();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ShieldExclamationIcon,
@@ -11,24 +11,35 @@ import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import SearchField from "@/components/common/fields/SearchField";
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
 import { Badge, Callout } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
+type AdminFirewallRulesParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: AdminFirewallRulesParams = {
+  page: 1,
+  search: "",
+};
+
 export default function AdminFirewallRules() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const { params, setPage, setSearch } =
+    usePaginatedListState<AdminFirewallRulesParams>({ defaults: DEFAULTS });
 
   const { rules, totalCount, isLoading, error } = useAdminFirewallRules({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
   });
 
   const filtered = useMemo(() => {
-    if (!search) return rules;
-    const q = search.toLowerCase();
+    if (!params.search) return rules;
+    const q = params.search.toLowerCase();
     return rules.filter(
       (r) =>
         r.action.toLowerCase().includes(q) ||
@@ -36,7 +47,7 @@ export default function AdminFirewallRules() {
         r.username.toLowerCase().includes(q) ||
         String(r.priority).includes(q),
     );
-  }, [rules, search]);
+  }, [rules, params.search]);
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
@@ -128,11 +139,8 @@ export default function AdminFirewallRules() {
 
       <SearchField
         className="mb-5"
-        value={search}
-        onChange={(next) => {
-          setSearch(next);
-          setPage(1);
-        }}
+        value={params.search}
+        onChange={setSearch}
         placeholder="Search by action, priority, IP, or username..."
         aria-label="Search firewall rules by action, priority, IP, or username"
       />
@@ -145,13 +153,13 @@ export default function AdminFirewallRules() {
 
       <DataTable
         columns={columns}
-        data={search ? filtered : rules}
+        data={params.search ? filtered : rules}
         rowKey={(rule) => rule.id}
         isLoading={isLoading}
         loadingMessage="Loading firewall rules..."
         onRowClick={(rule) => void navigate(`/admin/firewall-rules/${rule.id}`)}
-        {...(!search && {
-          page,
+        {...(!params.search && {
+          page: params.page,
           totalPages,
           totalCount,
           itemLabel: "rule",
@@ -164,8 +172,8 @@ export default function AdminFirewallRules() {
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
-              {search
-                ? `No rules matching "${search}"`
+              {params.search
+                ? `No rules matching "${params.search}"`
                 : "No firewall rules found"}
             </p>
           </div>

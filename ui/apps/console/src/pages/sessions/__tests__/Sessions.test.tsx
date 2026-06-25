@@ -1,8 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import Sessions from "../index";
+
+/** Exposes the current search string from inside the MemoryRouter. */
+function LocationProbe({
+  onLocation,
+}: {
+  onLocation: (search: string) => void;
+}) {
+  const loc = useLocation();
+  onLocation(loc.search);
+  return null;
+}
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -93,12 +104,15 @@ function makeRecording(overrides: Record<string, any> = {}) {
   };
 }
 
-function renderSessions() {
-  return render(
-    <MemoryRouter>
+function renderSessions(initialEntries: string[] = ["/"]) {
+  let lastSearch = "";
+  const result = render(
+    <MemoryRouter initialEntries={initialEntries}>
       <Sessions />
+      <LocationProbe onLocation={(s) => { lastSearch = s; }} />
     </MemoryRouter>,
   );
+  return { ...result, getSearch: () => lastSearch };
 }
 
 beforeEach(() => {
@@ -238,6 +252,51 @@ describe("Sessions", () => {
       await user.click(screen.getByRole("button", { name: "Close Player" }));
 
       expect(mockClearLogs).toHaveBeenCalledOnce();
+    });
+  });
+
+  // ── URL-driven state (usePaginatedListState adoption) ────────────────────────
+
+  describe("URL hydration", () => {
+    it("calls useSessions with page hydrated from ?page=3", () => {
+      renderSessions(["/?page=3"]);
+      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3 }),
+      );
+    });
+
+    it("calls useSessions with page=1 when URL has no page param", () => {
+      renderSessions(["/"]);
+      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 }),
+      );
+    });
+  });
+
+  describe("URL writes", () => {
+    it("writes ?page=2 to the URL when the user navigates to page 2", async () => {
+      const user = userEvent.setup();
+      vi.mocked(useSessions).mockReturnValue(
+        makeSessions({
+          sessions: Array.from({ length: 10 }, (_, i) =>
+            makeSession({ uid: `s-${i}`, username: `u-${i}` }),
+          ),
+          totalCount: 30,
+        }),
+      );
+      renderSessions();
+
+      await user.click(screen.getByRole("button", { name: "Next page" }));
+
+      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+      );
+    });
+
+    it("omits ?page from the URL when on the default page 1", () => {
+      const { getSearch } = renderSessions(["/"]);
+      const sp = new URLSearchParams(getSearch());
+      expect(sp.get("page")).toBeNull();
     });
   });
 });

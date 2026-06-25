@@ -9,6 +9,21 @@ vi.mock("@/hooks/useAdminFirewallRules", () => ({
   useAdminFirewallRules: vi.fn(),
 }));
 
+// Capture DataTable props on every render so we can assert pagination suppression.
+const capturedDataTableProps: Record<string, unknown>[] = [];
+vi.mock("@/components/common/DataTable", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/components/common/DataTable")>();
+  return {
+    ...actual,
+    default: (props: Record<string, unknown>) => {
+      capturedDataTableProps.push({ ...props });
+      // Render the real DataTable so existing tests keep working.
+      return actual.default(props as unknown as Parameters<typeof actual.default>[0]);
+    },
+  };
+});
+
 // useNavigate is used by the page — mock at the module level.
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -47,9 +62,9 @@ function makeRule(
   };
 }
 
-function renderPage() {
+function renderPage(initialEntries: string[] = ["/"]) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <AdminFirewallRules />
     </MemoryRouter>,
   );
@@ -61,6 +76,7 @@ describe("AdminFirewallRules", () => {
   beforeEach(() => {
     vi.mocked(useAdminFirewallRules).mockReturnValue(defaultHookState);
     mockNavigate.mockReset();
+    capturedDataTableProps.length = 0;
   });
 
   describe("rendering", () => {
@@ -347,6 +363,101 @@ describe("AdminFirewallRules", () => {
       );
 
       await screen.findByText(/No rules matching/);
+    });
+  });
+
+  // ── usePaginatedListState adoption ───────────────────────────────────────────
+
+  describe("pagination suppressed while searching", () => {
+    beforeEach(() => {
+      vi.mocked(useAdminFirewallRules).mockReturnValue({
+        ...defaultHookState,
+        rules: [makeRule({ id: "r1", action: "allow", priority: 1 })],
+        totalCount: 1,
+      });
+    });
+
+    it("passes page/totalPages/onPageChange to DataTable when search is empty", () => {
+      renderPage();
+      const last = capturedDataTableProps.at(-1);
+      expect(last).toBeDefined();
+      expect(last).toHaveProperty("page");
+      expect(last).toHaveProperty("totalPages");
+      expect(last).toHaveProperty("onPageChange");
+    });
+
+    it("omits page/totalPages/onPageChange from DataTable while search is non-empty", async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      await user.type(
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
+        "allow",
+      );
+
+      await waitFor(() => {
+        const last = capturedDataTableProps.at(-1);
+        expect(last).toBeDefined();
+        expect(last).not.toHaveProperty("page");
+        expect(last).not.toHaveProperty("totalPages");
+        expect(last).not.toHaveProperty("onPageChange");
+      });
+    });
+  });
+
+  describe("URL round-trips", () => {
+    it("hydrates search from URL on mount", () => {
+      vi.mocked(useAdminFirewallRules).mockReturnValue({
+        ...defaultHookState,
+        rules: [makeRule({ id: "r1", action: "allow" })],
+        totalCount: 1,
+      });
+      renderPage(["/?search=allow"]);
+      expect(
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
+      ).toHaveValue("allow");
+    });
+
+    it("hydrates page from URL and passes it to the hook", () => {
+      renderPage(["/?page=3"]);
+      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3 }),
+      );
+    });
+
+    it("calls useAdminFirewallRules with page=1 when URL has no params", () => {
+      renderPage(["/"]);
+      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 }),
+      );
+    });
+
+    it("setSearch resets page to 1 in the URL", async () => {
+      const user = userEvent.setup();
+      renderPage(["/?page=3"]);
+
+      // Confirm page=3 was hydrated
+      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3 }),
+      );
+
+      await user.type(
+        screen.getByRole("searchbox", {
+          name: "Search firewall rules by action, priority, IP, or username",
+        }),
+        "allow",
+      );
+
+      await waitFor(() => {
+        const calls = vi.mocked(useAdminFirewallRules).mock.calls;
+        const lastCall = calls.at(-1)![0];
+        expect(lastCall).toBeDefined();
+        expect(lastCall?.page).toBe(1);
+      });
     });
   });
 });

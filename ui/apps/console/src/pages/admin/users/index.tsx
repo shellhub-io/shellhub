@@ -10,6 +10,7 @@ import {
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -28,11 +29,21 @@ import {
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
+type AdminUsersParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: AdminUsersParams = {
+  page: 1,
+  search: "",
+};
+
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
+  const { params, setPage, setSearch } =
+    usePaginatedListState<AdminUsersParams>({ defaults: DEFAULTS });
+  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<UserAdminResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserAdminResponse | null>(
@@ -45,7 +56,7 @@ export default function AdminUsers() {
   } = useLoginAsUser();
 
   const { users, totalCount, isLoading, error } = useAdminUsers({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
     search: debouncedSearch,
   });
@@ -159,11 +170,8 @@ export default function AdminUsers() {
 
       <SearchField
         className="mb-5"
-        value={searchInput}
-        onChange={(next) => {
-          setSearchInput(next);
-          setPage(1);
-        }}
+        value={params.search}
+        onChange={setSearch}
         placeholder="Search by username..."
         aria-label="Search users by username"
       />
@@ -180,7 +188,7 @@ export default function AdminUsers() {
         rowKey={(user) => user.id}
         isLoading={isLoading}
         loadingMessage="Loading users..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="user"

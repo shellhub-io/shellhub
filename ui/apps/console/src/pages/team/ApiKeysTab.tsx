@@ -17,13 +17,24 @@ import { isExpired } from "./helpers";
 import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyDrawer from "./GenerateKeyDrawer";
 import EditKeyDrawer from "./EditKeyDrawer";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 
 const PER_PAGE = 10;
 
 type SortField = "name" | "created_at" | "expires_in";
 
+type ApiKeyListParams = {
+  page: number;
+};
+
+const API_KEY_LIST_DEFAULTS: ApiKeyListParams = { page: 1 };
+
 function ApiKeysTab() {
-  const [page, setPage] = useState(1);
+  const { params, setPage } = usePaginatedListState<ApiKeyListParams>({
+    prefix: "key",
+    defaults: API_KEY_LIST_DEFAULTS,
+  });
+  const page = params.page;
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "created_at",
     onSortChange: () => setPage(1),

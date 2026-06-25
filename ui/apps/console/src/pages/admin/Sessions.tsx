@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandLineIcon,
@@ -13,13 +12,22 @@ import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import { formatDateFull } from "@/utils/date";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 
 const PER_PAGE = 10;
 
+type AdminSessionsParams = {
+  page: number;
+};
+
+const DEFAULTS: AdminSessionsParams = { page: 1 };
+
 export default function AdminSessions() {
-  const [page, setPage] = useState(1);
+  const { params, setPage } = usePaginatedListState<AdminSessionsParams>({
+    defaults: DEFAULTS,
+  });
   const { sessions, totalCount, isLoading, error } = useAdminSessionsList(
-    page,
+    params.page,
     PER_PAGE,
   );
   const navigate = useNavigate();
@@ -164,7 +172,7 @@ export default function AdminSessions() {
         rowKey={(s) => s.uid}
         isLoading={isLoading}
         loadingMessage="Loading sessions..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="session"

@@ -1,15 +1,4 @@
 import { useState } from "react";
-import { useFirewallRules } from "@/hooks/useFirewallRules";
-import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
-import ActiveBadge from "@/components/common/ActiveBadge";
-import ConfirmDialog from "@/components/common/ConfirmDialog";
-import DataTable, { type Column } from "@/components/common/DataTable";
-import EmptyState from "@/components/common/EmptyState";
-import FilterBadge from "@/components/common/FilterBadge";
-import PageHeader from "@/components/common/PageHeader";
-import SearchField from "@/components/common/fields/SearchField";
-import RuleDrawer from "./RuleDrawer";
-import RestrictedAction from "@/components/common/RestrictedAction";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -20,14 +9,38 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { type FirewallRulesResponse as FirewallRule } from "@/client";
 import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import { type FirewallRulesResponse as FirewallRule } from "@/client";
+import ActiveBadge from "@/components/common/ActiveBadge";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import EmptyState from "@/components/common/EmptyState";
+import FilterBadge from "@/components/common/FilterBadge";
+import PageHeader from "@/components/common/PageHeader";
+import RestrictedAction from "@/components/common/RestrictedAction";
+import SearchField from "@/components/common/fields/SearchField";
+import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
+import { useFirewallRules } from "@/hooks/useFirewallRules";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import RuleDrawer from "./RuleDrawer";
 
 const PER_PAGE = 10;
 
+type FirewallRulesParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: FirewallRulesParams = {
+  page: 1,
+  search: "",
+};
+
 export default function FirewallRules() {
-  const [page, setPage] = useState(1);
-  const { rules, totalCount, isLoading } = useFirewallRules({ page });
+  const { params, setPage, setSearch } =
+    usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
+
+  const { rules, totalCount, isLoading } = useFirewallRules({ page: params.page });
   const deleteRule = useDeleteFirewallRule();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
@@ -36,7 +49,6 @@ export default function FirewallRules() {
     priority: number;
   } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
 
   const closeDelete = () => {
     setDeleteError(null);
@@ -48,7 +60,7 @@ export default function FirewallRules() {
     setDeleteError(null);
     try {
       await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
-      if (rules.length === 1 && page > 1) setPage(page - 1);
+      if (rules.length === 1 && params.page > 1 && !params.search) setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -74,13 +86,13 @@ export default function FirewallRules() {
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
-  const filtered = search
+  const filtered = params.search
     ? rules.filter(
         (r) =>
-          r.action.toLowerCase().includes(search.toLowerCase()) ||
-          r.source_ip.toLowerCase().includes(search.toLowerCase()) ||
-          r.username.toLowerCase().includes(search.toLowerCase()) ||
-          String(r.priority).includes(search),
+          r.action.toLowerCase().includes(params.search.toLowerCase()) ||
+          r.source_ip.toLowerCase().includes(params.search.toLowerCase()) ||
+          r.username.toLowerCase().includes(params.search.toLowerCase()) ||
+          String(r.priority).includes(params.search),
       )
     : rules;
 
@@ -261,7 +273,7 @@ export default function FirewallRules() {
 
       <SearchField
         className="mb-4"
-        value={search}
+        value={params.search}
         onChange={setSearch}
         placeholder="Search by action, priority, IP, or username..."
         aria-label="Search firewall rules by action, priority, IP, or username"
@@ -273,14 +285,16 @@ export default function FirewallRules() {
         rowKey={(rule) => rule.id}
         isLoading={isLoading}
         loadingMessage="Loading firewall rules..."
-        page={page}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        itemLabel="rule"
-        onPageChange={setPage}
+        {...(!params.search && {
+          page: params.page,
+          totalPages,
+          totalCount,
+          itemLabel: "rule",
+          onPageChange: setPage,
+        })}
         emptyMessage={
-          search
-            ? `No rules matching \u201C${search}\u201D`
+          params.search
+            ? `No rules matching \u201C${params.search}\u201D`
             : "No firewall rules found"
         }
       />

@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import type { Namespace } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -20,6 +21,16 @@ import { Callout, IconButton } from "@shellhub/design-system/primitives";
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
+type AdminNamespacesParams = {
+  page: number;
+  search: string;
+};
+
+const DEFAULTS: AdminNamespacesParams = {
+  page: 1,
+  search: "",
+};
+
 function getOwnerEmail(namespace: Namespace): string {
   const owner = namespace.members?.find((m) => m.id === namespace.owner);
   return owner?.email || namespace.owner;
@@ -27,14 +38,14 @@ function getOwnerEmail(namespace: Namespace): string {
 
 export default function AdminNamespaces() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
+  const { params, setPage, setSearch } =
+    usePaginatedListState<AdminNamespacesParams>({ defaults: DEFAULTS });
+  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
   const [editTarget, setEditTarget] = useState<Namespace | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Namespace | null>(null);
 
   const { namespaces, totalCount, isLoading, error } = useAdminNamespaces({
-    page,
+    page: params.page,
     perPage: PER_PAGE,
     search: debouncedSearch,
   });
@@ -129,11 +140,8 @@ export default function AdminNamespaces() {
 
       <SearchField
         className="mb-5"
-        value={searchInput}
-        onChange={(next) => {
-          setSearchInput(next);
-          setPage(1);
-        }}
+        value={params.search}
+        onChange={setSearch}
         placeholder="Search by name..."
         aria-label="Search namespaces by name"
       />
@@ -150,7 +158,7 @@ export default function AdminNamespaces() {
         rowKey={(ns) => ns.tenant_id}
         isLoading={isLoading}
         loadingMessage="Loading namespaces..."
-        page={page}
+        page={params.page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="namespace"

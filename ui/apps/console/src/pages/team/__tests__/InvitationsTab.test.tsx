@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import React from "react";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "../../../stores/authStore";
 import type { MembershipInvitation } from "../../../client";
@@ -12,18 +11,24 @@ import InvitationsTab from "../InvitationsTab";
 /* Mocks                                                               */
 /* ------------------------------------------------------------------ */
 
-const mockInvitations = vi.fn<
+const mockInvitationsImpl = vi.fn<
   () => {
     invitations: MembershipInvitation[];
     totalCount: number;
     isLoading: boolean;
   }
 >();
+/** Spy that captures args passed to the hook. Does NOT call the impl itself —
+ *  the factory below calls the impl exactly once and returns its value. */
+const mockUseNamespaceInvitations: Mock = vi.fn();
 const mockCancelMutateAsync = vi.fn();
 const mockResendMutateAsync = vi.fn();
 
 vi.mock("../../../hooks/useInvitations", () => ({
-  useNamespaceInvitations: () => mockInvitations(),
+  useNamespaceInvitations: (...args: unknown[]) => {
+    mockUseNamespaceInvitations(...args);
+    return mockInvitationsImpl();
+  },
 }));
 
 vi.mock("../../../hooks/useInvitationMutations", () => ({
@@ -114,21 +119,33 @@ function makeExpiredInvitation(
   });
 }
 
-function createWrapper() {
+/** Exposes the current search string from inside the MemoryRouter. */
+function LocationProbe({
+  onLocation,
+}: {
+  onLocation: (search: string) => void;
+}) {
+  const loc = useLocation();
+  onLocation(loc.search);
+  return null;
+}
+
+function renderTab(tenantId = "t1", initialEntries: string[] = ["/"]) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </MemoryRouter>
-  );
-}
+  let lastSearch = "";
 
-function renderTab(tenantId = "t1") {
-  return render(<InvitationsTab tenantId={tenantId} />, {
-    wrapper: createWrapper(),
-  });
+  const result = render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <QueryClientProvider client={queryClient}>
+        <InvitationsTab tenantId={tenantId} />
+        <LocationProbe onLocation={(s) => { lastSearch = s; }} />
+      </QueryClientProvider>
+    </MemoryRouter>,
+  );
+
+  return { ...result, getSearch: () => lastSearch };
 }
 
 /* ------------------------------------------------------------------ */
@@ -139,7 +156,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Default to owner so RestrictedAction does not block anything
   useAuthStore.setState({ role: "owner" });
-  mockInvitations.mockReturnValue({
+  mockInvitationsImpl.mockReturnValue({
     invitations: [],
     totalCount: 0,
     isLoading: false,
@@ -155,7 +172,7 @@ beforeEach(() => {
 describe("InvitationsTab", () => {
   describe("rendering", () => {
     it("shows the invitation count from totalCount exactly once in the header (not duplicated in the DataTable pagination footer)", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [],
         totalCount: 5,
         isLoading: false,
@@ -171,7 +188,7 @@ describe("InvitationsTab", () => {
       const invitations = Array.from({ length: 10 }, (_, i) =>
         makeInvitation({ user: { id: `u${i}`, email: `user${i}@example.com` } }),
       );
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations,
         totalCount: 25,
         isLoading: false,
@@ -186,7 +203,7 @@ describe("InvitationsTab", () => {
     });
 
     it("uses singular 'invitation' when count is 1", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [],
         totalCount: 1,
         isLoading: false,
@@ -228,7 +245,7 @@ describe("InvitationsTab", () => {
     });
 
     it("shows a row for each invitation", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [
           makeInvitation({ user: { id: "u1", email: "alice@example.com" } }),
           makeInvitation({ user: { id: "u2", email: "bob@example.com" } }),
@@ -242,7 +259,7 @@ describe("InvitationsTab", () => {
     });
 
     it("shows loading message while fetching", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [],
         totalCount: 0,
         isLoading: true,
@@ -252,7 +269,7 @@ describe("InvitationsTab", () => {
     });
 
     it("shows empty state when there are no pending invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [],
         totalCount: 0,
         isLoading: false,
@@ -262,7 +279,7 @@ describe("InvitationsTab", () => {
     });
 
     it("shows expired badge for pending invitation past expires_at", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeExpiredInvitation()],
         totalCount: 1,
         isLoading: false,
@@ -288,7 +305,7 @@ describe("InvitationsTab", () => {
 
   describe("action buttons — enablement rules", () => {
     it("Edit button is enabled for pending invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -300,7 +317,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Edit button is disabled for accepted invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "accepted" })],
         totalCount: 1,
         isLoading: false,
@@ -312,7 +329,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Cancel button is enabled for pending invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -324,7 +341,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Cancel button is disabled for cancelled invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "cancelled" })],
         totalCount: 1,
         isLoading: false,
@@ -336,7 +353,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Resend button is enabled for cancelled invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "cancelled" })],
         totalCount: 1,
         isLoading: false,
@@ -348,7 +365,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Resend button is enabled for expired pending invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeExpiredInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -360,7 +377,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Resend button is disabled for non-expired pending invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -372,7 +389,7 @@ describe("InvitationsTab", () => {
     });
 
     it("Resend button is disabled for accepted invitations", () => {
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "accepted" })],
         totalCount: 1,
         isLoading: false,
@@ -410,7 +427,7 @@ describe("InvitationsTab", () => {
   describe("Edit invitation drawer", () => {
     it("opens EditInvitationDrawer when Edit button is clicked on a pending invitation", async () => {
       const user = userEvent.setup();
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -428,7 +445,7 @@ describe("InvitationsTab", () => {
   describe("Cancel invitation", () => {
     it("opens confirmation dialog when Cancel button is clicked on a pending invitation", async () => {
       const user = userEvent.setup();
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "pending" })],
         totalCount: 1,
         isLoading: false,
@@ -450,7 +467,7 @@ describe("InvitationsTab", () => {
         status: "pending",
         user: { id: "u1", email: "alice@example.com" },
       });
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [inv],
         totalCount: 1,
         isLoading: false,
@@ -479,7 +496,7 @@ describe("InvitationsTab", () => {
   describe("Resend invitation", () => {
     it("opens confirmation dialog when Resend is clicked on a cancelled invitation", async () => {
       const user = userEvent.setup();
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [makeInvitation({ status: "cancelled" })],
         totalCount: 1,
         isLoading: false,
@@ -502,7 +519,7 @@ describe("InvitationsTab", () => {
         user: { id: "u1", email: "alice@example.com" },
         role: "operator",
       });
-      mockInvitations.mockReturnValue({
+      mockInvitationsImpl.mockReturnValue({
         invitations: [inv],
         totalCount: 1,
         isLoading: false,
@@ -532,6 +549,60 @@ describe("InvitationsTab", () => {
         .getByRole("button", { name: /invite member/i })
         .closest("[aria-disabled='true']");
       expect(wrapper).toBeInTheDocument();
+    });
+  });
+
+  // ── URL sync (usePaginatedListState adoption, prefix "inv") ─────────────────
+
+  describe("URL sync — prefixed keys", () => {
+    it("hydrates page and status from ?inv.page=2&inv.status=accepted", () => {
+      renderTab("t1", ["/?inv.page=2&inv.status=accepted"]);
+      expect(mockUseNamespaceInvitations).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2, status: "accepted" }),
+      );
+    });
+
+    it("changing status writes inv.page=1 (not bare page=1) and resets hook page to 1", async () => {
+      const user = userEvent.setup();
+      // Start on page 2 of accepted invitations (prefixed URL keys)
+      mockInvitationsImpl.mockReturnValue({
+        invitations: Array.from({ length: 10 }, (_, i) =>
+          makeInvitation({ user: { id: `u${i}`, email: `u${i}@example.com` } }),
+        ),
+        totalCount: 30,
+        isLoading: false,
+      });
+      const { getSearch } = renderTab("t1", ["/?inv.page=2&inv.status=accepted"]);
+
+      const select = screen.getByRole("combobox", {
+        name: /filter invitations by status/i,
+      });
+      await user.selectOptions(select, "pending");
+
+      await waitFor(() => {
+        const sp = new URLSearchParams(getSearch());
+        // Must reset the prefixed page key, not a bare "page"
+        expect(sp.get("inv.page")).toBeNull(); // page 1 is the default so omitted
+        expect(sp.get("page")).toBeNull(); // bare page must not appear
+        // The hook must receive page=1 after reset
+        const calls = mockUseNamespaceInvitations.mock.calls;
+        const lastCall = calls.at(-1)![0] as { page: number; status: string };
+        expect(lastCall.page).toBe(1);
+        expect(lastCall.status).toBe("pending");
+      });
+    });
+
+    it("does not consume a bare ?page param as inv.page", () => {
+      // A bare ?page=5 (no prefix) must NOT be consumed as the inv page.
+      // The hook must receive page=1 (default), and the bare page=5 must survive.
+      const { getSearch } = renderTab("t1", ["/?page=5&inv.status=rejected"]);
+      const sp = new URLSearchParams(getSearch());
+      // Bare page=5 must survive untouched
+      expect(sp.get("page")).toBe("5");
+      // The hook must receive page=1 (default), not 5
+      expect(mockUseNamespaceInvitations).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, status: "rejected" }),
+      );
     });
   });
 });
