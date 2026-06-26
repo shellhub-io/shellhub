@@ -1,5 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function ProtectedRoute() {
   const token = useAuthStore((s) => s.token);
@@ -8,5 +9,9 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  );
 }
