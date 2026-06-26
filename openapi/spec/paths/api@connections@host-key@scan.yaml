@@ -1,0 +1,37 @@
+post:
+  operationId: scanKnownHost
+  summary: Scan a host key
+  description: Read an external target's host key and report it against the stored one.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/knownHostScanRequest.yaml
+  responses:
+    '200':
+      description: The scanned host key and its verification status.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/knownHostScanResult.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '422':
+      description: The host could not be reached or is not a permitted target.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: unreachable
+    '500':
+      $ref: ../components/responses/500.yaml

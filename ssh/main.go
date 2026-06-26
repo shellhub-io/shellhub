@@ -72,6 +72,7 @@ func main() {
 	router := h.Router
 
 	web.NewSSHServerBridge(router, cache)
+	web.NewConnectBridge(router)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

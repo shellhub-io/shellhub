@@ -43,6 +43,74 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
+// AcceptKnownHost provides a mock function for the type MockService
+func (_mock *MockService) AcceptKnownHost(ctx context.Context, req *requests.KnownHostAccept) (*models.KnownHost, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AcceptKnownHost")
+	}
+
+	var r0 *models.KnownHost
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostAccept) (*models.KnownHost, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostAccept) *models.KnownHost); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.KnownHost)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.KnownHostAccept) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_AcceptKnownHost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AcceptKnownHost'
+type MockService_AcceptKnownHost_Call struct {
+	*mock.Call
+}
+
+// AcceptKnownHost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.KnownHostAccept
+func (_e *MockService_Expecter) AcceptKnownHost(ctx any, req any) *MockService_AcceptKnownHost_Call {
+	return &MockService_AcceptKnownHost_Call{Call: _e.mock.On("AcceptKnownHost", ctx, req)}
+}
+
+func (_c *MockService_AcceptKnownHost_Call) Run(run func(ctx context.Context, req *requests.KnownHostAccept)) *MockService_AcceptKnownHost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.KnownHostAccept
+		if args[1] != nil {
+			arg1 = args[1].(*requests.KnownHostAccept)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AcceptKnownHost_Call) Return(knownHost *models.KnownHost, err error) *MockService_AcceptKnownHost_Call {
+	_c.Call.Return(knownHost, err)
+	return _c
+}
+
+func (_c *MockService_AcceptKnownHost_Call) RunAndReturn(run func(ctx context.Context, req *requests.KnownHostAccept) (*models.KnownHost, error)) *MockService_AcceptKnownHost_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddNamespaceMember provides a mock function for the type MockService
 func (_mock *MockService) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, req)
@@ -605,6 +673,72 @@ func (_c *MockService_AuthUncacheToken_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// ConnectionStatus provides a mock function for the type MockService
+func (_mock *MockService) ConnectionStatus(ctx context.Context, req *requests.ConnectionGet) (bool, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConnectionStatus")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) (bool, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) bool); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionGet) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ConnectionStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConnectionStatus'
+type MockService_ConnectionStatus_Call struct {
+	*mock.Call
+}
+
+// ConnectionStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionGet
+func (_e *MockService_Expecter) ConnectionStatus(ctx any, req any) *MockService_ConnectionStatus_Call {
+	return &MockService_ConnectionStatus_Call{Call: _e.mock.On("ConnectionStatus", ctx, req)}
+}
+
+func (_c *MockService_ConnectionStatus_Call) Run(run func(ctx context.Context, req *requests.ConnectionGet)) *MockService_ConnectionStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionGet
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionGet)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ConnectionStatus_Call) Return(b bool, err error) *MockService_ConnectionStatus_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockService_ConnectionStatus_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionGet) (bool, error)) *MockService_ConnectionStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAPIKey provides a mock function for the type MockService
 func (_mock *MockService) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
 	ret := _mock.Called(ctx, req)
@@ -669,6 +803,74 @@ func (_c *MockService_CreateAPIKey_Call) Return(res *responses.CreateAPIKey, err
 }
 
 func (_c *MockService_CreateAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error)) *MockService_CreateAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateConnection provides a mock function for the type MockService
+func (_mock *MockService) CreateConnection(ctx context.Context, req *requests.ConnectionCreate) (*models.Connection, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionCreate) (*models.Connection, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionCreate) *models.Connection); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateConnection'
+type MockService_CreateConnection_Call struct {
+	*mock.Call
+}
+
+// CreateConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionCreate
+func (_e *MockService_Expecter) CreateConnection(ctx any, req any) *MockService_CreateConnection_Call {
+	return &MockService_CreateConnection_Call{Call: _e.mock.On("CreateConnection", ctx, req)}
+}
+
+func (_c *MockService_CreateConnection_Call) Run(run func(ctx context.Context, req *requests.ConnectionCreate)) *MockService_CreateConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateConnection_Call) Return(connection *models.Connection, err error) *MockService_CreateConnection_Call {
+	_c.Call.Return(connection, err)
+	return _c
+}
+
+func (_c *MockService_CreateConnection_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionCreate) (*models.Connection, error)) *MockService_CreateConnection_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1201,6 +1403,63 @@ func (_c *MockService_DeleteAPIKey_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// DeleteConnection provides a mock function for the type MockService
+func (_mock *MockService) DeleteConnection(ctx context.Context, req *requests.ConnectionDelete) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteConnection")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionDelete) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteConnection'
+type MockService_DeleteConnection_Call struct {
+	*mock.Call
+}
+
+// DeleteConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionDelete
+func (_e *MockService_Expecter) DeleteConnection(ctx any, req any) *MockService_DeleteConnection_Call {
+	return &MockService_DeleteConnection_Call{Call: _e.mock.On("DeleteConnection", ctx, req)}
+}
+
+func (_c *MockService_DeleteConnection_Call) Run(run func(ctx context.Context, req *requests.ConnectionDelete)) *MockService_DeleteConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionDelete
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionDelete)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteConnection_Call) Return(err error) *MockService_DeleteConnection_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteConnection_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionDelete) error) *MockService_DeleteConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteDevice provides a mock function for the type MockService
 func (_mock *MockService) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	ret := _mock.Called(ctx, uid, tenant)
@@ -1317,6 +1576,63 @@ func (_c *MockService_DeleteDeviceCustomField_Call) Return(err error) *MockServi
 }
 
 func (_c *MockService_DeleteDeviceCustomField_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeviceDeleteCustomField) error) *MockService_DeleteDeviceCustomField_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteKnownHost provides a mock function for the type MockService
+func (_mock *MockService) DeleteKnownHost(ctx context.Context, req *requests.KnownHostDelete) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteKnownHost")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostDelete) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteKnownHost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteKnownHost'
+type MockService_DeleteKnownHost_Call struct {
+	*mock.Call
+}
+
+// DeleteKnownHost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.KnownHostDelete
+func (_e *MockService_Expecter) DeleteKnownHost(ctx any, req any) *MockService_DeleteKnownHost_Call {
+	return &MockService_DeleteKnownHost_Call{Call: _e.mock.On("DeleteKnownHost", ctx, req)}
+}
+
+func (_c *MockService_DeleteKnownHost_Call) Run(run func(ctx context.Context, req *requests.KnownHostDelete)) *MockService_DeleteKnownHost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.KnownHostDelete
+		if args[1] != nil {
+			arg1 = args[1].(*requests.KnownHostDelete)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteKnownHost_Call) Return(err error) *MockService_DeleteKnownHost_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteKnownHost_Call) RunAndReturn(run func(ctx context.Context, req *requests.KnownHostDelete) error) *MockService_DeleteKnownHost_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1899,6 +2215,74 @@ func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// GetConnection provides a mock function for the type MockService
+func (_mock *MockService) GetConnection(ctx context.Context, req *requests.ConnectionGet) (*models.Connection, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) (*models.Connection, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionGet) *models.Connection); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionGet) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnection'
+type MockService_GetConnection_Call struct {
+	*mock.Call
+}
+
+// GetConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionGet
+func (_e *MockService_Expecter) GetConnection(ctx any, req any) *MockService_GetConnection_Call {
+	return &MockService_GetConnection_Call{Call: _e.mock.On("GetConnection", ctx, req)}
+}
+
+func (_c *MockService_GetConnection_Call) Run(run func(ctx context.Context, req *requests.ConnectionGet)) *MockService_GetConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionGet
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionGet)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetConnection_Call) Return(connection *models.Connection, err error) *MockService_GetConnection_Call {
+	_c.Call.Return(connection, err)
+	return _c
+}
+
+func (_c *MockService_GetConnection_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionGet) (*models.Connection, error)) *MockService_GetConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDevice provides a mock function for the type MockService
 func (_mock *MockService) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _mock.Called(ctx, uid)
@@ -1963,6 +2347,74 @@ func (_c *MockService_GetDevice_Call) Return(device *models.Device, err error) *
 }
 
 func (_c *MockService_GetDevice_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) (*models.Device, error)) *MockService_GetDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetKnownHost provides a mock function for the type MockService
+func (_mock *MockService) GetKnownHost(ctx context.Context, req *requests.KnownHostGet) (*models.KnownHost, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetKnownHost")
+	}
+
+	var r0 *models.KnownHost
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostGet) (*models.KnownHost, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostGet) *models.KnownHost); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.KnownHost)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.KnownHostGet) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetKnownHost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetKnownHost'
+type MockService_GetKnownHost_Call struct {
+	*mock.Call
+}
+
+// GetKnownHost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.KnownHostGet
+func (_e *MockService_Expecter) GetKnownHost(ctx any, req any) *MockService_GetKnownHost_Call {
+	return &MockService_GetKnownHost_Call{Call: _e.mock.On("GetKnownHost", ctx, req)}
+}
+
+func (_c *MockService_GetKnownHost_Call) Run(run func(ctx context.Context, req *requests.KnownHostGet)) *MockService_GetKnownHost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.KnownHostGet
+		if args[1] != nil {
+			arg1 = args[1].(*requests.KnownHostGet)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetKnownHost_Call) Return(knownHost *models.KnownHost, err error) *MockService_GetKnownHost_Call {
+	_c.Call.Return(knownHost, err)
+	return _c
+}
+
+func (_c *MockService_GetKnownHost_Call) RunAndReturn(run func(ctx context.Context, req *requests.KnownHostGet) (*models.KnownHost, error)) *MockService_GetKnownHost_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2584,6 +3036,80 @@ func (_c *MockService_ListAPIKeys_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// ListConnections provides a mock function for the type MockService
+func (_mock *MockService) ListConnections(ctx context.Context, req *requests.ConnectionList) ([]models.Connection, int, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListConnections")
+	}
+
+	var r0 []models.Connection
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionList) ([]models.Connection, int, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionList) []models.Connection); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionList) int); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ConnectionList) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListConnections_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListConnections'
+type MockService_ListConnections_Call struct {
+	*mock.Call
+}
+
+// ListConnections is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionList
+func (_e *MockService_Expecter) ListConnections(ctx any, req any) *MockService_ListConnections_Call {
+	return &MockService_ListConnections_Call{Call: _e.mock.On("ListConnections", ctx, req)}
+}
+
+func (_c *MockService_ListConnections_Call) Run(run func(ctx context.Context, req *requests.ConnectionList)) *MockService_ListConnections_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListConnections_Call) Return(connections []models.Connection, n int, err error) *MockService_ListConnections_Call {
+	_c.Call.Return(connections, n, err)
+	return _c
+}
+
+func (_c *MockService_ListConnections_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionList) ([]models.Connection, int, error)) *MockService_ListConnections_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDevices provides a mock function for the type MockService
 func (_mock *MockService) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	ret := _mock.Called(ctx, req)
@@ -3085,6 +3611,72 @@ func (_c *MockService_OfflineDevice_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// ProbeReachability provides a mock function for the type MockService
+func (_mock *MockService) ProbeReachability(ctx context.Context, req *requests.ConnectionProbe) (bool, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ProbeReachability")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionProbe) (bool, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionProbe) bool); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionProbe) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ProbeReachability_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ProbeReachability'
+type MockService_ProbeReachability_Call struct {
+	*mock.Call
+}
+
+// ProbeReachability is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionProbe
+func (_e *MockService_Expecter) ProbeReachability(ctx any, req any) *MockService_ProbeReachability_Call {
+	return &MockService_ProbeReachability_Call{Call: _e.mock.On("ProbeReachability", ctx, req)}
+}
+
+func (_c *MockService_ProbeReachability_Call) Run(run func(ctx context.Context, req *requests.ConnectionProbe)) *MockService_ProbeReachability_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionProbe
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionProbe)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ProbeReachability_Call) Return(b bool, err error) *MockService_ProbeReachability_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockService_ProbeReachability_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionProbe) (bool, error)) *MockService_ProbeReachability_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PublicKey provides a mock function for the type MockService
 func (_mock *MockService) PublicKey() *rsa.PublicKey {
 	ret := _mock.Called()
@@ -3462,6 +4054,74 @@ func (_c *MockService_ResolveDevice_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// ScanKnownHost provides a mock function for the type MockService
+func (_mock *MockService) ScanKnownHost(ctx context.Context, req *requests.KnownHostScan) (*responses0.KnownHostScanResult, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScanKnownHost")
+	}
+
+	var r0 *responses0.KnownHostScanResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostScan) (*responses0.KnownHostScanResult, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.KnownHostScan) *responses0.KnownHostScanResult); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses0.KnownHostScanResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.KnownHostScan) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ScanKnownHost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ScanKnownHost'
+type MockService_ScanKnownHost_Call struct {
+	*mock.Call
+}
+
+// ScanKnownHost is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.KnownHostScan
+func (_e *MockService_Expecter) ScanKnownHost(ctx any, req any) *MockService_ScanKnownHost_Call {
+	return &MockService_ScanKnownHost_Call{Call: _e.mock.On("ScanKnownHost", ctx, req)}
+}
+
+func (_c *MockService_ScanKnownHost_Call) Run(run func(ctx context.Context, req *requests.KnownHostScan)) *MockService_ScanKnownHost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.KnownHostScan
+		if args[1] != nil {
+			arg1 = args[1].(*requests.KnownHostScan)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ScanKnownHost_Call) Return(knownHostScanResult *responses0.KnownHostScanResult, err error) *MockService_ScanKnownHost_Call {
+	_c.Call.Return(knownHostScanResult, err)
+	return _c
+}
+
+func (_c *MockService_ScanKnownHost_Call) RunAndReturn(run func(ctx context.Context, req *requests.KnownHostScan) (*responses0.KnownHostScanResult, error)) *MockService_ScanKnownHost_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetDeviceCustomField provides a mock function for the type MockService
 func (_mock *MockService) SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error {
 	ret := _mock.Called(ctx, req)
@@ -3735,6 +4395,74 @@ func (_c *MockService_UpdateAPIKey_Call) Return(err error) *MockService_UpdateAP
 }
 
 func (_c *MockService_UpdateAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateAPIKey) error) *MockService_UpdateAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateConnection provides a mock function for the type MockService
+func (_mock *MockService) UpdateConnection(ctx context.Context, req *requests.ConnectionUpdate) (*models.Connection, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateConnection")
+	}
+
+	var r0 *models.Connection
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionUpdate) (*models.Connection, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ConnectionUpdate) *models.Connection); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Connection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ConnectionUpdate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_UpdateConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateConnection'
+type MockService_UpdateConnection_Call struct {
+	*mock.Call
+}
+
+// UpdateConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ConnectionUpdate
+func (_e *MockService_Expecter) UpdateConnection(ctx any, req any) *MockService_UpdateConnection_Call {
+	return &MockService_UpdateConnection_Call{Call: _e.mock.On("UpdateConnection", ctx, req)}
+}
+
+func (_c *MockService_UpdateConnection_Call) Run(run func(ctx context.Context, req *requests.ConnectionUpdate)) *MockService_UpdateConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ConnectionUpdate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ConnectionUpdate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UpdateConnection_Call) Return(connection *models.Connection, err error) *MockService_UpdateConnection_Call {
+	_c.Call.Return(connection, err)
+	return _c
+}
+
+func (_c *MockService_UpdateConnection_Call) RunAndReturn(run func(ctx context.Context, req *requests.ConnectionUpdate) (*models.Connection, error)) *MockService_UpdateConnection_Call {
 	_c.Call.Return(run)
 	return _c
 }

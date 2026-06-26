@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub/api
 go 1.25.8
 
 require (
+	code.dny.dev/ssrf v0.2.0
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/getsentry/sentry-go v0.47.0
@@ -117,6 +118,7 @@ require (
 	go.opentelemetry.io/otel v1.41.0 // indirect
 	go.opentelemetry.io/otel/metric v1.41.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
+	golang.org/x/exp v0.0.0-20221126150942-6ab00d035af9 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect

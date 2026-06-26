@@ -1,0 +1,76 @@
+parameters:
+  - name: id
+    schema:
+      description: Connection's ID.
+      type: string
+    in: path
+    required: true
+get:
+  operationId: getConnection
+  summary: Get a connection
+  description: Get a single personal connection owned by the caller.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get connection.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/connection.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: updateConnection
+  summary: Update a connection
+  description: Update a personal connection owned by the caller.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/connectionUpdateRequest.yaml
+  responses:
+    '200':
+      description: Success to update connection.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/connection.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteConnection
+  summary: Delete a connection
+  description: Delete a personal connection owned by the caller.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete connection.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

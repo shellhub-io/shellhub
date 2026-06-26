@@ -1,0 +1,64 @@
+parameters:
+  - name: id
+    schema:
+      description: Team connection's ID.
+      type: string
+    in: path
+    required: true
+put:
+  operationId: updateTeamConnection
+  summary: Update a team connection
+  description: Update the shared target. Requires operator+.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/teamConnectionRequest.yaml
+  responses:
+    '200':
+      description: Success to update team connection.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/teamConnection.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteTeamConnection
+  summary: Delete a team connection
+  description: Delete a shared connection. Requires operator+.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete team connection.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -17,6 +17,21 @@ type Credentials struct {
 	Password string `json:"password"`
 	// Fingerprint is the identifier of the public key used in the device's OS.
 	Fingerprint string `json:"fingerprint"`
+	// PublicKey is the OpenSSH authorized-keys blob of the key used for the
+	// direct connection bridge (/ws/connect). The target host is external, so
+	// its public key is not registered in ShellHub and must be supplied by the
+	// browser. The matching private key never leaves the browser: the server
+	// proxies each signing challenge over the websocket (see [Signer]).
+	PublicKey string `json:"public_key"`
+	// Host and Port are set only for the direct connection bridge (/ws/connect),
+	// where the server dials the target SSH endpoint directly instead of routing
+	// to a device over the reverse tunnel.
+	Host string `json:"host"`
+	Port int    `json:"port"`
+	// KnownHostKey is the host key the browser confirmed (authorized_keys format)
+	// for this external target. The server verifies the live host key against it
+	// and aborts on mismatch. Empty means no verified key (legacy/uninitialized).
+	KnownHostKey string `json:"known_host_key"`
 }
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {
@@ -54,7 +69,7 @@ func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 	return nil
 }
 
-func (c *Credentials) isPublicKey() bool { // nolint: unused
+func (c *Credentials) isPublicKey() bool {
 	return c.Fingerprint != ""
 }
 

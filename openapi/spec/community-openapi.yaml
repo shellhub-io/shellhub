@@ -21,6 +21,9 @@ components:
   securitySchemes:
     $ref: ./components/schemas/security.yaml
 tags:
+  - name: connections
+    x-displayName: Connections
+    description: Saved SSH connections (personal and team) and trusted host keys.
   - name: devices
     x-displayName: Devices
     description: List, inspect, accept, reject, rename, and delete devices, and manage their custom fields.
@@ -152,3 +155,15 @@ paths:
     $ref: paths/api@containers@{uid}@{status}.yaml
   /api/setup:
     $ref: paths/api@setup.yaml
+  /api/connections:
+    $ref: paths/api@connections.yaml
+  /api/connections/{id}:
+    $ref: paths/api@connections@{id}.yaml
+  /api/connections/{id}/status:
+    $ref: paths/api@connections@{id}@status.yaml
+  /api/connections/host-key:
+    $ref: paths/api@connections@host-key.yaml
+  /api/connections/host-key/scan:
+    $ref: paths/api@connections@host-key@scan.yaml
+  /api/connections/host-key/accept:
+    $ref: paths/api@connections@host-key@accept.yaml

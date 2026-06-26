@@ -57,11 +57,23 @@ const (
 
 	TunnelsCreate
 	TunnelsDelete
+
+	// Connection permissions. Declared last so existing permission ordinals are
+	// preserved.
+	ConnectionCreate
+	ConnectionUpdate
+	ConnectionDelete
 )
 
 var observerPermissions = []Permission{
 	DeviceConnect,
 	DeviceDetails,
+
+	// Observers can create/manage their OWN personal connections; the service
+	// blocks them from writing namespace (team) connections.
+	ConnectionCreate,
+	ConnectionUpdate,
+	ConnectionDelete,
 
 	SessionDetails,
 }
@@ -74,6 +86,10 @@ var operatorPermissions = []Permission{
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,
+
+	ConnectionCreate,
+	ConnectionUpdate,
+	ConnectionDelete,
 
 	TagCreate,
 	TagUpdate,
@@ -91,6 +107,10 @@ var adminPermissions = []Permission{
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,
+
+	ConnectionCreate,
+	ConnectionUpdate,
+	ConnectionDelete,
 
 	TagCreate,
 	TagUpdate,
@@ -137,6 +157,10 @@ var ownerPermissions = []Permission{
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,
+
+	ConnectionCreate,
+	ConnectionUpdate,
+	ConnectionDelete,
 
 	TagCreate,
 	TagUpdate,

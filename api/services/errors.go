@@ -130,6 +130,9 @@ var (
 	ErrSameTags                        = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrConnectionNotFound              = errors.New("Connection not found", ErrLayer, ErrCodeNotFound)
+	ErrConnectionKindImmutable         = errors.New("connection kind cannot be changed", ErrLayer, ErrCodeInvalid)
+	ErrKnownHostNotFound               = errors.New("known host not found", ErrLayer, ErrCodeNotFound)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
@@ -203,6 +206,23 @@ func NewErrAPIKeyNotFound(name string, next error) error {
 
 func NewErrAPIKeyInvalid(name string) error {
 	return NewErrAuthInvalid(map[string]interface{}{"api-key": name}, nil)
+}
+
+// NewErrConnectionNotFound returns an error when the Connection is not found.
+func NewErrConnectionNotFound(id string, next error) error {
+	return NewErrNotFound(ErrConnectionNotFound, id, next)
+}
+
+// NewErrConnectionKindImmutable returns an error when an update tries to change
+// a connection's kind. The target type is fixed at creation.
+func NewErrConnectionKindImmutable() error {
+	return NewErrInvalid(ErrConnectionKindImmutable, nil, nil)
+}
+
+// NewErrKnownHostNotFound returns an error when no known host is stored for the
+// target.
+func NewErrKnownHostNotFound(host string, next error) error {
+	return NewErrNotFound(ErrKnownHostNotFound, host, next)
 }
 
 // NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.

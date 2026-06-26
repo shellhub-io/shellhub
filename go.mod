@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub
 go 1.25.8
 
 require (
+	code.dny.dev/ssrf v0.2.0
 	github.com/adhocore/gronx v1.8.1
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-redis/cache/v8 v8.4.4
@@ -90,6 +91,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.40.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
+	golang.org/x/exp v0.0.0-20221126150942-6ab00d035af9 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect

@@ -1,0 +1,29 @@
+parameters:
+  - name: id
+    schema:
+      description: Connection's ID.
+      type: string
+    in: path
+    required: true
+get:
+  operationId: getConnectionStatus
+  summary: Get connection status
+  description: Report whether the connection's target is currently reachable.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get connection status.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/connectionStatus.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -15,6 +15,10 @@ vi.mock("@/hooks/useNamespaces", () => ({
   useNamespace: () => ({ namespace: { name: "my-ns" } }),
 }));
 
+vi.mock("@/hooks/useConnections", () => ({
+  useConnections: () => ({ connections: [] }),
+}));
+
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: (sel: (s: { tenant: string }) => unknown) =>
     sel({ tenant: "tenant-1" }),

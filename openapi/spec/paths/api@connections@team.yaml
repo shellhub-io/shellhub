@@ -1,0 +1,63 @@
+get:
+  operationId: listTeamConnections
+  summary: List team connections
+  description: List every team connection in the namespace. Any member can see them.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to list team connections.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/teamConnection.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createTeamConnection
+  summary: Create a team connection
+  description: Create a shared connection. Requires operator+.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/teamConnectionRequest.yaml
+  responses:
+    '200':
+      description: Success to create team connection.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/teamConnection.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

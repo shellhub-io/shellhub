@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub/ssh
 go 1.25.8
 
 require (
+	code.dny.dev/ssrf v0.2.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -55,6 +56,7 @@ require (
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	golang.org/x/exp v0.0.0-20221126150942-6ab00d035af9 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect

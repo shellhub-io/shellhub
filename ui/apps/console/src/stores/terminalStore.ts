@@ -14,6 +14,19 @@ export interface TerminalSession {
   fingerprint?: string;
   privateKey?: string;
   passphrase?: string;
+  // publicKey is the authorized-keys blob sent to /ws/connect for direct
+  // connections using key auth; the server needs it to advertise the key while
+  // the private key stays in the browser. Not sensitive.
+  publicKey?: string;
+  // knownHostKey is the host key (authorized_keys format) the user confirmed for
+  // this external target; sent to /ws/connect so the server verifies the live
+  // host against it and aborts on mismatch.
+  knownHostKey?: string;
+  // kind "connect" dials an external host directly via /ws/connect (saved direct
+  // connections); the default routes to a device's agent via /ws/ssh.
+  kind?: "device" | "connect";
+  host?: string;
+  port?: number;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
 }
@@ -64,10 +77,15 @@ export const useTerminalStore = create<TerminalState>((set) => ({
   open: (params) => {
     const id = generateRandomUUID();
     // The single app-wide connect choke point: every entry point reaches here,
-    // so this is where a device joins the palette's Recent list.
-    useRecentDevicesStore
-      .getState()
-      .record(params.deviceUid, params.deviceName);
+    // so this is where a device joins the palette's Recent list. External direct
+    // connects (kind "connect") carry a connection/synthetic id, not a device
+    // uid, so the palette can't resolve them — skip them to avoid evicting real
+    // devices from the MRU with entries that never render.
+    if (params.kind !== "connect") {
+      useRecentDevicesStore
+        .getState()
+        .record(params.deviceUid, params.deviceName);
+    }
     set((state) => ({
       reconnectTarget: null,
       sessions: [

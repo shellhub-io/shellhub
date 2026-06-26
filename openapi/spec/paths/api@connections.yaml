@@ -1,0 +1,65 @@
+get:
+  operationId: listConnections
+  summary: List connections
+  description: List the personal connections owned by the caller.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to list connections.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/connection.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createConnection
+  summary: Create a connection
+  description: Create a personal connection owned by the caller.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/connectionCreateRequest.yaml
+  responses:
+    '201':
+      description: Success to create connection.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/connection.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '422':
+      description: The external target is unreachable or not a permitted target.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: unreachable
+    '500':
+      $ref: ../components/responses/500.yaml

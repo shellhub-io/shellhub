@@ -1,0 +1,31 @@
+parameters:
+  - name: id
+    schema:
+      description: Team connection's ID.
+      type: string
+    in: path
+    required: true
+get:
+  operationId: getTeamConnectionStatus
+  summary: Get team connection status
+  description: Report whether the team connection's target is currently reachable.
+  tags:
+    - connections
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get team connection status.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/connectionStatus.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

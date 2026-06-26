@@ -2,10 +2,10 @@ import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
 import { Buffer } from "buffer";
 
-export type KeyValidationResult
-  = | { valid: true; encrypted: false }
-    | { valid: true; encrypted: true }
-    | { valid: false; error: string };
+export type KeyValidationResult =
+  | { valid: true; encrypted: false }
+  | { valid: true; encrypted: true }
+  | { valid: false; error: string };
 
 export function validatePrivateKey(pem: string): KeyValidationResult {
   try {
@@ -23,6 +23,15 @@ export function validatePrivateKey(pem: string): KeyValidationResult {
 export function getFingerprint(pem: string, passphrase?: string): string {
   const key = sshpk.parsePrivateKey(pem, "auto", { passphrase });
   return key.fingerprint("md5").toString();
+}
+
+// getPublicKey derives the OpenSSH authorized-keys representation ("ssh-ed25519
+// AAAA…") of a private key. Used by direct connections, where the external host
+// is not registered in ShellHub and the server needs the public key to advertise
+// during pubkey auth (the private key never leaves the browser).
+export function getPublicKey(pem: string, passphrase?: string): string {
+  const key = sshpk.parsePrivateKey(pem, "auto", { passphrase });
+  return key.toPublic().toString("ssh");
 }
 
 export function getAlgorithm(pem: string, passphrase?: string): string {

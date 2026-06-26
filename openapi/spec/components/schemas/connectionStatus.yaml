@@ -1,0 +1,9 @@
+type: object
+description: Reachability of a connection's target.
+properties:
+  online:
+    description: Whether the target is currently reachable.
+    type: boolean
+    example: true
+required:
+  - online

@@ -21,6 +21,9 @@ type QueryOptions interface {
 	// WithMember filters namespaces where the given user is a member.
 	WithMember(userID string) QueryOption
 
+	// OwnedBy matches a record owned by the given user (owner_id).
+	OwnedBy(userID string) QueryOption
+
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
 

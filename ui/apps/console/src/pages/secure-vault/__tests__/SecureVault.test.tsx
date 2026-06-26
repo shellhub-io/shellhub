@@ -2,6 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
 import ConnectDrawer from "@/components/ConnectDrawer";
@@ -73,14 +74,18 @@ vi.mock("@/components/common/Drawer", () => ({
 vi.mock("@/components/vault/VaultLockedBanner", () => ({
   default: ({ onUnlock }: { onUnlock: () => void }) => (
     <div data-testid="vault-locked-banner">
-      <button type="button" onClick={onUnlock}>Unlock Vault</button>
+      <button type="button" onClick={onUnlock}>
+        Unlock Vault
+      </button>
     </div>
   ),
 }));
 
 vi.mock("@/components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
-    <button type="button" aria-label={`Copy ${text}`}>Copy</button>
+    <button type="button" aria-label={`Copy ${text}`}>
+      Copy
+    </button>
   ),
 }));
 
@@ -210,7 +215,9 @@ vi.mock("@/components/vault/VaultSetupDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div role="dialog" aria-label="Setup Vault">
-        <button type="button" onClick={onClose}>Close Setup</button>
+        <button type="button" onClick={onClose}>
+          Close Setup
+        </button>
       </div>
     ) : null,
 }));
@@ -219,7 +226,9 @@ vi.mock("@/components/vault/VaultUnlockDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div role="dialog" aria-label="Unlock Vault">
-        <button type="button" onClick={onClose}>Close Unlock</button>
+        <button type="button" onClick={onClose}>
+          Close Unlock
+        </button>
       </div>
     ) : null,
 }));
@@ -245,7 +254,9 @@ vi.mock("../KeyDrawer", () => ({
         role="dialog"
         aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
       >
-        <button type="button" onClick={onClose}>Close Drawer</button>
+        <button type="button" onClick={onClose}>
+          Close Drawer
+        </button>
       </div>
     ) : null,
 }));
@@ -263,7 +274,9 @@ vi.mock("../KeyDeleteDialog", () => ({
     open ? (
       <div role="dialog" aria-label="Delete Key Dialog">
         {entry && <span>{entry.name}</span>}
-        <button type="button" onClick={onClose}>Close Delete</button>
+        <button type="button" onClick={onClose}>
+          Close Delete
+        </button>
       </div>
     ) : null,
 }));
@@ -765,6 +778,9 @@ describe("SecureVault", () => {
     }
 
     function renderConnectDrawer() {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
       return render(
         <ConnectDrawer
           open
@@ -773,6 +789,13 @@ describe("SecureVault", () => {
           deviceName="my-device"
           sshid="my-device.ns@localhost"
         />,
+        {
+          wrapper: ({ children }) => (
+            <QueryClientProvider client={queryClient}>
+              {children}
+            </QueryClientProvider>
+          ),
+        },
       );
     }
 

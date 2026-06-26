@@ -18,6 +18,9 @@ servers:
   - url: /
     description: ShellHub server as a Enterprise instance.
 tags:
+  - name: connections
+    x-displayName: Connections
+    description: Saved SSH connections (personal and team) and trusted host keys.
   - name: devices
     x-displayName: Devices
     description: List, inspect, accept, reject, rename, and delete devices, and manage their custom fields.
@@ -166,3 +169,11 @@ paths:
     $ref: paths/admin@api@announcements.yaml
   /admin/api/announcements/{uuid}:
     $ref: paths/admin@api@announcements@{uuid}.yaml
+  /api/connections/team:
+    $ref: paths/api@connections@team.yaml
+  /api/connections/team/{id}:
+    $ref: paths/api@connections@team@{id}.yaml
+  /api/connections/team/{id}/status:
+    $ref: paths/api@connections@team@{id}@status.yaml
+  /api/connections/team/{id}/prefs:
+    $ref: paths/api@connections@team@{id}@prefs.yaml
