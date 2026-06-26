@@ -14,6 +14,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import DistroIcon from "@/components/common/DistroIcon";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useTableSort } from "@/hooks/useTableSort";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatRelative } from "@/utils/date";
 
@@ -58,8 +59,10 @@ export default function AdminDevices() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebouncedValue(searchInput, SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState<DeviceStatus | "">("");
-  const [sortBy, setSortBy] = useState<SortField>("last_seen");
-  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
+  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
+    defaultField: "last_seen",
+    onSortChange: () => setPage(1),
+  });
 
   const { devices, totalCount, isLoading, error } = useAdminDevices({
     page,
@@ -74,17 +77,6 @@ export default function AdminDevices() {
 
   const handleStatusChange = (newStatus: DeviceStatus | "") => {
     setStatus(newStatus);
-    setPage(1);
-  };
-
-  const handleSort = (field: string) => {
-    const f = field as SortField;
-    if (sortBy === f) {
-      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(f);
-      setOrderBy(f === "name" ? "asc" : "desc");
-    }
     setPage(1);
   };
 
