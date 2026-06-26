@@ -42,6 +42,8 @@ Or pass it on the command line:
 $ ansible-playbook -i inventory.ini --private-key ~/.ssh/id_ed25519 playbook.yml
 ```
 
+> **Note:** On the first connection Ansible verifies the gateway's SSH host key. For unattended runs, either add it up front with `ssh-keyscan cloud.shellhub.io >> ~/.ssh/known_hosts`, or set `host_key_checking = False` in `ansible.cfg`. Otherwise the run fails with `Host key verification failed`.
+
 ## Running playbooks
 
 Run playbooks as you normally would:
@@ -58,19 +60,37 @@ Ansible connects through the ShellHub gateway transparently. No changes to your 
 
 ## Dynamic inventory
 
-For larger fleets, use the ShellHub API to generate inventory dynamically instead of maintaining a static file. The API returns device lists with tags and online status that you can map to Ansible groups:
+For larger fleets, don't maintain a static file. The [`shellhub.cloud`](https://github.com/shellhub-io/ansible-collection) collection ships an inventory plugin that pulls accepted devices straight from your namespace and turns ShellHub tags into Ansible groups:
 
 ```bash
-$ curl -H "Authorization: Bearer YOUR_API_KEY" \
-    https://cloud.shellhub.io/api/devices?status=accepted
+$ ansible-galaxy collection install shellhub.cloud
 ```
 
-If you organize devices with tags in ShellHub (e.g., `production`, `staging`, `region-us`), you can map tags to Ansible groups. This keeps your inventory in sync with the ShellHub dashboard without manual updates.
+Create an inventory source file whose name ends in `shellhub.yml`:
 
-See [API Reference](/developers/api-reference) for the full device list endpoint.
+```yaml
+# inventory.shellhub.yml
+plugin: shellhub.cloud.devices
+api_url: https://cloud.shellhub.io   # your server, for self-hosted
+ssh_user: root
+ssh_key: ~/.ssh/id_ed25519
+keyed_groups:
+  - key: shellhub_tags               # each ShellHub tag becomes a group: tag_<name>
+    prefix: tag
+```
+
+Provide a namespace API key and run:
+
+```bash
+$ export SHELLHUB_API_KEY=...
+$ ansible-inventory -i inventory.shellhub.yml --graph
+$ ansible -i inventory.shellhub.yml tag_production -m ping
+```
+
+Your ShellHub tags become Ansible groups automatically (`tag_production`, `tag_region_us`, …), so the inventory tracks the dashboard with no manual updates. The plugin paginates the device list and resolves the namespace from the API key.
 
 ## Next steps
 
 - [Public Keys](/guides/public-keys) — Set up key-based authentication
-- [Tags](/guides/tags) — Organize devices for targeted automation
-- [API Reference](/developers/api-reference) — Build dynamic inventory from the API
+- [Tags](/guides/tags) — Organize devices into groups for targeted automation
+- [shellhub.cloud collection](https://github.com/shellhub-io/ansible-collection) — The dynamic inventory plugin
