@@ -6,34 +6,28 @@ description: Provision infrastructure with the ShellHub agent pre-installed usin
 
 # Terraform
 
-Provision cloud instances, VMs, or bare-metal servers with the ShellHub agent pre-installed using Terraform. Every new machine connects to ShellHub automatically — no manual setup after deployment.
+Provision cloud instances, VMs, or bare-metal servers with the ShellHub agent pre-installed using Terraform. Every new machine connects out to ShellHub on boot and shows up in your dashboard — no public IP, no inbound firewall rule, no manual setup after deployment.
+
+ShellHub doesn't ship a Terraform provider, and you don't need one. You drop the agent install into your instance's cloud-init `user_data` using whatever cloud provider you already have.
 
 ## How it works
 
-Use Terraform's `user_data` (cloud-init) or provisioners to run the ShellHub agent install command during instance creation. The agent starts immediately, and the device appears in your ShellHub dashboard as soon as it boots.
-
-## Cloud-init (recommended)
-
-The simplest approach. Pass the agent install command as `user_data` in your resource definition. This works with AWS, GCP, Azure, DigitalOcean, Hetzner, and any provider that supports cloud-init.
-
-### AWS EC2
+The agent install goes in your instance's `user_data` (cloud-init). On boot it opens a reverse tunnel to the ShellHub gateway, so the machine becomes reachable through ShellHub even when it sits behind NAT with no inbound ports open. The device appears in your dashboard as soon as it boots.
 
 ```hcl
-resource "aws_instance" "device" {
-  ami           = "ami-xxxxxxxxxxxxxxxxx" # Ubuntu 24.04 LTS
-  instance_type = "t3.micro"
+user_data = <<-EOF
+  #!/bin/bash
+  curl -sSf https://cloud.shellhub.io/install.sh | TENANT_ID=${var.shellhub_tenant_id} sh
+EOF
+```
 
-  user_data = <<-EOF
-    #!/bin/bash
-    curl -fsSL https://get.docker.com | sh
-    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
-  EOF
+The install script reads its config from environment variables. `TENANT_ID` (your namespace tenant ID, found in the dashboard under namespace settings) is the only required one. The script auto-detects how to run the agent — Docker if present, otherwise a native service — so this one line is all you need. It works on any provider that supports cloud-init; only the resource around it changes.
 
-  tags = {
-    Name = "web-server"
-  }
-}
+For a self-hosted server, also pass `SERVER_ADDRESS` so the agent points at it instead of the default `https://cloud.shellhub.io`. Other settings — preferred hostname, identity, keepalive — are listed in the [install script reference](/agent/install-script#environment-variables).
 
+Keep the tenant ID in a variable so it stays out of plan output and state:
+
+```hcl
 variable "shellhub_tenant_id" {
   description = "ShellHub namespace tenant ID"
   type        = string
@@ -41,102 +35,50 @@ variable "shellhub_tenant_id" {
 }
 ```
 
-### DigitalOcean
+## Verify
 
-```hcl
-resource "digitalocean_droplet" "device" {
-  image  = "ubuntu-24-04-x64"
-  name   = "edge-node"
-  region = "nyc3"
-  size   = "s-1vcpu-1gb"
+Apply it:
 
-  user_data = <<-EOF
-    #!/bin/bash
-    curl -fsSL https://get.docker.com | sh
-    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
-  EOF
-}
+```bash
+$ terraform apply
 ```
 
-### Hetzner Cloud
+The machine boots, the agent dials out, and the device shows up in your ShellHub dashboard within seconds. If your namespace doesn't auto-accept devices, accept the new one there. Then connect through the gateway to confirm it's reachable — no public IP involved:
 
-```hcl
-resource "hcloud_server" "device" {
-  name        = "gateway"
-  server_type = "cx22"
-  image       = "ubuntu-24.04"
-
-  user_data = <<-EOF
-    #!/bin/bash
-    curl -fsSL https://get.docker.com | sh
-    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
-  EOF
-}
+```bash
+$ ssh <user>@<namespace>.<device-name>@cloud.shellhub.io
 ```
 
-## Using provisioners
+## Using a remote-exec provisioner
 
-For cases where cloud-init isn't available, use Terraform's `remote-exec` provisioner:
+To reach the device from a `remote-exec` provisioner, you express the connection with ShellHub's SSHID. In the `connection` block, set `host` to the ShellHub gateway and `user` to the SSHID `<user>@<namespace>.<device>` — Terraform connects through the gateway, never the instance's IP, so it works even though the machine has no inbound access. Authenticate with an SSH key registered in ShellHub or the device's password:
 
 ```hcl
-resource "aws_instance" "device" {
-  ami           = "ami-xxxxxxxxxxxxxxxxx" # Ubuntu 24.04 LTS
-  instance_type = "t3.micro"
-  key_name      = aws_key_pair.deploy.key_name
+resource "null_resource" "configure" {
+  depends_on = [<your_instance_resource>]
 
   provisioner "remote-exec" {
-    inline = [
-      "curl -fsSL https://get.docker.com | sh",
-      "curl -sSf 'https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}' | sh",
-    ]
-
     connection {
       type        = "ssh"
-      user        = "ubuntu"
-      private_key = file("~/.ssh/id_ed25519")
-      host        = self.public_ip
+      host        = "cloud.shellhub.io"
+      port        = 22
+      user        = "root@${var.shellhub_namespace}.${var.device_name}"
+      private_key = file("~/.ssh/id_ed25519") # public key registered in ShellHub
+      # password  = var.device_password       # or the device's own system password
     }
+
+    inline = [
+      "echo configured via ShellHub", # your provisioning commands
+    ]
   }
 }
 ```
 
-> **Note:** Provisioners require network access to the instance during creation. Cloud-init runs without this requirement and is the preferred approach.
-
-## Self-hosted ShellHub
-
-For self-hosted instances, replace the server address in the install command:
-
-```hcl
-user_data = <<-EOF
-  #!/bin/bash
-  curl -fsSL https://get.docker.com | sh
-  curl -sSf "https://${var.shellhub_server}/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
-EOF
-```
-
-## Setting the hostname
-
-Use `PREFERRED_HOSTNAME` to give each device a predictable name in the dashboard:
-
-```hcl
-user_data = <<-EOF
-  #!/bin/bash
-  curl -fsSL https://get.docker.com | sh
-  export PREFERRED_HOSTNAME="${var.device_name}"
-  curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=${var.shellhub_tenant_id}" | sh
-EOF
-```
+> **Note:** The device must be accepted in your namespace before you can connect. Key auth checks SSH public keys you've [registered in ShellHub](/guides/public-keys); password auth checks the device's own system users. For unattended fleets, turn on device auto-accept for the namespace or accept devices via the [API](/developers/api-reference).
 
 ## Best practices
 
 - **Store tenant ID as a variable** — Mark it `sensitive = true` to keep it out of plan output and state files
-- **Use cloud-init over provisioners** — Cloud-init runs without needing SSH access to the instance during creation
-- **Set preferred hostname** — Use Terraform resource names or IDs as hostnames for traceability between your infra code and ShellHub dashboard
+- **Use cloud-init over provisioners** — The agent connects on its own at boot; you rarely need to reach the machine during creation
+- **Authenticate with SSH keys, not passwords** — Register a public key in ShellHub and reference it with `private_key` in the connection. Keys are passwordless and keep device credentials out of your Terraform config and state
 - **Accept devices via API** — For large fleets, use the [ShellHub API](/developers/api-reference) to accept devices programmatically after provisioning
-
-## Next steps
-
-- [Agent Overview](/agent/overview) — How the agent works
-- [Docker](/agent/docker) — Agent Docker image details
-- [CI/CD Pipelines](/integration/ci-cd) — Automate deployments after provisioning
-- [API Reference](/developers/api-reference) — Auto-accept devices via the API
