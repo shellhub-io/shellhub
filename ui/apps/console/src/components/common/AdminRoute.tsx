@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@shellhub/design-system/primitives";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function AdminRoute() {
   const fetchUser = useAuthStore((s) => s.fetchUser);
@@ -24,5 +25,9 @@ export default function AdminRoute() {
     return <Navigate to="/admin/unauthorized" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  );
 }
