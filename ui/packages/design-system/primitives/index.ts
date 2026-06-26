@@ -26,3 +26,5 @@ export type {
   WindowChromeAccent,
   WindowChromeProps,
 } from "./WindowChrome";
+export { Callout } from "./Callout";
+export type { CalloutVariant, CalloutProps } from "./Callout";

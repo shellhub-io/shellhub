@@ -1,8 +1,7 @@
 import { FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
-import Alert from "@/components/common/Alert";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
@@ -80,7 +79,7 @@ export default function MfaResetVerify() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          {error && <Alert variant="error">{error}</Alert>}
+          {error && <Callout variant="error">{error}</Callout>}
 
           {/* Main Email Code */}
           <div>
@@ -103,7 +102,6 @@ export default function MfaResetVerify() {
                   aria-label={`Main email code character ${index + 1} of 5`}
                   onChange={(e) => otpMain.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpMain.handleKeyDown(index, e)}
-
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
                 />
               ))}

@@ -4,9 +4,8 @@ import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import { getSafeRedirect } from "../utils/navigation";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import Alert from "@/components/common/Alert";
 
 export default function MfaLogin() {
   const otp = useOtpInput(6);
@@ -71,7 +70,7 @@ export default function MfaLogin() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          {error && <Alert variant="error">{error}</Alert>}
+          {error && <Callout variant="error">{error}</Callout>}
 
           <div>
             <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
@@ -94,7 +93,6 @@ export default function MfaLogin() {
                   aria-label={`Digit ${index + 1} of 6`}
                   onChange={(e) => otp.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otp.handleKeyDown(index, e)}
-
                   className="w-12 h-12 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
                 />
               ))}

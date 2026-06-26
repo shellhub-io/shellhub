@@ -4,8 +4,7 @@ import {
   CheckCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import { IconBadge, Button } from "@shellhub/design-system/primitives";
-import Alert from "@/components/common/Alert";
+import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
 import Drawer from "../common/Drawer";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { QRCodeDisplay } from "./QRCodeDisplay";
@@ -234,7 +233,7 @@ export default function MfaEnableDrawer({
       }
     >
       <div className="space-y-5">
-        {error && <Alert variant="error">{error}</Alert>}
+        {error && <Callout variant="error">{error}</Callout>}
 
         {/* Step 1: Recovery Email */}
         {step === 1 && (

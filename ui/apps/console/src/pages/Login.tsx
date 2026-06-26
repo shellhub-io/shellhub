@@ -10,13 +10,12 @@ import {
   LockClosedIcon,
   ArrowRightEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 
@@ -232,26 +231,26 @@ export default function Login() {
         (!!error && !lockoutExpired)) && (
         <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
           {lockoutExpired && (
-            <Alert variant="success">
+            <Callout variant="success">
               Your timeout has finished. Please try to log back in.
-            </Alert>
+            </Callout>
           )}
-          {notice && <Alert variant="success">{notice}</Alert>}
+          {notice && <Callout variant="success">{notice}</Callout>}
           {missingAssertions && (
-            <Alert variant="error">
+            <Callout variant="error">
               The SSO configuration is incomplete due to missing required
               mappings. Please contact your administrator.
-            </Alert>
+            </Callout>
           )}
           {error && !lockoutExpired && (
-            <Alert variant="error">
+            <Callout variant="error">
               <span>
                 {error}
                 {countdownDisplay && (
                   <span className="font-semibold"> ({countdownDisplay})</span>
                 )}
               </span>
-            </Alert>
+            </Callout>
           )}
         </div>
       )}

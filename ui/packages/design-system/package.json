@@ -18,5 +18,8 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.6.0"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19"
   }
 }

@@ -6,14 +6,18 @@ import {
   PencilSquareIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
 import type { AnnouncementShort } from "@/client";
-import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Callout,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -112,9 +116,9 @@ export default function AdminAnnouncements() {
       </PageHeader>
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

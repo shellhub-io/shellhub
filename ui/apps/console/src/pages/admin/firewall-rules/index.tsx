@@ -6,14 +6,13 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import ActiveBadge from "@/components/common/ActiveBadge";
-import Alert from "@/components/common/Alert";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import SearchField from "@/components/common/fields/SearchField";
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, Callout } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -139,9 +138,9 @@ export default function AdminFirewallRules() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

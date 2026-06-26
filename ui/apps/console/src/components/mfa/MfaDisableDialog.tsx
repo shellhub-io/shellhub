@@ -4,11 +4,10 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { disableMfa } from "@/client";
-import Alert from "@/components/common/Alert";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
-import { Button } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 
 interface MfaDisableDialogProps {
@@ -141,7 +140,7 @@ export default function MfaDisableDialog({
         </div>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          {error && <Alert variant="error">{error}</Alert>}
+          {error && <Callout variant="error">{error}</Callout>}
 
           {mode === "totp" ? (
             <>
@@ -149,7 +148,11 @@ export default function MfaDisableDialog({
                 <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                   Verification Code
                 </p>
-                <div className="flex gap-2 justify-center" role="group" aria-label="Verification Code">
+                <div
+                  className="flex gap-2 justify-center"
+                  role="group"
+                  aria-label="Verification Code"
+                >
                   {otp.code.map((digit, index) => (
                     <input
                       key={index}

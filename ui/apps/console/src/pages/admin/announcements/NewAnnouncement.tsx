@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Alert from "@/components/common/Alert";
 import { useAdminCreateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import { Button, Card } from "@shellhub/design-system/primitives";
+import { Button, Callout, Card } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;
 
@@ -52,9 +51,9 @@ export default function NewAnnouncement() {
       </h1>
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error}
-        </Alert>
+        </Callout>
       )}
 
       {/* Form */}

@@ -6,7 +6,7 @@ import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import { Callout } from "@shellhub/design-system/primitives";
 import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -153,9 +153,9 @@ export default function AdminSessions() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

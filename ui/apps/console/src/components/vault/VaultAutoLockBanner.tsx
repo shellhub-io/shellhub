@@ -10,7 +10,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useVaultStore } from "@/stores/vaultStore";
-import Alert from "@/components/common/Alert";
+import { Callout } from "@shellhub/design-system/primitives";
 
 const AUTO_DISMISS_MS = 6000;
 
@@ -53,7 +53,7 @@ export default function VaultAutoLockBanner() {
 
   return (
     <div className="fixed bottom-4 right-4 z-[75] w-80">
-      <Alert
+      <Callout
         variant="warning"
         onDismiss={() => {
           if (timerRef.current !== null) {
@@ -64,7 +64,7 @@ export default function VaultAutoLockBanner() {
         }}
       >
         Vault locked due to inactivity.
-      </Alert>
+      </Callout>
     </div>
   );
 }

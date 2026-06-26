@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
-import { Button } from "@shellhub/design-system/primitives";
 
 export default function ConfirmAccount() {
   const [searchParams] = useSearchParams();
@@ -45,15 +44,15 @@ export default function ConfirmAccount() {
         </p>
 
         {resendSuccess && (
-          <Alert variant="success" className="mb-4">
+          <Callout variant="success" className="mb-4">
             Confirmation email sent successfully.
-          </Alert>
+          </Callout>
         )}
 
         {resendError && (
-          <Alert variant="error" className="mb-4">
+          <Callout variant="error" className="mb-4">
             {resendError}
-          </Alert>
+          </Callout>
         )}
 
         <Button

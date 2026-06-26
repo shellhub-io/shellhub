@@ -1,12 +1,11 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { KeyIcon } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
-import { Button } from "@shellhub/design-system/primitives";
 
 export default function MfaRecover() {
   const {
@@ -103,7 +102,7 @@ export default function MfaRecover() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          {error && <Alert variant="error">{error}</Alert>}
+          {error && <Callout variant="error">{error}</Callout>}
 
           <div>
             <label

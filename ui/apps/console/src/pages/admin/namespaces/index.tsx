@@ -5,7 +5,6 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { Namespace } from "@/client";
@@ -16,7 +15,7 @@ import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Callout, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -140,9 +139,9 @@ export default function AdminNamespaces() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

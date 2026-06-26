@@ -7,7 +7,6 @@ import {
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -19,7 +18,12 @@ import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
-import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Callout,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -165,9 +169,9 @@ export default function AdminUsers() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable
