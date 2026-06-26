@@ -9,7 +9,7 @@ import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useAuthStore } from "@/stores/authStore";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { getInitials } from "@/utils/string";
-import { getConfig } from "@/env";
+import { isPremiumFeature } from "@/utils/features";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 import { useNavigate } from "react-router-dom";
 
@@ -35,17 +35,11 @@ export default function NamespaceSelector({
 
   useClickOutside(containerRef, () => setOpen(false));
 
-  const showAdminLink
-    = !isAdminContext
-      && getConfig().enterprise
-      && !getConfig().cloud
-      && isAdmin;
+  const showAdminLink = !isAdminContext && isPremiumFeature() && isAdmin;
 
   const availableNamespaces = isAdminContext
     ? namespaces
-    : namespaces.filter(
-      (ns) => ns.tenant_id !== currentNamespace?.tenant_id,
-    );
+    : namespaces.filter((ns) => ns.tenant_id !== currentNamespace?.tenant_id);
 
   const handleSwitch = async (id: string) => {
     setOpen(false);
@@ -65,34 +59,34 @@ export default function NamespaceSelector({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={isAdminContext ? "Admin Console" : currentNamespace?.name ?? "Select Namespace"}
+        aria-label={
+          isAdminContext
+            ? "Admin Console"
+            : (currentNamespace?.name ?? "Select Namespace")
+        }
         aria-haspopup="true"
         aria-expanded={open}
         className="flex items-center gap-2.5 h-9 px-3 rounded-md border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
-        {isAdminContext
-          ? (
-            <>
-              <ShieldCheckIcon className="w-5 h-5 text-accent-red" />
-              <span className="hidden md:inline text-sm font-medium text-text-primary">
-                Admin Console
-              </span>
-            </>
-          )
-          : currentNamespace
-            ? (
-              <>
-                <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-                  {getInitials(currentNamespace.name)}
-                </span>
-                <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
-                  {currentNamespace.name}
-                </span>
-              </>
-            )
-            : (
-              <span className="text-sm text-text-muted italic">No namespace</span>
-            )}
+        {isAdminContext ? (
+          <>
+            <ShieldCheckIcon className="w-5 h-5 text-accent-red" />
+            <span className="hidden md:inline text-sm font-medium text-text-primary">
+              Admin Console
+            </span>
+          </>
+        ) : currentNamespace ? (
+          <>
+            <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
+              {getInitials(currentNamespace.name)}
+            </span>
+            <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
+              {currentNamespace.name}
+            </span>
+          </>
+        ) : (
+          <span className="text-sm text-text-muted italic">No namespace</span>
+        )}
         <ChevronDownIcon
           className={`w-3 h-3 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           strokeWidth={2.5}
@@ -166,9 +160,7 @@ export default function NamespaceSelector({
                       {ns.name}
                     </p>
                     <p className="text-2xs font-mono text-text-muted truncate">
-                      {ns.devices_accepted_count}
-                      {" "}
-                      device
+                      {ns.devices_accepted_count} device
                       {ns.devices_accepted_count !== 1 ? "s" : ""}
                     </p>
                   </div>
@@ -177,13 +169,17 @@ export default function NamespaceSelector({
             </div>
           )}
 
-          {availableNamespaces.length === 0 && !isAdminContext && !currentNamespace && (
-            <div className="p-6 text-center">
-              <p className="text-xs text-text-muted">No namespaces available</p>
-            </div>
-          )}
+          {availableNamespaces.length === 0 &&
+            !isAdminContext &&
+            !currentNamespace && (
+              <div className="p-6 text-center">
+                <p className="text-xs text-text-muted">
+                  No namespaces available
+                </p>
+              </div>
+            )}
 
-          {/* Admin Console link (non-admin context, enterprise admins) */}
+          {/* Admin Console link (non-admin context, enterprise or cloud admins) */}
           {showAdminLink && (
             <div className="p-2 border-t border-border">
               <button
