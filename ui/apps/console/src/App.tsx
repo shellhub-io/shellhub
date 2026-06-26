@@ -116,7 +116,16 @@ export default function App() {
                   element={<AdminUnauthorized />}
                 />
                 <Route element={<AdminRoute />}>
-                  <Route path="/admin/license" element={<AdminLicense />} />
+                  <Route
+                    path="/admin/license"
+                    element={
+                      getConfig().cloud ? (
+                        <Navigate to="/admin/dashboard" replace />
+                      ) : (
+                        <AdminLicense />
+                      )
+                    }
+                  />
                   <Route element={<LicenseGuard />}>
                     <Route
                       path="/admin"
@@ -197,33 +206,36 @@ export default function App() {
                   <Route path="/devices/add" element={<AddDevice />} />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
                   <Route path="/containers" element={<Containers />} />
-                  <Route path="/containers/:uid" element={<ContainerDetails />} />
+                  <Route
+                    path="/containers/:uid"
+                    element={<ContainerDetails />}
+                  />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/secure-vault" element={<SecureVault />} />
                   <Route
                     path="/firewall-rules"
-                    element={(
+                    element={
                       <FeatureGate
                         feature="Firewall Rules"
                         description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
                       >
                         <FirewallRules />
                       </FeatureGate>
-                    )}
+                    }
                   />
                   {getConfig().webEndpoints && (
                     <Route
                       path="/web-endpoints"
-                      element={(
+                      element={
                         <FeatureGate
                           feature="Web Endpoints"
                           description="Tunnel HTTP traffic to services running on your devices through unique URLs."
                         >
                           <WebEndpoints />
                         </FeatureGate>
-                      )}
+                      }
                     />
                   )}
                   <Route path="/team" element={<Team />} />

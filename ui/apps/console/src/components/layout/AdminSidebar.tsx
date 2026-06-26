@@ -17,7 +17,12 @@ import type { ReactNode } from "react";
 import { getConfig } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
-import SidebarShell, { NavItemLink, navBase, navDisabled, navIcon } from "./SidebarShell";
+import SidebarShell, {
+  NavItemLink,
+  navBase,
+  navDisabled,
+  navIcon,
+} from "./SidebarShell";
 
 // ---- Types ----
 
@@ -42,12 +47,36 @@ function isNavGroup(entry: NavEntry): entry is NavGroup {
 // ---- Nav definition ----
 
 const coreNavEntries: NavEntry[] = [
-  { to: "/admin/dashboard", label: "Dashboard", icon: <HomeIcon className={navIcon} /> },
-  { to: "/admin/users", label: "Users", icon: <UsersIcon className={navIcon} /> },
-  { to: "/admin/devices", label: "Devices", icon: <CpuChipIcon className={navIcon} /> },
-  { to: "/admin/sessions", label: "Sessions", icon: <CommandLineIcon className={navIcon} /> },
-  { to: "/admin/firewall-rules", label: "Firewall Rules", icon: <ShieldCheckIcon className={navIcon} /> },
-  { to: "/admin/namespaces", label: "Namespaces", icon: <ServerStackIcon className={navIcon} /> },
+  {
+    to: "/admin/dashboard",
+    label: "Dashboard",
+    icon: <HomeIcon className={navIcon} />,
+  },
+  {
+    to: "/admin/users",
+    label: "Users",
+    icon: <UsersIcon className={navIcon} />,
+  },
+  {
+    to: "/admin/devices",
+    label: "Devices",
+    icon: <CpuChipIcon className={navIcon} />,
+  },
+  {
+    to: "/admin/sessions",
+    label: "Sessions",
+    icon: <CommandLineIcon className={navIcon} />,
+  },
+  {
+    to: "/admin/firewall-rules",
+    label: "Firewall Rules",
+    icon: <ShieldCheckIcon className={navIcon} />,
+  },
+  {
+    to: "/admin/namespaces",
+    label: "Namespaces",
+    icon: <ServerStackIcon className={navIcon} />,
+  },
 ];
 
 const announcementsEntry: NavEntry = {
@@ -60,8 +89,16 @@ const settingsGroup: NavGroup = {
   label: "Settings",
   icon: <Cog6ToothIcon className={navIcon} />,
   children: [
-    { to: "/admin/settings/authentication", label: "Authentication", icon: <KeyIcon className={navIcon} /> },
-    { to: "/admin/license", label: "License", icon: <DocumentCheckIcon className={navIcon} /> },
+    {
+      to: "/admin/settings/authentication",
+      label: "Authentication",
+      icon: <KeyIcon className={navIcon} />,
+    },
+    {
+      to: "/admin/license",
+      label: "License",
+      icon: <DocumentCheckIcon className={navIcon} />,
+    },
   ],
 };
 
@@ -70,7 +107,11 @@ const expiredNavEntries: NavEntry[] = [
     label: "Settings",
     icon: <Cog6ToothIcon className={navIcon} />,
     children: [
-      { to: "/admin/license", label: "License", icon: <DocumentCheckIcon className={navIcon} /> },
+      {
+        to: "/admin/license",
+        label: "License",
+        icon: <DocumentCheckIcon className={navIcon} />,
+      },
     ],
   },
 ];
@@ -82,7 +123,16 @@ function buildNavEntries(): NavEntry[] {
     entries.push(announcementsEntry);
   }
 
-  entries.push(settingsGroup);
+  const settings = getConfig().cloud
+    ? {
+        ...settingsGroup,
+        children: settingsGroup.children.filter(
+          (c) => c.to !== "/admin/license",
+        ),
+      }
+    : settingsGroup;
+  entries.push(settings);
+
   return entries;
 }
 
@@ -105,9 +155,8 @@ function NavGroupItem({
   currentPath: string;
   onNavClick?: () => void;
 }) {
-  const isChildActive = !disabled && group.children.some((c) =>
-    currentPath.startsWith(c.to),
-  );
+  const isChildActive =
+    !disabled && group.children.some((c) => currentPath.startsWith(c.to));
   const align = expanded ? "" : "justify-center";
 
   return (
@@ -153,7 +202,8 @@ function NavGroupItem({
                   isActive
                     ? "text-primary bg-primary/5"
                     : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle"
-                }`}
+                }`
+              }
             >
               <span className="truncate">{child.label}</span>
             </NavLink>
@@ -179,13 +229,11 @@ export default function AdminSidebar({
   onClose?: () => void;
   toggleLabel?: string;
 }) {
-  const { data: license, isLoading } = useAdminLicense();
+  const { isLoading, isExpired } = useAdminLicense();
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const { pathname } = useLocation();
 
-  const installedLicense = license && "grace_period" in license ? license : null;
-  const isExpired = !isLoading && (!installedLicense || installedLicense.expired);
   const showRestrictedNav = !isAdmin || isLoading || isExpired;
   const isDisabled = !isAdmin;
 
