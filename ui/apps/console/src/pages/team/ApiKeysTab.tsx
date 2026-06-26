@@ -7,6 +7,7 @@ import {
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
+import { useTableSort } from "@/hooks/useTableSort";
 import { type ApiKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -23,24 +24,16 @@ type SortField = "name" | "created_at" | "expires_in";
 
 function ApiKeysTab() {
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<SortField>("created_at");
-  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
+  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
+    defaultField: "created_at",
+    onSortChange: () => setPage(1),
+  });
   const { apiKeys, totalCount, isLoading } = useApiKeys({
     page,
     sortBy,
     orderBy,
   });
 
-  const handleSort = (field: string) => {
-    const f = field as SortField;
-    if (sortBy === f) {
-      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(f);
-      setOrderBy(f === "name" ? "asc" : "desc");
-    }
-    setPage(1);
-  };
   const deleteKey = useDeleteApiKey();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);

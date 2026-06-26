@@ -17,6 +17,7 @@ import SearchField from "@/components/common/fields/SearchField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useTableSort } from "@/hooks/useTableSort";
 import {
   useChoiceDevices,
   useSuggestedDevices,
@@ -73,20 +74,11 @@ export default function DeviceChooserDialog({
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<NormalizedDevice[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"name" | "last_seen">("last_seen");
-  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
+  const { sortBy, orderBy, handleSort } = useTableSort<"name" | "last_seen">({
+    defaultField: "last_seen",
+    onSortChange: () => setPage(1),
+  });
   const inFlightRef = useRef(false);
-
-  const handleSort = (field: string) => {
-    const f = field as "name" | "last_seen";
-    if (sortBy === f) {
-      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(f);
-      setOrderBy(f === "name" ? "asc" : "desc");
-    }
-    setPage(1);
-  };
 
   // Force the All tab whenever Suggested is empty so a refetch that returns
   // [] doesn't strand the user on a tab that would submit zero choices.

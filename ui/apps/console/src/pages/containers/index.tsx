@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useTableSort } from "@/hooks/useTableSort";
 import type { DeviceStatus } from "@/client";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -73,8 +74,10 @@ export default function Containers() {
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortField>("last_seen");
-  const [orderBy, setOrderBy] = useState<"asc" | "desc">("desc");
+  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
+    defaultField: "last_seen",
+    onSortChange: () => setPage(1),
+  });
 
   const { containers, totalCount, isLoading, error, refetch } = useContainers({
     page,
@@ -95,17 +98,6 @@ export default function Containers() {
 
   const handleStatusChange = (newStatus: DeviceStatus) => {
     setStatus(newStatus);
-    setPage(1);
-  };
-
-  const handleSort = (field: string) => {
-    const f = field as SortField;
-    if (sortBy === f) {
-      setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(f);
-      setOrderBy(f === "name" ? "asc" : "desc");
-    }
     setPage(1);
   };
 
