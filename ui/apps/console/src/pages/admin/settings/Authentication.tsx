@@ -3,19 +3,18 @@ import {
   KeyIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import {
   getAuthenticationSettings,
   configureLocalAuthentication,
   configureSamlAuthentication,
-} from "../../../client";
-import type { GetAuthenticationSettingsResponse } from "../../../client";
-import { isSdkError } from "../../../api/errors";
-import PageHeader from "../../../components/common/PageHeader";
-import CopyButton from "../../../components/common/CopyButton";
+} from "@/client";
+import type { GetAuthenticationSettingsResponse } from "@/client";
+import { isSdkError } from "@/api/errors";
+import PageHeader from "@/components/common/PageHeader";
+import CopyButton from "@/components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
 import PageLoader from "@/components/common/PageLoader";
-import { Button, Card } from "@shellhub/design-system/primitives";
+import { Button, Callout, Card } from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
@@ -167,9 +166,9 @@ export default function AdminAuthentication() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-5">
+        <Callout variant="error" className="mb-5">
           {error}
-        </Alert>
+        </Callout>
       )}
 
       <div className="space-y-4">

@@ -5,7 +5,6 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSessions } from "@/hooks/useSessions";
 import { useCloseSession } from "@/hooks/useSessionMutations";
@@ -18,7 +17,11 @@ import SessionPlayerDialog from "./SessionPlayerDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import { Button, IconButton } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Callout,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
 
@@ -219,15 +222,15 @@ export default function Sessions() {
       />
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       {logsError && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {logsError}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

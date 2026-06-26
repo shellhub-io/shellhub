@@ -28,9 +28,12 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import {
+  Button,
+  Callout,
+  IconButton,
+} from "@shellhub/design-system/primitives";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const statusTabs: { label: string; value: DeviceStatus }[] = [
   { label: "Accepted", value: "accepted" },
@@ -390,9 +393,9 @@ export default function Devices() {
       )}
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

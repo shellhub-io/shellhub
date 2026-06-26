@@ -1,11 +1,10 @@
 import { useState, useMemo, FormEvent, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
 import { validate, type FormErrors } from "./setup/validate";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
@@ -173,10 +172,10 @@ export default function SignUp() {
       <div className="w-full max-w-sm space-y-4">
         {/* Invite alert */}
         {isInvite && (
-          <Alert variant="warning">
+          <Callout variant="warning">
             Please create your account before accepting the namespace
             invitation.
-          </Alert>
+          </Callout>
         )}
 
         {/* Form card */}
@@ -185,9 +184,9 @@ export default function SignUp() {
           style={{ animationDelay: "150ms" }}
         >
           {signUpError && (
-            <Alert variant="error" className="mb-5">
+            <Callout variant="error" className="mb-5">
               {signUpError}
-            </Alert>
+            </Callout>
           )}
 
           <form
@@ -207,7 +206,6 @@ export default function SignUp() {
               error={fieldError("name")}
               placeholder="Your name"
               autoComplete="name"
-
             />
 
             <InputField

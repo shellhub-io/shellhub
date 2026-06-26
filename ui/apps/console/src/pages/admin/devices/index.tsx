@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
-import Alert from "@/components/common/Alert";
+import { Callout } from "@shellhub/design-system/primitives";
 import {
   useAdminDevices,
   type NormalizedDevice,
@@ -216,9 +216,9 @@ export default function AdminDevices() {
       </div>
 
       {error && (
-        <Alert variant="error" className="mb-4">
+        <Callout variant="error" className="mb-4">
           {error.message}
-        </Alert>
+        </Callout>
       )}
 
       <DataTable

@@ -12,8 +12,7 @@ import {
   migrateServerToLocal,
 } from "@/utils/vault-migrate";
 import BaseDialog from "@/components/common/BaseDialog";
-import Alert from "@/components/common/Alert";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
+import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 
 type Direction = "to-server" | "to-local";
 
@@ -118,10 +117,10 @@ function SyncForm({
         </div>
       ) : toServer && conflict ? (
         <>
-          <Alert variant="warning" className="mb-4">
+          <Callout variant="warning" className="mb-4">
             The ShellHub server already has a synced vault, created on another
             machine. Pick the vault to keep. The other one is deleted.
-          </Alert>
+          </Callout>
           <div
             className="space-y-2"
             role="group"
@@ -186,9 +185,9 @@ function SyncForm({
       )}
 
       {error && (
-        <Alert variant="error" className="mt-4">
+        <Callout variant="error" className="mt-4">
           {error}
-        </Alert>
+        </Callout>
       )}
 
       <div className="flex justify-end gap-2 pt-4">

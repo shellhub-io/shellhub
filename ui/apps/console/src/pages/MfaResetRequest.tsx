@@ -1,8 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
-import Alert from "@/components/common/Alert";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
@@ -74,7 +73,7 @@ export default function MfaResetRequest() {
       >
         {!emailsSent ? (
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            {error && <Alert variant="error">{error}</Alert>}
+            {error && <Callout variant="error">{error}</Callout>}
 
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-xs text-text-muted text-center">
