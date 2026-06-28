@@ -1,22 +1,16 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: CI/CD Pipelines
-description: Deploy to ShellHub devices from GitHub Actions, GitLab CI, and other CI/CD systems
+description: Deploy to ShellHub devices and debug CI runners from GitHub Actions and other CI/CD pipelines
 ---
 
 # CI/CD Pipelines
 
-Deploy code, run commands, or provision devices from your CI/CD pipeline. ShellHub provides standard SSH access, so any pipeline that supports SSH can reach your devices.
+From your pipeline you can reach your devices over SSH two ways: deploy code and run commands on them, or drop into the CI runner itself to debug a failing build. Both go through the ShellHub gateway, addressed by SSHID (`user@namespace.device@gateway`), so the target needs no public IP and no inbound ports — the gateway routes the session through the agent's reverse tunnel.
 
-## How it works
+## Deploy to a device (GitHub Actions)
 
-1. Store an SSH private key as a CI/CD secret
-2. Upload the corresponding public key to ShellHub (scoped to the target devices)
-3. Use `ssh` or `scp` in your pipeline to connect through the ShellHub gateway
-
-The gateway acts as an SSH proxy — your pipeline connects to the gateway, which routes the session to the target device through the agent's reverse tunnel.
-
-## GitHub Actions
+Use [`appleboy/ssh-action`](https://github.com/appleboy/ssh-action) to run commands on a device. You need an online device and an SSH key registered in ShellHub — store its private key as a secret (recommended over a password). Address the device by its SSHID: `host` is the gateway, `username` is `<user>@<namespace>.<device>`.
 
 ```yaml
 name: Deploy to device
@@ -28,47 +22,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p 22 cloud.shellhub.io >> ~/.ssh/known_hosts
-
-      - name: Deploy
-        run: |
-          ssh root@my-namespace.web-server@cloud.shellhub.io \
-              "cd /app && git pull && systemctl restart myapp"
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: cloud.shellhub.io
+          port: 22
+          username: deploy@my-namespace.web-server
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /app && git pull && systemctl restart myapp
 ```
 
-### Copying files
+The agent has no public IP and no inbound ports — ShellHub routes the session through the reverse tunnel. Copying files works the same way with [`appleboy/scp-action`](https://github.com/appleboy/scp-action).
+
+## Debug a CI runner (GitHub Actions)
+
+To SSH into a live runner and debug a failing build, use the [`shellhub-io/ci-action`](https://github.com/shellhub-io/ci-action). It needs a namespace API key with device accept/remove permission, stored as a secret. The action registers the runner as an ephemeral device, authorizes your keys, prints an `ssh` command and a web-terminal URL, and removes the device when the job ends:
 
 ```yaml
-      - name: Upload build artifacts
-        run: |
-          scp ./dist/app.tar.gz \
-              root@my-namespace.web-server@cloud.shellhub.io:/tmp/
+      - name: Open a ShellHub debug session on this runner
+        uses: shellhub-io/ci-action@v1
+        with:
+          server: https://cloud.shellhub.io
+          tenant-id: ${{ secrets.SHELLHUB_TENANT_ID }}
+          api-key: ${{ secrets.SHELLHUB_API_KEY }}
+          authorize-actor: auto   # authorize the GitHub keys of whoever triggered the run
 ```
 
-## GitLab CI
-
-```yaml
-deploy:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache openssh-client
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -p 22 cloud.shellhub.io >> ~/.ssh/known_hosts
-  script:
-    - ssh root@my-namespace.web-server@cloud.shellhub.io "cd /app && git pull && systemctl restart myapp"
-  only:
-    - main
-```
+No public session URL is ever printed — the runner shows up in your namespace and you reach it by SSHID from your own machine, governed by namespace RBAC and recorded. The job blocks until you connect and disconnect; run `sudo touch /continue` to release it early. See [`ci-action-demo`](https://github.com/shellhub-io/ci-action-demo) for a complete, runnable workflow.
 
 ## Other CI/CD systems
 
@@ -85,11 +65,3 @@ This works with Jenkins, CircleCI, Drone, Bitbucket Pipelines, Azure DevOps, and
 - **Use dedicated keys** — Create an SSH key pair specifically for CI/CD. Don't reuse personal keys.
 - **Scope keys narrowly** — In ShellHub, scope the public key to only the devices and usernames your pipeline needs.
 - **Use device tags** — Tag devices by environment (`production`, `staging`) and scope keys to tags rather than individual devices.
-- **Rotate keys regularly** — Replace CI/CD keys on a schedule. ShellHub makes this easy since you manage keys centrally.
-- **Verify host keys** — Use `ssh-keyscan` to add the gateway's host key and enable `StrictHostKeyChecking` in production pipelines.
-
-## Next steps
-
-- [Public Keys](/guides/public-keys) — Set up and scope SSH keys
-- [Tags](/guides/tags) — Organize devices by environment
-- [Connecting](/guides/connecting) — SSH connection details and SSHID format
