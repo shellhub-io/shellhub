@@ -60,17 +60,17 @@ Ansible connects through the ShellHub gateway transparently. No changes to your 
 
 ## Dynamic inventory
 
-For larger fleets, don't maintain a static file. The [`shellhub.cloud`](https://github.com/shellhub-io/ansible-collection) collection ships an inventory plugin that pulls accepted devices straight from your namespace and turns ShellHub tags into Ansible groups:
+For larger fleets, don't maintain a static file. The [`shellhub.core`](https://github.com/shellhub-io/ansible-collection) collection ships an inventory plugin that pulls accepted devices straight from your namespace and turns ShellHub tags into Ansible groups:
 
 ```bash
-$ ansible-galaxy collection install shellhub.cloud
+$ ansible-galaxy collection install shellhub.core
 ```
 
 Create an inventory source file whose name ends in `shellhub.yml`:
 
 ```yaml
 # inventory.shellhub.yml
-plugin: shellhub.cloud.devices
+plugin: shellhub.core.devices
 api_url: https://cloud.shellhub.io   # your server, for self-hosted
 ssh_user: root
 ssh_key: ~/.ssh/id_ed25519
@@ -93,4 +93,4 @@ Your ShellHub tags become Ansible groups automatically (`tag_production`, `tag_r
 
 - [Public Keys](/guides/public-keys) — Set up key-based authentication
 - [Tags](/guides/tags) — Organize devices into groups for targeted automation
-- [shellhub.cloud collection](https://github.com/shellhub-io/ansible-collection) — The dynamic inventory plugin
+- [shellhub.core collection](https://github.com/shellhub-io/ansible-collection) — The dynamic inventory plugin
