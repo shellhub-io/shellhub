@@ -14,21 +14,21 @@ type Taggable struct {
 	// TagIDs contains the IDs of associated tags. It is used only for database storage
 	// and relationship management. The field is not exposed in JSON responses to keep
 	// the API focused on meaningful tag data rather than internal identifiers.
-	TagIDs []string `json:"-" bson:"tag_ids"`
+	TagIDs []string `json:"-"`
 
 	// Tags contains the complete Tag objects associated with this resource. This field
 	// is populated from TagIDs when retrieving data from the database, but is not
 	// stored directly. It is used only for JSON serialization to provide clients
 	// with full tag information.
-	Tags []Tag `json:"tags" bson:"tags,omitempty"`
+	Tags []Tag `json:"tags"`
 }
 
 type Tag struct {
-	ID        string    `json:"-" bson:"_id"`
-	TenantID  string    `json:"tenant_id" bson:"tenant_id"`
-	Name      string    `json:"name" bson:"name"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+	ID        string    `json:"-"`
+	TenantID  string    `json:"tenant_id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type TagConflicts struct {

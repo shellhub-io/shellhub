@@ -67,7 +67,7 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 			{
 				Type: query.FilterTypeProperty,
 				Params: &query.FilterProperty{
-					Name:     "info.platform",
+					Name:     "platform",
 					Operator: "eq",
 					Value:    "connector",
 				},
@@ -86,7 +86,7 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 			{
 				Type: query.FilterTypeProperty,
 				Params: &query.FilterProperty{
-					Name:     "info.platform",
+					Name:     "platform",
 					Operator: "ne",
 					Value:    "connector",
 				},

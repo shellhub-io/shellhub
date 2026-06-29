@@ -5,21 +5,21 @@ import "time"
 type Namespace struct {
 	Name     string             `json:"name"  validate:"required,hostname_rfc1123,excludes=.,lowercase"`
 	Owner    string             `json:"owner"`
-	TenantID string             `json:"tenant_id" bson:"tenant_id,omitempty"`
-	Members  []Member           `json:"members" bson:"members"`
+	TenantID string             `json:"tenant_id"`
+	Members  []Member           `json:"members"`
 	Settings *NamespaceSettings `json:"settings"`
-	Devices  int                `json:"-" bson:"devices,omitempty"`
+	Devices  int                `json:"-"`
 
-	DevicesAcceptedCount int64 `json:"devices_accepted_count" bson:"devices_accepted_count"`
-	DevicesPendingCount  int64 `json:"devices_pending_count" bson:"devices_pending_count"`
-	DevicesRejectedCount int64 `json:"devices_rejected_count" bson:"devices_rejected_count"`
-	DevicesRemovedCount  int64 `json:"devices_removed_count" bson:"devices_removed_count"`
+	DevicesAcceptedCount int64 `json:"devices_accepted_count"`
+	DevicesPendingCount  int64 `json:"devices_pending_count"`
+	DevicesRejectedCount int64 `json:"devices_rejected_count"`
+	DevicesRemovedCount  int64 `json:"devices_removed_count"`
 
-	Sessions   int       `json:"-" bson:"sessions,omitempty"`
-	MaxDevices int       `json:"max_devices" bson:"max_devices"`
-	CreatedAt  time.Time `json:"created_at" bson:"created_at"`
-	Billing    *Billing  `json:"billing" bson:"billing,omitempty"`
-	Type       Type      `json:"type" bson:"type"`
+	Sessions   int       `json:"-"`
+	MaxDevices int       `json:"max_devices"`
+	CreatedAt  time.Time `json:"created_at"`
+	Billing    *Billing  `json:"billing"`
+	Type       Type      `json:"type"`
 }
 
 // HasMaxDevices checks if the namespace has a maximum number of devices.
@@ -49,9 +49,9 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 }
 
 type NamespaceSettings struct {
-	SessionRecord          bool   `json:"session_record" bson:"session_record,omitempty"`
-	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
-	DeviceAutoAccept       bool   `json:"device_auto_accept" bson:"device_auto_accept"`
+	SessionRecord          bool   `json:"session_record"`
+	ConnectionAnnouncement string `json:"connection_announcement"`
+	DeviceAutoAccept       bool   `json:"device_auto_accept"`
 }
 
 // default Announcement Message for the shellhub namespace

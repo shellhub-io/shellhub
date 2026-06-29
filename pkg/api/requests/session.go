@@ -65,5 +65,5 @@ type SessionEvent struct {
 
 type SessionSeat struct {
 	SessionIDParam
-	ID int `json:"id" bson:"id,omitempty"`
+	ID int `json:"id"`
 }

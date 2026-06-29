@@ -60,22 +60,22 @@ type Billing struct {
 	// cancel at the end of the period.
 	// A subscription is not active if its status is `incomplete`, `incomplete_expired`, `canceled`, `unpaid` or `paused`.
 	// TODO: evaluate if `paused` should be considered active.
-	Active bool `json:"active" bson:"active"`
+	Active bool `json:"active"`
 	// Status is the current status of the subscription.
-	Status BillingStatus `json:"status" bson:"status"`
+	Status BillingStatus `json:"status"`
 	// Customer is the ID of the customer the subscription belongs to.
-	// Customer string `json:"customer" bson:"customer"`
-	CustomerID string `json:"customer_id" bson:"customer_id"`
+	// Customer string `json:"customer"`
+	CustomerID string `json:"customer_id"`
 	// SubscriptionID is the ID of the subscription.
-	SubscriptionID string `json:"subscription_id" bson:"subscription_id"`
+	SubscriptionID string `json:"subscription_id"`
 	// CurrentPeriodEnd is the end of the current period.
-	CurrentPeriodEnd int64 `json:"current_period_end" bson:"current_period_end"`
+	CurrentPeriodEnd int64 `json:"current_period_end"`
 	// CreatedAt is the time at which this billing was created.
 	// It must follow the RFC 3339 format.
-	CreatedAt string `json:"created_at" bson:"created_at"`
+	CreatedAt string `json:"created_at"`
 	// UpdatedAt is the time at which this billing was last updated.
 	// It must follow the RFC 3339 format.
-	UpdatedAt string `json:"updated_at" bson:"updated_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 func NewBilling(status BillingStatus, customer, subscription string, currentPeridoEnd int64) *Billing {

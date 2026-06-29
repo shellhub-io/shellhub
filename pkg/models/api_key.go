@@ -14,23 +14,23 @@ import (
 // Expired keys cannot be used for authentication. Use [APIKey.IsValid] to verify its validity.
 type APIKey struct {
 	// ID is the unique identifier of the API key. It is a SHA256 hash of a UUID.
-	ID string `json:"-" bson:"_id"`
+	ID string `json:"-"`
 	// Name is an external identifier for a given API key. It is not unique per document but
 	// is unique per tenant ID.
-	Name string `json:"name" bson:"name"`
+	Name string `json:"name"`
 	// TenantID is the API key's namespace ID.
-	TenantID string `json:"tenant_id" bson:"tenant_id"`
+	TenantID string `json:"tenant_id"`
 	// Role defines the permissions of the API key. It must be equal to or less than the creator's role.
-	Role authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	Role authorizer.Role `json:"role" validate:"required,oneof=administrator operator observer"`
 	// CreatedBy is the ID of the user who created the API key.
-	CreatedBy string `json:"created_by" bson:"created_by"`
+	CreatedBy string `json:"created_by"`
 	// CreatedAt is the creation date of the API key.
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt is the last update date of the API key.
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 	// ExpiresIn is the expiration date of the API key. An expired key cannot be used for
 	// authentication. When equals or less than 0 it means that are no expiration date.
-	ExpiresIn int64 `json:"expires_in" bson:"expires_in"`
+	ExpiresIn int64 `json:"expires_in"`
 }
 
 // IsValid reports whether an API key is valid or not.
@@ -48,6 +48,6 @@ func (a *APIKey) IsValid() bool {
 // APIKeyConflicts holds API keys attributes that must be unique for each item (per tenant ID) and can be utilized in queries
 // to identify conflicts.
 type APIKeyConflicts struct {
-	ID   string `bson:"_id"`
-	Name string `bson:"name"`
+	ID   string
+	Name string
 }
