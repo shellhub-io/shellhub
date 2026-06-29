@@ -3,11 +3,11 @@ package models
 type System struct {
 	Setup bool `json:"setup"`
 	// Authentication manages the settings for available authentication methods.
-	Authentication *SystemAuthentication `json:"authentication" bson:"authentication"`
+	Authentication *SystemAuthentication `json:"authentication"`
 }
 
 type SystemAuthentication struct {
-	Local *SystemAuthenticationLocal `json:"local" bson:"local"`
+	Local *SystemAuthenticationLocal `json:"local"`
 }
 
 type SystemAuthenticationLocal struct {

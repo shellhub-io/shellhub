@@ -19,39 +19,39 @@ type Device struct {
 	// UID is the unique identifier for a device.
 	UID string `json:"uid"`
 
-	CreatedAt time.Time  `json:"created_at" bson:"created_at,omitempty"`
-	RemovedAt *time.Time `json:"removed_at" bson:"removed_at"`
+	CreatedAt time.Time  `json:"created_at"`
+	RemovedAt *time.Time `json:"removed_at"`
 
-	Name      string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
+	Name      string          `json:"name" validate:"required,device_name"`
 	Identity  *DeviceIdentity `json:"identity"`
 	Info      *DeviceInfo     `json:"info"`
-	PublicKey string          `json:"public_key" bson:"public_key"`
-	TenantID  string          `json:"tenant_id" bson:"tenant_id"`
+	PublicKey string          `json:"public_key"`
+	TenantID  string          `json:"tenant_id"`
 
 	// LastSeen represents the timestamp of the most recent ping from the device to the server.
-	LastSeen time.Time `json:"last_seen" bson:"last_seen"`
+	LastSeen time.Time `json:"last_seen"`
 	// DisconnectedAt stores the timestamp when the device disconnected from the server.
 	// When nil, it indicates the device is potentially online.
 	//
 	// Due to potential network issues, this field might be nil even when the device
 	// is actually offline. For reliable connection status, check both this and
 	// [Device.LastSeen] fields.
-	DisconnectedAt *time.Time `json:"-" bson:"disconnected_at"`
+	DisconnectedAt *time.Time `json:"-"`
 	// Online indicates whether the device is currently connected. This field is not
 	// persisted to the database but is computed based on both [Device.LastSeen] and
 	// [Device.DisconnectedAt] fields to determine the current connection status.
-	Online bool `json:"online" bson:",omitempty"`
+	Online bool `json:"online"`
 
-	Namespace       string          `json:"namespace" bson:",omitempty"`
-	Status          DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
-	StatusUpdatedAt time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	RemoteAddr      string          `json:"remote_addr" bson:"remote_addr"`
-	Position        *DevicePosition `json:"position" bson:"position"`
-	Acceptable      bool            `json:"acceptable" bson:"acceptable,omitempty"`
+	Namespace       string          `json:"namespace"`
+	Status          DeviceStatus    `json:"status" validate:"oneof=accepted rejected pending unused"`
+	StatusUpdatedAt time.Time       `json:"status_updated_at"`
+	RemoteAddr      string          `json:"remote_addr"`
+	Position        *DevicePosition `json:"position"`
+	Acceptable      bool            `json:"acceptable"`
 
-	CustomFields map[string]string `json:"custom_fields,omitempty" bson:"custom_fields"`
+	CustomFields map[string]string `json:"custom_fields,omitempty"`
 
-	Taggable `json:",inline" bson:",inline"`
+	Taggable `json:",inline"`
 }
 
 type DeviceAuthRequest struct {
@@ -61,8 +61,8 @@ type DeviceAuthRequest struct {
 }
 
 type DeviceAuth struct {
-	Hostname  string          `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Identity,omitempty,hostname_rfc1123" hash:"-"`
-	Identity  *DeviceIdentity `json:"identity,omitempty" bson:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
+	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,hostname_rfc1123" hash:"-"`
+	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`
 }
@@ -93,8 +93,8 @@ type DeviceInfo struct {
 }
 
 type DevicePosition struct {
-	Latitude  float64 `json:"latitude" bson:"latitude"`
-	Longitude float64 `json:"longitude" bson:"longitude"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 type DeviceTag struct {

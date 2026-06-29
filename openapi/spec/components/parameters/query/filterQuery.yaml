@@ -41,13 +41,13 @@ description: |
   ]
   ```
 
-  This one, filter resource by the property "id" inside "info" structure when it is equal to "manjaro" and online property is set to "true"
+  This one filters the resource by the "platform" property when it is equal to "manjaro" and the online property is set to "true"
   ```json
   [
     {
       "type": "property",
       "params": {
-        "name": "info.id",
+        "name": "platform",
         "operator": "eq",
         "value": "manjaro"
       }

@@ -28,35 +28,6 @@ func qualifyColumn(column, tableAlias string) bun.Ident {
 	return bun.Ident(column)
 }
 
-// TODO: remove when MongoDB support is dropped.
-// Maps Mongo-style paths (e.g. "info.platform") to Postgres columns ("platform").
-var legacyMongoFieldMapping = map[string]string{
-	"info.platform":      "platform",
-	"info.id":            "identifier",
-	"info.pretty_name":   "pretty_name",
-	"info.version":       "version",
-	"info.arch":          "arch",
-	"identity.mac":       "mac",
-	"position.longitude": "longitude",
-	"position.latitude":  "latitude",
-}
-
-// mapFieldToColumn translates a filter field name to the corresponding PostgreSQL column name.
-// It falls back to legacyMongoFieldMapping for Mongo-compatible field paths.
-// Returns the original field name if no mapping exists.
-//
-// NOTE: the device_uid→device_id alias is NOT applied here because it is
-// specific to the sessions table.  It is handled in ParseFilterProperty when
-// tableAlias == "session" so it cannot accidentally affect other filter contexts.
-func mapFieldToColumn(field string) string {
-	if mapped, ok := legacyMongoFieldMapping[field]; ok {
-		return mapped
-	}
-
-	return field
-}
-
-// TODO: remove when MongoDB support is dropped.
 // "online" is a virtual field (not a real column), so we can't filter by it directly in WHERE.
 // We expand it to the actual expression: disconnected_at IS NULL AND last_seen > (now - 2min).
 func fromOnlineFilter(value any) (string, []any, bool, error) {
@@ -163,10 +134,9 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	}
 
 	// In the session context "device_uid" is a user-facing alias for the actual
-	// "device_id" column in the sessions table.  The mapping is applied here
-	// (not in mapFieldToColumn) so it is scoped to sessions only and cannot
-	// silently affect other filter contexts that happen to expose a device_uid
-	// field but use a different column name or no column at all.
+	// "device_id" column in the sessions table. The mapping is scoped to sessions
+	// only so it cannot silently affect other filter contexts that happen to
+	// expose a device_uid field but use a different column name or no column at all.
 	if tableAlias == "session" && fp.Name == "device_uid" {
 		adjusted := *fp
 		adjusted.Name = "device_id"
@@ -252,8 +222,6 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 // for case-insensitive substring matching. For arrays, it uses the @> (contains) operator to check if the column
 // contains all the values in the array. Returns SQL condition string, arguments array, and error if any.
 func fromContains(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapFieldToColumn(column)
-
 	switch v := value.(type) {
 	case string:
 		return "? ILIKE ?", []any{qualifyColumn(column, tableAlias), "%" + v + "%"}, nil
@@ -267,7 +235,7 @@ func fromContains(column string, value any, tableAlias string) (string, []any, e
 // fromEq converts an "eq" (equals) JSON expression to an SQL expression using =.
 // Returns SQL condition string, arguments array, and error if any.
 func fromEq(column string, value any, tableAlias string) (string, []any, error) {
-	return "? = ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), value}, nil
+	return "? = ?", []any{qualifyColumn(column, tableAlias), value}, nil
 }
 
 // fromBool converts a "bool" JSON expression to an SQL expression. It handles various input types (int, float64,
@@ -300,15 +268,13 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 		return "", nil, ErrUnsupportedBoolType
 	}
 
-	return "? = ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), boolValue}, nil
+	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
 }
 
 // fromGt converts a "gt" (greater than) JSON expression to an SQL expression using >. It handles various numeric types
 // (int, float, etc.) and string representations of numbers. For strings, it attempts to convert to int first, then to
 // float if int conversion fails. Returns SQL condition string, arguments array, and error if any.
 func fromGt(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapFieldToColumn(column)
-
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
 		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
@@ -335,8 +301,6 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 // fromLt converts a "lt" (less than) JSON expression to an SQL expression using <. It handles numeric types,
 // strings, and time.Time values. Returns SQL condition string, arguments array, and error if any.
 func fromLt(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapFieldToColumn(column)
-
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
 		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
@@ -363,7 +327,7 @@ func fromLt(column string, value any, tableAlias string) (string, []any, error) 
 // fromNe converts a "ne" (not equals) JSON expression to an SQL expression using <>. Returns SQL condition string,
 // arguments array, and error if any.
 func fromNe(column string, value any, tableAlias string) (string, []any, error) {
-	return "? <> ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), value}, nil
+	return "? <> ?", []any{qualifyColumn(column, tableAlias), value}, nil
 }
 
 // fromCustomFieldsFilter searches across all values of the custom_fields JSONB column.

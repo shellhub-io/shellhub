@@ -9,45 +9,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func TestMapFieldToColumn(t *testing.T) {
-	cases := []struct {
-		description string
-		field       string
-		want        string
-	}{
-		{
-			// device_uid is NOT a global alias — the mapping to device_id is
-			// session-specific and applied by ParseFilterProperty when tableAlias
-			// is "session".  mapFieldToColumn must not alter it globally.
-			description: "device_uid passes through unchanged (not a global alias)",
-			field:       "device_uid",
-			want:        "device_uid",
-		},
-		{
-			description: "legacy mongo field info.platform maps to platform",
-			field:       "info.platform",
-			want:        "platform",
-		},
-		{
-			description: "unknown field passes through unchanged",
-			field:       "name",
-			want:        "name",
-		},
-		{
-			description: "identity.mac maps to mac",
-			field:       "identity.mac",
-			want:        "mac",
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			got := mapFieldToColumn(tc.field)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
 // TestParseFilterProperty_DeviceUID verifies that the device_uid→device_id
 // column alias is applied only in the session context (tableAlias == "session"),
 // not globally.  If applied globally, a future endpoint that exposes device_uid

@@ -11,14 +11,14 @@ import (
 //
 // A PublicKeyFilter can contain either Hostname, string, or Tags, slice of strings never both.
 type PublicKeyFilter struct {
-	Hostname string `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
-	Taggable `json:",inline" bson:",inline"`
+	Hostname string `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
+	Taggable `json:",inline"`
 }
 
 type PublicKeyFields struct {
 	Name     string          `json:"name"`
-	Username string          `json:"username" bson:"username" validate:"regexp"`
-	Filter   PublicKeyFilter `json:"filter" bson:"filter" validate:"required"`
+	Username string          `json:"username" validate:"regexp"`
+	Filter   PublicKeyFilter `json:"filter" validate:"required"`
 }
 
 func (p *PublicKeyFields) Validate() error {
@@ -34,15 +34,15 @@ func (p *PublicKeyFields) Validate() error {
 }
 
 type PublicKey struct {
-	Data            []byte    `json:"data"`
-	Fingerprint     string    `json:"fingerprint"`
-	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
-	TenantID        string    `json:"tenant_id" bson:"tenant_id"`
-	PublicKeyFields `bson:",inline"`
+	Data        []byte    `json:"data"`
+	Fingerprint string    `json:"fingerprint"`
+	CreatedAt   time.Time `json:"created_at"`
+	TenantID    string    `json:"tenant_id"`
+	PublicKeyFields
 }
 
 type PublicKeyUpdate struct {
-	PublicKeyFields `bson:",inline"`
+	PublicKeyFields
 }
 
 type PublicKeyAuthRequest struct {

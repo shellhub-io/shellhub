@@ -132,7 +132,7 @@ type WebEndpoint struct {
 	TimeToLive int            `json:"ttl"`
 	TLS        WebEndpointTLS `json:"tls"`
 	ExpiresIn  time.Time      `json:"expires_in"`
-	CreatedAt  time.Time      `json:"time" bson:"time"`
+	CreatedAt  time.Time      `json:"time"`
 }
 
 func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEndpoint, error) {

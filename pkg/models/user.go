@@ -53,66 +53,66 @@ func (a UserAuthMethod) String() string {
 }
 
 type User struct {
-	ID string `json:"id,omitempty" bson:"_id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// Origin specifies the the user's signup method.
-	Origin UserOrigin `json:"-" bson:"origin"`
+	Origin UserOrigin `json:"-"`
 
 	// ExternalID represents the user's identifier in an external system. It is always empty when [User.Origin]
 	// is [UserOriginLocal].
-	ExternalID string `json:"-" bson:"external_id"`
+	ExternalID string `json:"-"`
 
-	Status UserStatus `json:"status" bson:"status"`
+	Status UserStatus `json:"status"`
 	// MaxNamespaces represents the count of namespaces that the user can owns.
-	MaxNamespaces  int       `json:"max_namespaces" bson:"max_namespaces"`
-	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
-	LastLogin      time.Time `json:"last_login" bson:"last_login"`
-	EmailMarketing bool      `json:"email_marketing" bson:"email_marketing"`
-	UserData       `bson:",inline"`
+	MaxNamespaces  int       `json:"max_namespaces"`
+	CreatedAt      time.Time `json:"created_at"`
+	LastLogin      time.Time `json:"last_login"`
+	EmailMarketing bool      `json:"email_marketing"`
+	UserData
 	// MFA contains attributes related to a user's MFA settings. Use [UserMFA.Enabled] to
 	// check if MFA is active for the user.
 	//
 	// NOTE: MFA is available as a cloud-only feature and must be ignored in community.
-	MFA         UserMFA         `json:"mfa" bson:"mfa"`
-	Preferences UserPreferences `json:"preferences" bson:"preferences"`
-	Password    UserPassword    `bson:",inline"`
+	MFA         UserMFA         `json:"mfa"`
+	Preferences UserPreferences `json:"preferences"`
+	Password    UserPassword
 	// Admin indicates whether the user has administrative privileges.
-	Admin bool `json:"admin" bson:"admin"`
+	Admin bool `json:"admin"`
 }
 
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
-	Username string `json:"username" bson:"username" validate:"required,username"`
-	Email    string `json:"email" bson:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required,username"`
+	Email    string `json:"email" validate:"required,email"`
 	// RecoveryEmail is a custom, non-unique email address that a user can use to recover their account
 	// when they lose access to all other methods. It must never be equal to [UserData.Email].
 	//
 	// NOTE: Recovery email is available as a cloud-only feature and must be ignored in community.
-	RecoveryEmail string `json:"recovery_email" bson:"recovery_email" validate:"omitempty,email"`
+	RecoveryEmail string `json:"recovery_email" validate:"omitempty,email"`
 }
 
 // UserMFA represents the attributes related to MFA for a user.
 type UserMFA struct {
 	// Enabled reports whether MFA is enabled for the user.
-	Enabled bool `json:"enabled" bson:"enabled"`
+	Enabled bool `json:"enabled"`
 	// Secret is the key used for authenticating with the OTP server.
-	Secret string `json:"-" bson:"secret"`
+	Secret string `json:"-"`
 	// RecoveryCodes are recovery tokens that the user can use to regain account access if they lose their MFA device.
-	RecoveryCodes []string `json:"-" bson:"recovery_codes"`
+	RecoveryCodes []string `json:"-"`
 }
 
 type UserPreferences struct {
 	// PreferredNamespace represents the namespace the user most recently authenticated with.
-	PreferredNamespace string `json:"-" bson:"preferred_namespace"`
+	PreferredNamespace string `json:"-"`
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
-	AuthMethods []UserAuthMethod `json:"auth_methods" bson:"auth_methods"`
+	AuthMethods []UserAuthMethod `json:"auth_methods"`
 }
 
 type UserPassword struct {
 	// Plain contains the plain text password.
-	Plain string `json:"password" bson:"-" validate:"required,password"`
+	Plain string `json:"password" validate:"required,password"`
 	// Hash contains the hashed pasword from plain text.
-	Hash string `json:"-" bson:"password"`
+	Hash string `json:"-"`
 }
 
 // HashUserPassword receives a plain password and hash it, returning
@@ -172,7 +172,7 @@ type UserAuthResponse struct {
 type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type UserInfo struct {
