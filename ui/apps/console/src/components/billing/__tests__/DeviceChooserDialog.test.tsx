@@ -280,6 +280,19 @@ describe("DeviceChooserDialog", () => {
         screen.getByRole("button", { name: /accept/i }),
       ).not.toBeDisabled();
     });
+
+    it("renders CheckIcon (heroicons) not an inline custom SVG for the selected-row check", () => {
+      renderDialog();
+      // The selected-row check cell wraps a span with aria-hidden that contains
+      // an SVG. The heroicons CheckIcon uses a different path than the old inline
+      // hand-drawn "M3 8l3.5 3.5L13 5" path.
+      const inlinePath = document.querySelector('path[d="M3 8l3.5 3.5L13 5"]');
+      expect(inlinePath).toBeNull();
+      // CheckIcon from @heroicons/react/24/outline renders an SVG; confirm at
+      // least one SVG check icon is present inside the selected-column cells.
+      const checkSpan = document.querySelector('span[aria-hidden="true"] svg');
+      expect(checkSpan).not.toBeNull();
+    });
   });
 
   // ── Auto-switch to All tab when suggested is empty ───────────────────────────

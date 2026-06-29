@@ -1,4 +1,10 @@
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  EyeIcon,
+  ShieldCheckIcon,
+  WrenchScrewdriverIcon,
+} from "@heroicons/react/24/outline";
+import type { ComponentType, SVGProps } from "react";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { Badge, type BadgeColor } from "@shellhub/design-system/primitives";
@@ -17,17 +23,20 @@ const ROLE_COLOR: Record<string, BadgeColor> = {
 const ROLE_NEUTRAL_STYLE =
   "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border bg-hover-medium text-text-muted border-border";
 
-const ROLE_META: Record<string, { icon: string; summary: string }> = {
+const ROLE_META: Record<
+  string,
+  { icon: ComponentType<SVGProps<SVGSVGElement>>; summary: string }
+> = {
   administrator: {
-    icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z",
+    icon: ShieldCheckIcon,
     summary: "Full access — manage devices, members, keys, and firewall rules",
   },
   operator: {
-    icon: "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085",
+    icon: WrenchScrewdriverIcon,
     summary: "Manage devices and tags, connect via SSH, view sessions",
   },
   observer: {
-    icon: "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
+    icon: EyeIcon,
     summary: "Read-only — connect to devices, view details and sessions",
   },
 };
@@ -74,25 +83,12 @@ export function RoleSelector({
     <RadioGroupField label={label} value={value} onChange={onChange}>
       {ROLES.map((role) => {
         const meta = ROLE_META[role];
+        const { icon: Icon } = meta;
         return (
           <RadioCard
             key={role}
             value={role}
-            icon={
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d={meta.icon}
-                />
-              </svg>
-            }
+            icon={<Icon className="w-4 h-4" />}
             label={role.charAt(0).toUpperCase() + role.slice(1)}
             description={meta.summary}
           />

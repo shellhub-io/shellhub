@@ -8,7 +8,7 @@ import {
   ExclamationCircleIcon,
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
-import { DevicesIcon } from "@/components/icons";
+import { DevicesIcon } from "@shellhub/design-system/primitives";
 import {
   useCreatePublicKey,
   useUpdatePublicKey,
@@ -207,7 +207,6 @@ function KeyDrawer({
           value={name}
           onChange={setName}
           placeholder="Name used to identify the public key"
-
         />
 
         {/* Username access */}

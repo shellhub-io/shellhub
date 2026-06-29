@@ -21,10 +21,12 @@ import {
   NoSymbolIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
 import NumericInput from "@/components/common/fields/NumericInput";
 import { LABEL } from "@/utils/styles";
-import { Button } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  DevicesIcon as DevicesIconComponent,
+} from "@shellhub/design-system/primitives";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;

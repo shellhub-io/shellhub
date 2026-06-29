@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { MembershipInvitation } from "../../../client";
+import type { MembershipInvitation } from "@/client";
 import EditInvitationDrawer from "../EditInvitationDrawer";
 
 /* ------------------------------------------------------------------ */
@@ -13,14 +13,14 @@ import EditInvitationDrawer from "../EditInvitationDrawer";
 
 const mockUpdateMutateAsync = vi.fn();
 
-vi.mock("../../../hooks/useInvitationMutations", () => ({
+vi.mock("@/hooks/useInvitationMutations", () => ({
   useUpdateMembershipInvitation: () => ({
     mutateAsync: mockUpdateMutateAsync,
     isPending: false,
   }),
 }));
 
-vi.mock("../../../components/common/Drawer", () => ({
+vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
     onClose,
@@ -38,7 +38,9 @@ vi.mock("../../../components/common/Drawer", () => ({
     return (
       <div role="dialog" aria-label={title}>
         <h2>{title}</h2>
-        <button type="button" onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
         {children}
         {footer ?? null}
       </div>
@@ -46,7 +48,7 @@ vi.mock("../../../components/common/Drawer", () => ({
   },
 }));
 
-vi.mock("../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
 }));
@@ -138,6 +140,14 @@ describe("EditInvitationDrawer", () => {
       expect(
         screen.getByRole("radio", { name: /operator/i }),
       ).toBeInTheDocument();
+    });
+
+    it("renders heroicon svg components (data-slot=icon) for each role, not raw inline path strings", () => {
+      const { container } = renderDrawer();
+      // Heroicons render with data-slot="icon"; raw inline <svg> elements do not
+      const heroiconSvgs = container.querySelectorAll('svg[data-slot="icon"]');
+      // There are 3 roles: administrator, operator, observer
+      expect(heroiconSvgs).toHaveLength(3);
     });
 
     it("pre-fills role with the invitation's current role", () => {

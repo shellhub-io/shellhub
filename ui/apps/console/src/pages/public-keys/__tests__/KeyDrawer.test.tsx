@@ -108,10 +108,6 @@ vi.mock("@/utils/sshKeys", () => ({
   isPublicKeyValid: vi.fn(() => true),
 }));
 
-vi.mock("@/components/icons", () => ({
-  DevicesIcon: () => <svg data-testid="devices-icon" />,
-}));
-
 const mockCreateMutateAsync = vi.fn();
 const mockUpdateMutateAsync = vi.fn();
 
@@ -229,7 +225,9 @@ describe("KeyDrawer", () => {
 
   describe("filter initialization from editKey", () => {
     it("selects 'all devices' when hostname is '.*'", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*", tags: [] } }) });
+      renderDrawer({
+        editKey: makeKey({ filter: { hostname: ".*", tags: [] } }),
+      });
       // hostname input should not be visible — "all" is selected
       expect(
         screen.queryByPlaceholderText(/e\.g\. \.\*/i),
@@ -237,20 +235,28 @@ describe("KeyDrawer", () => {
     });
 
     it("selects hostname filter when editKey has a non-wildcard hostname", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: "^prod-.*", tags: [] } }) });
-      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue("^prod-.*");
+      renderDrawer({
+        editKey: makeKey({ filter: { hostname: "^prod-.*", tags: [] } }),
+      });
+      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue(
+        "^prod-.*",
+      );
     });
 
     it("selects tags filter and pre-populates tags when editKey has tags", () => {
       renderDrawer({
-        editKey: makeKey({ filter: { tags: [makeTag("production"), makeTag("linux")] } }),
+        editKey: makeKey({
+          filter: { tags: [makeTag("production"), makeTag("linux")] },
+        }),
       });
       expect(screen.getByTestId("tag-production")).toBeInTheDocument();
       expect(screen.getByTestId("tag-linux")).toBeInTheDocument();
     });
 
     it("selects 'all' when editKey has no tags and hostname is '.*'", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*", tags: [] } }) });
+      renderDrawer({
+        editKey: makeKey({ filter: { hostname: ".*", tags: [] } }),
+      });
       // Neither hostname input nor tags should be visible
       expect(
         screen.queryByPlaceholderText(/e\.g\. \.\*/i),
