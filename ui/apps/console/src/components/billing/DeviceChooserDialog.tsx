@@ -7,7 +7,11 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  ExclamationCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
 import DataTable, { type Column } from "../common/DataTable";
 import DistroIcon from "../common/DistroIcon";
@@ -436,19 +440,7 @@ function SuggestedTab({
           aria-hidden="true"
           className="inline-flex items-center justify-center w-4 h-4 rounded border border-primary bg-primary text-white"
         >
-          <svg
-            viewBox="0 0 16 16"
-            className="w-3 h-3"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={3}
-          >
-            <path
-              d="M3 8l3.5 3.5L13 5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CheckIcon className="w-3 h-3" />
         </span>
       ),
     },

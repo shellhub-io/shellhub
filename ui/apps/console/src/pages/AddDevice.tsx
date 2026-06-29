@@ -19,14 +19,18 @@ import {
   SparklesIcon,
   WrenchIcon,
 } from "@heroicons/react/24/outline";
-import { DockerIcon } from "../components/icons";
 import CopyButton from "../components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
 import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
-import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Card,
+  DockerIcon,
+  WindowChrome,
+} from "@shellhub/design-system/primitives";
 
 /* ─── Types ─── */
 type Method =

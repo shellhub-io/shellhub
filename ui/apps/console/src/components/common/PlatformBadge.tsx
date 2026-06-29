@@ -1,6 +1,5 @@
-import { Badge } from "@shellhub/design-system/primitives";
+import { Badge, DockerIcon } from "@shellhub/design-system/primitives";
 import { ServerStackIcon } from "@heroicons/react/24/outline";
-import { DockerIcon } from "../icons";
 
 export default function PlatformBadge({ platform }: { platform: string }) {
   if (platform === "docker") {
