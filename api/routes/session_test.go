@@ -1,12 +1,15 @@
 package routes
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -31,10 +34,12 @@ func TestGetSessionList(t *testing.T) {
 	type Expected struct {
 		expectedSession []models.Session
 		expectedStatus  int
+		expectedCount   int // total count from X-Total-Count header; only checked for 200 responses
 	}
 	cases := []struct {
 		description   string
 		paginator     query.Paginator
+		filter        string
 		headers       map[string]string
 		requiredMocks func()
 		expected      Expected
@@ -55,18 +60,104 @@ func TestGetSessionList(t *testing.T) {
 			},
 		},
 		{
+			// Non-default paginator (Page:2, PerPage:5) distinguishes values
+			// actually bound from the URL from the handler's Normalize() defaults
+			// (Page:1, PerPage:10). If pagination binding regressed the mock
+			// would not match and the test would fail.
 			description: "success when try to searching a session list of a existing session",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			paginator:   query.Paginator{Page: 2, PerPage: 5},
 			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
-					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
 					Return([]models.Session{}, 1, nil).
 					Once()
 			},
 			expected: Expected{
 				expectedSession: []models.Session{},
 				expectedStatus:  http.StatusOK,
+				expectedCount:   1,
+			},
+		},
+		{
+			description: "returns 400 when filter uses a disallowed field",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "username",
+							Operator: "eq",
+							Value:    "johndoe",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusBadRequest,
+			},
+		},
+		{
+			description:   "returns 400 when filter is malformed non-base64",
+			paginator:     query.Paginator{Page: 1, PerPage: 10},
+			filter:        "!!!not-base64!!!",
+			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusBadRequest,
+			},
+		},
+		{
+			description: "returns 200 for a valid allowed filter",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			filter: func() string {
+				filters := []query.Filter{
+					{
+						Type: query.FilterTypeProperty,
+						Params: &query.FilterProperty{
+							Name:     "device_uid",
+							Operator: "eq",
+							Value:    "abc123",
+						},
+					},
+				}
+				b, _ := json.Marshal(filters)
+
+				return base64.StdEncoding.EncodeToString(b)
+			}(),
+			headers: map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {
+				// Assert that the decoded filter is forwarded to the service:
+				// if filter binding or Unmarshal regressed, the MatchedBy
+				// predicate would not match and the test would fail.
+				mock.
+					On("ListSessions", gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
+						if len(req.Filters.Data) != 1 {
+							return false
+						}
+
+						prop, ok := req.Filters.Data[0].Params.(*query.FilterProperty)
+						if !ok {
+							return false
+						}
+
+						return prop.Name == "device_uid" && prop.Operator == "eq" && prop.Value == "abc123"
+					})).
+					Return([]models.Session{}, 1, nil).
+					Once()
+			},
+			expected: Expected{
+				expectedSession: []models.Session{},
+				expectedStatus:  http.StatusOK,
+				expectedCount:   1,
 			},
 		},
 	}
@@ -75,12 +166,17 @@ func TestGetSessionList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			jsonData, err := json.Marshal(tc.paginator)
-			if err != nil {
-				assert.NoError(t, err)
+			rawURL := "/api/sessions"
+			urlVal := url.Values{}
+			urlVal.Set("page", strconv.Itoa(tc.paginator.Page))
+			urlVal.Set("per_page", strconv.Itoa(tc.paginator.PerPage))
+			if tc.filter != "" {
+				urlVal.Set("filter", tc.filter)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/api/sessions", strings.NewReader(string(jsonData)))
+			rawURL += "?" + urlVal.Encode()
+
+			req := httptest.NewRequest(http.MethodGet, rawURL, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			for k, v := range tc.headers {
@@ -99,6 +195,10 @@ func TestGetSessionList(t *testing.T) {
 				assert.ErrorIs(t, io.EOF, err)
 			}
 			assert.Equal(t, tc.expected.expectedSession, session)
+
+			if rec.Result().StatusCode == http.StatusOK {
+				assert.Equal(t, strconv.Itoa(tc.expected.expectedCount), rec.Result().Header.Get("X-Total-Count"))
+			}
 		})
 	}
 

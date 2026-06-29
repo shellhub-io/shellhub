@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/websocket"
@@ -38,6 +40,16 @@ func (h *Handler) GetSessionList(c gateway.Context) error {
 
 	// TODO: normalize is not required when request is privileged
 	req.Paginator.Normalize()
+
+	if err := req.Filters.Unmarshal(); err != nil {
+		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode session list filter")
+
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.SessionFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
 
 	sessions, count, err := h.service.ListSessions(c.Ctx(), req)
 	if err != nil {

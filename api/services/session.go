@@ -13,6 +13,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SessionFilterFields maps each filter field the session list endpoint accepts
+// to the set of operators valid for it.
+//
+// "closed" and "active" are boolean-typed; only the "bool" operator is
+// permitted. Allowing "eq" on a boolean column lets a string value
+// (e.g. "true") bypass validation but fail at the Postgres level with
+// "operator does not exist: boolean = text", producing a 500 instead of 400.
+var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
+	"device_uid": {"eq", "ne"},
+	"closed":     {"bool"},
+	"active":     {"bool"},
+},
+	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
+	// SQL column binding — safe to accept bool-convertible values with eq/ne.
+	// "active" is declared virtual here so that IsVirtualBoolField accurately
+	// reflects the store-layer intercept, even though "active" currently only
+	// allows "bool" (not eq/ne) and the distinction is not yet load-bearing.
+	"active",
+)
+
 type SessionService interface {
 	ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error)
 	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
@@ -29,6 +49,7 @@ func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) 
 		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
 	}
 
+	opts = append(opts, s.store.Options().Match(&req.Filters))
 	opts = append(opts, s.store.Options().Sort(&query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}))
 	opts = append(opts, s.store.Options().Paginate(&req.Paginator))
 

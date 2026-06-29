@@ -1,5 +1,7 @@
 package query
 
+import "strconv"
+
 // Size limits applied to client-supplied filters. Together they bound the
 // cost of serving a malicious filter payload: the outer limit caps the raw
 // request size, the inner limits cap the structural complexity after decode.
@@ -41,28 +43,56 @@ func (s FieldSet) Allows(name string) bool {
 // against it. It lets the handler reject field+operator combinations that
 // the database rejects with a server-side error (e.g. ILIKE on an enum),
 // turning them into a clean HTTP 400 before they reach the store.
-type FieldConstraints map[string]FieldSet
+//
+// A subset of fields may be declared as virtual bool-backed at construction
+// time (see NewFieldConstraints). Virtual fields are intercepted by
+// ParseFilterProperty before any SQL column binding, so they safely accept
+// bool-convertible values with eq/ne. Real boolean columns must NOT be
+// declared virtual unless a corresponding ParseFilterProperty intercept exists.
+type FieldConstraints struct {
+	operators    map[string]FieldSet
+	virtualBools FieldSet
+}
 
 // NewFieldConstraints returns a FieldConstraints initialized with the given
-// field→operators pairs. An empty operators slice means the field is
-// rejected entirely.
-func NewFieldConstraints(entries map[string][]string) FieldConstraints {
-	c := make(FieldConstraints, len(entries))
+// field→operators pairs. An empty operators slice means the field is rejected
+// entirely. virtualBools lists the field names that are virtual bool-backed:
+// they are intercepted by ParseFilterProperty before SQL column binding, so
+// they may accept bool-convertible values with eq/ne. Only fields that have a
+// corresponding ParseFilterProperty intercept should be listed here.
+func NewFieldConstraints(entries map[string][]string, virtualBools ...string) FieldConstraints {
+	operators := make(map[string]FieldSet, len(entries))
 	for name, ops := range entries {
-		c[name] = NewFieldSet(ops...)
+		operators[name] = NewFieldSet(ops...)
 	}
 
-	return c
+	return FieldConstraints{
+		operators:    operators,
+		virtualBools: NewFieldSet(virtualBools...),
+	}
 }
 
 // Allows reports whether operator is valid for the given field name.
 func (c FieldConstraints) Allows(name, operator string) bool {
-	ops, ok := c[name]
+	ops, ok := c.operators[name]
 	if !ok {
 		return false
 	}
 
 	return ops.Allows(operator)
+}
+
+// IsVirtualBoolField reports whether name is a virtual bool-backed field —
+// one explicitly declared as virtual at construction time via NewFieldConstraints
+// and therefore intercepted by ParseFilterProperty before any SQL column binding.
+//
+// Only fields in the virtualBools registry return true. Using the presence of
+// the "bool" operator as a proxy is incorrect: a real boolean column that only
+// allows "bool" (not "eq"/"ne") is safe today, but the moment "eq" is added to
+// it without a ParseFilterProperty intercept, the validator would silently accept
+// bool/float64 values that produce a Postgres type-mismatch 500 at runtime.
+func (c FieldConstraints) IsVirtualBoolField(name string) bool {
+	return c.virtualBools.Allows(name)
 }
 
 // ValidateSorter returns [ErrSorterFieldInvalid] if the sort field is set and
@@ -110,6 +140,27 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 		if !isPrimitive(prop.Value) || !isValueWithinLimits(prop.Value) {
 			return ErrFilterPropertyInvalid
 		}
+
+		if prop.Operator == "bool" && !isBoolConvertible(prop.Value) {
+			return ErrFilterPropertyInvalid
+		}
+
+		if prop.Operator == "eq" || prop.Operator == "ne" {
+			// Virtual bool-backed fields (see IsVirtualBoolField) are intercepted by
+			// ParseFilterProperty before any SQL column binding, so they accept any
+			// bool-convertible value (bool, float64, parseable string).
+			// Regular text-column fields must receive a string to prevent a
+			// Postgres type-mismatch 500.
+			if constraints.IsVirtualBoolField(prop.Name) {
+				if !isBoolConvertible(prop.Value) {
+					return ErrFilterPropertyInvalid
+				}
+			} else {
+				if _, ok := prop.Value.(string); !ok {
+					return ErrFilterPropertyInvalid
+				}
+			}
+		}
 	}
 
 	return nil
@@ -135,6 +186,25 @@ func isValueWithinLimits(v interface{}) bool {
 		return true
 	default:
 		return true
+	}
+}
+
+// isBoolConvertible reports whether v can be converted to a boolean value by
+// the filter store layer. It accepts bool values directly, float64 values
+// (JSON numbers always decode to float64; 0 is false, any other value is true),
+// and strings accepted by [strconv.ParseBool].
+func isBoolConvertible(v interface{}) bool {
+	switch x := v.(type) {
+	case bool:
+		return true
+	case float64:
+		return true
+	case string:
+		_, err := strconv.ParseBool(x)
+
+		return err == nil
+	default:
+		return false
 	}
 }
 

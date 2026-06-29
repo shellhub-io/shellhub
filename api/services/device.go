@@ -31,7 +31,11 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
 	"custom_fields": {"contains"},
-})
+},
+	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
+	// SQL column binding — safe to accept bool-convertible values with eq/ne.
+	"online",
+)
 
 // DeviceSortFields is the set of field names accepted in the sort_by query
 // parameter when listing devices.

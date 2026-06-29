@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"net"
+	"reflect"
 	"testing"
 
 	goerrors "errors"
@@ -32,6 +33,49 @@ func TestListSessions(t *testing.T) {
 		err      error
 	}
 
+	// matchFilters returns a MatchedBy matcher that asserts the *query.Filters
+	// passed to Match carries exactly the specified filter data. This catches
+	// regressions where the service drops or mangles req.Filters before
+	// forwarding it to the store.
+	matchFilters := func(data []query.Filter) interface{} {
+		return mock.MatchedBy(func(f *query.Filters) bool {
+			return reflect.DeepEqual(f.Data, data)
+		})
+	}
+
+	deviceUIDFilterData := []query.Filter{
+		{
+			Type: query.FilterTypeProperty,
+			Params: &query.FilterProperty{
+				Name:     "device_uid",
+				Operator: "eq",
+				Value:    "uid1",
+			},
+		},
+	}
+
+	closedFilterData := []query.Filter{
+		{
+			Type: query.FilterTypeProperty,
+			Params: &query.FilterProperty{
+				Name:     "closed",
+				Operator: "bool",
+				Value:    true,
+			},
+		},
+	}
+
+	activeFilterData := []query.Filter{
+		{
+			Type: query.FilterTypeProperty,
+			Params: &query.FilterProperty{
+				Name:     "active",
+				Operator: "bool",
+				Value:    true,
+			},
+		},
+	}
+
 	cases := []struct {
 		description   string
 		req           *requests.ListSessions
@@ -47,6 +91,10 @@ func TestListSessions(t *testing.T) {
 			requiredMocks: func() {
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.AnythingOfType("*query.Filters")).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -83,6 +131,10 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Match", mock.AnythingOfType("*query.Filters")).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
@@ -105,6 +157,105 @@ func TestListSessions(t *testing.T) {
 					{UID: "uid3"},
 				}),
 				err: nil,
+			},
+		},
+		{
+			description: "succeeds with device_uid filter",
+			req: &requests.ListSessions{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{Data: deviceUIDFilterData},
+			},
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", matchFilters(deviceUIDFilterData)).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					Return([]models.Session{{UID: "uid1"}}, 1, nil).Once()
+			},
+			expected: Expected{
+				sessions: []models.Session{{UID: "uid1"}},
+				count:    1,
+				err:      nil,
+			},
+		},
+		{
+			description: "succeeds with closed filter",
+			req: &requests.ListSessions{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{Data: closedFilterData},
+			},
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", matchFilters(closedFilterData)).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					Return([]models.Session{}, 0, nil).Once()
+			},
+			expected: Expected{
+				sessions: []models.Session{},
+				count:    0,
+				err:      nil,
+			},
+		},
+		{
+			description: "succeeds with active filter",
+			req: &requests.ListSessions{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{Data: activeFilterData},
+			},
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", matchFilters(activeFilterData)).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					Return([]models.Session{}, 0, nil).Once()
+			},
+			expected: Expected{
+				sessions: []models.Session{},
+				count:    0,
+				err:      nil,
 			},
 		},
 	}
