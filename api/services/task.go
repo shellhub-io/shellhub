@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"maps"
 	"slices"
 	"time"
 
@@ -151,7 +152,10 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			}
 		}
 
-		for tenantID, deletedCount := range deletedPerTenant {
+		// Iterate tenants in a stable order so the decrement sequence is
+		// deterministic (map iteration order is randomized in Go).
+		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
+			deletedCount := deletedPerTenant[tenantID]
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusRemoved, -deletedCount); err != nil {
 				log.WithFields(log.Fields{"tenant_id": tenantID, "deleted_count": deletedCount, "error": err}).
 					Error("Failed to decrement removed device count for namespace")
