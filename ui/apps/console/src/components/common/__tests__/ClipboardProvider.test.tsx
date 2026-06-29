@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor, act } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 
@@ -52,10 +59,20 @@ function renderWithProvider(text?: string) {
 describe("ClipboardProvider / useCopy", () => {
   describe("throws outside provider", () => {
     it("throws when used outside ClipboardProvider", () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      // React reports the thrown render error through jsdom's event dispatch
+      // path, which bypasses the console.error spy and prints a stack trace.
+      // Swallow that one error event so the CI log stays clean.
+      const suppressError = (event: ErrorEvent) => event.preventDefault();
+      window.addEventListener("error", suppressError);
+
       expect(() => render(<CopyConsumer />)).toThrow(
         "useCopy must be used within <ClipboardProvider>",
       );
+
+      window.removeEventListener("error", suppressError);
       consoleSpy.mockRestore();
     });
   });
