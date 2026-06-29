@@ -1,0 +1,5 @@
+# Playwright auth state (contains a session token — never commit)
+.state.json
+
+# Local deps if installed here
+node_modules
