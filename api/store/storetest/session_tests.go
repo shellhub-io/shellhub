@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -135,6 +136,225 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 5, count)
 		assert.Len(t, sessions, 1)
+	})
+
+	// Seed shared across the four filter subtests below.
+	//
+	// Layout:
+	//   device1: sess_a (active, open), sess_b (closed, inactive – via ActiveSessionDelete)
+	//   device2: sess_c (active, open), sess_d (inactive, open – never had an active-sessions row)
+	//
+	// Resulting counts per filter:
+	//   device_uid = device1  → sess_a + sess_b = 2
+	//   closed = true         → sess_b            = 1
+	//   closed = false        → sess_a, sess_c, sess_d = 3
+	//   active = true         → sess_a, sess_c    = 2  (rows exist in active_sessions)
+	//   active = false        → sess_b, sess_d    = 2  (no active_sessions row)
+	t.Run("filters by device_uid eq", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: one active, one closed
+		sessA := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		require.NoError(t, st.ActiveSessionDelete(ctx, sessB)) // closes sessB
+
+		// device2: one active, one inactive-but-open
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		_ = sessA
+
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "device_uid",
+					Operator: "eq",
+					Value:    string(device1),
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
+		for _, s := range sessions {
+			assert.Equal(t, device1, s.DeviceUID)
+		}
+	})
+
+	t.Run("filters by device_uid ne", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: two sessions
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+
+		// device2: two sessions
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		// "ne device1" should return only device2 sessions.
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "device_uid",
+					Operator: "ne",
+					Value:    string(device1),
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
+
+		for _, s := range sessions {
+			assert.Equal(t, device2, s.DeviceUID)
+		}
+	})
+
+	t.Run("filters by closed bool true", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: one active/open, one closed
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+
+		// device2: one active, one inactive-open
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "closed",
+					Operator: "bool",
+					Value:    true,
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, sessions, 1)
+		for _, s := range sessions {
+			assert.True(t, s.Closed)
+		}
+	})
+
+	t.Run("filters by closed bool false", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: one active/open, one closed
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+
+		// device2: one active, one inactive-open
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "closed",
+					Operator: "bool",
+					Value:    false,
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+		assert.Len(t, sessions, 3)
+		for _, s := range sessions {
+			assert.False(t, s.Closed)
+		}
+	})
+
+	t.Run("filters by active bool true", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: one active/open, one closed (inactive after delete)
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+
+		// device2: one active, one inactive-open
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "active",
+					Operator: "bool",
+					Value:    true,
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Greater(t, count, 0)
+		assert.NotEmpty(t, sessions)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
+		for _, s := range sessions {
+			assert.True(t, s.Active)
+		}
+	})
+
+	t.Run("filters by active bool false", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		device1 := s.CreateDevice(t)
+		device2 := s.CreateDevice(t)
+
+		// device1: one active/open, one closed (removed from active_sessions via ActiveSessionDelete)
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
+		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
+
+		// device2: one active, one inactive-open (never had an active_sessions row)
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
+
+		// The NOT EXISTS correlated subquery on active_sessions.session_id must
+		// match only sessions without an active_sessions row (sess_b and sess_d).
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
+					Name:     "active",
+					Operator: "bool",
+					Value:    false,
+				}},
+			}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Greater(t, count, 0)
+		assert.NotEmpty(t, sessions)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
+		for _, s := range sessions {
+			assert.False(t, s.Active)
+		}
 	})
 }
 
@@ -381,7 +601,7 @@ func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
 
 		err := st.ActiveSessionUpdate(ctx, &models.ActiveSession{
 			UID:      "nonexistent",
-			LastSeen: time.Now(),
+			LastSeen: clock.Now(),
 		})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -417,7 +637,7 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 		event := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: time.Now(),
+			Timestamp: clock.Now(),
 			Data:      map[string]interface{}{"output": "test output"},
 			Seat:      1,
 		}
@@ -437,7 +657,7 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: time.Now(),
+				Timestamp: clock.Now(),
 				Data:      map[string]interface{}{"output": "test output"},
 				Seat:      i,
 			}
@@ -473,7 +693,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: time.Now(),
+				Timestamp: clock.Now(),
 				Data:      map[string]interface{}{"output": "test output"},
 				Seat:      1,
 			}
@@ -501,7 +721,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 				event := &models.SessionEvent{
 					Session:   string(sessionUID),
 					Type:      models.SessionEventTypePtyOutput,
-					Timestamp: time.Now(),
+					Timestamp: clock.Now(),
 					Data:      map[string]interface{}{"output": "test output"},
 					Seat:      seat,
 				}
@@ -528,7 +748,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		event1 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: time.Now(),
+			Timestamp: clock.Now(),
 			Data:      map[string]interface{}{"output": "test output"},
 			Seat:      1,
 		}
@@ -536,7 +756,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		event2 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
-			Timestamp: time.Now(),
+			Timestamp: clock.Now(),
 			Data:      map[string]interface{}{"request": "test request"},
 			Seat:      1,
 		}
@@ -578,7 +798,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: time.Now(),
+				Timestamp: clock.Now(),
 				Data:      map[string]interface{}{"output": "test output"},
 				Seat:      1,
 			}
@@ -609,7 +829,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: time.Now(),
+				Timestamp: clock.Now(),
 				Data:      map[string]interface{}{"output": "test output"},
 				Seat:      seat,
 			}
@@ -645,7 +865,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		event1 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: time.Now(),
+			Timestamp: clock.Now(),
 			Data:      map[string]interface{}{"output": "test output"},
 			Seat:      1,
 		}
@@ -653,7 +873,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		event2 := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
-			Timestamp: time.Now(),
+			Timestamp: clock.Now(),
 			Data:      map[string]interface{}{"request": "test request"},
 			Seat:      1,
 		}

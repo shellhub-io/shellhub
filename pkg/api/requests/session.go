@@ -15,6 +15,7 @@ type SessionIDParam struct {
 type ListSessions struct {
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
+	query.Filters
 }
 
 // SessionGet is the structure to represent the request data for get session endpoint.

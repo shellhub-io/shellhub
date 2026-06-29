@@ -9,6 +9,7 @@ get:
     - jwt: []
     - api-key: []
   parameters:
+    - $ref: ../components/parameters/query/filterQuery.yaml
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
   responses:
@@ -23,6 +24,8 @@ get:
             type: array
             items:
               $ref: ../components/schemas/session.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '500':

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/uptrace/bun"
 )
 
@@ -40,14 +41,19 @@ var legacyMongoFieldMapping = map[string]string{
 	"position.latitude":  "latitude",
 }
 
-// mapColumnFromLegacyMongo translates MongoDB-style nested field paths to PostgreSQL column names.
-// See legacyMongoFieldMapping for details. Returns the original column if no mapping exists.
-func mapColumnFromLegacyMongo(column string) string {
-	if mapped, ok := legacyMongoFieldMapping[column]; ok {
+// mapFieldToColumn translates a filter field name to the corresponding PostgreSQL column name.
+// It falls back to legacyMongoFieldMapping for Mongo-compatible field paths.
+// Returns the original field name if no mapping exists.
+//
+// NOTE: the device_uid→device_id alias is NOT applied here because it is
+// specific to the sessions table.  It is handled in ParseFilterProperty when
+// tableAlias == "session" so it cannot accidentally affect other filter contexts.
+func mapFieldToColumn(field string) string {
+	if mapped, ok := legacyMongoFieldMapping[field]; ok {
 		return mapped
 	}
 
-	return column
+	return field
 }
 
 // TODO: remove when MongoDB support is dropped.
@@ -59,6 +65,9 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 	switch v := value.(type) {
 	case bool:
 		isOnline = v
+	case float64:
+		// JSON numbers always decode to float64; nonzero means online.
+		isOnline = v != 0
 	case string:
 		var err error
 		isOnline, err = strconv.ParseBool(v)
@@ -69,13 +78,66 @@ func fromOnlineFilter(value any) (string, []any, bool, error) {
 		return "", nil, false, ErrUnsupportedBoolType
 	}
 
-	threshold := time.Now().Add(-2 * time.Minute)
+	threshold := clock.Now().Add(-2 * time.Minute)
 
 	if isOnline {
 		return `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`, []any{threshold}, true, nil
 	}
 
 	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
+}
+
+// fromActiveFilter returns an EXISTS or NOT EXISTS correlated subquery on active_sessions.
+//
+// When tableAlias is "session" (session-list context) the subquery correlates on the
+// current session row's id, because the outer query is already iterating sessions:
+//
+//	EXISTS  (SELECT 1 FROM "active_sessions" WHERE "active_sessions"."session_id" = "session"."id")
+//	NOT EXISTS ...
+//
+// In all other contexts (e.g. device-list) the subquery checks whether any session for
+// the current device row has an active_sessions entry:
+//
+//	EXISTS  (SELECT 1 FROM "active_sessions"
+//	         JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id"
+//	         WHERE "sessions"."device_id" = "device"."id")
+func fromActiveFilter(value any, tableAlias string) (string, []any, bool, error) {
+	var isActive bool
+
+	switch v := value.(type) {
+	case bool:
+		isActive = v
+	case float64:
+		isActive = v != 0
+	case string:
+		var err error
+		isActive, err = strconv.ParseBool(v)
+		if err != nil {
+			return "", nil, false, err
+		}
+	default:
+		return "", nil, false, ErrUnsupportedBoolType
+	}
+
+	if tableAlias == "session" {
+		// Session-list context: correlate directly on the session's own id.
+		const sub = `(SELECT 1 FROM "active_sessions" WHERE "active_sessions"."session_id" = "session"."id")`
+
+		if isActive {
+			return `EXISTS ` + sub, nil, true, nil
+		}
+
+		return `NOT EXISTS ` + sub, nil, true, nil
+	}
+
+	// Device-list (and other) contexts: correlate via the sessions join.
+	const subquery = `(SELECT 1 FROM "active_sessions" JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id" WHERE "sessions"."device_id" = "device"."id")`
+
+	if isActive {
+		return `EXISTS ` + subquery, nil, true, nil
+	}
+
+	return `NOT EXISTS ` + subquery, nil, true, nil
 }
 
 // ParseFilterOperator converts a filter operator to its SQL representation. Supported operators are "AND" and "OR".
@@ -93,6 +155,22 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	// Handle virtual fields that don't exist as real columns (see fromOnlineFilter for details)
 	if fp.Name == "online" {
 		return fromOnlineFilter(fp.Value)
+	}
+
+	// active is a virtual field backed by the active_sessions table (see fromActiveFilter for details)
+	if fp.Name == "active" {
+		return fromActiveFilter(fp.Value, tableAlias)
+	}
+
+	// In the session context "device_uid" is a user-facing alias for the actual
+	// "device_id" column in the sessions table.  The mapping is applied here
+	// (not in mapFieldToColumn) so it is scoped to sessions only and cannot
+	// silently affect other filter contexts that happen to expose a device_uid
+	// field but use a different column name or no column at all.
+	if tableAlias == "session" && fp.Name == "device_uid" {
+		adjusted := *fp
+		adjusted.Name = "device_id"
+		fp = &adjusted
 	}
 
 	// tags.name requires an EXISTS subquery through the device_tags junction table,
@@ -174,7 +252,7 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 // for case-insensitive substring matching. For arrays, it uses the @> (contains) operator to check if the column
 // contains all the values in the array. Returns SQL condition string, arguments array, and error if any.
 func fromContains(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapColumnFromLegacyMongo(column)
+	column = mapFieldToColumn(column)
 
 	switch v := value.(type) {
 	case string:
@@ -189,13 +267,13 @@ func fromContains(column string, value any, tableAlias string) (string, []any, e
 // fromEq converts an "eq" (equals) JSON expression to an SQL expression using =.
 // Returns SQL condition string, arguments array, and error if any.
 func fromEq(column string, value any, tableAlias string) (string, []any, error) {
-	return "? = ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), value}, nil
+	return "? = ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), value}, nil
 }
 
-// fromBool converts a "bool" JSON expression to an SQL expression. It handles various input types (int, string, bool)
-// and converts them to boolean values.
+// fromBool converts a "bool" JSON expression to an SQL expression. It handles various input types (int, float64,
+// string, bool) and converts them to boolean values.
 //
-// - For integers: 0 is false, anything else is true
+// - For integers or float64: 0 is false, anything else is true
 //
 // - For strings: uses strconv.ParseBool
 //
@@ -207,6 +285,8 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 
 	switch v := value.(type) {
 	case int:
+		boolValue = v != 0
+	case float64:
 		boolValue = v != 0
 	case string:
 		var err error
@@ -220,14 +300,14 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 		return "", nil, ErrUnsupportedBoolType
 	}
 
-	return "? = ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), boolValue}, nil
+	return "? = ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), boolValue}, nil
 }
 
 // fromGt converts a "gt" (greater than) JSON expression to an SQL expression using >. It handles various numeric types
 // (int, float, etc.) and string representations of numbers. For strings, it attempts to convert to int first, then to
 // float if int conversion fails. Returns SQL condition string, arguments array, and error if any.
 func fromGt(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapColumnFromLegacyMongo(column)
+	column = mapFieldToColumn(column)
 
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
@@ -255,7 +335,7 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 // fromLt converts a "lt" (less than) JSON expression to an SQL expression using <. It handles numeric types,
 // strings, and time.Time values. Returns SQL condition string, arguments array, and error if any.
 func fromLt(column string, value any, tableAlias string) (string, []any, error) {
-	column = mapColumnFromLegacyMongo(column)
+	column = mapFieldToColumn(column)
 
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
@@ -283,7 +363,7 @@ func fromLt(column string, value any, tableAlias string) (string, []any, error) 
 // fromNe converts a "ne" (not equals) JSON expression to an SQL expression using <>. Returns SQL condition string,
 // arguments array, and error if any.
 func fromNe(column string, value any, tableAlias string) (string, []any, error) {
-	return "? <> ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), value}, nil
+	return "? <> ?", []any{qualifyColumn(mapFieldToColumn(column), tableAlias), value}, nil
 }
 
 // fromCustomFieldsFilter searches across all values of the custom_fields JSONB column.
