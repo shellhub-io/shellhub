@@ -6,7 +6,7 @@ import {
   validatePrivateKey,
   getFingerprint,
   getAlgorithm,
-} from "@/utils/ssh-keys";
+} from "@/utils/sshKeys";
 import Drawer from "@/components/common/Drawer";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import InputField from "@/components/common/fields/InputField";

@@ -4,7 +4,7 @@ import {
   validatePrivateKey,
   getFingerprint,
   generateSignature,
-} from "../ssh-keys";
+} from "../sshKeys";
 
 // Real keys generated with ssh-keygen for test purposes.
 // These keys are not used anywhere — they are test fixtures only.

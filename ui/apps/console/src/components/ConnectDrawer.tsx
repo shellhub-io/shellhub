@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTerminalStore } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
-import { getFingerprint, validatePrivateKey } from "../utils/ssh-keys";
+import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
