@@ -111,7 +111,6 @@ export default function MfaResetComplete() {
           Enter the codes from both emails to complete the MFA reset.
         </p>
       </div>
-
       {/* Form Card */}
       <div
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
@@ -134,7 +133,9 @@ export default function MfaResetComplete() {
               {otpMain.code.map((char, index) => (
                 <input
                   key={index}
-                  ref={(el) => (otpMain.inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    (otpMain.inputRefs.current[index] = el);
+                  }}
                   type="text"
                   maxLength={1}
                   value={char}
@@ -164,7 +165,9 @@ export default function MfaResetComplete() {
               {otpRecovery.code.map((char, index) => (
                 <input
                   key={index}
-                  ref={(el) => (otpRecovery.inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    (otpRecovery.inputRefs.current[index] = el);
+                  }}
                   type="text"
                   maxLength={1}
                   value={char}
@@ -195,7 +198,6 @@ export default function MfaResetComplete() {
           </Button>
         </form>
       </div>
-
       {/* Info Note */}
       <div
         className="w-full max-w-sm mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in"
@@ -207,7 +209,6 @@ export default function MfaResetComplete() {
           addresses. Codes expire after 24 hours.
         </p>
       </div>
-
       <AuthFooterLinks />
     </div>
   );

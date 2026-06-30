@@ -86,7 +86,7 @@ export function SidebarMobileDrawer({
       aria-label="Navigation menu"
       className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
       onKeyDown={onKeyDown}
-      {...(!open && { inert: "" })}
+      {...(!open && { inert: true })}
     >
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${

@@ -33,8 +33,8 @@ const RECENT_LIMIT = 5;
 export interface CommandPaletteViewModel {
   open: boolean;
   // Refs the JSX attaches; the hook reads `.current` only inside effects.
-  inputRef: React.RefObject<HTMLInputElement>;
-  listRef: React.RefObject<HTMLDivElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  listRef: React.RefObject<HTMLDivElement | null>;
   // Derived view data (computed during render).
   query: string;
   drillDevice: NormalizedDevice | null;

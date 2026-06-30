@@ -4,7 +4,7 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 import { LISTBOX_ID, icons } from "./items";
 
 interface PaletteHeaderProps {
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   query: string;
   drillDevice: NormalizedDevice | null;
   commandMode: boolean;

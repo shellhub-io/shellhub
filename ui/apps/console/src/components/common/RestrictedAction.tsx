@@ -39,7 +39,7 @@ export default function RestrictedAction({
       className="inline-flex cursor-not-allowed"
     >
       {/* inert blocks all interaction (pointer and keyboard) with children */}
-      <span className="pointer-events-none opacity-50" {...{ inert: "" }}>
+      <span className="pointer-events-none opacity-50" inert>
         {children}
       </span>
     </span>
