@@ -25,7 +25,7 @@ import {
   getLicenseAlertConfig,
 } from "@/utils/license";
 import type { GetLicenseResponse } from "@/client/types.gen";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;

@@ -36,9 +36,9 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import PageLoader from "@/components/common/PageLoader";
-import Pagination from "@/components/common/Pagination";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import { Pagination } from "@shellhub/design-system/components";
 
 /* ─── Constants ─── */
 

@@ -11,15 +11,15 @@ vi.mock("@/hooks/useAdminFirewallRules", () => ({
 
 // Capture DataTable props on every render so we can assert pagination suppression.
 const capturedDataTableProps: Record<string, unknown>[] = [];
-vi.mock("@/components/common/DataTable", async (importOriginal) => {
+vi.mock("@shellhub/design-system/components", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@/components/common/DataTable")>();
+    await importOriginal<typeof import("@shellhub/design-system/components")>();
   return {
     ...actual,
-    default: (props: Record<string, unknown>) => {
+    DataTable: (props: Record<string, unknown>) => {
       capturedDataTableProps.push({ ...props });
       // Render the real DataTable so existing tests keep working.
-      return actual.default(props as unknown as Parameters<typeof actual.default>[0]);
+      return actual.DataTable(props as unknown as Parameters<typeof actual.DataTable>[0]);
     },
   };
 });

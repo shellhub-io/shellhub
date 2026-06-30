@@ -10,7 +10,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
 import { useRemoveMember } from "@/hooks/useMemberMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import { getConfig } from "@/env";
 import { RoleBadge } from "./constants";
 import { initials } from "./helpers";

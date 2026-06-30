@@ -9,7 +9,7 @@ import {
 } from "@/hooks/useAdminDevices";
 import type { DeviceStatus } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SearchField from "@/components/common/fields/SearchField";
 import DistroIcon from "@/components/common/DistroIcon";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";

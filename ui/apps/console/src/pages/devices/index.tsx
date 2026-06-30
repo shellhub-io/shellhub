@@ -15,7 +15,7 @@ import CopyButton from "@/components/common/CopyButton";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import OnlineDot from "@/components/common/OnlineDot";
 import LastSeenCell from "@/components/common/LastSeenCell";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";

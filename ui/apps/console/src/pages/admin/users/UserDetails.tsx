@@ -18,7 +18,7 @@ import EditUserDrawer from "./EditUserDrawer";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import {
   Badge,
   Button,

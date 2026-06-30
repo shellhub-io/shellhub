@@ -10,7 +10,7 @@ import {
 import type { MembershipInvitation } from "@/client";
 import { isSdkError } from "@/api/errors";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDateShort } from "@/utils/date";
 import { useNamespaceInvitations } from "@/hooks/useInvitations";

@@ -7,7 +7,7 @@ import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import InputField from "@/components/common/fields/InputField";
 import FieldLabel from "@/components/common/fields/FieldLabel";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Button, Callout, Card } from "@shellhub/design-system/primitives";
 
 const TITLE_MAX = 90;

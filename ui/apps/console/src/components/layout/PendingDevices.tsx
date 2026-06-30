@@ -11,7 +11,7 @@ import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 
 export default function PendingDevices() {

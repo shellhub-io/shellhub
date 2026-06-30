@@ -12,7 +12,7 @@ import CopyButton from "@/components/common/CopyButton";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
 import { formatDateFull } from "@/utils/date";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 const LABEL =

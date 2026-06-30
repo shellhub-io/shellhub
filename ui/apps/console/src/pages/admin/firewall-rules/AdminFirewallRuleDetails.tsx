@@ -11,7 +11,7 @@ import ActiveBadge from "@/components/common/ActiveBadge";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import FilterBadge from "@/components/common/FilterBadge";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Card } from "@shellhub/design-system/primitives";
 
 const LABEL =

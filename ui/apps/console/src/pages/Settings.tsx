@@ -34,7 +34,7 @@ import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 

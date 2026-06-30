@@ -24,7 +24,7 @@ import {
   isVaultServerEnabled,
   isVaultSyncPromoDismissed,
 } from "@/utils/vault-backend-factory";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SearchField from "@/components/common/fields/SearchField";
 import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";

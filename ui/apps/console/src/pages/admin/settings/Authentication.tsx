@@ -13,7 +13,7 @@ import { isSdkError } from "@/api/errors";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Button, Callout, Card } from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import DataTable, { type Column } from "../DataTable";
+import { DataTable, type Column } from "../components/DataTable";
 
 // ---------------------------------------------------------------------------
 // Test type and fixtures
@@ -135,9 +135,9 @@ describe("DataTable", () => {
       renderTable({
         isLoading: true,
         data: [],
-        loadingMessage: "Fetching data\u2026",
+        loadingMessage: "Fetching data…",
       });
-      expect(screen.getByText("Fetching data\u2026")).toBeInTheDocument();
+      expect(screen.getByText("Fetching data…")).toBeInTheDocument();
     });
 
     it("does NOT show spinner when isLoading is true but data is non-empty", () => {

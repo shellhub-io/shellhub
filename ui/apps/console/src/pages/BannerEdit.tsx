@@ -8,7 +8,7 @@ import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import { Button } from "@shellhub/design-system/primitives";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 
 const MAX_LENGTH = 4096;
 

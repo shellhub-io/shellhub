@@ -13,7 +13,7 @@ import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import EmptyState from "@/components/common/EmptyState";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";

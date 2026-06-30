@@ -10,7 +10,7 @@ import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { useTableSort } from "@/hooks/useTableSort";
 import { type ApiKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { ExpiredBadge, RoleBadge } from "./constants";
 import { isExpired } from "./helpers";

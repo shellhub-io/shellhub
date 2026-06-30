@@ -22,7 +22,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { formatRelative } from "@/utils/date";
 import { RoleBadge } from "@/pages/team/constants";
 import { isInvitationExpired } from "@/utils/invitations";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Button } from "@shellhub/design-system/primitives";
 
 function InvitationCard({

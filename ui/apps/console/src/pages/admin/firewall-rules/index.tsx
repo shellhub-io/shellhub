@@ -6,7 +6,7 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import ActiveBadge from "@/components/common/ActiveBadge";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import SearchField from "@/components/common/fields/SearchField";

@@ -13,7 +13,7 @@ import { useSessionRecording } from "@/hooks/useSessionRecording";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SessionPlayerDialog from "./SessionPlayerDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";

@@ -11,7 +11,7 @@ import PageHeader from "@/components/common/PageHeader";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
 import CopyButton from "@/components/common/CopyButton";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SearchField from "@/components/common/fields/SearchField";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";

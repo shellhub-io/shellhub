@@ -33,7 +33,7 @@ import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
 import BillingIcon from "./BillingIcon";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 
 const ELEMENTS_OPTIONS: StripeElementsOptions = {
   appearance: { theme: "night" },

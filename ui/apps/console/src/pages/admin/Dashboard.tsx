@@ -14,14 +14,14 @@ import {
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import DeviceChip from "@/components/common/DeviceChip";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatDate } from "@/utils/date";
 import { Card } from "@shellhub/design-system/primitives";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 
 export default function AdminDashboard() {
   const {

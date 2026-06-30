@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import PageHeader from "@/components/common/PageHeader";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import { formatDateShort } from "@/utils/date";
 import type { AnnouncementShort } from "@/client";

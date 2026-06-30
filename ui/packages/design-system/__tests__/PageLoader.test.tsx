@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "../components/PageLoader";
 
 describe("PageLoader", () => {
   it("renders a single status live region announced by the spinner's aria-label", () => {

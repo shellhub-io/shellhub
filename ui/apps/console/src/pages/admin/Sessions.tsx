@@ -9,7 +9,7 @@ import { Callout } from "@shellhub/design-system/primitives";
 import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import DeviceChip from "@/components/common/DeviceChip";
 import { formatDateFull } from "@/utils/date";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";

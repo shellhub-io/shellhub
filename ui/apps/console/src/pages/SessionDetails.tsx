@@ -34,7 +34,7 @@ import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
 import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import {
   Badge,

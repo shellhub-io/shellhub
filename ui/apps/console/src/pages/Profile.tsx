@@ -31,7 +31,7 @@ import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
 import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
 import { hasMfaSupport } from "../utils/features";
 import { Button } from "@shellhub/design-system/primitives";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 

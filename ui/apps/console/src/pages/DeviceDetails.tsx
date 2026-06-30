@@ -22,7 +22,7 @@ import PlatformBadge from "../components/common/PlatformBadge";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import InfoItem from "./devices/InfoItem";
 import TagsSection from "./devices/TagsSection";
 import RenameSection from "./devices/RenameSection";

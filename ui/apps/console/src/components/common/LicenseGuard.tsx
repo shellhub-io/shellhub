@@ -1,6 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 
 export default function LicenseGuard() {
   const { isLoading, isError, isExpired } = useAdminLicense();

@@ -14,7 +14,7 @@ import DistroIcon from "@/components/common/DistroIcon";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatDateFull, formatRelative } from "@/utils/date";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Card } from "@shellhub/design-system/primitives";
 
 const LABEL =

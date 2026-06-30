@@ -13,7 +13,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import SearchField from "@/components/common/fields/SearchField";
 import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";

@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import BaseDialog from "../common/BaseDialog";
-import DataTable, { type Column } from "../common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import DistroIcon from "../common/DistroIcon";
 import OnlineDot from "../common/OnlineDot";
 import LastSeenCell from "../common/LastSeenCell";

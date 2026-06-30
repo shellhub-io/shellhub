@@ -1,4 +1,4 @@
-import { Spinner, type SpinnerSize } from "@shellhub/design-system/primitives";
+import { Spinner, type SpinnerSize } from "../primitives";
 
 type Padding = "none" | "sm" | "md" | "lg" | "fill";
 
@@ -27,7 +27,7 @@ const PADDING: Record<Padding, string> = {
   fill: "flex-1",
 };
 
-export default function PageLoader({
+export function PageLoader({
   label,
   size,
   showLabel = false,

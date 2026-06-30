@@ -10,12 +10,12 @@ import {
 import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import {
   Badge,
   Button,

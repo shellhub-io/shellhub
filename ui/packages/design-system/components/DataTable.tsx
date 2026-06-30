@@ -4,10 +4,10 @@ import {
   ChevronDownIcon,
   ChevronUpDownIcon,
 } from "@heroicons/react/24/outline";
-import { Card } from "@shellhub/design-system/primitives";
-import { cn } from "@/utils/cn";
-import Pagination from "./Pagination";
-import PageLoader from "@/components/common/PageLoader";
+import { Card } from "../primitives";
+import { cn } from "../primitives/cn";
+import { Pagination } from "./Pagination";
+import { PageLoader } from "./PageLoader";
 
 const TH_CLASS =
   "px-4 py-3 text-left text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted whitespace-nowrap";
@@ -15,6 +15,7 @@ const TH_CLASS =
 export interface Column<T> {
   key: string;
   header: string;
+  /** Additional class names merged onto the <th> via tailwind-merge. */
   headerClassName?: string;
   sortable?: boolean;
   render: (row: T) => ReactNode;
@@ -38,6 +39,7 @@ export interface DataTableProps<T> {
   onSort?: (field: string) => void;
 
   onRowClick?: (row: T) => void;
+  /** Additional class names merged onto each <tr> via tailwind-merge. */
   rowClassName?: (row: T) => string | undefined;
 
   isLoading?: boolean;
@@ -94,7 +96,7 @@ function getAriaSort(
   return "none";
 }
 
-export default function DataTable<T>({
+export function DataTable<T>({
   columns,
   data,
   rowKey,

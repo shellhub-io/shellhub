@@ -9,7 +9,7 @@ import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import PageLoader from "@/components/common/PageLoader";
+import { PageLoader } from "@shellhub/design-system/components";
 import { Card } from "@shellhub/design-system/primitives";
 
 function Field({

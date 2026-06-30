@@ -18,7 +18,7 @@ import StatCard from "@/components/common/StatCard";
 import WelcomeScreen from "@/components/common/WelcomeScreen";
 import CopyButton from "@/components/common/CopyButton";
 import DeviceChip from "@/components/common/DeviceChip";
-import DataTable, { type Column } from "@/components/common/DataTable";
+import { DataTable, type Column } from "@shellhub/design-system/components";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
 import { Card } from "@shellhub/design-system/primitives";
