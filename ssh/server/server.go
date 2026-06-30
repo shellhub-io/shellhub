@@ -1,15 +1,14 @@
 package server
 
 import (
-	_ "embed"
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
@@ -32,16 +31,71 @@ type Server struct {
 	dialer *dialer.Dialer
 }
 
-var (
-	//go:embed messages/invalid_ssh_id.txt
-	InvalidSSHIDMessage string
+// bannerDeps holds the injectable operations used by newBannerHandler. The
+// defaults (set by defaultBannerDeps) delegate to the real session package;
+// tests supply stubs to exercise individual branches without network I/O.
+type bannerDeps struct {
+	newSession func(ctx gliderssh.Context, d *dialer.Dialer, c cache.Cache) (*session.Session, error)
+	dial       func(sess *session.Session, ctx gliderssh.Context) error
+	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
+}
 
-	//go:embed messages/connection_failed.txt
-	ConnectionFailedMessage string
+func defaultBannerDeps() bannerDeps {
+	return bannerDeps{
+		newSession: session.NewSession,
+		dial:       (*session.Session).Dial,
+		evaluate:   (*session.Session).Evaluate,
+	}
+}
 
-	//go:embed messages/access_denied.txt
-	AccessDeniedMessage string
-)
+// newBannerHandler returns a gliderssh.BannerHandler that validates the SSHID,
+// establishes the session, and dials the target device. It returns a banner
+// message (using ssh/pkg/banner) when any step fails, or an empty string on
+// success so the SSH handshake continues normally.
+func newBannerHandler(d *dialer.Dialer, c cache.Cache) gliderssh.BannerHandler {
+	return newBannerHandlerWithDeps(d, c, defaultBannerDeps())
+}
+
+// newBannerHandlerWithDeps is the testable core of newBannerHandler. Callers
+// supply a bannerDeps to stub out network-dependent operations.
+func newBannerHandlerWithDeps(d *dialer.Dialer, c cache.Cache, deps bannerDeps) gliderssh.BannerHandler {
+	return func(ctx gliderssh.Context) string {
+		logger := log.WithFields(
+			log.Fields{
+				"uid":   ctx.SessionID(),
+				"sshid": ctx.User(),
+			})
+
+		logger.Info("new connection established")
+
+		if _, err := target.NewTarget(ctx.User()); err != nil {
+			logger.WithError(err).Error("invalid SSHID")
+
+			return banner.Message(banner.KindInvalidSSHID)
+		}
+
+		sess, err := deps.newSession(ctx, d, c)
+		if err != nil {
+			logger.WithError(err).Error("failed to create the session")
+
+			return banner.Message(banner.KindConnectionFailed)
+		}
+
+		if err := deps.dial(sess, ctx); err != nil {
+			logger.WithError(err).Error("destination device is offline or cannot be reached")
+
+			return banner.Message(banner.KindConnectionFailed)
+		}
+
+		if err := deps.evaluate(sess, ctx); err != nil {
+			logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
+
+			return banner.Message(banner.KindAccessDenied)
+		}
+
+		return ""
+	}
+}
 
 func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server {
 	server := &Server{ // nolint: exhaustruct
@@ -56,50 +110,7 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 
 			return conn
 		},
-		BannerHandler: func(ctx gliderssh.Context) string {
-			logger := log.WithFields(
-				log.Fields{
-					"uid":   ctx.SessionID(),
-					"sshid": ctx.User(),
-				})
-
-			logger.Info("new connection established")
-
-			// NOTE: Replace all `\n` with `\r\n` to be compliant with the RFC 4252, section 5.4
-			// (https://datatracker.ietf.org/doc/html/rfc4252#section-5.4) that states: "The 'message'
-			// may consist of multiple lines, with line breaks indicated by CRLF pairs." and to ensure
-			// proper formatting across different SSH clients.
-			message := func(msg string) string {
-				return strings.ReplaceAll(msg, "\n", "\r\n")
-			}
-
-			if _, err := target.NewTarget(ctx.User()); err != nil {
-				logger.WithError(err).Error("invalid SSHID")
-
-				return message(InvalidSSHIDMessage)
-			}
-
-			sess, err := session.NewSession(ctx, dialer, cache)
-			if err != nil {
-				logger.WithError(err).Error("failed to create the session")
-
-				return message(ConnectionFailedMessage)
-			}
-
-			if err := sess.Dial(ctx); err != nil {
-				logger.WithError(err).Error("destination device is offline or cannot be reached")
-
-				return message(ConnectionFailedMessage)
-			}
-
-			if err := sess.Evaluate(ctx); err != nil {
-				logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
-
-				return message(AccessDeniedMessage)
-			}
-
-			return ""
-		},
+		BannerHandler:    newBannerHandler(dialer, cache),
 		PasswordHandler:  auth.PasswordHandler,
 		PublicKeyHandler: auth.PublicKeyHandler,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
@@ -142,7 +153,7 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	proxy := &proxyproto.Listener{Listener: list} // nolint: exhaustruct
-	defer proxy.Close()
+	defer proxy.Close()                           //nolint:errcheck
 
 	return s.sshd.Serve(proxy)
 }
