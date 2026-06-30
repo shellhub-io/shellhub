@@ -1,4 +1,9 @@
 ---
+import {
+  CloudIcon,
+  ServerIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 ---
 
 <div class="diagram-container">
@@ -10,9 +15,7 @@
     </div>
     <div class="diagram-flow">
       <div class="diagram-node">
-        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
-        </svg>
+        <UserIcon className="diagram-icon" />
         <span class="diagram-node-label">You</span>
       </div>
 
@@ -23,9 +26,7 @@
       </div>
 
       <div class="diagram-node diagram-node--red">
-        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3m-13.5 0a3 3 0 0 1-3-3m3-3h13.5m-13.5 0a3 3 0 0 0-3 3m3-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3m-13.5 0a3 3 0 0 0-3 3m16.5 0a3 3 0 0 0 3-3m-3 3a3 3 0 0 1 3 3m-3-3h-13.5m13.5 0a3 3 0 0 1 3-3" />
-        </svg>
+        <ServerIcon className="diagram-icon" />
         <span class="diagram-node-label">Device</span>
         <div class="diagram-node-badge diagram-node-badge--red">
           <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg>
@@ -44,9 +45,7 @@
     </div>
     <div class="diagram-flow diagram-flow--shellhub">
       <div class="diagram-node">
-        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3m-13.5 0a3 3 0 0 1-3-3m3-3h13.5m-13.5 0a3 3 0 0 0-3 3m3-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3m-13.5 0a3 3 0 0 0-3 3m16.5 0a3 3 0 0 0 3-3m-3 3a3 3 0 0 1 3 3m-3-3h-13.5m13.5 0a3 3 0 0 1 3-3" />
-        </svg>
+        <ServerIcon className="diagram-icon" />
         <span class="diagram-node-label">Device</span>
         <div class="diagram-node-badge diagram-node-badge--green">
           <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
@@ -60,9 +59,7 @@
       </div>
 
       <div class="diagram-node diagram-node--primary diagram-node--server">
-        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 .75-7.425A4.502 4.502 0 0 0 14.25 6 4.5 4.5 0 0 0 6 9.75 4.5 4.5 0 0 0 2.25 15Z" />
-        </svg>
+        <CloudIcon className="diagram-icon" />
         <span class="diagram-node-label">ShellHub Server</span>
       </div>
 
@@ -73,9 +70,7 @@
       </div>
 
       <div class="diagram-node">
-        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
-        </svg>
+        <UserIcon className="diagram-icon" />
         <span class="diagram-node-label">You</span>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SidebarItem } from "@/data/sidebar";
 import { PAGES_NOT_IN_NAV, flattenItems, sidebar } from "@/data/sidebar";
@@ -93,7 +95,7 @@ describe("flattenItems", () => {
       );
     }
 
-    it("every section has a non-empty label, description, icon, and at least one item", () => {
+    it("every section has a non-empty label, description, and at least one item", () => {
       for (const section of sidebar) {
         expect(section.label, "section label must be non-empty").toBeTruthy();
         expect(
@@ -101,13 +103,23 @@ describe("flattenItems", () => {
           `section "${section.label}" description must be non-empty`,
         ).toBeTruthy();
         expect(
-          section.icon,
-          `section "${section.label}" icon must be non-empty`,
-        ).toBeTruthy();
-        expect(
           section.items.length,
           `section "${section.label}" items must be non-empty`,
         ).toBeGreaterThan(0);
+      }
+    });
+
+    it("every section icon is a component that renders to an <svg> element", () => {
+      for (const section of sidebar) {
+        // Render the icon through React (the same SSR path the layout uses).
+        // This proves `icon` is a real, mountable component — not just a
+        // truthy value — and that it emits an SVG, catching broken imports
+        // or a wrong mapping that a `typeof` check would silently pass.
+        const html = renderToStaticMarkup(createElement(section.icon));
+        expect(
+          html,
+          `section "${section.label}" icon must render to an <svg> element`,
+        ).toMatch(/^<svg[\s>]/);
       }
     });
 
