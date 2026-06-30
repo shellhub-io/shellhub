@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useAuthStore } from "../stores/authStore";

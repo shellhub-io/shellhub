@@ -63,7 +63,6 @@ export default function MfaLogin() {
           in.
         </p>
       </div>
-
       {/* Form card */}
       <div
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
@@ -85,7 +84,9 @@ export default function MfaLogin() {
               {otp.code.map((digit, index) => (
                 <input
                   key={index}
-                  ref={(el) => (otp.inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    (otp.inputRefs.current[index] = el);
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
@@ -121,7 +122,6 @@ export default function MfaLogin() {
           </div>
         </form>
       </div>
-
       {/* Footer links */}
       <AuthFooterLinks />
     </div>

@@ -16,7 +16,7 @@ interface UseKeyFileInputOptions {
 }
 
 interface UseKeyFileInputReturn {
-  fileInputRef: RefObject<HTMLInputElement>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
   dragging: boolean;
   inputMode: "file" | "text";
   setInputMode: (mode: "file" | "text") => void;

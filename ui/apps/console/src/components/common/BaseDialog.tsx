@@ -1,4 +1,4 @@
-import { Ref, ReactNode, RefObject, useCallback, useEffect, useRef } from "react";
+import { ReactNode, RefObject, useCallback, useEffect, useRef } from "react";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useBackdropClose } from "@/hooks/useBackdropClose";
 
@@ -140,7 +140,7 @@ export default function BaseDialog({
 
   return (
     <dialog
-      ref={ref as Ref<HTMLDialogElement>}
+      ref={ref}
       data-custom-backdrop
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}

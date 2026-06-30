@@ -436,7 +436,9 @@ export default function MfaEnableDrawer({
                 {otp.code.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (otp.inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      (otp.inputRefs.current[index] = el);
+                    }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

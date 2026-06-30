@@ -47,7 +47,7 @@ export default function Drawer({
       <div
         ref={panelRef}
         aria-hidden={!open}
-        {...(!open ? { inert: "" } : {})}
+        {...(!open ? { inert: true } : {})}
         className={`fixed inset-y-0 right-0 z-[70] w-full ${WIDTH_MAP[width]} bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}

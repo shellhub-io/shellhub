@@ -20,6 +20,8 @@ import { formatRelative } from "@/utils/date";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
+import type { JSX } from "react";
+
 export type BadgeVariant = "green" | "yellow" | "red" | "muted";
 
 export interface CommandItem {

@@ -44,7 +44,7 @@ export default function NoticeBanner({
   return (
     <div
       aria-hidden={!visible ? true : undefined}
-      {...(!visible ? { inert: "" } : {})}
+      {...(!visible ? { inert: true } : {})}
       className={`grid transition-[grid-template-rows] duration-300 ease-out ${
         visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
       }`}
