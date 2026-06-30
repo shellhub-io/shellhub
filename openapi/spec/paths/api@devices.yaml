@@ -1,7 +1,14 @@
 get:
   operationId: getDevices
   summary: List devices
-  description: List devices.
+  description: |-
+    List devices.
+
+    **Deprecated filter field names.** The `filter` parameter still accepts the
+    legacy Mongo-style field names `info.platform` and `identity.mac`, which are
+    duplicates of `platform` and `mac` respectively. These aliases are kept for
+    backward compatibility and will be removed in the next major API version.
+    Update integrations to use the flat names (`platform`, `mac`).
   tags:
     - community
     - devices

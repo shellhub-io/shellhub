@@ -55,6 +55,81 @@ func TestParseFilterProperty_DeviceUID(t *testing.T) {
 	}
 }
 
+// Regression guard for shellhub-io/shellhub#6574: the deprecated "info.platform"
+// and "identity.mac" aliases must resolve to their real columns for every operator.
+func TestParseFilterProperty_LegacyDeviceFieldAliases(t *testing.T) {
+	cases := []struct {
+		description string
+		fieldName   string
+		operator    string
+		wantCond    string
+		wantCol     bun.Ident
+		wantValue   any
+	}{
+		{
+			description: "info.platform eq maps to platform",
+			fieldName:   "info.platform",
+			operator:    "eq",
+			wantCond:    "? = ?",
+			wantCol:     bun.Ident("platform"),
+			wantValue:   "manjaro",
+		},
+		{
+			description: "info.platform contains maps to platform",
+			fieldName:   "info.platform",
+			operator:    "contains",
+			wantCond:    "? ILIKE ?",
+			wantCol:     bun.Ident("platform"),
+			wantValue:   "%manjaro%",
+		},
+		{
+			description: "info.platform ne maps to platform",
+			fieldName:   "info.platform",
+			operator:    "ne",
+			wantCond:    "? <> ?",
+			wantCol:     bun.Ident("platform"),
+			wantValue:   "manjaro",
+		},
+		{
+			description: "identity.mac eq maps to mac",
+			fieldName:   "identity.mac",
+			operator:    "eq",
+			wantCond:    "? = ?",
+			wantCol:     bun.Ident("mac"),
+			wantValue:   "manjaro",
+		},
+		{
+			description: "identity.mac contains maps to mac",
+			fieldName:   "identity.mac",
+			operator:    "contains",
+			wantCond:    "? ILIKE ?",
+			wantCol:     bun.Ident("mac"),
+			wantValue:   "%manjaro%",
+		},
+		{
+			description: "identity.mac ne maps to mac",
+			fieldName:   "identity.mac",
+			operator:    "ne",
+			wantCond:    "? <> ?",
+			wantCol:     bun.Ident("mac"),
+			wantValue:   "manjaro",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			fp := &query.FilterProperty{Name: tc.fieldName, Operator: tc.operator, Value: "manjaro"}
+			sqlCond, args, ok, err := ParseFilterProperty(fp, "")
+			require.NoError(t, err)
+			assert.True(t, ok)
+			assert.Equal(t, tc.wantCond, sqlCond)
+			require.Len(t, args, 2)
+			assert.Equal(t, tc.wantCol, args[0])
+			assert.Equal(t, tc.wantValue, args[1])
+		})
+	}
+}
+
 func TestFromActiveFilter(t *testing.T) {
 	const deviceExistsSQL = `EXISTS (SELECT 1 FROM "active_sessions" JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id" WHERE "sessions"."device_id" = "device"."id")`
 	const deviceNotExistsSQL = `NOT EXISTS (SELECT 1 FROM "active_sessions" JOIN "sessions" ON "sessions"."id" = "active_sessions"."session_id" WHERE "sessions"."device_id" = "device"."id")`
