@@ -43,7 +43,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@tanstack/react-query-devtools": "^5.101.0",
+    "@tanstack/react-query-devtools": "^5.101.2",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.0",
     "ansi-styles": "^5.2.0"
