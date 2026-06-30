@@ -1,6 +1,7 @@
 import { getConfig } from "@/env";
 
 interface ErrorEntry {
+  title?: string;
   message: string;
   reconnect: boolean;
   hints: string[];
@@ -93,6 +94,22 @@ const errorMap: Record<string, ErrorEntry> = {
     ],
     links: [{ label: "Device details", to: "/devices/$uid" }],
   },
+  "access to the device has been denied": {
+    title: "Access denied",
+    message: "You do not have permission to access this device.",
+    reconnect: false,
+    hints: [
+      "Access may be restricted by a billing limit or namespace policy.",
+    ],
+  },
+  "invalid sshid format": {
+    title: "Invalid connection identifier",
+    message: "The SSH connection identifier is malformed.",
+    reconnect: false,
+    hints: [
+      "Use the format username@namespace.device@host - for example: root@dev.agent@localhost.",
+    ],
+  },
 };
 
 // Values match ssh/web/messages.go messageKind iota.
@@ -178,7 +195,7 @@ export function resolveError(raw: string, deviceUid: string): TerminalError {
   }
 
   return {
-    title: "Connection failed",
+    title: entry.title ?? "Connection failed",
     message: entry.message,
     reconnect: entry.reconnect,
     hints,

@@ -7,29 +7,58 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/ssh/pkg/banner"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
 type BannerError struct {
 	Message string
+	kind    banner.Kind
 }
 
+// NewBannerError constructs a BannerError and classifies the message exactly
+// once at construction time. Use this constructor — never build a BannerError
+// literal — so that Message and kind always agree.
 func NewBannerError(message string) *BannerError {
 	return &BannerError{
 		Message: message,
+		kind:    banner.Classify(message),
 	}
 }
 
 func (b *BannerError) Error() string {
 	return b.Message
+}
+
+// Kind returns the banner classification computed when the error was created.
+func (b *BannerError) Kind() banner.Kind {
+	return b.kind
+}
+
+// mapBannerError converts a BannerError to the appropriate sentinel error for
+// the web client based on the banner Kind.
+func mapBannerError(e *BannerError) error {
+	switch e.Kind() {
+	case banner.KindConnectionFailed:
+		return ErrConnect
+	case banner.KindAccessDenied:
+		return ErrAccessDenied
+	case banner.KindInvalidSSHID:
+		return ErrInvalidSSHID
+	default:
+		if e.Message != "" {
+			log.WithField("banner", e.Message).Warn("received unrecognized SSH banner; treating as connection failure")
+		}
+
+		return ErrConnect
+	}
 }
 
 // getAuth gets the authentication methods from credentials.
@@ -165,14 +194,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		if errors.As(err, &e) {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
-			switch {
-			case strings.Contains(e.Message, "Connection Failed"):
-				return ErrConnect
-			case strings.Contains(e.Message, "Access Denied"):
-				return ErrFindDevice
-			default:
-				return ErrConnect
-			}
+			return mapBannerError(e)
 		}
 
 		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
@@ -182,7 +204,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		return ErrAuthentication
 	}
 
-	defer connection.Close()
+	defer connection.Close() //nolint:errcheck
 
 	agent, err := connection.NewSession()
 	if err != nil {
@@ -191,7 +213,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 		return ErrSession
 	}
 
-	defer agent.Close()
+	defer agent.Close() //nolint:errcheck
 
 	stdin, err := agent.StdinPipe()
 	if err != nil {
@@ -231,7 +253,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	}
 
 	go func() {
-		defer agent.Close()
+		defer agent.Close() //nolint:errcheck
 
 		for {
 			var message Message

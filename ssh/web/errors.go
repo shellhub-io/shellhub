@@ -59,3 +59,8 @@ var (
 )
 
 var ErrCreditialsNoPassword = errors.New("this creditials does not have a password defined")
+
+var (
+	ErrAccessDenied = errors.New("access to the device has been denied")
+	ErrInvalidSSHID = errors.New("invalid sshid format")
+)

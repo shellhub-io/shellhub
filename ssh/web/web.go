@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -12,6 +13,30 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
 )
+
+// exitLogLevel returns logrus.WarnLevel for expected/banner-derived errors that
+// indicate normal client-side rejections (connection refused, access denied,
+// invalid SSHID, authentication failure, device not found, bad credentials,
+// or a malformed WebSocket handshake parameter) and logrus.ErrorLevel for
+// genuine server faults or any unrecognised error.
+func exitLogLevel(err error) log.Level {
+	switch {
+	case errors.Is(err, ErrConnect),
+		errors.Is(err, ErrAccessDenied),
+		errors.Is(err, ErrInvalidSSHID),
+		errors.Is(err, ErrAuthentication),
+		errors.Is(err, ErrGetAuth),
+		errors.Is(err, ErrFindDevice),
+		errors.Is(err, ErrForbiddenPublicKey),
+		errors.Is(err, ErrBridgeCredentialsNotFound),
+		errors.Is(err, ErrWebSocketGetToken),
+		errors.Is(err, ErrWebSocketGetDimensions),
+		errors.Is(err, ErrWebSocketGetIP):
+		return log.WarnLevel
+	default:
+		return log.ErrorLevel
+	}
+}
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
 func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
@@ -66,11 +91,11 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 	)
 
 	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
-		defer wsconn.Close()
+		defer wsconn.Close() //nolint:errcheck
 
 		// exit sends the error's message to the client on the browser.
 		exit := func(wsconn *websocket.Conn, err error) {
-			log.WithError(err).Error("web terminal error")
+			log.WithError(err).Log(exitLogLevel(err), "web terminal error")
 
 			buffer, marshalErr := json.Marshal(Message{
 				Kind: messageKindError,
@@ -114,7 +139,7 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 		}
 
 		conn := NewConn(wsconn)
-		defer conn.Close()
+		defer conn.Close() //nolint:errcheck
 
 		go conn.KeepAlive()
 
