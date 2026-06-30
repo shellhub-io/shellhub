@@ -66,7 +66,7 @@ jobs:
 
       - name: Cache node modules [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ui/node_modules
           key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
