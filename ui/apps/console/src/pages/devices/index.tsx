@@ -7,6 +7,7 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
+import { useDeviceActions } from "@/hooks/useDeviceActions";
 import PageHeader from "@/components/common/PageHeader";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
@@ -19,9 +20,7 @@ import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "./TagsPopover";
-import DeviceActionDialog from "./DeviceActionDialog";
-import BillingWarning from "@/components/billing/BillingWarning";
-import { getConfig } from "@/env";
+import DeviceActionsPortal from "./DeviceActionsPortal";
 import {
   PlusIcon,
   TagIcon,
@@ -81,17 +80,14 @@ export default function Devices() {
     SEARCH_DEBOUNCE_MS,
   );
 
-  const [actionTarget, setActionTarget] = useState<{
-    device: NormalizedDevice;
-    action: "accept" | "reject" | "remove";
-  } | null>(null);
+  const deviceActions = useDeviceActions();
+  const { requestAction: requestDeviceAction } = deviceActions;
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
     name: string;
     sshid: string;
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
-  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "last_seen",
     onSortChange: () => setPage(1),
@@ -268,7 +264,7 @@ export default function Devices() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ device, action: "accept" });
+                    requestDeviceAction(device, "accept");
                   }}
                 >
                   Accept
@@ -280,7 +276,7 @@ export default function Devices() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ device, action: "reject" });
+                    requestDeviceAction(device, "reject");
                   }}
                 >
                   Reject
@@ -307,7 +303,7 @@ export default function Devices() {
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ device, action: "accept" });
+                  requestDeviceAction(device, "accept");
                 }}
               >
                 Accept
@@ -319,7 +315,7 @@ export default function Devices() {
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ device, action: "remove" });
+                  requestDeviceAction(device, "remove");
                 }}
               >
                 Remove
@@ -329,7 +325,7 @@ export default function Devices() {
         ),
       },
     ];
-  }, [params.status, nsName, addFilterTag]);
+  }, [params.status, nsName, addFilterTag, requestDeviceAction]);
 
   return (
     <div>
@@ -454,29 +450,7 @@ export default function Devices() {
         }
       />
 
-      <DeviceActionDialog
-        key={
-          actionTarget
-            ? `${actionTarget.action}/${actionTarget.device.uid}`
-            : "closed"
-        }
-        open={!!actionTarget}
-        device={actionTarget?.device ?? null}
-        action={actionTarget?.action ?? "accept"}
-        onClose={() => setActionTarget(null)}
-        onBillingWarning={
-          getConfig().cloud
-            ? () => {
-                setActionTarget(null);
-                setBillingWarningOpen(true);
-              }
-            : undefined
-        }
-      />
-      <BillingWarning
-        open={billingWarningOpen}
-        onClose={() => setBillingWarningOpen(false)}
-      />
+      <DeviceActionsPortal controller={deviceActions} />
 
       <ConnectDrawer
         open={!!connectTarget}

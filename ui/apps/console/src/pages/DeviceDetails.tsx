@@ -11,20 +11,17 @@ import {
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
-import { useRemoveDevice } from "../hooks/useDeviceMutations";
+import { useDeviceActions } from "../hooks/useDeviceActions";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
-import DeviceActionDialog from "./devices/DeviceActionDialog";
-import BillingWarning from "../components/billing/BillingWarning";
+import DeviceActionsPortal from "./devices/DeviceActionsPortal";
 import ConnectDrawer from "../components/ConnectDrawer";
-import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
-import { getConfig } from "../env";
 import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "./devices/InfoItem";
 import TagsSection from "./devices/TagsSection";
@@ -41,7 +38,6 @@ export default function DeviceDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { device, isLoading } = useDevice(uid ?? "");
-  const removeMutation = useRemoveDevice();
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const existingSession = useTerminalStore((s) =>
@@ -49,13 +45,11 @@ export default function DeviceDetails() {
   );
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [operation, setOperation] = useState<{
-    device: { uid: string; name: string };
-    action: "accept" | "reject" | "remove";
-  } | null>(null);
-  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
+  const actionsController = useDeviceActions({
+    onSuccess: (action) => {
+      if (action === "remove") void navigate("/devices");
+    },
+  });
 
   // Auto-open connect drawer if ?connect=true (adjust during render)
   const shouldAutoConnect =
@@ -95,22 +89,6 @@ export default function DeviceDetails() {
         typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
       )
     : [];
-
-  const handleDelete = async () => {
-    setDeleteError(null);
-    try {
-      await removeMutation.mutateAsync({ path: { uid: device.uid } });
-      setShowDelete(false);
-      void navigate("/devices");
-    } catch {
-      setDeleteError("Failed to delete device. Please try again.");
-    }
-  };
-
-  const handleDeviceActionSuccess = () => {
-    if (!operation) return;
-    if (operation.action === "remove") void navigate("/devices");
-  };
 
   return (
     <div className="animate-fade-in">
@@ -198,7 +176,7 @@ export default function DeviceDetails() {
                   title="Delete device"
                   aria-label="Delete device"
                   className="border border-border"
-                  onClick={() => setShowDelete(true)}
+                  onClick={() => actionsController.requestAction(device, "remove")}
                 >
                   <TrashIcon className="w-4 h-4" />
                 </IconButton>
@@ -210,7 +188,7 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => setOperation({ device, action: "accept" })}
+                  onClick={() => actionsController.requestAction(device, "accept")}
                 >
                   Accept
                 </Button>
@@ -218,7 +196,7 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:reject">
                 <Button
                   variant="warning"
-                  onClick={() => setOperation({ device, action: "reject" })}
+                  onClick={() => actionsController.requestAction(device, "reject")}
                 >
                   Reject
                 </Button>
@@ -230,7 +208,7 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => setOperation({ device, action: "accept" })}
+                  onClick={() => actionsController.requestAction(device, "accept")}
                 >
                   Accept
                 </Button>
@@ -238,7 +216,7 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:remove">
                 <Button
                   variant="destructive"
-                  onClick={() => setOperation({ device, action: "remove" })}
+                  onClick={() => actionsController.requestAction(device, "remove")}
                 >
                   Remove
                 </Button>
@@ -367,27 +345,6 @@ export default function DeviceDetails() {
         </Card>
       </div>
 
-      {/* Delete Dialog */}
-      <ConfirmDialog
-        open={showDelete}
-        onClose={() => {
-          setShowDelete(false);
-          setDeleteError(null);
-        }}
-        onConfirm={handleDelete}
-        title="Delete Device"
-        description={
-          <>
-            Are you sure you want to delete{" "}
-            <span className="font-medium text-text-primary">{device.name}</span>
-            ? This action cannot be undone.
-          </>
-        }
-        confirmLabel="Delete"
-        variant="danger"
-        errorMessage={deleteError}
-      />
-
       {/* Connect Drawer */}
       <ConnectDrawer
         open={connectOpen}
@@ -397,29 +354,8 @@ export default function DeviceDetails() {
         sshid={sshid}
       />
 
-      {/* Action Dialog (accept/reject/remove for pending/rejected devices) */}
-      <DeviceActionDialog
-        key={
-          operation ? `${operation.action}/${operation.device.uid}` : "closed"
-        }
-        open={!!operation}
-        device={operation?.device ?? null}
-        action={operation?.action ?? "accept"}
-        onClose={() => setOperation(null)}
-        onSuccess={handleDeviceActionSuccess}
-        onBillingWarning={
-          getConfig().cloud
-            ? () => {
-                setOperation(null);
-                setBillingWarningOpen(true);
-              }
-            : undefined
-        }
-      />
-      <BillingWarning
-        open={billingWarningOpen}
-        onClose={() => setBillingWarningOpen(false)}
-      />
+      {/* Action Portal (accept/reject/remove for pending/rejected devices) */}
+      <DeviceActionsPortal controller={actionsController} />
     </div>
   );
 }

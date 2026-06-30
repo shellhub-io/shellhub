@@ -17,9 +17,8 @@ import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
 import ContainerTagsPopover from "./ContainerTagsPopover";
-import ContainerActionDialog from "./ContainerActionDialog";
-import BillingWarning from "@/components/billing/BillingWarning";
-import { getConfig } from "@/env";
+import ContainerActionsPortal from "./ContainerActionsPortal";
+import { useContainerActions } from "@/hooks/useContainerActions";
 import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
 import {
   PlusIcon,
@@ -80,10 +79,8 @@ export default function Containers() {
     SEARCH_DEBOUNCE_MS,
   );
 
-  const [actionTarget, setActionTarget] = useState<{
-    container: NormalizedContainer;
-    action: "accept" | "reject" | "remove";
-  } | null>(null);
+  const containerActions = useContainerActions();
+  const { requestAction: requestContainerAction } = containerActions;
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
     name: string;
@@ -91,7 +88,6 @@ export default function Containers() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
-  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "last_seen",
     onSortChange: () => setPage(1),
@@ -278,7 +274,7 @@ export default function Containers() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ container, action: "accept" });
+                    requestContainerAction(container, "accept");
                   }}
                 >
                   Accept
@@ -290,7 +286,7 @@ export default function Containers() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ container, action: "reject" });
+                    requestContainerAction(container, "reject");
                   }}
                 >
                   Reject
@@ -317,7 +313,7 @@ export default function Containers() {
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ container, action: "accept" });
+                  requestContainerAction(container, "accept");
                 }}
               >
                 Accept
@@ -329,7 +325,7 @@ export default function Containers() {
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ container, action: "remove" });
+                  requestContainerAction(container, "remove");
                 }}
               >
                 Remove
@@ -339,7 +335,7 @@ export default function Containers() {
         ),
       },
     ];
-  }, [params.status, nsName, addFilterTag]);
+  }, [params.status, nsName, addFilterTag, requestContainerAction]);
 
   return (
     <div>
@@ -469,29 +465,7 @@ export default function Containers() {
         }
       />
 
-      <ContainerActionDialog
-        key={
-          actionTarget
-            ? `${actionTarget.action}/${actionTarget.container.uid}`
-            : "closed"
-        }
-        open={!!actionTarget}
-        container={actionTarget?.container ?? null}
-        action={actionTarget?.action ?? "accept"}
-        onClose={() => setActionTarget(null)}
-        onBillingWarning={
-          getConfig().cloud
-            ? () => {
-                setActionTarget(null);
-                setBillingWarningOpen(true);
-              }
-            : undefined
-        }
-      />
-      <BillingWarning
-        open={billingWarningOpen}
-        onClose={() => setBillingWarningOpen(false)}
-      />
+      <ContainerActionsPortal controller={containerActions} />
 
       <ConnectDrawer
         open={!!connectTarget}

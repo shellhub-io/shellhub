@@ -30,7 +30,8 @@ import { normalizeContainer } from "../hooks/useContainers";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
-import ContainerActionDialog from "./containers/ContainerActionDialog";
+import { useContainerActions } from "../hooks/useContainerActions";
+import ContainerActionsPortal from "./containers/ContainerActionsPortal";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import { formatDateFull, formatRelative } from "../utils/date";
@@ -309,10 +310,15 @@ export default function ContainerDetails() {
   );
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
-  const [operation, setOperation] = useState<{
-    container: { uid: string; name: string };
-    action: "accept" | "reject" | "remove";
-  } | null>(null);
+
+  const containerActions = useContainerActions({
+    // ContainerDetails never showed the billing warning on master — a 402 on
+    // accept surfaces as the dialog's inline error instead. Keep that behavior.
+    enableBillingWarning: false,
+    onSuccess: (action) => {
+      if (action === "remove") void navigate("/containers");
+    },
+  });
 
   const shouldAutoConnect =
     searchParams.get("connect") === "true" &&
@@ -351,10 +357,6 @@ export default function ContainerDetails() {
   const sshid = nsName ? buildSshid(nsName, container.name) : container.uid;
 
   const tags = normalizeContainer(container).tags;
-
-  const handleActionSuccess = () => {
-    if (operation?.action === "remove") void navigate("/containers");
-  };
 
   return (
     <div className="animate-fade-in">
@@ -447,10 +449,7 @@ export default function ContainerDetails() {
                   aria-label="Remove container"
                   className="border border-border"
                   onClick={() =>
-                    setOperation({
-                      container: { uid: container.uid, name: container.name },
-                      action: "remove",
-                    })
+                    containerActions.requestAction(container, "remove")
                   }
                 >
                   <TrashIcon className="w-4 h-4" />
@@ -463,7 +462,9 @@ export default function ContainerDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => setOperation({ container, action: "accept" })}
+                  onClick={() =>
+                    containerActions.requestAction(container, "accept")
+                  }
                 >
                   Accept
                 </Button>
@@ -471,7 +472,9 @@ export default function ContainerDetails() {
               <RestrictedAction action="device:reject">
                 <Button
                   variant="warning"
-                  onClick={() => setOperation({ container, action: "reject" })}
+                  onClick={() =>
+                    containerActions.requestAction(container, "reject")
+                  }
                 >
                   Reject
                 </Button>
@@ -483,7 +486,9 @@ export default function ContainerDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => setOperation({ container, action: "accept" })}
+                  onClick={() =>
+                    containerActions.requestAction(container, "accept")
+                  }
                 >
                   Accept
                 </Button>
@@ -491,7 +496,9 @@ export default function ContainerDetails() {
               <RestrictedAction action="device:remove">
                 <Button
                   variant="destructive"
-                  onClick={() => setOperation({ container, action: "remove" })}
+                  onClick={() =>
+                    containerActions.requestAction(container, "remove")
+                  }
                 >
                   Remove
                 </Button>
@@ -613,18 +620,7 @@ export default function ContainerDetails() {
       />
 
       {/* Action Dialog */}
-      <ContainerActionDialog
-        key={
-          operation
-            ? `${operation.action}/${operation.container.uid}`
-            : "closed"
-        }
-        open={!!operation}
-        container={operation?.container ?? null}
-        action={operation?.action ?? "accept"}
-        onClose={() => setOperation(null)}
-        onSuccess={handleActionSuccess}
-      />
+      <ContainerActionsPortal controller={containerActions} />
     </div>
   );
 }

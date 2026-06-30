@@ -7,11 +7,7 @@ import {
 } from "@/hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
-
-interface ActionDevice {
-  uid: string;
-  name: string;
-}
+import type { EntityBase } from "@/hooks/useActionDialogState";
 
 const ACTION_CONFIG = {
   accept: {
@@ -46,7 +42,7 @@ function DeviceActionDialog({
   onBillingWarning,
   open,
 }: {
-  device: ActionDevice | null;
+  device: EntityBase | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
   onSuccess?: () => void;

@@ -6,11 +6,7 @@ import {
   useRemoveContainer,
 } from "@/hooks/useContainerMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-
-interface ActionContainer {
-  uid: string;
-  name: string;
-}
+import type { EntityBase } from "@/hooks/useActionDialogState";
 
 const ACTION_CONFIG = {
   accept: {
@@ -45,7 +41,7 @@ function ContainerActionDialog({
   onBillingWarning,
   open,
 }: {
-  container: ActionContainer | null;
+  container: EntityBase | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
   onSuccess?: () => void;
