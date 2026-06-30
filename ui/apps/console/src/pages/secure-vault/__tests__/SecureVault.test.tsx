@@ -44,7 +44,7 @@ vi.mock("@/stores/terminalStore", () => ({
   ),
 }));
 
-vi.mock("@/utils/ssh-keys", () => ({
+vi.mock("@/utils/sshKeys", () => ({
   validatePrivateKey: vi.fn(() => ({ valid: false, encrypted: false })),
   getFingerprint: vi.fn(() => "fp"),
 }));

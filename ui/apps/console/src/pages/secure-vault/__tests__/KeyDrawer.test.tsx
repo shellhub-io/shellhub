@@ -21,7 +21,7 @@ vi.mock("@/stores/vaultStore", async (importOriginal) => {
   };
 });
 
-vi.mock("@/utils/ssh-keys", () => ({
+vi.mock("@/utils/sshKeys", () => ({
   validatePrivateKey: vi.fn(),
   getFingerprint: vi.fn(),
   getAlgorithm: vi.fn(),
@@ -90,7 +90,7 @@ import {
   validatePrivateKey,
   getFingerprint,
   getAlgorithm,
-} from "@/utils/ssh-keys";
+} from "@/utils/sshKeys";
 
 const mockAddKey = vi.fn();
 const mockUpdateKey = vi.fn();
