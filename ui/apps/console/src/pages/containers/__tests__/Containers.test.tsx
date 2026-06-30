@@ -92,9 +92,7 @@ vi.mock("../ContainerTagsPopover", () => ({
   ),
 }));
 
-vi.mock("../ContainerActionDialog", () => ({
-  default: () => <div />,
-}));
+vi.mock("../ContainerActionsPortal", () => ({ default: () => null }));
 
 vi.mock("../AddDockerConnectorDrawer", () => ({
   default: () => <div />,
@@ -110,6 +108,20 @@ vi.mock("@/components/billing/BillingWarning", () => ({
 
 vi.mock("@/env", () => ({
   getConfig: () => ({ cloud: false }),
+}));
+
+const mockRequestAction = vi.fn();
+vi.mock("@/hooks/useContainerActions", () => ({
+  useContainerActions: () => ({
+    requestAction: mockRequestAction,
+    operation: null,
+    close: vi.fn(),
+    runSuccess: vi.fn(),
+    onBillingWarning: vi.fn(),
+    billingEnabled: false,
+    billingWarningOpen: false,
+    closeBillingWarning: vi.fn(),
+  }),
 }));
 
 const mockNavigate = vi.fn();
@@ -173,6 +185,7 @@ describe("Containers list", () => {
     vi.mocked(useContainers).mockReturnValue(defaultHookState);
     mockNavigate.mockReset();
     mockManageTagsDrawer.mockReset();
+    mockRequestAction.mockReset();
   });
 
   describe("rendering", () => {
@@ -431,6 +444,64 @@ describe("Containers list", () => {
       expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, status: "pending" }),
       );
+    });
+  });
+
+  // ── useContainerActions + ContainerActionsPortal ──────────────────────────────
+
+  describe("action delegation — action buttons use useContainerActions", () => {
+    it("calls requestAction(container, 'accept') when Accept is clicked in pending view", async () => {
+      const user = userEvent.setup();
+      const pendingContainer = makeContainer({
+        uid: "uid-pending",
+        name: "pending-box",
+        status: "pending",
+        online: false,
+      });
+      vi.mocked(useContainers).mockReturnValue({
+        ...defaultHookState,
+        containers: [pendingContainer],
+        totalCount: 1,
+      });
+      renderPage(["/?status=pending"]);
+      await user.click(screen.getByRole("button", { name: "Accept" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(pendingContainer, "accept");
+    });
+
+    it("calls requestAction(container, 'reject') when Reject is clicked in pending view", async () => {
+      const user = userEvent.setup();
+      const pendingContainer = makeContainer({
+        uid: "uid-pending-2",
+        name: "pending-box-2",
+        status: "pending",
+        online: false,
+      });
+      vi.mocked(useContainers).mockReturnValue({
+        ...defaultHookState,
+        containers: [pendingContainer],
+        totalCount: 1,
+      });
+      renderPage(["/?status=pending"]);
+      await user.click(screen.getByRole("button", { name: "Reject" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(pendingContainer, "reject");
+    });
+
+    it("calls requestAction(container, 'remove') when Remove is clicked in rejected view", async () => {
+      const user = userEvent.setup();
+      const rejectedContainer = makeContainer({
+        uid: "uid-rejected",
+        name: "rejected-box",
+        status: "rejected",
+        online: false,
+      });
+      vi.mocked(useContainers).mockReturnValue({
+        ...defaultHookState,
+        containers: [rejectedContainer],
+        totalCount: 1,
+      });
+      renderPage(["/?status=rejected"]);
+      await user.click(screen.getByRole("button", { name: "Remove" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(rejectedContainer, "remove");
     });
   });
 });

@@ -3,6 +3,7 @@ import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { NormalizedDevice } from "@/hooks/useDevices";
+import type { UseDeviceActionsResult } from "@/hooks/useDeviceActions";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -95,8 +96,27 @@ vi.mock("../TagsPopover", () => ({
   ),
 }));
 
-vi.mock("../DeviceActionDialog", () => ({
-  default: () => <div />,
+const mockDeviceActionsPortal = vi.fn();
+vi.mock("../DeviceActionsPortal", () => ({
+  default: (props: { controller: UseDeviceActionsResult }) => {
+    mockDeviceActionsPortal(props);
+    return null;
+  },
+}));
+
+const mockRequestAction = vi.fn();
+const mockDeviceActionsController: UseDeviceActionsResult = {
+  operation: undefined,
+  requestAction: mockRequestAction,
+  close: vi.fn(),
+  billingWarningOpen: false,
+  closeBillingWarning: vi.fn(),
+  onBillingWarning: undefined,
+  runSuccess: vi.fn(),
+  billingEnabled: false,
+};
+vi.mock("@/hooks/useDeviceActions", () => ({
+  useDeviceActions: vi.fn(() => mockDeviceActionsController),
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -113,6 +133,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import React from "react";
 import { useDevices } from "@/hooks/useDevices";
+import { useDeviceActions } from "@/hooks/useDeviceActions";
 import Devices from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -163,8 +184,11 @@ function renderPage(initialEntries: string[] = ["/"]) {
 describe("Devices list", () => {
   beforeEach(() => {
     vi.mocked(useDevices).mockReturnValue(defaultHookState);
+    vi.mocked(useDeviceActions).mockReturnValue(mockDeviceActionsController);
     mockNavigate.mockReset();
     mockManageTagsDrawer.mockReset();
+    mockDeviceActionsPortal.mockReset();
+    mockRequestAction.mockReset();
   });
 
   describe("rendering", () => {
@@ -342,6 +366,62 @@ describe("Devices list", () => {
       expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
         expect.objectContaining({ search: "myhost" }),
       );
+    });
+  });
+
+  // ── DeviceActionsPortal integration ──────────────────────────────────────────
+
+  describe("DeviceActionsPortal integration — useDeviceActions + portal replace inline state", () => {
+    beforeEach(() => {
+      mockRequestAction.mockReset();
+      mockDeviceActionsPortal.mockReset();
+      vi.mocked(useDeviceActions).mockReturnValue(mockDeviceActionsController);
+    });
+
+    it("mounts DeviceActionsPortal with the controller returned by useDeviceActions", () => {
+      renderPage();
+      expect(mockDeviceActionsPortal).toHaveBeenCalledWith(
+        expect.objectContaining({ controller: mockDeviceActionsController }),
+      );
+    });
+
+    it("calls requestAction(device, 'accept') when the Accept button is clicked on a pending device", async () => {
+      const user = userEvent.setup();
+      const pending = makeDevice({ uid: "p-1", name: "pending-device", status: "pending", online: false });
+      vi.mocked(useDevices).mockReturnValue({
+        ...defaultHookState,
+        devices: [pending],
+        totalCount: 1,
+      });
+      renderPage(["/?status=pending"]);
+      await user.click(screen.getByRole("button", { name: "Accept" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(pending, "accept");
+    });
+
+    it("calls requestAction(device, 'reject') when the Reject button is clicked on a pending device", async () => {
+      const user = userEvent.setup();
+      const pending = makeDevice({ uid: "p-2", name: "pending-device-2", status: "pending", online: false });
+      vi.mocked(useDevices).mockReturnValue({
+        ...defaultHookState,
+        devices: [pending],
+        totalCount: 1,
+      });
+      renderPage(["/?status=pending"]);
+      await user.click(screen.getByRole("button", { name: "Reject" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(pending, "reject");
+    });
+
+    it("calls requestAction(device, 'remove') when the Remove button is clicked on a rejected device", async () => {
+      const user = userEvent.setup();
+      const rejected = makeDevice({ uid: "r-1", name: "rejected-device", status: "rejected", online: false });
+      vi.mocked(useDevices).mockReturnValue({
+        ...defaultHookState,
+        devices: [rejected],
+        totalCount: 1,
+      });
+      renderPage(["/?status=rejected"]);
+      await user.click(screen.getByRole("button", { name: "Remove" }));
+      expect(mockRequestAction).toHaveBeenCalledWith(rejected, "remove");
     });
   });
 

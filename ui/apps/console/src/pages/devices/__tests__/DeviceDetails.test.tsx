@@ -59,8 +59,27 @@ vi.mock("@/components/common/RestrictedAction", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/pages/devices/DeviceActionDialog", () => ({
-  default: () => <div />,
+vi.mock("@/pages/devices/DeviceActionsPortal", () => ({
+  default: () => null,
+}));
+
+const mockRequestAction = vi.fn();
+let capturedOnSuccess: ((action: string) => void) | undefined;
+
+vi.mock("@/hooks/useDeviceActions", () => ({
+  useDeviceActions: (opts?: { onSuccess?: (action: string) => void }) => {
+    capturedOnSuccess = opts?.onSuccess;
+    return {
+      operation: undefined,
+      requestAction: mockRequestAction,
+      close: vi.fn(),
+      billingWarningOpen: false,
+      closeBillingWarning: vi.fn(),
+      onBillingWarning: undefined,
+      runSuccess: vi.fn(),
+      billingEnabled: false,
+    };
+  },
 }));
 
 vi.mock("@/utils/date", () => ({
@@ -72,12 +91,14 @@ vi.mock("@/utils/sshid", () => ({
   buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
 }));
 
+const mockNavigate = vi.fn();
+
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return {
     ...actual,
     useParams: () => ({ uid: "test-uid" }),
-    useNavigate: () => vi.fn(),
+    useNavigate: () => mockNavigate,
     useSearchParams: () => [new URLSearchParams(), vi.fn()],
   };
 });
@@ -126,6 +147,9 @@ describe("DeviceDetails", () => {
   beforeEach(() => {
     mockSetCustomField.mockReset().mockResolvedValue({});
     mockDeleteCustomField.mockReset().mockResolvedValue({});
+    mockRequestAction.mockReset();
+    mockNavigate.mockReset();
+    capturedOnSuccess = undefined;
     vi.mocked(useDevice).mockReturnValue({
       device: null,
       isLoading: false,
@@ -304,6 +328,116 @@ describe("DeviceDetails", () => {
 
       expect(screen.getByText("This key already exists.")).toBeInTheDocument();
       expect(mockSetCustomField).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("action buttons delegate to useDeviceActions", () => {
+    it("calls requestAction('accept') when Accept is clicked on a pending device", async () => {
+      const user = userEvent.setup();
+      const device = makeDevice({ status: "pending", online: false });
+      vi.mocked(useDevice).mockReturnValue({
+        device,
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: /Accept/i }));
+
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: "test-uid" }),
+        "accept",
+      );
+    });
+
+    it("calls requestAction('reject') when Reject is clicked on a pending device", async () => {
+      const user = userEvent.setup();
+      const device = makeDevice({ status: "pending", online: false });
+      vi.mocked(useDevice).mockReturnValue({
+        device,
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: /Reject/i }));
+
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: "test-uid" }),
+        "reject",
+      );
+    });
+
+    it("calls requestAction('remove') when Remove is clicked on a rejected device", async () => {
+      const user = userEvent.setup();
+      const device = makeDevice({ status: "rejected", online: false });
+      vi.mocked(useDevice).mockReturnValue({
+        device,
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: /Remove/i }));
+
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: "test-uid" }),
+        "remove",
+      );
+    });
+
+    it("calls requestAction('remove') when the Delete device trash button is clicked on an accepted device", async () => {
+      const user = userEvent.setup();
+      const device = makeDevice({ status: "accepted", online: true });
+      vi.mocked(useDevice).mockReturnValue({
+        device,
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      await user.click(screen.getByRole("button", { name: "Delete device" }));
+
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: "test-uid" }),
+        "remove",
+      );
+    });
+  });
+
+  describe("onSuccess callback wiring", () => {
+    it("navigates to /devices when onSuccess is called with action 'remove'", () => {
+      vi.mocked(useDevice).mockReturnValue({
+        device: makeDevice(),
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      expect(capturedOnSuccess).toBeDefined();
+      capturedOnSuccess!("remove");
+
+      expect(mockNavigate).toHaveBeenCalledWith("/devices");
+    });
+
+    it("does NOT navigate when onSuccess is called with a non-remove action", () => {
+      vi.mocked(useDevice).mockReturnValue({
+        device: makeDevice({ status: "pending", online: false }),
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+
+      expect(capturedOnSuccess).toBeDefined();
+      capturedOnSuccess!("accept");
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
