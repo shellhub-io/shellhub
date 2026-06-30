@@ -18,6 +18,21 @@ var (
 	ErrUnsupportedNumericType  = errors.New("unsupported value type for numeric comparison")  // ErrUnsupportedNumericType is returned when a 'gt' filter receives an unsupported value type
 )
 
+// Deprecated: legacy Mongo-style device filter field names mapped to their real
+// columns, kept for backward compatibility. Slated for removal in the next major
+// API version.
+var legacyDeviceFieldAliases = map[string]string{
+	"info.platform": "platform",
+	"identity.mac":  "mac",
+}
+
+func renameFilterField(fp *query.FilterProperty, name string) *query.FilterProperty {
+	adjusted := *fp
+	adjusted.Name = name
+
+	return &adjusted
+}
+
 // qualifyColumn returns a bun.Ident for the given column, optionally prefixed
 // with a table alias (e.g. "device.name") to avoid ambiguity in JOINed queries.
 func qualifyColumn(column, tableAlias string) bun.Ident {
@@ -138,9 +153,11 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 	// only so it cannot silently affect other filter contexts that happen to
 	// expose a device_uid field but use a different column name or no column at all.
 	if tableAlias == "session" && fp.Name == "device_uid" {
-		adjusted := *fp
-		adjusted.Name = "device_id"
-		fp = &adjusted
+		fp = renameFilterField(fp, "device_id")
+	}
+
+	if column, ok := legacyDeviceFieldAliases[fp.Name]; ok {
+		fp = renameFilterField(fp, column)
 	}
 
 	// tags.name requires an EXISTS subquery through the device_tags junction table,

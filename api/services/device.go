@@ -29,6 +29,11 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
 	"custom_fields": {"contains"},
+
+	// Deprecated: legacy Mongo-style aliases for "platform" and "mac", kept for
+	// backward compatibility and slated for removal in the next major API version.
+	"info.platform": {"contains", "eq", "ne"},
+	"identity.mac":  {"contains", "eq", "ne"},
 },
 	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
 	// SQL column binding — safe to accept bool-convertible values with eq/ne.
