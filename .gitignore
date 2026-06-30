@@ -13,6 +13,7 @@ docker-compose.override.yml
 **/*.map
 **/*.tsbuildinfo
 **/vite.config.d.ts
+**/openapi-ts.config.d.ts
 
 api_private_key
 api_public_key
