@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
+import {
+  ChevronDownIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { C } from "./constants";
 import { loginUrl, signupUrl } from "@/links";
 import {
@@ -193,19 +198,10 @@ function MobileDropdown({
         style={{ color: C.textSec }}
       >
         {label}
-        <svg
+        <ChevronDownIcon
           className={`w-3 h-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m19.5 8.25-7.5 7.5-7.5-7.5"
-          />
-        </svg>
+          aria-hidden="true"
+        />
       </button>
       {open && (
         <div
@@ -372,27 +368,11 @@ export function Navbar({
             style={{ color: C.textSec }}
             onClick={() => setMobileMenu(!mobileMenu)}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              {mobileMenu ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
-                />
-              )}
-            </svg>
+            {mobileMenu ? (
+              <XMarkIcon className="w-5 h-5" aria-hidden="true" />
+            ) : (
+              <Bars3Icon className="w-5 h-5" aria-hidden="true" />
+            )}
           </button>
 
           {/* Desktop nav */}
@@ -413,19 +393,10 @@ export function Navbar({
                 }}
               >
                 {label}
-                <svg
+                <ChevronDownIcon
                   className={`w-3 h-3 transition-transform duration-200 ${activeMenu === id ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
+                  aria-hidden="true"
+                />
               </button>
             ))}
 

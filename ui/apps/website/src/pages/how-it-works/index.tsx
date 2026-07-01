@@ -1,5 +1,16 @@
 import { Link } from "react-router-dom";
 import {
+  ArrowsPointingOutIcon,
+  BoltIcon,
+  CheckIcon,
+  EnvelopeIcon,
+  GlobeAltIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -18,117 +29,39 @@ import { C } from "../landing/constants";
 
 const techDetails = [
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
+    icon: <LockClosedIcon className="w-5 h-5" style={{ color: C.primary }} />,
     color: C.primary,
     title: "TLS Encryption",
     desc: "All traffic between agents and the gateway is encrypted with TLS 1.3. No plaintext data ever leaves a device.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
+    icon: <EnvelopeIcon className="w-5 h-5" style={{ color: C.cyan }} />,
     color: C.cyan,
     title: "WebSocket Tunnels",
     desc: "Persistent WebSocket connections over port 443 ensure reliable communication even through restrictive proxies.",
   },
   {
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <polyline points="16 3 21 3 21 8" />
-        <line x1="4" y1="20" x2="21" y2="3" />
-        <polyline points="21 16 21 21 16 21" />
-        <line x1="15" y1="15" x2="21" y2="21" />
-        <line x1="4" y1="4" x2="9" y2="9" />
-      </svg>
+      <ArrowsPointingOutIcon className="w-5 h-5" style={{ color: C.green }} />
     ),
     color: C.green,
     title: "Reverse SSH",
     desc: "The agent initiates the connection outbound, then the gateway multiplexes inbound SSH sessions back through the same tunnel.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.yellow }} />,
     color: C.yellow,
     title: "NAT Traversal",
     desc: "Outbound-only connections mean devices behind any NAT, CGNAT, or carrier-grade firewall are reachable without port forwarding.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.blue}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9" />
-      </svg>
-    ),
+    icon: <GlobeAltIcon className="w-5 h-5" style={{ color: C.blue }} />,
     color: C.blue,
     title: "Agent Auto-Update",
     desc: "Agents check for updates automatically and apply them without downtime. Always running the latest secure version.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.red}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
-        <line x1="16" y1="8" x2="2" y2="22" />
-        <line x1="17.5" y1="15" x2="9" y2="15" />
-      </svg>
-    ),
+    icon: <BoltIcon className="w-5 h-5" style={{ color: C.red }} />,
     color: C.red,
     title: "Lightweight Footprint",
     desc: "The agent binary is under 10 MB and uses minimal CPU and memory. Designed for constrained embedded devices.",
@@ -769,19 +702,10 @@ export default function HowItWorks() {
                       key={d}
                       className="flex items-center gap-2 text-xs text-text-secondary md:justify-end"
                     >
-                      <svg
+                      <CheckIcon
                         className="w-3.5 h-3.5 text-primary shrink-0 md:order-last"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                      />
                       {d}
                     </li>
                   ))}
@@ -853,19 +777,10 @@ export default function HowItWorks() {
                       key={d}
                       className="flex items-center gap-2 text-xs text-text-secondary"
                     >
-                      <svg
+                      <CheckIcon
                         className="w-3.5 h-3.5 text-accent-cyan shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                      />
                       {d}
                     </li>
                   ))}
@@ -1129,19 +1044,10 @@ export default function HowItWorks() {
                       key={d}
                       className="flex items-center gap-2 text-xs text-text-secondary md:justify-end"
                     >
-                      <svg
+                      <CheckIcon
                         className="w-3.5 h-3.5 text-accent-green shrink-0 md:order-last"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                      />
                       {d}
                     </li>
                   ))}
@@ -1211,19 +1117,7 @@ export default function HowItWorks() {
                 <div className="relative">
                   <div className="flex items-center gap-3 mb-6">
                     <IconBadge color="primary">
-                      <svg
-                        className="w-5 h-5 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                        />
-                      </svg>
+                      <ShieldCheckIcon className="w-5 h-5 text-primary" />
                     </IconBadge>
                     <div>
                       <h3 className="text-sm font-bold">ShellHub</h3>
@@ -1242,19 +1136,10 @@ export default function HowItWorks() {
                         key={item.label}
                         className="flex items-center gap-2.5 text-sm text-text-secondary"
                       >
-                        <svg
+                        <CheckIcon
                           className="w-4 h-4 text-accent-green shrink-0"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
                           strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m4.5 12.75 6 6 9-13.5"
-                          />
-                        </svg>
+                        />
                         {item.label}
                       </li>
                     ))}
@@ -1270,19 +1155,7 @@ export default function HowItWorks() {
               <Card hover className="p-8 flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286zM12 15.75h.007v.008H12v-.008z"
-                      />
-                    </svg>
+                    <ShieldExclamationIcon className="w-5 h-5 text-text-secondary" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold">Traditional VPN</h3>
@@ -1298,19 +1171,10 @@ export default function HowItWorks() {
                       key={item.label}
                       className="flex items-center gap-2.5 text-sm text-text-secondary"
                     >
-                      <svg
+                      <XMarkIcon
                         className="w-4 h-4 text-accent-red/70 shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18 18 6M6 6l12 12"
-                        />
-                      </svg>
+                      />
                       {item.label}
                     </li>
                   ))}

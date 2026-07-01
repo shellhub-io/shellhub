@@ -1,5 +1,19 @@
 import { Link } from "react-router-dom";
 import {
+  ArrowDownIcon,
+  ArrowsRightLeftIcon,
+  CloudIcon,
+  CodeBracketIcon,
+  CpuChipIcon,
+  CubeIcon,
+  DocumentIcon,
+  CheckIcon,
+  FolderIcon,
+  LinkIcon,
+  ShieldCheckIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -139,19 +153,10 @@ export default function Integrations() {
               ].map((cap, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                      aria-hidden="true"
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {cap.label}
@@ -470,33 +475,15 @@ export default function Integrations() {
                             style={{ paddingLeft: `${f.indent * 12 + 6}px` }}
                           >
                             {f.isDir ? (
-                              <svg
+                              <FolderIcon
                                 className="w-3 h-3 shrink-0"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={1.5}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-                                />
-                              </svg>
+                                aria-hidden="true"
+                              />
                             ) : (
-                              <svg
+                              <DocumentIcon
                                 className="w-3 h-3 shrink-0"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={1.5}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                                />
-                              </svg>
+                                aria-hidden="true"
+                              />
                             )}
                             {f.name}
                           </div>
@@ -551,19 +538,7 @@ export default function Integrations() {
                   <div className="flex items-center justify-between px-4 py-1.5 bg-accent-blue/10 border-t border-border text-2xs font-mono">
                     <div className="flex items-center gap-3">
                       <span className="text-accent-blue flex items-center gap-1">
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
-                          />
-                        </svg>
+                        <LinkIcon className="w-3 h-3" aria-hidden="true" />
                         SSH: gateway-east-01
                       </span>
                       <span className="text-text-muted">Python 3.11</span>
@@ -585,19 +560,10 @@ export default function Integrations() {
                   <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-3 mb-3">
                       <IconBadge color="yellow">
-                        <svg
+                        <CpuChipIcon
                           className="w-5 h-5 text-accent-yellow"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Z"
-                          />
-                        </svg>
+                          aria-hidden="true"
+                        />
                       </IconBadge>
                       <div>
                         <h3 className="text-sm font-bold">Embedded Linux</h3>
@@ -698,19 +664,10 @@ export default function Integrations() {
                   {/* Developer */}
                   <div className="flex items-center gap-3 px-5 py-3 bg-surface border border-border rounded-lg w-full max-w-xs">
                     <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
-                      <svg
+                      <UserIcon
                         className="w-4 h-4 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                        />
-                      </svg>
+                        aria-hidden="true"
+                      />
                     </div>
                     <div>
                       <p className="text-xs font-medium">Developer</p>
@@ -723,35 +680,19 @@ export default function Integrations() {
                   {/* Arrow */}
                   <div className="flex flex-col items-center py-2">
                     <div className="w-px h-6 bg-primary/40" />
-                    <svg
+                    <ArrowDownIcon
                       className="w-3 h-3 text-primary/60"
-                      viewBox="0 0 12 12"
-                    >
-                      <path
-                        d="M6 0v10M2 6l4 5 4-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      />
-                    </svg>
+                      aria-hidden="true"
+                    />
                   </div>
 
                   {/* ShellHub Cloud */}
                   <div className="flex items-center gap-3 px-5 py-3 bg-primary/[0.06] border border-primary/25 rounded-lg w-full max-w-xs">
                     <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
-                      <svg
+                      <CloudIcon
                         className="w-4 h-4 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"
-                        />
-                      </svg>
+                        aria-hidden="true"
+                      />
                     </div>
                     <div>
                       <p className="text-xs font-medium text-primary">
@@ -766,35 +707,19 @@ export default function Integrations() {
                   {/* Arrow */}
                   <div className="flex flex-col items-center py-2">
                     <div className="w-px h-6 bg-accent-cyan/40" />
-                    <svg
+                    <ArrowDownIcon
                       className="w-3 h-3 text-accent-cyan/60"
-                      viewBox="0 0 12 12"
-                    >
-                      <path
-                        d="M6 0v10M2 6l4 5 4-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      />
-                    </svg>
+                      aria-hidden="true"
+                    />
                   </div>
 
                   {/* Docker Host */}
                   <div className="w-full max-w-xs border border-border rounded-lg overflow-hidden">
                     <div className="px-4 py-2 bg-surface/60 border-b border-border flex items-center gap-2">
-                      <svg
+                      <CubeIcon
                         className="w-4 h-4 text-accent-cyan"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
-                        />
-                      </svg>
+                        aria-hidden="true"
+                      />
                       <span className="text-2xs font-mono text-text-muted">
                         Docker Host
                       </span>
@@ -1055,19 +980,11 @@ export default function Integrations() {
               title: "SSH as transport",
               desc: "Any tool that uses SSH for remote execution works with ShellHub out of the box. Ansible, rsync, scp, Git over SSH.",
               icon: (
-                <svg
+                <ArrowsRightLeftIcon
                   className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke={C.primary}
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-                  />
-                </svg>
+                  style={{ color: C.primary }}
+                  aria-hidden="true"
+                />
               ),
             },
             {
@@ -1075,19 +992,11 @@ export default function Integrations() {
               title: "No agent changes",
               desc: "The ShellHub agent runs independently on your devices. Install once and use it with every tool in your stack.",
               icon: (
-                <svg
+                <ShieldCheckIcon
                   className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke={C.cyan}
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"
-                  />
-                </svg>
+                  style={{ color: C.cyan }}
+                  aria-hidden="true"
+                />
               ),
             },
             {
@@ -1095,19 +1004,11 @@ export default function Integrations() {
               title: "API-first design",
               desc: "Programmatic access to devices, sessions, and configurations. Build custom integrations with the REST API.",
               icon: (
-                <svg
+                <CodeBracketIcon
                   className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke={C.green}
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
-                  />
-                </svg>
+                  style={{ color: C.green }}
+                  aria-hidden="true"
+                />
               ),
             },
           ].map((b, i) => (

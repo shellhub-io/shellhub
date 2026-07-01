@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { CommandBlock, Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "./components";
 import { docsUrl } from "@/links";
@@ -27,19 +28,11 @@ export function QuickStart() {
           className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
         >
           Full installation guide
-          <svg
+          <ArrowRightIcon
             className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+            aria-hidden="true"
             strokeWidth={2.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-            />
-          </svg>
+          />
         </a>
       </Reveal>
     </Section>

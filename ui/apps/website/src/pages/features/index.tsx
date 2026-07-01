@@ -5,6 +5,21 @@ import {
   Card,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
+import {
+  CheckIcon,
+  PlayCircleIcon,
+  BackwardIcon,
+  PauseIcon,
+  ForwardIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+  PencilSquareIcon,
+  KeyIcon,
+  FolderIcon,
+  TagIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
@@ -134,19 +149,11 @@ function NativeSSH() {
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3">
-                  <svg
-                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <CheckIcon
                     strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m4.5 12.75 6 6 9-13.5"
-                    />
-                  </svg>
+                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-sm font-medium text-text-primary">
                       {item.label}
@@ -212,16 +219,10 @@ function SessionRecording() {
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/20 flex items-center justify-center">
-                      <svg
+                      <PlayCircleIcon
                         className="w-4 h-4 text-accent-cyan"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <polygon points="10 8 16 12 10 16 10 8" />
-                      </svg>
+                        aria-hidden="true"
+                      />
                     </div>
                     <div>
                       <p className="text-xs font-semibold">Session #a7f3c2</p>
@@ -268,60 +269,33 @@ function SessionRecording() {
                     aria-label="Rewind"
                     className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors"
                   >
-                    <svg
+                    <BackwardIcon
                       className="w-4 h-4 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
                       aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062A1.125 1.125 0 0 1 21 8.688v8.123ZM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062a1.125 1.125 0 0 1 1.683.977v8.123Z"
-                      />
-                    </svg>
+                    />
                   </button>
                   <button
                     type="button"
                     aria-label="Pause"
                     className="w-10 h-10 rounded-lg bg-accent-cyan/15 border border-accent-cyan/25 flex items-center justify-center hover:bg-accent-cyan/25 transition-colors"
                   >
-                    <svg
+                    <PauseIcon
                       className="w-5 h-5 text-accent-cyan"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
                       aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15.75 5.25v13.5m-7.5-13.5v13.5"
-                      />
-                    </svg>
+                    />
                   </button>
                   <button
                     type="button"
                     aria-label="Fast forward"
                     className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center hover:border-border-light transition-colors"
                   >
-                    <svg
+                    <ForwardIcon
                       className="w-4 h-4 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
                       aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062A1.125 1.125 0 0 1 3 16.81V8.688ZM12.75 8.688c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 0 1 0 1.953l-7.108 4.062a1.125 1.125 0 0 1-1.683-.977V8.688Z"
-                      />
-                    </svg>
+                    />
                   </button>
 
                   {/* Timeline */}
@@ -390,19 +364,11 @@ function SessionRecording() {
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3">
-                  <svg
-                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <CheckIcon
                     strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m4.5 12.75 6 6 9-13.5"
-                    />
-                  </svg>
+                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-sm font-medium text-text-primary">
                       {item.label}
@@ -460,19 +426,11 @@ function WebTerminal() {
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3">
-                  <svg
-                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <CheckIcon
                     strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m4.5 12.75 6 6 9-13.5"
-                    />
-                  </svg>
+                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-sm font-medium text-text-primary">
                       {item.label}
@@ -557,19 +515,13 @@ function WebTerminal() {
 const securityFeatures = [
   {
     icon: (
-      <svg
+      <LockClosedIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.yellow}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0110 0v4" />
-        <circle cx="12" cy="16" r="1" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.yellow,
     title: "Multi-Factor Authentication",
@@ -577,17 +529,13 @@ const securityFeatures = [
   },
   {
     icon: (
-      <svg
+      <ShieldCheckIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.red}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.red,
     title: "Firewall Rules",
@@ -595,20 +543,13 @@ const securityFeatures = [
   },
   {
     icon: (
-      <svg
+      <UsersIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.primary}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-        <path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.primary,
     title: "Role-Based Access Control",
@@ -616,18 +557,13 @@ const securityFeatures = [
   },
   {
     icon: (
-      <svg
+      <PencilSquareIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.green}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.green,
     title: "Audit Logging",
@@ -635,17 +571,13 @@ const securityFeatures = [
   },
   {
     icon: (
-      <svg
+      <KeyIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.cyan}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.cyan,
     title: "Public Key Authentication",
@@ -653,17 +585,13 @@ const securityFeatures = [
   },
   {
     icon: (
-      <svg
+      <FolderIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.blue}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.blue,
     title: "Namespaces",
@@ -797,19 +725,11 @@ function FileTransfer() {
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3">
-                  <svg
-                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <CheckIcon
                     strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m4.5 12.75 6 6 9-13.5"
-                    />
-                  </svg>
+                    className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-sm font-medium text-text-primary">
                       {item.label}
@@ -1192,19 +1112,11 @@ function DockerAccess() {
                       key={i}
                       className="flex items-center gap-2.5 text-sm text-text-secondary"
                     >
-                      <svg
-                        className="w-4 h-4 text-accent-green shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                      <CheckIcon
                         strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                        className="w-4 h-4 text-accent-green shrink-0"
+                        aria-hidden="true"
+                      />
                       {item}
                     </div>
                   ))}
@@ -1237,20 +1149,11 @@ function DeviceOrganization() {
             <Card hover className="p-8 h-full">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <svg
+                  <TagIcon
                     className="w-5 h-5 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
                     strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"
-                    />
-                    <line x1="7" y1="7" x2="7.01" y2="7" />
-                  </svg>
+                    aria-hidden="true"
+                  />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold">Device Tags</h3>
@@ -1326,19 +1229,11 @@ function DeviceOrganization() {
                     key={item}
                     className="flex items-center gap-2.5 text-xs text-text-secondary"
                   >
-                    <svg
-                      className="w-3.5 h-3.5 text-accent-green shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                    <CheckIcon
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                      className="w-3.5 h-3.5 text-accent-green shrink-0"
+                      aria-hidden="true"
+                    />
                     {item}
                   </li>
                 ))}
@@ -1355,19 +1250,11 @@ function DeviceOrganization() {
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center">
-                    <svg
+                    <FolderIcon
                       className="w-5 h-5 text-accent-cyan"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
-                      />
-                    </svg>
+                      aria-hidden="true"
+                    />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold">Namespaces</h3>
@@ -1417,19 +1304,11 @@ function DeviceOrganization() {
                           </p>
                         </div>
                       </div>
-                      <svg
+                      <ChevronRightIcon
                         className="w-4 h-4 text-text-muted"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                        />
-                      </svg>
+                        aria-hidden="true"
+                      />
                     </div>
                   ))}
                 </div>
@@ -1444,19 +1323,11 @@ function DeviceOrganization() {
                       key={item}
                       className="flex items-center gap-2.5 text-xs text-text-secondary"
                     >
-                      <svg
-                        className="w-3.5 h-3.5 text-accent-green shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                      <CheckIcon
                         strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                        className="w-3.5 h-3.5 text-accent-green shrink-0"
+                        aria-hidden="true"
+                      />
                       {item}
                     </li>
                   ))}

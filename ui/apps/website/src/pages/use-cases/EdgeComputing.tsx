@@ -1,5 +1,17 @@
 import { Link } from "react-router-dom";
 import {
+  CommandLineIcon,
+  ComputerDesktopIcon,
+  DocumentArrowUpIcon,
+  GlobeAltIcon,
+  MapPinIcon,
+  PencilSquareIcon,
+  ShieldCheckIcon,
+  SignalSlashIcon,
+  TagIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -18,86 +30,25 @@ const painPoints = [
     color: C.primary,
     title: "Distributed locations",
     desc: "Edge servers scattered across retail stores, warehouses, cell towers, and data centers — each with unique network topology.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
+    icon: <GlobeAltIcon className="w-5 h-5" style={{ color: C.primary }} />,
   },
   {
     color: C.yellow,
     title: "Unreliable connectivity",
     desc: "Intermittent or low-bandwidth links make traditional VPN tunnels unstable and impossible to maintain reliably.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M1 1l22 22" />
-        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
-        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
-        <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
-        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
-        <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-        <line x1="12" y1="20" x2="12.01" y2="20" />
-      </svg>
-    ),
+    icon: <SignalSlashIcon className="w-5 h-5" style={{ color: C.yellow }} />,
   },
   {
     color: C.red,
     title: "On-site visits are expensive",
     desc: "Dispatching a technician to a remote cell tower or warehouse for a configuration change burns time and budget.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.red}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
+    icon: <MapPinIcon className="w-5 h-5" style={{ color: C.red }} />,
   },
   {
     color: C.cyan,
     title: "Security at scale",
     desc: "Managing SSH keys, firewall rules, and access policies across hundreds of edge locations is operationally complex.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.cyan }} />,
   },
 ];
 
@@ -508,19 +459,10 @@ export default function EdgeComputing() {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <IconBadge color="primary">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={C.primary}
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="4 17 10 11 4 5" />
-                        <line x1="12" y1="19" x2="20" y2="19" />
-                      </svg>
+                      <CommandLineIcon
+                        className="w-5 h-5"
+                        style={{ color: C.primary }}
+                      />
                     </IconBadge>
                     <Badge shape="pill" color="green">
                       Core Feature
@@ -613,20 +555,10 @@ export default function EdgeComputing() {
                     borderColor: `${C.green}25`,
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={C.green}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
+                  <ComputerDesktopIcon
+                    className="w-5 h-5"
+                    style={{ color: C.green }}
+                  />
                 </div>
                 <h4 className="text-sm font-semibold mb-2">Web Terminal</h4>
                 <p className="text-xs text-text-secondary leading-relaxed mb-4">
@@ -682,21 +614,10 @@ export default function EdgeComputing() {
                     borderColor: `${C.cyan}25`,
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={C.cyan}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <path d="M12 18v-6" />
-                    <path d="M9 15l3-3 3 3" />
-                  </svg>
+                  <DocumentArrowUpIcon
+                    className="w-5 h-5"
+                    style={{ color: C.cyan }}
+                  />
                 </div>
                 <h4 className="text-sm font-semibold mb-2">
                   SCP / SFTP File Transfer
@@ -763,19 +684,7 @@ export default function EdgeComputing() {
                     borderColor: `${C.yellow}25`,
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={C.yellow}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                    <line x1="7" y1="7" x2="7.01" y2="7" />
-                  </svg>
+                  <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />
                 </div>
                 <h4 className="text-sm font-semibold mb-2">Device Tags</h4>
                 <p className="text-xs text-text-secondary leading-relaxed mb-3">
@@ -816,21 +725,7 @@ export default function EdgeComputing() {
                     borderColor: `${C.primary}25`,
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={C.primary}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
+                  <UsersIcon className="w-5 h-5" style={{ color: C.primary }} />
                 </div>
                 <h4 className="text-sm font-semibold mb-2">RBAC</h4>
                 <p className="text-xs text-text-secondary leading-relaxed mb-3">
@@ -878,19 +773,10 @@ export default function EdgeComputing() {
                     borderColor: `${C.green}25`,
                   }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={C.green}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
+                  <PencilSquareIcon
+                    className="w-5 h-5"
+                    style={{ color: C.green }}
+                  />
                 </div>
                 <h4 className="text-sm font-semibold mb-2">Audit Trail</h4>
                 <p className="text-xs text-text-secondary leading-relaxed mb-3">

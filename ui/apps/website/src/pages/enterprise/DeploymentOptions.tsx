@@ -1,3 +1,4 @@
+import { CloudIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
@@ -20,19 +21,7 @@ export function DeploymentOptions() {
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4">
                   <IconBadge color="primary">
-                    <svg
-                      className="w-5 h-5 text-primary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15z"
-                      />
-                    </svg>
+                    <CloudIcon className="w-5 h-5 text-primary" />
                   </IconBadge>
                   <Badge shape="pill" color="green">
                     Recommended
@@ -68,19 +57,7 @@ export function DeploymentOptions() {
             <Card hover className="p-8 flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <IconBadge color="neutral">
-                  <svg
-                    className="w-5 h-5 text-text-secondary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21.75 17.25v-.228a4.5 4.5 0 0 0-.12-1.03l-2.268-9.64a3.375 3.375 0 0 0-3.285-2.602H7.923a3.375 3.375 0 0 0-3.285 2.602l-2.268 9.64a4.5 4.5 0 0 0-.12 1.03v.228m19.5 0a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3m19.5 0a3 3 0 0 0-3-3H5.25a3 3 0 0 0-3 3m16.5 0h.008v.008h-.008v-.008Zm-3 0h.008v.008h-.008v-.008Z"
-                    />
-                  </svg>
+                  <ShoppingCartIcon className="w-5 h-5 text-text-secondary" />
                 </IconBadge>
               </div>
 
