@@ -6,7 +6,10 @@ description: Integrate the ShellHub agent into embedded Linux firmware with Buil
 
 # Embedded Linux
 
-ShellHub provides first-class support for embedded Linux platforms. Instead of installing the agent after deployment, you embed it directly into your firmware image — the agent starts automatically on boot and connects to ShellHub without manual setup on each device.
+ShellHub runs on embedded Linux platforms. There are two ways to get the agent onto a device:
+
+- **Build it into your firmware** with [Buildroot](/embedded-linux/buildroot) or [Yocto](/embedded-linux/yocto). The agent is part of the rootfs and connects on first boot, with no per-device install step. This page covers that approach.
+- **Install it on a device already running an embedded OS** — for example a [Raspberry Pi](/embedded-linux/raspberry-pi) running Raspberry Pi OS — with the agent install script.
 
 ## Why embed the agent?
 
@@ -50,7 +53,8 @@ The exact variable names differ by build system. See the [Buildroot](/embedded-l
 
 ## Next steps
 
-- [Buildroot](/embedded-linux/buildroot) — BR2_EXTERNAL setup and QEMU testing
+- [Buildroot](/embedded-linux/buildroot) — BR2_EXTERNAL setup and configuration
 - [Yocto Project](/embedded-linux/yocto) — meta-shellhub layer configuration
+- [Raspberry Pi](/embedded-linux/raspberry-pi) — Install on a running Raspberry Pi OS
 - [Agent Overview](/agent/overview) — How the agent works under the hood
 - [Agent Development](/developers/agent-development) — Build the agent from source for custom platforms
