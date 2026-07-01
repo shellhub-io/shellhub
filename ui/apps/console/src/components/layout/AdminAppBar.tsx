@@ -24,7 +24,7 @@ export default function AdminAppBar({ onMenuToggle }: AdminAppBarProps) {
   };
 
   return (
-    <header className="h-14 bg-surface border-b border-border px-3 sm:px-5 flex items-center justify-between shrink-0">
+    <header className="theme-dark h-14 bg-surface border-b border-border px-3 sm:px-5 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-1">
         {onMenuToggle && (
           <IconButton
