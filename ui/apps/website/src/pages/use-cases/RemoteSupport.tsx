@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
 import {
+  CheckIcon,
+  ComputerDesktopIcon,
+  LockClosedIcon,
+  PencilIcon,
+  PlayCircleIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/solid";
+import {
   Badge,
   Button,
   Card,
@@ -40,118 +50,39 @@ const painPoints = [
 
 const features = [
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="10 8 16 12 10 16 10 8" />
-      </svg>
-    ),
+    icon: <PlayCircleIcon className="w-5 h-5" style={{ color: C.cyan }} />,
     color: C.cyan,
     title: "Session Recording",
     desc: "Every support session is recorded and can be replayed for quality assurance, training, and compliance audits.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
+    icon: <PencilIcon className="w-5 h-5" style={{ color: C.green }} />,
     color: C.green,
     title: "Audit Logging",
     desc: "Complete audit trail with timestamps, user identity, and session details for every connection made to any device.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
+    icon: <UsersIcon className="w-5 h-5" style={{ color: C.primary }} />,
     color: C.primary,
     title: "Role-Based Access",
     desc: "Assign support engineers access to specific devices or groups — revoke access instantly when the ticket is closed.",
   },
   {
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-      </svg>
+      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.green }} />
     ),
     color: C.green,
     title: "Web Terminal",
     desc: "Support engineers access devices straight from the browser — no SSH client setup required on their workstations.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        <circle cx="12" cy="16" r="1" />
-      </svg>
-    ),
+    icon: <LockClosedIcon className="w-5 h-5" style={{ color: C.yellow }} />,
     color: C.yellow,
     title: "MFA for SSH",
     desc: "Require multi-factor authentication for support sessions — adding a security layer beyond SSH keys alone.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.primary }} />,
     color: C.primary,
     title: "Firewall Rules",
     desc: "Restrict support access by IP, time window, or device group with granular, time-based firewall policies.",
@@ -309,19 +240,10 @@ export default function RemoteSupport() {
               ].map((item, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {item.label}
@@ -392,16 +314,11 @@ export default function RemoteSupport() {
                     aria-label="Play"
                     className="w-8 h-8 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill={C.cyan}
-                      stroke="none"
+                    <PlayIcon
+                      className="w-3.5 h-3.5"
+                      style={{ color: C.cyan }}
                       aria-hidden="true"
-                    >
-                      <polygon points="6 4 20 12 6 20 6 4" />
-                    </svg>
+                    />
                   </button>
 
                   {/* Timeline */}
@@ -551,19 +468,10 @@ export default function RemoteSupport() {
               ].map((item, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {item.label}

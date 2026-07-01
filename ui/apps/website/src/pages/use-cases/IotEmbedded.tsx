@@ -1,5 +1,18 @@
 import { Link } from "react-router-dom";
 import {
+  BoltIcon,
+  CheckIcon,
+  CommandLineIcon,
+  ComputerDesktopIcon,
+  EyeIcon,
+  PencilIcon,
+  PlayCircleIcon,
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
+  SignalIcon,
+  TagIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -20,39 +33,14 @@ const painPoints = [
     color: C.yellow,
     title: "No public IP",
     desc: "IoT devices behind cellular, CGNAT, or private networks are unreachable with traditional SSH.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M18.364 5.636a9 9 0 0 1 0 12.728M5.636 18.364a9 9 0 0 1 0-12.728" />
-        <path d="M15.536 8.464a5 5 0 0 1 0 7.072M8.464 15.536a5 5 0 0 1 0-7.072" />
-        <line x1="12" y1="12" x2="12.01" y2="12" strokeWidth="3" />
-      </svg>
-    ),
+    icon: <SignalIcon className="w-5 h-5" style={{ color: C.yellow }} />,
   },
   {
     color: C.primary,
     title: "Fleet scale",
     desc: "Managing SSH keys and firewall rules across hundreds or thousands of devices is unsustainable.",
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </svg>
+      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.primary }} />
     ),
   },
   {
@@ -60,39 +48,14 @@ const painPoints = [
     title: "Security gaps",
     desc: "Exposing SSH ports on embedded devices creates a massive attack surface you can't easily monitor.",
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.red}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <line x1="15" y1="9" x2="9" y2="15" />
-        <line x1="9" y1="9" x2="15" y2="15" />
-      </svg>
+      <ShieldExclamationIcon className="w-5 h-5" style={{ color: C.red }} />
     ),
   },
   {
     color: C.cyan,
     title: "No visibility",
     desc: "Without centralized logging, you have no idea who accessed which device or what they did.",
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
+    icon: <EyeIcon className="w-5 h-5" style={{ color: C.cyan }} />,
   },
 ];
 
@@ -230,19 +193,10 @@ export default function IotEmbedded() {
               ].map((cap, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {cap.label}
@@ -397,17 +351,10 @@ export default function IotEmbedded() {
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-4">
                     <IconBadge color="primary">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={C.primary}
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      >
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                      </svg>
+                      <BoltIcon
+                        className="w-5 h-5"
+                        style={{ color: C.primary }}
+                      />
                     </IconBadge>
                     <Badge shape="pill" color="primary">
                       Core
@@ -658,55 +605,24 @@ export default function IotEmbedded() {
           {[
             {
               icon: (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={C.green}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
+                <ShieldCheckIcon
+                  className="w-5 h-5"
+                  style={{ color: C.green }}
+                />
               ),
               color: C.green,
               title: "Firewall Rules",
               desc: "Define who can access which devices with granular per-device, per-user, or per-tag firewall policies. Block unauthorized connections before they reach the agent.",
             },
             {
-              icon: (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={C.yellow}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                >
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
-                  <line x1="7" y1="7" x2="7.01" y2="7" />
-                </svg>
-              ),
+              icon: <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />,
               color: C.yellow,
               title: "Device Tags",
               desc: "Organize fleets by location, firmware version, hardware type, or customer. Apply firewall rules and access policies to entire groups at once.",
             },
             {
               icon: (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={C.cyan}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polygon points="10 8 16 12 10 16 10 8" />
-                </svg>
+                <PlayCircleIcon className="w-5 h-5" style={{ color: C.cyan }} />
               ),
               color: C.cyan,
               title: "Session Recording",
@@ -714,18 +630,7 @@ export default function IotEmbedded() {
             },
             {
               icon: (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={C.primary}
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                >
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
+                <PencilIcon className="w-5 h-5" style={{ color: C.primary }} />
               ),
               color: C.primary,
               title: "Audit Logging",
@@ -764,18 +669,10 @@ export default function IotEmbedded() {
                   <div>
                     <div className="flex items-center gap-3 mb-4">
                       <IconBadge color="green">
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke={C.green}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        >
-                          <polyline points="4 17 10 11 4 5" />
-                          <line x1="12" y1="19" x2="20" y2="19" />
-                        </svg>
+                        <CommandLineIcon
+                          className="w-5 h-5"
+                          style={{ color: C.green }}
+                        />
                       </IconBadge>
                       <Badge shape="pill" color="green">
                         Agent

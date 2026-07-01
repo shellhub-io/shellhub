@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
 import {
+  ArrowRightIcon,
+  BuildingOffice2Icon,
+  ServerIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -71,19 +76,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
             <div className="bg-card/60 border border-border rounded-xl p-8 flex flex-col h-full hover:border-border-light transition-colors duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-text-secondary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21.75 17.25v-.228a4.5 4.5 0 0 0-.12-1.03l-2.268-9.64a3.375 3.375 0 0 0-3.285-2.602H7.923a3.375 3.375 0 0 0-3.285 2.602l-2.268 9.64a4.5 4.5 0 0 0-.12 1.03v.228m19.5 0a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3m19.5 0a3 3 0 0 0-3-3H5.25a3 3 0 0 0-3 3m16.5 0h.008v.008h-.008v-.008Zm-3 0h.008v.008h-.008v-.008Z"
-                    />
-                  </svg>
+                  <ServerIcon className="w-5 h-5 text-text-secondary" />
                 </div>
                 <span className="px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] bg-white/[0.03] text-text-muted border border-border rounded-full">
                   Open Source
@@ -123,19 +116,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
       <Reveal delay={0.2}>
         <Card className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:border-primary/30 transition-colors duration-300">
           <IconBadge color="yellow">
-            <svg
-              className="w-5 h-5 text-accent-yellow"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21"
-              />
-            </svg>
+            <BuildingOffice2Icon className="w-5 h-5 text-accent-yellow" />
           </IconBadge>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold mb-1">Enterprise</h3>
@@ -151,19 +132,11 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
             size="sm"
             className="px-4 py-2 text-xs gap-1.5 shrink-0"
             iconRight={
-              <svg
+              <ArrowRightIcon
                 className="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
                 strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
+                aria-hidden="true"
+              />
             }
           >
             Contact Sales

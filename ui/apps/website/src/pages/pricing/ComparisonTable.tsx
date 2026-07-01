@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "../landing/components";
 
@@ -167,35 +168,19 @@ function CellValue({ value }: { value: FeatureValue }) {
   }
   if (value) {
     return (
-      <svg
+      <CheckIcon
         className="w-4 h-4 text-accent-green mx-auto"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
         strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="m4.5 12.75 6 6 9-13.5"
-        />
-      </svg>
+        aria-hidden="true"
+      />
     );
   }
   return (
-    <svg
+    <XMarkIcon
       className="w-4 h-4 text-text-muted/40 mx-auto"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
       strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6 18 18 6M6 6l12 12"
-      />
-    </svg>
+      aria-hidden="true"
+    />
   );
 }
 

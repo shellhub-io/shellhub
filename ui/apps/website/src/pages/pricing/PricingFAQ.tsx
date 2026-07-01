@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "../landing/components";
 
@@ -45,20 +46,17 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
           <h4 className="text-sm font-semibold group-hover:text-primary transition-colors">
             {q}
           </h4>
-          <svg
-            className={`w-4 h-4 text-text-muted shrink-0 transition-transform duration-300 ${open ? "rotate-45" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
+          {open ? (
+            <MinusIcon
+              className="w-4 h-4 text-text-muted shrink-0"
+              aria-hidden="true"
             />
-          </svg>
+          ) : (
+            <PlusIcon
+              className="w-4 h-4 text-text-muted shrink-0"
+              aria-hidden="true"
+            />
+          )}
         </div>
         <div
           className={`overflow-hidden transition-all duration-300 ${

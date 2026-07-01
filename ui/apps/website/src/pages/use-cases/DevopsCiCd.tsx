@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
 import {
+  ArrowRightIcon,
+  CheckIcon,
+  CommandLineIcon,
+  DocumentTextIcon,
+  FolderIcon,
+  PencilIcon,
+  ShieldCheckIcon,
+  TagIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -41,115 +51,37 @@ const painPoints = [
 
 const features = [
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <polyline points="4 17 10 11 4 5" />
-        <line x1="12" y1="19" x2="20" y2="19" />
-      </svg>
-    ),
+    icon: <CommandLineIcon className="w-5 h-5" style={{ color: C.primary }} />,
     color: C.primary,
     title: "Standard SSH Transport",
     desc: "Ansible, Terraform, and CI/CD tools connect through ShellHub using standard SSH -- no custom plugins or connectors required.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    ),
+    icon: <DocumentTextIcon className="w-5 h-5" style={{ color: C.cyan }} />,
     color: C.cyan,
     title: "SCP/SFTP Transfers",
     desc: "Push build artifacts, configuration files, and firmware updates to remote devices as part of your deployment pipeline.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
+    icon: <PencilIcon className="w-5 h-5" style={{ color: C.green }} />,
     color: C.green,
     title: "Audit Logging",
     desc: "Every automated session is recorded -- see exactly which pipeline ran what command on which device and when.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
-        <line x1="7" y1="7" x2="7.01" y2="7" />
-      </svg>
-    ),
+    icon: <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />,
     color: C.yellow,
     title: "Device Tags",
     desc: "Target deployments to specific device groups using tags -- deploy to 'staging' or 'production' fleets with a single inventory.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.primary }} />,
     color: C.primary,
     title: "Firewall Rules",
     desc: "Restrict CI runner access to only the devices they need with IP-based and identity-based firewall policies.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-      </svg>
-    ),
+    icon: <FolderIcon className="w-5 h-5" style={{ color: C.green }} />,
     color: C.green,
     title: "Namespaces",
     desc: "Isolate staging and production environments in separate namespaces with independent access policies and device groups.",
@@ -385,19 +317,10 @@ export default function DevopsCiCd() {
               ].map((item, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {item.label}
@@ -472,19 +395,10 @@ export default function DevopsCiCd() {
               ].map((item, i) => (
                 <Reveal key={i} delay={i * 0.04}>
                   <div className="flex items-start gap-3">
-                    <svg
+                    <CheckIcon
                       className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
                       strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
+                    />
                     <div>
                       <p className="text-sm font-medium text-text-primary">
                         {item.label}
@@ -521,37 +435,19 @@ export default function DevopsCiCd() {
                 {pipelineSteps.map((step, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-accent-green/15 border border-accent-green/30 flex items-center justify-center">
-                      <svg
+                      <CheckIcon
                         className="w-3 h-3 text-accent-green"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                      />
                     </div>
                     <span className="text-2xs font-mono text-text-secondary">
                       {step.label}
                     </span>
                     {i < pipelineSteps.length - 1 && (
-                      <svg
+                      <ArrowRightIcon
                         className="w-3 h-3 text-text-muted ml-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
                         strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                        />
-                      </svg>
+                      />
                     )}
                   </div>
                 ))}

@@ -1,3 +1,4 @@
+import { CheckIcon } from "@heroicons/react/24/outline";
 import { WindowChrome } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard } from "../landing/components";
@@ -47,19 +48,11 @@ export function AdminPanel() {
             {capabilities.map((cap, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3">
-                  <svg
+                  <CheckIcon
                     className="w-4 h-4 text-accent-green shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
                     strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m4.5 12.75 6 6 9-13.5"
-                    />
-                  </svg>
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="text-sm font-medium text-text-primary">
                       {cap.label}

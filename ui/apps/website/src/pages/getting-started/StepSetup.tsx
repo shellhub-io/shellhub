@@ -1,3 +1,4 @@
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { CommandBlock } from "@/components/marketing";
 import { docsUrl } from "@/links";
@@ -38,19 +39,10 @@ export function StepSetup({ onBack }: StepSetupProps) {
             className="group"
             onClick={onBack}
             icon={
-              <svg
+              <ArrowLeftIcon
                 className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
-              </svg>
+                aria-hidden="true"
+              />
             }
           >
             Back
@@ -63,19 +55,10 @@ export function StepSetup({ onBack }: StepSetupProps) {
             className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
           >
             Full documentation
-            <svg
+            <ArrowRightIcon
               className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
+              aria-hidden="true"
+            />
           </a>
         </div>
       </Reveal>

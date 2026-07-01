@@ -1,3 +1,11 @@
+import {
+  ArrowRightEndOnRectangleIcon,
+  UsersIcon,
+  LockClosedIcon,
+  PencilIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/solid";
 import { Card } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard } from "../landing/components";
@@ -6,19 +14,13 @@ import { C } from "../landing/constants";
 const features = [
   {
     icon: (
-      <svg
+      <ArrowRightEndOnRectangleIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.primary}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-        <polyline points="10 17 15 12 10 7" />
-        <line x1="15" y1="12" x2="3" y2="12" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.primary,
     title: "SSO / SAML",
@@ -26,20 +28,13 @@ const features = [
   },
   {
     icon: (
-      <svg
+      <UsersIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.cyan}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.cyan,
     title: "LDAP / Active Directory",
@@ -47,19 +42,13 @@ const features = [
   },
   {
     icon: (
-      <svg
+      <LockClosedIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.yellow}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        <circle cx="12" cy="16" r="1" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.yellow,
     title: "MFA Enforcement",
@@ -67,18 +56,13 @@ const features = [
   },
   {
     icon: (
-      <svg
+      <PencilIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.green}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.green,
     title: "Audit Logs",
@@ -86,18 +70,12 @@ const features = [
   },
   {
     icon: (
-      <svg
+      <PlayIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.red}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="10 8 16 12 10 16 10 8" />
-      </svg>
+        style={{ color: C.red }}
+        aria-hidden="true"
+      />
     ),
     color: C.red,
     title: "Session Recording",
@@ -105,17 +83,13 @@ const features = [
   },
   {
     icon: (
-      <svg
+      <ShieldCheckIcon
         width="20"
         height="20"
-        viewBox="0 0 24 24"
-        fill="none"
         stroke={C.blue}
         strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
+        aria-hidden="true"
+      />
     ),
     color: C.blue,
     title: "Firewall Rules",

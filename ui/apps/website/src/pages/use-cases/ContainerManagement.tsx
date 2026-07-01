@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
 import {
+  CheckIcon,
+  ComputerDesktopIcon,
+  DocumentTextIcon,
+  ExclamationTriangleIcon,
+  PencilIcon,
+  PlayCircleIcon,
+  UsersIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import {
   Badge,
   Button,
   Card,
@@ -40,80 +50,27 @@ const painPoints = [
 /* ═══════ Key Features (2x2) ═══════ */
 const smallFeatures = [
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.red}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="10 8 16 12 10 16 10 8" />
-      </svg>
-    ),
+    icon: <PlayCircleIcon className="w-5 h-5" style={{ color: C.red }} />,
     color: C.red,
     title: "Session Recording",
     desc: "Every container session is captured and replayable for compliance audits, post-incident review, and team training.",
   },
   {
     icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.green}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-      </svg>
+      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.green }} />
     ),
     color: C.green,
     title: "Web Terminal",
     desc: "Access containers directly from the browser. No SSH client, Docker CLI, or VPN required on your workstation.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    ),
+    icon: <DocumentTextIcon className="w-5 h-5" style={{ color: C.yellow }} />,
     color: C.yellow,
     title: "SCP / SFTP into Containers",
     desc: "Transfer files in and out of containers with standard SCP and SFTP. No volume mounts or docker cp gymnastics.",
   },
   {
-    icon: (
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={C.blue}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
+    icon: <PencilIcon className="w-5 h-5" style={{ color: C.blue }} />,
     color: C.blue,
     title: "Audit Logging",
     desc: "Full audit trail of every container session. Who connected, when, from where, and what they executed.",
@@ -571,19 +528,7 @@ export default function ContainerManagement() {
               <Card hover className="p-8 flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-border flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18 18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <XMarkIcon className="w-5 h-5 text-text-secondary" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold">Without ShellHub</h3>
@@ -652,19 +597,7 @@ export default function ContainerManagement() {
                 <div className="relative flex-1 flex flex-col">
                   <div className="flex items-center gap-3 mb-6">
                     <IconBadge color="primary">
-                      <svg
-                        className="w-5 h-5 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
+                      <CheckIcon className="w-5 h-5 text-primary" />
                     </IconBadge>
                     <Badge shape="pill" color="green">
                       Recommended
@@ -779,18 +712,11 @@ export default function ContainerManagement() {
                         borderColor: `${p.color}25`,
                       }}
                     >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={p.color}
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      >
-                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-                        <path d="M12 15.75h.007v.008H12v-.008z" />
-                      </svg>
+                      <ExclamationTriangleIcon
+                        width={18}
+                        height={18}
+                        style={{ color: p.color }}
+                      />
                     </div>
                     <div>
                       <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
@@ -823,20 +749,10 @@ export default function ContainerManagement() {
                 {/* Left: description */}
                 <div className="flex flex-col justify-center">
                   <IconBadge color="primary" className="mb-4">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={C.primary}
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    >
-                      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                      <path d="M16 3.13a4 4 0 010 7.75" />
-                    </svg>
+                    <UsersIcon
+                      className="w-5 h-5"
+                      style={{ color: C.primary }}
+                    />
                   </IconBadge>
                   <h3 className="text-lg font-bold mb-2">
                     Per-Container Access Control
