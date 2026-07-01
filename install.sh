@@ -6,14 +6,18 @@ podman_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
 
-  echo "📥 Downloading ShellHub container image..."
+  if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
+    echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
+  else
+    echo "📥 Downloading ShellHub container image..."
 
-  {
-    $SUDO podman pull -q docker.io/shellhubio/agent:$AGENT_VERSION
-  } || {
-    echo "❌ Failed to download shellhub container image."
-    exit 1
-  }
+    {
+      $SUDO podman pull -q "$AGENT_IMAGE"
+    } || {
+      echo "❌ Failed to download shellhub container image."
+      exit 1
+    }
+  fi
 
   MODE=""
   DEFAULT_CONTAINER_NAME="shellhub"
@@ -68,7 +72,7 @@ podman_install() {
     -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
     $LABEL_ARGS \
-    docker.io/shellhubio/agent:$AGENT_VERSION \
+    "$AGENT_IMAGE" \
     $MODE
 
   if [ -z "$MODE" ]; then
@@ -104,14 +108,18 @@ docker_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
 
-  echo "📥 Downloading ShellHub container image..."
+  if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
+    echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
+  else
+    echo "📥 Downloading ShellHub container image..."
 
-  {
-    docker pull -q shellhubio/agent:$AGENT_VERSION
-  } || {
-    echo "❌ Failed to download shellhub container image."
-    exit 1
-  }
+    {
+      docker pull -q "$AGENT_IMAGE"
+    } || {
+      echo "❌ Failed to download shellhub container image."
+      exit 1
+    }
+  fi
 
   MODE=""
   DEFAULT_CONTAINER_NAME="shellhub"
@@ -167,7 +175,7 @@ docker_install() {
     -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
     $LABEL_ARGS \
-    shellhubio/agent:$AGENT_VERSION \
+    "$AGENT_IMAGE" \
     $MODE
 
   if [ -z "$MODE" ]; then
@@ -410,6 +418,8 @@ SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
 INSTALL_METHOD="$INSTALL_METHOD"
 AGENT_VERSION="${AGENT_VERSION:-$(http_get $SERVER_ADDRESS/info | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
+[ -n "$AGENT_IMAGE" ] && AGENT_IMAGE_OVERRIDDEN="1"
+AGENT_IMAGE="${AGENT_IMAGE:-docker.io/shellhubio/agent:$AGENT_VERSION}"
 BINARY_ARCH="$BINARY_ARCH"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 TMP_DIR="${TMP_DIR:-$(mktemp -d -t shellhub-installer-XXXXXX)}"
