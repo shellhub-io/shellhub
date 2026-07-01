@@ -10,7 +10,7 @@ Add the ShellHub agent to your Yocto-based Linux image using the meta-shellhub l
 
 ## Prerequisites
 
-- Yocto Project (scarthgap or another supported release — the meta-shellhub branches map to Yocto releases)
+- A Yocto Project release supported by the layer (currently `styhead`, `whinlatter`, or `wrynose` — see `LAYERSERIES_COMPAT` in the layer)
 - Internet access to fetch the agent source during build
 
 ## Setup
@@ -55,12 +55,13 @@ $ bitbake your-image
 
 The agent is included in the image and starts automatically on boot.
 
-## Verifying
+## Accept the device
 
-After booting the image, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+After booting the image, the device appears as **Pending** on the Devices page in the dashboard. Accept it to start connecting.
 
 ## Next steps
 
 - [Embedded Linux Overview](/embedded-linux/overview) — Why embed the agent and how it works
 - [Buildroot](/embedded-linux/buildroot) — Alternative build system integration
 - [Agent Overview](/agent/overview) — Agent configuration reference
+- [shellhub-io/meta-shellhub](https://github.com/shellhub-io/meta-shellhub) — Yocto layer source

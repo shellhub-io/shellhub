@@ -37,15 +37,17 @@ Select **ShellHub** under **External options** in the menuconfig interface.
 
 ### 3. Configure the agent
 
-The external tree provides a root filesystem overlay for the agent's environment variables. Edit `../shellhub/rootfs_overlay/etc/default/shellhub-agent`:
+The external tree ships a root filesystem overlay for the agent's environment file. Create `rootfs_overlay/etc/default/shellhub-agent` in the external tree:
 
 ```bash
+$ cat > ../shellhub/rootfs_overlay/etc/default/shellhub-agent <<-EOF
 SERVER_ADDRESS="https://cloud.shellhub.io"
 TENANT_ID="<your-tenant-id-here>"
 PRIVATE_KEY="/etc/shellhub-agent.key"
+EOF
 ```
 
-The agent reads these variables at boot:
+The init script and systemd unit source this file and pass the variables to the agent at boot:
 
 | Variable | Required | Description |
 |----------|:--------:|-------------|
@@ -61,29 +63,13 @@ $ make BR2_EXTERNAL=../shellhub rootfs-ext2
 
 The resulting image includes the ShellHub agent, which starts automatically on boot.
 
-## Testing with QEMU
+## Accept the device
 
-Test your image locally before flashing by booting it with QEMU:
-
-```bash
-$ qemu-system-x86_64 \
-    -kernel output/images/bzImage \
-    -drive file=output/images/rootfs.ext2,format=raw \
-    -append "root=/dev/sda console=ttyS0" \
-    -m 512M \
-    -nographic \
-    -netdev user,id=n0,hostfwd=tcp::2222-:22 \
-    -device virtio-net-pci,netdev=n0
-```
-
-The agent connects to the configured ShellHub server on startup, and the device appears in the dashboard.
-
-## Verifying
-
-After booting the image, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+After booting the image, the device appears as **Pending** on the Devices page in the dashboard. Accept it to start connecting.
 
 ## Next steps
 
 - [Embedded Linux Overview](/embedded-linux/overview) — Why embed the agent and how it works
 - [Yocto Project](/embedded-linux/yocto) — Alternative build system integration
 - [Agent Overview](/agent/overview) — Agent configuration reference
+- [shellhub-io/buildroot](https://github.com/shellhub-io/buildroot) — External tree source and README
