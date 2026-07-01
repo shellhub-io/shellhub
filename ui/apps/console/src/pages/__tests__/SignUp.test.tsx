@@ -182,9 +182,7 @@ describe("SignUp", () => {
       await user.click(nameInput);
       await user.tab(); // blur
 
-      await waitFor(() =>
-        expect(screen.getByText(/name must be/i)).toBeInTheDocument(),
-      );
+      expect(await screen.findByText(/name must be/i)).toBeInTheDocument();
     });
 
     it("does not show username error before the field is touched", () => {
@@ -199,9 +197,7 @@ describe("SignUp", () => {
       await user.type(screen.getByLabelText(/^username$/i), "ab");
       await user.tab();
 
-      await waitFor(() =>
-        expect(screen.getByText(/username must be/i)).toBeInTheDocument(),
-      );
+      expect(await screen.findByText(/username must be/i)).toBeInTheDocument();
     });
   });
 
@@ -237,9 +233,9 @@ describe("SignUp", () => {
       await user.type(screen.getByLabelText(/^confirm password$/i), "DifferentPass");
       await user.tab();
 
-      await waitFor(() =>
-        expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByText(/passwords do not match/i),
+      ).toBeInTheDocument();
     });
 
     it("does not show mismatch error before confirmPassword is touched", async () => {
@@ -280,9 +276,9 @@ describe("SignUp", () => {
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
       // The server error should appear on the username field
-      await waitFor(() =>
-        expect(screen.getByText(/this username already exists/i)).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByText(/this username already exists/i),
+      ).toBeInTheDocument();
 
       // Submit should be disabled because of the server field error
       expect(screen.getByRole("button", { name: /create account/i })).toBeDisabled();
@@ -296,9 +292,9 @@ describe("SignUp", () => {
       await fillValidForm(user);
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      await waitFor(() =>
-        expect(screen.getByText(/this email is invalid or already in use/i)).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByText(/this email is invalid or already in use/i),
+      ).toBeInTheDocument();
     });
 
     it("clears the server field error after the user edits that field", async () => {
@@ -309,15 +305,17 @@ describe("SignUp", () => {
       await fillValidForm(user);
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      await waitFor(() =>
-        expect(screen.getByText(/this username already exists/i)).toBeInTheDocument(),
-      );
+      await screen.findByText(/this username already exists/i);
 
-      // Edit the username field — server error should be cleared
+      // Edit the username field — server error should be cleared. The clear is
+      // synchronous with the keystroke, so waitForElementToBeRemoved can't be
+      // used (the element is already gone by call time); assert absence instead.
       await user.type(screen.getByLabelText(/^username$/i), "a");
 
       await waitFor(() =>
-        expect(screen.queryByText(/this username already exists/i)).not.toBeInTheDocument(),
+        expect(
+          screen.queryByText(/this username already exists/i),
+        ).not.toBeInTheDocument(),
       );
     });
   });
