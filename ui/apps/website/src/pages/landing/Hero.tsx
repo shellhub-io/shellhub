@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, ShellHubCloudIcon } from "@shellhub/design-system/primitives";
 import { ArrowRight } from "@/components/ArrowRight";
 import { ConnectionGrid } from "./components";
 
@@ -15,11 +15,7 @@ export function Hero() {
       <div className="relative z-10 max-w-4xl flex flex-col items-center">
         {/* Floating ShellHub cloud */}
         <div className="animate-float mb-8 inline-block">
-          <img
-            src="/cloud-icon.svg"
-            alt=""
-            className="h-16 drop-shadow-[0_0_24px_rgba(102,122,204,0.35)]"
-          />
+          <ShellHubCloudIcon className="h-16 drop-shadow-[0_0_24px_rgba(102,122,204,0.35)]" />
         </div>
 
         {/* Badge like app's active nav pill */}

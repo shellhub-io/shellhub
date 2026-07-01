@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import { IconButton } from "@shellhub/design-system/primitives";
+import {
+  IconButton,
+  ShellHubCloudIcon,
+  ShellHubLogo,
+} from "@shellhub/design-system/primitives";
 
 // ---- Shared nav style constants ----
 
@@ -153,17 +157,15 @@ export default function SidebarShell({
           to={logoHref}
           onClick={onClose}
           className="relative flex items-center justify-center"
+          aria-label="ShellHub"
         >
-          <img
-            src="/logo.svg"
-            alt="ShellHub"
-            aria-hidden={!expanded}
+          <ShellHubLogo
+            aria-hidden
             className={`h-8 transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0 absolute"}`}
           />
-          <img
-            src="/cloud-icon.svg"
-            alt="ShellHub"
-            aria-hidden={expanded}
+          <ShellHubCloudIcon
+            aria-hidden
+            data-testid="sidebar-cloud-icon"
             className={`h-6 w-6 transition-opacity duration-200 ${expanded ? "opacity-0 absolute" : "opacity-100"}`}
           />
         </NavLink>

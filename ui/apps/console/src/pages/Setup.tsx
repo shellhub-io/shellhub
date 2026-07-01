@@ -7,7 +7,7 @@ import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -130,7 +130,7 @@ export default function Setup() {
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
             <div className="flex justify-center mb-5">
-              <img src="/logo.svg" alt="ShellHub" className="h-7" />
+              <ShellHubLogo className="h-7" />
             </div>
             <p className="text-center text-2xs font-mono text-text-muted tracking-wider uppercase">
               Initial Setup
@@ -163,7 +163,7 @@ export default function Setup() {
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
           <div className="flex justify-center mb-5">
-            <img src="/logo.svg" alt="ShellHub" className="h-7" />
+            <ShellHubLogo className="h-7" />
           </div>
           <h1 className="text-center text-sm font-semibold text-text-primary mb-1">
             Welcome to ShellHub

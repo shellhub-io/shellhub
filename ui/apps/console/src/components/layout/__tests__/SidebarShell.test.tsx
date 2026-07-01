@@ -47,17 +47,28 @@ describe("SidebarShell", () => {
     expect(button).toHaveAttribute("title", "Close sidebar");
   });
 
-  it("exposes only the expanded logo to assistive tech when expanded", () => {
+  it("names the logo link and hides both marks when expanded", () => {
     renderSidebarShell({ expanded: true });
 
-    // Both logos stay in the DOM (CSS opacity crossfade); aria-hidden keeps the
-    // collapsed icon out of the accessibility tree so "ShellHub" is announced once.
-    expect(screen.getAllByRole("img", { name: "ShellHub" })).toHaveLength(1);
+    // The link carries the accessible name; both marks stay in the DOM (opacity
+    // crossfade) but are aria-hidden, so "ShellHub" is announced exactly once.
+    expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
+    // The wordmark has role="img" — aria-hidden keeps it out of the a11y tree.
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-cloud-icon")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
   });
 
-  it("exposes only the collapsed logo to assistive tech when collapsed", () => {
+  it("names the logo link and hides both marks when collapsed", () => {
     renderSidebarShell({ expanded: false });
 
-    expect(screen.getAllByRole("img", { name: "ShellHub" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-cloud-icon")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
   });
 });

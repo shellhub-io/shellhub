@@ -5,7 +5,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "../components/common/AmbientBackground";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { ShellHubLogo, Spinner } from "@shellhub/design-system/primitives";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 
@@ -48,7 +48,7 @@ export default function MigrationPage() {
       <AmbientBackground variant={status === "failed" ? "error" : "default"} />
 
       <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <img src="/logo.svg" alt="ShellHub" className="h-8 mb-10 opacity-50" />
+        <ShellHubLogo className="h-8 mb-10 opacity-50" />
 
         <div className="animate-float mb-6">
           <div

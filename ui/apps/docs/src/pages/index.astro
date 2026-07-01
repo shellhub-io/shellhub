@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import { Footer } from "@shellhub/design-system/components";
-import { GithubIcon } from "@shellhub/design-system/primitives";
+import { GithubIcon, ShellHubLogo } from "@shellhub/design-system/primitives";
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
@@ -38,7 +38,7 @@ const allItems = sidebar.flatMap(section =>
       <div class="flex items-center justify-between h-full max-w-7xl mx-auto px-8">
         <div class="flex items-center gap-3">
           <a href={websiteUrl} class="flex items-center shrink-0">
-            <img src="/logo-inverted.png" alt="ShellHub" class="h-9" />
+            <ShellHubLogo className="h-9" />
           </a>
           <a href="/" class="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary bg-primary-50 border border-primary-100 rounded px-2 py-0.5 no-underline hover:bg-primary-100 transition-colors">
             Docs
