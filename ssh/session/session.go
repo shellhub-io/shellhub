@@ -606,7 +606,12 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		if ok, err := s.checkLicense(ctx); err != nil || !ok {
 			return err
 		}
+	}
 
+	// Firewall rules are a Cloud + Enterprise feature, so the check must run in
+	// both modes. Previously it only ran in the enterprise-only branch, which
+	// silently skipped enforcement on cloud.
+	if envs.IsEnterprise() || envs.IsCloud() {
 		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
 			return err
 		}
