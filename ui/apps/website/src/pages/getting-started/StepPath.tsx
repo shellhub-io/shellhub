@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   IconBadge,
+  ShellHubCloudIcon,
 } from "@shellhub/design-system/primitives";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
@@ -33,7 +34,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
                   color="primary"
                   className="shadow-[0_0_12px_rgba(102,122,204,0.15)]"
                 >
-                  <img src="/cloud-icon.svg" alt="" className="h-5" />
+                  <ShellHubCloudIcon className="h-5" />
                 </IconBadge>
                 <Badge shape="pill" color="green">
                   Recommended

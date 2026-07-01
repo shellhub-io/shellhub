@@ -34,4 +34,6 @@ export {
   DiscordIcon,
   DockerIcon,
   DevicesIcon,
+  ShellHubCloudIcon,
+  ShellHubLogo,
 } from "./icons";

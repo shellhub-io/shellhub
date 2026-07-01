@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
 import {
   ChevronDownIcon,
   Bars3Icon,
@@ -357,7 +357,7 @@ export function Navbar({
         <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="shrink-0">
-            <img src="/logo-inverted.png" alt="ShellHub" className="h-8" />
+            <ShellHubLogo className="h-8" />
           </Link>
 
           {/* Mobile toggle */}
