@@ -219,24 +219,6 @@ jobs:
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Snapshot existing tracking comments
-        id: snapshot
-        if: steps.gate.outputs.proceed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-        run: |
-          MARKER="<!-- claude-code-review -->"
-          # Record the IDs of tracking comments that already exist, so the
-          # Finalize step can identify the one this run creates by identity.
-          # We cannot match on the run-id link in the body: Claude strips it when
-          # it rewrites the comment, and the action only re-adds it at the very
-          # end — racing the Finalize read.
-          IDS=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
-            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | paste -sd, -)
-          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
-
       - name: Run Claude Code Review
         if: steps.gate.outputs.proceed == 'true'
         timeout-minutes: 30
@@ -475,7 +457,7 @@ jobs:
 
           claude_args: |
             --max-turns 50
-            --model claude-opus-4-6
+            --model claude-opus-4-8
             --allowedTools "Task" "mcp__github_inline_comment__create_inline_comment" "mcp__github_comment__update_claude_comment" "Bash(gh api:*)" "Bash(gh pr diff:*)"
 
       - name: Finalize tracking comment
@@ -484,22 +466,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-          PRIOR_IDS: ${{ steps.snapshot.outputs.ids }}
+          RUN_ID: ${{ github.run_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           MARKER="<!-- claude-code-review -->"
-          # The tracking comment for THIS run is the marker comment that did not
-          # exist in the pre-run snapshot. Keying on identity avoids racing the
-          # action's end-of-run job-link update.
-          PRIOR=",${PRIOR_IDS},"
+          # Identify THIS run's tracking comment by the run link the action
+          # writes into the comment footer ([View job](.../actions/runs/<id>)).
+          # That link is present by the time this step runs (it executes after
+          # the action step) and survives even when Claude leaves the checklist
+          # stuck. We cannot key on the MARKER: update_claude_comment strips the
+          # leading HTML comment, so it never reaches the persisted body.
           COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
-            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
-            | while read -r id; do
-                [[ "$PRIOR" == *",$id,"* ]] || echo "$id"
-              done | head -1)
+            --jq ".[] | select(.body | contains(\"/actions/runs/$RUN_ID\")) | .id" \
+            | head -1)
 
           if [[ -z "$COMMENT_ID" ]]; then
-            echo "No tracking comment created by this run; nothing to finalize."
+            echo "No tracking comment found for run $RUN_ID; nothing to finalize."
             exit 0
           fi
 
