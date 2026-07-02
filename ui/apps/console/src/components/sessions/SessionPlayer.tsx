@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { create, type AsciinemaPlayer } from "asciinema-player";
+import { create, type Player } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
 import { Card, IconButton } from "@shellhub/design-system/primitives";
@@ -51,7 +51,7 @@ interface SessionPlayerProps {
 export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<AsciinemaPlayer | null>(null);
+  const playerRef = useRef<Player | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef<Speed>(1);
   const endedRef = useRef(false);
@@ -75,25 +75,25 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   const startTimer = () => {
     clearTimer();
     timerRef.current = setInterval(() => {
-      void playerRef.current?.getCurrentTime().then((t) => {
+      const t = playerRef.current?.getCurrentTime();
+      if (t != null) {
         currentTimeRef.current = t;
         setCurrentTime(t);
-      });
+      }
     }, 100);
   };
 
-  const attachListeners = (p: AsciinemaPlayer) => {
+  const attachListeners = (p: Player) => {
     p.addEventListener("playing", () => {
       endedRef.current = false;
       isPlayingRef.current = true;
       setIsPlaying(true);
       startTimer();
-      void p.getDuration().then((d) => {
-        if (d != null) {
-          durationRef.current = d;
-          setDuration(d);
-        }
-      });
+      const d = p.getDuration();
+      if (d != null) {
+        durationRef.current = d;
+        setDuration(d);
+      }
     });
 
     p.addEventListener("ended", () => {
@@ -114,7 +114,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
     });
     playerRef.current = p;
     attachListeners(p);
-    p.play();
+    void p.play();
   };
 
   // Initial setup — runs once
@@ -131,9 +131,9 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   const seekTo = (t: number) => {
     const wasPlaying = isPlayingRef.current;
     const clamped = Math.max(0, Math.min(durationRef.current, t));
-    playerRef.current?.pause();
+    void playerRef.current?.pause();
     void playerRef.current?.seek(clamped).then(() => {
-      if (wasPlaying) playerRef.current?.play();
+      if (wasPlaying) void playerRef.current?.play();
     });
     currentTimeRef.current = clamped;
     setCurrentTime(clamped);
@@ -152,12 +152,12 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
         case " ":
           e.preventDefault();
           if (isPlayingRef.current) {
-            playerRef.current?.pause();
+            void playerRef.current?.pause();
             isPlayingRef.current = false;
             setIsPlaying(false);
             clearTimer();
           } else {
-            playerRef.current?.play();
+            void playerRef.current?.play();
             isPlayingRef.current = true;
             setIsPlaying(true);
           }
@@ -215,12 +215,12 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
   const handlePlayPause = () => {
     if (isPlayingRef.current) {
-      playerRef.current?.pause();
+      void playerRef.current?.pause();
       isPlayingRef.current = false;
       setIsPlaying(false);
       clearTimer();
     } else {
-      playerRef.current?.play();
+      void playerRef.current?.play();
       isPlayingRef.current = true;
       setIsPlaying(true);
     }
@@ -228,9 +228,9 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
 
   const handleSeek = (value: number) => {
     const wasPlaying = isPlayingRef.current;
-    playerRef.current?.pause();
+    void playerRef.current?.pause();
     void playerRef.current?.seek(value).then(() => {
-      if (wasPlaying) playerRef.current?.play();
+      if (wasPlaying) void playerRef.current?.play();
     });
     currentTimeRef.current = value;
     setCurrentTime(value);
