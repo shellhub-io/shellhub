@@ -1,25 +1,15 @@
 import { useController, type Control, type FieldValues, type Path } from "react-hook-form";
 import InputField from "@/components/common/fields/InputField";
-import type { ReactNode, InputHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 
-type InputProps = Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  "id" | "value" | "onChange"
+type InputFieldProps = Omit<
+  ComponentProps<typeof InputField>,
+  "value" | "onChange"
 >;
 
-type Props<T extends FieldValues> = InputProps & {
+type Props<T extends FieldValues> = InputFieldProps & {
   name: Path<T>;
   control: Control<T>;
-  id: string;
-  label: ReactNode;
-  labelAdornment?: ReactNode;
-  hideLabel?: boolean;
-  error?: string;
-  errorRole?: "alert" | "status";
-  hint?: string;
-  appendIcon?: ReactNode;
-  prependIcon?: ReactNode;
-  variant?: "default" | "mono";
   /** Called on every value change, in addition to RHF's internal onChange. */
   onValueChange?: (value: string) => void;
 };
