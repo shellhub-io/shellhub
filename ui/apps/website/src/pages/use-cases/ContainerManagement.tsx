@@ -16,6 +16,7 @@ import {
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
@@ -465,8 +466,7 @@ export default function ContainerManagement() {
       {/* ═══════ Hero ═══════ */}
       <section className="relative pt-32 pb-24 overflow-hidden">
         <ConnectionGrid />
-        <div className="absolute inset-0 bg-gradient-radial from-accent-cyan/8 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-accent-cyan/6 rounded-full blur-3xl pointer-events-none" />
+        <GlowOrbs preset="section" tone="cyan" />
 
         <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
           <Reveal>

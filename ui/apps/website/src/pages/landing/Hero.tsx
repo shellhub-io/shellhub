@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button, ShellHubCloudIcon } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { ConnectionGrid } from "./components";
 
@@ -7,10 +8,7 @@ export function Hero() {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-28 pb-20 relative overflow-hidden grid-bg">
       <ConnectionGrid />
-      <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-16 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-cyan/6 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 right-[10%] w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <GlowOrbs preset="hero" />
 
       <div className="relative z-10 max-w-4xl flex flex-col items-center">
         {/* Floating ShellHub cloud */}

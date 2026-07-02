@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Badge, Button } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ConnectionGrid } from "../landing/components";
 
@@ -7,8 +8,7 @@ export function HeroEnterprise() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden">
       <ConnectionGrid />
-      <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-primary/6 rounded-full blur-3xl pointer-events-none" />
+      <GlowOrbs preset="section" tone="primary" />
 
       <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
         <Reveal>

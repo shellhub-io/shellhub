@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import { Section } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
@@ -83,10 +84,7 @@ export function TierCards() {
                 }`}
               >
                 {tier.highlighted && (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent pointer-events-none" />
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-                  </>
+                  <GlowOrbs preset="corner" tone="primary" />
                 )}
 
                 <div className="relative">

@@ -1,4 +1,5 @@
 import { Button } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import { Section } from "@/components/marketing";
 import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ConnectionGrid } from "./components";
@@ -12,9 +13,7 @@ export function CTA() {
       className="text-center grid-bg relative overflow-hidden"
     >
       <ConnectionGrid />
-      <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-80 h-80 bg-primary/6 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
+      <GlowOrbs preset="duo" tone="primary" />
       <div className="max-w-7xl mx-auto px-8 relative z-10">
         <Reveal>
           <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
