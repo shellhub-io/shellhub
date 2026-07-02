@@ -1,67 +1,57 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, act, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { Player } from "asciinema-player";
 import SessionPlayer from "../SessionPlayer";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
-vi.mock("asciinema-player", () => ({
-  create: vi.fn(),
-}));
+vi.mock("asciinema-player", () => ({ create: vi.fn() }));
 
 import { create } from "asciinema-player";
 
 const mockedCreate = vi.mocked(create);
 
-const mockPlay = vi.fn();
-const mockPause = vi.fn();
-const mockSeek = vi.fn();
-const mockGetCurrentTime = vi.fn().mockResolvedValue(0);
-const mockGetDuration = vi.fn().mockResolvedValue(60);
-const mockDispose = vi.fn();
+const play = vi.fn<Player["play"]>();
+const pause = vi.fn<Player["pause"]>();
+const seek = vi.fn<Player["seek"]>();
+const dispose = vi.fn<Player["dispose"]>();
 
-let listeners: Record<string, () => void> = {};
+let listeners: Record<string, () => void>;
+let currentTime: number;
+let duration: number | undefined;
 
-const mockPlayer = {
-  play: mockPlay,
-  pause: mockPause,
-  seek: mockSeek,
-  getCurrentTime: mockGetCurrentTime,
-  getDuration: mockGetDuration,
-  dispose: mockDispose,
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-};
+const player = {
+  el: document.createElement("div"),
+  play,
+  pause,
+  seek,
+  dispose,
+  getCurrentTime: () => currentTime,
+  getDuration: () => duration,
+  addEventListener: (event: string, handler: () => void) => {
+    listeners[event] = handler;
+  },
+} as unknown as Player;
 
-/* ------------------------------------------------------------------ */
-/* Setup                                                               */
-/* ------------------------------------------------------------------ */
+function renderPlayer(props: { onClose?: () => void } = {}) {
+  const user = userEvent.setup();
+  render(<SessionPlayer logs="test-logs" {...props} />);
+  return { user };
+}
+
+const emit = (event: string) => act(async () => listeners[event]?.());
 
 beforeEach(() => {
-  vi.useFakeTimers();
   listeners = {};
+  currentTime = 0;
+  duration = 60;
   vi.clearAllMocks();
-  mockSeek.mockResolvedValue(undefined);
-  mockPlayer.addEventListener.mockImplementation(
-    (event: string, handler: () => void) => {
-      listeners[event] = handler;
-    },
-  );
-  mockedCreate.mockReturnValue(mockPlayer);
+  seek.mockResolvedValue(undefined);
+  mockedCreate.mockReturnValue(player);
 });
-
-afterEach(() => {
-  vi.useRealTimers();
-});
-
-/* ------------------------------------------------------------------ */
-/* Tests                                                               */
-/* ------------------------------------------------------------------ */
 
 describe("SessionPlayer", () => {
-  describe("setup", () => {
-    it("creates the asciinema player with the provided logs", () => {
+  describe("mount", () => {
+    it("creates a controls-less player from the provided logs and autoplays", () => {
       render(<SessionPlayer logs="my-session-data" />);
 
       expect(mockedCreate).toHaveBeenCalledWith(
@@ -69,186 +59,162 @@ describe("SessionPlayer", () => {
         expect.any(HTMLElement),
         expect.objectContaining({ controls: false }),
       );
-    });
-
-    it("starts playback automatically on mount", () => {
-      render(<SessionPlayer logs="test-logs" />);
-
-      expect(mockPlay).toHaveBeenCalledTimes(1);
+      expect(play).toHaveBeenCalledTimes(1);
     });
 
     it("disposes the player on unmount", () => {
       const { unmount } = render(<SessionPlayer logs="test-logs" />);
       unmount();
 
-      expect(mockDispose).toHaveBeenCalledTimes(1);
+      expect(dispose).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("seekTo", () => {
-    it("resumes playback after seeking when the video was playing (ArrowRight)", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+  describe("playback state", () => {
+    it("shows the duration and a pause affordance once playback starts", async () => {
+      renderPlayer();
+      await emit("playing");
 
-      await act(async () => {
-        listeners["playing"]?.();
-      });
-
-      mockPlay.mockClear();
-      mockPause.mockClear();
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "ArrowRight" });
-      });
-
-      expect(mockPause).toHaveBeenCalledTimes(1);
-      expect(mockPlay).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("00:00 / 01:00")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     });
 
-    it("resumes playback after seeking when the video was playing (ArrowLeft)", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+    it("advances the time readout as playback progresses", async () => {
+      renderPlayer();
+      await emit("playing");
 
-      await act(async () => {
-        listeners["playing"]?.();
-      });
+      currentTime = 5;
 
-      mockPlay.mockClear();
-      mockPause.mockClear();
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "ArrowLeft" });
-      });
-
-      expect(mockPause).toHaveBeenCalledTimes(1);
-      expect(mockPlay).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText("00:05 / 01:00")).toBeInTheDocument();
     });
 
-    it("resumes playback after seeking when the video was playing (number key)", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+    it("returns to a play affordance when playback ends", async () => {
+      renderPlayer();
+      await emit("playing");
+      await emit("ended");
 
-      await act(async () => {
-        listeners["playing"]?.();
-      });
+      expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    });
+  });
 
-      mockPlay.mockClear();
-      mockPause.mockClear();
+  describe("play/pause control", () => {
+    it("pauses when the control is clicked while playing", async () => {
+      const { user } = renderPlayer();
+      await emit("playing");
 
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "5" });
-      });
+      await user.click(screen.getByRole("button", { name: "Pause" }));
 
-      expect(mockPause).toHaveBeenCalledTimes(1);
-      expect(mockPlay).toHaveBeenCalledTimes(1);
+      expect(pause).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
     });
 
-    it("does not resume playback after seeking when the video was paused", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+    it("resumes when the control is clicked while paused", async () => {
+      const { user } = renderPlayer();
+      play.mockClear();
 
-      // isPlayingRef stays false — "playing" listener never triggered
-      mockPlay.mockClear();
-      mockPause.mockClear();
+      await user.click(screen.getByRole("button", { name: "Play" }));
 
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "ArrowRight" });
-      });
-
-      expect(mockPause).toHaveBeenCalledTimes(1);
-      expect(mockPlay).not.toHaveBeenCalled();
-    });
-
-    it("seeks back/forward one frame with comma/period when paused", async () => {
-      render(<SessionPlayer logs="test-logs" />);
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "," });
-      });
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "." });
-      });
-
-      expect(mockSeek).toHaveBeenCalledTimes(2);
-    });
-
-    it("ignores comma/period for frame stepping when playing", async () => {
-      render(<SessionPlayer logs="test-logs" />);
-
-      await act(async () => {
-        listeners["playing"]?.();
-      });
-
-      mockSeek.mockClear();
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "," });
-        fireEvent.keyDown(window, { key: "." });
-      });
-
-      expect(mockSeek).not.toHaveBeenCalled();
+      expect(play).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     });
   });
 
   describe("keyboard shortcuts", () => {
-    it("pauses playback when Space is pressed while playing", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+    it("toggles play/pause with Space", async () => {
+      const { user } = renderPlayer();
+      await emit("playing");
+      pause.mockClear();
 
-      await act(async () => {
-        listeners["playing"]?.();
-      });
+      await user.keyboard("[Space]");
 
-      mockPause.mockClear();
-      mockPlay.mockClear();
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: " " });
-      });
-
-      expect(mockPause).toHaveBeenCalledTimes(1);
-      expect(mockPlay).not.toHaveBeenCalled();
+      expect(pause).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
     });
 
-    it("resumes playback when Space is pressed while paused", async () => {
-      render(<SessionPlayer logs="test-logs" />);
-
-      // Never trigger "playing", so isPlayingRef stays false
-      mockPlay.mockClear();
-
-      await act(async () => {
-        fireEvent.keyDown(window, { key: " " });
-      });
-
-      expect(mockPlay).toHaveBeenCalledTimes(1);
-      expect(mockPause).not.toHaveBeenCalled();
-    });
-
-    it("calls onClose when Escape is pressed outside fullscreen", async () => {
+    it("closes the player with Escape", async () => {
       const onClose = vi.fn();
-      render(<SessionPlayer logs="test-logs" onClose={onClose} />);
+      const { user } = renderPlayer({ onClose });
 
-      await act(async () => {
-        fireEvent.keyDown(window, { key: "Escape" });
-      });
+      await user.keyboard("{Escape}");
 
       expect(onClose).toHaveBeenCalledOnce();
     });
+  });
 
-    it("resets to paused state when the ended event fires", async () => {
-      render(<SessionPlayer logs="test-logs" />);
+  describe("seeking", () => {
+    it.each(["{ArrowRight}", "{ArrowLeft}", "5"])(
+      "resumes playback after seeking with %s while playing",
+      async (keys) => {
+        const { user } = renderPlayer();
+        await emit("playing");
+        play.mockClear();
+        pause.mockClear();
 
-      await act(async () => {
-        listeners["playing"]?.();
-      });
+        await user.keyboard(keys);
 
-      await act(async () => {
-        listeners["ended"]?.();
-      });
+        expect(seek).toHaveBeenCalledTimes(1);
+        expect(pause).toHaveBeenCalledTimes(1);
+        expect(play).toHaveBeenCalledTimes(1);
+      },
+    );
 
-      // After ended, Space should resume (isPlayingRef became false)
-      mockPlay.mockClear();
-      await act(async () => {
-        fireEvent.keyDown(window, { key: " " });
-      });
+    it("seeks without resuming when paused", async () => {
+      const { user } = renderPlayer();
+      play.mockClear();
 
-      expect(mockPlay).toHaveBeenCalledTimes(1);
+      await user.keyboard("{ArrowRight}");
+
+      expect(seek).toHaveBeenCalledTimes(1);
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it("steps a frame with comma/period only while paused", async () => {
+      const { user } = renderPlayer();
+
+      await user.keyboard(",.");
+      expect(seek).toHaveBeenCalledTimes(2);
+
+      seek.mockClear();
+      await emit("playing");
+      await user.keyboard(",.");
+      expect(seek).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("playback speed", () => {
+    it("recreates the player at the current position when speed changes", async () => {
+      const { user } = renderPlayer();
+      await emit("playing");
+
+      currentTime = 10;
+      await screen.findByText("00:10 / 01:00");
+      dispose.mockClear();
+
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Playback speed" }),
+        "2",
+      );
+
+      expect(dispose).toHaveBeenCalledTimes(1);
+      expect(mockedCreate).toHaveBeenLastCalledWith(
+        { data: "test-logs" },
+        expect.any(HTMLElement),
+        expect.objectContaining({ speed: 2, startAt: 10 }),
+      );
+    });
+  });
+
+  describe("shortcuts help", () => {
+    it("toggles the shortcuts popover", async () => {
+      const { user } = renderPlayer();
+
+      expect(screen.queryByText("Keyboard Shortcuts")).not.toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", { name: "Keyboard shortcuts" }),
+      );
+
+      expect(screen.getByText("Keyboard Shortcuts")).toBeInTheDocument();
     });
   });
 });
