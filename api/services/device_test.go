@@ -2013,6 +2013,69 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			description: "failure (accepted) - duplicate accepted MAC index maps to device duplicated",
+			req: &requests.DeviceUpdateStatus{
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				UID:      "pending-device",
+				Status:   "accepted",
+			},
+			requiredMocks: func() {
+				device := &models.Device{
+					UID:      "pending-device",
+					Name:     "test-device",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Status:   models.DeviceStatusPending,
+					Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+				}
+				updatedDevice := &models.Device{
+					UID:             "pending-device",
+					Name:            "test-device",
+					TenantID:        "00000000-0000-0000-0000-000000000000",
+					Status:          models.DeviceStatusAccepted,
+					StatusUpdatedAt: now,
+					Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+				}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "pending-device", mock.AnythingOfType("[]store.QueryOption")).
+					Return(device, nil).
+					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("[]store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("false").
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, updatedDevice).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expectedError: NewErrDeviceDuplicated("test-device", store.ErrDuplicate),
+		},
+		{
 			description: "failure (accepted) (different MAC) - device limit reached [enterprise]",
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",

@@ -367,6 +367,12 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 		device.Status = newStatus
 		device.StatusUpdatedAt = clock.Now()
 		if err := s.store.DeviceUpdate(ctx, device); err != nil {
+			// The devices_accepted_mac_unique index can reject a concurrent accept of
+			// a same-MAC device; surface that as a duplicate (409), not a bare 500.
+			if newStatus == models.DeviceStatusAccepted && errors.Is(err, store.ErrDuplicate) {
+				return NewErrDeviceDuplicated(device.Name, err)
+			}
+
 			return err
 		}
 
