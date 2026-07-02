@@ -1,5 +1,6 @@
 import { ReactNode, useId } from "react";
 import { IconBadge } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 
 export type EmptyStateAccent = "primary" | "yellow";
 
@@ -28,8 +29,6 @@ interface AccentStyles {
   badge: string;
   icon: string;
   overline: string;
-  orbPrimary: string;
-  orbSecondary: string;
 }
 
 /**
@@ -37,22 +36,19 @@ interface AccentStyles {
  * the Tailwind JIT keeps them. The hero icon inherits the badge's text color
  * via `currentColor`; feature-card icons stay primary-accented in all variants.
  * Typed as `Record<EmptyStateAccent, …>` so adding an accent without a matching
- * entry is a compile error rather than a runtime `undefined`.
+ * entry is a compile error rather than a runtime `undefined`. The decorative
+ * orbs are driven by `<GlowOrbs preset="ambient">` (see below), not these tokens.
  */
 const ACCENT = {
   primary: {
     badge: "bg-primary/10 border-primary/20 shadow-primary/5",
     icon: "text-primary",
     overline: "text-primary/80",
-    orbPrimary: "bg-primary/5",
-    orbSecondary: "bg-accent-blue/5",
   },
   yellow: {
     badge: "bg-accent-yellow/10 border-accent-yellow/20 shadow-accent-yellow/5",
     icon: "text-accent-yellow",
     overline: "text-accent-yellow/80",
-    orbPrimary: "bg-accent-yellow/5",
-    orbSecondary: "bg-primary/5",
   },
 } satisfies Record<EmptyStateAccent, AccentStyles>;
 
@@ -86,12 +82,9 @@ export default function EmptyState({
         aria-hidden="true"
         className="absolute inset-0 overflow-hidden pointer-events-none -mx-8 -mt-8 -mb-4"
       >
-        <div
-          className={`absolute -top-32 left-1/3 w-[500px] h-[500px] rounded-full blur-[120px] animate-pulse-subtle ${styles.orbPrimary}`}
-        />
-        <div
-          className={`absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] animate-pulse-subtle ${styles.orbSecondary}`}
-          style={{ animationDelay: "1s" }}
+        <GlowOrbs
+          preset="ambient"
+          tone={accent === "yellow" ? "warning" : "brand"}
         />
         <div className="absolute inset-0 grid-bg opacity-30" />
       </div>
@@ -123,9 +116,7 @@ export default function EmptyState({
 
         {/* Feature highlights */}
         {features?.length ? (
-          <ul
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
-          >
+          <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
             {features.map((feature, idx) => (
               <li
                 key={feature.title}

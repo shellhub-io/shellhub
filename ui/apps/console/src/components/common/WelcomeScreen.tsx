@@ -7,7 +7,7 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
-import { ConnectionGrid } from "@shellhub/design-system/components";
+import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { GithubIcon, IconBadge } from "@shellhub/design-system/primitives";
 
 interface WelcomeScreenProps {
@@ -49,9 +49,7 @@ export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
       {/* Hero */}
       <div className="relative pt-16 pb-12 overflow-hidden">
         <ConnectionGrid />
-        <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent" />
-        <div className="absolute top-10 left-1/4 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-accent-cyan/6 rounded-full blur-3xl" />
+        <GlowOrbs preset="duo" tone="primary" />
 
         <div className="relative text-center max-w-lg mx-auto">
           <div className="animate-float mb-8 inline-block">

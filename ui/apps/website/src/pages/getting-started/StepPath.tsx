@@ -4,6 +4,7 @@ import {
   BuildingOffice2Icon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import {
   Badge,
   Button,
@@ -27,8 +28,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
             <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.15)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-primary/[0.02] to-transparent pointer-events-none" />
-              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+              <GlowOrbs preset="corner" tone="primary" />
               <div className="relative flex items-center gap-3 mb-4">
                 <IconBadge
                   color="primary"

@@ -5,6 +5,7 @@ import {
   Card,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 import {
   CheckIcon,
   PlayCircleIcon,
@@ -64,8 +65,7 @@ function Hero() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden">
       <ConnectionGrid />
-      <div className="absolute inset-0 bg-gradient-radial from-primary/8 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
+      <GlowOrbs preset="section" tone="cyan" />
 
       <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
         <Reveal>

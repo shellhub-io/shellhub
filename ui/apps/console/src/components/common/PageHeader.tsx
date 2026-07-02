@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { IconBadge, type Palette } from "@shellhub/design-system/primitives";
+import { GlowOrbs } from "@shellhub/design-system/components";
 
 interface PageHeaderProps {
   icon: ReactNode;
@@ -28,12 +29,7 @@ export default function PageHeader({
           : "bg-surface page-header-band"
       }`}
     >
-      {variant === "decorated" && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-surface to-accent-cyan/10" />
-          <div className="absolute top-0 right-0 w-60 h-60 bg-primary/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/4" />
-        </>
-      )}
+      {variant === "decorated" && <GlowOrbs preset="corner" tone="primary" />}
 
       <div
         className={`${variant === "decorated" ? "relative " : ""}flex flex-col sm:flex-row sm:items-center justify-between gap-4`}

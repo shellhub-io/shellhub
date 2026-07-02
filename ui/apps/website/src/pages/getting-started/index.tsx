@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ConnectionGrid } from "@shellhub/design-system/components";
+import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import { StepPath } from "./StepPath";
 import { StepSetup } from "./StepSetup";
@@ -21,7 +21,7 @@ export default function GettingStarted() {
     <SiteLayout className="flex flex-col">
       <main className="flex-1 flex flex-col items-center pt-24 pb-20 relative grid-bg">
         <ConnectionGrid />
-        <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent pointer-events-none" />
+        <GlowOrbs preset="section" tone="primary" />
 
         <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
           {/* Progress indicator */}
