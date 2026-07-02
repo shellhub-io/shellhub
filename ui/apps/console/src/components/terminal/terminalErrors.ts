@@ -191,7 +191,7 @@ export function resolveError(raw: string, deviceUid: string): TerminalError {
     to: l.to.split("$uid").join(deviceUid),
   }));
   if (hasFirewall) {
-    links.push({ label: "Firewall rules", to: "/firewall/rules" });
+    links.push({ label: "Firewall rules", to: "/firewall-rules" });
   }
 
   return {
