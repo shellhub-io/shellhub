@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { ShellHubLogo, Spinner } from "@shellhub/design-system/primitives";
 
 function ApiUnavailablePage() {
   return (
@@ -12,7 +12,7 @@ function ApiUnavailablePage() {
 
       {/* Content */}
       <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <img src="/logo.svg" alt="ShellHub" className="h-8 mb-10 opacity-50" />
+        <ShellHubLogo className="h-8 mb-10 opacity-50" />
 
         <div className="animate-float mb-6">
           <div className="w-20 h-20 rounded-2xl bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shadow-lg shadow-accent-red/5">

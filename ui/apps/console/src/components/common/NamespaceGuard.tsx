@@ -9,12 +9,16 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  ShellHubLogo,
+  Spinner,
+} from "@shellhub/design-system/primitives";
 
 function MinimalHeader() {
   return (
     <header className="h-14 bg-surface border-b border-border px-5 flex items-center justify-between shrink-0">
-      <img src="/logo.svg" alt="ShellHub" className="h-6" />
+      <ShellHubLogo className="h-6" />
       <UserMenu />
     </header>
   );
@@ -36,7 +40,7 @@ function FetchErrorPage({
 
       {/* Content */}
       <div className="flex flex-col items-center text-center px-6 animate-fade-in">
-        <img src="/logo.svg" alt="ShellHub" className="h-8 mb-10 opacity-50" />
+        <ShellHubLogo className="h-8 mb-10 opacity-50" />
 
         <div className="animate-float mb-6">
           <div className="w-20 h-20 rounded-2xl bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shadow-lg shadow-accent-red/5">

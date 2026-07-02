@@ -9,7 +9,11 @@ import {
   EyeSlashIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Card } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Card,
+  ShellHubCloudIcon,
+} from "@shellhub/design-system/primitives";
 import { Reveal } from "../landing/components";
 import apiClient from "@/api/client";
 import { loginUrl } from "@/links";
@@ -130,7 +134,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
           <div className="px-6 pt-6 pb-5 border-b border-border bg-surface/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <img src="/cloud-icon.svg" alt="" className="h-5" />
+                <ShellHubCloudIcon className="h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-bold">ShellHub Cloud</h3>
