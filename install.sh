@@ -1,10 +1,116 @@
 #!/bin/sh
 
 # Overridden variables from Go template: {{.Overrides}}
+
+# Pairing mode (empty TENANT_ID) is only supported by the container methods in
+# agent mode; every other path still requires a tenant.
+require_tenant() {
+  [ -z "$TENANT_ID" ] && {
+    echo "ERROR: TENANT_ID is required for this installation method."
+    exit 1
+  }
+}
+
+# Installs the shellhub-agent wrapper that proxies commands into the agent
+# container. The agent itself cannot open the host's browser from inside the
+# container, so for 'login' the wrapper scans the output for the accept-device
+# URL and opens it on the host; native (non-container) agents open it directly.
+install_agent_wrapper() {
+  _RUNTIME="$1"
+
+  _FSUDO=""
+  [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
+  WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
+
+  if ! cat <<EOF | $_FSUDO tee "$WRAPPER_PATH" > /dev/null
+#!/bin/sh
+_containers=\$($_RUNTIME ps --filter label=shellhub.role=agent --format '{{.Names}}')
+if [ -z "\$_containers" ]; then
+  echo "shellhub-agent: no running agent container found" >&2
+  echo "Start the agent or run 'install.sh uninstall' to remove this wrapper" >&2
+  exit 1
+fi
+if [ "\$(printf '%s\n' "\$_containers" | wc -l)" -gt 1 ]; then
+  echo "shellhub-agent: multiple agent containers found, stop all but one:" >&2
+  printf '%s\n' "\$_containers" | sed 's/^/  /' >&2
+  exit 1
+fi
+
+if [ "\$1" = "login" ] && command -v xdg-open > /dev/null 2>&1; then
+  _STATUS_FILE=\$(mktemp)
+  trap 'rm -f "\$_STATUS_FILE"' EXIT
+
+  { $_RUNTIME exec "\$_containers" agent "\$@" 2>&1; echo \$? > "\$_STATUS_FILE"; } | while IFS= read -r _LINE; do
+    printf '%s\n' "\$_LINE"
+    case "\$_LINE" in
+    *"/accept-device?code="*)
+      _URL=\$(printf '%s' "\$_LINE" | tr -d ' ')
+      { xdg-open "\$_URL" > /dev/null 2>&1 && printf '%s\n' "(opened in your browser)"; } &
+      ;;
+    esac
+  done
+
+  read -r _CODE < "\$_STATUS_FILE" || _CODE=1
+  exit "\${_CODE:-1}"
+fi
+
+exec $_RUNTIME exec "\$_containers" agent "\$@"
+EOF
+  then
+    echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
+    exit 1
+  fi
+
+  $_FSUDO chmod +x "$WRAPPER_PATH"
+  echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+}
+
+# Enrolls a freshly installed agent. Without a tenant the device does not belong
+# to any namespace yet, so we run the login flow in the foreground: it prints the
+# accept URL (opening the browser when possible) and waits until a user accepts
+# the device into a namespace — no second command, no pending list to dig
+# through. With a tenant (fleet install) the device shows up pending and is
+# accepted in the console as before.
+#
+# $1: command that runs the agent, invoked as "<cmd> login". For container
+#     methods this is the wrapper (which execs into the container); for native
+#     methods it is the agent binary itself, possibly prefixed with sudo.
+# $2: host-visible path of the agent key to wait for before pairing.
+enroll_agent_interactively() {
+  _AGENT_CMD="$1"
+  _WAIT_KEY="$2"
+
+  if [ -n "$PAIRING_CODE" ]; then
+    echo ""
+    echo "The device is pre-authorized and will be accepted automatically once it connects."
+
+    return 0
+  fi
+
+  if [ -n "$TENANT_ID" ]; then
+    echo ""
+    echo "The device will appear as pending in the console — accept it there."
+
+    return 0
+  fi
+
+  # Wait for the agent to generate its key so the login flow reuses it instead
+  # of racing the daemon to create one.
+  _i=0
+  while [ "$_i" -lt 30 ] && [ ! -f "$_WAIT_KEY" ]; do
+    sleep 1
+    _i=$((_i + 1))
+  done
+
+  echo ""
+  $_AGENT_CMD login || true
+}
+
 podman_install() {
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
+  [ -n "${PAIRING_CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$PAIRING_CODE"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
@@ -28,6 +134,7 @@ podman_install() {
     shift 1
     ;;
   "connector")
+    require_tenant
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
@@ -76,30 +183,11 @@ podman_install() {
     $MODE
 
   if [ -z "$MODE" ]; then
-    _FSUDO=""
-    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
-    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    $_FSUDO tee "$WRAPPER_PATH" > /dev/null << 'WRAPPER'
-#!/bin/sh
-_containers=$(podman ps --filter label=shellhub.role=agent --format '{{.Names}}')
-if [ -z "$_containers" ]; then
-  echo "shellhub-agent: no running agent container found" >&2
-  echo "Start the agent or run 'install.sh uninstall' to remove this wrapper" >&2
-  exit 1
-fi
-if [ "$(printf '%s\n' "$_containers" | wc -l)" -gt 1 ]; then
-  echo "shellhub-agent: multiple agent containers found, stop all but one:" >&2
-  printf '%s\n' "$_containers" | sed 's/^/  /' >&2
-  exit 1
-fi
-exec podman exec "$_containers" agent "$@"
-WRAPPER
-    [ $? -ne 0 ] && {
-      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
-      exit 1
-    }
-    $_FSUDO chmod +x "$WRAPPER_PATH"
-    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+    install_agent_wrapper "podman"
+    # The key path is under /host (the agent mounts the host root there); strip
+    # that prefix so the installer waits on the real host path.
+    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
   fi
 }
 
@@ -107,6 +195,7 @@ docker_install() {
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
+  [ -n "${PAIRING_CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$PAIRING_CODE"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
@@ -130,6 +219,7 @@ docker_install() {
     shift 1
     ;;
   "connector")
+    require_tenant
     MODE="connector"
     DEFAULT_CONTAINER_NAME="shellhub-connector"
     ARGS="$ARGS -e SHELLHUB_PRIVATE_KEYS=${PRIVATE_KEYS:-/host/etc/shellhub/connector/keys}"
@@ -179,34 +269,17 @@ docker_install() {
     $MODE
 
   if [ -z "$MODE" ]; then
-    _FSUDO=""
-    [ "$(id -u)" -ne 0 ] && _FSUDO="sudo"
-    WRAPPER_PATH="${INSTALL_DIR:-/usr/local/bin}/shellhub-agent"
-    $_FSUDO tee "$WRAPPER_PATH" > /dev/null << 'WRAPPER'
-#!/bin/sh
-_containers=$(docker ps --filter label=shellhub.role=agent --format '{{.Names}}')
-if [ -z "$_containers" ]; then
-  echo "shellhub-agent: no running agent container found" >&2
-  echo "Start the agent or run 'install.sh uninstall' to remove this wrapper" >&2
-  exit 1
-fi
-if [ "$(printf '%s\n' "$_containers" | wc -l)" -gt 1 ]; then
-  echo "shellhub-agent: multiple agent containers found, stop all but one:" >&2
-  printf '%s\n' "$_containers" | sed 's/^/  /' >&2
-  exit 1
-fi
-exec docker exec "$_containers" agent "$@"
-WRAPPER
-    [ $? -ne 0 ] && {
-      echo "❌ Failed to install shellhub-agent wrapper at $WRAPPER_PATH."
-      exit 1
-    }
-    $_FSUDO chmod +x "$WRAPPER_PATH"
-    echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
+    install_agent_wrapper "docker"
+    # The key path is under /host (the agent mounts the host root there); strip
+    # that prefix so the installer waits on the real host path.
+    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}"
   fi
 }
 
 snap_install() {
+  require_tenant
+
   if ! type snap >/dev/null 2>&1; then
     echo "❌ Snap is not installed or not supported on this system."
     exit 1
@@ -288,6 +361,11 @@ standalone_install() {
   }
 
   echo "✅ ShellHub agent installed and started."
+
+  # Native install: the binary is the command and opens the browser itself, so
+  # no wrapper is needed — enroll by invoking it directly. Reads the root-owned
+  # key, hence $SUDO.
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}"
 
   rm -rf "$TMP_DIR"
 }
@@ -409,10 +487,9 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
   exit 1
 fi
 
-[ "$1" != "uninstall" ] && [ -z "$TENANT_ID" ] && {
-  echo "ERROR: TENANT_ID is missing."
-  exit 1
-}
+# TENANT_ID is optional for the container methods: without it the agent boots
+# into pairing mode and is enrolled into a namespace via 'shellhub-agent login'.
+# Snap and standalone installs still require it (checked in their functions).
 
 SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
@@ -462,7 +539,7 @@ fi
 
 echo "⚙️ Detected settings:"
 echo "- Server address: $SERVER_ADDRESS"
-echo "- Tenant ID: $TENANT_ID"
+echo "- Tenant ID: ${TENANT_ID:-(none — enroll with 'shellhub-agent login')}"
 echo "- Agent version: $AGENT_VERSION"
 echo "- Architecture: $BINARY_ARCH"
 [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"

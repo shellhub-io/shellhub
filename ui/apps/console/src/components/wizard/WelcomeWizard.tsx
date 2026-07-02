@@ -6,13 +6,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useAcceptDevice } from "@/hooks/useDeviceMutations";
-import type { NormalizedDevice } from "@/hooks/useDevices";
-import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 import BaseDialog from "@/components/common/BaseDialog";
 import WizardStep1Welcome from "./WizardStep1Welcome";
 import WizardStep2Install from "./WizardStep2Install";
-import WizardStep3Device from "./WizardStep3Device";
 import WizardStep4Complete from "./WizardStep4Complete";
 
 interface WelcomeWizardProps {
@@ -20,43 +16,23 @@ interface WelcomeWizardProps {
   onClose: () => void;
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3;
 
 export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
   const [step, setStep] = useState(1);
-  const [pendingDevice, setPendingDevice] = useState<NormalizedDevice | null>(
+  const [device, setDevice] = useState<{ uid: string; name: string } | null>(
     null,
   );
-  const [accepting, setAccepting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
     setStep(1);
-    setPendingDevice(null);
-    setAccepting(false);
-    setError(null);
+    setDevice(null);
   });
 
-  const acceptMutation = useAcceptDevice();
-
-  // Stable predicate: closing is allowed on steps 1–3 but blocked on step 4.
-  // Memoized to prevent BaseDialog's cancel-event listener from re-attaching
-  // on every render (the listener dep-array includes canClose).
+  // Stable predicate: closing is allowed on steps 1–2 but blocked on the final
+  // step. Memoized to prevent BaseDialog's cancel-event listener from
+  // re-attaching on every render (its dep-array includes canClose).
   const canClose = useCallback(() => step < TOTAL_STEPS, [step]);
-
-  const handleAccept = async () => {
-    if (!pendingDevice) return;
-    setError(null);
-    setAccepting(true);
-    try {
-      await acceptMutation.mutateAsync({ path: { uid: pendingDevice.uid } });
-      setStep(4);
-    } catch (err) {
-      setError(getAcceptDeviceErrorMessage(err));
-    } finally {
-      setAccepting(false);
-    }
-  };
 
   return (
     <BaseDialog
@@ -115,23 +91,15 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
       <main className="flex-auto overflow-y-auto px-6 min-h-0">
         {step === 1 && <WizardStep1Welcome />}
         {step === 2 && (
-          <WizardStep2Install onDeviceDetected={() => setStep(3)} />
-        )}
-        {step === 3 && (
-          <WizardStep3Device
-            device={pendingDevice}
-            onDeviceLoaded={setPendingDevice}
+          <WizardStep2Install
+            onConnected={(d) => {
+              setDevice(d);
+              setStep(3);
+            }}
           />
         )}
-        {step === 4 && <WizardStep4Complete device={pendingDevice} />}
+        {step === 3 && <WizardStep4Complete device={device} />}
       </main>
-
-      {/* Inline error — shown between scrollable content and footer on step 3 */}
-      {step === 3 && error && (
-        <p role="alert" className="shrink-0 px-6 py-2 text-xs text-accent-red">
-          {error}
-        </p>
-      )}
 
       {/* Footer */}
       <footer className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-between">
@@ -168,7 +136,8 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
           )}
 
           {step === 2 && (
-            // Disabled — polling in WizardStep2Install auto-advances to step 3
+            // Disabled — the device auto-accepts and WizardStep2Install advances
+            // to the final step the moment it connects.
             <Button
               disabled
               iconRight={
@@ -176,16 +145,6 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
               }
             >
               Next
-            </Button>
-          )}
-
-          {step === 3 && (
-            <Button
-              onClick={() => void handleAccept()}
-              disabled={!pendingDevice}
-              loading={accepting}
-            >
-              {accepting ? "Accepting…" : "Accept"}
             </Button>
           )}
 

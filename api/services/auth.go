@@ -22,6 +22,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
@@ -69,6 +70,20 @@ type AuthService interface {
 	PublicKey() *rsa.PublicKey
 }
 
+// deviceHostname derives a device's hostname, falling back to the MAC (":"→"-"),
+// or "" when neither is set. Callers lowercase at the point of use.
+func deviceHostname(hostname, mac string) string {
+	if hostname != "" {
+		return hostname
+	}
+
+	if mac != "" {
+		return strings.ReplaceAll(mac, ":", "-")
+	}
+
+	return ""
+}
+
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
@@ -79,13 +94,9 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		return nil, NewErrAuthDeviceNoIdentity()
 	}
 
-	hostname := req.Hostname
+	hostname := deviceHostname(req.Hostname, req.Identity.MAC)
 	if hostname == "" {
-		if req.Identity.MAC != "" {
-			hostname = strings.ReplaceAll(req.Identity.MAC, ":", "-")
-		} else {
-			return nil, NewErrAuthDeviceNoIdentityAndHostname()
-		}
+		return nil, NewErrAuthDeviceNoIdentityAndHostname()
 	}
 
 	auth := models.DeviceAuth{
@@ -121,9 +132,17 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 
-		position, err := s.locator.GetPosition(net.ParseIP(req.RealIP))
-		if err != nil {
-			return nil, err
+		// NOTE: The position lookup is best-effort: a pairing accept materializes
+		// the device server-side without a device IP, and a lookup failure should
+		// not block registration.
+		position := geoip.Position{}
+		if ip := net.ParseIP(req.RealIP); ip != nil {
+			if position, err = s.locator.GetPosition(ip); err != nil {
+				log.WithError(err).WithFields(log.Fields{"real_ip": req.RealIP, "tenant_id": req.TenantID}).
+					Warn("failed to resolve the device position")
+
+				position = geoip.Position{}
+			}
 		}
 
 		device = &models.Device{

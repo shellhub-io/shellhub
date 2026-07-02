@@ -5,12 +5,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
-import type { NormalizedDevice } from "@/hooks/useDevices";
 import CopyButton from "@/components/common/CopyButton";
 import { Button } from "@shellhub/design-system/primitives";
 
 interface WizardStep4CompleteProps {
-  device: NormalizedDevice | null;
+  device: { name: string } | null;
 }
 
 export default function WizardStep4Complete({

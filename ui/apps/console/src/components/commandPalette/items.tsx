@@ -222,6 +222,7 @@ export function buildCommandItems(deps: {
     { label: "Team", path: "/team", icon: icons.team },
     { label: "Settings", path: "/settings", icon: icons.settings },
     { label: "Add Device", path: "/devices/add", icon: icons.add },
+    { label: "Claim a Device", path: "/accept-device", icon: icons.add },
   ];
 
   const list: CommandItem[] = nav.map((n) => ({

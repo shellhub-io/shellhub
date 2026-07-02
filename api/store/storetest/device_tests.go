@@ -427,6 +427,23 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 		require.NotNil(t, deviceByMAC)
 		assert.Equal(t, string(deviceUID), deviceByMAC.UID)
 	})
+
+	t.Run("succeeds resolving accepted device by public key", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithTenantID(tenantID),
+			WithDevicePublicKey("resolve-by-pubkey"),
+			WithDeviceStatus(models.DeviceStatusAccepted),
+		)
+
+		device, err := st.DeviceResolve(ctx, store.DevicePublicKeyResolver, "resolve-by-pubkey",
+			s.provider.Store().Options().WithDeviceStatus(models.DeviceStatusAccepted))
+		require.NoError(t, err)
+		require.NotNil(t, device)
+		assert.Equal(t, string(deviceUID), device.UID)
+	})
 }
 
 // TestDeviceCreate tests device creation

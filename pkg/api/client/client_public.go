@@ -109,6 +109,77 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 	return res, nil
 }
 
+func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error) {
+	var res *models.DeviceLoginCode
+
+	response, err := c.http.R().
+		SetAuthToken(token).
+		SetResult(&res).
+		Post("/api/devices/auth/code")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
+	var res *models.DevicePairing
+
+	response, err := c.http.R().
+		SetBody(req).
+		SetResult(&res).
+		Post("/api/devices/pairing")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
+	var res *models.DevicePairingStatus
+
+	response, err := c.http.R().
+		SetResult(&res).
+		Get("/api/devices/pairing/" + code + "/status")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {
+	var res *models.DeviceAuthStatus
+
+	response, err := c.http.R().
+		SetAuthToken(token).
+		SetResult(&res).
+		Get("/api/devices/auth/status")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 // NewReverseListener creates a new reverse listener connection to ShellHub's server. This listener receives the SSH
 // requests coming from the ShellHub server. Only authenticated devices can obtain a listener connection.
 func (c *client) NewReverseListenerV1(ctx context.Context, token string, path string) (net.Listener, error) {
