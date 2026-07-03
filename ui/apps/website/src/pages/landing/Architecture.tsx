@@ -1,6 +1,7 @@
 import { Section, SectionHeader } from "@/components/marketing";
+import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { Reveal } from "./components";
-import { C } from "./constants";
+import { C, FONT_SANS, FONT_MONO } from "./constants";
 
 export function Architecture() {
   return (
@@ -20,31 +21,13 @@ export function Architecture() {
           className="w-full h-auto min-w-[700px]"
         >
           <defs>
-            <marker
-              id="aa"
-              markerWidth="8"
-              markerHeight="6"
-              refX="8"
-              refY="3"
-              orient="auto"
-            >
-              <path d="M0,0 L8,3 L0,6" fill={C.primary} />
-            </marker>
-            <marker
-              id="aad"
-              markerWidth="8"
-              markerHeight="6"
-              refX="8"
-              refY="3"
-              orient="auto"
-            >
-              <path d="M0,0 L8,3 L0,6" fill={`${C.primary}60`} />
-            </marker>
+            <ArrowMarker id="aa" fill={C.primary} />
+            <ArrowMarker id="aad" fill={`${C.primary}60`} />
           </defs>
           <text
             x="100"
             y="30"
-            fontFamily="IBM Plex Sans"
+            fontFamily={FONT_SANS}
             fontSize="12"
             fill={C.textMuted}
             textAnchor="middle"
@@ -121,7 +104,7 @@ export function Architecture() {
           <text
             x="100"
             y="225"
-            fontFamily="IBM Plex Sans"
+            fontFamily={FONT_SANS}
             fontSize="10"
             fill={C.textSec}
             textAnchor="middle"
@@ -149,7 +132,7 @@ export function Architecture() {
           <text
             x="220"
             y="178"
-            fontFamily="IBM Plex Mono"
+            fontFamily={FONT_MONO}
             fontSize="8"
             fill={C.primary}
             textAnchor="middle"
@@ -169,7 +152,7 @@ export function Architecture() {
           <text
             x="440"
             y="30"
-            fontFamily="IBM Plex Sans"
+            fontFamily={FONT_SANS}
             fontSize="12"
             fill={C.primary}
             textAnchor="middle"
@@ -191,7 +174,7 @@ export function Architecture() {
           <text
             x="440"
             y="107"
-            fontFamily="IBM Plex Mono"
+            fontFamily={FONT_MONO}
             fontSize="14"
             fill={C.primary}
             textAnchor="middle"
@@ -259,7 +242,7 @@ export function Architecture() {
               <text
                 x={b.x + 30}
                 y={b.y + 18}
-                fontFamily="IBM Plex Sans"
+                fontFamily={FONT_SANS}
                 fontSize="9"
                 fill={C.textSec}
               >
@@ -270,7 +253,7 @@ export function Architecture() {
           <text
             x="750"
             y="30"
-            fontFamily="IBM Plex Sans"
+            fontFamily={FONT_SANS}
             fontSize="12"
             fill={C.textMuted}
             textAnchor="middle"
@@ -282,7 +265,7 @@ export function Architecture() {
           <text
             x="633"
             y="44"
-            fontFamily="IBM Plex Mono"
+            fontFamily={FONT_MONO}
             fontSize="8"
             fill={C.textMuted}
             textAnchor="middle"
@@ -331,7 +314,7 @@ export function Architecture() {
           <text
             x="618"
             y="130"
-            fontFamily="IBM Plex Mono"
+            fontFamily={FONT_MONO}
             fontSize="7"
             fill={`${C.primary}60`}
             textAnchor="middle"
@@ -463,7 +446,7 @@ export function Architecture() {
               <text
                 x="740"
                 y={d.y + 24}
-                fontFamily="IBM Plex Sans"
+                fontFamily={FONT_SANS}
                 fontSize="10"
                 fill={C.text}
                 textAnchor="start"
@@ -473,7 +456,7 @@ export function Architecture() {
               <text
                 x="740"
                 y={d.y + 38}
-                fontFamily="IBM Plex Mono"
+                fontFamily={FONT_MONO}
                 fontSize="7"
                 fill={C.textMuted}
                 textAnchor="start"
@@ -503,7 +486,7 @@ export function Architecture() {
           <text
             x="574"
             y="98"
-            fontFamily="IBM Plex Mono"
+            fontFamily={FONT_MONO}
             fontSize="7"
             fill={C.primary}
             textAnchor="middle"

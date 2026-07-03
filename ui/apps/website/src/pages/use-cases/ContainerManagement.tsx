@@ -21,7 +21,7 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
-import { C } from "../landing/constants";
+import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
 
 /* ═══════ Pain Points ═══════ */
 const painPoints = [
@@ -203,7 +203,7 @@ function ArchitectureDiagram() {
         fill={C.text}
         fontSize="12"
         fontWeight="600"
-        fontFamily="IBM Plex Sans, sans-serif"
+        fontFamily={FONT_SANS}
       >
         User
       </text>
@@ -213,7 +213,7 @@ function ArchitectureDiagram() {
         textAnchor="middle"
         fill={C.textMuted}
         fontSize="9"
-        fontFamily="IBM Plex Mono, monospace"
+        fontFamily={FONT_MONO}
       >
         ssh user@ctr
       </text>
@@ -274,7 +274,7 @@ function ArchitectureDiagram() {
         fill={C.text}
         fontSize="12"
         fontWeight="600"
-        fontFamily="IBM Plex Sans, sans-serif"
+        fontFamily={FONT_SANS}
       >
         ShellHub Gateway
       </text>
@@ -284,7 +284,7 @@ function ArchitectureDiagram() {
         textAnchor="middle"
         fill={C.textMuted}
         fontSize="9"
-        fontFamily="IBM Plex Mono, monospace"
+        fontFamily={FONT_MONO}
       >
         auth + routing
       </text>
@@ -294,7 +294,7 @@ function ArchitectureDiagram() {
         textAnchor="middle"
         fill={C.textMuted}
         fontSize="9"
-        fontFamily="IBM Plex Mono, monospace"
+        fontFamily={FONT_MONO}
       >
         session recording
       </text>
@@ -329,7 +329,7 @@ function ArchitectureDiagram() {
         fill={C.text}
         fontSize="12"
         fontWeight="600"
-        fontFamily="IBM Plex Sans, sans-serif"
+        fontFamily={FONT_SANS}
       >
         Docker Host
       </text>
@@ -366,7 +366,7 @@ function ArchitectureDiagram() {
         fill={C.primary}
         fontSize="10"
         fontWeight="600"
-        fontFamily="IBM Plex Mono, monospace"
+        fontFamily={FONT_MONO}
       >
         ShellHub Agent
       </text>
@@ -417,7 +417,7 @@ function ArchitectureDiagram() {
             fill={C.text}
             fontSize="11"
             fontWeight="500"
-            fontFamily="IBM Plex Sans, sans-serif"
+            fontFamily={FONT_SANS}
           >
             {ctr.name}
           </text>
@@ -438,7 +438,7 @@ function ArchitectureDiagram() {
             fill={ctr.color}
             fontSize="8"
             fontWeight="600"
-            fontFamily="IBM Plex Mono, monospace"
+            fontFamily={FONT_MONO}
           >
             running
           </text>
