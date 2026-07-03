@@ -1,15 +1,20 @@
-import { useState, useMemo, FormEvent, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
-import { validate, type FormErrors } from "./setup/validate";
+import { useForm } from "react-hook-form";
+import { signUpResolver } from "./setup/signUpResolver";
+import type { SignUpFormValues } from "./setup/signUpResolver";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
+import {
+  FormInputField,
+  FormPasswordField,
+  FormCheckboxField,
+} from "@/components/common/fields/rhf";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 
-const SERVER_FIELD_MAP: Record<string, keyof FormErrors> = {
+const SERVER_FIELD_MAP: Record<string, keyof SignUpFormValues> = {
   username: "username",
   email: "email",
   name: "name",
@@ -43,80 +48,47 @@ export default function SignUp() {
   const sigFromQuery = searchParams.get("sig") ?? "";
   const isInvite = Boolean(emailFromQuery && sigFromQuery);
 
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(emailFromQuery);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [acceptPrivacyPolicy, setAcceptPrivacyPolicy] = useState(false);
+  // acceptMarketing is optional and not part of the validated form values
   const [acceptMarketing, setAcceptMarketing] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [accountCreated, setAccountCreated] = useState(false);
 
-  const serverFieldErrors = useMemo(() => {
-    const mapped: Partial<FormErrors> = {};
+  const { control, handleSubmit, setError, formState } =
+    useForm<SignUpFormValues>({
+      resolver: signUpResolver,
+      mode: "onTouched",
+      defaultValues: {
+        name: "",
+        username: "",
+        email: emailFromQuery,
+        password: "",
+        confirmPassword: "",
+        acceptPrivacyPolicy: false,
+      },
+    });
+
+  // Sync server-side field errors into RHF field state whenever the store changes
+  useEffect(() => {
     for (const field of signUpServerFields) {
       const key = SERVER_FIELD_MAP[field];
-      if (key) mapped[key] = SERVER_FIELD_MESSAGES[field];
+      const message = SERVER_FIELD_MESSAGES[field];
+
+      if (key && message) {
+        setError(key, { type: "server", message });
+      }
     }
-    return mapped;
-  }, [signUpServerFields]);
+  }, [signUpServerFields, setError]);
 
-  const validationErrors = useMemo(
-    () => validate({ name, username, email, password, confirmPassword }),
-    [name, username, email, password, confirmPassword],
-  );
-
-  const fieldError = (field: keyof FormErrors): string | undefined => {
-    if (serverFieldErrors[field]) return serverFieldErrors[field];
-    return touched[field] ? validationErrors[field] : undefined;
-  };
-
-  const handleBlur = (field: string) =>
-    setTouched((prev) => ({ ...prev, [field]: true }));
-
-  const isFormValid = useMemo(
-    () =>
-      Object.keys(validationErrors).length === 0 &&
-      !Object.values(serverFieldErrors).some(Boolean) &&
-      acceptPrivacyPolicy,
-    [validationErrors, serverFieldErrors, acceptPrivacyPolicy],
-  );
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    setTouched({
-      name: true,
-      username: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-    });
-
-    // Compute validity from source of truth rather than the memoized `isFormValid`,
-    // which reflects the previous render and would be stale after `setTouched`.
-    const errors = validate({
-      name,
-      username,
-      email,
-      password,
-      confirmPassword,
-    });
-    if (
-      Object.keys(errors).length > 0 ||
-      !acceptPrivacyPolicy ||
-      signUpServerFields.length > 0
-    )
-      return;
+  const onSubmit = async (values: SignUpFormValues) => {
+    // Guard: still block if server field errors haven't been cleared yet
+    if (signUpServerFields.length > 0) return;
 
     resetSignUpErrors();
 
     const token = await signUp({
-      name,
-      email,
-      username,
-      password,
+      name: values.name,
+      email: values.email,
+      username: values.username,
+      password: values.password,
       email_marketing: acceptMarketing,
       ...(sigFromQuery ? { sig: sigFromQuery } : {}),
     });
@@ -124,17 +96,22 @@ export default function SignUp() {
     // signUp absorbed any errors into the store; bail out if errors were set
     const { signUpError: err, signUpServerFields: fields } =
       useSignUpStore.getState();
+
     if (err !== null || fields.length > 0) return;
 
     if (!token) {
       void navigate(
-        `/confirm-account?username=${encodeURIComponent(username)}`,
+        `/confirm-account?username=${encodeURIComponent(values.username)}`,
       );
       return;
     }
 
     // Invite flow: token returned — show AccountCreated
     setAccountCreated(true);
+  };
+
+  const handleFormSubmit = (e: FormEvent) => {
+    void handleSubmit(onSubmit)(e);
   };
 
   if (accountCreated) {
@@ -190,82 +167,64 @@ export default function SignUp() {
           )}
 
           <form
-            onSubmit={(e) => void handleSubmit(e)}
+            onSubmit={handleFormSubmit}
             className="space-y-4"
             aria-label="Create account"
           >
-            <InputField
+            <FormInputField<SignUpFormValues>
               id="name"
               label="Name"
-              value={name}
-              onChange={(v) => {
-                setName(v);
-                clearSignUpServerField("name");
-              }}
-              onBlur={() => handleBlur("name")}
-              error={fieldError("name")}
+              name="name"
+              control={control}
               placeholder="Your name"
               autoComplete="name"
+              onValueChange={() => clearSignUpServerField("name")}
             />
 
-            <InputField
+            <FormInputField<SignUpFormValues>
               id="username"
               label="Username"
-              value={username}
-              onChange={(v) => {
-                setUsername(v);
-                clearSignUpServerField("username");
-              }}
-              onBlur={() => handleBlur("username")}
-              error={fieldError("username")}
+              name="username"
+              control={control}
               placeholder="username"
               autoComplete="username"
+              onValueChange={() => clearSignUpServerField("username")}
             />
 
-            <InputField
+            <FormInputField<SignUpFormValues>
               id="email"
               label="Email"
+              name="email"
+              control={control}
               type="email"
-              value={email}
-              onChange={(v) => {
-                setEmail(v);
-                clearSignUpServerField("email");
-              }}
-              onBlur={() => handleBlur("email")}
-              error={fieldError("email")}
               placeholder="you@example.com"
               autoComplete="email"
               disabled={isInvite}
+              onValueChange={() => clearSignUpServerField("email")}
             />
 
-            <PasswordField
+            <FormPasswordField<SignUpFormValues>
               id="password"
               label="Password"
-              value={password}
-              onChange={(v) => {
-                setPassword(v);
-                clearSignUpServerField("password");
-              }}
-              onBlur={() => handleBlur("password")}
-              error={fieldError("password")}
+              name="password"
+              control={control}
               placeholder="Min. 5 characters"
+              onValueChange={() => clearSignUpServerField("password")}
             />
 
-            <PasswordField
+            <FormPasswordField<SignUpFormValues>
               id="confirmPassword"
               label="Confirm Password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              onBlur={() => handleBlur("confirmPassword")}
-              error={fieldError("confirmPassword")}
+              name="confirmPassword"
+              control={control}
               placeholder="Re-enter password"
             />
 
             {/* Privacy Policy checkbox (required) */}
-            <CheckboxField
+            <FormCheckboxField<SignUpFormValues>
               id="signup-accept-privacy"
-              checked={acceptPrivacyPolicy}
-              onChange={setAcceptPrivacyPolicy}
+              name="acceptPrivacyPolicy"
+              control={control}
               required
               label={
                 <>
@@ -282,7 +241,7 @@ export default function SignUp() {
               }
             />
 
-            {/* Marketing checkbox (optional) */}
+            {/* Marketing checkbox (optional) — not validated, kept as local state */}
             <CheckboxField
               id="signup-accept-marketing"
               checked={acceptMarketing}
@@ -297,7 +256,11 @@ export default function SignUp() {
               type="submit"
               className="px-4"
               loading={signUpLoading}
-              disabled={signUpLoading || !isFormValid}
+              disabled={
+                signUpLoading ||
+                !formState.isValid ||
+                signUpServerFields.length > 0
+              }
             >
               {signUpLoading ? "Creating account..." : "Create Account"}
             </Button>
