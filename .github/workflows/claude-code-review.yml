@@ -405,6 +405,12 @@ jobs:
             last action MUST still be a mcp__github_comment__update_claude_comment call
             that replaces the checklist with the final summary below.
 
+            This step is NOT contingent on Steps 2–4 succeeding. If an agent returned
+            nothing, a tool call was denied, or you hit any error, you MUST still fall
+            through to here and post the summary — treat the affected finding as absent
+            and continue. A denied or failed tool is never a reason to end your turn
+            early. When in doubt, use the "no new findings" summary below.
+
             After Step 4 is complete, update the tracking comment one final time via
             mcp__github_comment__update_claude_comment to become the closing summary.
 
@@ -458,7 +464,7 @@ jobs:
           claude_args: |
             --max-turns 50
             --model claude-opus-4-8
-            --allowedTools "Task" "mcp__github_inline_comment__create_inline_comment" "mcp__github_comment__update_claude_comment" "Bash(gh api:*)" "Bash(gh pr diff:*)"
+            --allowedTools "Task" "Read" "Grep" "Glob" "LS" "mcp__github_inline_comment__create_inline_comment" "mcp__github_comment__update_claude_comment" "Bash(gh api:*)" "Bash(gh pr diff:*)"
 
       - name: Finalize tracking comment
         if: always() && steps.gate.outputs.proceed == 'true'
