@@ -1,4 +1,6 @@
-/* ═══════ SVG color constants ═══════ */
+export const FONT_SANS = "IBM Plex Sans, sans-serif";
+export const FONT_MONO = "IBM Plex Mono, monospace";
+
 export const C = {
   primary: "#667ACC",
   primaryDim: "#667ACC20",

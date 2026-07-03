@@ -22,6 +22,7 @@ import {
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Section, SectionHeader } from "@/components/marketing";
+import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -569,28 +570,9 @@ export default function IotEmbedded() {
                         You (SSH)
                       </text>
 
-                      {/* Arrow markers */}
                       <defs>
-                        <marker
-                          id="arrowGreen"
-                          markerWidth="8"
-                          markerHeight="6"
-                          refX="8"
-                          refY="3"
-                          orient="auto"
-                        >
-                          <polygon points="0 0, 8 3, 0 6" fill={C.green} />
-                        </marker>
-                        <marker
-                          id="arrowCyan"
-                          markerWidth="8"
-                          markerHeight="6"
-                          refX="4"
-                          refY="3"
-                          orient="auto"
-                        >
-                          <polygon points="0 0, 8 3, 0 6" fill={C.cyan} />
-                        </marker>
+                        <ArrowMarker id="arrowGreen" fill={C.green} />
+                        <ArrowMarker id="arrowCyan" fill={C.cyan} refX={4} />
                       </defs>
                     </svg>
                   </div>

@@ -1,7 +1,8 @@
 import { Card } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
+import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { Reveal, ShimmerCard } from "./components";
-import { C } from "./constants";
+import { C, FONT_SANS, FONT_MONO } from "./constants";
 
 export function HowItWorks() {
   return (
@@ -35,16 +36,7 @@ export function HowItWorks() {
                 className="w-full h-auto"
               >
                 <defs>
-                  <marker
-                    id="arrow-pri"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.primary} />
-                  </marker>
+                  <ArrowMarker id="arrow-pri" fill={C.primary} />
                 </defs>
                 <rect
                   x="10"
@@ -73,7 +65,7 @@ export function HowItWorks() {
                 <text
                   x="50"
                   y="125"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -93,7 +85,7 @@ export function HowItWorks() {
                 <text
                   x="122"
                   y="92"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.primaryGlow}
                   textAnchor="middle"
@@ -122,7 +114,7 @@ export function HowItWorks() {
                 <text
                   x="197"
                   y="95"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="8"
                   fill={C.primary}
                   textAnchor="middle"
@@ -132,7 +124,7 @@ export function HowItWorks() {
                 <text
                   x="197"
                   y="107"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -142,7 +134,7 @@ export function HowItWorks() {
                 <text
                   x="197"
                   y="125"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -179,7 +171,7 @@ export function HowItWorks() {
                 <text
                   x="344"
                   y="89"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.primary}
                   textAnchor="middle"
@@ -190,7 +182,7 @@ export function HowItWorks() {
                 <text
                   x="344"
                   y="115"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.primary}
                   textAnchor="middle"
@@ -201,7 +193,7 @@ export function HowItWorks() {
                 <text
                   x="344"
                   y="130"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -236,7 +228,7 @@ export function HowItWorks() {
                 <text
                   x="436"
                   y="55"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -283,7 +275,7 @@ export function HowItWorks() {
                 <text
                   x="489"
                   y="125"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -317,16 +309,7 @@ export function HowItWorks() {
                 className="w-full h-auto"
               >
                 <defs>
-                  <marker
-                    id="arrow-cyan"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.cyan} />
-                  </marker>
+                  <ArrowMarker id="arrow-cyan" fill={C.cyan} />
                 </defs>
                 <rect
                   x="10"
@@ -349,7 +332,7 @@ export function HowItWorks() {
                 <text
                   x="60"
                   y="94"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.cyan}
                   textAnchor="middle"
@@ -359,7 +342,7 @@ export function HowItWorks() {
                 <text
                   x="60"
                   y="106"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="6"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -377,7 +360,7 @@ export function HowItWorks() {
                 <text
                   x="60"
                   y="125"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -414,7 +397,7 @@ export function HowItWorks() {
                 <text
                   x="220"
                   y="89"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.cyan}
                   textAnchor="middle"
@@ -425,7 +408,7 @@ export function HowItWorks() {
                 <text
                   x="220"
                   y="115"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.cyan}
                   textAnchor="middle"
@@ -436,7 +419,7 @@ export function HowItWorks() {
                 <text
                   x="220"
                   y="130"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -489,7 +472,7 @@ export function HowItWorks() {
                 <text
                   x="395"
                   y="93"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -520,7 +503,7 @@ export function HowItWorks() {
                 <text
                   x="494"
                   y="103"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -547,7 +530,7 @@ export function HowItWorks() {
                 <text
                   x="395"
                   y="137"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.cyan}
                   textAnchor="middle"
@@ -557,7 +540,7 @@ export function HowItWorks() {
                 <text
                   x="395"
                   y="147"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="6"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -567,7 +550,7 @@ export function HowItWorks() {
                 <text
                   x="395"
                   y="175"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -601,36 +584,9 @@ export function HowItWorks() {
                 className="w-full h-auto"
               >
                 <defs>
-                  <marker
-                    id="arrow-yel"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.yellow} />
-                  </marker>
-                  <marker
-                    id="arrow-grn"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.green} />
-                  </marker>
-                  <marker
-                    id="arrow-red"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.red} />
-                  </marker>
+                  <ArrowMarker id="arrow-yel" fill={C.yellow} />
+                  <ArrowMarker id="arrow-grn" fill={C.green} />
+                  <ArrowMarker id="arrow-red" fill={C.red} />
                 </defs>
                 <rect
                   x="10"
@@ -644,7 +600,7 @@ export function HowItWorks() {
                 <text
                   x="60"
                   y="80"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.text}
                   textAnchor="middle"
@@ -655,7 +611,7 @@ export function HowItWorks() {
                 <text
                   x="60"
                   y="95"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.text}
                   textAnchor="middle"
@@ -675,7 +631,7 @@ export function HowItWorks() {
                 <text
                   x="56"
                   y="116"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="6"
                   fill={C.textMuted}
                 >
@@ -693,7 +649,7 @@ export function HowItWorks() {
                 <text
                   x="56"
                   y="130"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="6"
                   fill={C.textMuted}
                 >
@@ -721,7 +677,7 @@ export function HowItWorks() {
                 <text
                   x="252"
                   y="62"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.yellow}
                   textAnchor="middle"
@@ -757,7 +713,7 @@ export function HowItWorks() {
                 <text
                   x="252"
                   y="86"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -792,7 +748,7 @@ export function HowItWorks() {
                 <text
                   x="252"
                   y="114"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -827,7 +783,7 @@ export function HowItWorks() {
                 <text
                   x="252"
                   y="142"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -866,7 +822,7 @@ export function HowItWorks() {
                 <text
                   x="424"
                   y="57"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.green}
                   textAnchor="middle"
@@ -906,7 +862,7 @@ export function HowItWorks() {
                 <text
                   x="424"
                   y="148"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.red}
                   textAnchor="middle"
@@ -957,16 +913,7 @@ export function HowItWorks() {
                 className="w-full h-auto"
               >
                 <defs>
-                  <marker
-                    id="arrow-green"
-                    markerWidth="8"
-                    markerHeight="6"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <path d="M0,0 L8,3 L0,6" fill={C.green} />
-                  </marker>
+                  <ArrowMarker id="arrow-green" fill={C.green} />
                 </defs>
                 <rect
                   x="10"
@@ -994,7 +941,7 @@ export function HowItWorks() {
                 <text
                   x="65"
                   y="98"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={C.green}
                   textAnchor="middle"
@@ -1004,7 +951,7 @@ export function HowItWorks() {
                 <text
                   x="65"
                   y="112"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="6"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -1030,7 +977,7 @@ export function HowItWorks() {
                 <text
                   x="65"
                   y="157"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -1049,7 +996,7 @@ export function HowItWorks() {
                 <text
                   x="148"
                   y="92"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={`${C.green}60`}
                   textAnchor="middle"
@@ -1078,7 +1025,7 @@ export function HowItWorks() {
                 <text
                   x="231"
                   y="85"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.green}
                   textAnchor="middle"
@@ -1089,7 +1036,7 @@ export function HowItWorks() {
                 <text
                   x="231"
                   y="115"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="11"
                   fill={C.green}
                   textAnchor="middle"
@@ -1100,7 +1047,7 @@ export function HowItWorks() {
                 <text
                   x="231"
                   y="130"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -1137,7 +1084,7 @@ export function HowItWorks() {
                 <text
                   x="318"
                   y="68"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={`${C.green}40`}
                   textAnchor="middle"
@@ -1147,7 +1094,7 @@ export function HowItWorks() {
                 <text
                   x="318"
                   y="94"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={`${C.green}40`}
                   textAnchor="middle"
@@ -1157,7 +1104,7 @@ export function HowItWorks() {
                 <text
                   x="318"
                   y="142"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="7"
                   fill={`${C.green}40`}
                   textAnchor="middle"
@@ -1195,7 +1142,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="42"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -1205,7 +1152,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="55"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -1243,7 +1190,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="100"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -1253,7 +1200,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="113"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.textMuted}
                   textAnchor="middle"
@@ -1282,7 +1229,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="158"
-                  fontFamily="IBM Plex Sans"
+                  fontFamily={FONT_SANS}
                   fontSize="9"
                   fill={C.textSec}
                   textAnchor="middle"
@@ -1292,7 +1239,7 @@ export function HowItWorks() {
                 <text
                   x="415"
                   y="171"
-                  fontFamily="IBM Plex Mono"
+                  fontFamily={FONT_MONO}
                   fontSize="9"
                   fill={C.textMuted}
                   textAnchor="middle"
