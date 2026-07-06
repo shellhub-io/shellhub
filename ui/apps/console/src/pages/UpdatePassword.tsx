@@ -4,10 +4,12 @@ import {
   ExclamationCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
+import { useForm } from "react-hook-form";
 import { Button } from "@shellhub/design-system/primitives";
-import { updateRecoverPassword } from "../client";
-import { validatePassword } from "../utils/validation";
-import PasswordField from "@/components/common/fields/PasswordField";
+import { updateRecoverPassword } from "@/client";
+import { updatePasswordResolver } from "./setup/updatePasswordResolver";
+import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
+import { FormPasswordField } from "@/components/common/fields/rhf";
 
 export default function UpdatePassword() {
   const [searchParams] = useSearchParams();
@@ -16,28 +18,24 @@ export default function UpdatePassword() {
   const uid = searchParams.get("id") ?? "";
   const token = searchParams.get("token") ?? "";
 
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const rawPasswordError = validatePassword(password);
-  const passwordError = touched.password ? rawPasswordError : null;
-  const confirmError =
-    touched.confirm && password !== confirm ? "Passwords do not match" : null;
+  const { control, handleSubmit, formState } = useForm<UpdatePasswordFormValues>(
+    {
+      resolver: updatePasswordResolver,
+      mode: "onTouched",
+      defaultValues: { password: "", confirmPassword: "" },
+    },
+  );
 
-  const isValid = !rawPasswordError && password === confirm;
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!isValid || loading) return;
+  const onSubmit = async (values: UpdatePasswordFormValues) => {
     setError("");
     setLoading(true);
     try {
       await updateRecoverPassword({
         path: { uid },
-        body: { token, password },
+        body: { token, password: values.password },
         throwOnError: true,
       });
       void navigate("/login", {
@@ -50,6 +48,10 @@ export default function UpdatePassword() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFormSubmit = (e: FormEvent) => {
+    void handleSubmit(onSubmit)(e);
   };
 
   if (!uid || !token) {
@@ -106,7 +108,7 @@ export default function UpdatePassword() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+        <form onSubmit={handleFormSubmit} className="space-y-5">
           {error && (
             <div
               role="alert"
@@ -120,27 +122,22 @@ export default function UpdatePassword() {
             </div>
           )}
 
-          <PasswordField
+          <FormPasswordField<UpdatePasswordFormValues>
             id="password"
             label="New Password"
-            value={password}
-            onChange={setPassword}
-            onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+            name="password"
+            control={control}
             placeholder="••••••••"
-            error={passwordError ?? undefined}
             hint="5–32 characters"
-
             required
           />
 
-          <PasswordField
-            id="confirm"
+          <FormPasswordField<UpdatePasswordFormValues>
+            id="confirmPassword"
             label="Confirm Password"
-            value={confirm}
-            onChange={setConfirm}
-            onBlur={() => setTouched((prev) => ({ ...prev, confirm: true }))}
+            name="confirmPassword"
+            control={control}
             placeholder="••••••••"
-            error={confirmError ?? undefined}
             required
           />
 
@@ -151,7 +148,7 @@ export default function UpdatePassword() {
             type="submit"
             className="px-4"
             loading={loading}
-            disabled={loading || !isValid}
+            disabled={loading || !formState.isValid}
           >
             {loading ? "Updating..." : "Update Password"}
           </Button>

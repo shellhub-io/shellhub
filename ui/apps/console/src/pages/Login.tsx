@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
+import { useForm } from "react-hook-form";
 import { isSdkError } from "../api/errors";
 import {
   useNavigate,
@@ -16,8 +17,12 @@ import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
+import {
+  FormInputField,
+  FormPasswordField,
+} from "@/components/common/fields/rhf";
+import { loginResolver } from "./setup/loginResolver";
+import type { LoginFormValues } from "./setup/loginResolver";
 
 interface CountdownState {
   display: string;
@@ -95,8 +100,6 @@ export default function Login() {
       .catch(() => setAuthentication(null));
   }, []);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { login, loading } = useAuthStore();
@@ -104,9 +107,11 @@ export default function Login() {
   const { display: countdownDisplay, expired: lockoutExpired } =
     useLoginCountdown(lockoutEndEpoch);
 
-  const trimmedUsername = username.trim();
-
-  const disableSubmit = trimmedUsername === "" || password === "" || loading;
+  const { control, handleSubmit, formState } = useForm<LoginFormValues>({
+    resolver: loginResolver,
+    mode: "onTouched",
+    defaultValues: { username: "", password: "" },
+  });
 
   useEffect(() => {
     if (!queryToken) return;
@@ -133,12 +138,11 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: LoginFormValues) => {
     setError(null);
     setLockoutEndEpoch(null);
     try {
-      await login(trimmedUsername, password);
+      await login(values.username, values.password);
 
       const state = useAuthStore.getState();
       const params = new URLSearchParams(location.search);
@@ -167,7 +171,7 @@ export default function Login() {
           break;
         case 403:
           void navigate(
-            `/confirm-account?username=${encodeURIComponent(trimmedUsername)}`,
+            `/confirm-account?username=${encodeURIComponent(values.username)}`,
           );
           break;
         case 429: {
@@ -182,7 +186,10 @@ export default function Login() {
           setError("Something went wrong on our end. Please try again later.");
       }
     }
-    // Else: error is already set in store
+  };
+
+  const handleFormSubmit = (e: FormEvent) => {
+    void handleSubmit(onSubmit)(e);
   };
 
   // On enterprise, show the local form only once we know local auth is enabled.
@@ -261,25 +268,23 @@ export default function Login() {
           className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
           style={{ animationDelay: "200ms" }}
         >
-          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            <InputField
+          <form onSubmit={handleFormSubmit} className="space-y-5">
+            <FormInputField<LoginFormValues>
               id="username"
               label="Username"
-              value={username}
-              onChange={setUsername}
+              name="username"
+              control={control}
               placeholder="username"
               autoComplete="username"
-              required
             />
 
-            <PasswordField
+            <FormPasswordField<LoginFormValues>
               id="password"
               label="Password"
-              value={password}
-              onChange={setPassword}
+              name="password"
+              control={control}
               placeholder="password"
               autoComplete="current-password"
-              required
             />
 
             {isCloud && (
@@ -300,7 +305,7 @@ export default function Login() {
               type="submit"
               className="px-4"
               loading={loading}
-              disabled={disableSubmit}
+              disabled={!formState.isValid || loading}
             >
               {loading ? "Authenticating..." : "Sign In"}
             </Button>

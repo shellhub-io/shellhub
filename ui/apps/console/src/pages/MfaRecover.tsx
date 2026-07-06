@@ -1,11 +1,14 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { KeyIcon } from "@heroicons/react/24/outline";
+import { useForm } from "react-hook-form";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
+import type { MfaRecoverFormValues } from "./setup/mfaRecoverResolver";
 
 export default function MfaRecover() {
   const {
@@ -21,43 +24,45 @@ export default function MfaRecover() {
   const navigate = useNavigate();
 
   const identifier = user || username;
-  const [recoveryCode, setRecoveryCode] = useState("");
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
-  // Clear stale error from previous session
+  const { register, handleSubmit, getValues, resetField, formState } =
+    useForm<MfaRecoverFormValues>({
+      resolver: mfaRecoverResolver,
+      mode: "onTouched",
+      defaultValues: { recoveryCode: "" },
+    });
+
   useEffect(() => {
     useAuthStore.setState({ error: null });
   }, []);
 
-  // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
     if (!identifier && !mfaToken) {
       void navigate("/login");
     }
   }, [identifier, mfaToken, navigate]);
 
-  // Don't render if we don't have an identifier
   if (!identifier) {
     return null;
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!recoveryCode.trim()) return;
-
+  const onSubmit = async (values: MfaRecoverFormValues) => {
     try {
-      await recoverWithCode(recoveryCode, identifier);
+      await recoverWithCode(values.recoveryCode, identifier);
       setShowTimeoutModal(true);
     } catch {
-      // Error is set in store
-      setRecoveryCode("");
+      resetField("recoveryCode");
     }
   };
 
+  const handleFormSubmit = (e: FormEvent) => {
+    void handleSubmit(onSubmit)(e);
+  };
+
   const handleDisableMfa = async () => {
-    // Use the recovery code that was just entered
     await disableMfa({
-      body: { recovery_code: recoveryCode },
+      body: { recovery_code: getValues("recoveryCode").trim() },
       throwOnError: true,
     });
     updateMfaStatus(false);
@@ -101,7 +106,7 @@ export default function MfaRecover() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+        <form onSubmit={handleFormSubmit} className="space-y-5">
           {error && <Callout variant="error">{error}</Callout>}
 
           <div>
@@ -114,9 +119,7 @@ export default function MfaRecover() {
             <input
               id="recovery-code"
               type="text"
-              value={recoveryCode}
-              onChange={(e) => setRecoveryCode(e.target.value)}
-              required
+              {...register("recoveryCode")}
               className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
               placeholder="Enter recovery code"
             />
@@ -130,7 +133,7 @@ export default function MfaRecover() {
             fullWidth
             type="submit"
             loading={loading}
-            disabled={loading || !recoveryCode.trim()}
+            disabled={loading || !formState.isValid}
           >
             {loading ? "Recovering..." : "Recover Account"}
           </Button>

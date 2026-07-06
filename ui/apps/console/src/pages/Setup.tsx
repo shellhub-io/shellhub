@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
+import { useForm } from "react-hook-form";
 import { isSdkError } from "../api/errors";
 import { useNavigate } from "react-router-dom";
 import { CheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { setup } from "../client";
 import { getConfig } from "../env";
-import { validate, type FormErrors } from "./setup/validate";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
+import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
+import {
+  FormInputField,
+  FormPasswordField,
+} from "@/components/common/fields/rhf";
 import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
 
 const STEP_ONBOARDING = 1;
@@ -22,20 +25,24 @@ export default function Setup() {
   const [step, setStep] = useState(
     showOnboarding ? STEP_ONBOARDING : STEP_ACCOUNT,
   );
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [surveyCompleted, setSurveyCompleted] = useState(false);
 
-  const errors = validate({ name, username, email, password, confirmPassword });
+  const { control, handleSubmit, formState } = useForm<SetupFormValues>({
+    resolver: setupResolver,
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const disableCreateAccountButton = loading || Object.keys(errors).length > 0;
+  const disableCreateAccountButton = loading || !formState.isValid;
 
   const onboardingUrl = (() => {
     if (!config.onboardingUrl) return "";
@@ -81,32 +88,18 @@ export default function Setup() {
     }
   }, [success, navigate]);
 
-  const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const showError = (field: keyof FormErrors) =>
-    touched[field] ? errors[field] : undefined;
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    setTouched({
-      name: true,
-      username: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-    });
-
-    if (Object.keys(errors).length > 0) return;
-
+  const onSubmit = async (values: SetupFormValues) => {
     setLoading(true);
     setError("");
 
     try {
       await setup({
-        body: { name, username, email, password },
+        body: {
+          name: values.name,
+          username: values.username,
+          email: values.email,
+          password: values.password,
+        },
         throwOnError: true,
       });
       setSuccess(true);
@@ -119,6 +112,10 @@ export default function Setup() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFormSubmit = (e: FormEvent) => {
+    void handleSubmit(onSubmit)(e);
   };
 
   const totalSteps = showOnboarding ? 2 : 1;
@@ -217,61 +214,51 @@ export default function Setup() {
           )}
 
           {step === STEP_ACCOUNT && (
-            <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               <p className="text-xs text-text-secondary leading-relaxed mb-1">
                 Set up your admin account with your personal information.
               </p>
 
-              <InputField
+              <FormInputField<SetupFormValues>
                 id="name"
                 label="Name"
-                value={name}
-                onChange={setName}
-                onBlur={() => handleBlur("name")}
-                error={showError("name")}
+                name="name"
+                control={control}
                 placeholder="Your name"
                 maxLength={64}
               />
 
-              <InputField
+              <FormInputField<SetupFormValues>
                 id="username"
                 label="Username"
-                value={username}
-                onChange={setUsername}
-                onBlur={() => handleBlur("username")}
-                error={showError("username")}
+                name="username"
+                control={control}
                 placeholder="username"
                 maxLength={32}
               />
 
-              <InputField
+              <FormInputField<SetupFormValues>
                 id="email"
                 label="Email"
+                name="email"
+                control={control}
                 type="email"
-                value={email}
-                onChange={setEmail}
-                onBlur={() => handleBlur("email")}
-                error={showError("email")}
                 placeholder="you@example.com"
               />
 
-              <PasswordField
+              <FormPasswordField<SetupFormValues>
                 id="password"
                 label="Password"
-                value={password}
-                onChange={setPassword}
-                onBlur={() => handleBlur("password")}
-                error={showError("password")}
+                name="password"
+                control={control}
                 placeholder="Min. 5 characters"
               />
 
-              <PasswordField
+              <FormPasswordField<SetupFormValues>
                 id="confirmPassword"
                 label="Confirm Password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                onBlur={() => handleBlur("confirmPassword")}
-                error={showError("confirmPassword")}
+                name="confirmPassword"
+                control={control}
                 placeholder="Re-enter password"
               />
 
