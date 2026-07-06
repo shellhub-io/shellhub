@@ -5,10 +5,16 @@ import {
   ChevronDoubleRightIcon,
   ShieldCheckIcon,
   ExclamationCircleIcon,
+  VideoCameraIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { useTerminalStore } from "../stores/terminalStore";
+import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
+import { useAuthStore } from "../stores/authStore";
+import { useNamespace } from "../hooks/useNamespaces";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
+import { isRecordingSupported } from "../utils/recordings";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
@@ -42,6 +48,7 @@ interface FormState {
   manualKeyEncrypted: boolean;
   passphrase: string;
   keyError: string | null;
+  recordSession: boolean;
 }
 
 type FormAction =
@@ -53,7 +60,8 @@ type FormAction =
   | { type: "setSelectedKeyId"; value: string }
   | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
   | { type: "setPassphrase"; value: string }
-  | { type: "setKeyError"; value: string | null };
+  | { type: "setKeyError"; value: string | null }
+  | { type: "setRecordSession"; value: boolean };
 
 const initialState: FormState = {
   username: "",
@@ -66,6 +74,7 @@ const initialState: FormState = {
   manualKeyEncrypted: false,
   passphrase: "",
   keyError: null,
+  recordSession: true,
 };
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -94,6 +103,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, passphrase: action.value };
     case "setKeyError":
       return { ...state, keyError: action.value };
+    case "setRecordSession":
+      return { ...state, recordSession: action.value };
   }
 }
 
@@ -111,6 +122,11 @@ export default function ConnectDrawer({
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const recordingSupported = isRecordingSupported();
+
+  const tenant = useAuthStore((s) => s.tenant);
+  const { namespace } = useNamespace(tenant ?? "");
+  const namespaceRecords = namespace?.settings?.session_record ?? false;
 
   useEffect(() => {
     if (!open) return;
@@ -159,13 +175,14 @@ export default function ConnectDrawer({
     e.preventDefault();
     if (!canConnect) return;
 
+    let params: Omit<TerminalSession, "id" | "state" | "connectionStatus">;
     if (state.authMethod === "password") {
-      openTerminal({
+      params = {
         deviceUid,
         deviceName,
         username: state.username.trim(),
         password: state.password,
-      });
+      };
     } else {
       const key =
         effectiveKeySource === "vault" && selectedVaultKey
@@ -204,7 +221,7 @@ export default function ConnectDrawer({
       }
       dispatch({ type: "setKeyError", value: null });
 
-      openTerminal({
+      params = {
         deviceUid,
         deviceName,
         username: state.username.trim(),
@@ -212,8 +229,16 @@ export default function ConnectDrawer({
         fingerprint,
         privateKey: key,
         passphrase: phrase,
-      });
+      };
     }
+
+    // Opt-in recording. Captured client-side to OPFS — no picker, no upload.
+    // Skip when the namespace already records server-side.
+    if (!namespaceRecords && state.recordSession && isRecordingSupported()) {
+      params = { ...params, record: true };
+    }
+
+    openTerminal(params);
     onClose();
   };
 
@@ -304,7 +329,6 @@ export default function ConnectDrawer({
             value={state.username}
             onChange={(v) => dispatch({ type: "setUsername", value: v })}
             placeholder="e.g. root"
-
           />
 
           {/* Auth Method */}
@@ -448,6 +472,83 @@ export default function ConnectDrawer({
               <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
               {state.keyError}
             </p>
+          )}
+
+          {namespaceRecords && (
+            <div className="w-full px-3.5 py-3 rounded-lg border border-border bg-card text-left">
+              <div className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-text-secondary"
+                >
+                  <VideoCameraIcon className="w-5 h-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-text-primary">
+                    <span className="inline-flex items-center gap-1 text-accent-red">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-red animate-pulse-subtle" />
+                      <span className="text-[10px] font-bold tracking-wide">
+                        REC
+                      </span>
+                    </span>
+                    Session recording is on
+                  </span>
+                  <span className="block text-2xs text-text-muted mt-0.5">
+                    Recorded on the server by your namespace's policy.
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!namespaceRecords && recordingSupported && (
+            <label
+              className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
+                state.recordSession
+                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
+                  : "bg-card border-border hover:border-border-light hover:bg-hover-subtle"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={state.recordSession}
+                onChange={(e) =>
+                  dispatch({
+                    type: "setRecordSession",
+                    value: e.target.checked,
+                  })
+                }
+                className="sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className={`mt-0.5 shrink-0 transition-colors ${
+                  state.recordSession ? "text-primary" : "text-text-muted"
+                }`}
+              >
+                <VideoCameraIcon className="w-4 h-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-text-primary">
+                  Record this session
+                </span>
+                <span className="block text-2xs text-text-muted mt-0.5">
+                  Save this session in your browser to replay it locally later.
+                </span>
+              </div>
+              <span
+                aria-hidden="true"
+                className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                  state.recordSession
+                    ? "bg-primary border-primary text-white"
+                    : "border-text-muted/40"
+                }`}
+              >
+                {state.recordSession && (
+                  <CheckIcon className="w-3 h-3" strokeWidth={3} />
+                )}
+              </span>
+            </label>
           )}
         </form>
       </Drawer>

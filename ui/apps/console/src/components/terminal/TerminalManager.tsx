@@ -7,6 +7,7 @@ import ConnectDrawer from "../ConnectDrawer";
 import { buildSshid } from "@/utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
+import RecordingSnackbar from "./RecordingSnackbar";
 
 export default function TerminalManager({
   sidebarOffset,
@@ -85,6 +86,8 @@ export default function TerminalManager({
       })}
 
       <TerminalTaskbar sidebarOffset={sidebarOffset} />
+
+      <RecordingSnackbar />
     </>
   );
 }

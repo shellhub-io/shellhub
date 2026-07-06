@@ -49,6 +49,12 @@ vi.mock("@/utils/sshKeys", () => ({
   getFingerprint: vi.fn(() => "fp"),
 }));
 
+// ConnectDrawer reads the namespace to show the session-record status; stub it
+// so the drawer renders without a QueryClient in these isolated tests.
+vi.mock("@/hooks/useNamespaces", () => ({
+  useNamespace: () => ({ namespace: undefined }),
+}));
+
 vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
@@ -73,14 +79,18 @@ vi.mock("@/components/common/Drawer", () => ({
 vi.mock("@/components/vault/VaultLockedBanner", () => ({
   default: ({ onUnlock }: { onUnlock: () => void }) => (
     <div data-testid="vault-locked-banner">
-      <button type="button" onClick={onUnlock}>Unlock Vault</button>
+      <button type="button" onClick={onUnlock}>
+        Unlock Vault
+      </button>
     </div>
   ),
 }));
 
 vi.mock("@/components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
-    <button type="button" aria-label={`Copy ${text}`}>Copy</button>
+    <button type="button" aria-label={`Copy ${text}`}>
+      Copy
+    </button>
   ),
 }));
 
@@ -210,7 +220,9 @@ vi.mock("@/components/vault/VaultSetupDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div role="dialog" aria-label="Setup Vault">
-        <button type="button" onClick={onClose}>Close Setup</button>
+        <button type="button" onClick={onClose}>
+          Close Setup
+        </button>
       </div>
     ) : null,
 }));
@@ -219,7 +231,9 @@ vi.mock("@/components/vault/VaultUnlockDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div role="dialog" aria-label="Unlock Vault">
-        <button type="button" onClick={onClose}>Close Unlock</button>
+        <button type="button" onClick={onClose}>
+          Close Unlock
+        </button>
       </div>
     ) : null,
 }));
@@ -245,7 +259,9 @@ vi.mock("../KeyDrawer", () => ({
         role="dialog"
         aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
       >
-        <button type="button" onClick={onClose}>Close Drawer</button>
+        <button type="button" onClick={onClose}>
+          Close Drawer
+        </button>
       </div>
     ) : null,
 }));
@@ -263,7 +279,9 @@ vi.mock("../KeyDeleteDialog", () => ({
     open ? (
       <div role="dialog" aria-label="Delete Key Dialog">
         {entry && <span>{entry.name}</span>}
-        <button type="button" onClick={onClose}>Close Delete</button>
+        <button type="button" onClick={onClose}>
+          Close Delete
+        </button>
       </div>
     ) : null,
 }));
