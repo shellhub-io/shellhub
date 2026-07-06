@@ -12,6 +12,8 @@ import {
 import { queryClient } from "../api/queryClient";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
+import { useTerminalStore } from "./terminalStore";
+import { setRecordingsScope } from "../utils/recordings";
 
 interface AuthState {
   token: string | null;
@@ -155,6 +157,10 @@ export const useAuthStore = create<AuthState>()(
         // re-bootstrap with the new user's identity.
         tearDownChatwoot("logout");
         useVaultStore.getState().lock();
+        // Close terminal sessions so an in-progress local recording is
+        // finalized instead of discarded when the terminal unmounts.
+        const terminal = useTerminalStore.getState();
+        terminal.sessions.forEach((s) => terminal.close(s.id));
         set(initialState);
         localStorage.removeItem("shellhub-session");
         // Drop every cached query so the next user doesn't briefly see the
@@ -306,3 +312,10 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+
+// Namespace local session recordings to the signed-in user. Synced here (not in
+// each userId write) so it also covers rehydration and logout.
+setRecordingsScope(useAuthStore.getState().userId);
+useAuthStore.subscribe((state, prev) => {
+  if (state.userId !== prev.userId) setRecordingsScope(state.userId);
+});

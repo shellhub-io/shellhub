@@ -16,6 +16,8 @@ export interface TerminalSession {
   passphrase?: string;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
+  /** Opt-in: record this session client-side (to OPFS). */
+  record?: boolean;
 }
 
 export interface ReconnectTarget {

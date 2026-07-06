@@ -86,21 +86,19 @@ const errorMap: Record<string, ErrorEntry> = {
     ],
   },
   "connections using public keys are not permitted when the agent version is 0.5.x or earlier":
-  {
-    message: "This device does not support public key authentication.",
-    reconnect: true,
-    hints: [
-      "The ShellHub agent is v0.5.x or earlier. Update to v0.6.0+ for public key support, or reconnect using a password.",
-    ],
-    links: [{ label: "Device details", to: "/devices/$uid" }],
-  },
+    {
+      message: "This device does not support public key authentication.",
+      reconnect: true,
+      hints: [
+        "The ShellHub agent is v0.5.x or earlier. Update to v0.6.0+ for public key support, or reconnect using a password.",
+      ],
+      links: [{ label: "Device details", to: "/devices/$uid" }],
+    },
   "access to the device has been denied": {
     title: "Access denied",
     message: "You do not have permission to access this device.",
     reconnect: false,
-    hints: [
-      "Access may be restricted by a billing limit or namespace policy.",
-    ],
+    hints: ["Access may be restricted by a billing limit or namespace policy."],
   },
   "invalid sshid format": {
     title: "Invalid connection identifier",
@@ -113,7 +111,13 @@ const errorMap: Record<string, ErrorEntry> = {
 };
 
 // Values match ssh/web/messages.go messageKind iota.
-export const WS_KIND = { INPUT: 1, RESIZE: 2, SIGNATURE: 3, ERROR: 4 } as const;
+export const WS_KIND = {
+  INPUT: 1,
+  RESIZE: 2,
+  SIGNATURE: 3,
+  ERROR: 4,
+  SESSION: 5,
+} as const;
 
 export const HTTP_CONNECT_ERROR: TerminalError = {
   title: "Connection failed",
@@ -149,12 +153,12 @@ export function parseMessage(
   try {
     const msg: unknown = JSON.parse(data);
     if (
-      typeof msg === "object"
-      && msg !== null
-      && "kind" in msg
-      && "data" in msg
-      && typeof (msg as { kind: unknown }).kind === "number"
-      && typeof (msg as { data: unknown }).data === "string"
+      typeof msg === "object" &&
+      msg !== null &&
+      "kind" in msg &&
+      "data" in msg &&
+      typeof (msg as { kind: unknown }).kind === "number" &&
+      typeof (msg as { data: unknown }).data === "string"
     ) {
       return {
         kind: (msg as { kind: number }).kind,

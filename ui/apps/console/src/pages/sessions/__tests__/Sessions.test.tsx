@@ -42,7 +42,9 @@ vi.mock("../SessionPlayerDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="player-dialog">
-        <button type="button" onClick={onClose}>Close Player</button>
+        <button type="button" onClick={onClose}>
+          Close Player
+        </button>
       </div>
     ) : null,
 }));
@@ -75,7 +77,7 @@ function makeSession(overrides: Record<string, any> = {}) {
     type: "shell",
     term: "xterm",
     position: { latitude: 0, longitude: 0 },
-    events: { types: [], seats: [] },
+    events: { types: ["shell"], seats: [] },
     ...overrides,
   };
 }
@@ -109,7 +111,11 @@ function renderSessions(initialEntries: string[] = ["/"]) {
   const result = render(
     <MemoryRouter initialEntries={initialEntries}>
       <Sessions />
-      <LocationProbe onLocation={(s) => { lastSearch = s; }} />
+      <LocationProbe
+        onLocation={(s) => {
+          lastSearch = s;
+        }}
+      />
     </MemoryRouter>,
   );
   return { ...result, getSearch: () => lastSearch };
@@ -118,7 +124,11 @@ function renderSessions(initialEntries: string[] = ["/"]) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useSessions).mockReturnValue(makeSessions());
-  vi.mocked(useCloseSession).mockReturnValue({ mutateAsync: vi.fn(), isPending: false, error: null } as unknown as ReturnType<typeof useCloseSession>);
+  vi.mocked(useCloseSession).mockReturnValue({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    error: null,
+  } as unknown as ReturnType<typeof useCloseSession>);
   vi.mocked(useSessionRecording).mockReturnValue(makeRecording());
 });
 
@@ -129,9 +139,7 @@ beforeEach(() => {
 describe("Sessions", () => {
   describe("initial load", () => {
     it("shows loading state while fetching", () => {
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({ isLoading: true }),
-      );
+      vi.mocked(useSessions).mockReturnValue(makeSessions({ isLoading: true }));
 
       renderSessions();
 

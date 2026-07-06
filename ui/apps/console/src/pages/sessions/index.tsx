@@ -1,30 +1,38 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import {
   CommandLineIcon,
   ExclamationTriangleIcon,
+  GlobeAltIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSessions } from "@/hooks/useSessions";
 import { useCloseSession } from "@/hooks/useSessionMutations";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
+import { useRecordingsStore } from "@/stores/recordingsStore";
+import { isRecordingSupported, readRecording } from "@/utils/recordings";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SessionPlayerDialog from "./SessionPlayerDialog";
+import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
+import { isPremiumFeature } from "@/utils/features";
 import {
-  Button,
   Callout,
   IconButton,
+  Spinner,
 } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 10;
+
+const PLAY_BTN =
+  "inline-flex items-center gap-1.5 px-2.5 py-1.5 text-2xs font-semibold text-white bg-primary rounded-md hover:bg-primary-600 transition-colors disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-primary";
 
 type SessionsParams = {
   page: number;
@@ -68,7 +76,10 @@ export default function Sessions() {
   });
   const closeSession = useCloseSession();
   const navigate = useNavigate();
+  const premium = isPremiumFeature();
   const [playTarget, setPlayTarget] = useState<string | null>(null);
+  const [localLogs, setLocalLogs] = useState<string | null>(null);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const {
     logs: sessionLogs,
     isLoading: logsLoading,
@@ -77,12 +88,49 @@ export default function Sessions() {
     clearLogs,
   } = useSessionRecording();
 
+  // Local (OPFS) recordings live only in the browser that made them, keyed by
+  // session uid. Surfacing their playback here makes a session the single home
+  // for both server and local recordings.
+  const recordings = useRecordingsStore((s) => s.recordings);
+  const refreshRecordings = useRecordingsStore((s) => s.refresh);
+
+  useEffect(() => {
+    if (isRecordingSupported()) void refreshRecordings();
+  }, [refreshRecordings]);
+
+  const localBySessionUid = useMemo(
+    () =>
+      new Map(
+        recordings
+          .filter((r) => r.sessionUid)
+          .map((r) => [r.sessionUid, r] as const),
+      ),
+    [recordings],
+  );
+
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
-  const handlePlayClick = async (e: React.MouseEvent, uid: string) => {
+  // Play routing: prefer a local recording (inline read), fall back to the
+  // server recording, and on Community pitch the paid feature when a shell
+  // session has no recording at all.
+  const handlePlayClick = async (e: React.MouseEvent, s: Session) => {
     e.stopPropagation();
-    setPlayTarget(uid);
-    await fetchLogs(uid);
+    const local = localBySessionUid.get(s.uid);
+    if (local) {
+      setPlayTarget(s.uid);
+      try {
+        setLocalLogs(await readRecording(local));
+      } catch {
+        setPlayTarget(null);
+      }
+      return;
+    }
+    if (s.recorded) {
+      setPlayTarget(s.uid);
+      await fetchLogs(s.uid);
+      return;
+    }
+    setUpsellOpen(true);
   };
 
   const columns: Column<Session>[] = [
@@ -115,6 +163,28 @@ export default function Sessions() {
         ) : (
           <span className="text-xs font-mono text-text-primary">
             {s.device?.name ?? (s.device_uid ?? "").substring(0, 8)}
+          </span>
+        ),
+    },
+    {
+      key: "origin",
+      header: "Origin",
+      render: (s) =>
+        s.web ? (
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <GlobeAltIcon
+              className="w-3.5 h-3.5 text-text-muted"
+              strokeWidth={2}
+            />
+            <span className="text-text-secondary">Web</span>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <CommandLineIcon
+              className="w-3.5 h-3.5 text-text-muted"
+              strokeWidth={2}
+            />
+            <span className="text-text-secondary">SSH</span>
           </span>
         ),
     },
@@ -187,37 +257,56 @@ export default function Sessions() {
     {
       key: "actions",
       header: "",
-      headerClassName: "w-28",
-      render: (s) => (
-        <div className="flex items-center justify-end gap-1">
-          {s.recorded && (
-            <RestrictedAction action="session:play">
-              <Button
-                size="sm"
-                icon={<PlayIcon className="w-3 h-3" />}
-                loading={logsLoading && playTarget === s.uid}
-                disabled={logsLoading && playTarget === s.uid}
-                title="Play recording"
-                onClick={(e) => void handlePlayClick(e, s.uid)}
-              >
-                Play
-              </Button>
-            </RestrictedAction>
-          )}
-          {s.active && (
-            <RestrictedAction action="session:close">
-              <CloseButton
-                onClose={() =>
-                  closeSession.mutateAsync({
-                    path: { uid: s.uid },
-                    body: { device: s.device_uid ?? s.device?.uid ?? "" },
-                  })
-                }
-              />
-            </RestrictedAction>
-          )}
-        </div>
-      ),
+      render: (s) => {
+        const local = localBySessionUid.get(s.uid);
+        const isShell = sessionType(s)?.label === "shell";
+        const canPlay = Boolean(local) || s.recorded;
+        const playing = logsLoading && playTarget === s.uid;
+        // A local recording is the user's own browser data, so it plays without
+        // the server-side session:play permission; only server playback needs it.
+        const needsPermission = !local && s.recorded;
+        const playButton = (
+          <button
+            type="button"
+            className={PLAY_BTN}
+            disabled={playing || (!canPlay && premium)}
+            title={canPlay ? "Play recording" : "This session was not recorded"}
+            aria-label="Play recording"
+            onClick={(e) => void handlePlayClick(e, s)}
+          >
+            {playing ? (
+              <Spinner size="xs" tone="onPrimary" />
+            ) : (
+              <PlayIcon className="w-3.5 h-3.5" />
+            )}
+            Play
+          </button>
+        );
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            {isShell &&
+              (needsPermission ? (
+                <RestrictedAction action="session:play">
+                  {playButton}
+                </RestrictedAction>
+              ) : (
+                playButton
+              ))}
+            {s.active && (
+              <RestrictedAction action="session:close">
+                <CloseButton
+                  onClose={() =>
+                    closeSession.mutateAsync({
+                      path: { uid: s.uid },
+                      body: { device: s.device_uid ?? s.device?.uid ?? "" },
+                    })
+                  }
+                />
+              </RestrictedAction>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -274,16 +363,22 @@ export default function Sessions() {
         }
       />
 
-      {playTarget && !logsLoading && sessionLogs && (
+      {playTarget && (localLogs || (!logsLoading && sessionLogs)) && (
         <SessionPlayerDialog
           open
           onClose={() => {
             setPlayTarget(null);
+            setLocalLogs(null);
             clearLogs();
           }}
-          logs={sessionLogs}
+          logs={localLogs ?? sessionLogs ?? ""}
         />
       )}
+
+      <RecordingPaywallDialog
+        open={upsellOpen}
+        onClose={() => setUpsellOpen(false)}
+      />
     </div>
   );
 }
