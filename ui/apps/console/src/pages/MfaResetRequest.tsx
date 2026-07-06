@@ -1,5 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
@@ -13,6 +14,8 @@ export default function MfaResetRequest() {
   const [emailsSent, setEmailsSent] = useState(false);
 
   const identifier = user || username;
+
+  const { handleSubmit } = useForm();
 
   // Clear stale error from previous session
   useEffect(() => {
@@ -31,9 +34,7 @@ export default function MfaResetRequest() {
     return null;
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async () => {
     try {
       await requestMfaReset(identifier);
       setEmailsSent(true);
@@ -72,7 +73,7 @@ export default function MfaResetRequest() {
         style={{ animationDelay: "200ms" }}
       >
         {!emailsSent ? (
-          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-5">
             {error && <Callout variant="error">{error}</Callout>}
 
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">

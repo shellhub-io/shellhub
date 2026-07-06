@@ -6,10 +6,6 @@ import { useAuthStore } from "@/stores/authStore";
 import type { UserAuth, Info } from "@/client";
 import Login from "../Login";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
 const mockNavigate = vi.hoisted(() => vi.fn());
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -93,7 +89,6 @@ function mockSdkResponse<T>(
   };
 }
 
-/** Creates a mock SDK error with status and optional headers. */
 function makeSdkError(status: number, headers?: Record<string, string>) {
   const headerObj = new Headers(headers);
   return Object.assign(new Error("Request failed"), {
@@ -110,19 +105,19 @@ function renderLogin() {
   );
 }
 
+// With RHF onTouched mode, fields must be blurred before validation runs.
+// user.tab() after typing each field triggers the blur that enables the button.
 async function fillAndSubmit(
   username = "admin",
   password = "secret",
   user = userEvent.setup(),
 ) {
   await user.type(screen.getByLabelText(/username/i), username);
+  await user.tab();
   await user.type(screen.getByLabelText(/^password$/i), password);
+  await user.tab();
   await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
-
-/* ------------------------------------------------------------------ */
-/* Setup / teardown                                                    */
-/* ------------------------------------------------------------------ */
 
 afterEach(cleanup);
 
@@ -130,11 +125,9 @@ beforeEach(() => {
   mockNavigate.mockReset();
   mockedLogin.mockReset();
   mockedGetSamlAuthUrl.mockReset();
-  // Default: local=true, saml=false — community/non-enterprise baseline.
   mockedGetInfo.mockResolvedValue(
     mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
   );
-  // Default: community edition (no enterprise/cloud flags).
   mockedGetConfig.mockReturnValue({ ...defaultConfig });
   useAuthStore.setState({
     token: null,
@@ -153,10 +146,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
 });
-
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
 
 describe("Login", () => {
   describe("form rendering", () => {
@@ -196,6 +185,24 @@ describe("Login", () => {
       );
     });
 
+    // RHF onTouched: blurring an invalid field surfaces a per-field error
+    // message inline. The old useState implementation never showed field errors.
+    it("shows a field error on the username field after blur when empty", async () => {
+      const user = userEvent.setup();
+      renderLogin();
+
+      await user.type(screen.getByLabelText(/username/i), "admin");
+      await user.clear(screen.getByLabelText(/username/i));
+      await user.tab();
+
+      await waitFor(() =>
+        expect(screen.getByText(/is required/i)).toBeInTheDocument(),
+      );
+    });
+
+    // With RHF onTouched, validation runs after blur. The button is disabled
+    // until both fields have been touched and are valid. Tab away from each
+    // field to trigger blur-time validation before asserting enabled state.
     it("disables the submit button when username or password is empty", async () => {
       const user = userEvent.setup();
       renderLogin();
@@ -204,13 +211,16 @@ describe("Login", () => {
       expect(submitButton).toBeDisabled();
 
       await user.type(screen.getByLabelText(/username/i), "admin");
+      await user.tab();
       expect(submitButton).toBeDisabled();
 
       await user.type(screen.getByLabelText(/^password$/i), "secret");
-      expect(submitButton).toBeEnabled();
+      await user.tab();
+      await waitFor(() => expect(submitButton).toBeEnabled());
 
       await user.clear(screen.getByLabelText(/username/i));
-      expect(submitButton).toBeDisabled();
+      await user.tab();
+      await waitFor(() => expect(submitButton).toBeDisabled());
     });
   });
 
@@ -238,7 +248,9 @@ describe("Login", () => {
 
       renderLogin();
       await userEvent.type(screen.getByLabelText(/username/i), "admin");
+      await userEvent.tab();
       await userEvent.type(screen.getByLabelText(/^password$/i), "secret");
+      await userEvent.tab();
 
       const clickPromise = userEvent.click(
         screen.getByRole("button", { name: /sign in/i }),
@@ -265,7 +277,9 @@ describe("Login", () => {
 
       renderLogin();
       await userEvent.type(screen.getByLabelText(/username/i), "admin");
+      await userEvent.tab();
       await userEvent.type(screen.getByLabelText(/^password$/i), "secret");
+      await userEvent.tab();
 
       const clickPromise = userEvent.click(
         screen.getByRole("button", { name: /sign in/i }),
@@ -276,7 +290,6 @@ describe("Login", () => {
       );
 
       // DS Button sets aria-busy="true" on the button element when loading=true.
-      // Plain <button> elements do not set this attribute.
       expect(
         screen.getByRole("button", { name: /authenticating/i }),
       ).toHaveAttribute("aria-busy", "true");
@@ -297,6 +310,17 @@ describe("Login", () => {
         screen.getByText(/invalid login credentials/i),
       ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("redirects to confirm-account with the trimmed username on 403", async () => {
+      mockedLogin.mockRejectedValue(makeSdkError(403));
+
+      renderLogin();
+      await fillAndSubmit("  admin  ", "secret");
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/confirm-account?username=admin",
+      );
     });
 
     it("shows rate-limit error on 429", async () => {
@@ -358,11 +382,9 @@ describe("Login", () => {
   });
 
   describe("429 countdown", () => {
-    // These tests use real timers with short lockout epochs to avoid the
-    // fake-timers + user.click() deadlock (React scheduler uses setTimeout(0)).
+    // Real timers: fake timers + user.click() deadlock (React scheduler uses setTimeout(0)).
 
     it("displays the remaining lockout time after the first interval tick", async () => {
-      // 30 seconds from now — first tick should show "29 seconds"
       const epoch = Math.floor(Date.now() / 1000) + 30;
       mockedLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
@@ -377,7 +399,6 @@ describe("Login", () => {
         ).toBeInTheDocument(),
       );
 
-      // Wait for the first 1-second interval tick
       await waitFor(
         () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
         { timeout: 2000 },
@@ -385,7 +406,6 @@ describe("Login", () => {
     });
 
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
-      // 1 second lockout so the test completes quickly
       const epoch = Math.floor(Date.now() / 1000) + 1;
       mockedLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
@@ -400,7 +420,6 @@ describe("Login", () => {
         ).toBeInTheDocument(),
       );
 
-      // Wait for the countdown to expire and the success alert to appear
       await waitFor(
         () =>
           expect(
@@ -441,7 +460,6 @@ describe("Login", () => {
 
       renderLogin();
 
-      // Wait for getInfo to resolve and state to update.
       await waitFor(() => expect(mockedGetInfo).toHaveBeenCalled());
 
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
@@ -529,15 +547,12 @@ describe("Login", () => {
 
       renderLogin();
 
-      // Form must be absent immediately — the explicit showLocalForm guard
-      // prevents it from appearing even during the getInfo loading window.
       expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
       expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: /sign in/i }),
       ).not.toBeInTheDocument();
 
-      // SSO button appears once getInfo resolves.
       await waitFor(() =>
         expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
       );

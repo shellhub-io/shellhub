@@ -35,6 +35,13 @@ export function validateEmail(value: string): string | null {
   return null;
 }
 
+export function validateIdentifier(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return "Username or email is required";
+  if (EMAIL_REGEX.test(trimmed) || USERNAME_REGEX.test(trimmed)) return null;
+  return "Enter a valid username or email";
+}
+
 export function validatePassword(value: string): string | null {
   if (value.length < PASSWORD_MIN_LENGTH || value.length > PASSWORD_MAX_LENGTH)
     return `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters long`;

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   validateEmail,
+  validateIdentifier,
   validateName,
   validateNamespaceName,
   validatePassword,
@@ -146,4 +147,28 @@ describe("validatePassword", () => {
       "Password must be 5–32 characters long",
     );
   });
+});
+
+describe("validateIdentifier", () => {
+  it.each([
+    "  alice  ",
+    "alice.smith",
+    "  alice@example.com  ",
+    "user+tag@example.org",
+  ])("accepts whitespace-padded valid username/email %p", (value) => {
+    expect(validateIdentifier(value)).toBeNull();
+  });
+
+  it.each(["", "   "])("rejects empty/whitespace-only %p as required", (value) => {
+    expect(validateIdentifier(value)).toBe("Username or email is required");
+  });
+
+  it.each(["!", "a", "  !  ", "has CAPS", "has space@no.tld"])(
+    "rejects invalid identifier %p",
+    (value) => {
+      expect(validateIdentifier(value)).toBe(
+        "Enter a valid username or email",
+      );
+    },
+  );
 });

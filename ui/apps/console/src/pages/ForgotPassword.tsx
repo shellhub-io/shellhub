@@ -1,5 +1,6 @@
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import {
   EnvelopeIcon,
   CheckCircleIcon,
@@ -7,20 +8,27 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { recoverPassword } from "../client";
-import InputField from "@/components/common/fields/InputField";
+import FormInputField from "@/components/common/fields/rhf/FormInputField";
+import {
+  forgotPasswordResolver,
+  type ForgotPasswordFormValues,
+} from "./setup/forgotPasswordResolver";
 
 export default function ForgotPassword() {
-  const [account, setAccount] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
+  const { control, handleSubmit, formState } = useForm<ForgotPasswordFormValues>({
+    resolver: forgotPasswordResolver,
+    mode: "onTouched",
+    defaultValues: { account: "" },
+  });
+
+  const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
     try {
       await recoverPassword({
-        body: { username: account.trim() },
+        body: { username: values.account },
         throwOnError: true,
       });
     } catch {
@@ -83,15 +91,14 @@ export default function ForgotPassword() {
             </div>
           </div>
         ) : (
-          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            <InputField
+          <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-5">
+            <FormInputField<ForgotPasswordFormValues>
+              name="account"
+              control={control}
               id="account"
               label="Username or email address"
-              value={account}
-              onChange={setAccount}
               placeholder="username or email"
               autoComplete="username"
-
               required
             />
 
@@ -102,7 +109,7 @@ export default function ForgotPassword() {
               type="submit"
               className="px-4"
               loading={loading}
-              disabled={loading || !account.trim()}
+              disabled={loading || !formState.isValid}
               icon={<EnvelopeIcon className="w-4 h-4" strokeWidth={2} />}
             >
               {loading ? "Sending..." : "Reset Password"}
