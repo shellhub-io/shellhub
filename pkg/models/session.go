@@ -24,6 +24,7 @@ type Session struct {
 	Recorded      bool            `json:"recorded"`
 	Type          string          `json:"type"`
 	Term          string          `json:"term"`
+	Web           bool            `json:"web"`
 	Position      SessionPosition `json:"position"`
 	Events        SessionEvents   `json:"events"`
 }

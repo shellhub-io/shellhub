@@ -26,6 +26,7 @@ type Session struct {
 	Recorded      bool      `bun:"recorded"`
 	Type          string    `bun:"type"`
 	Term          string    `bun:"term"`
+	Web           bool      `bun:"web"`
 	Longitude     float64   `bun:"longitude"`
 	Latitude      float64   `bun:"latitude"`
 	CreatedAt     time.Time `bun:"created_at"`
@@ -61,6 +62,7 @@ func SessionFromModel(model *models.Session) *Session {
 		Recorded:      model.Recorded,
 		Type:          sessionType,
 		Term:          model.Term,
+		Web:           model.Web,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
 		UpdatedAt:     clock.Now(),
@@ -84,6 +86,7 @@ func SessionToModel(entity *Session) *models.Session {
 		Recorded:      entity.Recorded,
 		Type:          entity.Type,
 		Term:          entity.Term,
+		Web:           entity.Web,
 		Position: models.SessionPosition{
 			Longitude: entity.Longitude,
 			Latitude:  entity.Latitude,
