@@ -48,6 +48,9 @@ properties:
     description: Session's terminal
     type: string
     example: xterm.js
+  web:
+    description: Whether the session originated from the web terminal
+    type: boolean
   position:
     description: Session's geolocation position
     type: object
@@ -113,5 +116,6 @@ required:
   - recorded
   - type
   - term
+  - web
   - position
   - events

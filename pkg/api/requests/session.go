@@ -37,6 +37,7 @@ type SessionCreate struct {
 	IPAddress string `json:"ip_address" validate:"required"`
 	Type      string `json:"type" validate:"required"`
 	Term      string `json:"term" validate:""`
+	Web       bool   `json:"web" validate:""`
 }
 
 // SessionFinish is the structure to represent the request data for finish session endpoint.

@@ -39,6 +39,8 @@ type Data struct {
 	Type string
 	// Term is the terminal used for the client.
 	Term string
+	// Web reports whether the session originated from the web terminal.
+	Web bool
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
 }
@@ -260,6 +262,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 	}
 
 	var namespaceName, deviceName string
+	web := false
 	if target.IsSSHID() {
 		namespaceName, deviceName, err = target.SplitSSHID()
 		if err != nil {
@@ -267,6 +270,8 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 		}
 	} else {
 		if hos.IsLocalhost() {
+			web = true
+
 			var data string
 
 			if err := cache.Get(ctx, "web-ip/"+sshid, &data); err != nil {
@@ -327,6 +332,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 			Target:    target,
 			Device:    lookupDevice,
 			Namespace: namespace,
+			Web:       web,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
@@ -454,6 +460,7 @@ func (s *Session) register(ctx context.Context) error {
 		IPAddress: s.IPAddress,
 		Type:      "none",
 		Term:      "none",
+		Web:       s.Web,
 	})
 	if err != nil {
 		log.WithError(err).
