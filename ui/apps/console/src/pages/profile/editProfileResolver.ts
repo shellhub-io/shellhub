@@ -18,13 +18,13 @@ type PlainErrors = Partial<Record<keyof EditProfileFormValues, string>>;
 export function editProfileResolver(values: EditProfileFormValues): PlainErrors {
   const errors: PlainErrors = {};
 
-  const nameError = values.name ? validateName(values.name) : null;
+  const nameError = validateName(values.name);
   if (nameError) errors.name = nameError;
 
-  const usernameError = values.username ? validateUsername(values.username) : null;
+  const usernameError = validateUsername(values.username);
   if (usernameError) errors.username = usernameError;
 
-  const emailError = values.email ? validateEmail(values.email) : null;
+  const emailError = validateEmail(values.email);
   if (emailError) errors.email = emailError;
 
   const recoveryEmailError = values.recoveryEmail

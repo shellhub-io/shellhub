@@ -35,9 +35,9 @@ describe("editProfileResolver", () => {
   });
 
   describe("name", () => {
-    it("emits no error when name is empty (not present-but-invalid)", () => {
+    it("emits 'Name is required' when name is empty", () => {
       const result = resolve({ name: "" });
-      expect(result.name).toBeUndefined();
+      expect(result.name).toBe("Name is required");
     });
 
     it("emits error when name exceeds 64 characters", () => {
@@ -52,9 +52,9 @@ describe("editProfileResolver", () => {
   });
 
   describe("username", () => {
-    it("emits no error when username is empty", () => {
+    it("emits 'Username is required' when username is empty", () => {
       const result = resolve({ username: "" });
-      expect(result.username).toBeUndefined();
+      expect(result.username).toBe("Username is required");
     });
 
     it("emits error when username exceeds 32 characters", () => {
@@ -86,9 +86,9 @@ describe("editProfileResolver", () => {
   });
 
   describe("email", () => {
-    it("emits no error when email is empty", () => {
+    it("emits 'Email is required' when email is empty", () => {
       const result = resolve({ email: "" });
-      expect(result.email).toBeUndefined();
+      expect(result.email).toBe("Email is required");
     });
 
     it("emits error for an invalid email format", () => {

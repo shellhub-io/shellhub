@@ -56,14 +56,15 @@ describe("EditProfileDrawer — recovery email validation guard", () => {
   });
 });
 
-describe("EditProfileDrawer — RHF resolver: no errors on empty optional-when-editing fields", () => {
-  it("does not show 'Email is required' when email field is cleared (resolver skips empty)", async () => {
+describe("EditProfileDrawer — required fields", () => {
+  it("shows 'Email is required' and blocks submit when a required field is cleared", async () => {
     render(<EditProfileDrawer {...defaultProps} />);
     fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
       target: { value: "" },
     });
     await waitFor(() =>
-      expect(screen.queryByText("Email is required")).not.toBeInTheDocument(),
+      expect(screen.getByText("Email is required")).toBeInTheDocument(),
     );
+    expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
   });
 });

@@ -246,7 +246,7 @@ describe("Profile", () => {
 
       await waitFor(() => {
         expect(
-          (screen.getByLabelText(/current password/i) as HTMLInputElement).value,
+          screen.getByLabelText<HTMLInputElement>(/current password/i).value,
         ).toBe("");
       });
     });
