@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
-import { useResetOnOpen } from "../hooks/useResetOnOpen";
+import { useState, useLayoutEffect } from "react";
+import { useForm, useController } from "react-hook-form";
 import { Link } from "react-router-dom";
 import {
   CheckIcon,
@@ -40,6 +40,8 @@ import SettingsRow from "@/components/common/SettingsRow";
 
 /* ─── Edit Name Drawer ─── */
 
+type EditNameFormValues = { name: string };
+
 function EditNameDrawer({
   open,
   onClose,
@@ -52,31 +54,37 @@ function EditNameDrawer({
   tenantId: string;
 }) {
   const editNs = useEditNamespace();
-  const [name, setName] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
-  useResetOnOpen(open, () => {
-    setName(currentName);
-    setSubmitting(false);
-    setError("");
+  const { control, handleSubmit, reset, setError, clearErrors, formState } =
+    useForm<EditNameFormValues>({
+      mode: "onChange",
+      defaultValues: { name: currentName },
+    });
+
+  const { isDirty, isValid, isSubmitting } = formState;
+
+  useLayoutEffect(() => {
+    reset({ name: currentName });
+  }, [open, currentName, reset]);
+
+  const { field, fieldState } = useController({
+    name: "name",
+    control,
+    rules: { validate: (v) => validateNamespaceName(v) ?? true },
   });
 
-  const validationError =
-    name !== currentName ? validateNamespaceName(name) : null;
-  const canSubmit = name !== currentName && !validationError && !submitting;
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit) return;
-    setSubmitting(true);
+  const onValid = async (values: EditNameFormValues) => {
+    clearErrors("root");
     try {
-      await editNs.mutateAsync({ path: { tenant: tenantId }, body: { name } });
+      await editNs.mutateAsync({
+        path: { tenant: tenantId },
+        body: { name: values.name },
+      });
       onClose();
     } catch {
-      setError("Failed to rename namespace. The name may already be taken.");
-    } finally {
-      setSubmitting(false);
+      setError("root", {
+        message: "Failed to rename namespace. The name may already be taken.",
+      });
     }
   };
 
@@ -93,9 +101,9 @@ function EditNameDrawer({
           </Button>
           <Button
             variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit}
-            loading={submitting}
+            onClick={() => void handleSubmit(onValid)()}
+            disabled={!isDirty || !isValid || isSubmitting}
+            loading={isSubmitting}
             icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
             Save
@@ -103,16 +111,16 @@ function EditNameDrawer({
         </>
       }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(onValid)(e)} className="space-y-5">
         <NamespaceNameField
           id="edit-ns-name"
-          value={name}
-          onChange={setName}
-          error={validationError}
+          value={field.value}
+          onChange={field.onChange}
+          error={fieldState.error?.message}
         />
-        {error && (
+        {formState.errors.root && (
           <p role="alert" className="text-2xs text-accent-red">
-            {error}
+            {formState.errors.root.message}
           </p>
         )}
       </form>

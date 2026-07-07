@@ -1,5 +1,6 @@
-import { useState, useEffect, FormEvent } from "react";
-import { useResetOnOpen } from "../hooks/useResetOnOpen";
+import { useState, useEffect, useLayoutEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespaces } from "../hooks/useNamespaces";
 import PageHeader from "../components/common/PageHeader";
@@ -8,10 +9,10 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import BaseDialog from "../components/common/BaseDialog";
 import CopyButton from "../components/common/CopyButton";
 import { isSdkError } from "../api/errors";
-import { validatePassword } from "../utils/validation";
-import { validateRecoveryEmail } from "./profile/validate";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
+import { rhfEditProfileResolver, type EditProfileFormValues } from "./profile/editProfileResolver";
+import { rhfChangePasswordResolver, type ChangePasswordFormValues } from "./profile/changePasswordResolver";
+import FormPasswordField from "@/components/common/fields/rhf/FormPasswordField";
+import FormInputField from "@/components/common/fields/rhf/FormInputField";
 import { getConfig } from "../env";
 import {
   UserIcon,
@@ -34,32 +35,6 @@ import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
-
-const USERNAME_REGEX = /^[a-z0-9_.@-]+$/;
-
-/* ─── Validation ─── */
-
-function validateName(v: string): string | null {
-  if (!v.trim()) return "Name is required";
-  if (v.length > 64) return "Name must be at most 64 characters";
-  return null;
-}
-
-function validateUsername(v: string): string | null {
-  if (!v.trim()) return "Username is required";
-  if (v.length > 32) return "Username must be at most 32 characters";
-  if (v !== v.toLowerCase()) return "Username must be lowercase";
-  if (v.includes(" ")) return "Username cannot contain spaces";
-  if (!USERNAME_REGEX.test(v))
-    return "Only lowercase letters, numbers, dots, underscores, @ and hyphens are allowed";
-  return null;
-}
-
-function validateEmail(v: string): string | null {
-  if (!v.trim()) return "Email is required";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Invalid email format";
-  return null;
-}
 
 /* ─── Delete Account Dialog (Cloud) ─── */
 
@@ -259,71 +234,55 @@ export function EditProfileDrawer({
   currentRecoveryEmail: string;
 }) {
   const updateProfile = useAuthStore((s) => s.updateProfile);
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [recoveryEmail, setRecoveryEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
-  useResetOnOpen(open, () => {
-    setName(currentName);
-    setUsername(currentUsername);
-    setEmail(currentEmail);
-    setRecoveryEmail(currentRecoveryEmail);
-    setSubmitting(false);
-    setError("");
-  });
+  const { control, handleSubmit, reset, setValue, trigger, setError, clearErrors, formState } =
+    useForm<EditProfileFormValues>({
+      resolver: rhfEditProfileResolver,
+      mode: "onChange",
+      defaultValues: {
+        name: currentName,
+        username: currentUsername,
+        email: currentEmail,
+        recoveryEmail: currentRecoveryEmail,
+      },
+    });
 
-  const nameError = name !== currentName ? validateName(name) : null;
-  const usernameError =
-    username !== currentUsername ? validateUsername(username) : null;
-  const emailError = email !== currentEmail ? validateEmail(email) : null;
-  const recoveryEmailError =
-    recoveryEmail !== currentRecoveryEmail || email !== currentEmail
-      ? validateRecoveryEmail(recoveryEmail, email)
-      : null;
+  const { isDirty, isValid, isSubmitting } = formState;
 
-  const hasValidationErrors =
-    !!nameError || !!usernameError || !!emailError || !!recoveryEmailError;
+  useLayoutEffect(() => {
+    reset({
+      name: currentName,
+      username: currentUsername,
+      email: currentEmail,
+      recoveryEmail: currentRecoveryEmail,
+    });
+  }, [open, currentName, currentUsername, currentEmail, currentRecoveryEmail, reset]);
 
-  const hasChanges =
-    name !== currentName ||
-    username !== currentUsername ||
-    email !== currentEmail ||
-    recoveryEmail !== currentRecoveryEmail;
+  const onValid = async (values: EditProfileFormValues) => {
+    clearErrors("root");
 
-  const canSubmit = hasChanges && !hasValidationErrors && !submitting;
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit) return;
-    setSubmitting(true);
-    setError("");
-
+    const dirty = formState.dirtyFields;
     const data: {
       name?: string;
       username?: string;
       email?: string;
       recovery_email?: string;
     } = {};
-    if (name !== currentName) data.name = name;
-    if (username !== currentUsername) data.username = username;
-    if (email !== currentEmail) data.email = email;
-    if (recoveryEmail !== currentRecoveryEmail)
-      data.recovery_email = recoveryEmail;
+    if (dirty.name) data.name = values.name;
+    if (dirty.username) data.username = values.username;
+    if (dirty.email) data.email = values.email;
+    if (dirty.recoveryEmail) data.recovery_email = values.recoveryEmail;
 
     try {
       await updateProfile(data);
       onClose();
     } catch (err) {
       const status = isSdkError(err) ? err.status : undefined;
-      if (status === 409) setError("That username or email is already in use.");
+      if (status === 409)
+        setError("root", { message: "That username or email is already in use." });
       else if (status === 400)
-        setError("Some fields have invalid values. Review and try again.");
-      else setError("Failed to update profile.");
-    } finally {
-      setSubmitting(false);
+        setError("root", { message: "Some fields have invalid values. Review and try again." });
+      else setError("root", { message: "Failed to update profile." });
     }
   };
 
@@ -339,9 +298,9 @@ export function EditProfileDrawer({
           </Button>
           <Button
             variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit}
-            loading={submitting}
+            onClick={() => void handleSubmit(onValid)()}
+            disabled={!isDirty || !isValid || isSubmitting}
+            loading={isSubmitting}
             icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
             Save
@@ -349,19 +308,20 @@ export function EditProfileDrawer({
         </>
       }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
+      <form onSubmit={(e) => void handleSubmit(onValid)(e)} className="space-y-5">
+        <FormInputField
+          name="name"
+          control={control}
           id="profile-name"
           label="Name"
-          value={name}
-          onChange={setName}
           placeholder="Your name"
           hint="1-64 characters"
-          error={nameError ?? undefined}
           maxLength={64}
-
+          onValueChange={() => clearErrors("root")}
         />
-        <InputField
+        <FormInputField
+          name="username"
+          control={control}
           id="profile-username"
           label="Username"
           labelAdornment={
@@ -369,33 +329,39 @@ export function EditProfileDrawer({
               Deprecated
             </span>
           }
-          value={username}
-          onChange={(v) => setUsername(v.toLowerCase())}
           placeholder="username"
           hint="Lowercase letters, numbers, dots, underscores, @ and hyphens"
-          error={usernameError ?? undefined}
           maxLength={32}
+          onValueChange={(v) => {
+            setValue("username", v.toLowerCase(), { shouldDirty: true, shouldValidate: true });
+            clearErrors("root");
+          }}
         />
-        <InputField
+        <FormInputField
+          name="email"
+          control={control}
           id="profile-email"
           label="Email"
           type="email"
-          value={email}
-          onChange={setEmail}
           placeholder="you@example.com"
-          error={emailError ?? undefined}
+          onValueChange={() => {
+            void trigger("recoveryEmail");
+            clearErrors("root");
+          }}
         />
-        <InputField
+        <FormInputField
+          name="recoveryEmail"
+          control={control}
           id="profile-recovery-email"
           label="Recovery Email"
           type="email"
-          value={recoveryEmail}
-          onChange={setRecoveryEmail}
           placeholder="recovery@example.com"
           hint="Optional. Used for account recovery if you lose access."
-          error={recoveryEmailError ?? undefined}
+          onValueChange={() => clearErrors("root")}
         />
-        {error && <p className="text-2xs text-accent-red">{error}</p>}
+        {formState.errors.root && (
+          <p className="text-2xs text-accent-red">{formState.errors.root.message}</p>
+        )}
       </form>
     </Drawer>
   );
@@ -411,52 +377,42 @@ function ChangePasswordDrawer({
   onClose: () => void;
 }) {
   const updatePw = useAuthStore((s) => s.updatePassword);
-  const [current, setCurrent] = useState("");
-  const [newPw, setNewPw] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useResetOnOpen(open, () => {
-    setCurrent("");
-    setNewPw("");
-    setConfirmPw("");
-    setSubmitting(false);
-    setError("");
-    setSuccess(false);
+  const { control, handleSubmit, reset, setError, formState } =
+    useForm<ChangePasswordFormValues>({
+      resolver: rhfChangePasswordResolver,
+      mode: "onChange",
+      defaultValues: { current: "", newPw: "", confirmPw: "" },
+    });
+
+  const { isValid, isSubmitting } = formState;
+  const [watchedCurrent, watchedNewPw, watchedConfirmPw] = useWatch({
+    control,
+    name: ["current", "newPw", "confirmPw"],
   });
+  const canSubmit = !!watchedCurrent && !!watchedNewPw && !!watchedConfirmPw && isValid && !isSubmitting;
 
-  const newPwError = newPw ? validatePassword(newPw) : null;
-  const confirmError =
-    confirmPw && newPw !== confirmPw ? "Passwords do not match" : null;
-  const canSubmit =
-    current &&
-    newPw &&
-    confirmPw &&
-    !newPwError &&
-    !confirmError &&
-    !submitting;
+  useLayoutEffect(() => {
+    reset({ current: "", newPw: "", confirmPw: "" });
+  }, [open, reset]);
+  useResetOnOpen(open, () => setSuccess(false));
 
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit) return;
-    setSubmitting(true);
-    setError("");
+  const onValid = async (values: ChangePasswordFormValues) => {
     try {
-      await updatePw(current, newPw);
+      await updatePw(values.current, values.newPw);
       setSuccess(true);
       setTimeout(onClose, 1200);
     } catch (err) {
       if (isSdkError(err) && err.status === 403) {
-        setError("Current password is incorrect.");
+        setError("root", { message: "Current password is incorrect." });
       } else {
-        setError("Failed to change password.");
+        setError("root", { message: "Failed to change password." });
       }
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  const rootError = formState.errors.root?.message;
 
   return (
     <Drawer
@@ -470,9 +426,9 @@ function ChangePasswordDrawer({
           </Button>
           <Button
             variant="primary"
-            onClick={() => void handleSubmit()}
+            onClick={() => void handleSubmit(onValid)()}
             disabled={!canSubmit}
-            loading={submitting}
+            loading={isSubmitting}
             icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
           >
             Change Password
@@ -480,33 +436,30 @@ function ChangePasswordDrawer({
         </>
       }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <PasswordField
+      <form onSubmit={(e) => void handleSubmit(onValid)(e)} className="space-y-5">
+        <FormPasswordField
+          name="current"
+          control={control}
           id="change-pw-current"
           label="Current Password"
-          value={current}
-          onChange={setCurrent}
           autoComplete="current-password"
-
         />
-        <PasswordField
+        <FormPasswordField
+          name="newPw"
+          control={control}
           id="change-pw-new"
           label="New Password"
-          value={newPw}
-          onChange={setNewPw}
           autoComplete="new-password"
           hint="5-32 characters"
-          error={newPwError ?? undefined}
         />
-        <PasswordField
+        <FormPasswordField
+          name="confirmPw"
+          control={control}
           id="change-pw-confirm"
           label="Confirm New Password"
-          value={confirmPw}
-          onChange={setConfirmPw}
           autoComplete="new-password"
-          error={confirmError ?? undefined}
         />
-        {error && <p className="text-2xs text-accent-red">{error}</p>}
+        {rootError && <p className="text-2xs text-accent-red">{rootError}</p>}
         {success && (
           <p className="text-2xs text-accent-green">
             Password changed successfully.

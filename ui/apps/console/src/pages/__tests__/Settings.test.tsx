@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -35,8 +36,10 @@ vi.mock("@/hooks/useNamespaces", () => ({
   })),
 }));
 
+const mockEditNsMutate = vi.fn();
+
 vi.mock("@/hooks/useNamespaceMutations", () => ({
-  useEditNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useEditNamespace: vi.fn(() => ({ mutateAsync: mockEditNsMutate })),
   useDeleteNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useLeaveNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useSetDeviceAutoAccept: vi.fn(() => ({ mutateAsync: vi.fn() })),
@@ -98,7 +101,13 @@ afterEach(cleanup);
 beforeEach(() => {
   mockedGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
+  mockEditNsMutate.mockReset();
 });
+
+async function openRenameDrawer(user: ReturnType<typeof userEvent.setup>) {
+  renderSettings();
+  await user.click(screen.getByRole("button", { name: /rename namespace/i }));
+}
 
 /* ================================================================== */
 /* Tests                                                               */
@@ -159,6 +168,69 @@ describe("Settings", () => {
     it("renders the Delete button for owners", () => {
       renderSettings();
       expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
+    });
+  });
+
+  describe("EditNameDrawer", () => {
+    it("Save is disabled when the name is unchanged (not dirty)", async () => {
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    });
+
+    it("Save is disabled when the new name is invalid", async () => {
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      const input = screen.getByLabelText(/namespace name/i);
+      await user.clear(input);
+      await user.type(input, "ab");
+      expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    });
+
+    it("Save is enabled when the name is dirty and valid", async () => {
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      const input = screen.getByLabelText(/namespace name/i);
+      await user.clear(input);
+      await user.type(input, "new-valid-name");
+      expect(screen.getByRole("button", { name: /save/i })).not.toBeDisabled();
+    });
+
+    it("calls mutateAsync with the new name on submit and closes the drawer", async () => {
+      mockEditNsMutate.mockResolvedValue(undefined);
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      const input = screen.getByLabelText(/namespace name/i);
+      await user.clear(input);
+      await user.type(input, "new-valid-name");
+      await user.click(screen.getByRole("button", { name: /save/i }));
+      expect(mockEditNsMutate).toHaveBeenCalledWith({
+        path: { tenant: "00000000-0000-4000-0000-000000000000" },
+        body: { name: "new-valid-name" },
+      });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("shows a generic error alert when rename fails", async () => {
+      mockEditNsMutate.mockRejectedValue(new Error("server error"));
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      const input = screen.getByLabelText(/namespace name/i);
+      await user.clear(input);
+      await user.type(input, "new-valid-name");
+      await user.click(screen.getByRole("button", { name: /save/i }));
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
+    });
+
+    it("resets to currentName when the drawer is reopened", async () => {
+      const user = userEvent.setup();
+      await openRenameDrawer(user);
+      const input = screen.getByLabelText(/namespace name/i);
+      await user.clear(input);
+      await user.type(input, "changed-name");
+      await user.click(screen.getByRole("button", { name: /cancel/i }));
+      await user.click(screen.getByRole("button", { name: /rename namespace/i }));
+      expect(screen.getByLabelText(/namespace name/i)).toHaveValue("my-ns");
     });
   });
 });
