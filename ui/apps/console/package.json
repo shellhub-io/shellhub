@@ -42,7 +42,7 @@
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.101.2",
     "@types/node-rsa": "^1.1.4",
-    "@types/sshpk": "^1.17.0",
+    "@types/sshpk": "^1.17.5",
     "ansi-styles": "^5.2.0"
   }
 }
