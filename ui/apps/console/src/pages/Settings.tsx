@@ -15,6 +15,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
+import { isSdkError } from "../api/errors";
 import { useNamespace } from "../hooks/useNamespaces";
 import {
   useEditNamespace,
@@ -145,8 +146,14 @@ function DeleteDialog({
         setError("");
         try {
           await deleteNs.mutateAsync(tenantId);
-        } catch {
-          setError("Failed to delete namespace.");
+        } catch (err) {
+          // A single-namespace (Community) instance is bound to this namespace and
+          // refuses to remove it; the API answers 409. Say so plainly.
+          setError(
+            isSdkError(err) && err.status === 409
+              ? "This namespace is bound to the instance and can't be deleted."
+              : "Failed to delete namespace.",
+          );
           throw new Error();
         }
       }}

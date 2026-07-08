@@ -8,9 +8,10 @@ import (
 type System struct {
 	bun.BaseModel `bun:"table:systems"`
 
-	ID             string               `bun:"id,pk,type:uuid"`
-	Setup          bool                 `bun:"setup"`
-	Authentication SystemAuthentication `bun:"embed:authentication_"`
+	ID               string               `bun:"id,pk,type:uuid"`
+	Setup            bool                 `bun:"setup"`
+	InstanceTenantID string               `bun:"instance_tenant_id,nullzero,type:uuid"`
+	Authentication   SystemAuthentication `bun:"embed:authentication_"`
 }
 
 type SystemAuthentication struct {
@@ -27,7 +28,8 @@ func SystemFromModel(model *models.System) *System {
 	}
 
 	entity := &System{
-		Setup: model.Setup,
+		Setup:            model.Setup,
+		InstanceTenantID: model.InstanceTenantID,
 	}
 
 	if model.Authentication != nil {
@@ -45,7 +47,8 @@ func SystemToModel(entity *System) *models.System {
 	}
 
 	return &models.System{
-		Setup: entity.Setup,
+		Setup:            entity.Setup,
+		InstanceTenantID: entity.InstanceTenantID,
 		Authentication: &models.SystemAuthentication{
 			Local: &models.SystemAuthenticationLocal{
 				Enabled: entity.Authentication.Local.Enabled,

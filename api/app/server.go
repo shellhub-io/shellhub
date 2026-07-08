@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/pg"
 	pgoptions "github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -106,6 +107,10 @@ func (s *Server) Setup(ctx context.Context) error {
 		log.Info("Store wrapper applied")
 	}
 
+	if err := reconcileInstanceBinding(ctx, store); err != nil {
+		return errors.Join(errors.New("failed to reconcile instance binding"), err)
+	}
+
 	apiClient, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {
 		return err
@@ -164,6 +169,41 @@ func (s *Server) Setup(ctx context.Context) error {
 	log.Info("Server setup completed successfully")
 
 	return nil
+}
+
+// reconcileInstanceBinding makes systems.instance_tenant_id reflect the current edition on every
+// boot, without an edition check — the mounted store decides. It reads the system, proposes the
+// oldest namespace as the binding when unset, and writes it back: the core store (Community)
+// persists it (activating single-namespace, and backfilling existing installs), while the
+// Enterprise/Cloud store wrapper strips it in SystemSet (keeping multi-tenant, and clearing a
+// binding inherited from a former Community install after an upgrade).
+func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
+	system, err := st.SystemGet(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !system.Setup {
+		return nil
+	}
+
+	if system.InstanceTenantID == "" {
+		namespaces, _, err := st.NamespaceList(ctx,
+			st.Options().Sort(&query.Sorter{By: "created_at", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 1}),
+		)
+		if err != nil {
+			return err
+		}
+
+		if len(namespaces) == 0 {
+			return nil
+		}
+
+		system.InstanceTenantID = namespaces[0].TenantID
+	}
+
+	return st.SystemSet(ctx, system)
 }
 
 // Start begins serving API requests and processing background tasks. It blocks the current goroutine until the server stops

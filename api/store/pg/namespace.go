@@ -15,6 +15,21 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	db := pg.GetConnection(ctx)
 
 	namespace.CreatedAt = clock.Now()
+
+	// Single-namespace binding: once the instance is bound to a namespace
+	// (systems.instance_tenant_id, set in Community deployments), refuse any further namespace
+	// with a specific error — distinct from a duplicate-name conflict. Enterprise/Cloud keep the
+	// binding empty (their store wrapper strips it), so this never triggers there. Setup creates
+	// the first namespace while the binding is still empty.
+	system, err := pg.SystemGet(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if system.InstanceTenantID != "" {
+		return "", store.ErrNamespaceSingle
+	}
+
 	if namespace.TenantID == "" {
 		namespace.TenantID = uuid.Generate()
 	}

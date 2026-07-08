@@ -111,7 +111,6 @@ function CommunityInstructions() {
   const [tenantId, setTenantId] = useState<string | null>(null);
 
   const addCmd = "./bin/cli member add <username> <namespace> <role>";
-  const createCmd = "./bin/cli namespace create <namespace> <owner-username>";
 
   // Poll for namespace assignment every 5 seconds (without updating the store)
   useEffect(() => {
@@ -140,22 +139,13 @@ function CommunityInstructions() {
   return (
     <div className="w-full space-y-5">
       <p className="text-sm text-text-secondary leading-relaxed">
-        Ask the instance administrator to create a new namespace for you, or add
-        you to an existing one.
+        Ask the instance administrator to add you to the namespace.
       </p>
 
-      {/* Option 1: Create new */}
+      {/* Add to the instance namespace */}
       <div>
         <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
-          Create a new namespace
-        </p>
-        <CopyBlock command={createCmd} />
-      </div>
-
-      {/* Option 2: Add to existing */}
-      <div>
-        <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
-          Or add to an existing namespace
+          Add a member to the namespace
         </p>
         <CopyBlock command={addCmd} />
         <p className="mt-1.5 text-2xs text-text-muted">

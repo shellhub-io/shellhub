@@ -36,6 +36,9 @@ const (
 	ErrCodeCreated
 	// ErrCodeNotImplemented is the error code to be used when the resource is not yet implemented.
 	ErrCodeNotImplemented
+	// ErrCodeConflict is the error code for when the request conflicts with the resource's
+	// current state (mapped to HTTP 409).
+	ErrCodeConflict
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -91,6 +94,8 @@ var (
 	ErrNamespaceMemberFillData         = errors.New("member fill data", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
+	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
+	ErrNamespaceSingle                 = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConflict)
 	ErrMaxTagReached                   = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrTagNameNotFound                 = errors.New("tag not found", ErrLayer, ErrCodeNotFound)
@@ -352,6 +357,18 @@ func NewErrNamespaceList(next error) error {
 // NewErrNamespaceInvalid returns an error to be used when the namespace is invalid.
 func NewErrNamespaceInvalid(next error) error {
 	return NewErrInvalid(ErrNamespaceInvalid, nil, next)
+}
+
+// NewErrNamespaceInstanceProtected returns an error to be used when deleting the namespace bound
+// to the instance is refused (single-namespace Community deployments).
+func NewErrNamespaceInstanceProtected(next error) error {
+	return errors.Wrap(ErrNamespaceInstanceProtected, next)
+}
+
+// NewErrNamespaceSingle returns an error to be used when creating a namespace is refused because
+// the instance is bound to a single namespace (single-namespace Community deployments).
+func NewErrNamespaceSingle(next error) error {
+	return errors.Wrap(ErrNamespaceSingle, next)
 }
 
 // NewErrNamespaceDuplicated returns an error to be used when the namespace is duplicated.

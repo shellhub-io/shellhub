@@ -15,6 +15,14 @@ vi.mock("@/client", () => ({
   setup: vi.fn(),
 }));
 
+const mockLoginWithToken = vi.hoisted(() => vi.fn());
+
+vi.mock("@/stores/authStore", () => ({
+  useAuthStore: (
+    selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
+  ) => selector({ loginWithToken: mockLoginWithToken }),
+}));
+
 vi.mock("@/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/env")>();
   return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
@@ -68,6 +76,8 @@ afterEach(cleanup);
 beforeEach(() => {
   mockNavigate.mockReset();
   mockedSetup.mockReset();
+  mockLoginWithToken.mockReset();
+  mockLoginWithToken.mockResolvedValue(undefined);
   mockedGetConfig.mockReturnValue({ ...defaultConfig });
 });
 
@@ -81,14 +91,14 @@ describe("Setup", () => {
       expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /create account/i }),
+        screen.getByRole("button", { name: /complete setup/i }),
       ).toBeInTheDocument();
     });
 
     it("submit button is disabled when all fields are empty", () => {
       renderSetup();
       expect(
-        screen.getByRole("button", { name: /create account/i }),
+        screen.getByRole("button", { name: /complete setup/i }),
       ).toBeDisabled();
     });
   });
@@ -126,7 +136,9 @@ describe("Setup", () => {
 
     it("does not show email error before the field is touched", () => {
       renderSetup();
-      expect(screen.queryByText(/enter a valid email/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/enter a valid email/i),
+      ).not.toBeInTheDocument();
     });
 
     it("shows email error after blurring with an invalid address", async () => {
@@ -178,7 +190,7 @@ describe("Setup", () => {
       const user = userEvent.setup();
       renderSetup();
 
-      const submit = screen.getByRole("button", { name: /create account/i });
+      const submit = screen.getByRole("button", { name: /complete setup/i });
       expect(submit).toBeDisabled();
 
       await fillValidForm(user);
@@ -188,15 +200,20 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
+    // Setup responds with an authenticated session (auto-login); the token is what
+    // the page hands to loginWithToken before redirecting into the app.
+    const setupSuccess = () =>
+      mockSdkResponse({ token: "jwt-token" }) as Awaited<
+        ReturnType<typeof setupSdk>
+      >;
+
     it("calls setup() with the correct payload and shows the success screen", async () => {
-      mockedSetup.mockResolvedValue(mockSdkResponse({}));
+      mockedSetup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup();
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create account/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
       await waitFor(() => expect(mockedSetup).toHaveBeenCalledTimes(1));
       expect(mockedSetup).toHaveBeenCalledWith(
@@ -204,6 +221,8 @@ describe("Setup", () => {
           body: {
             name: "Alice Smith",
             username: "alice",
+            // Tests run with import.meta.env.DEV=true, so the namespace defaults to "dev".
+            namespace: "dev",
             email: "alice@example.com",
             password: "Secret123",
           },
@@ -211,34 +230,81 @@ describe("Setup", () => {
         }),
       );
 
-      expect(
-        await screen.findByText(/account created successfully/i),
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/instance ready/i)).toBeInTheDocument();
     });
 
-    it("redirects to /login after 3 seconds on success", async () => {
+    it("logs in with the returned token", async () => {
+      mockedSetup.mockResolvedValue(setupSuccess());
+      const user = userEvent.setup();
+      renderSetup();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+
+      await waitFor(() =>
+        expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token"),
+      );
+    });
+
+    it("redirects to the app after 3 seconds on success", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
 
-      mockedSetup.mockResolvedValue(mockSdkResponse({}));
+      mockedSetup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create account/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
-      await screen.findByText(/account created successfully/i);
+      await screen.findByText(/instance ready/i);
 
       vi.advanceTimersByTime(3000);
 
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("/login", {
+        expect(mockNavigate).toHaveBeenCalledWith("/", {
           replace: true,
         }),
       );
 
       vi.useRealTimers();
+    });
+
+    it("routes to login with a notice when auto-login fails after setup", async () => {
+      mockedSetup.mockResolvedValue(setupSuccess());
+      mockLoginWithToken.mockRejectedValue(new Error("token login failed"));
+      const user = userEvent.setup();
+      renderSetup();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/login", {
+          replace: true,
+          state: { notice: "Setup complete. Please sign in." },
+        }),
+      );
+      // Setup succeeded, so the user must not see a failure error.
+      expect(screen.queryByText(/an error occurred/i)).not.toBeInTheDocument();
+    });
+
+    it("routes to login when setup issues no token", async () => {
+      mockedSetup.mockResolvedValue(
+        mockSdkResponse({ token: "" }) as Awaited<ReturnType<typeof setupSdk>>,
+      );
+      const user = userEvent.setup();
+      renderSetup();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/login", {
+          replace: true,
+          state: { notice: "Setup complete. Please sign in." },
+        }),
+      );
+      expect(mockLoginWithToken).not.toHaveBeenCalled();
     });
   });
 
@@ -249,9 +315,7 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create account/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
       expect(
         await screen.findByText(/setup has already been completed/i),
@@ -264,13 +328,9 @@ describe("Setup", () => {
       renderSetup();
 
       await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create account/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
-      expect(
-        await screen.findByText(/an error occurred/i),
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/an error occurred/i)).toBeInTheDocument();
     });
   });
 
@@ -285,9 +345,7 @@ describe("Setup", () => {
     it("starts on the onboarding step and shows the survey iframe", () => {
       renderSetup();
       expect(screen.getByTitle(/onboarding survey/i)).toBeInTheDocument();
-      expect(
-        screen.queryByLabelText(/^name$/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/^name$/i)).not.toBeInTheDocument();
     });
 
     it("moves to the account step after Continue is clicked and survey is completed", async () => {

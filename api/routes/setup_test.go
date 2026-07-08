@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -20,6 +21,7 @@ func TestSetup(t *testing.T) {
 	envs.DefaultBackend = envMock
 
 	envMock.On("Get", "SHELLHUB_CLOUD").Return("false")
+	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false")
 
 	servicesMock := serviceMocks.NewMockService(t)
 
@@ -52,15 +54,17 @@ func TestSetup(t *testing.T) {
                 "name": "John Doe",
                 "username": "john.doe",
                 "email": "john.doe@example.com",
-                "password": "password"
+                "password": "password",
+                "namespace": "john-doe"
             }`,
 			requiredMocks: func() {
 				servicesMock.On("Setup", mock.Anything, requests.Setup{
-					Name:     "John Doe",
-					Username: "john.doe",
-					Email:    "john.doe@example.com",
-					Password: "password",
-				}).Return(errors.New("")).Once()
+					Name:      "John Doe",
+					Username:  "john.doe",
+					Email:     "john.doe@example.com",
+					Password:  "password",
+					Namespace: "john-doe",
+				}).Return(nil, errors.New("")).Once()
 			},
 			expected: http.StatusInternalServerError,
 		},
@@ -70,15 +74,17 @@ func TestSetup(t *testing.T) {
                 "name": "John Doe",
                 "username": "john.doe",
                 "email": "john.doe@example.com",
-                "password": "password"
+                "password": "password",
+                "namespace": "john-doe"
             }`,
 			requiredMocks: func() {
 				servicesMock.On("Setup", mock.Anything, requests.Setup{
-					Name:     "John Doe",
-					Username: "john.doe",
-					Email:    "john.doe@example.com",
-					Password: "password",
-				}).Return(nil).Once()
+					Name:      "John Doe",
+					Username:  "john.doe",
+					Email:     "john.doe@example.com",
+					Password:  "password",
+					Namespace: "john-doe",
+				}).Return(&models.UserAuthResponse{Token: "token"}, nil).Once()
 			},
 			expected: http.StatusOK,
 		},

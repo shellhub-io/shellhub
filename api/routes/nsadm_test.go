@@ -17,12 +17,32 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
 )
 
+// withEnterpriseEnv points envs.DefaultBackend at a backend reporting the Enterprise edition so
+// NewRouter registers the namespace-create route, which is dropped in Community. The previous
+// backend is restored on cleanup.
+func withEnterpriseEnv(t *testing.T) {
+	t.Helper()
+
+	prev := envs.DefaultBackend
+	t.Cleanup(func() { envs.DefaultBackend = prev })
+
+	envMock := envMocks.NewMockBackend(t)
+	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Maybe()
+	envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Maybe()
+	envMock.On("Get", gomock.Anything).Return("").Maybe()
+	envs.DefaultBackend = envMock
+}
+
 func TestCreateNamespace(t *testing.T) {
+	withEnterpriseEnv(t)
+
 	mock := mocks.NewMockService(t)
 
 	type Expected struct {
@@ -654,6 +674,8 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 }
 
 func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
+	withEnterpriseEnv(t)
+
 	mock := mocks.NewMockService(t)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))

@@ -7,6 +7,8 @@ import (
 var (
 	ErrCreateNewUser               = errors.New("failed to create a new user")
 	ErrDuplicateNamespace          = errors.New("namespace already exists")
+	ErrNamespaceSingle             = errors.New("this instance does not support multi-tenancy")
+	ErrNamespaceInstanceProtected  = errors.New("this namespace is bound to the instance and cannot be removed")
 	ErrUserNotFound                = errors.New("user not found")
 	ErrNamespaceNotFound           = errors.New("namespace not found")
 	ErrFailedDeleteUser            = errors.New("failed to delete the user")

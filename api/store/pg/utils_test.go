@@ -79,6 +79,32 @@ func TestFromSQLError(t *testing.T) {
 			},
 		},
 		{
+			name:  "restrict_violation (23001) on the instance FK maps to ErrNamespaceInstanceProtected",
+			input: &pgconn.PgError{Code: "23001", ConstraintName: "systems_instance_tenant_id_fkey"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
+				assert.False(t, errors.Is(result, store.ErrInternal))
+			},
+		},
+		{
+			name:  "foreign_key_violation (23503) on the instance FK maps to ErrNamespaceInstanceProtected",
+			input: &pgconn.PgError{Code: "23503", ConstraintName: "systems_instance_tenant_id_fkey"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
+			},
+		},
+		{
+			name:  "restrict_violation (23001) on an unrelated constraint stays internal",
+			input: &pgconn.PgError{Code: "23001", ConstraintName: "some_other_fkey"},
+			check: func(t *testing.T, result error) {
+				require.Error(t, result)
+				assert.True(t, errors.Is(result, store.ErrInternal))
+				assert.False(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
+			},
+		},
+		{
 			name:  "generic unmapped error wraps with store.ErrInternal",
 			input: fmt.Errorf("some unexpected db error"),
 			check: func(t *testing.T, result error) {

@@ -9,19 +9,15 @@ import {
   Button,
   IconBadge,
   IconButton,
-  WindowChrome,
 } from "@shellhub/design-system/primitives";
 import BaseDialog from "./BaseDialog";
-import CopyButton from "./CopyButton";
 import NamespaceNameField from "./fields/NamespaceNameField";
 import {
   NAMESPACE_NAME_MIN_LENGTH,
-  NAMESPACE_NAME_RULES,
   validateNamespaceName,
 } from "@/utils/validation";
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
-const CLI_COMMAND = "./bin/cli namespace create <namespace> <owner>";
 
 const FORM_ID = "create-namespace-form";
 
@@ -55,50 +51,6 @@ function CloudForm({
   );
 }
 
-function CeInstructions({ descriptionId }: { descriptionId: string }) {
-  return (
-    <>
-      <p id={descriptionId} className="text-sm text-text-muted leading-relaxed">
-        Community Edition uses the CLI to manage namespaces. Run this command on
-        your server:
-      </p>
-
-      {/* Command block */}
-      <WindowChrome
-        variant="terminal"
-        size="sm"
-        titleBarSlot={<CopyButton text={CLI_COMMAND} showLabel />}
-      >
-        <pre className="text-accent-cyan whitespace-pre-wrap break-all m-0">
-          <span className="text-text-muted select-none">$ </span>
-          {CLI_COMMAND}
-        </pre>
-      </WindowChrome>
-
-      {/* Name rules */}
-      <div>
-        <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
-          Naming rules
-        </p>
-        <ul className="space-y-1.5" aria-label="Namespace naming rules">
-          {NAMESPACE_NAME_RULES.map((rule) => (
-            <li
-              key={rule}
-              className="flex items-start gap-2 text-xs text-text-muted"
-            >
-              <span
-                className="w-1 h-1 rounded-full bg-border-light mt-1.5 shrink-0"
-                aria-hidden="true"
-              />
-              {rule}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </>
-  );
-}
-
 interface CreateNamespaceDialogProps {
   open: boolean;
   onClose: () => void;
@@ -110,8 +62,9 @@ export default function CreateNamespaceDialog({
 }: CreateNamespaceDialogProps) {
   const autoId = useId();
   const titleId = `create-ns-title-${autoId}`;
-  const descriptionId = `create-ns-description-${autoId}`;
   const inputId = `create-ns-input-${autoId}`;
+  // Namespace creation is a premium (Cloud/Enterprise) feature. Community is single-namespace,
+  // so this dialog never renders there — the selector shows the upsell instead.
   const isCloud = getConfig().cloud || getConfig().enterprise;
 
   const [name, setName] = useState("");
@@ -144,7 +97,9 @@ export default function CreateNamespaceDialog({
         if (caught.status === 409) {
           setSubmitError("A namespace with this name already exists.");
         } else if (caught.status === 403) {
-          setSubmitError("You have reached the namespace limit or do not have permission.");
+          setSubmitError(
+            "You have reached the namespace limit or do not have permission.",
+          );
         } else if (caught.status === 400) {
           setSubmitError("The namespace name is invalid.");
         } else {
@@ -156,13 +111,14 @@ export default function CreateNamespaceDialog({
     }
   };
 
+  if (!isCloud) return null;
+
   return (
     <BaseDialog
       open={open}
       onClose={onClose}
       size="lg"
       aria-labelledby={titleId}
-      aria-describedby={isCloud ? undefined : descriptionId}
     >
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
@@ -182,18 +138,14 @@ export default function CreateNamespaceDialog({
 
       {/* Body */}
       <div className="px-6 py-5 space-y-5">
-        {isCloud ? (
-          <CloudForm
-            inputId={inputId}
-            name={name}
-            setName={setName}
-            displayError={displayError}
-            resetError={resetError}
-            onSubmit={(e) => void handleSubmit(e)}
-          />
-        ) : (
-          <CeInstructions descriptionId={descriptionId} />
-        )}
+        <CloudForm
+          inputId={inputId}
+          name={name}
+          setName={setName}
+          displayError={displayError}
+          resetError={resetError}
+          onSubmit={(e) => void handleSubmit(e)}
+        />
       </div>
 
       {/* Footer */}
@@ -210,18 +162,16 @@ export default function CreateNamespaceDialog({
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={onClose}>
-            {isCloud ? "Cancel" : "Close"}
+            Cancel
           </Button>
-          {isCloud && (
-            <Button
-              type="submit"
-              form={FORM_ID}
-              loading={createNs.isPending}
-              disabled={name.length < NAMESPACE_NAME_MIN_LENGTH}
-            >
-              Create
-            </Button>
-          )}
+          <Button
+            type="submit"
+            form={FORM_ID}
+            loading={createNs.isPending}
+            disabled={name.length < NAMESPACE_NAME_MIN_LENGTH}
+          >
+            Create
+          </Button>
         </div>
       </footer>
     </BaseDialog>
