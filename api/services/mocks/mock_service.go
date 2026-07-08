@@ -242,6 +242,63 @@ func (_c *MockService_AddNamespaceMember_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// AttachSSHEnrollmentKey provides a mock function for the type MockService
+func (_mock *MockService) AttachSSHEnrollmentKey(ctx context.Context, req *requests.SSHEnrollmentKey) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachSSHEnrollmentKey")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHEnrollmentKey) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_AttachSSHEnrollmentKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachSSHEnrollmentKey'
+type MockService_AttachSSHEnrollmentKey_Call struct {
+	*mock.Call
+}
+
+// AttachSSHEnrollmentKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHEnrollmentKey
+func (_e *MockService_Expecter) AttachSSHEnrollmentKey(ctx any, req any) *MockService_AttachSSHEnrollmentKey_Call {
+	return &MockService_AttachSSHEnrollmentKey_Call{Call: _e.mock.On("AttachSSHEnrollmentKey", ctx, req)}
+}
+
+func (_c *MockService_AttachSSHEnrollmentKey_Call) Run(run func(ctx context.Context, req *requests.SSHEnrollmentKey)) *MockService_AttachSSHEnrollmentKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHEnrollmentKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHEnrollmentKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AttachSSHEnrollmentKey_Call) Return(err error) *MockService_AttachSSHEnrollmentKey_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_AttachSSHEnrollmentKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHEnrollmentKey) error) *MockService_AttachSSHEnrollmentKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AuthAPIKey provides a mock function for the type MockService
 func (_mock *MockService) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
 	ret := _mock.Called(ctx, key)
@@ -736,6 +793,92 @@ func (_c *MockService_AuthUncacheToken_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// Authorize provides a mock function for the type MockService
+func (_mock *MockService) Authorize(ctx context.Context, tenantID string, userID string, device *models.Device, login string) (*models.Decision, error) {
+	ret := _mock.Called(ctx, tenantID, userID, device, login)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Authorize")
+	}
+
+	var r0 *models.Decision
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) (*models.Decision, error)); ok {
+		return returnFunc(ctx, tenantID, userID, device, login)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) *models.Decision); ok {
+		r0 = returnFunc(ctx, tenantID, userID, device, login)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Decision)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *models.Device, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, device, login)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_Authorize_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Authorize'
+type MockService_Authorize_Call struct {
+	*mock.Call
+}
+
+// Authorize is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID string
+//   - device *models.Device
+//   - login string
+func (_e *MockService_Expecter) Authorize(ctx any, tenantID any, userID any, device any, login any) *MockService_Authorize_Call {
+	return &MockService_Authorize_Call{Call: _e.mock.On("Authorize", ctx, tenantID, userID, device, login)}
+}
+
+func (_c *MockService_Authorize_Call) Run(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string)) *MockService_Authorize_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *models.Device
+		if args[3] != nil {
+			arg3 = args[3].(*models.Device)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_Authorize_Call) Return(decision *models.Decision, err error) *MockService_Authorize_Call {
+	_c.Call.Return(decision, err)
+	return _c
+}
+
+func (_c *MockService_Authorize_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string) (*models.Decision, error)) *MockService_Authorize_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelMembershipInvitation provides a mock function for the type MockService
 func (_mock *MockService) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
 	ret := _mock.Called(ctx, req)
@@ -789,6 +932,69 @@ func (_c *MockService_CancelMembershipInvitation_Call) Return(err error) *MockSe
 }
 
 func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.CancelMembershipInvitation) error) *MockService_CancelMembershipInvitation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ConfirmSSHEnrollment provides a mock function for the type MockService
+func (_mock *MockService) ConfirmSSHEnrollment(ctx context.Context, userID string, req *requests.SSHEnrollmentConfirm) error {
+	ret := _mock.Called(ctx, userID, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConfirmSSHEnrollment")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *requests.SSHEnrollmentConfirm) error); ok {
+		r0 = returnFunc(ctx, userID, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_ConfirmSSHEnrollment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConfirmSSHEnrollment'
+type MockService_ConfirmSSHEnrollment_Call struct {
+	*mock.Call
+}
+
+// ConfirmSSHEnrollment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - req *requests.SSHEnrollmentConfirm
+func (_e *MockService_Expecter) ConfirmSSHEnrollment(ctx any, userID any, req any) *MockService_ConfirmSSHEnrollment_Call {
+	return &MockService_ConfirmSSHEnrollment_Call{Call: _e.mock.On("ConfirmSSHEnrollment", ctx, userID, req)}
+}
+
+func (_c *MockService_ConfirmSSHEnrollment_Call) Run(run func(ctx context.Context, userID string, req *requests.SSHEnrollmentConfirm)) *MockService_ConfirmSSHEnrollment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *requests.SSHEnrollmentConfirm
+		if args[2] != nil {
+			arg2 = args[2].(*requests.SSHEnrollmentConfirm)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ConfirmSSHEnrollment_Call) Return(err error) *MockService_ConfirmSSHEnrollment_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_ConfirmSSHEnrollment_Call) RunAndReturn(run func(ctx context.Context, userID string, req *requests.SSHEnrollmentConfirm) error) *MockService_ConfirmSSHEnrollment_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -857,6 +1063,74 @@ func (_c *MockService_CreateAPIKey_Call) Return(res *responses.CreateAPIKey, err
 }
 
 func (_c *MockService_CreateAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error)) *MockService_CreateAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateAccessPolicy provides a mock function for the type MockService
+func (_mock *MockService) CreateAccessPolicy(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccessPolicy")
+	}
+
+	var r0 *models.AccessPolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyCreate) (*models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyCreate) *models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.AccessPolicyCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccessPolicy'
+type MockService_CreateAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// CreateAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.AccessPolicyCreate
+func (_e *MockService_Expecter) CreateAccessPolicy(ctx any, req any) *MockService_CreateAccessPolicy_Call {
+	return &MockService_CreateAccessPolicy_Call{Call: _e.mock.On("CreateAccessPolicy", ctx, req)}
+}
+
+func (_c *MockService_CreateAccessPolicy_Call) Run(run func(ctx context.Context, req *requests.AccessPolicyCreate)) *MockService_CreateAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.AccessPolicyCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.AccessPolicyCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateAccessPolicy_Call) Return(accessPolicy *models.AccessPolicy, err error) *MockService_CreateAccessPolicy_Call {
+	_c.Call.Return(accessPolicy, err)
+	return _c
+}
+
+func (_c *MockService_CreateAccessPolicy_Call) RunAndReturn(run func(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error)) *MockService_CreateAccessPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1275,6 +1549,142 @@ func (_c *MockService_CreatePublicKey_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// CreateSSHEnrollment provides a mock function for the type MockService
+func (_mock *MockService) CreateSSHEnrollment(ctx context.Context, req *requests.SSHEnrollmentCreate) (*models.SSHEnrollment, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSSHEnrollment")
+	}
+
+	var r0 *models.SSHEnrollment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHEnrollmentCreate) (*models.SSHEnrollment, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHEnrollmentCreate) *models.SSHEnrollment); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHEnrollment)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SSHEnrollmentCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateSSHEnrollment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSSHEnrollment'
+type MockService_CreateSSHEnrollment_Call struct {
+	*mock.Call
+}
+
+// CreateSSHEnrollment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHEnrollmentCreate
+func (_e *MockService_Expecter) CreateSSHEnrollment(ctx any, req any) *MockService_CreateSSHEnrollment_Call {
+	return &MockService_CreateSSHEnrollment_Call{Call: _e.mock.On("CreateSSHEnrollment", ctx, req)}
+}
+
+func (_c *MockService_CreateSSHEnrollment_Call) Run(run func(ctx context.Context, req *requests.SSHEnrollmentCreate)) *MockService_CreateSSHEnrollment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHEnrollmentCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHEnrollmentCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateSSHEnrollment_Call) Return(sSHEnrollment *models.SSHEnrollment, err error) *MockService_CreateSSHEnrollment_Call {
+	_c.Call.Return(sSHEnrollment, err)
+	return _c
+}
+
+func (_c *MockService_CreateSSHEnrollment_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHEnrollmentCreate) (*models.SSHEnrollment, error)) *MockService_CreateSSHEnrollment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateSSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSSHIdentity")
+	}
+
+	var r0 *models.SSHIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityCreate) (*models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityCreate) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SSHIdentityCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSSHIdentity'
+type MockService_CreateSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// CreateSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHIdentityCreate
+func (_e *MockService_Expecter) CreateSSHIdentity(ctx any, req any) *MockService_CreateSSHIdentity_Call {
+	return &MockService_CreateSSHIdentity_Call{Call: _e.mock.On("CreateSSHIdentity", ctx, req)}
+}
+
+func (_c *MockService_CreateSSHIdentity_Call) Run(run func(ctx context.Context, req *requests.SSHIdentityCreate)) *MockService_CreateSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHIdentityCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHIdentityCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateSSHIdentity_Call) Return(sSHIdentity *models.SSHIdentity, err error) *MockService_CreateSSHIdentity_Call {
+	_c.Call.Return(sSHIdentity, err)
+	return _c
+}
+
+func (_c *MockService_CreateSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityCreate) (*models.SSHIdentity, error)) *MockService_CreateSSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateSession provides a mock function for the type MockService
 func (_mock *MockService) CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error) {
 	ret := _mock.Called(ctx, session)
@@ -1599,6 +2009,63 @@ func (_c *MockService_DeleteAPIKey_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// DeleteAccessPolicy provides a mock function for the type MockService
+func (_mock *MockService) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAccessPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyDelete) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAccessPolicy'
+type MockService_DeleteAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.AccessPolicyDelete
+func (_e *MockService_Expecter) DeleteAccessPolicy(ctx any, req any) *MockService_DeleteAccessPolicy_Call {
+	return &MockService_DeleteAccessPolicy_Call{Call: _e.mock.On("DeleteAccessPolicy", ctx, req)}
+}
+
+func (_c *MockService_DeleteAccessPolicy_Call) Run(run func(ctx context.Context, req *requests.AccessPolicyDelete)) *MockService_DeleteAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.AccessPolicyDelete
+		if args[1] != nil {
+			arg1 = args[1].(*requests.AccessPolicyDelete)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteAccessPolicy_Call) Return(err error) *MockService_DeleteAccessPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteAccessPolicy_Call) RunAndReturn(run func(ctx context.Context, req *requests.AccessPolicyDelete) error) *MockService_DeleteAccessPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteDevice provides a mock function for the type MockService
 func (_mock *MockService) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	ret := _mock.Called(ctx, uid, tenant)
@@ -1839,6 +2306,63 @@ func (_c *MockService_DeletePublicKey_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// DeleteSSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdentityDelete) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSSHIdentity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityDelete) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSSHIdentity'
+type MockService_DeleteSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// DeleteSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHIdentityDelete
+func (_e *MockService_Expecter) DeleteSSHIdentity(ctx any, req any) *MockService_DeleteSSHIdentity_Call {
+	return &MockService_DeleteSSHIdentity_Call{Call: _e.mock.On("DeleteSSHIdentity", ctx, req)}
+}
+
+func (_c *MockService_DeleteSSHIdentity_Call) Run(run func(ctx context.Context, req *requests.SSHIdentityDelete)) *MockService_DeleteSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHIdentityDelete
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHIdentityDelete)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteSSHIdentity_Call) Return(err error) *MockService_DeleteSSHIdentity_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityDelete) error) *MockService_DeleteSSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteTag provides a mock function for the type MockService
 func (_mock *MockService) DeleteTag(ctx context.Context, req *requests.DeleteTag) error {
 	ret := _mock.Called(ctx, req)
@@ -1964,6 +2488,69 @@ func (_c *MockService_EditNamespace_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// EditSSHAccessMode provides a mock function for the type MockService
+func (_mock *MockService) EditSSHAccessMode(ctx context.Context, sshAccessMode string, tenantID string) error {
+	ret := _mock.Called(ctx, sshAccessMode, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditSSHAccessMode")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, sshAccessMode, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_EditSSHAccessMode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EditSSHAccessMode'
+type MockService_EditSSHAccessMode_Call struct {
+	*mock.Call
+}
+
+// EditSSHAccessMode is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sshAccessMode string
+//   - tenantID string
+func (_e *MockService_Expecter) EditSSHAccessMode(ctx any, sshAccessMode any, tenantID any) *MockService_EditSSHAccessMode_Call {
+	return &MockService_EditSSHAccessMode_Call{Call: _e.mock.On("EditSSHAccessMode", ctx, sshAccessMode, tenantID)}
+}
+
+func (_c *MockService_EditSSHAccessMode_Call) Run(run func(ctx context.Context, sshAccessMode string, tenantID string)) *MockService_EditSSHAccessMode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_EditSSHAccessMode_Call) Return(err error) *MockService_EditSSHAccessMode_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_EditSSHAccessMode_Call) RunAndReturn(run func(ctx context.Context, sshAccessMode string, tenantID string) error) *MockService_EditSSHAccessMode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EditSessionRecordStatus provides a mock function for the type MockService
 func (_mock *MockService) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
 	ret := _mock.Called(ctx, sessionRecord, tenantID)
@@ -2023,6 +2610,87 @@ func (_c *MockService_EditSessionRecordStatus_Call) Return(err error) *MockServi
 }
 
 func (_c *MockService_EditSessionRecordStatus_Call) RunAndReturn(run func(ctx context.Context, sessionRecord bool, tenantID string) error) *MockService_EditSessionRecordStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnrollSSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) EnrollSSHIdentity(ctx context.Context, userID string, tenantID string, fingerprint string, data []byte, name string) error {
+	ret := _mock.Called(ctx, userID, tenantID, fingerprint, data, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnrollSSHIdentity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, []byte, string) error); ok {
+		r0 = returnFunc(ctx, userID, tenantID, fingerprint, data, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_EnrollSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnrollSSHIdentity'
+type MockService_EnrollSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// EnrollSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - tenantID string
+//   - fingerprint string
+//   - data []byte
+//   - name string
+func (_e *MockService_Expecter) EnrollSSHIdentity(ctx any, userID any, tenantID any, fingerprint any, data any, name any) *MockService_EnrollSSHIdentity_Call {
+	return &MockService_EnrollSSHIdentity_Call{Call: _e.mock.On("EnrollSSHIdentity", ctx, userID, tenantID, fingerprint, data, name)}
+}
+
+func (_c *MockService_EnrollSSHIdentity_Call) Run(run func(ctx context.Context, userID string, tenantID string, fingerprint string, data []byte, name string)) *MockService_EnrollSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []byte
+		if args[4] != nil {
+			arg4 = args[4].([]byte)
+		}
+		var arg5 string
+		if args[5] != nil {
+			arg5 = args[5].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_EnrollSSHIdentity_Call) Return(err error) *MockService_EnrollSSHIdentity_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_EnrollSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, userID string, tenantID string, fingerprint string, data []byte, name string) error) *MockService_EnrollSSHIdentity_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2296,6 +2964,74 @@ func (_c *MockService_GenerateInvitationLink_Call) Return(s string, err error) *
 }
 
 func (_c *MockService_GenerateInvitationLink_Call) RunAndReturn(run func(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)) *MockService_GenerateInvitationLink_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccessPolicy provides a mock function for the type MockService
+func (_mock *MockService) GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccessPolicy")
+	}
+
+	var r0 *models.AccessPolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyGet) (*models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyGet) *models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.AccessPolicyGet) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccessPolicy'
+type MockService_GetAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// GetAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.AccessPolicyGet
+func (_e *MockService_Expecter) GetAccessPolicy(ctx any, req any) *MockService_GetAccessPolicy_Call {
+	return &MockService_GetAccessPolicy_Call{Call: _e.mock.On("GetAccessPolicy", ctx, req)}
+}
+
+func (_c *MockService_GetAccessPolicy_Call) Run(run func(ctx context.Context, req *requests.AccessPolicyGet)) *MockService_GetAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.AccessPolicyGet
+		if args[1] != nil {
+			arg1 = args[1].(*requests.AccessPolicyGet)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetAccessPolicy_Call) Return(accessPolicy *models.AccessPolicy, err error) *MockService_GetAccessPolicy_Call {
+	_c.Call.Return(accessPolicy, err)
+	return _c
+}
+
+func (_c *MockService_GetAccessPolicy_Call) RunAndReturn(run func(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error)) *MockService_GetAccessPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2574,6 +3310,142 @@ func (_c *MockService_GetPublicKey_Call) Return(publicKey *models.PublicKey, err
 }
 
 func (_c *MockService_GetPublicKey_Call) RunAndReturn(run func(ctx context.Context, fingerprint string, tenant string) (*models.PublicKey, error)) *MockService_GetPublicKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSSHEnrollment provides a mock function for the type MockService
+func (_mock *MockService) GetSSHEnrollment(ctx context.Context, code string) (*models.SSHEnrollmentRequest, error) {
+	ret := _mock.Called(ctx, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSSHEnrollment")
+	}
+
+	var r0 *models.SSHEnrollmentRequest
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.SSHEnrollmentRequest, error)); ok {
+		return returnFunc(ctx, code)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.SSHEnrollmentRequest); ok {
+		r0 = returnFunc(ctx, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHEnrollmentRequest)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetSSHEnrollment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSSHEnrollment'
+type MockService_GetSSHEnrollment_Call struct {
+	*mock.Call
+}
+
+// GetSSHEnrollment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - code string
+func (_e *MockService_Expecter) GetSSHEnrollment(ctx any, code any) *MockService_GetSSHEnrollment_Call {
+	return &MockService_GetSSHEnrollment_Call{Call: _e.mock.On("GetSSHEnrollment", ctx, code)}
+}
+
+func (_c *MockService_GetSSHEnrollment_Call) Run(run func(ctx context.Context, code string)) *MockService_GetSSHEnrollment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetSSHEnrollment_Call) Return(sSHEnrollmentRequest *models.SSHEnrollmentRequest, err error) *MockService_GetSSHEnrollment_Call {
+	_c.Call.Return(sSHEnrollmentRequest, err)
+	return _c
+}
+
+func (_c *MockService_GetSSHEnrollment_Call) RunAndReturn(run func(ctx context.Context, code string) (*models.SSHEnrollmentRequest, error)) *MockService_GetSSHEnrollment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetSSHEnrollmentStatus provides a mock function for the type MockService
+func (_mock *MockService) GetSSHEnrollmentStatus(ctx context.Context, code string) (*models.SSHEnrollmentStatus, error) {
+	ret := _mock.Called(ctx, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSSHEnrollmentStatus")
+	}
+
+	var r0 *models.SSHEnrollmentStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.SSHEnrollmentStatus, error)); ok {
+		return returnFunc(ctx, code)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.SSHEnrollmentStatus); ok {
+		r0 = returnFunc(ctx, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHEnrollmentStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetSSHEnrollmentStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSSHEnrollmentStatus'
+type MockService_GetSSHEnrollmentStatus_Call struct {
+	*mock.Call
+}
+
+// GetSSHEnrollmentStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - code string
+func (_e *MockService_Expecter) GetSSHEnrollmentStatus(ctx any, code any) *MockService_GetSSHEnrollmentStatus_Call {
+	return &MockService_GetSSHEnrollmentStatus_Call{Call: _e.mock.On("GetSSHEnrollmentStatus", ctx, code)}
+}
+
+func (_c *MockService_GetSSHEnrollmentStatus_Call) Run(run func(ctx context.Context, code string)) *MockService_GetSSHEnrollmentStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetSSHEnrollmentStatus_Call) Return(sSHEnrollmentStatus *models.SSHEnrollmentStatus, err error) *MockService_GetSSHEnrollmentStatus_Call {
+	_c.Call.Return(sSHEnrollmentStatus, err)
+	return _c
+}
+
+func (_c *MockService_GetSSHEnrollmentStatus_Call) RunAndReturn(run func(ctx context.Context, code string) (*models.SSHEnrollmentStatus, error)) *MockService_GetSSHEnrollmentStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3053,6 +3925,74 @@ func (_c *MockService_ListAPIKeys_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// ListAccessPolicies provides a mock function for the type MockService
+func (_mock *MockService) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAccessPolicies")
+	}
+
+	var r0 []models.AccessPolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ListAccessPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccessPolicies'
+type MockService_ListAccessPolicies_Call struct {
+	*mock.Call
+}
+
+// ListAccessPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockService_Expecter) ListAccessPolicies(ctx any, tenantID any) *MockService_ListAccessPolicies_Call {
+	return &MockService_ListAccessPolicies_Call{Call: _e.mock.On("ListAccessPolicies", ctx, tenantID)}
+}
+
+func (_c *MockService_ListAccessPolicies_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_ListAccessPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListAccessPolicies_Call) Return(accessPolicys []models.AccessPolicy, err error) *MockService_ListAccessPolicies_Call {
+	_c.Call.Return(accessPolicys, err)
+	return _c
+}
+
+func (_c *MockService_ListAccessPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string) ([]models.AccessPolicy, error)) *MockService_ListAccessPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDevices provides a mock function for the type MockService
 func (_mock *MockService) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	ret := _mock.Called(ctx, req)
@@ -3497,6 +4437,74 @@ func (_c *MockService_ListPublicKeys_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// ListSSHIdentities provides a mock function for the type MockService
+func (_mock *MockService) ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListSSHIdentities")
+	}
+
+	var r0 []models.SSHIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityList) ([]models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityList) []models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SSHIdentityList) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ListSSHIdentities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSSHIdentities'
+type MockService_ListSSHIdentities_Call struct {
+	*mock.Call
+}
+
+// ListSSHIdentities is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHIdentityList
+func (_e *MockService_Expecter) ListSSHIdentities(ctx any, req any) *MockService_ListSSHIdentities_Call {
+	return &MockService_ListSSHIdentities_Call{Call: _e.mock.On("ListSSHIdentities", ctx, req)}
+}
+
+func (_c *MockService_ListSSHIdentities_Call) Run(run func(ctx context.Context, req *requests.SSHIdentityList)) *MockService_ListSSHIdentities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHIdentityList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHIdentityList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListSSHIdentities_Call) Return(sSHIdentitys []models.SSHIdentity, err error) *MockService_ListSSHIdentities_Call {
+	_c.Call.Return(sSHIdentitys, err)
+	return _c
+}
+
+func (_c *MockService_ListSSHIdentities_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error)) *MockService_ListSSHIdentities_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListSessions provides a mock function for the type MockService
 func (_mock *MockService) ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error) {
 	ret := _mock.Called(ctx, req)
@@ -3715,6 +4723,72 @@ func (_c *MockService_LookupDevice_Call) Return(device *models.Device, err error
 }
 
 func (_c *MockService_LookupDevice_Call) RunAndReturn(run func(ctx context.Context, namespace string, name string) (*models.Device, error)) *MockService_LookupDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NamespaceHasAccessPolicies provides a mock function for the type MockService
+func (_mock *MockService) NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceHasAccessPolicies")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_NamespaceHasAccessPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceHasAccessPolicies'
+type MockService_NamespaceHasAccessPolicies_Call struct {
+	*mock.Call
+}
+
+// NamespaceHasAccessPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockService_Expecter) NamespaceHasAccessPolicies(ctx any, tenantID any) *MockService_NamespaceHasAccessPolicies_Call {
+	return &MockService_NamespaceHasAccessPolicies_Call{Call: _e.mock.On("NamespaceHasAccessPolicies", ctx, tenantID)}
+}
+
+func (_c *MockService_NamespaceHasAccessPolicies_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_NamespaceHasAccessPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_NamespaceHasAccessPolicies_Call) Return(b bool, err error) *MockService_NamespaceHasAccessPolicies_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockService_NamespaceHasAccessPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (bool, error)) *MockService_NamespaceHasAccessPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4178,6 +5252,69 @@ func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// RejectSSHEnrollment provides a mock function for the type MockService
+func (_mock *MockService) RejectSSHEnrollment(ctx context.Context, userID string, req *requests.SSHEnrollmentReject) error {
+	ret := _mock.Called(ctx, userID, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RejectSSHEnrollment")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *requests.SSHEnrollmentReject) error); ok {
+		r0 = returnFunc(ctx, userID, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_RejectSSHEnrollment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RejectSSHEnrollment'
+type MockService_RejectSSHEnrollment_Call struct {
+	*mock.Call
+}
+
+// RejectSSHEnrollment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - req *requests.SSHEnrollmentReject
+func (_e *MockService_Expecter) RejectSSHEnrollment(ctx any, userID any, req any) *MockService_RejectSSHEnrollment_Call {
+	return &MockService_RejectSSHEnrollment_Call{Call: _e.mock.On("RejectSSHEnrollment", ctx, userID, req)}
+}
+
+func (_c *MockService_RejectSSHEnrollment_Call) Run(run func(ctx context.Context, userID string, req *requests.SSHEnrollmentReject)) *MockService_RejectSSHEnrollment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *requests.SSHEnrollmentReject
+		if args[2] != nil {
+			arg2 = args[2].(*requests.SSHEnrollmentReject)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RejectSSHEnrollment_Call) Return(err error) *MockService_RejectSSHEnrollment_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_RejectSSHEnrollment_Call) RunAndReturn(run func(ctx context.Context, userID string, req *requests.SSHEnrollmentReject) error) *MockService_RejectSSHEnrollment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveNamespaceMember provides a mock function for the type MockService
 func (_mock *MockService) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, req)
@@ -4311,6 +5448,74 @@ func (_c *MockService_RenameDevice_Call) Return(err error) *MockService_RenameDe
 }
 
 func (_c *MockService_RenameDevice_Call) RunAndReturn(run func(ctx context.Context, uid models.UID, name string, tenant string) error) *MockService_RenameDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RenameSSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RenameSSHIdentity")
+	}
+
+	var r0 *models.SSHIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHIdentityUpdate) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SSHIdentityUpdate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_RenameSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RenameSSHIdentity'
+type MockService_RenameSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// RenameSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHIdentityUpdate
+func (_e *MockService_Expecter) RenameSSHIdentity(ctx any, req any) *MockService_RenameSSHIdentity_Call {
+	return &MockService_RenameSSHIdentity_Call{Call: _e.mock.On("RenameSSHIdentity", ctx, req)}
+}
+
+func (_c *MockService_RenameSSHIdentity_Call) Run(run func(ctx context.Context, req *requests.SSHIdentityUpdate)) *MockService_RenameSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHIdentityUpdate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHIdentityUpdate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RenameSSHIdentity_Call) Return(sSHIdentity *models.SSHIdentity, err error) *MockService_RenameSSHIdentity_Call {
+	_c.Call.Return(sSHIdentity, err)
+	return _c
+}
+
+func (_c *MockService_RenameSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)) *MockService_RenameSSHIdentity_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4578,6 +5783,86 @@ func (_c *MockService_ResolveInvitation_Call) Return(resolveInvitation *response
 }
 
 func (_c *MockService_ResolveInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error)) *MockService_ResolveInvitation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResolveSSHIdentity provides a mock function for the type MockService
+func (_mock *MockService) ResolveSSHIdentity(ctx context.Context, tenantID string, fingerprint string) (*models.SSHIdentity, bool, error) {
+	ret := _mock.Called(ctx, tenantID, fingerprint)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveSSHIdentity")
+	}
+
+	var r0 *models.SSHIdentity
+	var r1 bool
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*models.SSHIdentity, bool, error)); ok {
+		return returnFunc(ctx, tenantID, fingerprint)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, tenantID, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) bool); ok {
+		r1 = returnFunc(ctx, tenantID, fingerprint)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
+		r2 = returnFunc(ctx, tenantID, fingerprint)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ResolveSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveSSHIdentity'
+type MockService_ResolveSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// ResolveSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - fingerprint string
+func (_e *MockService_Expecter) ResolveSSHIdentity(ctx any, tenantID any, fingerprint any) *MockService_ResolveSSHIdentity_Call {
+	return &MockService_ResolveSSHIdentity_Call{Call: _e.mock.On("ResolveSSHIdentity", ctx, tenantID, fingerprint)}
+}
+
+func (_c *MockService_ResolveSSHIdentity_Call) Run(run func(ctx context.Context, tenantID string, fingerprint string)) *MockService_ResolveSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ResolveSSHIdentity_Call) Return(identity *models.SSHIdentity, found bool, err error) *MockService_ResolveSSHIdentity_Call {
+	_c.Call.Return(identity, found, err)
+	return _c
+}
+
+func (_c *MockService_ResolveSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, tenantID string, fingerprint string) (*models.SSHIdentity, bool, error)) *MockService_ResolveSSHIdentity_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4938,6 +6223,74 @@ func (_c *MockService_UpdateAPIKey_Call) Return(err error) *MockService_UpdateAP
 }
 
 func (_c *MockService_UpdateAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateAPIKey) error) *MockService_UpdateAPIKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAccessPolicy provides a mock function for the type MockService
+func (_mock *MockService) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccessPolicy")
+	}
+
+	var r0 *models.AccessPolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyUpdate) (*models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AccessPolicyUpdate) *models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.AccessPolicyUpdate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_UpdateAccessPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccessPolicy'
+type MockService_UpdateAccessPolicy_Call struct {
+	*mock.Call
+}
+
+// UpdateAccessPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.AccessPolicyUpdate
+func (_e *MockService_Expecter) UpdateAccessPolicy(ctx any, req any) *MockService_UpdateAccessPolicy_Call {
+	return &MockService_UpdateAccessPolicy_Call{Call: _e.mock.On("UpdateAccessPolicy", ctx, req)}
+}
+
+func (_c *MockService_UpdateAccessPolicy_Call) Run(run func(ctx context.Context, req *requests.AccessPolicyUpdate)) *MockService_UpdateAccessPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.AccessPolicyUpdate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.AccessPolicyUpdate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UpdateAccessPolicy_Call) Return(accessPolicy *models.AccessPolicy, err error) *MockService_UpdateAccessPolicy_Call {
+	_c.Call.Return(accessPolicy, err)
+	return _c
+}
+
+func (_c *MockService_UpdateAccessPolicy_Call) RunAndReturn(run func(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error)) *MockService_UpdateAccessPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3,7 +3,7 @@ import React from "react";
 type SettingsRowProps = {
   icon: React.ReactNode;
   title: string;
-  description: string;
+  description: React.ReactNode;
   badge?: React.ReactNode;
   children: React.ReactNode;
 };

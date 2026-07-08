@@ -13,6 +13,8 @@ import {
   GlobeAltIcon,
   ShieldExclamationIcon,
   TicketIcon,
+  ShieldCheckIcon,
+  FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
@@ -83,6 +85,16 @@ function buildSections(): NavSection[] {
           to: "/sshkeys/public-keys",
           label: "Public Keys",
           icon: <KeyIcon className={navIcon} />,
+        },
+        {
+          to: "/access-policies",
+          label: "Access Policies",
+          icon: <ShieldCheckIcon className={navIcon} />,
+        },
+        {
+          to: "/ssh-identities",
+          label: "SSH Identities",
+          icon: <FingerPrintIcon className={navIcon} />,
         },
         {
           to: "/firewall-rules",

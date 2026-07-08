@@ -20,6 +20,7 @@ const (
 	SessionClose
 	SessionRemove
 	SessionDetails
+	SessionApprove
 
 	FirewallCreate
 	FirewallEdit
@@ -61,6 +62,15 @@ const (
 
 	TunnelsCreate
 	TunnelsDelete
+
+	AccessPolicyManage
+
+	// SSHIdentityEnroll allows enrolling and managing one's own SSH identities
+	// (enrolled keys). Owner/admin/operator.
+	SSHIdentityEnroll
+	// SSHIdentityManage allows viewing and revoking any member's SSH identities
+	// in the namespace (offboarding). Owner/admin only.
+	SSHIdentityManage
 )
 
 var observerPermissions = []Permission{
@@ -84,6 +94,9 @@ var operatorPermissions = []Permission{
 	TagDelete,
 
 	SessionDetails,
+	SessionApprove,
+
+	SSHIdentityEnroll,
 }
 
 var adminPermissions = []Permission{
@@ -104,6 +117,7 @@ var adminPermissions = []Permission{
 	SessionClose,
 	SessionRemove,
 	SessionDetails,
+	SessionApprove,
 
 	FirewallCreate,
 	FirewallEdit,
@@ -134,6 +148,11 @@ var adminPermissions = []Permission{
 
 	TunnelsCreate,
 	TunnelsDelete,
+
+	AccessPolicyManage,
+
+	SSHIdentityEnroll,
+	SSHIdentityManage,
 }
 
 var ownerPermissions = []Permission{
@@ -154,6 +173,7 @@ var ownerPermissions = []Permission{
 	SessionClose,
 	SessionRemove,
 	SessionDetails,
+	SessionApprove,
 
 	FirewallCreate,
 	FirewallEdit,
@@ -194,4 +214,9 @@ var ownerPermissions = []Permission{
 
 	TunnelsCreate,
 	TunnelsDelete,
+
+	AccessPolicyManage,
+
+	SSHIdentityEnroll,
+	SSHIdentityManage,
 }

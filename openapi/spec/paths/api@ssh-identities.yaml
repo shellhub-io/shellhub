@@ -1,0 +1,70 @@
+get:
+  operationId: listSshIdentities
+  summary: List SSH identities
+  description: |
+    List the caller's enrolled SSH keys in the current namespace. When `all` is
+    set (requires the `SSHIdentityManage` permission), every member's enrolled
+    keys in the namespace are returned instead.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: all
+      in: query
+      required: false
+      description: |
+        Return every member's enrolled keys in the namespace instead of only
+        the caller's. Requires the `SSHIdentityManage` permission.
+      schema:
+        type: boolean
+        example: true
+  responses:
+    '200':
+      description: Success to list SSH identities.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/sshIdentity.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createSshIdentity
+  summary: Enroll an SSH identity
+  description: |
+    Manually enroll an SSH public key as an identity in the current namespace,
+    bound to the caller. Requires the `SSHIdentityEnroll` permission.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/sshIdentityRequest.yaml
+  responses:
+    '200':
+      description: Success to enroll an SSH identity.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/sshIdentity.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

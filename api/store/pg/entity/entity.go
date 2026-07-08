@@ -5,7 +5,9 @@ func Entities() []any {
 		// Register intermediary models first for many-to-many relationships
 		(*DeviceTag)(nil),
 		(*PublicKeyTag)(nil),
+		(*AccessPolicyTag)(nil),
 
+		(*AccessPolicy)(nil),
 		(*APIKey)(nil),
 		(*Device)(nil),
 		(*Membership)(nil),

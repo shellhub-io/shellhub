@@ -1,0 +1,15 @@
+description: Manual SSH identity enrollment payload.
+type: object
+properties:
+  name:
+    description: User-supplied label for the key.
+    type: string
+    example: laptop
+  data:
+    description: |
+      The SSH public key to enroll, in OpenSSH `authorized_keys` format.
+    type: string
+    example: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqk user@laptop
+required:
+  - name
+  - data

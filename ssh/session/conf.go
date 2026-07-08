@@ -10,6 +10,14 @@ type config struct {
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+
+	// Domain is the instance's base domain, used to build the browser approval URL
+	// shown in the terminal when a namespace requires SSH login approval.
+	Domain string `env:"SHELLHUB_DOMAIN,default=localhost"`
+
+	// AutoSSL reports whether the instance serves the console over HTTPS; it
+	// selects the scheme of the approval URL.
+	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
 }
 
 // sshconf is a global variable responsible for managing all environment configurations.

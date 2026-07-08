@@ -1,0 +1,58 @@
+parameters:
+  - $ref: ../components/parameters/path/sshIdentityIDPath.yaml
+patch:
+  operationId: renameSshIdentity
+  summary: Rename an SSH identity
+  description: |
+    Rename an enrolled SSH key. Renaming your own key requires the
+    `SSHIdentityEnroll` permission.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/sshIdentityRename.yaml
+  responses:
+    '200':
+      description: Success to rename an SSH identity.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/sshIdentity.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteSshIdentity
+  summary: Revoke an SSH identity
+  description: |
+    Revoke an enrolled SSH key, forcing re-enrollment on its next use. Revoking
+    your own key requires the `SSHIdentityEnroll` permission; revoking another
+    member's key requires the `SSHIdentityManage` permission.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to revoke an SSH identity.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

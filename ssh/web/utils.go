@@ -17,6 +17,11 @@ type Credentials struct {
 	Password string `json:"password"`
 	// Fingerprint is the identifier of the public key used in the device's OS.
 	Fingerprint string `json:"fingerprint"`
+	// UserID is the ShellHub account driving the web terminal, taken from the
+	// X-ID header the gateway injects after authenticating the request (never
+	// from the request body). It is the identity used in the identity access
+	// mode, where no device credential is presented; empty in legacy mode.
+	UserID string `json:"-"`
 }
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {

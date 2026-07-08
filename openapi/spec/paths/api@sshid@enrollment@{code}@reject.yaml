@@ -1,0 +1,28 @@
+post:
+  operationId: rejectSshEnrollment
+  summary: Reject an SSH key enrollment request
+  description: |
+    Reject a pending SSH key enrollment. The gateway refuses the held login once
+    the request is rejected. Unknown, expired or already-decided codes return 404.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH key enrollment code.
+        type: string
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to reject the SSH key enrollment request.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

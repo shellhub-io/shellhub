@@ -1,0 +1,30 @@
+description: |
+  Access policy's device filter.
+
+  `tags` is always present; it is an empty array when the policy filters by
+  `hostname`.
+type: object
+properties:
+  hostname:
+    description: Regex matched against the device's name.
+    type: string
+    example: .*
+  tags:
+    description: Tags the policy matches devices by.
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          description: Tag's ID.
+          type: string
+        name:
+          description: Tag's name.
+          type: string
+      required:
+        - id
+        - name
+    minItems: 0
+    maxItems: 3
+required:
+  - tags

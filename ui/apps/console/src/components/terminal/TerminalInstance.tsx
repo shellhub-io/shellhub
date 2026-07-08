@@ -89,7 +89,10 @@ export default function TerminalInstance({
 
       let token: string;
       try {
-        const res = await apiClient.post<{ token: string }>("/ws/ssh", body);
+        const res = await apiClient.post<{ token: string }>(
+          "/ws/ssh/session",
+          body,
+        );
         token = res.data.token;
       } catch {
         if (cancelled) return;

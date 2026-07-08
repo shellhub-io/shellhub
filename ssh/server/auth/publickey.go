@@ -32,7 +32,32 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 		return false
 	}
 
-	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
+	// In identity mode the presented key IS the identity: resolve its fingerprint
+	// to an enrolled account (connect straight through) or fall into enrollment
+	// (hold the login open for a browser approval that binds the key). The
+	// ephemeral mint to the agent is unchanged; the user's key is never forwarded.
+	auth := session.AuthPublicKey(publicKey)
+	switch {
+	case sess.IsIdentityMode() && sess.Web:
+		// Web identity: the browser user is the identity; authorize and mint,
+		// ignoring any key. (The bridge normally drives this via the password
+		// handler with an empty credential; this keeps the key path consistent.)
+		auth = session.AuthWebIdentity(ctx)
+	case sess.IsIdentityMode() && !sess.Web:
+		resolved, err := sess.ResolveKeyAuth(ctx, publicKey)
+		if err != nil {
+			logger.WithError(err).Warn("failed to resolve the identity for the public key")
+
+			return false
+		}
+
+		auth = resolved
+	case sess.RequiresEnrollment():
+		// Legacy web-terminal approval path (identity mode is handled above).
+		auth = session.AuthEnroll(ctx)
+	}
+
+	if err := sess.Auth(ctx, auth); err != nil {
 		logger.Warn("failed to authenticate on device using public key")
 
 		return false

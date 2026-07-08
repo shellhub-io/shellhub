@@ -21,11 +21,16 @@ export function editNamespaceSchema(originalName: string) {
   return editNamespaceFields.superRefine((values, ctx) => {
     if (values.name !== originalName) {
       const nameError = validateNamespaceName(values.name);
-      if (nameError) ctx.addIssue({ code: "custom", path: ["name"], message: nameError });
+      if (nameError)
+        ctx.addIssue({ code: "custom", path: ["name"], message: nameError });
     }
 
     if (!(parseInt(values.maxDevices, 10) >= -1)) {
-      ctx.addIssue({ code: "custom", path: ["maxDevices"], message: MAX_DEVICES_ERROR });
+      ctx.addIssue({
+        code: "custom",
+        path: ["maxDevices"],
+        message: MAX_DEVICES_ERROR,
+      });
     }
   });
 }
@@ -53,8 +58,10 @@ export function buildEditNamespaceBody(
     name: values.name.trim(),
     max_devices: parseInt(values.maxDevices, 10),
     settings: {
-      connection_announcement: namespace.settings?.connection_announcement ?? "",
+      connection_announcement:
+        namespace.settings?.connection_announcement ?? "",
       session_record: values.sessionRecord,
+      ssh_access_mode: namespace.settings?.ssh_access_mode ?? "legacy",
     },
   };
 }

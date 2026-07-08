@@ -18,6 +18,7 @@ vi.mock("@/hooks/useNamespaces", () => ({
       type: "personal",
       settings: {
         session_record: false,
+        ssh_access_mode: "legacy",
         connection_announcement: "",
       },
     },
@@ -30,6 +31,7 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
   useEditNamespace: vi.fn(() => ({ mutateAsync: mockEditNsMutate })),
   useDeleteNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useLeaveNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useSetSshAccessMode: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
 vi.mock("@/components/billing/BillingSection", () => ({

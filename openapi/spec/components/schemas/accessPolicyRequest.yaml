@@ -1,0 +1,24 @@
+description: Access policy create/update payload.
+type: object
+properties:
+  name:
+    description: Access policy's name.
+    type: string
+    example: Default access
+  subject:
+    $ref: accessPolicySubject.yaml
+  filter:
+    $ref: publicKeyFilterRequest.yaml
+  logins:
+    $ref: accessPolicyLogins.yaml
+  require_step_up:
+    description: |
+      Whether a recognized key must still get a per-session browser approval
+      before the session proceeds under the identity SSH access mode.
+    type: boolean
+    example: false
+required:
+  - name
+  - subject
+  - filter
+  - logins

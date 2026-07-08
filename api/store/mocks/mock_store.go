@@ -472,6 +472,358 @@ func (_c *MockStore_APIKeyUpdate_Call) RunAndReturn(run func(ctx context.Context
 	return _c
 }
 
+// AccessPolicyCreate provides a mock function for the type MockStore
+func (_mock *MockStore) AccessPolicyCreate(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error) {
+	ret := _mock.Called(ctx, accessPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessPolicyCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.AccessPolicy) (string, error)); ok {
+		return returnFunc(ctx, accessPolicy)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.AccessPolicy) string); ok {
+		r0 = returnFunc(ctx, accessPolicy)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.AccessPolicy) error); ok {
+		r1 = returnFunc(ctx, accessPolicy)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_AccessPolicyCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessPolicyCreate'
+type MockStore_AccessPolicyCreate_Call struct {
+	*mock.Call
+}
+
+// AccessPolicyCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessPolicy *models.AccessPolicy
+func (_e *MockStore_Expecter) AccessPolicyCreate(ctx any, accessPolicy any) *MockStore_AccessPolicyCreate_Call {
+	return &MockStore_AccessPolicyCreate_Call{Call: _e.mock.On("AccessPolicyCreate", ctx, accessPolicy)}
+}
+
+func (_c *MockStore_AccessPolicyCreate_Call) Run(run func(ctx context.Context, accessPolicy *models.AccessPolicy)) *MockStore_AccessPolicyCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.AccessPolicy
+		if args[1] != nil {
+			arg1 = args[1].(*models.AccessPolicy)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyCreate_Call) Return(s string, err error) *MockStore_AccessPolicyCreate_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyCreate_Call) RunAndReturn(run func(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error)) *MockStore_AccessPolicyCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AccessPolicyDelete provides a mock function for the type MockStore
+func (_mock *MockStore) AccessPolicyDelete(ctx context.Context, accessPolicy *models.AccessPolicy) error {
+	ret := _mock.Called(ctx, accessPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessPolicyDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.AccessPolicy) error); ok {
+		r0 = returnFunc(ctx, accessPolicy)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_AccessPolicyDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessPolicyDelete'
+type MockStore_AccessPolicyDelete_Call struct {
+	*mock.Call
+}
+
+// AccessPolicyDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessPolicy *models.AccessPolicy
+func (_e *MockStore_Expecter) AccessPolicyDelete(ctx any, accessPolicy any) *MockStore_AccessPolicyDelete_Call {
+	return &MockStore_AccessPolicyDelete_Call{Call: _e.mock.On("AccessPolicyDelete", ctx, accessPolicy)}
+}
+
+func (_c *MockStore_AccessPolicyDelete_Call) Run(run func(ctx context.Context, accessPolicy *models.AccessPolicy)) *MockStore_AccessPolicyDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.AccessPolicy
+		if args[1] != nil {
+			arg1 = args[1].(*models.AccessPolicy)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyDelete_Call) Return(err error) *MockStore_AccessPolicyDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyDelete_Call) RunAndReturn(run func(ctx context.Context, accessPolicy *models.AccessPolicy) error) *MockStore_AccessPolicyDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AccessPolicyList provides a mock function for the type MockStore
+func (_mock *MockStore) AccessPolicyList(ctx context.Context, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, opts)
+	} else {
+		tmpRet = _mock.Called(ctx)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessPolicyList")
+	}
+
+	var r0 []models.AccessPolicy
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.AccessPolicy, int, error)); ok {
+		return returnFunc(ctx, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_AccessPolicyList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessPolicyList'
+type MockStore_AccessPolicyList_Call struct {
+	*mock.Call
+}
+
+// AccessPolicyList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) AccessPolicyList(ctx any, opts ...any) *MockStore_AccessPolicyList_Call {
+	return &MockStore_AccessPolicyList_Call{Call: _e.mock.On("AccessPolicyList",
+		append([]any{ctx}, opts...)...)}
+}
+
+func (_c *MockStore_AccessPolicyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_AccessPolicyList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 1 {
+			variadicArgs = args[1].([]store.QueryOption)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyList_Call) Return(accessPolicys []models.AccessPolicy, n int, err error) *MockStore_AccessPolicyList_Call {
+	_c.Call.Return(accessPolicys, n, err)
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.AccessPolicy, int, error)) *MockStore_AccessPolicyList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AccessPolicyResolve provides a mock function for the type MockStore
+func (_mock *MockStore) AccessPolicyResolve(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, resolver, value, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, resolver, value)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessPolicyResolve")
+	}
+
+	var r0 *models.AccessPolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) (*models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, resolver, value, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) *models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.AccessPolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_AccessPolicyResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessPolicyResolve'
+type MockStore_AccessPolicyResolve_Call struct {
+	*mock.Call
+}
+
+// AccessPolicyResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resolver store.AccessPolicyResolver
+//   - value string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) AccessPolicyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_AccessPolicyResolve_Call {
+	return &MockStore_AccessPolicyResolve_Call{Call: _e.mock.On("AccessPolicyResolve",
+		append([]any{ctx, resolver, value}, opts...)...)}
+}
+
+func (_c *MockStore_AccessPolicyResolve_Call) Run(run func(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption)) *MockStore_AccessPolicyResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.AccessPolicyResolver
+		if args[1] != nil {
+			arg1 = args[1].(store.AccessPolicyResolver)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyResolve_Call) Return(accessPolicy *models.AccessPolicy, err error) *MockStore_AccessPolicyResolve_Call {
+	_c.Call.Return(accessPolicy, err)
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error)) *MockStore_AccessPolicyResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AccessPolicyUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.AccessPolicy) error {
+	ret := _mock.Called(ctx, accessPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessPolicyUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.AccessPolicy) error); ok {
+		r0 = returnFunc(ctx, accessPolicy)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_AccessPolicyUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AccessPolicyUpdate'
+type MockStore_AccessPolicyUpdate_Call struct {
+	*mock.Call
+}
+
+// AccessPolicyUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accessPolicy *models.AccessPolicy
+func (_e *MockStore_Expecter) AccessPolicyUpdate(ctx any, accessPolicy any) *MockStore_AccessPolicyUpdate_Call {
+	return &MockStore_AccessPolicyUpdate_Call{Call: _e.mock.On("AccessPolicyUpdate", ctx, accessPolicy)}
+}
+
+func (_c *MockStore_AccessPolicyUpdate_Call) Run(run func(ctx context.Context, accessPolicy *models.AccessPolicy)) *MockStore_AccessPolicyUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.AccessPolicy
+		if args[1] != nil {
+			arg1 = args[1].(*models.AccessPolicy)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyUpdate_Call) Return(err error) *MockStore_AccessPolicyUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_AccessPolicyUpdate_Call) RunAndReturn(run func(ctx context.Context, accessPolicy *models.AccessPolicy) error) *MockStore_AccessPolicyUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ActiveSessionCreate provides a mock function for the type MockStore
 func (_mock *MockStore) ActiveSessionCreate(ctx context.Context, session *models.Session) error {
 	ret := _mock.Called(ctx, session)
@@ -4481,6 +4833,421 @@ func (_c *MockStore_PublicKeyUpdate_Call) Return(err error) *MockStore_PublicKey
 }
 
 func (_c *MockStore_PublicKeyUpdate_Call) RunAndReturn(run func(ctx context.Context, publicKey *models.PublicKey) error) *MockStore_PublicKeyUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityCreate provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentity) (string, error) {
+	ret := _mock.Called(ctx, identity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.SSHIdentity) (string, error)); ok {
+		return returnFunc(ctx, identity)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.SSHIdentity) string); ok {
+		r0 = returnFunc(ctx, identity)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.SSHIdentity) error); ok {
+		r1 = returnFunc(ctx, identity)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SSHIdentityCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityCreate'
+type MockStore_SSHIdentityCreate_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - identity *models.SSHIdentity
+func (_e *MockStore_Expecter) SSHIdentityCreate(ctx any, identity any) *MockStore_SSHIdentityCreate_Call {
+	return &MockStore_SSHIdentityCreate_Call{Call: _e.mock.On("SSHIdentityCreate", ctx, identity)}
+}
+
+func (_c *MockStore_SSHIdentityCreate_Call) Run(run func(ctx context.Context, identity *models.SSHIdentity)) *MockStore_SSHIdentityCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.SSHIdentity
+		if args[1] != nil {
+			arg1 = args[1].(*models.SSHIdentity)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityCreate_Call) Return(s string, err error) *MockStore_SSHIdentityCreate_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityCreate_Call) RunAndReturn(run func(ctx context.Context, identity *models.SSHIdentity) (string, error)) *MockStore_SSHIdentityCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityDelete provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityDelete(ctx context.Context, identity *models.SSHIdentity) error {
+	ret := _mock.Called(ctx, identity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.SSHIdentity) error); ok {
+		r0 = returnFunc(ctx, identity)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_SSHIdentityDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityDelete'
+type MockStore_SSHIdentityDelete_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - identity *models.SSHIdentity
+func (_e *MockStore_Expecter) SSHIdentityDelete(ctx any, identity any) *MockStore_SSHIdentityDelete_Call {
+	return &MockStore_SSHIdentityDelete_Call{Call: _e.mock.On("SSHIdentityDelete", ctx, identity)}
+}
+
+func (_c *MockStore_SSHIdentityDelete_Call) Run(run func(ctx context.Context, identity *models.SSHIdentity)) *MockStore_SSHIdentityDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.SSHIdentity
+		if args[1] != nil {
+			arg1 = args[1].(*models.SSHIdentity)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityDelete_Call) Return(err error) *MockStore_SSHIdentityDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityDelete_Call) RunAndReturn(run func(ctx context.Context, identity *models.SSHIdentity) error) *MockStore_SSHIdentityDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityList provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityList(ctx context.Context, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, opts)
+	} else {
+		tmpRet = _mock.Called(ctx)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityList")
+	}
+
+	var r0 []models.SSHIdentity
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.SSHIdentity, int, error)); ok {
+		return returnFunc(ctx, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_SSHIdentityList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityList'
+type MockStore_SSHIdentityList_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) SSHIdentityList(ctx any, opts ...any) *MockStore_SSHIdentityList_Call {
+	return &MockStore_SSHIdentityList_Call{Call: _e.mock.On("SSHIdentityList",
+		append([]any{ctx}, opts...)...)}
+}
+
+func (_c *MockStore_SSHIdentityList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_SSHIdentityList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 1 {
+			variadicArgs = args[1].([]store.QueryOption)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityList_Call) Return(sSHIdentitys []models.SSHIdentity, n int, err error) *MockStore_SSHIdentityList_Call {
+	_c.Call.Return(sSHIdentitys, n, err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.SSHIdentity, int, error)) *MockStore_SSHIdentityList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityResolve provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityResolve(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, resolver, value, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, resolver, value)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityResolve")
+	}
+
+	var r0 *models.SSHIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) (*models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, resolver, value, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SSHIdentityResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityResolve'
+type MockStore_SSHIdentityResolve_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resolver store.SSHIdentityResolver
+//   - value string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) SSHIdentityResolve(ctx any, resolver any, value any, opts ...any) *MockStore_SSHIdentityResolve_Call {
+	return &MockStore_SSHIdentityResolve_Call{Call: _e.mock.On("SSHIdentityResolve",
+		append([]any{ctx, resolver, value}, opts...)...)}
+}
+
+func (_c *MockStore_SSHIdentityResolve_Call) Run(run func(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption)) *MockStore_SSHIdentityResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.SSHIdentityResolver
+		if args[1] != nil {
+			arg1 = args[1].(store.SSHIdentityResolver)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityResolve_Call) Return(sSHIdentity *models.SSHIdentity, err error) *MockStore_SSHIdentityResolve_Call {
+	_c.Call.Return(sSHIdentity, err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error)) *MockStore_SSHIdentityResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityTouchLastUsed provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityTouchLastUsed(ctx context.Context, tenantID string, fingerprint string) error {
+	ret := _mock.Called(ctx, tenantID, fingerprint)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityTouchLastUsed")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, fingerprint)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_SSHIdentityTouchLastUsed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityTouchLastUsed'
+type MockStore_SSHIdentityTouchLastUsed_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityTouchLastUsed is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - fingerprint string
+func (_e *MockStore_Expecter) SSHIdentityTouchLastUsed(ctx any, tenantID any, fingerprint any) *MockStore_SSHIdentityTouchLastUsed_Call {
+	return &MockStore_SSHIdentityTouchLastUsed_Call{Call: _e.mock.On("SSHIdentityTouchLastUsed", ctx, tenantID, fingerprint)}
+}
+
+func (_c *MockStore_SSHIdentityTouchLastUsed_Call) Run(run func(ctx context.Context, tenantID string, fingerprint string)) *MockStore_SSHIdentityTouchLastUsed_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityTouchLastUsed_Call) Return(err error) *MockStore_SSHIdentityTouchLastUsed_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityTouchLastUsed_Call) RunAndReturn(run func(ctx context.Context, tenantID string, fingerprint string) error) *MockStore_SSHIdentityTouchLastUsed_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHIdentityUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) SSHIdentityUpdate(ctx context.Context, identity *models.SSHIdentity) error {
+	ret := _mock.Called(ctx, identity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHIdentityUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.SSHIdentity) error); ok {
+		r0 = returnFunc(ctx, identity)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_SSHIdentityUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHIdentityUpdate'
+type MockStore_SSHIdentityUpdate_Call struct {
+	*mock.Call
+}
+
+// SSHIdentityUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - identity *models.SSHIdentity
+func (_e *MockStore_Expecter) SSHIdentityUpdate(ctx any, identity any) *MockStore_SSHIdentityUpdate_Call {
+	return &MockStore_SSHIdentityUpdate_Call{Call: _e.mock.On("SSHIdentityUpdate", ctx, identity)}
+}
+
+func (_c *MockStore_SSHIdentityUpdate_Call) Run(run func(ctx context.Context, identity *models.SSHIdentity)) *MockStore_SSHIdentityUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.SSHIdentity
+		if args[1] != nil {
+			arg1 = args[1].(*models.SSHIdentity)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityUpdate_Call) Return(err error) *MockStore_SSHIdentityUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_SSHIdentityUpdate_Call) RunAndReturn(run func(ctx context.Context, identity *models.SSHIdentity) error) *MockStore_SSHIdentityUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }

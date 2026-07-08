@@ -10,11 +10,14 @@ type SessionPosition struct {
 }
 
 type Session struct {
-	UID           string          `json:"uid"`
-	DeviceUID     UID             `json:"device_uid,omitempty"`
-	Device        *Device         `json:"device"`
-	TenantID      string          `json:"tenant_id"`
-	Username      string          `json:"username"`
+	UID       string  `json:"uid"`
+	DeviceUID UID     `json:"device_uid,omitempty"`
+	Device    *Device `json:"device"`
+	TenantID  string  `json:"tenant_id"`
+	Username  string  `json:"username"`
+	// UserID is the ShellHub account that authorized this session via browser
+	// approval. Empty for password/public-key logins and web-terminal sessions.
+	UserID        string          `json:"user_id,omitempty"`
 	IPAddress     string          `json:"ip_address"`
 	StartedAt     time.Time       `json:"started_at"`
 	LastSeen      time.Time       `json:"last_seen"`

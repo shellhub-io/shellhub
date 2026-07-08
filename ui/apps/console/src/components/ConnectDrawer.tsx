@@ -129,6 +129,11 @@ export default function ConnectDrawer({
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
 
+  // In identity access mode you are already authenticated in the console — your
+  // account is the identity, and Access Policies authorize the login. No device
+  // password or key is needed; the form collapses to just the unix login.
+  const identityMode = namespace?.settings?.ssh_access_mode === "identity";
+
   useEffect(() => {
     if (!open) return;
     dispatch({ type: "reset" });
@@ -144,14 +149,15 @@ export default function ConnectDrawer({
 
   const canConnect =
     state.username.trim().length > 0 &&
-    (state.authMethod === "password"
-      ? state.password.trim().length > 0
-      : effectiveKeySource === "vault"
-        ? !!selectedVaultKey &&
-          (!selectedVaultKey.hasPassphrase ||
-            state.passphrase.trim().length > 0)
-        : state.manualKeyValid &&
-          (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
+    (identityMode ||
+      (state.authMethod === "password"
+        ? state.password.trim().length > 0
+        : effectiveKeySource === "vault"
+          ? !!selectedVaultKey &&
+            (!selectedVaultKey.hasPassphrase ||
+              state.passphrase.trim().length > 0)
+          : state.manualKeyValid &&
+            (!state.manualKeyEncrypted || state.passphrase.trim().length > 0)));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
@@ -177,7 +183,16 @@ export default function ConnectDrawer({
     if (!canConnect) return;
 
     let params: Omit<TerminalSession, "id" | "state" | "connectionStatus">;
-    if (state.authMethod === "password") {
+    if (identityMode) {
+      // No device credential: the gateway authorizes the logged-in identity via
+      // Access Policies and mints the connection.
+      params = {
+        deviceUid,
+        deviceName,
+        username: state.username.trim(),
+        password: "",
+      };
+    } else if (state.authMethod === "password") {
       params = {
         deviceUid,
         deviceName,
@@ -332,147 +347,174 @@ export default function ConnectDrawer({
             placeholder="e.g. root"
           />
 
-          {/* Auth Method */}
-          <RadioGroupField
-            label="Authentication"
-            value={state.authMethod}
-            onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
-          >
-            <RadioCard
-              value="password"
-              icon={<LockClosedIcon className="w-4 h-4" />}
-              label="Password"
-              description="Authenticate with your device password."
-            />
-            <RadioCard
-              value="key"
-              icon={<KeyIcon className="w-4 h-4" />}
-              label="Private Key"
-              description="Authenticate using your SSH private key."
-            />
-          </RadioGroupField>
-
-          {/* Password field */}
-          {state.authMethod === "password" && (
-            <PasswordField
-              id="connect-password"
-              label="Password"
-              autoComplete="current-password"
-              value={state.password}
-              onChange={(v) => dispatch({ type: "setPassword", value: v })}
-              placeholder="Enter device password"
-            />
-          )}
-
-          {/* Private Key fields */}
-          {state.authMethod === "key" && (
-            <>
-              {/* Vault locked warning */}
-              {vaultStatus === "locked" && (
-                <VaultLockedBanner onUnlock={() => setUnlockOpen(true)} />
-              )}
-
-              {/* Key source toggle (only if vault has keys) */}
-              {hasVaultKeys && (
-                <RadioGroupField
-                  label="Key Source"
-                  value={state.keySource}
-                  onChange={(value) =>
-                    dispatch({ type: "setKeySource", value })
-                  }
-                  containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
+          {identityMode ? (
+            <Card className="rounded-lg p-3.5">
+              <div className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-primary"
                 >
-                  <RadioSegment
-                    value="vault"
-                    label="Vault"
-                    icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
-                  />
-                  <RadioSegment
-                    value="manual"
-                    label="Manual"
-                    icon={<KeyIcon className="w-3.5 h-3.5" />}
-                  />
-                </RadioGroupField>
+                  <ShieldCheckIcon className="w-5 h-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-text-primary">
+                    You connect as your identity
+                  </span>
+                  <span className="block text-2xs text-text-muted mt-0.5">
+                    This namespace uses key-based identity. Access is granted by
+                    policy — no device password or key needed.
+                  </span>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <>
+              {/* Auth Method */}
+              <RadioGroupField
+                label="Authentication"
+                value={state.authMethod}
+                onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
+              >
+                <RadioCard
+                  value="password"
+                  icon={<LockClosedIcon className="w-4 h-4" />}
+                  label="Password"
+                  description="Authenticate with your device password."
+                />
+                <RadioCard
+                  value="key"
+                  icon={<KeyIcon className="w-4 h-4" />}
+                  label="Private Key"
+                  description="Authenticate using your SSH private key."
+                />
+              </RadioGroupField>
+
+              {/* Password field */}
+              {state.authMethod === "password" && (
+                <PasswordField
+                  id="connect-password"
+                  label="Password"
+                  autoComplete="current-password"
+                  value={state.password}
+                  onChange={(v) => dispatch({ type: "setPassword", value: v })}
+                  placeholder="Enter device password"
+                />
               )}
 
-              {/* Vault key selector */}
-              {effectiveKeySource === "vault" ? (
+              {/* Private Key fields */}
+              {state.authMethod === "key" && (
                 <>
-                  <div>
-                    <FieldLabel htmlFor="connect-vault-key">
-                      Select Key
-                    </FieldLabel>
-                    <select
-                      id="connect-vault-key"
-                      value={state.selectedKeyId}
-                      onChange={(e) =>
-                        dispatch({
-                          type: "setSelectedKeyId",
-                          value: e.target.value,
-                        })
+                  {/* Vault locked warning */}
+                  {vaultStatus === "locked" && (
+                    <VaultLockedBanner onUnlock={() => setUnlockOpen(true)} />
+                  )}
+
+                  {/* Key source toggle (only if vault has keys) */}
+                  {hasVaultKeys && (
+                    <RadioGroupField
+                      label="Key Source"
+                      value={state.keySource}
+                      onChange={(value) =>
+                        dispatch({ type: "setKeySource", value })
                       }
-                      className={INPUT}
+                      containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
                     >
-                      <option value="">Choose a key...</option>
-                      {vaultKeys.map((k) => (
-                        <option key={k.id} value={k.id}>
-                          {k.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {selectedVaultKey?.hasPassphrase && (
-                    <PasswordField
-                      id="connect-vault-passphrase"
-                      label="Passphrase"
-                      value={state.passphrase}
-                      onChange={(v) =>
-                        dispatch({ type: "setPassphrase", value: v })
-                      }
-                      placeholder="Key passphrase"
-                      suppressPasswordManager
-                    />
+                      <RadioSegment
+                        value="vault"
+                        label="Vault"
+                        icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
+                      />
+                      <RadioSegment
+                        value="manual"
+                        label="Manual"
+                        icon={<KeyIcon className="w-3.5 h-3.5" />}
+                      />
+                    </RadioGroupField>
+                  )}
+                  {/* Vault key selector */}
+                  {effectiveKeySource === "vault" ? (
+                    <>
+                      <div>
+                        <FieldLabel htmlFor="connect-vault-key">
+                          Select Key
+                        </FieldLabel>
+                        <select
+                          id="connect-vault-key"
+                          value={state.selectedKeyId}
+                          onChange={(e) =>
+                            dispatch({
+                              type: "setSelectedKeyId",
+                              value: e.target.value,
+                            })
+                          }
+                          className={INPUT}
+                        >
+                          <option value="">Choose a key...</option>
+                          {vaultKeys.map((k) => (
+                            <option key={k.id} value={k.id}>
+                              {k.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {selectedVaultKey?.hasPassphrase && (
+                        <PasswordField
+                          id="connect-vault-passphrase"
+                          label="Passphrase"
+                          value={state.passphrase}
+                          onChange={(v) =>
+                            dispatch({ type: "setPassphrase", value: v })
+                          }
+                          placeholder="Key passphrase"
+                          suppressPasswordManager
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Manual key input */}
+                      <div>
+                        <FieldLabel htmlFor="connect-manual-private-key">
+                          Private Key
+                        </FieldLabel>
+                        <textarea
+                          id="connect-manual-private-key"
+                          value={state.privateKey}
+                          onChange={(e) =>
+                            handleManualKeyChange(e.target.value)
+                          }
+                          placeholder={
+                            "-----BEGIN OPENSSH PRIVATE KEY-----\n..."
+                          }
+                          rows={5}
+                          className={cn(INPUT, "font-mono text-xs resize-none")}
+                        />
+                      </div>
+                      {state.manualKeyEncrypted && (
+                        <PasswordField
+                          id="connect-manual-passphrase"
+                          label="Passphrase"
+                          value={state.passphrase}
+                          onChange={(v) =>
+                            dispatch({ type: "setPassphrase", value: v })
+                          }
+                          placeholder="Enter passphrase for encrypted key"
+                          suppressPasswordManager
+                          hint="This key is encrypted and requires a passphrase."
+                        />
+                      )}
+                    </>
                   )}
                 </>
-              ) : (
-                <>
-                  {/* Manual key input */}
-                  <div>
-                    <FieldLabel htmlFor="connect-manual-private-key">
-                      Private Key
-                    </FieldLabel>
-                    <textarea
-                      id="connect-manual-private-key"
-                      value={state.privateKey}
-                      onChange={(e) => handleManualKeyChange(e.target.value)}
-                      placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
-                      rows={5}
-                      className={cn(INPUT, "font-mono text-xs resize-none")}
-                    />
-                  </div>
-                  {state.manualKeyEncrypted && (
-                    <PasswordField
-                      id="connect-manual-passphrase"
-                      label="Passphrase"
-                      value={state.passphrase}
-                      onChange={(v) =>
-                        dispatch({ type: "setPassphrase", value: v })
-                      }
-                      placeholder="Enter passphrase for encrypted key"
-                      suppressPasswordManager
-                      hint="This key is encrypted and requires a passphrase."
-                    />
-                  )}
-                </>
+              )}
+
+              {state.keyError && (
+                <p className="text-2xs text-accent-red flex items-center gap-1">
+                  <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                  {state.keyError}
+                </p>
               )}
             </>
-          )}
-
-          {state.keyError && (
-            <p className="text-2xs text-accent-red flex items-center gap-1">
-              <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
-              {state.keyError}
-            </p>
           )}
 
           {namespaceRecords && (
@@ -504,7 +546,12 @@ export default function ConnectDrawer({
 
           {!namespaceRecords && recordingSupported && (
             <label
-              className={cn("flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40", state.recordSession ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10" : "bg-card border-border hover:border-border-light hover:bg-hover-subtle")}
+              className={cn(
+                "flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
+                state.recordSession
+                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
+                  : "bg-card border-border hover:border-border-light hover:bg-hover-subtle",
+              )}
             >
               <input
                 type="checkbox"
@@ -519,7 +566,10 @@ export default function ConnectDrawer({
               />
               <span
                 aria-hidden="true"
-                className={cn("mt-0.5 shrink-0 transition-colors", state.recordSession ? "text-primary" : "text-text-muted")}
+                className={cn(
+                  "mt-0.5 shrink-0 transition-colors",
+                  state.recordSession ? "text-primary" : "text-text-muted",
+                )}
               >
                 <VideoCameraIcon className="w-4 h-4" />
               </span>
@@ -533,7 +583,12 @@ export default function ConnectDrawer({
               </div>
               <span
                 aria-hidden="true"
-                className={cn("mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all", state.recordSession ? "bg-primary border-primary text-white" : "border-text-muted/40")}
+                className={cn(
+                  "mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all",
+                  state.recordSession
+                    ? "bg-primary border-primary text-white"
+                    : "border-text-muted/40",
+                )}
               >
                 {state.recordSession && (
                   <CheckIcon className="w-3 h-3" strokeWidth={3} />

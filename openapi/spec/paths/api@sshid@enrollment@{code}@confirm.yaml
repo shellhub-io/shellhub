@@ -1,0 +1,29 @@
+post:
+  operationId: confirmSshEnrollment
+  summary: Confirm an SSH key enrollment request
+  description: |
+    Confirm a pending SSH key enrollment. For a first-time key this binds it to
+    your account as an identity; the gateway then releases the held login.
+    Unknown, expired or already-decided codes return 404.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH key enrollment code.
+        type: string
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to confirm the SSH key enrollment request.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

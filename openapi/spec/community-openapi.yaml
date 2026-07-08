@@ -33,6 +33,12 @@ tags:
   - name: public-keys
     x-displayName: SSH Public Keys
     description: Register and manage SSH public keys.
+  - name: access-policies
+    x-displayName: SSH Access Policies
+    description: Manage SSH access policies for the identity access mode.
+  - name: ssh-identities
+    x-displayName: SSH Identities
+    description: Manage enrolled SSH key identities for the identity access mode.
   - name: tags
     x-displayName: Tags
     description: Create tags and attach them to devices.
@@ -112,6 +118,12 @@ paths:
     $ref: paths/api@devices@pairing@{code}@status.yaml
   /api/devices/pairing/{code}/accept:
     $ref: paths/api@devices@pairing@{code}@accept.yaml
+  /api/sshid/enrollment/{code}:
+    $ref: paths/api@sshid@enrollment@{code}.yaml
+  /api/sshid/enrollment/{code}/confirm:
+    $ref: paths/api@sshid@enrollment@{code}@confirm.yaml
+  /api/sshid/enrollment/{code}/reject:
+    $ref: paths/api@sshid@enrollment@{code}@reject.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
   /internal/sessions/{uid}:
@@ -124,6 +136,14 @@ paths:
     $ref: paths/api@sshkeys@public-keys.yaml
   /api/sshkeys/public-keys/{fingerprint}:
     $ref: paths/api@sshkeys@public-keys@{fingerprint}.yaml
+  /api/access-policies:
+    $ref: paths/api@access-policies.yaml
+  /api/access-policies/{id}:
+    $ref: paths/api@access-policies@{id}.yaml
+  /api/ssh-identities:
+    $ref: paths/api@ssh-identities.yaml
+  /api/ssh-identities/{id}:
+    $ref: paths/api@ssh-identities@{id}.yaml
   /api/stats:
     $ref: paths/api@stats.yaml
   /api/namespaces:
@@ -134,6 +154,8 @@ paths:
     $ref: paths/api@namespaces@{tenant}@members.yaml
   /api/namespaces/{tenant}/members/{uid}:
     $ref: paths/api@namespaces@{tenant}@members@{uid}.yaml
+  /api/namespaces/ssh-access-mode/{tenant}:
+    $ref: paths/api@namespaces@ssh-access-mode@{tenant}.yaml
   /api/namespaces/api-key:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:

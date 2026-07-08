@@ -174,6 +174,19 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
 
+	// In identity mode there is no device credential; the logged-in account is
+	// the identity. Carry its id across the localhost dial so the gateway can
+	// bind it to the session and authorize via Access Policies. Absent in legacy.
+	if creds.UserID != "" {
+		if err := cache.Set(ctx, "web-user/"+user, creds.UserID, 1*time.Minute); err != nil {
+			logger.WithError(err).Debug("failed to set the session user on the cache")
+
+			return err
+		}
+
+		defer cache.Delete(ctx, "web-user/"+user) //nolint:errcheck
+	}
+
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            user,
 		Auth:            auth,

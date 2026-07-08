@@ -1,0 +1,87 @@
+get:
+  operationId: getSshEnrollment
+  summary: Get an SSH key enrollment request
+  description: |
+    Return the details of a pending SSH key enrollment so the user can review it
+    before deciding. The request is held open by the gateway while a pure-OpenSSH
+    login waits for the presented key to be enrolled in the browser.
+
+    The authenticated user reviews the key fingerprint, device, source IP,
+    username and time before confirming or rejecting. Unknown, expired or
+    already-decided codes return 404.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH key enrollment code.
+        type: string
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to get the SSH key enrollment request.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                description: |
+                  The correlation code, echoed back so the page can visually
+                  match it against the code shown in the terminal banner.
+                type: string
+                example: WXYZ-2K7Q
+              fingerprint:
+                description: |
+                  Fingerprint of the SSH public key presented by the login. For
+                  a key enrollment this is the key being bound to the account;
+                  lead with it so the user can confirm it is theirs.
+                type: string
+                example: SHA256:hHmU2OTPQjhAKm3ecpf4iw3lqWNCWaFbG1kBje0kn0
+              sshid:
+                description: The SSHID of the login being enrolled.
+                type: string
+                example: root@dev.agent
+              device_name:
+                description: Name of the device the login targets.
+                type: string
+                example: dev-agent
+              username:
+                description: Username requested for the login.
+                type: string
+                example: root
+              ip_address:
+                description: Source IP address the login originates from.
+                type: string
+                example: 203.0.113.10
+              requested_at:
+                description: When the login was requested.
+                type: string
+                format: date-time
+                example: 2024-09-03T23:17:50.51Z
+              enroll:
+                description: |
+                  Whether confirming binds the presented key as a new identity
+                  (a first-time enrollment) versus a step-up confirmation of an
+                  already-enrolled key.
+                type: boolean
+                example: true
+              state:
+                description: Current state of the enrollment request.
+                type: string
+                enum:
+                  - pending
+                  - confirmed
+                  - rejected
+                example: pending
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

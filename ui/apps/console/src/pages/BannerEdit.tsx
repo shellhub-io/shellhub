@@ -38,6 +38,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
           settings: {
             connection_announcement: text,
             session_record: ns.settings?.session_record ?? false,
+            ssh_access_mode: ns.settings?.ssh_access_mode ?? "legacy",
           },
         },
       });
@@ -58,7 +59,10 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     <div className="flex flex-col flex-1 min-h-0 animate-fade-in">
       {/* Textarea wrapper -- grows to fill */}
       <div
-        className={cn("flex flex-col flex-1 min-h-0 rounded-xl border overflow-hidden transition-colors", borderColor)}
+        className={cn(
+          "flex flex-col flex-1 min-h-0 rounded-xl border overflow-hidden transition-colors",
+          borderColor,
+        )}
       >
         <textarea
           value={text}
@@ -72,7 +76,12 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
         />
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-surface/50 shrink-0">
           <span
-            className={cn("text-2xs font-mono", overLimit ? "text-accent-red font-semibold" : "text-text-muted/50")}
+            className={cn(
+              "text-2xs font-mono",
+              overLimit
+                ? "text-accent-red font-semibold"
+                : "text-text-muted/50",
+            )}
           >
             {text.length.toLocaleString()}/{MAX_LENGTH.toLocaleString()}
           </span>

@@ -1,0 +1,45 @@
+description: |
+  An access policy grants a subject (user, role, or all members) the right to
+  reach a set of devices as a set of unix logins, under the identity SSH access
+  mode. Policies are allow-only and default-deny.
+type: object
+properties:
+  id:
+    description: Access policy's ID.
+    type: string
+    format: uuid
+  name:
+    description: Access policy's name.
+    type: string
+    example: Default access
+  subject:
+    $ref: accessPolicySubject.yaml
+  filter:
+    $ref: accessPolicyFilterResponse.yaml
+  logins:
+    $ref: accessPolicyLogins.yaml
+  require_step_up:
+    description: |
+      Whether a recognized key must still get a per-session browser approval
+      before the session proceeds under the identity SSH access mode.
+    type: boolean
+    example: false
+  created_at:
+    description: Access policy's creation date.
+    type: string
+    format: date-time
+    example: 2026-01-01T00:00:00.000Z
+  updated_at:
+    description: Access policy's last update date.
+    type: string
+    format: date-time
+    example: 2026-01-01T00:00:00.000Z
+required:
+  - id
+  - name
+  - subject
+  - filter
+  - logins
+  - require_step_up
+  - created_at
+  - updated_at

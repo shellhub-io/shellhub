@@ -44,6 +44,7 @@ const permissions = {
   "namespace:removeMember": RoleLevel.ADMINISTRATOR,
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
+  "namespace:updateSshAccessMode": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
   // Tags
@@ -70,6 +71,15 @@ const permissions = {
   "publicKey:create": RoleLevel.ADMINISTRATOR,
   "publicKey:edit": RoleLevel.ADMINISTRATOR,
   "publicKey:remove": RoleLevel.ADMINISTRATOR,
+
+  // Access Policies
+  "accessPolicy:create": RoleLevel.ADMINISTRATOR,
+  "accessPolicy:edit": RoleLevel.ADMINISTRATOR,
+  "accessPolicy:remove": RoleLevel.ADMINISTRATOR,
+
+  // SSH Identities
+  "sshIdentity:enroll": RoleLevel.OPERATOR,
+  "sshIdentity:manage": RoleLevel.ADMINISTRATOR,
 
   // Billing
   "billing:subscribe": RoleLevel.OWNER,

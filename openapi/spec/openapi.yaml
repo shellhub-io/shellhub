@@ -48,6 +48,10 @@ tags:
     description: Routes related to containers resource.
   - name: ssh
     description: Routes related to SSH resource.
+  - name: access-policies
+    description: Routes related to SSH access policies (identity access mode).
+  - name: ssh-identities
+    description: Routes related to enrolled SSH key identities (identity access mode).
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -121,6 +125,8 @@ paths:
     $ref: paths/api@users@{id}@password.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
+  /api/namespaces/ssh-access-mode/{tenant}:
+    $ref: paths/api@namespaces@ssh-access-mode@{tenant}.yaml
   /api/devices:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:
@@ -147,6 +153,12 @@ paths:
     $ref: paths/api@devices@pairing@{code}@status.yaml
   /api/devices/pairing/{code}/accept:
     $ref: paths/api@devices@pairing@{code}@accept.yaml
+  /api/sshid/enrollment/{code}:
+    $ref: paths/api@sshid@enrollment@{code}.yaml
+  /api/sshid/enrollment/{code}/confirm:
+    $ref: paths/api@sshid@enrollment@{code}@confirm.yaml
+  /api/sshid/enrollment/{code}/reject:
+    $ref: paths/api@sshid@enrollment@{code}@reject.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
   /internal/sessions/{uid}:
@@ -159,6 +171,14 @@ paths:
     $ref: paths/api@sshkeys@public-keys.yaml
   /api/sshkeys/public-keys/{fingerprint}:
     $ref: paths/api@sshkeys@public-keys@{fingerprint}.yaml
+  /api/access-policies:
+    $ref: paths/api@access-policies.yaml
+  /api/access-policies/{id}:
+    $ref: paths/api@access-policies@{id}.yaml
+  /api/ssh-identities:
+    $ref: paths/api@ssh-identities.yaml
+  /api/ssh-identities/{id}:
+    $ref: paths/api@ssh-identities@{id}.yaml
   /api/stats:
     $ref: paths/api@stats.yaml
   /api/namespaces:

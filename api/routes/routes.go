@@ -115,10 +115,26 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
+	// The SSH gateway mints a JIT login approval and polls its decision while it
+	// holds the connection open. The approve/deny endpoints are user-facing (see
+	// publicAPI below).
+	internalAPI.POST(CreateSSHEnrollmentURL, gateway.Handler(handler.CreateSSHEnrollment))
+	internalAPI.GET(GetSSHEnrollmentStatusURL, gateway.Handler(handler.GetSSHEnrollmentStatus))
+	internalAPI.PATCH(AttachSSHEnrollmentKeyURL, gateway.Handler(handler.AttachSSHEnrollmentKey))
+
+	// The SSH gateway resolves a presented key's fingerprint to a ShellHub
+	// identity in the identity access mode.
+	internalAPI.GET(ResolveSSHIdentityURL, gateway.Handler(handler.ResolveSSHIdentity))
+
 	// Internal namespace lookup used by other services (ssh, cloud) to resolve
 	// a namespace by tenant without passing through the user-facing tenant
 	// guard on /api/namespaces/:tenant.
 	internalAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace))
+
+	// The SSH gateway authorizes an approved identity against the namespace's
+	// Access Policies at the ephemeral-key mint point.
+	internalAPI.GET(AuthorizeSSHAccessURL, gateway.Handler(handler.AuthorizeSSHAccess))
+	internalAPI.GET(HasAccessPoliciesURL, gateway.Handler(handler.HasAccessPolicies))
 
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
@@ -182,6 +198,14 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	// PrepareDevicePairing mints a pre-authorized code for the session's
 	// namespace; a real user session with the accept permission is required.
 	publicAPI.POST(PrepareDevicePairingURL, gateway.Handler(handler.PrepareDevicePairing), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.DeviceAccept))
+
+	// JIT SSH login approval: a logged-in member opens the code deep-linked in
+	// their terminal, reviews the request, and approves or denies it. The permission
+	// is checked in the service against the target's namespace (the session may be
+	// scoped elsewhere), so no RequiresPermission middleware here.
+	publicAPI.GET(GetSSHEnrollmentURL, gateway.Handler(handler.GetSSHEnrollment), routesmiddleware.BlockAPIKey)
+	publicAPI.POST(ConfirmSSHEnrollmentURL, gateway.Handler(handler.ConfirmSSHEnrollment), routesmiddleware.BlockAPIKey)
+	publicAPI.POST(RejectSSHEnrollmentURL, gateway.Handler(handler.RejectSSHEnrollment), routesmiddleware.BlockAPIKey)
 	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
 	publicAPI.PUT(SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
 	publicAPI.DELETE(DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
@@ -231,6 +255,21 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
 
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
+	publicAPI.PUT(EditSSHAccessModeURL, gateway.Handler(handler.EditSSHAccessMode), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
+
+	// Access Policies (identity-based SSH access mode). Managed by owner/admin.
+	publicAPI.GET(ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+	publicAPI.POST(CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+	publicAPI.GET(GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+	publicAPI.PUT(UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+	publicAPI.DELETE(DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
+
+	// SSH Identities (enrolled keys) for the identity-based SSH access mode. A
+	// member manages their own; owner/admin can view/revoke every member's.
+	publicAPI.GET(ListSSHIdentitiesURL, gateway.Handler(handler.ListSSHIdentities))
+	publicAPI.POST(CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityEnroll))
+	publicAPI.PATCH(UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityEnroll))
+	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
 
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))

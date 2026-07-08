@@ -355,3 +355,56 @@ func (_c *MockQueryOptions_WithMember_Call) RunAndReturn(run func(userID string)
 	_c.Call.Return(run)
 	return _c
 }
+
+// WithUserID provides a mock function for the type MockQueryOptions
+func (_mock *MockQueryOptions) WithUserID(userID string) store.QueryOption {
+	ret := _mock.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithUserID")
+	}
+
+	var r0 store.QueryOption
+	if returnFunc, ok := ret.Get(0).(func(string) store.QueryOption); ok {
+		r0 = returnFunc(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+	return r0
+}
+
+// MockQueryOptions_WithUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithUserID'
+type MockQueryOptions_WithUserID_Call struct {
+	*mock.Call
+}
+
+// WithUserID is a helper method to define mock.On call
+//   - userID string
+func (_e *MockQueryOptions_Expecter) WithUserID(userID any) *MockQueryOptions_WithUserID_Call {
+	return &MockQueryOptions_WithUserID_Call{Call: _e.mock.On("WithUserID", userID)}
+}
+
+func (_c *MockQueryOptions_WithUserID_Call) Run(run func(userID string)) *MockQueryOptions_WithUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockQueryOptions_WithUserID_Call) Return(queryOption store.QueryOption) *MockQueryOptions_WithUserID_Call {
+	_c.Call.Return(queryOption)
+	return _c
+}
+
+func (_c *MockQueryOptions_WithUserID_Call) RunAndReturn(run func(userID string) store.QueryOption) *MockQueryOptions_WithUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}

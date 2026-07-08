@@ -100,3 +100,10 @@ type SessionEditRecordStatus struct {
 	TenantParam
 	SessionRecord bool `json:"session_record"`
 }
+
+// EditSSHAccessMode is the structure to represent the request data for the edit
+// SSH access mode endpoint.
+type EditSSHAccessMode struct {
+	TenantParam
+	SSHAccessMode string `json:"ssh_access_mode" validate:"required,oneof=legacy identity"`
+}

@@ -32,8 +32,11 @@ const Sessions = lazy(() => import("./pages/sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PublicKeys = lazy(() => import("./pages/public-keys"));
+const AccessPolicies = lazy(() => import("./pages/access-policies"));
+const SSHIdentities = lazy(() => import("./pages/ssh-identities"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
+const SSHEnroll = lazy(() => import("./pages/SSHEnroll"));
 const Team = lazy(() => import("./pages/team"));
 const InstallKeys = lazy(() => import("./pages/install-keys"));
 const InstallKeyHistory = lazy(
@@ -220,6 +223,10 @@ export default function App() {
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
+                  <Route path="/access-policies" element={<AccessPolicies />} />
+                  <Route path="/ssh-identities" element={<SSHIdentities />}>
+                    <Route path="enroll/:code" element={<SSHEnroll />} />
+                  </Route>
                   <Route path="/secure-vault" element={<SecureVault />} />
                   <Route
                     path="/firewall-rules"

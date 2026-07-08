@@ -10,15 +10,19 @@ import {
   TagIcon,
   FingerPrintIcon,
   VideoCameraIcon,
+  ShieldCheckIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { isSdkError } from "../api/errors";
 import { useNamespace } from "../hooks/useNamespaces";
+import { useAccessPolicies } from "../hooks/useAccessPolicies";
 import {
   useEditNamespace,
   useDeleteNamespace,
   useLeaveNamespace,
+  useSetSshAccessMode,
 } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
@@ -103,7 +107,10 @@ function EditNameDrawer({
         hint={NAMESPACE_NAME_HINT}
         maxLength={NAMESPACE_NAME_MAX_LENGTH}
         onValueChange={(v) => {
-          setValue("name", v.toLowerCase(), { shouldDirty: true, shouldValidate: true });
+          setValue("name", v.toLowerCase(), {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
           clearErrors("root");
         }}
       />
@@ -323,21 +330,28 @@ function BannerPreview({
 export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
+  const { policies } = useAccessPolicies();
   const editNs = useEditNamespace();
+  const setSshAccessMode = useSetSshAccessMode();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
+  const [switchingAccessMode, setSwitchingAccessMode] = useState(false);
 
   const canRename = useHasPermission("namespace:rename");
   const canUpdateRecording = useHasPermission(
     "namespace:updateSessionRecording",
+  );
+  const canUpdateSshAccessMode = useHasPermission(
+    "namespace:updateSshAccessMode",
   );
   const canEditBanner = useHasPermission("namespace:editBanner");
   const canDelete = useHasPermission("namespace:delete");
 
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
+  const sshAccessMode = settings?.ssh_access_mode ?? "legacy";
   const banner = settings?.connection_announcement ?? "";
 
   const handleToggleRecord = async () => {
@@ -350,6 +364,7 @@ export default function Settings() {
           settings: {
             session_record: !sessionRecord,
             connection_announcement: banner,
+            ssh_access_mode: sshAccessMode,
           },
         },
       });
@@ -357,6 +372,21 @@ export default function Settings() {
       /* state didn't change */
     } finally {
       setTogglingRecord(false);
+    }
+  };
+
+  const handleSetAccessMode = async (mode: "legacy" | "identity") => {
+    if (!tenantId || switchingAccessMode || mode === sshAccessMode) return;
+    setSwitchingAccessMode(true);
+    try {
+      await setSshAccessMode.mutateAsync({
+        path: { tenant: tenantId },
+        body: { ssh_access_mode: mode },
+      });
+    } catch {
+      /* state didn't change */
+    } finally {
+      setSwitchingAccessMode(false);
     }
   };
 
@@ -477,6 +507,65 @@ export default function Settings() {
               </div>
             </SettingsRow>
           )}
+
+          {/* SSH access mode */}
+          <SettingsRow
+            icon={<ShieldCheckIcon className="w-4 h-4" />}
+            title="SSH access mode"
+            description={
+              sshAccessMode === "identity" ? (
+                <>
+                  Logins go through browser approval and are authorized by{" "}
+                  <Link
+                    to="/access-policies"
+                    className="text-primary hover:underline"
+                  >
+                    Access Policies
+                  </Link>
+                  .
+                  {policies.length === 0 && (
+                    <span className="mt-1 flex items-center gap-1.5 text-accent-yellow">
+                      <ExclamationTriangleIcon
+                        className="w-3.5 h-3.5 shrink-0"
+                        strokeWidth={2}
+                      />
+                      No policies exist — every SSH login is denied until you
+                      add one.
+                    </span>
+                  )}
+                </>
+              ) : (
+                "Access is governed by public keys and their ACLs"
+              )
+            }
+          >
+            <div
+              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateSshAccessMode || switchingAccessMode ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => void handleSetAccessMode("legacy")}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  sshAccessMode === "legacy"
+                    ? "bg-hover-strong text-text-secondary border border-border-light"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                Legacy
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSetAccessMode("identity")}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  sshAccessMode === "identity"
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                Identity
+              </button>
+            </div>
+          </SettingsRow>
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />

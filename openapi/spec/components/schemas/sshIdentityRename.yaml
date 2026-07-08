@@ -1,0 +1,9 @@
+description: SSH identity rename payload.
+type: object
+properties:
+  name:
+    description: New user-supplied label for the key.
+    type: string
+    example: laptop
+required:
+  - name

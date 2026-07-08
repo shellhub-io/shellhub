@@ -152,6 +152,19 @@ func (*queryOptions) WithMember(userID string) store.QueryOption {
 	}
 }
 
+func (*queryOptions) WithUserID(userID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
+		if !ok {
+			return ErrQueryNotFound
+		}
+
+		wrapper.query = wrapper.query.Where("user_id = ?", userID)
+
+		return nil
+	}
+}
+
 func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 	return func(ctx context.Context) error {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)

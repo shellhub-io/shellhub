@@ -23,6 +23,7 @@ const (
 	RemoveNamespaceMemberURL   = "/namespaces/:tenant/members/:uid"
 	EditNamespaceMemberURL     = "/namespaces/:tenant/members/:uid"
 	EditSessionRecordStatusURL = "/users/security/:tenant"
+	EditSSHAccessModeURL       = "/namespaces/ssh-access-mode/:tenant"
 )
 
 const (
@@ -242,6 +243,23 @@ func (h *Handler) EditNamespaceMember(c gateway.Context) error {
 	}
 
 	if err := h.service.UpdateNamespaceMember(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) EditSSHAccessMode(c gateway.Context) error {
+	var req requests.EditSSHAccessMode
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.EditSSHAccessMode(c.Ctx(), req.SSHAccessMode, req.Tenant); err != nil {
 		return err
 	}
 

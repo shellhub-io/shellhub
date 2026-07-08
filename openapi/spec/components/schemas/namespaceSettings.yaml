@@ -12,6 +12,19 @@ properties:
     maxLength: 4096
     format: alphanumunicode
     example: my awesome connection announcement
+  ssh_access_mode:
+    description: |
+      The SSH access model governing the namespace.
+
+      - `legacy` — access is a public key with an ACL (and, on Cloud/Enterprise, firewall rules).
+      - `identity` — SSH logins go through browser approval and are authorized by Access Policies.
+    type: string
+    enum:
+      - legacy
+      - identity
+    default: legacy
+    example: legacy
 required:
   - session_record
   - connection_announcement
+  - ssh_access_mode

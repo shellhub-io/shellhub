@@ -43,6 +43,21 @@ type Data struct {
 	Web bool
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
+	// UserID is the ShellHub account bound to this session: resolved from the
+	// presented key in identity mode, or set by the enrollment/step-up approval.
+	// Empty in legacy mode.
+	UserID string
+	// EnrollmentCode is the JIT code minted in identity mode; the gateway polls
+	// its decision for enrollment or step-up. Empty otherwise. The enrollment URL
+	// derived from it is sent as a mid-handshake banner only once the presented
+	// key turns out to be unenrolled, so an enrolled key never sees it.
+	EnrollmentCode string
+	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
+	// identity mode; it is the identity lookup key.
+	Fingerprint string
+	// KeyData is the presented SSH public key in OpenSSH authorized_keys form,
+	// carried so an enrollment can persist it.
+	KeyData []byte
 }
 
 // AgentChannel represents a channel open between agent and server.
@@ -262,6 +277,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 	}
 
 	var namespaceName, deviceName string
+	var webUserID string
 	web := false
 	if target.IsSSHID() {
 		namespaceName, deviceName, err = target.SplitSSHID()
@@ -291,6 +307,13 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 			parts := strings.Split(data, ":")
 			target.Data = parts[0]
 			hos.Host = parts[1]
+
+			// The logged-in account driving the web terminal, when the bridge
+			// authenticated the request (identity mode). Best-effort: it is absent
+			// for legacy web sessions, which authenticate with a device credential.
+			if err := cache.Get(ctx, "web-user/"+sshid, &webUserID); err == nil {
+				cache.Delete(ctx, "web-user/"+sshid) //nolint:errcheck
+			}
 		}
 
 		device, err := api.GetDevice(ctx, target.Data)
@@ -333,6 +356,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 			Device:    lookupDevice,
 			Namespace: namespace,
 			Web:       web,
+			UserID:    webUserID,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
@@ -457,6 +481,7 @@ func (s *Session) register(ctx context.Context) error {
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
+		UserID:    s.UserID,
 		IPAddress: s.IPAddress,
 		Type:      "none",
 		Term:      "none",
@@ -615,7 +640,9 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
-	if envs.IsEnterpriseOrCloud() {
+	// In identity access mode the firewall (a legacy, key/username blocklist) is
+	// bypassed: Access Policies are the authorization model instead.
+	if envs.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
 		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
 			return err
 		}
@@ -627,9 +654,107 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
+	// In identity access mode every login is authorized by Access Policies
+	// (default-deny), for both native and web sessions. Short-circuit here when
+	// the namespace has no policy: refuse now instead of proceeding to a login
+	// that could never be authorized.
+	if s.Namespace.Settings.IsIdentityAccess() {
+		has, err := s.api.NamespaceHasAccessPolicies(ctx, s.Namespace.TenantID)
+		if err != nil {
+			return err
+		}
+
+		if !has {
+			return ErrAccessDenied
+		}
+
+		// Only a native (pure-OpenSSH) login needs the JIT enrollment code: its
+		// URL is surfaced as a mid-handshake banner if the presented key is
+		// unenrolled. A web session has no browser enrollment step (the user is
+		// already authenticated in the console), so it is bound directly.
+		if !s.Web {
+			enrollment, err := s.api.CreateSSHEnrollment(ctx, requests.SSHEnrollmentCreate{
+				SessionUID: s.UID,
+				SSHID:      s.SSHID,
+				TenantID:   s.Namespace.TenantID,
+				DeviceUID:  s.Device.UID,
+				DeviceName: s.Device.Name,
+				Username:   s.Target.Username,
+				IPAddress:  s.IPAddress,
+			})
+			if err != nil {
+				return err
+			}
+
+			s.EnrollmentCode = enrollment.Code
+		}
+	}
+
 	snap.save(s, StateEvaluated)
 
 	return nil
+}
+
+// RequiresEnrollment reports whether this session is gated on a pending browser
+// approval (an approval code was minted during Evaluate).
+func (s *Session) RequiresEnrollment() bool {
+	return s.EnrollmentCode != ""
+}
+
+// IsIdentityMode reports whether the session's namespace uses the identity-based
+// SSH access mode, where the presented key is the identity.
+func (s *Session) IsIdentityMode() bool {
+	return s.Namespace.Settings.IsIdentityAccess()
+}
+
+// enrollmentURL builds the console URL for a JIT code. The page is a child of
+// /ssh-identities (it opens as a modal over it); the path avoids /ssh/*, which
+// the gateway routes to the ssh service instead of the console SPA.
+func enrollmentURL(domain string, autoSSL bool, code string) string {
+	scheme := "http"
+	if autoSSL {
+		scheme = "https"
+	}
+
+	return fmt.Sprintf("%s://%s/ssh-identities/enroll/%s", scheme, domain, code)
+}
+
+// buildEnrollmentBanner renders the terminal message shown when the presented
+// key is not enrolled. It is sent as a mid-handshake banner only in that case,
+// so it can speak directly. Lines use CRLF as the SSH banner requires.
+func buildEnrollmentBanner(domain string, autoSSL bool, code string) string {
+	lines := []string{
+		"",
+		"  This SSH key isn't enrolled in this namespace yet.",
+		"",
+		"  Open the link below and sign in to enroll it. This session",
+		"  continues automatically once you do:",
+		"",
+		"    " + enrollmentURL(domain, autoSSL, code),
+		"",
+		"  Waiting for enrollment...",
+		"",
+	}
+
+	return strings.Join(lines, "\r\n")
+}
+
+// buildStepUpBanner renders the terminal message shown when an already-enrolled
+// key hits a policy that requires a per-session browser confirmation.
+func buildStepUpBanner(domain string, autoSSL bool, code string) string {
+	lines := []string{
+		"",
+		"  This session needs a confirmation in the console.",
+		"",
+		"  Open the link below and confirm to continue:",
+		"",
+		"    " + enrollmentURL(domain, autoSSL, code),
+		"",
+		"  Waiting for confirmation...",
+		"",
+	}
+
+	return strings.Join(lines, "\r\n")
 }
 
 // Auth authenticate a [Session] based on the provided context.

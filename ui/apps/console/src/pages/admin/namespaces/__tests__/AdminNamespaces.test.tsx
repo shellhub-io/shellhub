@@ -61,6 +61,7 @@ function makeNamespace(overrides: Partial<Namespace> = {}): Namespace {
     settings: {
       session_record: true,
       connection_announcement: "",
+      ssh_access_mode: "legacy",
     },
     max_devices: 10,
     devices_accepted_count: 2,
@@ -148,9 +149,7 @@ describe("AdminNamespaces", () => {
       });
       renderPage();
       await user.click(screen.getByText("clickable-ns"));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        "/admin/namespaces/tenant-xyz",
-      );
+      expect(mockNavigate).toHaveBeenCalledWith("/admin/namespaces/tenant-xyz");
     });
   });
 

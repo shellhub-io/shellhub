@@ -33,6 +33,9 @@ type Service interface {
 	DeviceService
 	DeviceLoginCodeService
 	DevicePairingService
+	SSHEnrollmentService
+	AccessPolicyService
+	SSHIdentityService
 	UserService
 	SSHKeysService
 	SessionService

@@ -1,0 +1,44 @@
+description: |
+  An SSH key enrolled as an identity within a namespace under the identity SSH
+  access mode. The key's fingerprint is what the gateway resolves to the bound
+  user on each connection.
+type: object
+properties:
+  id:
+    description: SSH identity's ID.
+    type: string
+    format: uuid
+  user_id:
+    description: ID of the user the key is bound to.
+    type: string
+    format: uuid
+  user_name:
+    description: Name of the user the key is bound to.
+    type: string
+    example: john.doe
+  fingerprint:
+    description: SSH public key fingerprint.
+    type: string
+    example: SHA256:hHmU2OTPQjhAKm3ecpf4iw3lqWNCWaFbG1kBje0kn0
+  name:
+    description: User-supplied label for the key.
+    type: string
+    example: laptop
+  created_at:
+    description: When the key was enrolled.
+    type: string
+    format: date-time
+    example: 2026-01-01T00:00:00.000Z
+  last_used_at:
+    description: When the key was last used to connect, or null if never used.
+    type: string
+    format: date-time
+    nullable: true
+    example: 2026-01-02T00:00:00.000Z
+required:
+  - id
+  - user_id
+  - user_name
+  - fingerprint
+  - name
+  - created_at

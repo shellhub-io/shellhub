@@ -780,6 +780,8 @@ func TestDeleteDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
 	clock.DefaultBackend = clockMock
 
 	storeMock := storemock.NewMockStore(t)
@@ -1290,6 +1292,8 @@ func TestOfflineDevice(t *testing.T) {
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clockMock := clockmock.NewMockClock(t)
 	clockMock.On("Now").Return(now)
+	prevClockBackend := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prevClockBackend })
 	clock.DefaultBackend = clockMock
 
 	storeMock := storemock.NewMockStore(t)

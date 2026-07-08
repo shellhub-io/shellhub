@@ -26,6 +26,7 @@ const OPERATOR_ACTIONS: Action[] = [
   "tag:deviceCreate",
   "tag:update",
   "notification:view",
+  "sshIdentity:enroll",
 ];
 
 const ADMINISTRATOR_ACTIONS: Action[] = [
@@ -43,6 +44,7 @@ const ADMINISTRATOR_ACTIONS: Action[] = [
   "publicKey:create",
   "publicKey:edit",
   "publicKey:remove",
+  "sshIdentity:manage",
   "firewall:create",
   "firewall:edit",
   "firewall:remove",

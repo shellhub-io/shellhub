@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net"
 	"os"
 	"time"
@@ -94,7 +95,65 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, c cache.Cache, deps bannerDeps) 
 			return banner.Message(banner.KindAccessDenied)
 		}
 
+		// No pre-auth banner on success. In identity mode the enrollment URL is
+		// sent later, mid-handshake, only if the presented key is unenrolled, so
+		// an enrolled key connects cleanly with no banner.
 		return ""
+	}
+}
+
+var (
+	// errNoneAuthUnsupported fails the `none` method so the server falls back to
+	// advertising the standard publickey+password methods (legacy behavior).
+	errNoneAuthUnsupported = errors.New("ssh: none authentication is not supported")
+	// errPermissionDenied denies a publickey attempt in identity mode.
+	errPermissionDenied = errors.New("ssh: permission denied")
+)
+
+// newServerConfigCallback builds the per-connection SSH server config. It enables
+// the `none` auth method so the offered authentication methods can be decided
+// AFTER the SSHID — and thus the namespace's access mode — is known, which only
+// happens once the client sends its username. The banner handler runs before
+// `none` is processed (x/crypto sends the banner first), so the session and its
+// access mode are already resolved here.
+//
+// In identity mode the identity is an SSH key, so the connection is restricted to
+// publickey only via a PartialSuccessError: password is never advertised, so a
+// stock OpenSSH client never prompts for one, and a keyless client gets a clean
+// "publickey" denial instead of a password prompt. Legacy namespaces are
+// untouched — `none` fails and the standard publickey+password set is advertised
+// exactly as before, so password login keeps working there.
+//
+// The gliderssh fork overlays the host key and the publickey/password/banner
+// callbacks (from the server's handlers) onto the returned config; it never
+// touches NoClientAuth/NoClientAuthCallback, so what is set here survives.
+func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
+	return &gossh.ServerConfig{ //nolint:exhaustruct
+		NoClientAuth: true,
+		// Capture the pre-auth connection so the enrollment/step-up banner can be
+		// sent mid-handshake, after the presented key is resolved, instead of
+		// unconditionally up front.
+		PreAuthConnCallback: func(conn gossh.ServerPreAuthConn) {
+			session.StorePreAuthConn(ctx, conn)
+		},
+		NoClientAuthCallback: func(gossh.ConnMetadata) (*gossh.Permissions, error) {
+			sess, state := session.ObtainSession(ctx)
+			if state < session.StateEvaluated || sess.Web || !sess.IsIdentityMode() {
+				return nil, errNoneAuthUnsupported
+			}
+
+			return nil, &gossh.PartialSuccessError{
+				Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
+					PublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey) (*gossh.Permissions, error) {
+						if ok := auth.PublicKeyHandler(ctx, key); !ok {
+							return nil, errPermissionDenied
+						}
+
+						return ctx.Permissions().Permissions, nil
+					},
+				},
+			}
+		},
 	}
 }
 
@@ -111,9 +170,10 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 
 			return conn
 		},
-		BannerHandler:    newBannerHandler(dialer, cache),
-		PasswordHandler:  auth.PasswordHandler,
-		PublicKeyHandler: auth.PublicKeyHandler,
+		ServerConfigCallback: newServerConfigCallback,
+		BannerHandler:        newBannerHandler(dialer, cache),
+		PasswordHandler:      auth.PasswordHandler,
+		PublicKeyHandler:     auth.PublicKeyHandler,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
 		// channel, in the context of SSH, is a logical conduit through which data travels securely between the client
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,

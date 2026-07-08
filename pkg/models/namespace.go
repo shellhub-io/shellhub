@@ -48,9 +48,33 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 	return nil, false
 }
 
+// SSHAccessMode selects how a namespace authorizes SSH access.
+const (
+	// SSHAccessModeLegacy is the key/firewall model: access is a public key with
+	// an ACL plus, on Cloud/Enterprise, firewall rules. This is the default.
+	SSHAccessModeLegacy = "legacy"
+	// SSHAccessModeIdentity is the identity model: access is a ShellHub identity
+	// (established by the out-of-band browser approval) plus Access Policies
+	// deciding who may reach what, as which login. The legacy key ACL and
+	// firewall checks are bypassed.
+	SSHAccessModeIdentity = "identity"
+)
+
 type NamespaceSettings struct {
 	SessionRecord          bool   `json:"session_record"`
 	ConnectionAnnouncement string `json:"connection_announcement"`
+	// SSHAccessMode selects the SSH authorization model for the namespace. In
+	// "identity" mode every SSH login is gated on an out-of-band browser approval
+	// (no device credential required) and governed by Access Policies; the legacy
+	// key ACL and firewall checks are bypassed. "legacy" keeps the key/firewall
+	// behavior unchanged. Defaults to "legacy".
+	SSHAccessMode string `json:"ssh_access_mode"`
+}
+
+// IsIdentityAccess reports whether the namespace uses the identity-based SSH
+// access mode. It is nil-safe so call sites can use it without a prior guard.
+func (s *NamespaceSettings) IsIdentityAccess() bool {
+	return s != nil && s.SSHAccessMode == SSHAccessModeIdentity
 }
 
 // default Announcement Message for the shellhub namespace
