@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { isSdkError } from "../api/errors";
 import { useNavigate } from "react-router-dom";
-import { CheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  ExclamationCircleIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import { setup } from "../client";
 import { getConfig } from "../env";
+import { useAuthStore } from "@/stores/authStore";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
+import { suggestNamespace } from "./setup/validate";
 import {
   FormInputField,
   FormPasswordField,
@@ -18,6 +24,7 @@ const STEP_ACCOUNT = 2;
 export default function Setup() {
   const navigate = useNavigate();
   const config = getConfig();
+  const loginWithToken = useAuthStore((state) => state.loginWithToken);
 
   const isCommunity = !config.cloud && !config.enterprise;
   const showOnboarding = isCommunity && !!config.onboardingUrl;
@@ -30,17 +37,36 @@ export default function Setup() {
   const [success, setSuccess] = useState(false);
   const [surveyCompleted, setSurveyCompleted] = useState(false);
 
-  const { control, handleSubmit, formState } = useForm<SetupFormValues>({
-    resolver: setupResolver,
-    mode: "onTouched",
-    defaultValues: {
-      name: "",
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
+  const { control, handleSubmit, formState, setValue } =
+    useForm<SetupFormValues>({
+      resolver: setupResolver,
+      mode: "onTouched",
+      defaultValues: {
+        name: "",
+        username: "",
+        // In development the namespace defaults to "dev" (and does not track the username) so the
+        // instance binds to the well-known dev tenant/fixtures.
+        namespace: import.meta.env.DEV ? "dev" : "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      },
+    });
+
+  // The namespace defaults to a slug of the username and stays in sync until the user opts to
+  // edit it (readonly + Edit button), so setup has a sensible name without an extra decision.
+  const [namespaceEdited, setNamespaceEdited] = useState(false);
+  const usernameValue = useWatch({ control, name: "username" });
+  const namespaceValue = useWatch({ control, name: "namespace" });
+
+  useEffect(() => {
+    // Skip the username-driven suggestion in development, where it stays fixed at "dev".
+    if (!import.meta.env.DEV && !namespaceEdited) {
+      setValue("namespace", suggestNamespace(usernameValue ?? ""), {
+        shouldValidate: true,
+      });
+    }
+  }, [usernameValue, namespaceEdited, setValue]);
 
   const disableCreateAccountButton = loading || !formState.isValid;
 
@@ -80,8 +106,10 @@ export default function Setup() {
 
   useEffect(() => {
     if (success) {
+      // Setup already authenticated us (auto-login), so land directly on the app
+      // instead of bouncing through the login screen.
       const timer = setTimeout(
-        () => void navigate("/login", { replace: true }),
+        () => void navigate("/", { replace: true }),
         3000,
       );
       return () => clearTimeout(timer);
@@ -92,23 +120,42 @@ export default function Setup() {
     setLoading(true);
     setError("");
 
+    let token: string | undefined;
     try {
-      await setup({
+      const { data } = await setup({
         body: {
           name: values.name,
           username: values.username,
+          namespace: values.namespace,
           email: values.email,
           password: values.password,
         },
         throwOnError: true,
       });
-      setSuccess(true);
+      token = data.token;
     } catch (err: unknown) {
-      if (isSdkError(err) && err.status === 409) {
-        setError("Setup has already been completed.");
-      } else {
-        setError("An error occurred. Please try again.");
-      }
+      setError(
+        isSdkError(err) && err.status === 409
+          ? "Setup has already been completed."
+          : "An error occurred. Please try again.",
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Setup is committed at this point. Try to enter the app directly with the session it
+    // issued; if the auto-login fails (or no token was issued), setup is still done — route to
+    // the login screen with a notice instead of surfacing a misleading "setup failed" error
+    // that a retry would only turn into a 409.
+    try {
+      if (!token) throw new Error("no session issued");
+      await loginWithToken(token);
+      setSuccess(true);
+    } catch {
+      void navigate("/login", {
+        replace: true,
+        state: { notice: "Setup complete. Please sign in." },
+      });
     } finally {
       setLoading(false);
     }
@@ -142,10 +189,10 @@ export default function Setup() {
               />
             </div>
             <h3 className="text-sm font-semibold text-text-primary mb-2">
-              Account created successfully
+              Instance ready
             </h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Redirecting to login in a few seconds...
+              Taking you to your instance...
             </p>
           </div>
         </div>
@@ -210,13 +257,23 @@ export default function Setup() {
               >
                 Continue
               </Button>
+
+              {import.meta.env.DEV && (
+                <button
+                  type="button"
+                  onClick={() => setStep(STEP_ACCOUNT)}
+                  className="w-full text-center text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  Skip survey (dev only)
+                </button>
+              )}
             </div>
           )}
 
           {step === STEP_ACCOUNT && (
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <p className="text-xs text-text-secondary leading-relaxed mb-1">
-                Set up your admin account with your personal information.
+                Set up your ShellHub instance.
               </p>
 
               <FormInputField<SetupFormValues>
@@ -244,6 +301,37 @@ export default function Setup() {
                 control={control}
                 type="email"
                 placeholder="you@example.com"
+              />
+
+              <FormInputField<SetupFormValues>
+                id="namespace"
+                label="Namespace"
+                name="namespace"
+                control={control}
+                variant="mono"
+                maxLength={30}
+                readOnly={!namespaceEdited}
+                // Suppress the error only while the field is pristine/empty. If a non-empty
+                // auto-suggestion is invalid (e.g. a username that slugs too short), let the
+                // error show so the user knows why submit is disabled and can hit Edit to fix it.
+                error={!namespaceEdited && !namespaceValue ? "" : undefined}
+                hint={
+                  import.meta.env.DEV
+                    ? 'Keeping "dev" binds the well-known dev tenant; any other name generates a fresh one.'
+                    : undefined
+                }
+                labelAdornment={
+                  !namespaceEdited && (
+                    <button
+                      type="button"
+                      onClick={() => setNamespaceEdited(true)}
+                      className="inline-flex items-center gap-1 text-2xs font-medium text-primary hover:text-primary-300 transition-colors"
+                    >
+                      <PencilSquareIcon className="w-3 h-3" strokeWidth={2} />
+                      Edit
+                    </button>
+                  )
+                }
               />
 
               <FormPasswordField<SetupFormValues>
@@ -278,7 +366,7 @@ export default function Setup() {
                   disabled={disableCreateAccountButton}
                   className={showOnboarding ? "flex-[2]" : "w-full"}
                 >
-                  {loading ? "Creating..." : "Create Account"}
+                  {loading ? "Setting up..." : "Complete setup"}
                 </Button>
               </div>
             </form>

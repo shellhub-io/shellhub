@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { isSdkError } from "../api/errors";
 import {
   useNavigate,
+  Navigate,
   Link,
   useLocation,
   useSearchParams,
@@ -103,6 +104,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { login, loading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const { display: countdownDisplay, expired: lockoutExpired } =
     useLoginCountdown(lockoutEndEpoch);
@@ -197,6 +199,13 @@ export default function Login() {
   // flashing while authentication info is still loading (null state).
   const showLocalForm = !isEnterprise || authentication?.local === true;
   const ssoOnly = isEnterprise && authentication?.local === false;
+
+  // Already authenticated (e.g. straight after setup's auto-login): the login form
+  // has nothing to do here, so send the user into the app. Skipped while a query
+  // token is being exchanged, which deliberately re-authenticates.
+  if (token && !queryToken) {
+    return <Navigate to="/" replace />;
+  }
 
   if (tokenLoading) {
     return (

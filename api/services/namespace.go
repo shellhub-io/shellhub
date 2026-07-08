@@ -119,6 +119,13 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			return nil, NewErrNamespaceDuplicated(err)
 		}
 
+		// Defense in depth: the route is dropped in Community, but if the edition env and the
+		// store binding ever disagree (e.g. an Enterprise env running against a bound CE store),
+		// surface the single-namespace refusal as a clean conflict instead of a 500.
+		if errors.Is(err, store.ErrNamespaceSingle) {
+			return nil, NewErrNamespaceSingle(err)
+		}
+
 		return nil, NewErrNamespaceCreateStore(err)
 	}
 
@@ -207,7 +214,17 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 		return err
 	}
 
-	return s.store.NamespaceDelete(ctx, n)
+	if err := s.store.NamespaceDelete(ctx, n); err != nil {
+		// The instance is bound to this namespace (single-namespace Community deployment); the
+		// FK's ON DELETE RESTRICT refuses it. Surface it as a 409 instead of a 500.
+		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
+			return NewErrNamespaceInstanceProtected(err)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {

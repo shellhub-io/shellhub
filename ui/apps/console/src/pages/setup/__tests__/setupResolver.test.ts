@@ -5,6 +5,7 @@ import type { SetupFormValues } from "../setupResolver";
 const validInput: SetupFormValues = {
   name: "Admin User",
   username: "admin",
+  namespace: "my-namespace",
   email: "admin@example.com",
   password: "secret123",
   confirmPassword: "secret123",
@@ -17,7 +18,10 @@ const emptyOptions = {
   shouldUseNativeValidation: undefined,
 } as Parameters<typeof setupResolver>[2];
 
-type RhfErrors = Record<keyof SetupFormValues, { type: string; message: string }>;
+type RhfErrors = Record<
+  keyof SetupFormValues,
+  { type: string; message: string }
+>;
 
 const resolve = (input: SetupFormValues) =>
   setupResolver(input, undefined, emptyOptions);
@@ -50,16 +54,32 @@ describe("setupResolver", () => {
   });
 
   describe("validate() field error mapping", () => {
-    const invalidCases: { field: keyof SetupFormValues; input: SetupFormValues }[] = [
+    const invalidCases: {
+      field: keyof SetupFormValues;
+      input: SetupFormValues;
+    }[] = [
       { field: "name", input: { ...validInput, name: "" } },
       { field: "username", input: { ...validInput, username: "ab" } },
+      {
+        field: "namespace",
+        input: { ...validInput, namespace: "Invalid Name" },
+      },
       { field: "email", input: { ...validInput, email: "not-an-email" } },
-      { field: "password", input: { ...validInput, password: "123", confirmPassword: "123" } },
-      { field: "confirmPassword", input: { ...validInput, confirmPassword: "different" } },
+      {
+        field: "password",
+        input: { ...validInput, password: "123", confirmPassword: "123" },
+      },
+      {
+        field: "confirmPassword",
+        input: { ...validInput, confirmPassword: "different" },
+      },
     ];
 
-    it.each(invalidCases)("maps $field error to RHF error shape", async ({ field, input }) => {
-      await expectFieldError(input, field, "validate");
-    });
+    it.each(invalidCases)(
+      "maps $field error to RHF error shape",
+      async ({ field, input }) => {
+        await expectFieldError(input, field, "validate");
+      },
+    );
   });
 });

@@ -3952,20 +3952,31 @@ func (_c *MockService_SetDeviceCustomField_Call) RunAndReturn(run func(ctx conte
 }
 
 // Setup provides a mock function for the type MockService
-func (_mock *MockService) Setup(ctx context.Context, req requests.Setup) error {
+func (_mock *MockService) Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Setup")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.Setup) error); ok {
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.Setup) (*models.UserAuthResponse, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.Setup) *models.UserAuthResponse); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.Setup) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockService_Setup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Setup'
@@ -3998,12 +4009,12 @@ func (_c *MockService_Setup_Call) Run(run func(ctx context.Context, req requests
 	return _c
 }
 
-func (_c *MockService_Setup_Call) Return(err error) *MockService_Setup_Call {
-	_c.Call.Return(err)
+func (_c *MockService_Setup_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_Setup_Call {
+	_c.Call.Return(userAuthResponse, err)
 	return _c
 }
 
-func (_c *MockService_Setup_Call) RunAndReturn(run func(ctx context.Context, req requests.Setup) error) *MockService_Setup_Call {
+func (_c *MockService_Setup_Call) RunAndReturn(run func(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)) *MockService_Setup_Call {
 	_c.Call.Return(run)
 	return _c
 }

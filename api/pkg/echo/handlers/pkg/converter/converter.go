@@ -28,6 +28,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusForbidden
 	case services.ErrCodeNoContentChange:
 		return http.StatusNoContent
+	case services.ErrCodeConflict:
+		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestSetup(t *testing.T) {
@@ -39,6 +40,9 @@ func TestSetup(t *testing.T) {
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	clockMock.On("Now").Return(now)
 
+	// Setup calls envs.IsDevelopment() to decide the namespace tenant; not development here.
+	envMock.On("Get", "SHELLHUB_ENV").Return("")
+
 	ctx := context.TODO()
 
 	cases := []struct {
@@ -50,10 +54,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when setup isn't allowed",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(nil, errors.New("error", "", 0)).Once()
@@ -63,10 +68,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot hash the password",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -83,10 +89,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot create the user due to duplicate field",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -129,10 +136,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot create the user due to unhandled duplicate (no field info)",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -171,10 +179,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot create the user due to a generic store error",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -213,10 +222,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot create namespace, and user deletion fails",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				user := &models.User{
@@ -298,10 +308,11 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Fail when cannot create namespace, and user deletion fails",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				user := &models.User{
@@ -383,14 +394,15 @@ func TestSetup(t *testing.T) {
 		{
 			description: "Success to create the user and namespace",
 			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
+				Email:     "teste@google.com",
+				Name:      "userteste",
+				Username:  "userteste",
+				Password:  "secret",
+				Namespace: "userteste",
 			},
 			requiredMocks: func() {
 				initialSystem := &models.System{Setup: false}
-				finalSystem := &models.System{Setup: true}
+				finalSystem := &models.System{Setup: true, InstanceTenantID: tenant}
 
 				storeMock.On("SystemGet", ctx).Return(initialSystem, nil).Once()
 
@@ -441,6 +453,37 @@ func TestSetup(t *testing.T) {
 				}
 				storeMock.On("NamespaceCreate", ctx, namespace).Return(tenant, nil).Once()
 				storeMock.On("SystemSet", ctx, finalSystem).Return(nil).Once()
+
+				// Setup mints an authenticated session for the new admin (auto-login) by
+				// delegating to CreateUserToken, which resolves the user and namespace back.
+				createdUser := &models.User{
+					ID:        "000000000000000000000000",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					CreatedAt: now,
+					UserData: models.UserData{
+						Name:     "userteste",
+						Email:    "teste@google.com",
+						Username: "userteste",
+					},
+					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+					Admin: true,
+				}
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(createdUser, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(&models.Namespace{
+						Name:     "userteste",
+						TenantID: tenant,
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{ID: "000000000000000000000000", Role: authorizer.RoleOwner, AddedAt: now},
+						},
+					}, nil).Once()
+				storeMock.On("UserUpdate", ctx, mock.Anything).Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -452,8 +495,12 @@ func TestSetup(t *testing.T) {
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
-			err := service.Setup(ctx, tc.req)
+			res, err := service.Setup(ctx, tc.req)
 			assert.Equal(t, tc.expected, err)
+			if tc.expected == nil {
+				assert.NotNil(t, res)
+				assert.NotEmpty(t, res.Token)
+			}
 		})
 	}
 }

@@ -16,6 +16,7 @@ const (
 	ErrCodeDuplicated
 	ErrCodeInvalid
 	ErrCodeInternal
+	ErrCodeConstraint
 )
 
 var (
@@ -24,6 +25,13 @@ var (
 	ErrInvalidHex       = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
 	ErrResolverNotFound = errors.New("resolver not found", ErrLayer, ErrCodeInvalid)
 	ErrInternal         = errors.New("internal store error", ErrLayer, ErrCodeInternal)
+	// ErrNamespaceInstanceProtected is returned when deleting the namespace bound to the
+	// instance (systems.instance_tenant_id) is refused by the FK's ON DELETE RESTRICT.
+	ErrNamespaceInstanceProtected = errors.New("namespace is bound to the instance", ErrLayer, ErrCodeConstraint)
+	// ErrNamespaceSingle is returned when creating an additional namespace on an instance already
+	// bound to one (systems.instance_tenant_id set — Community). Enterprise/Cloud never bind, so
+	// this is Community-specific and distinct from a plain duplicate-name conflict.
+	ErrNamespaceSingle = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConstraint)
 )
 
 // DuplicateFieldError carries the name of the field that caused a duplicate-key violation.

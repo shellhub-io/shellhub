@@ -23,12 +23,6 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
   useCreateNamespace: vi.fn(),
 }));
 
-// CopyButton calls navigator.clipboard — stub it to avoid jsdom errors
-Object.defineProperty(navigator, "clipboard", {
-  value: { writeText: vi.fn().mockResolvedValue(undefined) },
-  configurable: true,
-});
-
 import { getConfig, defaultConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 import { ClipboardProvider } from "../ClipboardProvider";
@@ -61,7 +55,19 @@ function renderDialog(open: boolean, onClose = vi.fn()) {
   };
 }
 
-describe("CreateNamespaceDialog", () => {
+describe("CreateNamespaceDialog (community)", () => {
+  it("renders nothing — namespace creation is a premium feature", () => {
+    // Default config is community; the selector shows the upsell instead of this dialog.
+    renderDialog(true);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
+
+describe("CreateNamespaceDialog (cloud/enterprise)", () => {
+  beforeEach(() => {
+    mockGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
+  });
+
   describe("when open=false", () => {
     it("renders nothing", () => {
       renderDialog(false);
@@ -83,42 +89,6 @@ describe("CreateNamespaceDialog", () => {
     });
   });
 
-  describe("CLI command", () => {
-    it("displays the correct CLI command text", () => {
-      renderDialog(true);
-      expect(
-        screen.getByText("./bin/cli namespace create <namespace> <owner>"),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("naming rules", () => {
-    it("displays the '3-30 characters' rule", () => {
-      renderDialog(true);
-      expect(screen.getByText("3-30 characters")).toBeInTheDocument();
-    });
-
-    it("displays the 'Lowercase letters, numbers, and hyphens only' rule", () => {
-      renderDialog(true);
-      expect(
-        screen.getByText("Lowercase letters, numbers, and hyphens only"),
-      ).toBeInTheDocument();
-    });
-
-    it("displays the 'Cannot begin or end with a hyphen' rule", () => {
-      renderDialog(true);
-      expect(
-        screen.getByText("Cannot begin or end with a hyphen"),
-      ).toBeInTheDocument();
-    });
-
-    it("renders all three naming rules inside the labelled list", () => {
-      renderDialog(true);
-      const list = screen.getByRole("list", { name: "Namespace naming rules" });
-      expect(list.querySelectorAll("li")).toHaveLength(3);
-    });
-  });
-
   describe("closing the dialog", () => {
     it("calls onClose when the X button is clicked", async () => {
       const user = userEvent.setup();
@@ -129,11 +99,11 @@ describe("CreateNamespaceDialog", () => {
       expect(onClose).toHaveBeenCalledOnce();
     });
 
-    it("calls onClose when the Close button in the footer is clicked", async () => {
+    it("calls onClose when the Cancel button in the footer is clicked", async () => {
       const user = userEvent.setup();
       const { onClose } = renderDialog(true);
 
-      await user.click(screen.getByRole("button", { name: "Close" }));
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
 
       expect(onClose).toHaveBeenCalledOnce();
     });
@@ -158,16 +128,6 @@ describe("CreateNamespaceDialog", () => {
       );
     });
 
-    it("dialog aria-describedby points to the description paragraph", () => {
-      renderDialog(true);
-      const dialog = screen.getByRole("dialog");
-      const descId = dialog.getAttribute("aria-describedby");
-      expect(descId).toBeTruthy();
-      expect(document.getElementById(descId!)).toHaveTextContent(
-        /Community Edition uses the CLI to manage namespaces/i,
-      );
-    });
-
     it("heading id matches dialog's aria-labelledby", () => {
       renderDialog(true);
       const dialog = screen.getByRole("dialog");
@@ -175,16 +135,6 @@ describe("CreateNamespaceDialog", () => {
       expect(
         screen.getByRole("heading", { name: "Create a Namespace" }),
       ).toHaveAttribute("id", labelId);
-    });
-
-    it("description paragraph id matches dialog's aria-describedby", () => {
-      renderDialog(true);
-      const dialog = screen.getByRole("dialog");
-      const descId = dialog.getAttribute("aria-describedby")!;
-      const description = screen.getByText(
-        /Community Edition uses the CLI to manage namespaces/i,
-      );
-      expect(description).toHaveAttribute("id", descId);
     });
   });
 
@@ -203,20 +153,6 @@ describe("CreateNamespaceDialog", () => {
       const link = screen.getByRole("link", { name: /administration guide/i });
       expect(link).toHaveAttribute("target", "_blank");
     });
-  });
-});
-
-describe("CreateNamespaceDialog (cloud/enterprise)", () => {
-  beforeEach(() => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
-  });
-
-  it("renders the creation form instead of CLI instructions", () => {
-    renderDialog(true);
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
-    expect(
-      screen.queryByText(/Community Edition uses the CLI/i),
-    ).not.toBeInTheDocument();
   });
 
   it("renders the name input and Create button", () => {
@@ -307,7 +243,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
   it("shows 'A namespace with this name already exists.' on 409 and does NOT call onClose", async () => {
     const sdkError = { status: 409 };
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -331,7 +269,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
   it("shows the limit/permission message on 403", async () => {
     const sdkError = { status: 403 };
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -347,14 +287,18 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText("You have reached the namespace limit or do not have permission."),
+        screen.getByText(
+          "You have reached the namespace limit or do not have permission.",
+        ),
       ).toBeInTheDocument(),
     );
   });
 
   it("shows the invalid-name message on 400", async () => {
     const sdkError = { status: 400 };
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -377,7 +321,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
   it("shows the generic fallback message on 500", async () => {
     const sdkError = { status: 500 };
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -400,7 +346,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
   it("clears the error text from the DOM when the user types after a failed submission", async () => {
     const sdkError = { status: 409 };
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(sdkError);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(sdkError);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,

@@ -11,6 +11,7 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { getInitials } from "@/utils/string";
 import { isPremiumFeature } from "@/utils/features";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
+import NamespaceUpsellDialog from "../common/NamespaceUpsellDialog";
 import { useNavigate } from "react-router-dom";
 
 const ADMIN_SUBTITLE = "Super Admin \u00B7 Instance";
@@ -31,6 +32,7 @@ export default function NamespaceSelector({
 
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(containerRef, () => setOpen(false));
@@ -51,7 +53,13 @@ export default function NamespaceSelector({
 
   const handleCreate = () => {
     setOpen(false);
-    setCreateOpen(true);
+    // Community is single-namespace: creating another is a premium feature, so pitch the
+    // upgrade instead of the (CLI-only) create dialog.
+    if (isPremiumFeature()) {
+      setCreateOpen(true);
+    } else {
+      setUpsellOpen(true);
+    }
   };
 
   return (
@@ -228,6 +236,11 @@ export default function NamespaceSelector({
       <CreateNamespaceDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+      />
+
+      <NamespaceUpsellDialog
+        open={upsellOpen}
+        onClose={() => setUpsellOpen(false)}
       />
     </div>
   );

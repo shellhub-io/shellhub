@@ -1,7 +1,7 @@
 post:
   operationId: setup
   summary: User setup
-  description: Register an user and create namespace with the same name as username
+  description: Register the admin user and create the instance namespace.
   security: []
   tags:
     - community
@@ -20,14 +20,21 @@ post:
               $ref: ../components/schemas/userUsername.yaml
             password:
               $ref: ../components/schemas/userPassword.yaml
+            namespace:
+              $ref: ../components/schemas/namespaceName.yaml
           required:
             - name
             - email
             - username
             - password
+            - namespace
   responses:
     '200':
       description: Success to register user on setup.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
     '409':
       $ref: ../components/responses/409.yaml
     '400':

@@ -22,9 +22,10 @@ func (h *Handler) Setup(c gateway.Context) error {
 		return err
 	}
 
-	if err := h.service.Setup(c.Ctx(), req); err != nil {
+	res, err := h.service.Setup(c.Ctx(), req)
+	if err != nil {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, res)
 }

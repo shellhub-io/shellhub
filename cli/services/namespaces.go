@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -68,6 +69,10 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, ns); err != nil {
+		if errors.Is(err, store.ErrNamespaceSingle) {
+			return nil, ErrNamespaceSingle
+		}
+
 		return nil, ErrDuplicateNamespace
 	}
 
@@ -129,6 +134,12 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 	}
 
 	if err := s.store.NamespaceDelete(ctx, ns); err != nil {
+		// Community binds the instance to its single namespace; the store's ON DELETE
+		// RESTRICT refuses to remove it. Report that plainly instead of a generic failure.
+		if errors.Is(err, store.ErrNamespaceInstanceProtected) {
+			return ErrNamespaceInstanceProtected
+		}
+
 		return ErrFailedDeleteNamespace
 	}
 

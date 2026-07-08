@@ -1,9 +1,11 @@
 import type { FieldErrors, Resolver } from "react-hook-form";
+import { validateNamespaceName } from "@/utils/validation";
 import { validate, type FormErrors } from "./validate";
 
 export interface SetupFormValues {
   name: string;
   username: string;
+  namespace: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -29,6 +31,11 @@ export const setupResolver: Resolver<SetupFormValues> = (values) => {
     if (message) {
       errors[field] = { type: "validate", message };
     }
+  }
+
+  const namespaceError = validateNamespaceName(values.namespace);
+  if (namespaceError) {
+    errors.namespace = { type: "validate", message: namespaceError };
   }
 
   if (Object.keys(errors).length > 0) {
