@@ -3,7 +3,11 @@ import { ServerIcon, UserIcon } from "@heroicons/react/24/outline";
 import { ShellHubCloudIcon } from "@shellhub/design-system/primitives";
 ---
 
-<div class="diagram-container">
+<div
+  class="diagram-container"
+  role="img"
+  aria-label="Diagram comparing two connection models. Traditional SSH: you connect directly to the device over SSH on port 22, which requires the device to have a public IP and breaks behind NAT, CGNAT, or firewalls. ShellHub: the device connects outbound to the ShellHub server over a WebSocket on port 443, and you connect to the server, which bridges the two."
+>
   <!-- Traditional SSH -->
   <div class="diagram-row">
     <div class="diagram-label">
