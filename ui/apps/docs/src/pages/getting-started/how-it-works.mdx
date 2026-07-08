@@ -53,6 +53,8 @@ Each namespace has its own:
 
 When you create an account on ShellHub, you create a namespace. You can switch between namespaces if you belong to more than one.
 
+Alongside its name, every namespace has a **Tenant ID** — a unique, immutable UUID generated when the namespace is created. The name is human-facing and can be changed; the Tenant ID is the stable identifier that devices, API keys, and sessions use to reference the namespace. You'll see it on your dashboard, and it appears in some agent install commands.
+
 ## Reverse connectivity
 
 Traditional SSH requires you to know the device's IP address — and that IP needs to be reachable from your network. This breaks down when devices are behind NAT, CGNAT, carrier networks, or corporate firewalls. The usual workarounds (VPNs, port forwarding, jump hosts) add complexity and fragility.
@@ -61,7 +63,7 @@ ShellHub inverts this model. Instead of connecting **to** the device, the device
 
 <DiagramReverseConnectivity />
 
-In the traditional model, you need the device's public IP — which breaks behind NAT, CGNAT, and firewalls. With ShellHub, the device initiates an outbound connection to the server, and you connect to the server. The server bridges the two.
+The server bridges the two — the device's outbound tunnel and your inbound session meet at the gateway.
 
 The agent opens an outbound WebSocket connection to the ShellHub server over port 443 (standard HTTPS). This works through any network that allows web browsing — NAT, CGNAT, firewalls, HTTP proxies, even satellite links. The device doesn't need a public IP, a static IP, or any inbound ports.
 
