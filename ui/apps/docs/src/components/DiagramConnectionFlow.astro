@@ -7,7 +7,11 @@ import {
 } from "@heroicons/react/24/outline";
 ---
 
-<div class="flow-container">
+<div
+  class="flow-container"
+  role="img"
+  aria-label="Diagram of an SSH session path: the SSH client connects to the Gateway, which routes to the SSH Service, which reaches the Agent over its reverse tunnel, and the Agent execs a shell on the device."
+>
   <div class="flow-pipeline">
     <!-- SSH Client -->
     <div class="flow-step">
