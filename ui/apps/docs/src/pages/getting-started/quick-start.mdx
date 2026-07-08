@@ -51,7 +51,7 @@ For everything you can do from here — searching, tagging, renaming, and removi
 
 ### 4. Connect
 
-Click the terminal icon next to the device to open a web SSH session. Enter the device username and password — you're in.
+Click the green **Connect** button next to the device to open a web SSH session. Enter the device username and password — you're in.
 
 ![Device connecting](/img/devices/device-connect.gif)
 
@@ -109,7 +109,16 @@ Run the setup script to generate a setup URL:
 $ ./bin/setup
 ```
 
-Open the generated URL in your browser. Create your admin account and choose a namespace name.
+Open the generated URL in your browser. Create your admin account. Your first namespace is created automatically, named after your username.
+
+**Prefer a headless setup?** Create the admin user and namespace from the CLI instead of the browser:
+
+```bash
+$ ./bin/cli user create USERNAME PASSWORD EMAIL
+$ ./bin/cli namespace create NAMESPACE USERNAME
+```
+
+The first user is created as an admin automatically. See [Administration](/self-hosted/administration) for more user and namespace commands.
 
 ### 5. Install the agent
 
@@ -127,7 +136,7 @@ The device appears with **Pending** status in the dashboard. Click **Accept**.
 
 ### 7. Connect
 
-Click the terminal icon to open a web session, or use your SSH client:
+Click the green **Connect** button to open a web session, or use your SSH client:
 
 ```bash
 $ ssh username@namespace.hostname@your-server.com
