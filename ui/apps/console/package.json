@@ -17,6 +17,7 @@
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@hey-api/openapi-ts": "^0.94.5",
+    "@hookform/resolvers": "^3.10.0",
     "@shellhub/design-system": "*",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^4.8.0",
@@ -39,6 +40,7 @@
     "react-hook-form": "^7.81.0",
     "react-router-dom": "^7.17.0",
     "sshpk": "^1.18.0",
+    "zod": "^3.25.76",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
