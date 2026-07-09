@@ -112,6 +112,10 @@ paths:
     $ref: paths/api@users@{id}@data.yaml
   /api/users/{id}/password:
     $ref: paths/api@users@{id}@password.yaml
+  /api/users/{id}/activation:
+    $ref: paths/api@users@{id}@activation.yaml
+  /api/users/{id}/activate:
+    $ref: paths/api@users@{id}@activate.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/namespaces/device-auto-accept/{tenant}:
@@ -318,6 +322,8 @@ paths:
     $ref: paths/admin@api@users@{id}.yaml
   /admin/api/users/{id}/password/reset:
     $ref: paths/admin@api@users@{id}@password@reset.yaml
+  /admin/api/users/{id}/approve:
+    $ref: paths/admin@api@users@{id}@approve.yaml
   /admin/api/stats:
     $ref: paths/admin@api@stats.yaml
   /admin/api/license:

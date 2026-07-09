@@ -8,9 +8,11 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { useAdminAccountRequests } from "@/hooks/useAdminAccountRequests";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { getConfig } from "@/env";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -19,6 +21,7 @@ import UserStatusChip from "./UserStatusChip";
 import CreateUserDrawer from "./CreateUserDrawer";
 import EditUserDrawer from "./EditUserDrawer";
 import DeleteUserDialog from "./DeleteUserDialog";
+import AccountRequestsTab from "./AccountRequestsTab";
 import {
   Badge,
   Button,
@@ -41,6 +44,10 @@ const DEFAULTS: AdminUsersParams = {
 
 export default function AdminUsers() {
   const navigate = useNavigate();
+  // Account provisioning requests are an enterprise-only queue; on Cloud a new
+  // member self-serves via email invitation, so there is nothing to approve.
+  const showRequestsTab = getConfig().enterprise && !getConfig().cloud;
+  const [tab, setTab] = useState<"users" | "account-requests">("users");
   const { params, setPage, setSearch } =
     usePaginatedListState<AdminUsersParams>({ defaults: DEFAULTS });
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
@@ -59,6 +66,11 @@ export default function AdminUsers() {
     page: params.page,
     perPage: PER_PAGE,
     search: debouncedSearch,
+  });
+
+  // Pending-request count drives the tab badge; only queried in enterprise.
+  const { totalCount: requestsCount } = useAdminAccountRequests({
+    enabled: showRequestsTab,
   });
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
@@ -152,6 +164,8 @@ export default function AdminUsers() {
     },
   ];
 
+  const onUsersTab = !showRequestsTab || tab === "users";
+
   return (
     <div>
       <PageHeader
@@ -160,54 +174,89 @@ export default function AdminUsers() {
         title="Users"
         description="Manage all user accounts in the instance"
       >
-        <Button
-          onClick={() => setCreateOpen(true)}
-          icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
-        >
-          Create User
-        </Button>
+        {onUsersTab && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
+          >
+            Create User
+          </Button>
+        )}
       </PageHeader>
 
-      <SearchField
-        className="mb-5"
-        value={params.search}
-        onChange={setSearch}
-        placeholder="Search by username..."
-        aria-label="Search users by username"
-      />
-
-      {error && (
-        <Callout variant="error" className="mb-4">
-          {error.message}
-        </Callout>
+      {showRequestsTab && (
+        <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5 w-fit mb-6 animate-fade-in">
+          {[
+            { label: "Users", value: "users" as const },
+            {
+              label: "Account Requests",
+              value: "account-requests" as const,
+              count: requestsCount,
+            },
+          ].map((t) => (
+            <button
+              type="button"
+              key={t.value}
+              onClick={() => setTab(t.value)}
+              className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 flex items-center gap-1.5 ${
+                tab === t.value
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-text-muted hover:text-text-secondary border border-transparent"
+              }`}
+            >
+              {t.label}
+              {t.count ? <Badge color="yellow">{t.count}</Badge> : null}
+            </button>
+          ))}
+        </div>
       )}
 
-      <DataTable
-        columns={columns}
-        data={users}
-        rowKey={(user) => user.id}
-        isLoading={isLoading}
-        loadingMessage="Loading users..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        itemLabel="user"
-        onPageChange={setPage}
-        onRowClick={(user) => void navigate(`/admin/users/${user.id}`)}
-        emptyState={
-          <div className="text-center">
-            <UsersIcon
-              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-              strokeWidth={1}
-            />
-            <p className="text-xs font-mono text-text-muted">
-              {debouncedSearch
-                ? `No users matching "${debouncedSearch}"`
-                : "No users found"}
-            </p>
-          </div>
-        }
-      />
+      {onUsersTab ? (
+        <>
+          <SearchField
+            className="mb-5"
+            value={params.search}
+            onChange={setSearch}
+            placeholder="Search by username..."
+            aria-label="Search users by username"
+          />
+
+          {error && (
+            <Callout variant="error" className="mb-4">
+              {error.message}
+            </Callout>
+          )}
+
+          <DataTable
+            columns={columns}
+            data={users}
+            rowKey={(user) => user.id}
+            isLoading={isLoading}
+            loadingMessage="Loading users..."
+            page={params.page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            itemLabel="user"
+            onPageChange={setPage}
+            onRowClick={(user) => void navigate(`/admin/users/${user.id}`)}
+            emptyState={
+              <div className="text-center">
+                <UsersIcon
+                  className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+                  strokeWidth={1}
+                />
+                <p className="text-xs font-mono text-text-muted">
+                  {debouncedSearch
+                    ? `No users matching "${debouncedSearch}"`
+                    : "No users found"}
+                </p>
+              </div>
+            }
+          />
+        </>
+      ) : (
+        <AccountRequestsTab />
+      )}
 
       <CreateUserDrawer
         open={createOpen}

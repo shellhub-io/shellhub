@@ -36,9 +36,13 @@ post:
     Adds a member to a namespace.
 
     In enterprise and community instances, the member is added directly
-    to the namespace without any invitation step.
+    to the namespace without any invitation step. If the email has no
+    account yet and the requester is an admin, a pending account is
+    provisioned inline; supply `name` and `username` for it, and the user
+    completes the account through an activation link (see
+    `/api/users/{id}/activation`).
 
-    In cloud instances, an invitation email is sent to the member. 
+    In cloud instances, an invitation email is sent to the member.
     The invite is valid for **7 days**. If the member was previously invited
     and the invite is no longer valid, the same route will resend the invite.
   tags:
@@ -61,6 +65,10 @@ post:
               example: john.doe@test.com
             role:
               $ref: ../components/schemas/namespaceMemberRole.yaml
+            name:
+              $ref: ../components/schemas/userName.yaml
+            username:
+              $ref: ../components/schemas/userUsername.yaml
           required:
             - email
             - role

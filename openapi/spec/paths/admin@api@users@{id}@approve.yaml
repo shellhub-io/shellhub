@@ -1,0 +1,31 @@
+post:
+  operationId: approveUser
+  summary: Approve a provisioned account
+  description: |
+    Clear the awaiting-approval flag on an account a namespace admin provisioned.
+    Once approved, an activation link can be minted for the account (by an admin or
+    by a namespace admin who manages it). Enterprise only.
+  tags:
+    - admin
+    - enterprise
+    - users
+  security:
+    - jwt: []
+  parameters:
+    - name: id
+      description: The user ID.
+      schema:
+        type: string
+      required: true
+      in: path
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -92,6 +92,7 @@ var (
 	ErrNamespaceMemberNotFound         = errors.New("member not found", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceMemberInvalid          = errors.New("member invalid", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberFillData         = errors.New("member fill data", ErrLayer, ErrCodeInvalid)
+	ErrNamespaceMemberProvisionProfile = errors.New("provisioning a new member requires a name and username", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
@@ -395,6 +396,12 @@ func NewErrNamespaceMemberNotFound(id string, next error) error {
 // role set, to a complete structure, fails.
 func NewErrNamespaceMemberFillData(next error) error {
 	return NewErrInvalid(ErrNamespaceMemberFillData, nil, next)
+}
+
+// NewErrNamespaceMemberProvisionProfile returns an error to be used when an admin provisions a
+// brand-new member inline but does not supply the name and username the account requires.
+func NewErrNamespaceMemberProvisionProfile(next error) error {
+	return NewErrInvalid(ErrNamespaceMemberProvisionProfile, nil, next)
 }
 
 // NewErrNamespaceMemberDuplicated returns an error to be used when the namespace member already exist in the namespace.

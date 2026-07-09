@@ -141,6 +141,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
 	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
 
+	// Account activation for admin-provisioned members: the admin mints a one-time link
+	// (admin-gated) and the invitee completes their account by setting a password (public,
+	// the token is the credential).
+	publicAPI.POST(URLCreateUserActivationToken, gateway.Handler(handler.CreateUserActivationToken), routesmiddleware.BlockAPIKey)
+	publicAPI.POST(URLActivateUser, gateway.Handler(handler.ActivateUser))
+
 	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
 	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
 	publicAPI.GET(ResolveDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.ResolveDevice)))

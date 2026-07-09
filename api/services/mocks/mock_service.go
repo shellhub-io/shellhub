@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 	"crypto/rsa"
+	"time"
 
 	responses0 "github.com/shellhub-io/shellhub/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -113,6 +114,63 @@ func (_c *MockService_AcceptDevicePairing_Call) Return(devicePairingAccepted *mo
 }
 
 func (_c *MockService_AcceptDevicePairing_Call) RunAndReturn(run func(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error)) *MockService_AcceptDevicePairing_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ActivateUser provides a mock function for the type MockService
+func (_mock *MockService) ActivateUser(ctx context.Context, req *requests.ActivateUser) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateUser")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ActivateUser) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_ActivateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateUser'
+type MockService_ActivateUser_Call struct {
+	*mock.Call
+}
+
+// ActivateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ActivateUser
+func (_e *MockService_Expecter) ActivateUser(ctx any, req any) *MockService_ActivateUser_Call {
+	return &MockService_ActivateUser_Call{Call: _e.mock.On("ActivateUser", ctx, req)}
+}
+
+func (_c *MockService_ActivateUser_Call) Run(run func(ctx context.Context, req *requests.ActivateUser)) *MockService_ActivateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ActivateUser
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ActivateUser)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ActivateUser_Call) Return(err error) *MockService_ActivateUser_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_ActivateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.ActivateUser) error) *MockService_ActivateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1231,6 +1289,78 @@ func (_c *MockService_CreateTag_Call) Return(insertedID string, conflicts []stri
 }
 
 func (_c *MockService_CreateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateTag) (string, []string, error)) *MockService_CreateTag_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateUserActivationToken provides a mock function for the type MockService
+func (_mock *MockService) CreateUserActivationToken(ctx context.Context, req *requests.CreateUserActivation) (string, time.Time, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserActivationToken")
+	}
+
+	var r0 string
+	var r1 time.Time
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserActivation) (string, time.Time, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserActivation) string); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateUserActivation) time.Time); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(time.Time)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.CreateUserActivation) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_CreateUserActivationToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserActivationToken'
+type MockService_CreateUserActivationToken_Call struct {
+	*mock.Call
+}
+
+// CreateUserActivationToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.CreateUserActivation
+func (_e *MockService_Expecter) CreateUserActivationToken(ctx any, req any) *MockService_CreateUserActivationToken_Call {
+	return &MockService_CreateUserActivationToken_Call{Call: _e.mock.On("CreateUserActivationToken", ctx, req)}
+}
+
+func (_c *MockService_CreateUserActivationToken_Call) Run(run func(ctx context.Context, req *requests.CreateUserActivation)) *MockService_CreateUserActivationToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.CreateUserActivation
+		if args[1] != nil {
+			arg1 = args[1].(*requests.CreateUserActivation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateUserActivationToken_Call) Return(token string, expiresAt time.Time, err error) *MockService_CreateUserActivationToken_Call {
+	_c.Call.Return(token, expiresAt, err)
+	return _c
+}
+
+func (_c *MockService_CreateUserActivationToken_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateUserActivation) (string, time.Time, error)) *MockService_CreateUserActivationToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

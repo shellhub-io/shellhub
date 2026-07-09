@@ -10,20 +10,21 @@ import (
 type User struct {
 	bun.BaseModel `bun:"table:users"`
 
-	ID             string          `bun:"id,pk,type:uuid"`
-	CreatedAt      time.Time       `bun:"created_at"`
-	UpdatedAt      time.Time       `bun:"updated_at"`
-	LastLogin      time.Time       `bun:"last_login,nullzero"`
-	Origin         string          `bun:"origin"`
-	ExternalID     string          `bun:"external_id,nullzero"`
-	Status         string          `bun:"status"`
-	Name           string          `bun:"name"`
-	Username       string          `bun:"username"`
-	Email          string          `bun:"email"`
-	PasswordDigest string          `bun:"password_digest"`
-	Preferences    UserPreferences `bun:"embed:"`
-	Admin          bool            `bun:"admin"`
-	Namespaces     int             `bun:"namespaces,scanonly"`
+	ID               string          `bun:"id,pk,type:uuid"`
+	CreatedAt        time.Time       `bun:"created_at"`
+	UpdatedAt        time.Time       `bun:"updated_at"`
+	LastLogin        time.Time       `bun:"last_login,nullzero"`
+	Origin           string          `bun:"origin"`
+	ExternalID       string          `bun:"external_id,nullzero"`
+	Status           string          `bun:"status"`
+	Name             string          `bun:"name"`
+	Username         string          `bun:"username"`
+	Email            string          `bun:"email"`
+	PasswordDigest   string          `bun:"password_digest"`
+	Preferences      UserPreferences `bun:"embed:"`
+	Admin            bool            `bun:"admin"`
+	AwaitingApproval bool            `bun:"awaiting_approval"`
+	Namespaces       int             `bun:"namespaces,scanonly"`
 }
 
 type UserPreferences struct {
@@ -53,18 +54,19 @@ func UserFromModel(model *models.User) *User {
 	}
 
 	return &User{
-		ID:             model.ID,
-		CreatedAt:      model.CreatedAt,
-		UpdatedAt:      time.Time{},
-		LastLogin:      model.LastLogin,
-		Origin:         origin,
-		ExternalID:     model.ExternalID,
-		Status:         status,
-		Name:           model.Name,
-		Username:       model.Username,
-		Email:          model.Email,
-		PasswordDigest: model.Password.Hash,
-		Admin:          model.Admin,
+		ID:               model.ID,
+		CreatedAt:        model.CreatedAt,
+		UpdatedAt:        time.Time{},
+		LastLogin:        model.LastLogin,
+		Origin:           origin,
+		ExternalID:       model.ExternalID,
+		Status:           status,
+		Name:             model.Name,
+		Username:         model.Username,
+		Email:            model.Email,
+		PasswordDigest:   model.Password.Hash,
+		Admin:            model.Admin,
+		AwaitingApproval: model.AwaitingApproval,
 		Preferences: UserPreferences{
 			PreferredNamespace: model.Preferences.PreferredNamespace,
 			AuthMethods:        authMethods,
@@ -82,15 +84,16 @@ func UserToModel(entity *User) *models.User {
 	}
 
 	return &models.User{
-		ID:             entity.ID,
-		Origin:         models.UserOrigin(entity.Origin),
-		ExternalID:     entity.ExternalID,
-		Status:         models.UserStatus(entity.Status),
-		MaxNamespaces:  entity.Preferences.MaxNamespaces,
-		CreatedAt:      entity.CreatedAt,
-		LastLogin:      entity.LastLogin,
-		EmailMarketing: entity.Preferences.EmailMarketing,
-		Admin:          entity.Admin,
+		ID:               entity.ID,
+		Origin:           models.UserOrigin(entity.Origin),
+		ExternalID:       entity.ExternalID,
+		Status:           models.UserStatus(entity.Status),
+		MaxNamespaces:    entity.Preferences.MaxNamespaces,
+		CreatedAt:        entity.CreatedAt,
+		LastLogin:        entity.LastLogin,
+		EmailMarketing:   entity.Preferences.EmailMarketing,
+		Admin:            entity.Admin,
+		AwaitingApproval: entity.AwaitingApproval,
 		UserData: models.UserData{
 			Name:          entity.Name,
 			Username:      entity.Username,

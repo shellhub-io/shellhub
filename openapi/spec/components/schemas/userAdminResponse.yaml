@@ -13,6 +13,11 @@ properties:
   admin:
     description: User's admin status.
     type: boolean
+  awaiting_approval:
+    description: >-
+      True while a namespace admin provisioned the account but a system admin
+      has not approved it yet. No activation link can be minted until approval.
+    type: boolean
   max_namespaces:
     description: Maximum number of namespaces the user can own.
     type: integer
