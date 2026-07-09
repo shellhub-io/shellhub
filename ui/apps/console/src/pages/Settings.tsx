@@ -1,5 +1,4 @@
-import { FormEvent, useState } from "react";
-import { useResetOnOpen } from "../hooks/useResetOnOpen";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CheckIcon,
@@ -25,12 +24,21 @@ import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
-import Drawer from "../components/common/Drawer";
+import FormDrawer from "@/components/common/FormDrawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BillingSection from "../components/billing/BillingSection";
 import InputField from "@/components/common/fields/InputField";
-import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
-import { validateNamespaceName } from "@/utils/validation";
+import FormInputField from "@/components/common/fields/rhf/FormInputField";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import {
+  namespaceRenameSchema,
+  buildNamespaceRenameDefaults,
+  type NamespaceRenameFormValues,
+} from "./settings/namespaceRenameSchema";
+import {
+  NAMESPACE_NAME_HINT,
+  NAMESPACE_NAME_MAX_LENGTH,
+} from "@/utils/validation";
 import { getConfig } from "../env";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
@@ -52,71 +60,54 @@ function EditNameDrawer({
   tenantId: string;
 }) {
   const editNs = useEditNamespace();
-  const [name, setName] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
-  useResetOnOpen(open, () => {
-    setName(currentName);
-    setSubmitting(false);
-    setError("");
-  });
+  const form = useDrawerForm(
+    open,
+    namespaceRenameSchema,
+    buildNamespaceRenameDefaults(currentName),
+  );
+  const { control, setValue, setError, clearErrors } = form;
 
-  const validationError =
-    name !== currentName ? validateNamespaceName(name) : null;
-  const canSubmit = name !== currentName && !validationError && !submitting;
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit) return;
-    setSubmitting(true);
+  const onValid = async (values: NamespaceRenameFormValues) => {
+    clearErrors("root");
     try {
-      await editNs.mutateAsync({ path: { tenant: tenantId }, body: { name } });
+      await editNs.mutateAsync({
+        path: { tenant: tenantId },
+        body: { name: values.name },
+      });
       onClose();
     } catch {
-      setError("Failed to rename namespace. The name may already be taken.");
-    } finally {
-      setSubmitting(false);
+      setError("root", {
+        message: "Failed to rename namespace. The name may already be taken.",
+      });
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onValid}
       open={open}
       onClose={onClose}
       title="Rename Namespace"
-      bodyClassName="flex-1 overflow-y-auto px-6 py-5"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit}
-            loading={submitting}
-            icon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
-          >
-            Save
-          </Button>
-        </>
-      }
+      submitLabel="Save"
+      requireDirty
+      submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <NamespaceNameField
-          id="edit-ns-name"
-          value={name}
-          onChange={setName}
-          error={validationError}
-        />
-        {error && (
-          <p role="alert" className="text-2xs text-accent-red">
-            {error}
-          </p>
-        )}
-      </form>
-    </Drawer>
+      <FormInputField
+        name="name"
+        control={control}
+        id="edit-ns-name"
+        label="Namespace Name"
+        placeholder="my-namespace"
+        hint={NAMESPACE_NAME_HINT}
+        maxLength={NAMESPACE_NAME_MAX_LENGTH}
+        onValueChange={(v) => {
+          setValue("name", v.toLowerCase(), { shouldDirty: true, shouldValidate: true });
+          clearErrors("root");
+        }}
+      />
+    </FormDrawer>
   );
 }
 
