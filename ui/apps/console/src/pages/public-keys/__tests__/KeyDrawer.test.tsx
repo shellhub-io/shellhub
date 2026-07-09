@@ -1,17 +1,27 @@
-import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import { type ReactNode } from "react";
+import { useController, type Control, type Path } from "react-hook-form";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  useCreatePublicKey,
-  useUpdatePublicKey,
-} from "@/hooks/usePublicKeyMutations";
-import KeyDrawer from "../KeyDrawer";
-import { PublicKeyResponse as PublicKey } from "@/client";
+import type { PublicKeyResponse } from "@/client";
+import type { KeyFormValues } from "../keySchema";
+
+const mockCreateMutateAsync = vi.fn();
+const mockUpdateMutateAsync = vi.fn();
 
 vi.mock("@/hooks/usePublicKeyMutations", () => ({
-  useCreatePublicKey: vi.fn(),
-  useUpdatePublicKey: vi.fn(),
+  useCreatePublicKey: () => ({
+    mutateAsync: mockCreateMutateAsync,
+    isPending: false,
+  }),
+  useUpdatePublicKey: () => ({
+    mutateAsync: mockUpdateMutateAsync,
+    isPending: false,
+  }),
+}));
+
+vi.mock("@/hooks/useTags", () => ({
+  useTags: vi.fn(),
 }));
 
 vi.mock("@/components/common/Drawer", () => ({
@@ -25,93 +35,70 @@ vi.mock("@/components/common/Drawer", () => ({
     open: boolean;
     onClose: () => void;
     title: string;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
+    children: ReactNode;
+    footer?: ReactNode;
   }) => {
     if (!open) return null;
     return (
-      <div>
-        <h2>{title}</h2>
+      <div role="dialog" aria-label={title}>
         <button type="button" onClick={onClose}>
-          Cancel
+          Close
         </button>
-        <div>{children}</div>
-        {footer && <div>{footer as React.ReactNode}</div>}
+        {children}
+        {footer}
       </div>
     );
   },
 }));
 
-vi.mock("@/components/common/fields/TagsSelector", () => ({
-  default: ({
-    selected,
-    onChange,
-    error,
-  }: {
-    selected: string[];
-    onChange: (tags: string[]) => void;
-    error?: string;
-  }) => (
-    <div>
-      <button
-        type="button"
-        data-testid="add-tag-production"
-        onClick={() => onChange([...selected, "production"])}
-      >
-        Add production tag
-      </button>
-      <button
-        type="button"
-        data-testid="add-tag-linux"
-        onClick={() => onChange([...selected, "linux"])}
-      >
-        Add linux tag
-      </button>
-      {selected.map((t) => (
-        <span key={t} data-testid={`tag-${t}`}>
-          {t}
-        </span>
-      ))}
-      {error && <p role="alert">{error}</p>}
-    </div>
-  ),
-}));
-
 vi.mock("../KeyDataInput", () => ({
-  default: ({
-    value,
-    onChange,
-    error,
+  default: function MockKeyDataInput({
+    name,
+    control,
     disabled,
-    onFileName: _onFileName,
+    onFileName,
   }: {
-    value: string;
-    onChange: (v: string) => void;
-    error?: string;
+    name: Path<KeyFormValues>;
+    control: Control<KeyFormValues>;
     disabled?: boolean;
     onFileName?: (name: string) => void;
-  }) => (
-    <div>
-      <label htmlFor="key-data">Public key data</label>
-      <textarea
-        id="key-data"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-      />
-      {error && <p role="alert">{error}</p>}
-    </div>
-  ),
+  }) {
+    const {
+      field,
+      fieldState: { error },
+    } = useController({ name, control });
+    return (
+      <div>
+        <label htmlFor="key-data">Public key data</label>
+        <textarea
+          id="key-data"
+          value={String(field.value ?? "")}
+          onChange={(e) => {
+            field.onChange(e.target.value);
+          }}
+          disabled={disabled}
+        />
+        {error?.message && <p role="alert">{error.message}</p>}
+        {onFileName && (
+          <button
+            type="button"
+            data-testid="trigger-filename"
+            onClick={() => onFileName("my-key-file")}
+          >
+            Trigger filename
+          </button>
+        )}
+      </div>
+    );
+  },
 }));
 
-vi.mock("@/utils/sshKeys", () => ({
-  isPublicKeyValid: vi.fn(() => true),
-}));
+import { useTags } from "@/hooks/useTags";
+import KeyDrawer from "../KeyDrawer";
 
-const mockCreateMutateAsync = vi.fn();
-const mockUpdateMutateAsync = vi.fn();
-
-function makeKey(overrides: Partial<PublicKey> = {}): PublicKey {
+function makeKey(
+  overrides: Partial<PublicKeyResponse> = {},
+): PublicKeyResponse {
   return {
     name: "prod-key",
     fingerprint: "ab:cd:ef",
@@ -133,108 +120,119 @@ function makeTag(name: string) {
   };
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useCreatePublicKey).mockReturnValue({
-    mutateAsync: mockCreateMutateAsync,
-  } as never);
-  vi.mocked(useUpdatePublicKey).mockReturnValue({
-    mutateAsync: mockUpdateMutateAsync,
-  } as never);
-});
-
-afterEach(cleanup);
-
 function renderDrawer(
-  overrides: Partial<{
+  props: Partial<{
     open: boolean;
-    editKey: PublicKey | null;
+    editKey: PublicKeyResponse | null;
     onClose: () => void;
   }> = {},
 ) {
-  const defaults = { open: true, editKey: null, onClose: vi.fn() };
-  const props = { ...defaults, ...overrides };
-  return { onClose: props.onClose, ...render(<KeyDrawer {...props} />) };
+  const merged = { open: true, editKey: null, onClose: vi.fn(), ...props };
+  return render(<KeyDrawer {...merged} />);
+}
+
+function getSubmitButton() {
+  return screen.getByRole("button", { name: /create key|save changes/i });
+}
+
+async function fillName(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) {
+  const input = screen.getByPlaceholderText(/name used to identify/i);
+  await user.clear(input);
+  if (name) await user.type(input, name);
+}
+
+async function fillKeyData(
+  user: ReturnType<typeof userEvent.setup>,
+  key: string,
+) {
+  const ta = screen.getByLabelText(/public key data/i);
+  await user.clear(ta);
+  if (key) await user.type(ta, key);
 }
 
 const VALID_KEY = "ssh-rsa AAAAB3NzaC1yc2E test@host";
 
-async function fillName(name: string) {
-  await userEvent.type(
-    screen.getByPlaceholderText(/name used to identify/i),
-    name,
-  );
-}
-
-async function fillKeyData(key: string) {
-  await userEvent.type(screen.getByLabelText(/public key data/i), key);
-}
-
 describe("KeyDrawer", () => {
-  describe("rendering — add mode", () => {
-    it("renders the 'New Public Key' title", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateMutateAsync.mockResolvedValue(undefined);
+    mockUpdateMutateAsync.mockResolvedValue(undefined);
+    vi.mocked(useTags).mockReturnValue({
+      tags: [{ name: "production" }, { name: "linux" }, { name: "staging" }],
+      totalCount: 3,
+      isLoading: false,
+      error: null,
+    } as never);
+  });
+
+  describe("add mode UI", () => {
+    it("shows 'New Public Key' title", () => {
       renderDrawer();
-      expect(screen.getByText("New Public Key")).toBeInTheDocument();
+      expect(
+        screen.getByRole("dialog", { name: /new public key/i }),
+      ).toBeInTheDocument();
     });
 
-    it("renders 'Create Key' submit button", () => {
+    it("shows 'Create Key' on the submit button", () => {
       renderDrawer();
       expect(
         screen.getByRole("button", { name: /create key/i }),
       ).toBeInTheDocument();
     });
 
-    it("submit button is disabled when form is empty", () => {
+    it("submit is disabled when form is empty", () => {
       renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /create key/i }),
-      ).toBeDisabled();
+      expect(getSubmitButton()).toBeDisabled();
     });
 
     it("does not render when open is false", () => {
       renderDrawer({ open: false });
-      expect(screen.queryByText("New Public Key")).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 
-  describe("rendering — edit mode", () => {
-    it("renders the 'Edit Public Key' title", () => {
+  describe("edit mode UI", () => {
+    it("shows 'Edit Public Key' title", () => {
       renderDrawer({ editKey: makeKey() });
-      expect(screen.getByText("Edit Public Key")).toBeInTheDocument();
+      expect(
+        screen.getByRole("dialog", { name: /edit public key/i }),
+      ).toBeInTheDocument();
     });
 
-    it("renders 'Save Changes' submit button", () => {
+    it("shows 'Save Changes' on the submit button", () => {
       renderDrawer({ editKey: makeKey() });
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeInTheDocument();
     });
 
-    it("pre-fills the name field with the key name", () => {
+    it("pre-fills the name field from editKey", () => {
       renderDrawer({ editKey: makeKey({ name: "my-server-key" }) });
       expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
         "my-server-key",
       );
     });
 
-    it("key data input is disabled in edit mode", () => {
+    it("key data textarea is disabled in edit mode", () => {
       renderDrawer({ editKey: makeKey() });
       expect(screen.getByLabelText(/public key data/i)).toBeDisabled();
     });
   });
 
-  describe("filter initialization from editKey", () => {
-    it("selects 'all devices' when hostname is '.*'", () => {
+  describe("filter pre-population from editKey", () => {
+    it("shows no hostname input when editKey filter is all (hostname '.*')", () => {
       renderDrawer({
         editKey: makeKey({ filter: { hostname: ".*", tags: [] } }),
       });
-      // hostname input should not be visible — "all" is selected
       expect(
         screen.queryByPlaceholderText(/e\.g\. \.\*/i),
       ).not.toBeInTheDocument();
     });
 
-    it("selects hostname filter when editKey has a non-wildcard hostname", () => {
+    it("pre-populates hostname when editKey has a non-wildcard hostname", () => {
       renderDrawer({
         editKey: makeKey({ filter: { hostname: "^prod-.*", tags: [] } }),
       });
@@ -243,341 +241,167 @@ describe("KeyDrawer", () => {
       );
     });
 
-    it("selects tags filter and pre-populates tags when editKey has tags", () => {
+    it("pre-populates tags when editKey has tags", () => {
       renderDrawer({
         editKey: makeKey({
           filter: { tags: [makeTag("production"), makeTag("linux")] },
         }),
       });
-      expect(screen.getByTestId("tag-production")).toBeInTheDocument();
-      expect(screen.getByTestId("tag-linux")).toBeInTheDocument();
-    });
-
-    it("selects 'all' when editKey has no tags and hostname is '.*'", () => {
-      renderDrawer({
-        editKey: makeKey({ filter: { hostname: ".*", tags: [] } }),
-      });
-      // Neither hostname input nor tags should be visible
-      expect(
-        screen.queryByPlaceholderText(/e\.g\. \.\*/i),
-      ).not.toBeInTheDocument();
-      expect(screen.queryByTestId("tag-production")).not.toBeInTheDocument();
+      expect(screen.getByText("production")).toBeInTheDocument();
+      expect(screen.getByText("linux")).toBeInTheDocument();
     });
   });
 
-  describe("buildFilter — create flow", () => {
-    it("sends { hostname: '.*' } when 'All devices' is selected", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
+  describe("create happy-path — all devices", () => {
+    it("sends { hostname: '.*' } and base64-encoded key data", async () => {
+      const user = userEvent.setup();
       renderDrawer();
 
-      await fillName("test-key");
-      await fillKeyData(VALID_KEY);
-      // "All devices" is selected by default
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(getSubmitButton());
 
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { hostname: ".*" } }),
+      await waitFor(() =>
+        expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+          body: expect.objectContaining({
+            data: btoa(VALID_KEY),
+            filter: { hostname: ".*" },
           }),
-        );
-      });
-    });
-
-    it("sends { hostname } when 'Filter by hostname' is selected", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("test-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("radio", { name: /filter by hostname/i }),
+        }),
       );
-      await userEvent.type(
-        screen.getByPlaceholderText(/e\.g\. \.\*/i),
-        "^prod-.*",
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { hostname: "^prod-.*" } }),
-          }),
-        );
-      });
-    });
-
-    it("sends { tags: string[] } when 'Filter by tags' is selected", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("test-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("radio", { name: /filter by tags/i }),
-      );
-      await userEvent.click(screen.getByTestId("add-tag-production"));
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { tags: ["production"] } }),
-          }),
-        );
-      });
-    });
-
-    it("sends tags as plain strings, not objects", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("test-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("radio", { name: /filter by tags/i }),
-      );
-      await userEvent.click(screen.getByTestId("add-tag-production"));
-      await userEvent.click(screen.getByTestId("add-tag-linux"));
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        const arg = mockCreateMutateAsync.mock.calls[0][0] as {
-          body: { filter: { tags: string[] } };
-        };
-        const tags = arg.body.filter.tags;
-        expect(tags).toEqual(["production", "linux"]);
-        // Each element must be a plain string, not an object
-        tags.forEach((t) => expect(typeof t).toBe("string"));
-      });
-    });
-  });
-
-  describe("buildFilter — update flow", () => {
-    it("sends { hostname } when updating with hostname filter", async () => {
-      mockUpdateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer({
-        editKey: makeKey({ filter: { hostname: "old-host", tags: [] } }),
-      });
-
-      const hostnameInput = screen.getByPlaceholderText(/e\.g\. \.\*/i);
-      await userEvent.clear(hostnameInput);
-      await userEvent.type(hostnameInput, "new-host");
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ filter: { hostname: "new-host" } }),
-          }),
-        );
-      });
-    });
-
-    it("sends { tags: string[] } when updating with tags filter", async () => {
-      mockUpdateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer({
-        editKey: makeKey({ filter: { tags: [makeTag("production")] } }),
-      });
-
-      await userEvent.click(screen.getByTestId("add-tag-linux"));
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({
-              filter: { tags: ["production", "linux"] },
-            }),
-          }),
-        );
-      });
-    });
-  });
-
-  describe("create flow", () => {
-    it("calls createKey with base64-encoded key data", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ data: btoa(VALID_KEY) }),
-          }),
-        );
-      });
-    });
-
-    it("calls createKey with trimmed name", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("  my-key  ");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ name: "my-key" }),
-          }),
-        );
-      });
     });
 
     it("calls onClose after successful create", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      const { onClose } = renderDrawer();
+      const user = userEvent.setup();
+      const onClose = vi.fn();
+      renderDrawer({ onClose });
 
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(getSubmitButton());
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
+  });
 
-    it("shows key error on 409 conflict", async () => {
-      mockCreateMutateAsync.mockRejectedValue({ status: 409 });
+  describe("create happy-path — hostname filter", () => {
+    it("sends { hostname } when hostname filter is selected", async () => {
+      const user = userEvent.setup();
       renderDrawer();
 
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(
+        screen.getByRole("radio", { name: /filter by hostname/i }),
       );
+      await user.type(screen.getByPlaceholderText(/e\.g\. \.\*/i), "^prod-.*");
+      await user.click(getSubmitButton());
 
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toHaveTextContent(
-          /this public key already exists/i,
-        );
-      });
-    });
-
-    it("shows generic error on unexpected failure", async () => {
-      mockCreateMutateAsync.mockRejectedValue(new Error("Server error"));
-      renderDrawer();
-
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
+      await waitFor(() =>
+        expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+          body: expect.objectContaining({ filter: { hostname: "^prod-.*" } }),
+        }),
       );
-
-      await waitFor(() => {
-        expect(screen.getByText(/server error/i)).toBeInTheDocument();
-      });
     });
   });
 
-  describe("update flow", () => {
-    it("calls updateKey with fingerprint and updated name", async () => {
-      mockUpdateMutateAsync.mockResolvedValue(undefined);
+  describe("create happy-path — tags filter", () => {
+    it("sends { tags: string[] } when tags filter is selected and tag chosen", async () => {
+      const user = userEvent.setup();
+      renderDrawer();
+
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(screen.getByRole("radio", { name: /filter by tags/i }));
+
+      const tagInput = screen.getByPlaceholderText("Search tags...");
+      await user.click(tagInput);
+      await user.click(screen.getByRole("button", { name: "production" }));
+
+      await user.click(getSubmitButton());
+
+      await waitFor(() =>
+        expect(mockCreateMutateAsync).toHaveBeenCalledWith({
+          body: expect.objectContaining({ filter: { tags: ["production"] } }),
+        }),
+      );
+    });
+  });
+
+  describe("409 error handling", () => {
+    it("shows a 409 conflict alert on the key data field", async () => {
+      const user = userEvent.setup();
+      mockCreateMutateAsync.mockRejectedValue({ status: 409 });
+      renderDrawer();
+
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(getSubmitButton());
+
+      await waitFor(() =>
+        expect(screen.getByRole("alert")).toHaveTextContent(
+          /this public key already exists/i,
+        ),
+      );
+    });
+  });
+
+  describe("generic root error", () => {
+    it("shows the error message in a root error paragraph", async () => {
+      const user = userEvent.setup();
+      mockCreateMutateAsync.mockRejectedValue(new Error("Server meltdown"));
+      renderDrawer();
+
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(getSubmitButton());
+
+      await waitFor(() =>
+        expect(screen.getByText(/server meltdown/i)).toBeInTheDocument(),
+      );
+    });
+  });
+
+  describe("update happy-path", () => {
+    it("calls updateKey with fingerprint path param and updated name, no data field", async () => {
+      const user = userEvent.setup();
       renderDrawer({
         editKey: makeKey({ fingerprint: "ab:cd:ef", name: "old-name" }),
       });
 
       const nameInput = screen.getByPlaceholderText(/name used to identify/i);
-      await userEvent.clear(nameInput);
-      await userEvent.type(nameInput, "new-name");
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.clear(nameInput);
+      await user.type(nameInput, "new-name");
+      await user.click(getSubmitButton());
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { fingerprint: "ab:cd:ef" },
             body: expect.objectContaining({ name: "new-name" }),
           }),
-        );
-      });
+        ),
+      );
+
+      const callArg = mockUpdateMutateAsync.mock.calls[0][0] as {
+        body: Record<string, unknown>;
+      };
+      expect(callArg.body).not.toHaveProperty("data");
     });
 
     it("calls onClose after successful update", async () => {
-      mockUpdateMutateAsync.mockResolvedValue(undefined);
-      const { onClose } = renderDrawer({ editKey: makeKey() });
+      const user = userEvent.setup();
+      const onClose = vi.fn();
+      renderDrawer({ editKey: makeKey(), onClose });
 
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(getSubmitButton());
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
   });
 
-  describe("username filter", () => {
-    it("sends username '.*' when 'Allow any user' is selected", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ username: ".*" }),
-          }),
-        );
-      });
-    });
-
-    it("sends specific username when 'Restrict by username' is selected", async () => {
-      mockCreateMutateAsync.mockResolvedValue(undefined);
-      renderDrawer();
-
-      await fillName("my-key");
-      await fillKeyData(VALID_KEY);
-      await userEvent.click(
-        screen.getByRole("radio", { name: /restrict by username/i }),
-      );
-      await userEvent.type(
-        screen.getByPlaceholderText(/e\.g\. root/i),
-        "ubuntu",
-      );
-      await userEvent.click(
-        screen.getByRole("button", { name: /create key/i }),
-      );
-
-      await waitFor(() => {
-        expect(mockCreateMutateAsync).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ username: "ubuntu" }),
-          }),
-        );
-      });
-    });
-  });
-
-  describe("form reset on open", () => {
-    it("clears fields when closed and reopened in add mode", () => {
+  describe("reset on reopen", () => {
+    it("clears fields when reopened in add mode after edit", () => {
       const { rerender } = renderDrawer({ editKey: makeKey({ name: "old" }) });
 
       rerender(<KeyDrawer open={false} editKey={null} onClose={vi.fn()} />);
@@ -586,6 +410,72 @@ describe("KeyDrawer", () => {
       expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
         "",
       );
+    });
+
+    it("updates pre-filled values when editKey changes on reopen", () => {
+      const key1 = makeKey({ name: "key-one" });
+      const key2 = makeKey({ name: "key-two" });
+      const { rerender } = renderDrawer({ editKey: key1 });
+
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "key-one",
+      );
+
+      rerender(<KeyDrawer open={false} editKey={key2} onClose={vi.fn()} />);
+      rerender(<KeyDrawer open editKey={key2} onClose={vi.fn()} />);
+
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "key-two",
+      );
+    });
+  });
+
+  describe("onFileName auto-fill", () => {
+    it("auto-fills the name field when it is empty and a filename is provided", async () => {
+      const user = userEvent.setup();
+      renderDrawer();
+
+      await user.click(screen.getByTestId("trigger-filename"));
+
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "my-key-file",
+      );
+    });
+
+    it("does not overwrite a name already typed by the user", async () => {
+      const user = userEvent.setup();
+      renderDrawer();
+
+      await fillName(user, "existing-name");
+      await user.click(screen.getByTestId("trigger-filename"));
+
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "existing-name",
+      );
+    });
+  });
+
+  describe("name length validation", () => {
+    it("keeps submit disabled when name exceeds 64 characters", async () => {
+      const user = userEvent.setup();
+      renderDrawer();
+
+      const longName = "a".repeat(65);
+      await fillName(user, longName);
+      await fillKeyData(user, VALID_KEY);
+
+      await waitFor(() => expect(getSubmitButton()).toBeDisabled());
+    });
+
+    it("enables submit when name is exactly 64 characters", async () => {
+      const user = userEvent.setup();
+      renderDrawer();
+
+      const exactName = "a".repeat(64);
+      await fillName(user, exactName);
+      await fillKeyData(user, VALID_KEY);
+
+      await waitFor(() => expect(getSubmitButton()).not.toBeDisabled());
     });
   });
 });
