@@ -32,14 +32,6 @@ const mockNamespace: Namespace = {
   devices_rejected_count: 0,
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useAdminEditNamespace).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-    isPending: false,
-  } as never);
-});
-
 function renderDrawer(
   overrides: Partial<{
     open: boolean;
@@ -56,6 +48,14 @@ function renderDrawer(
 }
 
 describe("EditNamespaceDrawer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAdminEditNamespace).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: false,
+    } as never);
+  });
+
   describe("rendering — closed", () => {
     it("renders nothing when open is false", () => {
       renderDrawer({ open: false });
@@ -136,11 +136,13 @@ describe("EditNamespaceDrawer", () => {
   });
 
   describe("form enabling", () => {
-    it("submit button is enabled when name is non-empty", () => {
+    it("submit button is enabled when name is non-empty", async () => {
       renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /save changes/i }),
-      ).not.toBeDisabled();
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: /save changes/i }),
+        ).not.toBeDisabled(),
+      );
     });
 
     it("disables submit button when name is cleared", async () => {

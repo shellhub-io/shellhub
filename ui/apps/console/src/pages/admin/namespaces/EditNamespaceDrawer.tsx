@@ -1,14 +1,24 @@
-import { useState, type FormEvent } from "react";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useMemo } from "react";
 import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
-import Drawer from "@/components/common/Drawer";
-import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
-import NumericInput from "@/components/common/fields/NumericInput";
-import CheckboxField from "@/components/common/fields/CheckboxField";
-import { validateNamespaceName } from "@/utils/validation";
+import FormDrawer from "@/components/common/FormDrawer";
+import {
+  FormInputField,
+  FormNumericInput,
+  FormCheckboxField,
+} from "@/components/common/fields/rhf";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import {
+  NAMESPACE_NAME_HINT,
+  NAMESPACE_NAME_MAX_LENGTH,
+} from "@/utils/validation";
+import {
+  editNamespaceSchema,
+  buildEditNamespaceDefaults,
+  buildEditNamespaceBody,
+  type EditNamespaceFormValues,
+} from "./editNamespaceSchema";
 import type { Namespace } from "@/client";
-import { Button } from "@shellhub/design-system/primitives";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -23,117 +33,83 @@ export default function EditNamespaceDrawer({
 }: EditNamespaceDrawerProps) {
   const editNamespace = useAdminEditNamespace();
 
-  const [name, setName] = useState("");
-  const [maxDevices, setMaxDevices] = useState(() =>
-    String(namespace?.max_devices ?? -1),
+  const schema = useMemo(
+    () => editNamespaceSchema(namespace?.name ?? ""),
+    [namespace?.name],
   );
-  const [sessionRecord, setSessionRecord] = useState(false);
-  const [error, setError] = useState("");
+  const defaults = useMemo(
+    () => buildEditNamespaceDefaults(namespace),
+    [namespace],
+  );
 
-  useResetOnOpen(open, () => {
-    setName(namespace?.name ?? "");
-    setMaxDevices(String(namespace?.max_devices ?? -1));
-    setSessionRecord(namespace?.settings?.session_record ?? false);
-    setError("");
-  });
+  const form = useDrawerForm(open, schema, defaults);
+  const { control, setValue, setError, clearErrors } = form;
 
-  const isMaxDevicesValid = parseInt(maxDevices, 10) >= -1;
-  const nameValidationError =
-    name !== namespace?.name ? validateNamespaceName(name) : null;
-  const canSubmit = !nameValidationError && isMaxDevicesValid;
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit || !namespace) return;
-    setError("");
+  const onValid = async (values: EditNamespaceFormValues) => {
+    if (!namespace) return;
+    clearErrors("root");
     try {
       await editNamespace.mutateAsync({
         path: { tenantID: namespace.tenant_id },
-        // The SDK types body as full Namespace; we spread the original
-        // to satisfy the type while only changing the editable fields.
-        body: {
-          ...namespace,
-          name: name.trim(),
-          max_devices: parseInt(maxDevices, 10),
-          settings: {
-            connection_announcement:
-              namespace.settings?.connection_announcement ?? "",
-            session_record: sessionRecord,
-          },
-        },
+        body: buildEditNamespaceBody(namespace, values),
       });
       onClose();
     } catch (err) {
-      if (isSdkError(err) && err.status === 409) {
-        setError("A namespace with this name already exists.");
-      } else {
-        setError("Failed to update namespace. Please try again.");
-      }
+      const message =
+        isSdkError(err) && err.status === 409
+          ? "A namespace with this name already exists."
+          : "Failed to update namespace. Please try again.";
+
+      setError("root", { message });
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onValid}
       open={open}
       onClose={onClose}
       title="Edit Namespace"
+      submitLabel="Save Changes"
       subtitle={
         namespace ? (
           <span className="font-mono">{namespace.name}</span>
         ) : undefined
       }
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit || editNamespace.isPending}
-            loading={editNamespace.isPending}
-          >
-            Save Changes
-          </Button>
-        </>
-      }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <NamespaceNameField
-          id="edit-ns-name"
-          value={name}
-          onChange={setName}
+      <FormInputField
+        name="name"
+        control={control}
+        id="edit-ns-name"
+        label="Namespace Name"
+        placeholder="my-namespace"
+        hint={NAMESPACE_NAME_HINT}
+        maxLength={NAMESPACE_NAME_MAX_LENGTH}
+        onValueChange={(v) =>
+          setValue("name", v.toLowerCase(), {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
+        }
+      />
 
-          error={nameValidationError}
-        />
+      <FormNumericInput
+        name="maxDevices"
+        control={control}
+        id="edit-ns-max-devices"
+        label="Max Devices"
+        allowNegative
+        hint="Use -1 for unlimited devices"
+      />
 
-        <NumericInput
-          id="edit-ns-max-devices"
-          label="Max Devices"
-          value={maxDevices}
-          onChange={setMaxDevices}
-          allowNegative
-          hint="Use -1 for unlimited devices"
-          error={
-            isMaxDevicesValid
-              ? undefined
-              : "Max devices must be a number greater than or equal to -1"
-          }
-        />
+      <FormCheckboxField
+        name="sessionRecord"
+        control={control}
+        id="edit-namespace-session-record"
+        label="Session Recording"
+      />
 
-        <CheckboxField
-          id="edit-namespace-session-record"
-          label="Session Recording"
-          checked={sessionRecord}
-          onChange={setSessionRecord}
-        />
-
-        {error && (
-          <p role="alert" className="text-2xs text-accent-red">
-            {error}
-          </p>
-        )}
-      </form>
-    </Drawer>
+    </FormDrawer>
   );
 }
