@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { useAuthStore } from "@/stores/authStore";
 import { EditProfileDrawer } from "@/pages/Profile";
 
@@ -12,40 +13,68 @@ const defaultProps = {
   currentRecoveryEmail: "recovery@example.com",
 };
 
-beforeEach(() => {
-  useAuthStore.setState({ updateProfile: vi.fn() } as Partial<ReturnType<typeof useAuthStore.getState>>);
-});
-
-afterEach(cleanup);
-
-describe("EditProfileDrawer — recovery email validation guard", () => {
-  it("shows error when primary email changes to case-insensitively match recovery email", () => {
-    render(<EditProfileDrawer {...defaultProps} />);
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
-      target: { value: "Recovery@Example.COM" },
-    });
-    expect(
-      screen.getByText("Must be different from your email"),
-    ).toBeInTheDocument();
+describe("EditProfileDrawer", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ updateProfile: vi.fn() } as Partial<
+      ReturnType<typeof useAuthStore.getState>
+    >);
   });
 
-  it("does not show recovery email error when primary email changes to a different address", () => {
-    render(<EditProfileDrawer {...defaultProps} />);
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
-      target: { value: "new@example.com" },
+  async function changeEmail(value: string, props = defaultProps) {
+    const user = userEvent.setup();
+    render(<EditProfileDrawer {...props} />);
+    const input = screen.getByLabelText("Email");
+    await user.clear(input);
+    await user.type(input, value);
+    return user;
+  }
+
+  describe("recovery email validation guard", () => {
+    it("shows error when primary email changes to case-insensitively match recovery email", async () => {
+      await changeEmail("Recovery@Example.COM");
+
+      await waitFor(() =>
+        expect(
+          screen.getByText("Must be different from your email"),
+        ).toBeInTheDocument(),
+      );
     });
-    expect(
-      screen.queryByText("Must be different from your email"),
-    ).not.toBeInTheDocument();
+
+    it("does not show recovery email error when primary email changes to a different address", async () => {
+      await changeEmail("new@example.com");
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText("Must be different from your email"),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it("does not show recovery email error when recovery email is empty and primary email changes", async () => {
+      await changeEmail("new@example.com", {
+        ...defaultProps,
+        currentRecoveryEmail: "",
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText("Must be different from your email"),
+        ).not.toBeInTheDocument(),
+      );
+    });
   });
 
-  it("does not show recovery email error when recovery email is empty and primary email changes", () => {
-    render(<EditProfileDrawer {...defaultProps} currentRecoveryEmail="" />);
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
-      target: { value: "new@example.com" },
+  describe("required fields", () => {
+    it("shows 'Email is required' and blocks submit when a required field is cleared", async () => {
+      const user = userEvent.setup();
+      render(<EditProfileDrawer {...defaultProps} />);
+      const input = screen.getByLabelText("Email");
+      await user.clear(input);
+
+      await waitFor(() =>
+        expect(screen.getByText("Email is required")).toBeInTheDocument(),
+      );
+      expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
     });
-    expect(
-      screen.queryByText("Must be different from your email"),
-    ).not.toBeInTheDocument();
   });
 });
