@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useMemo } from "react";
 import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
 import { type NamespaceMember } from "@/hooks/useNamespaces";
-import Drawer from "@/components/common/Drawer";
-import { Button } from "@shellhub/design-system/primitives";
-import { RoleSelector } from "./constants";
-import { isAssignableRole, type AssignableRole } from "./helpers";
-
-/* ─── Edit Member Drawer ─── */
+import FormDrawer from "@/components/common/FormDrawer";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { FormRoleSelector } from "./constants";
+import {
+  editRoleSchema,
+  buildMemberRoleDefaults,
+  type EditRoleFormValues,
+} from "./schemas";
 
 function EditMemberDrawer({
   open,
@@ -21,56 +22,37 @@ function EditMemberDrawer({
   member: NamespaceMember | null;
 }) {
   const updateRole = useUpdateMemberRole();
-  const [role, setRole] = useState<AssignableRole>("operator");
-  const [submitting, setSubmitting] = useState(false);
+  const defaults = useMemo(() => buildMemberRoleDefaults(member), [member]);
+  const form = useDrawerForm(open, editRoleSchema, defaults);
 
-  useResetOnOpen(open, () => {
-    setRole(isAssignableRole(member?.role) ? member.role : "operator");
-    setSubmitting(false);
-  });
-
-  const handleSubmit = async () => {
+  const onValid = async (values: EditRoleFormValues) => {
     if (!member) return;
-    setSubmitting(true);
     try {
       await updateRole.mutateAsync({
         path: { tenant: tenantId, uid: member.id },
-        body: { role },
+        body: { role: values.role },
       });
       onClose();
     } catch {
-      /* */
-    } finally {
-      setSubmitting(false);
+      /* Role changes are low-stakes; surface nothing and let the user retry. */
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onValid}
       open={open}
       onClose={onClose}
       title="Edit Role"
+      submitLabel="Save Changes"
+      requireDirty
       subtitle={
         member ? <span className="font-mono">{member.email}</span> : undefined
       }
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={role === member?.role || submitting}
-            loading={submitting}
-          >
-            Save Changes
-          </Button>
-        </>
-      }
     >
-      <RoleSelector value={role} onChange={setRole} />
-    </Drawer>
+      <FormRoleSelector name="role" control={form.control} />
+    </FormDrawer>
   );
 }
 
