@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useForm, useController, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { MegaphoneIcon } from "@heroicons/react/24/outline";
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
 import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import InputField from "@/components/common/fields/InputField";
+import { FormInputField } from "@/components/common/fields/rhf";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Callout, Card } from "@shellhub/design-system/primitives";
-
-const TITLE_MAX = 90;
+import {
+  announcementSchema,
+  buildAnnouncementBody,
+  ANNOUNCEMENT_TITLE_MAX,
+  type AnnouncementFormValues,
+} from "./announcementSchema";
 
 export default function EditAnnouncement() {
   const { uuid } = useParams<{ uuid: string }>();
@@ -22,32 +28,45 @@ export default function EditAnnouncement() {
   } = useAdminAnnouncement(uuid ?? "");
   const updateAnnouncement = useAdminUpdateAnnouncement();
 
-  const [title, setTitle] = useState<string | null>(null);
-  const [content, setContent] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const values = useMemo<AnnouncementFormValues>(
+    () => ({
+      title: announcement?.title ?? "",
+      content: announcement?.content ?? "",
+    }),
+    [announcement],
+  );
 
-  // Use fetched data as defaults until user edits
-  const currentTitle = title ?? announcement?.title ?? "";
-  const currentContent = content ?? announcement?.content ?? "";
-  const titleTrimmed = currentTitle.trim();
-  const contentTrimmed = currentContent.trim();
+  const form = useForm<AnnouncementFormValues>({
+    mode: "onChange",
+    resolver: zodResolver(announcementSchema),
+    values,
+    resetOptions: { keepDirtyValues: true },
+  });
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { isValid, errors },
+  } = form;
 
-  const canSubmit =
-    titleTrimmed.length > 0 &&
-    titleTrimmed.length <= TITLE_MAX &&
-    contentTrimmed.length > 0;
+  const { field: contentField } = useController({ name: "content", control });
+  const title = useWatch({ control, name: "title" });
+  const titleLength = title.trim().length;
 
-  const handleSubmit = async () => {
-    if (!canSubmit || !uuid) return;
-    setError("");
+  const onValid = async (formValues: AnnouncementFormValues) => {
+    if (!uuid) return;
+    clearErrors("root");
     try {
       await updateAnnouncement.mutateAsync({
         path: { uuid },
-        body: { title: titleTrimmed, content: contentTrimmed },
+        body: buildAnnouncementBody(formValues),
       });
       void navigate(`/admin/announcements/${uuid}`);
     } catch {
-      setError("Failed to update announcement. Please try again.");
+      setError("root", {
+        message: "Failed to update announcement. Please try again.",
+      });
     }
   };
 
@@ -83,51 +102,44 @@ export default function EditAnnouncement() {
         ]}
       />
 
-      {/* Header */}
       <h1 className="text-xl font-semibold text-text-primary mb-6">
         Edit Announcement
       </h1>
 
-      {error && (
+      {errors.root && (
         <Callout variant="error" className="mb-4">
-          {error}
+          {errors.root.message}
         </Callout>
       )}
 
-      {/* Form */}
       <Card
         as="form"
-        onSubmit={(e: React.FormEvent) => {
-          e.preventDefault();
-          void handleSubmit();
-        }}
+        onSubmit={(e: React.FormEvent) => void handleSubmit(onValid)(e)}
         className="p-6 space-y-5"
       >
-        <InputField
+        <FormInputField
+          name="title"
+          control={control}
           id="announcement-title"
           label="Title"
           labelAdornment={
             <span className="ml-auto text-2xs font-mono text-text-muted">
-              {titleTrimmed.length}/{TITLE_MAX}
+              {titleLength}/{ANNOUNCEMENT_TITLE_MAX}
             </span>
           }
-          value={currentTitle}
-          onChange={setTitle}
           placeholder="Announcement title"
-          maxLength={TITLE_MAX}
+          maxLength={ANNOUNCEMENT_TITLE_MAX}
         />
 
-        {/* Content editor */}
         <div>
           <FieldLabel htmlFor="announcement-content-editor">Content</FieldLabel>
           <AnnouncementEditor
             key={announcement.uuid}
             content={announcement.content}
-            onChange={setContent}
+            onChange={contentField.onChange}
           />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             to={`/admin/announcements/${uuid}`}
@@ -138,7 +150,7 @@ export default function EditAnnouncement() {
           <Button
             type="submit"
             loading={updateAnnouncement.isPending}
-            disabled={!canSubmit || updateAnnouncement.isPending}
+            disabled={!isValid || updateAnnouncement.isPending}
           >
             Save
           </Button>

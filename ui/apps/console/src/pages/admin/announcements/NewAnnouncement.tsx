@@ -1,38 +1,51 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm, useController, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAdminCreateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import InputField from "@/components/common/fields/InputField";
+import { FormInputField } from "@/components/common/fields/rhf";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import { Button, Callout, Card } from "@shellhub/design-system/primitives";
-
-const TITLE_MAX = 90;
+import {
+  announcementSchema,
+  buildAnnouncementBody,
+  ANNOUNCEMENT_TITLE_MAX,
+  type AnnouncementFormValues,
+} from "./announcementSchema";
 
 export default function NewAnnouncement() {
   const navigate = useNavigate();
   const createAnnouncement = useAdminCreateAnnouncement();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [error, setError] = useState("");
 
-  const titleTrimmed = title.trim();
-  const contentTrimmed = content.trim();
-  const canSubmit =
-    titleTrimmed.length > 0 &&
-    titleTrimmed.length <= TITLE_MAX &&
-    contentTrimmed.length > 0;
+  const form = useForm<AnnouncementFormValues>({
+    mode: "onChange",
+    resolver: zodResolver(announcementSchema),
+    defaultValues: { title: "", content: "" },
+  });
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { isValid, errors },
+  } = form;
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-    setError("");
+  const { field: contentField } = useController({ name: "content", control });
+  const title = useWatch({ control, name: "title" });
+  const titleLength = title.trim().length;
+
+  const onValid = async (values: AnnouncementFormValues) => {
+    clearErrors("root");
     try {
       await createAnnouncement.mutateAsync({
-        body: { title: titleTrimmed, content: contentTrimmed },
+        body: buildAnnouncementBody(values),
       });
       void navigate("/admin/announcements");
     } catch {
-      setError("Failed to create announcement. Please try again.");
+      setError("root", {
+        message: "Failed to create announcement. Please try again.",
+      });
     }
   };
 
@@ -45,47 +58,40 @@ export default function NewAnnouncement() {
         ]}
       />
 
-      {/* Header */}
       <h1 className="text-xl font-semibold text-text-primary mb-6">
         Create Announcement
       </h1>
 
-      {error && (
+      {errors.root && (
         <Callout variant="error" className="mb-4">
-          {error}
+          {errors.root.message}
         </Callout>
       )}
 
-      {/* Form */}
       <Card
         as="form"
-        onSubmit={(e: React.FormEvent) => {
-          e.preventDefault();
-          void handleSubmit();
-        }}
+        onSubmit={(e: React.FormEvent) => void handleSubmit(onValid)(e)}
         className="p-6 space-y-5"
       >
-        <InputField
+        <FormInputField
+          name="title"
+          control={control}
           id="announcement-title"
           label="Title"
           labelAdornment={
             <span className="ml-auto text-2xs font-mono text-text-muted">
-              {titleTrimmed.length}/{TITLE_MAX}
+              {titleLength}/{ANNOUNCEMENT_TITLE_MAX}
             </span>
           }
-          value={title}
-          onChange={setTitle}
           placeholder="Announcement title"
-          maxLength={TITLE_MAX}
+          maxLength={ANNOUNCEMENT_TITLE_MAX}
         />
 
-        {/* Content editor */}
         <div>
           <FieldLabel htmlFor="announcement-content-editor">Content</FieldLabel>
-          <AnnouncementEditor content="" onChange={setContent} />
+          <AnnouncementEditor content="" onChange={contentField.onChange} />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             to="/admin/announcements"
@@ -96,7 +102,7 @@ export default function NewAnnouncement() {
           <Button
             type="submit"
             loading={createAnnouncement.isPending}
-            disabled={!canSubmit || createAnnouncement.isPending}
+            disabled={!isValid || createAnnouncement.isPending}
           >
             Create
           </Button>
