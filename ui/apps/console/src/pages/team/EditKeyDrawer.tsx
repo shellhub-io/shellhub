@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useMemo } from "react";
 import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
-import Drawer from "@/components/common/Drawer";
-import InputField from "@/components/common/fields/InputField";
-import { Button } from "@shellhub/design-system/primitives";
-import { RoleSelector } from "./constants";
-import { isAssignableRole, type AssignableRole } from "./helpers";
-
-/* ─── Edit API Key Drawer ─── */
+import FormDrawer from "@/components/common/FormDrawer";
+import { FormInputField } from "@/components/common/fields/rhf";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { FormRoleSelector } from "./constants";
+import {
+  editKeySchema,
+  buildEditKeyDefaults,
+  buildEditKeyBody,
+  type EditKeyFormValues,
+} from "./schemas";
 
 function EditKeyDrawer({
   open,
@@ -21,80 +22,45 @@ function EditKeyDrawer({
   apiKey: ApiKey | null;
 }) {
   const updateKey = useUpdateApiKey();
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<AssignableRole>("administrator");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const defaults = useMemo(() => buildEditKeyDefaults(apiKey), [apiKey]);
+  const form = useDrawerForm(open, editKeySchema, defaults);
+  const { control, setError, clearErrors } = form;
 
-  useResetOnOpen(open, () => {
-    setName(apiKey?.name ?? "");
-    setRole(isAssignableRole(apiKey?.role) ? apiKey.role : "administrator");
-    setSubmitting(false);
-    setError(null);
-  });
-
-  const handleSubmit = async () => {
-    if (!apiKey || !name.trim()) return;
-    setSubmitting(true);
-    setError(null);
+  const onValid = async (values: EditKeyFormValues) => {
+    if (!apiKey) return;
+    clearErrors("root");
     try {
       await updateKey.mutateAsync({
         path: { key: apiKey.name },
-        body: { name: name.trim(), role },
+        body: buildEditKeyBody(values),
       });
       onClose();
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update API key.",
-      );
-    } finally {
-      setSubmitting(false);
+      setError("root", {
+        message:
+          err instanceof Error ? err.message : "Failed to update API key.",
+      });
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onValid}
       open={open}
       onClose={onClose}
       title="Edit API Key"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!name.trim() || submitting}
-            loading={submitting}
-          >
-            Save Changes
-          </Button>
-        </>
-      }
+      submitLabel="Save Changes"
     >
-      <div className="space-y-5">
-        <InputField
-          id="edit-key-name"
-          label="Name"
-          value={name}
-          onChange={setName}
-          maxLength={20}
-
-        />
-        <RoleSelector value={role} onChange={setRole} />
-
-        {error && (
-          <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon
-              className="w-3.5 h-3.5 shrink-0"
-              strokeWidth={2}
-            />
-            {error}
-          </p>
-        )}
-      </div>
-    </Drawer>
+      <FormInputField
+        name="name"
+        control={control}
+        id="edit-key-name"
+        label="Name"
+        maxLength={20}
+      />
+      <FormRoleSelector name="role" control={control} />
+    </FormDrawer>
   );
 }
 

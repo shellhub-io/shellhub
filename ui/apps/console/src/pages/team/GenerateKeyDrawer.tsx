@@ -1,28 +1,27 @@
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { isSdkError } from "@/api/errors";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Card, Button } from "@shellhub/design-system/primitives";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useCreateApiKey } from "@/hooks/useApiKeyMutations";
-import { type ApiKeyCreate } from "@/client";
 import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
-import InputField from "@/components/common/fields/InputField";
-import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import {
+  FormInputField,
+  FormRadioGroupField,
+} from "@/components/common/fields/rhf";
+import FormRootError from "@/components/common/fields/FormRootError";
 import RadioPill from "@/components/common/fields/RadioPill";
-import { RoleSelector } from "./constants";
-import { EXPIRY_OPTIONS, type AssignableRole } from "./helpers";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { FormRoleSelector } from "./constants";
+import {
+  generateKeySchema,
+  GENERATE_KEY_DEFAULTS,
+  buildGenerateKeyBody,
+  type GenerateKeyFormValues,
+} from "./schemas";
+import { EXPIRY_OPTIONS } from "./helpers";
 import { LABEL } from "@/utils/styles";
-
-function validateName(value: string): string {
-  if (value.length < 3) return "Name must be at least 3 characters.";
-  if (value.length > 20) return "Name must be at most 20 characters.";
-  if (!/^[a-zA-Z0-9_-]+$/.test(value))
-    return "Name can only contain letters, numbers, - and _.";
-  return "";
-}
-
-/* --- Generate API Key Drawer --- */
 
 function GenerateKeyDrawer({
   open,
@@ -32,57 +31,37 @@ function GenerateKeyDrawer({
   onClose: () => void;
 }) {
   const createKey = useCreateApiKey();
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<AssignableRole>("administrator");
-  const [expiresIn, setExpiresIn] = useState<ApiKeyCreate["expires_at"]>(30);
-  const [submitting, setSubmitting] = useState(false);
-  const [nameError, setNameError] = useState("");
-  const [error, setError] = useState("");
+  const form = useDrawerForm(open, generateKeySchema, GENERATE_KEY_DEFAULTS);
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { isValid, isSubmitting, errors },
+  } = form;
+
   const [generatedKey, setGeneratedKey] = useState("");
 
-  useResetOnOpen(open, () => {
-    setName("");
-    setRole("administrator");
-    setExpiresIn(30);
-    setNameError("");
-    setError("");
-    setGeneratedKey("");
-  });
+  useResetOnOpen(open, () => setGeneratedKey(""));
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (nameError) setNameError(validateName(value.trim()));
-  };
-
-  const handleNameBlur = () => {
-    if (name) setNameError(validateName(name.trim()));
-  };
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    const validationError = validateName(name.trim());
-    if (validationError) {
-      setNameError(validationError);
-      return;
-    }
-    setSubmitting(true);
-    setNameError("");
-    setError("");
+  const onValid = async (values: GenerateKeyFormValues) => {
+    clearErrors("root");
     try {
       const result = await createKey.mutateAsync({
-        body: { name: name.trim(), role, expires_at: expiresIn },
+        body: buildGenerateKeyBody(values),
       });
       setGeneratedKey(result.id);
     } catch (err) {
       if (isSdkError(err) && err.status === 400) {
-        setNameError(
-          "Name must be 3–20 characters: letters, numbers, - and _ only.",
-        );
+        setError("name", {
+          message:
+            "Name must be 3–20 characters: letters, numbers, - and _ only.",
+        });
       } else {
-        setError("Failed to generate API key. The name may already exist.");
+        setError("root", {
+          message: "Failed to generate API key. The name may already exist.",
+        });
       }
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -103,9 +82,9 @@ function GenerateKeyDrawer({
             </Button>
             <Button
               variant="primary"
-              onClick={() => void handleSubmit()}
-              disabled={submitting || !!nameError || !name.trim()}
-              loading={submitting}
+              onClick={() => void handleSubmit(onValid)()}
+              disabled={!isValid || isSubmitting}
+              loading={isSubmitting}
               icon={<KeyIcon className="w-4 h-4" strokeWidth={2} />}
             >
               Generate Key
@@ -143,25 +122,23 @@ function GenerateKeyDrawer({
           </div>
         </div>
       ) : (
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          <InputField
+        <form
+          onSubmit={(e) => void handleSubmit(onValid)(e)}
+          className="space-y-5"
+        >
+          <FormInputField
+            name="name"
+            control={control}
             id="generate-key-name"
             label="Name"
-            value={name}
-            onChange={handleNameChange}
-            onBlur={handleNameBlur}
             placeholder="e.g. ci-pipeline"
-            error={nameError || undefined}
             maxLength={20}
-
           />
-          <RoleSelector value={role} onChange={setRole} />
-          <RadioGroupField
+          <FormRoleSelector name="role" control={control} />
+          <FormRadioGroupField
+            name="expiresIn"
+            control={control}
             label="Expiration"
-            value={String(expiresIn)}
-            onChange={(v) =>
-              setExpiresIn(Number(v) as ApiKeyCreate["expires_at"])
-            }
             containerClassName="flex flex-wrap gap-1.5"
           >
             {EXPIRY_OPTIONS.map((opt) => (
@@ -171,8 +148,8 @@ function GenerateKeyDrawer({
                 label={opt.label}
               />
             ))}
-          </RadioGroupField>
-          {error && <p className="text-2xs text-accent-red">{error}</p>}
+          </FormRadioGroupField>
+          <FormRootError message={errors.root?.message} />
         </form>
       )}
     </Drawer>
