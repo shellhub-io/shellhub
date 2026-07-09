@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   addNamespaceMemberMutation,
+  createUserActivationTokenMutation,
   removeNamespaceMemberMutation,
   updateNamespaceMemberMutation,
 } from "../client/@tanstack/react-query.gen";
@@ -28,4 +29,10 @@ export function useRemoveMember() {
     ...removeNamespaceMemberMutation(),
     onSuccess: invalidate,
   });
+}
+
+// Mints a one-time activation link token for a provisioned (not-confirmed)
+// account. No cache invalidation: it doesn't change the member list.
+export function useCreateActivationToken() {
+  return useMutation(createUserActivationTokenMutation());
 }

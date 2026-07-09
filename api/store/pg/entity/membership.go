@@ -46,6 +46,8 @@ func MembershipToModel(entity *Membership) *models.Member {
 
 	if entity.User != nil {
 		member.Email = entity.User.Email
+		member.AccountStatus = models.UserStatus(entity.User.Status)
+		member.AwaitingApproval = entity.User.AwaitingApproval
 	}
 
 	return member

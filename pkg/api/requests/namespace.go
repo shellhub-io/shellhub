@@ -64,6 +64,11 @@ type NamespaceAddMember struct {
 	TenantID     string          `param:"tenant" validate:"required,uuid"`
 	MemberEmail  string          `json:"email" validate:"required"`
 	MemberRole   authorizer.Role `json:"role" validate:"required,member_role"`
+	// MemberName and MemberUsername are only used when an admin provisions a brand-new
+	// account inline (the invited email has no account yet). They are ignored when the
+	// email already resolves to an existing user.
+	MemberName     string `json:"name" validate:"omitempty,name"`
+	MemberUsername string `json:"username" validate:"omitempty,username"`
 }
 
 type NamespaceUpdateMember struct {

@@ -79,7 +79,20 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 	} else {
 		passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, strings.ToLower(req.MemberEmail))
 		if err != nil {
-			return nil, NewErrUserNotFound(req.MemberEmail, err)
+			// The email has no account. Creating one is gated on the instance-admin flag,
+			// except on enterprise where a namespace admin may provision an account that a
+			// system admin then approves. Community keeps the "must already exist" dead end.
+			if !user.Admin && !nonAdminProvisioningAllowed() {
+				return nil, NewErrUserNotFound(req.MemberEmail, err)
+			}
+
+			if req.MemberName == "" || req.MemberUsername == "" {
+				return nil, NewErrNamespaceMemberProvisionProfile(nil)
+			}
+
+			// A non-admin's account is created awaiting approval (inert until an admin
+			// approves it); an admin's account is created ready (auto-approved).
+			return s.provisionNamespaceMember(ctx, req, !user.Admin)
 		}
 
 		if _, ok := namespace.FindMember(passiveUser.ID); ok {
@@ -93,6 +106,53 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}); err != nil {
 			return nil, err
 		}
+	}
+
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+}
+
+// provisionNamespaceMember creates a pending account for an as-yet-unregistered invitee and
+// attaches it to the namespace in a single transaction. The account is created not-confirmed
+// (the auth status gate blocks it from logging in) and without a password; it is completed
+// later when the invitee follows a set-password activation link. Used when an admin invites an
+// email with no account, or when the enterprise capability lets a namespace admin do so. When
+// awaitingApproval is true the account is inert until a system admin approves it (only an admin
+// can mint its activation link); an admin-created account is auto-approved (false).
+func (s *service) provisionNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember, awaitingApproval bool) (*models.Namespace, error) {
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		user := &models.User{
+			Origin: models.UserOriginLocal,
+			Status: models.UserStatusNotConfirmed,
+			UserData: models.UserData{
+				Name:     req.MemberName,
+				Username: strings.ToLower(req.MemberUsername),
+				Email:    strings.ToLower(req.MemberEmail),
+			},
+			MaxNamespaces:    0,
+			AwaitingApproval: awaitingApproval,
+			Preferences: models.UserPreferences{
+				AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+			},
+		}
+
+		insertedID, err := s.store.UserCreate(ctx, user)
+		if err != nil {
+			if errors.Is(err, store.ErrDuplicate) {
+				if field, ok := store.DuplicatedField(err); ok {
+					return NewErrUserDuplicated([]string{field}, err)
+				}
+
+				return NewErrUserUnhandledDuplicate()
+			}
+
+			return err
+		}
+
+		member := &models.Member{ID: insertedID, AddedAt: clock.Now(), Role: req.MemberRole}
+
+		return s.store.NamespaceCreateMembership(ctx, req.TenantID, member)
+	}); err != nil {
+		return nil, err
 	}
 
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
@@ -196,6 +256,13 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, err
 	}
 
+	if err := s.deleteOrphanedMemberAccount(ctx, passive.ID); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", req.TenantID).
+			WithField("user_id", passive.ID).
+			Warn("failed to clean up orphaned member account")
+	}
+
 	if err := s.AuthUncacheToken(ctx, req.TenantID, req.UserID); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
@@ -261,4 +328,38 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 	}
 
 	return nil
+}
+
+// deleteOrphanedMemberAccount deletes a user's account when removing this membership left
+// them with no namespace at all, but only on a single-namespace Community instance. There,
+// adding a member creates the account, so removing their last tie should reclaim it: an
+// account with no namespace can neither create one (the instance binding refuses it) nor
+// self-register, so it is dead weight.
+//
+// It is deliberately gated on the instance binding, not on the edition: multi-tenant
+// deployments (Cloud, Enterprise, and legacy Community instances never bound to a single
+// namespace) keep accounts that legitimately outlive a single membership, so there the
+// account is preserved and only the membership is detached. The remaining-namespace count
+// is the second guard, so a user still present in another namespace is never deleted, which
+// keeps legacy multi-namespace Community instances safe.
+func (s *service) deleteOrphanedMemberAccount(ctx context.Context, userID string) error {
+	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		return err
+	}
+
+	if system.InstanceTenantID == "" {
+		return nil
+	}
+
+	_, remaining, err := s.store.NamespaceList(ctx, s.store.Options().WithMember(userID))
+	if err != nil {
+		return err
+	}
+
+	if remaining > 0 {
+		return nil
+	}
+
+	return s.store.UserDelete(ctx, &models.User{ID: userID})
 }

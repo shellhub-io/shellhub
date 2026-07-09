@@ -26,6 +26,22 @@ type UserPasswordUpdate struct {
 	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
 }
 
+// CreateUserActivation is the request for minting an activation token for a provisioned
+// account. UserID is the actor (from the X-ID header, set by the gateway) and must belong to
+// an admin; ID is the target user the token is minted for.
+type CreateUserActivation struct {
+	UserParam
+	UserID string `header:"X-ID" validate:"required"`
+}
+
+// ActivateUser is the request body for completing a provisioned (not-confirmed) account: it
+// validates the one-time activation token and sets the user's initial password.
+type ActivateUser struct {
+	UserParam
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,password"`
+}
+
 // AuthLocalUser is the structure to represent the request body for the user auth endpoint.
 type AuthLocalUser struct {
 	// Identifier represents an username or email.

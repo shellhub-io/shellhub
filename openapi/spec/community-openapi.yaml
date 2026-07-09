@@ -86,6 +86,10 @@ paths:
     $ref: paths/api@users@{id}@data.yaml
   /api/users/{id}/password:
     $ref: paths/api@users@{id}@password.yaml
+  /api/users/{id}/activation:
+    $ref: paths/api@users@{id}@activation.yaml
+  /api/users/{id}/activate:
+    $ref: paths/api@users@{id}@activate.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/devices:

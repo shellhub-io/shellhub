@@ -5,7 +5,10 @@ import {
   getNamespaceOptions,
   getNamespaceTokenOptions,
 } from "../client/@tanstack/react-query.gen";
-import type { Namespace as GeneratedNamespace, NamespaceMemberRole } from "../client";
+import type {
+  Namespace as GeneratedNamespace,
+  NamespaceMemberRole,
+} from "../client";
 import { useAuthStore } from "../stores/authStore";
 
 export type Namespace = GeneratedNamespace & { type?: string };
@@ -16,6 +19,14 @@ export interface NamespaceMember {
   email: string;
   added_at?: string;
   status?: "accepted" | "pending";
+  /** Underlying user account status. "not-confirmed" means the member was
+   *  provisioned inline and still has to complete their account via an
+   *  activation link. Distinct from the cloud invitation `status` above. */
+  account_status?: "confirmed" | "not-confirmed";
+  /** True while a namespace admin provisioned the member but a system admin
+   *  has not approved the account yet. No activation link can be minted until
+   *  an admin approves. */
+  awaiting_approval?: boolean;
 }
 
 export function useNamespaces() {
@@ -49,7 +60,9 @@ export function useInitRole() {
 
   useEffect(() => {
     if (!data || !tenant) return;
-    useAuthStore.getState().setSession({ token: data.token, tenant, role: data.role });
+    useAuthStore
+      .getState()
+      .setSession({ token: data.token, tenant, role: data.role });
   }, [data, tenant]);
 }
 
@@ -60,7 +73,7 @@ export function useNamespace(tenantId: string) {
   });
 
   return {
-    namespace: (result.data ?? null),
+    namespace: result.data ?? null,
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

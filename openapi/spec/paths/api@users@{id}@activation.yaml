@@ -1,0 +1,43 @@
+post:
+  operationId: createUserActivationToken
+  summary: Create user activation token
+  description: |
+    Mints a one-time activation token for a provisioned (not-confirmed)
+    account so an admin can hand the user a set-password activation link out
+    of band, without depending on email. Admin only.
+  tags:
+    - community
+    - users
+  x-internal: true
+  security:
+    - jwt: []
+  parameters:
+    - name: id
+      description: User ID
+      schema:
+        type: string
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Activation token successfully created.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                description: The one-time activation token.
+                type: string
+              expires_at:
+                description: When the token expires (RFC3339).
+                type: string
+                format: date-time
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

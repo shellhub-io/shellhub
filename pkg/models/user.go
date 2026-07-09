@@ -77,6 +77,10 @@ type User struct {
 	Password    UserPassword
 	// Admin indicates whether the user has administrative privileges.
 	Admin bool `json:"admin"`
+	// AwaitingApproval marks a provisioned account that a namespace admin created but a system
+	// admin has not approved yet. While true the account is inert: only an admin can mint its
+	// activation link. It is set false when an admin creates the account directly or approves it.
+	AwaitingApproval bool `json:"awaiting_approval"`
 }
 
 type UserData struct {

@@ -14,6 +14,18 @@ vi.mock("@/hooks/useLoginAsUser", () => ({
   useLoginAsUser: vi.fn(),
 }));
 
+vi.mock("@/hooks/useAdminAccountRequests", () => ({
+  useAdminAccountRequests: () => ({ totalCount: 0 }),
+}));
+
+vi.mock("@/env", () => ({
+  getConfig: () => ({ enterprise: false, cloud: false }),
+}));
+
+vi.mock("../AccountRequestsTab", () => ({
+  default: () => null,
+}));
+
 vi.mock("./mocks", () => ({}));
 
 // Drawer/Dialog mocks — keep tests fast and focused
@@ -28,13 +40,8 @@ vi.mock("../EditUserDrawer", () => ({
 }));
 
 vi.mock("../DeleteUserDialog", () => ({
-  default: ({
-    open,
-  }: {
-    open: boolean;
-    user: unknown;
-    onClose: () => void;
-  }) => (open ? <div data-testid="delete-dialog" /> : null),
+  default: ({ open }: { open: boolean; user: unknown; onClose: () => void }) =>
+    open ? <div data-testid="delete-dialog" /> : null,
 }));
 
 const mockNavigate = vi.fn();
@@ -65,7 +72,9 @@ const defaultLoginAsState = {
   errorId: null as string | null,
 };
 
-function makeUser(overrides: Partial<UserAdminResponse> = {}): UserAdminResponse {
+function makeUser(
+  overrides: Partial<UserAdminResponse> = {},
+): UserAdminResponse {
   return {
     id: "user-id-1",
     name: "Alice Smith",
@@ -97,7 +106,9 @@ describe("AdminUsers", () => {
   describe("rendering", () => {
     it("renders the page heading", () => {
       renderPage();
-      expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Users" }),
+      ).toBeInTheDocument();
     });
 
     it("renders the search input with correct aria-label", () => {

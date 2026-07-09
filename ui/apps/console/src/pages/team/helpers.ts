@@ -17,14 +17,20 @@ export type AssignableRole = (typeof ROLES)[number];
  *  role) before feeding them into RoleSelector. */
 export function isAssignableRole(role: unknown): role is AssignableRole {
   return (
-    typeof role === "string" &&
-    (ROLES as readonly string[]).includes(role)
+    typeof role === "string" && (ROLES as readonly string[]).includes(role)
   );
 }
 
 export function isExpired(expiresIn: number): boolean {
   if (expiresIn <= 0) return false;
   return Date.now() > expiresIn * 1000;
+}
+
+/** Builds the public account-activation link an admin hands to a provisioned user. */
+export function buildActivationLink(userId: string, token: string): string {
+  return `${window.location.origin}/activate?id=${encodeURIComponent(
+    userId,
+  )}&token=${encodeURIComponent(token)}`;
 }
 
 export function initials(name: string | undefined) {

@@ -26,6 +26,23 @@ properties:
           type: string
           description: Member's email.
           example: john.doe@test.com
+        account_status:
+          type: string
+          enum:
+            - confirmed
+            - not-confirmed
+          description: >-
+            The member's underlying user account status. A not-confirmed
+            member was provisioned inline and still has to complete their
+            account through an activation link.
+          example: not-confirmed
+        awaiting_approval:
+          type: boolean
+          description: >-
+            True while a namespace admin provisioned the member but a system
+            admin has not approved the account yet. The activation link cannot
+            be minted until an admin approves.
+          example: true
   settings:
     type: object
     nullable: true

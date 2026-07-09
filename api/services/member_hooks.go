@@ -39,3 +39,20 @@ func fireMemberAdd(ctx context.Context, namespace *models.Namespace, req *reques
 
 	return nil
 }
+
+// nonAdminProvisioningEnabled reports whether a namespace admin who is not an instance admin
+// may provision a brand-new account by email. When enabled, such an add creates an account
+// awaiting a system admin's approval instead of returning a dead-end "user not found".
+// Enterprise turns this on at init; Community leaves it off (only instance admins provision).
+var nonAdminProvisioningEnabled bool
+
+// EnableNonAdminProvisioning turns on the enterprise capability that lets a namespace admin
+// provision an approval-pending account. It must be called during package init.
+func EnableNonAdminProvisioning() {
+	nonAdminProvisioningEnabled = true
+}
+
+// nonAdminProvisioningAllowed reports whether the non-admin provisioning capability is on.
+func nonAdminProvisioningAllowed() bool {
+	return nonAdminProvisioningEnabled
+}

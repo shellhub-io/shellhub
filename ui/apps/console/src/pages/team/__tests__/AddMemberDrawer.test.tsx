@@ -9,10 +9,15 @@ import AddMemberDrawer from "../AddMemberDrawer";
 /* ------------------------------------------------------------------ */
 
 const mockAddMemberMutateAsync = vi.fn();
+const mockCreateTokenMutateAsync = vi.fn();
 
 vi.mock("@/hooks/useMemberMutations", () => ({
   useAddMember: () => ({
     mutateAsync: mockAddMemberMutateAsync,
+    isPending: false,
+  }),
+  useCreateActivationToken: () => ({
+    mutateAsync: mockCreateTokenMutateAsync,
     isPending: false,
   }),
 }));
@@ -35,7 +40,9 @@ vi.mock("@/components/common/Drawer", () => ({
     return (
       <div role="dialog" aria-label={title}>
         <h2>{title}</h2>
-        <button type="button" onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
         {children}
         {footer ?? null}
       </div>
@@ -50,6 +57,7 @@ vi.mock("@/components/common/Drawer", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mockAddMemberMutateAsync.mockResolvedValue({});
+  mockCreateTokenMutateAsync.mockResolvedValue({ token: "tok" });
 });
 
 /* ================================================================== */

@@ -4,6 +4,7 @@ import {
   UserGroupIcon,
   PencilSquareIcon,
   TrashIcon,
+  LinkIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
@@ -16,6 +17,7 @@ import { RoleBadge } from "./constants";
 import { initials } from "./helpers";
 import AddMemberDrawer from "./AddMemberDrawer";
 import EditMemberDrawer from "./EditMemberDrawer";
+import ActivationLinkDialog from "./ActivationLinkDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
 // Cloud-only drawer — lazy so its transitive deps (CopyButton, isSdkError,
@@ -40,6 +42,8 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
   const [removeTarget, setRemoveTarget] = useState<NamespaceMember | null>(
     null,
   );
+  const [activationTarget, setActivationTarget] =
+    useState<NamespaceMember | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
   const closeRemove = () => {
@@ -90,6 +94,15 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
                   (you)
                 </span>
               )}
+              {m.awaiting_approval ? (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border bg-accent-blue/10 text-accent-blue border-accent-blue/20">
+                  Awaiting approval
+                </span>
+              ) : m.account_status === "not-confirmed" ? (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20">
+                  Pending activation
+                </span>
+              ) : null}
             </div>
           </div>
         );
@@ -109,6 +122,18 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
         if (isSelf) return null;
         return (
           <div className="flex items-center justify-end gap-1">
+            {m.account_status === "not-confirmed" && !m.awaiting_approval && (
+              <RestrictedAction action="namespace:addMember">
+                <IconButton
+                  variant="primary"
+                  title="Copy activation link"
+                  aria-label="Copy activation link"
+                  onClick={() => setActivationTarget(m)}
+                >
+                  <LinkIcon className="w-4 h-4" />
+                </IconButton>
+              </RestrictedAction>
+            )}
             <RestrictedAction action="namespace:editMember">
               <IconButton
                 variant="primary"
@@ -193,6 +218,12 @@ function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
         onClose={() => setEditTarget(null)}
         tenantId={tenantId}
         member={editTarget}
+      />
+      <ActivationLinkDialog
+        open={!!activationTarget}
+        onClose={() => setActivationTarget(null)}
+        userId={activationTarget?.id ?? ""}
+        email={activationTarget?.email ?? ""}
       />
       <ConfirmDialog
         open={!!removeTarget}

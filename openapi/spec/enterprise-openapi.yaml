@@ -152,6 +152,8 @@ paths:
     $ref: paths/admin@api@users@{id}.yaml
   /admin/api/users/{id}/password/reset:
     $ref: paths/admin@api@users@{id}@password@reset.yaml
+  /admin/api/users/{id}/approve:
+    $ref: paths/admin@api@users@{id}@approve.yaml
   /admin/api/stats:
     $ref: paths/admin@api@stats.yaml
   /admin/api/license:
