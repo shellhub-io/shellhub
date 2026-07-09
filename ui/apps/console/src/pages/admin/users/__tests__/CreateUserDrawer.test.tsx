@@ -13,13 +13,6 @@ vi.mock("@/components/common/Drawer", async () => ({
 
 const mockMutateAsync = vi.fn();
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useCreateUser).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
-});
-
 function renderDrawer(
   overrides: Partial<{ open: boolean; onClose: () => void }> = {},
 ) {
@@ -48,6 +41,13 @@ async function fillForm({
 }
 
 describe("CreateUserDrawer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useCreateUser).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+    } as never);
+  });
+
   describe("rendering — closed", () => {
     it("renders nothing when open is false", () => {
       renderDrawer({ open: false });
@@ -406,12 +406,12 @@ describe("CreateUserDrawer", () => {
     it("blocks submit when fields are non-empty but format is invalid", async () => {
       mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
-      // All fields non-empty (so isSubmittable=true, button enabled) but
-      // format-invalid. validateAll must block the mutation.
+      // All fields non-empty but format-invalid: the schema keeps the form
+      // invalid, so the submit button stays disabled and no mutation fires.
       await fillForm({ username: "Alice", email: "bad", password: "abc" });
 
       const submit = screen.getByRole("button", { name: /create user/i });
-      expect(submit).not.toBeDisabled();
+      expect(submit).toBeDisabled();
       await userEvent.click(submit);
 
       expect(mockMutateAsync).not.toHaveBeenCalled();
@@ -429,14 +429,15 @@ describe("CreateUserDrawer", () => {
       );
     });
 
-    it("clears the invalid state when the user edits the field again", async () => {
+    it("clears the invalid state when the user edits the field to a valid value", async () => {
       renderDrawer();
       const usernameInput = screen.getByLabelText(/^username$/i);
       await userEvent.type(usernameInput, "Alice");
       await userEvent.tab();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
 
-      await userEvent.type(usernameInput, "x");
+      await userEvent.clear(usernameInput);
+      await userEvent.type(usernameInput, "alice");
       expect(usernameInput).not.toHaveAttribute("aria-invalid");
     });
   });

@@ -1,55 +1,44 @@
-import NumericInput from "@/components/common/fields/NumericInput";
-import CheckboxField from "@/components/common/fields/CheckboxField";
-import { MAX_NAMESPACES_ERROR, isMaxNamespacesValid } from "@/utils/validation";
+import { useWatch, type Control } from "react-hook-form";
+import {
+  FormCheckboxField,
+  FormNumericInput,
+} from "@/components/common/fields/rhf";
+import type { UserFormValues } from "./userSchema";
 
 interface NamespaceLimitFieldsProps {
+  control: Control<UserFormValues>;
   idPrefix: string;
-  limitEnabled: boolean;
-  onLimitEnabledChange: (v: boolean) => void;
-  limitDisabled: boolean;
-  onLimitDisabledChange: (v: boolean) => void;
-  maxNamespaces: string;
-  onMaxNamespacesChange: (v: string) => void;
 }
 
 export default function NamespaceLimitFields({
+  control,
   idPrefix,
-  limitEnabled,
-  onLimitEnabledChange,
-  limitDisabled,
-  onLimitDisabledChange,
-  maxNamespaces,
-  onMaxNamespacesChange,
 }: NamespaceLimitFieldsProps) {
-  const valid = isMaxNamespacesValid(
-    limitEnabled,
-    limitDisabled,
-    maxNamespaces,
-  );
+  const limitEnabled = useWatch({ control, name: "limitEnabled" });
+  const limitDisabled = useWatch({ control, name: "limitDisabled" });
 
   return (
     <div className="space-y-3">
-      <CheckboxField
+      <FormCheckboxField
+        name="limitEnabled"
+        control={control}
         id={`${idPrefix}-limit-enabled`}
         label="Set namespace creation limit"
-        checked={limitEnabled}
-        onChange={onLimitEnabledChange}
       />
       {limitEnabled && (
         <div className="ml-6 space-y-3 animate-fade-in">
-          <CheckboxField
+          <FormCheckboxField
+            name="limitDisabled"
+            control={control}
             id={`${idPrefix}-limit-disabled`}
             label="Disable namespace creation"
-            checked={limitDisabled}
-            onChange={onLimitDisabledChange}
           />
           {!limitDisabled && (
-            <NumericInput
+            <FormNumericInput
+              name="maxNamespaces"
+              control={control}
               id={`${idPrefix}-max-ns`}
               label="Max namespaces"
-              value={maxNamespaces}
-              onChange={onMaxNamespacesChange}
-              error={valid ? undefined : MAX_NAMESPACES_ERROR}
             />
           )}
         </div>
