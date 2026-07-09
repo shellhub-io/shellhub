@@ -5,12 +5,16 @@ import {
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType, SVGProps } from "react";
+import {
+  useController,
+  type Control,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { Badge, type BadgeColor } from "@shellhub/design-system/primitives";
 import { ROLES, type AssignableRole } from "./helpers";
-
-/* ─── Constants ─── */
 
 /** Roles that map directly to a Badge palette color. */
 const ROLE_COLOR: Record<string, BadgeColor> = {
@@ -41,8 +45,6 @@ const ROLE_META: Record<
   },
 };
 
-/* ─── Expired Badge ─── */
-
 /** Small destructive badge shown next to expired API keys or invitations. */
 export function ExpiredBadge() {
   return (
@@ -52,8 +54,6 @@ export function ExpiredBadge() {
     </Badge>
   );
 }
-
-/* ─── Role Badge ─── */
 
 export function RoleBadge({ role }: { role: string }) {
   const color = ROLE_COLOR[role];
@@ -67,8 +67,6 @@ export function RoleBadge({ role }: { role: string }) {
   // observer and unknown roles use a neutral style not in the Badge palette
   return <span className={ROLE_NEUTRAL_STYLE}>{role}</span>;
 }
-
-/* ─── Role Selector ─── */
 
 export function RoleSelector({
   label = "Role",
@@ -95,5 +93,21 @@ export function RoleSelector({
         );
       })}
     </RadioGroupField>
+  );
+}
+
+/** React Hook Form binding for {@link RoleSelector}. */
+export function FormRoleSelector<T extends FieldValues>({
+  control,
+  name,
+  label,
+}: {
+  control: Control<T>;
+  name: Path<T>;
+  label?: string;
+}) {
+  const { field } = useController({ name, control });
+  return (
+    <RoleSelector label={label} value={field.value} onChange={field.onChange} />
   );
 }

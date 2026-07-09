@@ -1,20 +1,24 @@
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useWatch } from "react-hook-form";
 import { Card, Button } from "@shellhub/design-system/primitives";
-import {
-  InformationCircleIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationMutations";
 import Drawer from "@/components/common/Drawer";
 import CopyButton from "@/components/common/CopyButton";
-import InputField from "@/components/common/fields/InputField";
+import { FormInputField } from "@/components/common/fields/rhf";
+import FormRootError from "@/components/common/fields/FormRootError";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { getConfig } from "@/env";
-import { RoleSelector } from "./constants";
-import { type AssignableRole } from "./helpers";
+import { FormRoleSelector } from "./constants";
+import {
+  addMemberSchema,
+  ADD_MEMBER_DEFAULTS,
+  buildAddMemberBody,
+  type AddMemberFormValues,
+} from "./schemas";
 import { LABEL } from "@/utils/styles";
-import { EMAIL_REGEX } from "@/utils/validation";
 
 interface AddMemberDrawerProps {
   open: boolean;
@@ -24,78 +28,59 @@ interface AddMemberDrawerProps {
 
 function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
   const generateLink = useGenerateInvitationLink();
-  // Cloud also emails the invitee (it has SMTP); the admin gets the link back either way.
   const emailDelivery = getConfig().cloud;
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<AssignableRole>("operator");
-  const [submitting, setSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState("");
-  const [error, setError] = useState("");
+  const form = useDrawerForm(open, addMemberSchema, ADD_MEMBER_DEFAULTS);
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { isValid, isSubmitting, errors },
+  } = form;
+
+  const email = useWatch({ control, name: "email" });
+  const role = useWatch({ control, name: "role" });
+  const trimmedEmail = (email ?? "").trim();
+
   const [generatedLink, setGeneratedLink] = useState("");
-  // Enterprise adds an existing account directly (no link). We show a confirmation
-  // instead of the link card in that case.
   const [addedDirectly, setAddedDirectly] = useState(false);
 
   useResetOnOpen(open, () => {
-    setEmail("");
-    setRole("operator");
-    setSubmitting(false);
-    setEmailError("");
-    setError("");
     setGeneratedLink("");
     setAddedDirectly(false);
   });
 
-  const handleClose = () => {
-    onClose();
-  };
-
-  const trimmedEmail = email.trim();
-  const emailValid = EMAIL_REGEX.test(trimmedEmail);
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!emailValid) {
-      setEmailError("Enter a valid email address.");
-      return;
-    }
-    setSubmitting(true);
-    setEmailError("");
-    setError("");
+  const onValid = async (values: AddMemberFormValues) => {
+    clearErrors("root");
     try {
       const result = await generateLink.mutateAsync({
         path: { tenant: tenantId },
-        body: { email: trimmedEmail, role },
+        body: buildAddMemberBody(values),
       });
-      // An empty link means the account existed and was added directly (enterprise).
       const link = result.link ?? "";
       if (link) setGeneratedLink(link);
       else setAddedDirectly(true);
     } catch (err) {
-      if (isSdkError(err)) {
-        switch (err.status) {
-          case 400:
-            setEmailError("Invalid email or role.");
-            break;
-          case 403:
-            setError("You don't have permission to invite members.");
-            break;
-          case 404:
-            setEmailError("No account exists for this email.");
-            break;
-          case 409:
-            setEmailError(
-              "This user is already a member or has a pending invitation.",
-            );
-            break;
-          default:
-            setError("Failed to send invitation. Please try again.");
-        }
-      } else {
-        setError("Failed to send invitation. Please try again.");
+      const defaultMessage = "Failed to send invitation. Please try again.";
+
+      if (!isSdkError(err)) {
+        setError("root", { message: defaultMessage });
+        return;
       }
-    } finally {
-      setSubmitting(false);
+
+      const sdkErrorHandlers: Partial<Record<number, { name: "email" | "root"; message: string }>> = {
+        400: { name: "email", message: "Invalid email or role." },
+        403: { name: "root", message: "You don't have permission to invite members." },
+        404: { name: "email", message: "No account exists for this email." },
+        409: { name: "email", message: "This user is already a member or has a pending invitation." },
+      };
+
+      const sdkError = sdkErrorHandlers[err.status] ?? {
+        name: "root",
+        message: defaultMessage,
+      };
+
+      setError(sdkError.name, { message: sdkError.message });
     }
   };
 
@@ -104,7 +89,7 @@ function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
   return (
     <Drawer
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       title={
         addedDirectly ? "Member Added" : done ? "Invitation Link" : "Add Member"
       }
@@ -113,21 +98,19 @@ function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
       }
       footer={
         done ? (
-          <Button variant="primary" onClick={handleClose}>
+          <Button variant="primary" onClick={onClose}>
             Done
           </Button>
         ) : (
           <>
-            <Button variant="ghost" onClick={handleClose}>
+            <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            {/* The label stays neutral: we don't know upfront whether this becomes a
-                direct add or an invitation — the result screen reveals which. */}
             <Button
               variant="primary"
-              onClick={() => void handleSubmit()}
-              disabled={!emailValid || submitting}
-              loading={submitting}
+              onClick={() => void handleSubmit(onValid)()}
+              disabled={!isValid || isSubmitting}
+              loading={isSubmitting}
             >
               Add Member
             </Button>
@@ -148,11 +131,11 @@ function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
       ) : done ? (
         <div className="space-y-3">
           <div>
-            <span id="invitation-link-label" className={LABEL}>
+            <span id="add-member-link-label" className={LABEL}>
               Invitation link
             </span>
             <Card
-              aria-labelledby="invitation-link-label"
+              aria-labelledby="add-member-link-label"
               className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
             >
               <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
@@ -184,31 +167,22 @@ function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
           </p>
         </div>
       ) : (
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          <InputField
-            id="invitation-email"
+        <form
+          onSubmit={(e) => void handleSubmit(onValid)(e)}
+          className="space-y-5"
+        >
+          <FormInputField
+            name="email"
+            control={control}
+            id="add-member-email"
             label="Email"
             type="email"
-            value={email}
-            onChange={(v) => {
-              setEmail(v);
-              if (emailError) setEmailError("");
-            }}
             placeholder="user@example.com"
-            error={emailError || undefined}
           />
 
-          <RoleSelector value={role} onChange={setRole} />
+          <FormRoleSelector name="role" control={control} />
 
-          {error && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red"
-            >
-              <InformationCircleIcon className="w-4 h-4 shrink-0 mt-px" />
-              <span>{error}</span>
-            </div>
-          )}
+          <FormRootError message={errors.root?.message} />
         </form>
       )}
     </Drawer>
