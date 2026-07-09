@@ -1,18 +1,24 @@
-import { useState, FormEvent } from "react";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { useWatch, useController } from "react-hook-form";
 import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
 import {
   validatePrivateKey,
   getFingerprint,
   getAlgorithm,
 } from "@/utils/sshKeys";
-import Drawer from "@/components/common/Drawer";
+import FormDrawer from "@/components/common/FormDrawer";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
+import {
+  FormInputField,
+  FormPasswordField,
+} from "@/components/common/fields/rhf";
 import type { VaultKeyEntry } from "@/types/vault";
-import { Button } from "@shellhub/design-system/primitives";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
+import {
+  vaultKeySchema,
+  buildVaultKeyDefaults,
+  buildVaultKeyPayload,
+  type VaultKeyFormValues,
+} from "./vaultKeySchema";
 
 interface Props {
   open: boolean;
@@ -25,211 +31,132 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
   const updateKey = useVaultStore((s) => s.updateKey);
   const isEdit = !!editKey;
 
-  const [name, setName] = useState("");
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [keyData, setKeyData] = useState("");
-  const [encrypted, setEncrypted] = useState(false);
-  const [passphrase, setPassphrase] = useState("");
-  const [keyError, setKeyError] = useState<string | null>(null);
-  const [passphraseError, setPassphraseError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const form = useDrawerForm(
+    open,
+    vaultKeySchema,
+    buildVaultKeyDefaults(editKey),
+  );
+  const { control, setError, setValue, getValues } = form;
 
-  useResetOnOpen(open, () => {
-    setName(editKey?.name ?? "");
-    setNameError(null);
-    setKeyData(editKey?.data ?? "");
-    setEncrypted(editKey?.hasPassphrase ?? false);
-    setPassphrase("");
-    setKeyError(null);
-    setPassphraseError(null);
-    setSubmitting(false);
-    setError(null);
-  });
+  const encrypted = useWatch({ control, name: "encrypted" });
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (nameError) setNameError(null);
-  };
+  const {
+    field: dataField,
+    fieldState: { error: dataError },
+  } = useController({ name: "data", control });
 
   const handleKeyChange = (pem: string) => {
-    setKeyData(pem);
-    setPassphrase("");
-    setPassphraseError(null);
-
-    if (!pem.trim()) {
-      setKeyError(null);
-      setEncrypted(false);
-      return;
-    }
-
-    const result = validatePrivateKey(pem.trim());
-    if (!result.valid) {
-      setKeyError(result.error);
-      setEncrypted(false);
-      return;
-    }
-
-    setKeyError(null);
-    setEncrypted(result.encrypted);
+    dataField.onChange(pem);
+    const trimmed = pem.trim();
+    const result = trimmed ? validatePrivateKey(trimmed) : null;
+    setValue("encrypted", !!result?.valid && !!result.encrypted, {
+      shouldValidate: true,
+    });
+    setValue("passphrase", "", { shouldValidate: true });
   };
 
   const handleFileName = (fileName: string) => {
-    if (!name) setName(fileName);
+    if (!getValues("name"))
+      setValue("name", fileName, { shouldValidate: true });
   };
 
   const validateForPaste = (text: string) =>
     validatePrivateKey(text.trim()).valid;
 
-  const handlePassphraseChange = (value: string) => {
-    setPassphrase(value);
-    if (passphraseError) setPassphraseError(null);
-  };
-
-  const canSubmit =
-    name.trim() &&
-    !nameError &&
-    keyData.trim() &&
-    !keyError &&
-    (!encrypted || passphrase.trim()) &&
-    !passphraseError &&
-    !submitting;
-
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!canSubmit) return;
+  const onSubmit = async (values: VaultKeyFormValues) => {
+    const data = values.data.trim();
+    const passphrase = values.encrypted ? values.passphrase : undefined;
 
     let fingerprint: string;
     let algorithm: string;
     try {
-      const pp = encrypted ? passphrase : undefined;
-      fingerprint = getFingerprint(keyData.trim(), pp);
-      algorithm = getAlgorithm(keyData.trim(), pp);
+      fingerprint = getFingerprint(data, passphrase);
+      algorithm = getAlgorithm(data, passphrase);
     } catch (err) {
-      if (encrypted) {
+      if (values.encrypted) {
         const errName = err instanceof Error ? err.name : undefined;
-        if (errName === "KeyParseError") {
-          setPassphraseError("Incorrect passphrase");
-        } else {
-          setPassphraseError("Could not decrypt key with this passphrase");
-        }
+        setError("passphrase", {
+          message:
+            errName === "KeyParseError"
+              ? "Incorrect passphrase"
+              : "Could not decrypt key with this passphrase",
+        });
       } else {
-        setKeyError("Failed to read private key");
+        setError("data", { message: "Failed to read private key" });
       }
       return;
     }
 
-    setError(null);
-    setSubmitting(true);
     try {
+      const payload = buildVaultKeyPayload(values, fingerprint, algorithm);
       if (isEdit && editKey) {
-        await updateKey(editKey.id, {
-          name: name.trim(),
-          data: keyData.trim(),
-          hasPassphrase: encrypted,
-          fingerprint,
-          algorithm,
-        });
+        await updateKey(editKey.id, payload);
       } else {
-        await addKey({
-          name: name.trim(),
-          data: keyData.trim(),
-          hasPassphrase: encrypted,
-          fingerprint,
-          algorithm,
-        });
+        await addKey(payload);
       }
       onClose();
     } catch (err: unknown) {
       if (err instanceof DuplicateKeyError) {
         if (err.field === "both" || err.field === "name") {
-          setNameError("Name is already used");
+          setError("name", { message: "Name is already used" });
         }
         if (err.field === "both" || err.field === "private_key") {
-          setKeyError("Private key is already stored");
+          setError("data", { message: "Private key is already stored" });
         }
       } else {
         const msg = err instanceof Error ? err.message : "";
-        setError(msg || `Failed to ${isEdit ? "update" : "add"} key`);
+        setError("root", {
+          message: msg || `Failed to ${isEdit ? "update" : "add"} key`,
+        });
       }
-    } finally {
-      setSubmitting(false);
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onSubmit}
       open={open}
       onClose={onClose}
       title={isEdit ? "Edit Private Key" : "Add Private Key"}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={() => void handleSubmit()}
-            disabled={!canSubmit}
-            loading={submitting}
-          >
-            {submitting ? "Saving..." : isEdit ? "Save Changes" : "Add Key"}
-          </Button>
-        </>
-      }
+      submitLabel={isEdit ? "Save Changes" : "Add Key"}
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
-          id="key-name"
-          label="Name"
-          value={name}
-          onChange={handleNameChange}
-          maxLength={255}
-          placeholder="e.g. Production Server"
+      <FormInputField
+        name="name"
+        control={control}
+        id="key-name"
+        label="Name"
+        maxLength={255}
+        placeholder="e.g. Production Server"
+      />
 
-          error={nameError ?? undefined}
+      <KeyFileInput
+        label="Private Key"
+        id="key-data"
+        value={dataField.value}
+        onChange={handleKeyChange}
+        validate={validateForPaste}
+        onFileName={handleFileName}
+        disabled={isEdit}
+        error={dataError?.message}
+        placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
+        rows={8}
+        hint="RSA, DSA, ECDSA, ED25519 — PEM and OpenSSH formats."
+        loadedLabel={`Key loaded${encrypted ? " (encrypted)" : ""}`}
+        emptyLabel="Drop private key file, paste, or browse"
+      />
+
+      {encrypted && (
+        <FormPasswordField
+          name="passphrase"
+          control={control}
+          id="key-passphrase"
+          label="Passphrase"
+          placeholder="Enter passphrase for encrypted key"
+          autoComplete="off"
+          hint="This key is encrypted. The passphrase is not stored."
         />
-
-        <KeyFileInput
-          label="Private Key"
-          id="key-data"
-          value={keyData}
-          onChange={handleKeyChange}
-          validate={validateForPaste}
-          onFileName={handleFileName}
-          disabled={isEdit}
-          error={keyError}
-          placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
-          rows={8}
-          hint="RSA, DSA, ECDSA, ED25519 — PEM and OpenSSH formats."
-          loadedLabel={`Key loaded${encrypted ? " (encrypted)" : ""}`}
-          emptyLabel="Drop private key file, paste, or browse"
-        />
-
-        {encrypted && (
-          <PasswordField
-            id="key-passphrase"
-            label="Passphrase"
-            value={passphrase}
-            onChange={handlePassphraseChange}
-            placeholder="Enter passphrase for encrypted key"
-            autoComplete="off"
-            error={passphraseError ?? undefined}
-            hint="This key is encrypted. The passphrase is not stored."
-          />
-        )}
-
-        {error && (
-          <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon
-              className="w-3.5 h-3.5 shrink-0"
-              strokeWidth={2}
-            />
-            {error}
-          </p>
-        )}
-      </form>
-    </Drawer>
+      )}
+    </FormDrawer>
   );
 }
