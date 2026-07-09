@@ -31,14 +31,6 @@ const confirmedUser: UserAdminResponse = {
   status: "confirmed",
 };
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useUpdateUser).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
-  useAuthStore.setState({ username: "admin" } as never);
-});
-
 function renderDrawer(
   overrides: Partial<{
     open: boolean;
@@ -52,6 +44,14 @@ function renderDrawer(
 }
 
 describe("EditUserDrawer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useUpdateUser).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+    } as never);
+    useAuthStore.setState({ username: "admin" } as never);
+  });
+
   describe("rendering — closed", () => {
     it("renders nothing when open is false", () => {
       renderDrawer({ open: false });
@@ -135,11 +135,13 @@ describe("EditUserDrawer", () => {
   });
 
   describe("form enabling", () => {
-    it("submit button is enabled when all required fields are filled", () => {
+    it("submit button is enabled when all required fields are filled", async () => {
       renderDrawer();
-      expect(
-        screen.getByRole("button", { name: /save changes/i }),
-      ).not.toBeDisabled();
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: /save changes/i }),
+        ).not.toBeDisabled(),
+      );
     });
 
     it("disables submit button when name is cleared", async () => {

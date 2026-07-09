@@ -1,12 +1,16 @@
-import { useState, type FormEvent } from "react";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useMemo } from "react";
 import { useUpdateUser } from "@/hooks/useAdminUserMutations";
 import { useAuthStore } from "@/stores/authStore";
 import { isSdkError } from "@/api/errors";
-import Drawer from "@/components/common/Drawer";
-import { Button } from "@shellhub/design-system/primitives";
+import FormDrawer from "@/components/common/FormDrawer";
+import { useDrawerForm } from "@/hooks/useDrawerForm";
 import UserFormFields from "./UserFormFields";
-import { useUserForm } from "./useUserForm";
+import {
+  userSchema,
+  buildUserDefaults,
+  buildUserPayload,
+  type UserFormValues,
+} from "./userSchema";
 import type { UserAdminResponse } from "@/client";
 
 interface EditUserDrawerProps {
@@ -22,79 +26,54 @@ export default function EditUserDrawer({
 }: EditUserDrawerProps) {
   const updateUser = useUpdateUser();
   const currentUsername = useAuthStore((s) => s.username);
-  const form = useUserForm({ mode: "edit" });
-  const [submitError, setSubmitError] = useState("");
 
-  useResetOnOpen(open, () => {
-    form.reset(user);
-    setSubmitError("");
-  });
+  const schema = useMemo(() => userSchema("edit"), []);
+  const defaults = useMemo(() => buildUserDefaults(user), [user]);
+
+  const form = useDrawerForm(open, schema, defaults);
+  const { control, setError, clearErrors } = form;
 
   const isSelf = user?.username === currentUsername;
   const canChangeConfirmed = user?.status !== "confirmed";
   const disableAdmin = !!user?.admin && isSelf;
 
-  const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!user || !form.validateAll()) return;
-    setSubmitError("");
+  const onValid = async (values: UserFormValues) => {
+    if (!user) return;
+    clearErrors("root");
     try {
       await updateUser.mutateAsync({
         path: { id: user.id },
-        body: form.buildPayload(user),
+        body: buildUserPayload("edit", values, user),
       });
       onClose();
     } catch (err) {
-      if (isSdkError(err) && err.status === 409) {
-        setSubmitError("A user with this email or username already exists.");
-      } else {
-        setSubmitError("Failed to update user. Please try again.");
-      }
+      const message = isSdkError(err) && err.status === 409
+        ? "A user with this email or username already exists."
+        : "Failed to update user. Please try again.";
+
+      setError("root", { message });
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      form={form}
+      onSubmit={onValid}
       open={open}
       onClose={onClose}
       title="Edit User"
+      submitLabel="Save Changes"
       subtitle={
         user ? <span className="font-mono">{user.username}</span> : undefined
       }
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!form.isSubmittable || updateUser.isPending}
-            loading={updateUser.isPending}
-          >
-            Save Changes
-          </Button>
-        </>
-      }
     >
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        className="space-y-5"
-        noValidate
-      >
-        <UserFormFields
-          form={form}
-          idPrefix="edit-user"
-
-          canChangeConfirmed={canChangeConfirmed}
-          disableAdmin={disableAdmin}
-        />
-        {submitError && (
-          <p role="alert" className="text-2xs text-accent-red">
-            {submitError}
-          </p>
-        )}
-      </form>
-    </Drawer>
+      <UserFormFields
+        control={control}
+        mode="edit"
+        idPrefix="edit-user"
+        canChangeConfirmed={canChangeConfirmed}
+        disableAdmin={disableAdmin}
+      />
+    </FormDrawer>
   );
 }
