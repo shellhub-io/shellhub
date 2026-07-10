@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -110,7 +111,7 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 		}
 	}
 
-	code, err := newPairingCode()
+	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func (s *service) PrepareDevicePairing(ctx context.Context, userID, tenantID str
 		return nil, NewErrRoleForbidden()
 	}
 
-	code, err := newPairingCode()
+	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +197,8 @@ func (s *service) PrepareDevicePairing(ctx context.Context, userID, tenantID str
 // code itself is the authorization (a member with the accept permission minted
 // it), so there is no user session to check here.
 func (s *service) claimDevicePairing(ctx context.Context, req *requests.DevicePairingCreate) (*models.DevicePairing, error) {
-	code := normalizePairingCode(req.Code)
-	if !isValidPairingCode(code) {
+	code := pairingcode.Normalize(req.Code)
+	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
 		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 
@@ -296,7 +297,7 @@ func hashPublicKey(publicKey string) string {
 }
 
 func (s *service) GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
-	code = normalizePairingCode(code)
+	code = pairingcode.Normalize(code)
 
 	pairing := new(devicePairing)
 	// NOTE: A cache miss is not an error; it leaves the value untouched. A code
@@ -317,8 +318,8 @@ func (s *service) GetDevicePairingStatus(ctx context.Context, code string) (*mod
 }
 
 func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error) {
-	code := normalizePairingCode(req.Code)
-	if !isValidPairingCode(code) {
+	code := pairingcode.Normalize(req.Code)
+	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
 		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 

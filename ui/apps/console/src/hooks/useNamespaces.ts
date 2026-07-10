@@ -4,10 +4,12 @@ import {
   getNamespacesOptions,
   getNamespaceOptions,
   getNamespaceTokenOptions,
+  listNamespaceMembersOptions,
 } from "../client/@tanstack/react-query.gen";
 import type {
   Namespace as GeneratedNamespace,
   NamespaceMemberRole,
+  MemberView,
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
 
@@ -19,13 +21,12 @@ export interface NamespaceMember {
   email: string;
   added_at?: string;
   status?: "accepted" | "pending";
-  /** Underlying user account status. "not-confirmed" means the member was
-   *  provisioned inline and still has to complete their account via an
-   *  activation link. Distinct from the cloud invitation `status` above. */
+  /** Underlying user account status. "not-confirmed" means the invitee hasn't
+   *  finished setting up their account yet. Distinct from the invitation
+   *  `status` above. */
   account_status?: "confirmed" | "not-confirmed";
-  /** True while a namespace admin provisioned the member but a system admin
-   *  has not approved the account yet. No activation link can be minted until
-   *  an admin approves. */
+  /** Enterprise only: true while a namespace admin provisioned the account but
+   *  a system admin hasn't approved it. The account can't sign in until then. */
   awaiting_approval?: boolean;
 }
 
@@ -74,6 +75,29 @@ export function useNamespace(tenantId: string) {
 
   return {
     namespace: result.data ?? null,
+    isLoading: result.isLoading,
+    error: result.error,
+    refetch: result.refetch,
+  };
+}
+
+/**
+ * Lists a namespace's members with their full identity (name, username, email)
+ * and a flattened account status. Backs the members table; the (cloud/enterprise)
+ * pending invitations are fetched separately and merged in the component.
+ * Member lists are small, so a single large page is fetched (no pagination UI).
+ */
+export function useNamespaceMembers(tenantId: string) {
+  const result = useQuery({
+    ...listNamespaceMembersOptions({
+      path: { tenant: tenantId },
+      query: { page: 1, per_page: 100 },
+    }),
+    enabled: !!tenantId,
+  });
+
+  return {
+    members: (result.data ?? []) as MemberView[],
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

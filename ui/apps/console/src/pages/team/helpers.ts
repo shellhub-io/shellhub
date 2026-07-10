@@ -26,13 +26,6 @@ export function isExpired(expiresIn: number): boolean {
   return Date.now() > expiresIn * 1000;
 }
 
-/** Builds the public account-activation link an admin hands to a provisioned user. */
-export function buildActivationLink(userId: string, token: string): string {
-  return `${window.location.origin}/activate?id=${encodeURIComponent(
-    userId,
-  )}&token=${encodeURIComponent(token)}`;
-}
-
 export function initials(name: string | undefined) {
   if (!name) return "?";
   return name

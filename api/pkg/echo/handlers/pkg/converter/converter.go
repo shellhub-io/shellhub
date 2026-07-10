@@ -26,6 +26,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusUnauthorized
 	case services.ErrCodeForbidden:
 		return http.StatusForbidden
+	case services.ErrCodeLocked:
+		return http.StatusLocked
 	case services.ErrCodeNoContentChange:
 		return http.StatusNoContent
 	case services.ErrCodeConflict:

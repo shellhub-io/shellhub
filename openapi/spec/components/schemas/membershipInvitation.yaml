@@ -63,6 +63,12 @@ properties:
     format: date-time
   role:
     $ref: ./namespaceMemberRole.yaml
+  invite_url:
+    description: >-
+      The reconstructed accept-invite link, present only while the invitation is
+      pending. Lets the UI copy the link without minting a new one.
+    type: string
+    example: 'http://localhost/accept-invite?invite=PS26HDMM5S2D'
 required:
   - namespace
   - user

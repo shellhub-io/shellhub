@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { useForm } from "react-hook-form";
 import { signUpResolver } from "./setup/signUpResolver";
@@ -30,7 +30,6 @@ const SERVER_FIELD_MESSAGES: Record<string, string> = {
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const signUp = useSignUpStore((s) => s.signUp);
   const signUpLoading = useSignUpStore((s) => s.signUpLoading);
   const signUpError = useSignUpStore((s) => s.signUpError);
@@ -44,10 +43,6 @@ export default function SignUp() {
     resetSignUpErrors();
   }, [resetSignUpErrors]);
 
-  const emailFromQuery = searchParams.get("email") ?? "";
-  const sigFromQuery = searchParams.get("sig") ?? "";
-  const isInvite = Boolean(emailFromQuery && sigFromQuery);
-
   // acceptMarketing is optional and not part of the validated form values
   const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [accountCreated, setAccountCreated] = useState(false);
@@ -59,7 +54,7 @@ export default function SignUp() {
       defaultValues: {
         name: "",
         username: "",
-        email: emailFromQuery,
+        email: "",
         password: "",
         confirmPassword: "",
         acceptPrivacyPolicy: false,
@@ -90,7 +85,6 @@ export default function SignUp() {
       username: values.username,
       password: values.password,
       email_marketing: acceptMarketing,
-      ...(sigFromQuery ? { sig: sigFromQuery } : {}),
     });
 
     // signUp absorbed any errors into the store; bail out if errors were set
@@ -147,14 +141,6 @@ export default function SignUp() {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
-        {/* Invite alert */}
-        {isInvite && (
-          <Callout variant="warning">
-            Please create your account before accepting the namespace
-            invitation.
-          </Callout>
-        )}
-
         {/* Form card */}
         <div
           className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
@@ -199,7 +185,6 @@ export default function SignUp() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
-              disabled={isInvite}
               onValueChange={() => clearSignUpServerField("email")}
             />
 

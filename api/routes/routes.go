@@ -141,11 +141,16 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
 	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
 
-	// Account activation for admin-provisioned members: the admin mints a one-time link
-	// (admin-gated) and the invitee completes their account by setting a password (public,
-	// the token is the credential).
-	publicAPI.POST(URLCreateUserActivationToken, gateway.Handler(handler.CreateUserActivationToken), routesmiddleware.BlockAPIKey)
-	publicAPI.POST(URLActivateUser, gateway.Handler(handler.ActivateUser))
+	// Membership invitations — one flow for every edition. RegisterUser is here because it's how
+	// an invitee completes their account (createInvitedUser); the invite-code resolve is public
+	// (the code is the credential). Email delivery and the approval gate are edition add-ons.
+	publicAPI.POST(RegisterUserURL, gateway.Handler(handler.RegisterUser))
+	publicAPI.GET(URLResolveInvitation, gateway.Handler(handler.ResolveInvitation))
+	publicAPI.POST(URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
+	publicAPI.PATCH(URLAcceptInvite, gateway.Handler(handler.AcceptInvite), routesmiddleware.BlockAPIKey)
+	publicAPI.GET(URLUserMembershipInvitationList, gateway.Handler(handler.GetUserMembershipInvitationList))
+	publicAPI.GET(URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
+	publicAPI.DELETE(URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
 
 	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
 	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
@@ -211,6 +216,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
 	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceDelete))
 
+	publicAPI.GET(ListNamespaceMembersURL, gateway.Handler(handler.ListNamespaceMembers), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
 	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
 	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
 	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))

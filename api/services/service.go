@@ -38,6 +38,7 @@ type Service interface {
 	SessionService
 	NamespaceService
 	MemberService
+	InvitationService
 	AuthService
 	StatsService
 	SetupService

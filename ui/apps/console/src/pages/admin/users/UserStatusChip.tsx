@@ -1,9 +1,10 @@
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
-export type UserStatus = "confirmed" | "not-confirmed";
+export type UserStatus = "confirmed" | "not-confirmed" | "awaiting_approval";
 
 const STATUS_CONFIG: Record<
   UserStatus,
@@ -23,6 +24,12 @@ const STATUS_CONFIG: Record<
     Icon: ExclamationCircleIcon,
     label: "Not Confirmed",
     className: "bg-accent-red/10 text-accent-red border border-accent-red/20",
+  },
+  awaiting_approval: {
+    Icon: ClockIcon,
+    label: "Awaiting Approval",
+    className:
+      "bg-accent-blue/10 text-accent-blue border border-accent-blue/20",
   },
 };
 

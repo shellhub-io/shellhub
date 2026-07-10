@@ -12,8 +12,8 @@ export default function AccountCreated() {
   const signUpTenant = useSignUpStore((s) => s.signUpTenant);
   const setSession = useAuthStore((s) => s.setSession);
 
-  // Preserve the sign-up URL's query string (tenant-id, user-id, sig, email)
-  // so /accept-invite can complete the invitation flow it started.
+  // Preserve the sign-up URL's query string (the invite code) so /accept-invite
+  // can complete the invitation flow it started.
   const acceptInviteTarget = `/accept-invite${location.search}`;
 
   useEffect(() => {

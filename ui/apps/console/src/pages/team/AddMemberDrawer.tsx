@@ -1,56 +1,54 @@
 import { useState, FormEvent } from "react";
+import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { PlusIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { Card, Button } from "@shellhub/design-system/primitives";
 import {
-  useAddMember,
-  useCreateActivationToken,
-} from "@/hooks/useMemberMutations";
+  InformationCircleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+import { useGenerateInvitationLink } from "@/hooks/useInvitationMutations";
 import Drawer from "@/components/common/Drawer";
-import InputField from "@/components/common/fields/InputField";
 import CopyButton from "@/components/common/CopyButton";
-import { EMAIL_REGEX } from "@/utils/validation";
+import InputField from "@/components/common/fields/InputField";
+import { getConfig } from "@/env";
 import { RoleSelector } from "./constants";
-import { type AssignableRole, buildActivationLink } from "./helpers";
-import { Button } from "@shellhub/design-system/primitives";
+import { type AssignableRole } from "./helpers";
+import { LABEL } from "@/utils/styles";
+import { EMAIL_REGEX } from "@/utils/validation";
 
-/* --- Add Member Drawer --- */
-
-function AddMemberDrawer({
-  open,
-  onClose,
-  tenantId,
-}: {
+interface AddMemberDrawerProps {
   open: boolean;
   onClose: () => void;
   tenantId: string;
-}) {
-  const addMember = useAddMember();
-  const createToken = useCreateActivationToken();
+}
+
+function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
+  const generateLink = useGenerateInvitationLink();
+  // Cloud also emails the invitee (it has SMTP); the admin gets the link back either way.
+  const emailDelivery = getConfig().cloud;
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<AssignableRole>("operator");
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [error, setError] = useState("");
-  // When we provision a brand-new account, we surface its activation link here
-  // instead of closing, so the admin can copy it in one step.
-  const [activationLink, setActivationLink] = useState("");
-  // Enterprise: a namespace admin who isn't a system admin can't provision an
-  // account directly — the add is enqueued for a system admin to approve. We
-  // confirm that here instead of closing silently.
-  const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
+  // Enterprise adds an existing account directly (no link). We show a confirmation
+  // instead of the link card in that case.
+  const [addedDirectly, setAddedDirectly] = useState(false);
 
   useResetOnOpen(open, () => {
     setEmail("");
     setRole("operator");
-    setName("");
-    setUsername("");
+    setSubmitting(false);
     setEmailError("");
     setError("");
-    setActivationLink("");
-    setRequestSubmitted(false);
+    setGeneratedLink("");
+    setAddedDirectly(false);
   });
+
+  const handleClose = () => {
+    onClose();
+  };
 
   const trimmedEmail = email.trim();
   const emailValid = EMAIL_REGEX.test(trimmedEmail);
@@ -65,201 +63,154 @@ function AddMemberDrawer({
     setEmailError("");
     setError("");
     try {
-      const trimmedName = name.trim();
-      const trimmedUsername = username.trim();
-      const namespace = await addMember.mutateAsync({
+      const result = await generateLink.mutateAsync({
         path: { tenant: tenantId },
-        body: {
-          email: trimmedEmail,
-          role,
-          // Only sent when provisioning a brand-new account; ignored by the
-          // server when the email already resolves to an existing user.
-          ...(trimmedName ? { name: trimmedName } : {}),
-          ...(trimmedUsername ? { username: trimmedUsername } : {}),
-        },
+        body: { email: trimmedEmail, role },
       });
-
-      const memberRow = namespace?.members?.find(
-        (m) => m.email?.toLowerCase() === trimmedEmail.toLowerCase(),
-      );
-
-      // A non-admin provisioned the account: it exists but is inert until a system
-      // admin approves it, and only an admin can mint its link. Confirm and stop.
-      if (memberRow?.awaiting_approval) {
-        setRequestSubmitted(true);
-        return;
-      }
-
-      // An admin-provisioned account comes back not-confirmed and auto-approved;
-      // mint its activation link right away so there's no second step.
-      if (memberRow?.account_status === "not-confirmed" && memberRow.id) {
-        try {
-          const data = await createToken.mutateAsync({
-            path: { id: memberRow.id },
-          });
-          setActivationLink(
-            buildActivationLink(memberRow.id, data?.token ?? ""),
-          );
-          return;
-        } catch {
-          // The member exists; a link can still be copied from the members list.
-          onClose();
-          return;
+      // An empty link means the account existed and was added directly (enterprise).
+      const link = result.link ?? "";
+      if (link) setGeneratedLink(link);
+      else setAddedDirectly(true);
+    } catch (err) {
+      if (isSdkError(err)) {
+        switch (err.status) {
+          case 400:
+            setEmailError("Invalid email or role.");
+            break;
+          case 403:
+            setError("You don't have permission to invite members.");
+            break;
+          case 404:
+            setEmailError("No account exists for this email.");
+            break;
+          case 409:
+            setEmailError(
+              "This user is already a member or has a pending invitation.",
+            );
+            break;
+          default:
+            setError("Failed to send invitation. Please try again.");
         }
+      } else {
+        setError("Failed to send invitation. Please try again.");
       }
-
-      // Existing account added directly, or nothing more to do.
-      onClose();
-    } catch {
-      setError(
-        "Failed to add member. If the person has no account yet, fill in the name and username to create one.",
-      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (requestSubmitted) {
-    return (
-      <Drawer
-        open={open}
-        onClose={onClose}
-        title="Request Submitted"
-        footer={
-          <Button variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        }
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-text-muted">
-            The account for{" "}
-            <span className="font-medium text-text-primary">
-              {trimmedEmail}
-            </span>{" "}
-            was created and is awaiting a system administrator's approval. It
-            shows as "Awaiting approval" in the members list.
-          </p>
-          <p className="text-2xs text-text-muted">
-            Once approved, you'll be able to copy the activation link from the
-            members list and share it with them.
-          </p>
-        </div>
-      </Drawer>
-    );
-  }
-
-  if (activationLink) {
-    return (
-      <Drawer
-        open={open}
-        onClose={onClose}
-        title="Member Provisioned"
-        footer={
-          <Button variant="primary" onClick={onClose}>
-            Done
-          </Button>
-        }
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-text-muted">
-            The account was created. Share this one-time activation link with{" "}
-            <span className="font-medium text-text-primary">
-              {trimmedEmail}
-            </span>{" "}
-            so they can set a password.
-          </p>
-          <div className="flex items-start gap-2 p-3 bg-accent-yellow/8 border border-accent-yellow/20 rounded-lg">
-            <ExclamationTriangleIcon
-              className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5"
-              strokeWidth={2}
-            />
-            <p className="text-2xs text-accent-yellow">
-              Copy it now — it will not be shown again. You can generate a new
-              one later from the members list.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <InputField
-                id="add-member-activation-link"
-                label="Activation link"
-                hideLabel
-                readOnly
-                value={activationLink}
-                onChange={() => {}}
-                variant="mono"
-              />
-            </div>
-            <CopyButton text={activationLink} size="md" showLabel />
-          </div>
-        </div>
-      </Drawer>
-    );
-  }
+  const done = !!generatedLink || addedDirectly;
 
   return (
     <Drawer
       open={open}
-      onClose={onClose}
-      title="Add Member"
+      onClose={handleClose}
+      title={
+        addedDirectly ? "Member Added" : done ? "Invitation Link" : "Add Member"
+      }
+      subtitle={
+        done ? <span className="font-mono">{trimmedEmail}</span> : undefined
+      }
       footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
+        done ? (
+          <Button variant="primary" onClick={handleClose}>
+            Done
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => void handleSubmit()}
-            disabled={!emailValid || submitting}
-            loading={submitting}
-            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
-          >
-            Add Member
-          </Button>
-        </>
+        ) : (
+          <>
+            <Button variant="ghost" onClick={handleClose}>
+              Cancel
+            </Button>
+            {/* The label stays neutral: we don't know upfront whether this becomes a
+                direct add or an invitation — the result screen reveals which. */}
+            <Button
+              variant="primary"
+              onClick={() => void handleSubmit()}
+              disabled={!emailValid || submitting}
+              loading={submitting}
+            >
+              Add Member
+            </Button>
+          </>
+        )
       }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
-          id="add-member-email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(email) => {
-            setEmail(email);
-            if (emailError) setEmailError("");
-          }}
-          placeholder="user@example.com"
-          hint="An existing account is added directly; a new email is provisioned below"
-          error={emailError}
-        />
-        <RoleSelector value={role} onChange={setRole} />
-
-        <div className="space-y-5 border-t border-border pt-5">
-          <p className="text-2xs text-text-muted">
-            New account (optional) — fill these in to provision an account when
-            the email has none yet. The person sets their password through an
-            activation link.
+      {addedDirectly ? (
+        <Card className="rounded-lg px-3.5 py-3 flex items-center gap-3">
+          <CheckCircleIcon className="w-5 h-5 text-accent-green shrink-0" />
+          <p className="text-xs text-text-secondary leading-relaxed">
+            This person already has a ShellHub account, so we added them to the
+            namespace as{" "}
+            <span className="font-medium text-text-primary">{role}</span> right
+            away.
           </p>
-          <InputField
-            id="add-member-name"
-            label="Name"
-            value={name}
-            onChange={setName}
-            placeholder="John Doe"
-          />
-          <InputField
-            id="add-member-username"
-            label="Username"
-            value={username}
-            onChange={setUsername}
-            placeholder="john_doe"
-          />
+        </Card>
+      ) : done ? (
+        <div className="space-y-3">
+          <div>
+            <span id="invitation-link-label" className={LABEL}>
+              Invitation link
+            </span>
+            <Card
+              aria-labelledby="invitation-link-label"
+              className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
+            >
+              <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
+                {generatedLink}
+              </code>
+              <CopyButton text={generatedLink} size="md" showLabel />
+            </Card>
+          </div>
+          <p className="text-2xs text-text-muted leading-relaxed">
+            {emailDelivery ? (
+              <>
+                We emailed the invitation to{" "}
+                <span className="font-mono text-text-secondary">
+                  {trimmedEmail}
+                </span>
+                . Share this link too if you'd rather send it yourself. It works
+                only for this address and expires in 7 days.
+              </>
+            ) : (
+              <>
+                Send it to{" "}
+                <span className="font-mono text-text-secondary">
+                  {trimmedEmail}
+                </span>{" "}
+                to join the namespace. The link works only for this address and
+                expires in 7 days.
+              </>
+            )}
+          </p>
         </div>
+      ) : (
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+          <InputField
+            id="invitation-email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(v) => {
+              setEmail(v);
+              if (emailError) setEmailError("");
+            }}
+            placeholder="user@example.com"
+            error={emailError || undefined}
+          />
 
-        {error && <p className="text-2xs text-accent-red">{error}</p>}
-      </form>
+          <RoleSelector value={role} onChange={setRole} />
+
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red"
+            >
+              <InformationCircleIcon className="w-4 h-4 shrink-0 mt-px" />
+              <span>{error}</span>
+            </div>
+          )}
+        </form>
+      )}
     </Drawer>
   );
 }

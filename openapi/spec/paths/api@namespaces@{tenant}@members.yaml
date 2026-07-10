@@ -1,3 +1,42 @@
+get:
+  operationId: listNamespaceMembers
+  summary: List members
+  description: |
+    Lists the members of a namespace with their full identity (name, username,
+    email), role and a flattened account status. In cloud and enterprise
+    instances the list also folds in pending invitations (members whose invitee
+    has not completed their account yet).
+  tags:
+    - community
+    - members
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get the list of namespace members.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/memberView.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+
 delete:
   operationId: leaveNamespace
   summary: Leave Namespace
@@ -35,12 +74,11 @@ post:
   description: |
     Adds a member to a namespace.
 
-    In enterprise and community instances, the member is added directly
-    to the namespace without any invitation step. If the email has no
-    account yet and the requester is an admin, a pending account is
-    provisioned inline; supply `name` and `username` for it, and the user
-    completes the account through an activation link (see
-    `/api/users/{id}/activation`).
+    In enterprise and community instances, if the email already has an
+    account the member is added directly. If the email has no account yet,
+    a profile-less pending account is provisioned and a one-time activation
+    link is generated; the invitee completes their own profile (name,
+    username, password) through that link (see `/api/users/{id}/activate`).
 
     In cloud instances, an invitation email is sent to the member.
     The invite is valid for **7 days**. If the member was previously invited
@@ -65,10 +103,6 @@ post:
               example: john.doe@test.com
             role:
               $ref: ../components/schemas/namespaceMemberRole.yaml
-            name:
-              $ref: ../components/schemas/userName.yaml
-            username:
-              $ref: ../components/schemas/userUsername.yaml
           required:
             - email
             - role

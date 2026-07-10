@@ -5,7 +5,7 @@ get:
     Returns a paginated list of membership invitations for the authenticated user.
     This endpoint allows users to view all namespace invitations they have received.
   tags:
-    - cloud
+    - community
     - members
     - namespaces
   security:

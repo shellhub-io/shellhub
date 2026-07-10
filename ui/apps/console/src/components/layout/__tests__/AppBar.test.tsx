@@ -3,18 +3,14 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AppBar from "../AppBar";
-import {
-  useTerminalStore,
-  type TerminalSession,
-} from "@/stores/terminalStore";
+import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 
 // Mock the leaf children so only AppBar's own crossfade logic is under test.
 vi.mock("../NamespaceSelector", () => ({
   default: () => <div data-testid="namespace-selector" />,
 }));
-vi.mock("../UserMenu", () => ({ default: () => <div data-testid="user-menu" /> }));
-vi.mock("../InvitationsMenu", () => ({
-  default: () => <div data-testid="invitations-menu" />,
+vi.mock("../UserMenu", () => ({
+  default: () => <div data-testid="user-menu" />,
 }));
 vi.mock("../SupportButton", () => ({
   default: () => <div data-testid="support-button" />,
@@ -32,7 +28,9 @@ vi.mock("@/stores/terminalThemeStore", () => ({
     selector({ theme: { colors: { background: "#000000" } } }),
 }));
 
-function makeSession(overrides: Partial<TerminalSession> = {}): TerminalSession {
+function makeSession(
+  overrides: Partial<TerminalSession> = {},
+): TerminalSession {
   return {
     id: "t1",
     deviceUid: "uid-1",

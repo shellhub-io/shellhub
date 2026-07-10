@@ -30,6 +30,13 @@ type NamespaceList struct {
 	query.Filters
 }
 
+// MemberList is the structure to represent the request data for the list namespace members
+// endpoint, consistent with the rest of the /namespaces/:tenant family.
+type MemberList struct {
+	TenantID string `param:"tenant" validate:"required,uuid"`
+	query.Paginator
+}
+
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
 	UserID   string `header:"X-ID" validate:"required"`
@@ -59,16 +66,12 @@ type NamespaceEdit struct {
 }
 
 type NamespaceAddMember struct {
-	FowardedHost string          `header:"X-Forwarded-Host" validate:"required"`
-	UserID       string          `header:"X-ID" validate:"required"`
-	TenantID     string          `param:"tenant" validate:"required,uuid"`
-	MemberEmail  string          `json:"email" validate:"required"`
-	MemberRole   authorizer.Role `json:"role" validate:"required,member_role"`
-	// MemberName and MemberUsername are only used when an admin provisions a brand-new
-	// account inline (the invited email has no account yet). They are ignored when the
-	// email already resolves to an existing user.
-	MemberName     string `json:"name" validate:"omitempty,name"`
-	MemberUsername string `json:"username" validate:"omitempty,username"`
+	FowardedHost   string          `header:"X-Forwarded-Host" validate:"required"`
+	ForwardedProto string          `header:"X-Forwarded-Proto"`
+	UserID         string          `header:"X-ID" validate:"required"`
+	TenantID       string          `param:"tenant" validate:"required,uuid"`
+	MemberEmail    string          `json:"email" validate:"required"`
+	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
 }
 
 type NamespaceUpdateMember struct {

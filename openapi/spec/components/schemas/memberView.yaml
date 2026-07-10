@@ -1,0 +1,40 @@
+type: object
+description: >-
+  An enriched namespace member, carrying the user's identity (name, username,
+  email) and a flattened account status. Returned by the list namespace members
+  endpoint.
+properties:
+  id:
+    $ref: userID.yaml
+  name:
+    type: string
+    description: Member's name.
+    example: John Doe
+  username:
+    type: string
+    description: Member's username.
+    example: john.doe
+  email:
+    type: string
+    description: Member's email.
+    example: john.doe@test.com
+  role:
+    $ref: namespaceMemberRole.yaml
+  status:
+    type: string
+    enum:
+      - active
+      - awaiting_approval
+      - not-confirmed
+    description: >-
+      The member's flattened account status. `active` is a completed, confirmed
+      account. `awaiting_approval` is a completed account still waiting for a
+      system admin to approve it; it is already a member but cannot sign in yet.
+      `not-confirmed` is a member provisioned inline (CE) who still has to
+      complete their account through an activation link.
+    example: active
+  added_at:
+    type: string
+    format: date-time
+    description: The time when the member was added.
+    example: 2024-09-03T23:17:50.51Z

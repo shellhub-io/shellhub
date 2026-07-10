@@ -86,10 +86,6 @@ paths:
     $ref: paths/api@users@{id}@data.yaml
   /api/users/{id}/password:
     $ref: paths/api@users@{id}@password.yaml
-  /api/users/{id}/activation:
-    $ref: paths/api@users@{id}@activation.yaml
-  /api/users/{id}/activate:
-    $ref: paths/api@users@{id}@activate.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/devices:
@@ -142,6 +138,20 @@ paths:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:
     $ref: paths/api@namespaces@api-key@{key}.yaml
+  /api/register:
+    $ref: paths/api@register.yaml
+  /api/invitations/resolve:
+    $ref: paths/api@invitations@resolve.yaml
+  /api/users/invitations:
+    $ref: paths/api@users@invitations.yaml
+  /api/namespaces/{tenant}/invitations:
+    $ref: paths/api@namespaces@{tenant}@invitations.yaml
+  /api/namespaces/{tenant}/invitations/links:
+    $ref: paths/api@namespaces@{tenant}@invitations@links.yaml
+  /api/namespaces/{tenant}/invitations/accept:
+    $ref: paths/api@namespaces@{tenant}@invitations@accept.yaml
+  /api/namespaces/{tenant}/invitations/{user-id}:
+    $ref: paths/api@namespaces@{tenant}@invitations@{user-id}.yaml
   /api/tags:
     $ref: paths/api@tags.yaml
   /api/tags/{name}:

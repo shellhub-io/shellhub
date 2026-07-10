@@ -137,6 +137,35 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	return entity.NamespaceToModel(ns), nil
 }
 
+func (pg *Pg) NamespaceGetMembers(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error) {
+	db := pg.GetConnection(ctx)
+
+	entities := make([]entity.Membership, 0)
+	query := db.NewSelect().
+		Model(&entities).
+		Relation("User").
+		Where("membership.namespace_id = ?", tenantID).
+		OrderExpr("membership.created_at ASC")
+
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := query.ScanAndCount(ctx)
+	if err != nil {
+		return nil, 0, fromSQLError(err)
+	}
+
+	members := make([]models.MemberView, len(entities))
+	for i := range entities {
+		members[i] = *entity.MembershipToMemberView(&entities[i])
+	}
+
+	return members, count, nil
+}
+
 func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
 	db := pg.GetConnection(ctx)
 
@@ -159,7 +188,6 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
 	db := pg.GetConnection(ctx)
 
-	// First check if namespace exists
 	exists, err := db.NewSelect().Model((*entity.Namespace)(nil)).Where("id = ?", namespace.TenantID).Exists(ctx)
 	if err != nil {
 		return fromSQLError(err)

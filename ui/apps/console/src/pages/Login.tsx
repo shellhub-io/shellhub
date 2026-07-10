@@ -176,6 +176,11 @@ export default function Login() {
             `/confirm-account?username=${encodeURIComponent(values.username)}`,
           );
           break;
+        case 423:
+          setError(
+            "Your account is waiting for an administrator to approve it. You'll be able to sign in once it's approved.",
+          );
+          break;
         case 429: {
           const epoch = Number(err.headers.get("x-account-lockout"));
           setLockoutEndEpoch(isNaN(epoch) ? null : epoch);

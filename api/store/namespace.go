@@ -28,6 +28,14 @@ type NamespaceStore interface {
 	// It returns the resolved namespace if found and an error, if any.
 	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 
+	// NamespaceGetMembers returns the namespace's members as enriched MemberView rows (name,
+	// username, email, role and a flattened status), joining the users table so the caller gets
+	// full identity rather than the thin Member embedded in a namespace. A list of options can be
+	// passed for sorting and pagination.
+	//
+	// It returns the members, the total count (ignoring pagination), and an error if any.
+	NamespaceGetMembers(ctx context.Context, tenantID string, opts ...QueryOption) ([]models.MemberView, int, error)
+
 	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
 	// the first namespace where the user is a member (typically the first one the user was added to). A list of options
 	// can be passed via `opts` to inject additional data into the namespace.

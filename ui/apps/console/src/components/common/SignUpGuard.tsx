@@ -1,8 +1,9 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { getConfig } from "@/env";
 
-// Sign-up endpoints (/api/register, /api/user/resend_email, /api/user/validation_account)
-// are registered exclusively in cloud. This guard restricts the sign-up route to cloud only.
+// /sign-up is Cloud's open self-registration. Everywhere else accounts are
+// created only by invitation (completed on /accept-invite), so sign-up stays
+// cloud-only.
 export default function SignUpGuard() {
   if (!getConfig().cloud) return <Navigate to="/login" replace />;
   return <Outlet />;

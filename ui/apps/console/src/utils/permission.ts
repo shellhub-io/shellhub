@@ -42,7 +42,6 @@ const permissions = {
   "namespace:addMember": RoleLevel.ADMINISTRATOR,
   "namespace:editMember": RoleLevel.ADMINISTRATOR,
   "namespace:removeMember": RoleLevel.ADMINISTRATOR,
-  "namespace:editInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
   "namespace:updateDeviceAutoAccept": RoleLevel.ADMINISTRATOR,
