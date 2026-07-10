@@ -39,6 +39,9 @@ const (
 	// ErrCodeConflict is the error code for when the request conflicts with the resource's
 	// current state (mapped to HTTP 409).
 	ErrCodeConflict
+	// ErrCodeLocked is the error code for when the resource exists but is inert and can't be
+	// acted on yet (mapped to HTTP 423), e.g. an account awaiting administrator approval.
+	ErrCodeLocked
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -84,7 +87,10 @@ var (
 	ErrUserPasswordDuplicated          = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeInvalid)
 	ErrUserNotConfirmed                = errors.New("user not confirmed", ErrLayer, ErrCodeForbidden)
+	ErrUserAwaitingApproval            = errors.New("user awaiting approval", ErrLayer, ErrCodeLocked)
 	ErrUserUpdate                      = errors.New("user update", ErrLayer, ErrCodeStore)
+	ErrUserCreate                      = errors.New("user creation failed", ErrLayer, ErrCodeInvalid)
+	ErrUserGetToken                    = errors.New("user failed to get token", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceNotFound               = errors.New("namespace not found", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceInvalid                = errors.New("namespace invalid", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceList                   = errors.New("namespace member list", ErrLayer, ErrCodeNotFound)
@@ -92,7 +98,6 @@ var (
 	ErrNamespaceMemberNotFound         = errors.New("member not found", ErrLayer, ErrCodeNotFound)
 	ErrNamespaceMemberInvalid          = errors.New("member invalid", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberFillData         = errors.New("member fill data", ErrLayer, ErrCodeInvalid)
-	ErrNamespaceMemberProvisionProfile = errors.New("provisioning a new member requires a name and username", ErrLayer, ErrCodeInvalid)
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
@@ -248,6 +253,16 @@ func NewErrUserNotFound(id string, next error) error {
 	return NewErrNotFound(ErrUserNotFound, id, next)
 }
 
+// NewErrUserCreate returns an error when creating a user failed.
+func NewErrUserCreate(next error) error {
+	return NewErrInvalid(ErrUserCreate, nil, next)
+}
+
+// NewErrUserGetToken returns an error when minting a user auth token failed.
+func NewErrUserGetToken(id string, next error) error {
+	return NewErrNotFound(ErrUserGetToken, id, next)
+}
+
 // NewErrUserInvalid returns an error when the user is invalid.
 func NewErrUserInvalid(data map[string]interface{}, next error) error {
 	return NewErrInvalid(ErrUserInvalid, data, next)
@@ -398,12 +413,6 @@ func NewErrNamespaceMemberFillData(next error) error {
 	return NewErrInvalid(ErrNamespaceMemberFillData, nil, next)
 }
 
-// NewErrNamespaceMemberProvisionProfile returns an error to be used when an admin provisions a
-// brand-new member inline but does not supply the name and username the account requires.
-func NewErrNamespaceMemberProvisionProfile(next error) error {
-	return NewErrInvalid(ErrNamespaceMemberProvisionProfile, nil, next)
-}
-
 // NewErrNamespaceMemberDuplicated returns an error to be used when the namespace member already exist in the namespace.
 func NewErrNamespaceMemberDuplicated(id string, next error) error {
 	return NewErrDuplicated(ErrNamespaceMemberDuplicated, []string{id}, next)
@@ -450,6 +459,12 @@ func NewErrTokenSigned(err error) error {
 // NewErrUserNotConfirmed returns an error to be used when the user is not confirmed.
 func NewErrUserNotConfirmed(err error) error {
 	return NewErrForbidden(ErrUserNotConfirmed, err)
+}
+
+// NewErrUserAwaitingApproval returns an error to be used when a completed account is still
+// waiting for an administrator's approval and therefore can't sign in yet.
+func NewErrUserAwaitingApproval(err error) error {
+	return errors.Wrap(ErrUserAwaitingApproval, err)
 }
 
 // NewErrAuthInvalid returns a error to be used when the auth data is invalid.

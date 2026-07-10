@@ -1,38 +1,66 @@
 import { describe, it, expect } from "vitest";
-import { hasPermission, isValidRole, type Role, type Action } from "../permission";
+import {
+  hasPermission,
+  isValidRole,
+  type Role,
+  type Action,
+} from "../permission";
 
 /* ─── Action sets by minimum required role ─── */
 
 const OBSERVER_ACTIONS: Action[] = [
-  "device:connect", "device:details",
+  "device:connect",
+  "device:details",
   "session:details",
-  "namespace:create", "namespace:leave",
+  "namespace:create",
+  "namespace:leave",
 ];
 
 const OPERATOR_ACTIONS: Action[] = [
-  "device:add", "device:accept", "device:reject", "device:rename",
-  "tag:edit", "tag:remove", "tag:deviceCreate", "tag:update",
+  "device:add",
+  "device:accept",
+  "device:reject",
+  "device:rename",
+  "tag:edit",
+  "tag:remove",
+  "tag:deviceCreate",
+  "tag:update",
   "notification:view",
 ];
 
 const ADMINISTRATOR_ACTIONS: Action[] = [
   "device:remove",
-  "session:play", "session:close", "session:removeRecord",
+  "session:play",
+  "session:close",
+  "session:removeRecord",
   "namespace:rename",
-  "namespace:addMember", "namespace:editMember", "namespace:removeMember",
-  "namespace:editInvitation", "namespace:cancelInvitation",
-  "namespace:updateSessionRecording", "namespace:editBanner",
-  "publicKey:create", "publicKey:edit", "publicKey:remove",
-  "firewall:create", "firewall:edit", "firewall:remove",
-  "webEndpoint:create", "webEndpoint:delete",
-  "connector:add", "connector:edit", "connector:remove",
-  "apiKey:create", "apiKey:edit", "apiKey:delete",
+  "namespace:addMember",
+  "namespace:editMember",
+  "namespace:removeMember",
+  "namespace:cancelInvitation",
+  "namespace:updateSessionRecording",
+  "namespace:editBanner",
+  "publicKey:create",
+  "publicKey:edit",
+  "publicKey:remove",
+  "firewall:create",
+  "firewall:edit",
+  "firewall:remove",
+  "webEndpoint:create",
+  "webEndpoint:delete",
+  "connector:add",
+  "connector:edit",
+  "connector:remove",
+  "apiKey:create",
+  "apiKey:edit",
+  "apiKey:delete",
 ];
 
 const OWNER_ACTIONS: Action[] = [
   "device:choose",
   "namespace:delete",
-  "billing:subscribe", "billing:unsubscribe",
+  "billing:subscribe",
+  "billing:unsubscribe",
 ];
 
 const ALL_ACTIONS: Action[] = [
@@ -46,7 +74,12 @@ const ALL_ACTIONS: Action[] = [
 
 describe("isValidRole", () => {
   it("returns true for each of the four valid roles", () => {
-    const validRoles: Role[] = ["observer", "operator", "administrator", "owner"];
+    const validRoles: Role[] = [
+      "observer",
+      "operator",
+      "administrator",
+      "owner",
+    ];
     validRoles.forEach((role) => expect(isValidRole(role)).toBe(true));
   });
 

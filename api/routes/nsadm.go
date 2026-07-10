@@ -17,6 +17,7 @@ const (
 	GetNamespaceURL            = "/namespaces/:tenant"
 	DeleteNamespaceURL         = "/namespaces/:tenant"
 	EditNamespaceURL           = "/namespaces/:tenant"
+	ListNamespaceMembersURL    = "/namespaces/:tenant/members"
 	LeaveNamespaceURL          = "/namespaces/:tenant/members"
 	AddNamespaceMemberURL      = "/namespaces/:tenant/members"
 	RemoveNamespaceMemberURL   = "/namespaces/:tenant/members/:uid"
@@ -109,6 +110,29 @@ func (h *Handler) GetNamespace(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, ns)
+}
+
+func (h *Handler) ListNamespaceMembers(c gateway.Context) error {
+	req := new(requests.MemberList)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	req.Paginator.Normalize()
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	members, count, err := h.service.ListNamespaceMembers(c.Ctx(), req)
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, members)
 }
 
 func (h *Handler) DeleteNamespace(c gateway.Context) error {

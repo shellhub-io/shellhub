@@ -107,6 +107,23 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestNamespaceDeleteMembership(t)
 	})
 
+	t.Run("MembershipInvitationStore", func(t *testing.T) {
+		s.TestMembershipInvitationCreate(t)
+		s.TestMembershipInvitationResolve(t)
+		s.TestMembershipInvitationResolveBySig(t)
+		s.TestMembershipInvitationUpdate(t)
+		s.TestMembershipInvitationDelete(t)
+		s.TestUserMembershipInvitationList(t)
+		s.TestNamespaceMembershipInvitationList(t)
+		s.TestNamespaceMembershipInvitationListWithStatusFilter(t)
+	})
+
+	t.Run("UserInvitationStore", func(t *testing.T) {
+		s.TestUserInvitationsUpsert(t)
+		s.TestUserInvitationGet(t)
+		s.TestUserInvitationUpdate(t)
+	})
+
 	t.Run("SystemStore", func(t *testing.T) {
 		s.TestSystemGetDefault(t)
 		s.TestSystemGet(t)

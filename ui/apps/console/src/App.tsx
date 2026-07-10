@@ -44,7 +44,6 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
-const ActivateAccount = lazy(() => import("./pages/ActivateAccount"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
@@ -103,14 +102,14 @@ export default function App() {
                 />
               </Route>
               <Route path="/accept-device" element={<AcceptDevice />} />
-              <Route path="/activate" element={<ActivateAccount />} />
               {getConfig().cloud && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
-                  <Route path="/accept-invite" element={<AcceptInvite />} />
                 </>
               )}
+              {/* Public accept-invite landing; every edition uses the invitation flow. */}
+              <Route path="/accept-invite" element={<AcceptInvite />} />
             </Route>
             <Route element={<ProtectedRoute />}>
               {/* Admin panel — layout wraps all /admin routes including unauthorized */}

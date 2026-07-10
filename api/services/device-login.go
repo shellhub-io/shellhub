@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,7 +36,7 @@ type DeviceLoginCodeService interface {
 }
 
 func (s *service) CreateDeviceLoginCode(ctx context.Context, uid, tenantID string) (*models.DeviceLoginCode, error) {
-	code, err := newPairingCode()
+	code, err := pairingcode.New(pairingcode.DeviceCodeLength)
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +62,8 @@ func (s *service) CreateDeviceLoginCode(ctx context.Context, uid, tenantID strin
 }
 
 func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code string) (*models.DeviceLoginCodePreview, error) {
-	code = normalizePairingCode(code)
-	if !isValidPairingCode(code) {
+	code = pairingcode.Normalize(code)
+	if !pairingcode.IsValid(code, pairingcode.DeviceCodeLength) {
 		return nil, NewErrDeviceLoginCodeNotFound(code, nil)
 	}
 

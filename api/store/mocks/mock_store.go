@@ -1502,6 +1502,319 @@ func (_c *MockStore_GetStats_Call) RunAndReturn(run func(ctx context.Context, te
 	return _c
 }
 
+// MembershipInvitationCreate provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
+	ret := _mock.Called(ctx, invitation)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationCreate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitation) error); ok {
+		r0 = returnFunc(ctx, invitation)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MembershipInvitationCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationCreate'
+type MockStore_MembershipInvitationCreate_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - invitation *models.MembershipInvitation
+func (_e *MockStore_Expecter) MembershipInvitationCreate(ctx any, invitation any) *MockStore_MembershipInvitationCreate_Call {
+	return &MockStore_MembershipInvitationCreate_Call{Call: _e.mock.On("MembershipInvitationCreate", ctx, invitation)}
+}
+
+func (_c *MockStore_MembershipInvitationCreate_Call) Run(run func(ctx context.Context, invitation *models.MembershipInvitation)) *MockStore_MembershipInvitationCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.MembershipInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*models.MembershipInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationCreate_Call) Return(err error) *MockStore_MembershipInvitationCreate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationCreate_Call) RunAndReturn(run func(ctx context.Context, invitation *models.MembershipInvitation) error) *MockStore_MembershipInvitationCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MembershipInvitationDelete provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationDelete(ctx context.Context, invitation *models.MembershipInvitation) error {
+	ret := _mock.Called(ctx, invitation)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitation) error); ok {
+		r0 = returnFunc(ctx, invitation)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MembershipInvitationDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationDelete'
+type MockStore_MembershipInvitationDelete_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - invitation *models.MembershipInvitation
+func (_e *MockStore_Expecter) MembershipInvitationDelete(ctx any, invitation any) *MockStore_MembershipInvitationDelete_Call {
+	return &MockStore_MembershipInvitationDelete_Call{Call: _e.mock.On("MembershipInvitationDelete", ctx, invitation)}
+}
+
+func (_c *MockStore_MembershipInvitationDelete_Call) Run(run func(ctx context.Context, invitation *models.MembershipInvitation)) *MockStore_MembershipInvitationDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.MembershipInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*models.MembershipInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationDelete_Call) Return(err error) *MockStore_MembershipInvitationDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationDelete_Call) RunAndReturn(run func(ctx context.Context, invitation *models.MembershipInvitation) error) *MockStore_MembershipInvitationDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MembershipInvitationResolve provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationResolve(ctx context.Context, tenantID string, userID string) (*models.MembershipInvitation, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationResolve")
+	}
+
+	var r0 *models.MembershipInvitation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*models.MembershipInvitation, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_MembershipInvitationResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationResolve'
+type MockStore_MembershipInvitationResolve_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID string
+func (_e *MockStore_Expecter) MembershipInvitationResolve(ctx any, tenantID any, userID any) *MockStore_MembershipInvitationResolve_Call {
+	return &MockStore_MembershipInvitationResolve_Call{Call: _e.mock.On("MembershipInvitationResolve", ctx, tenantID, userID)}
+}
+
+func (_c *MockStore_MembershipInvitationResolve_Call) Run(run func(ctx context.Context, tenantID string, userID string)) *MockStore_MembershipInvitationResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationResolve_Call) Return(membershipInvitation *models.MembershipInvitation, err error) *MockStore_MembershipInvitationResolve_Call {
+	_c.Call.Return(membershipInvitation, err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationResolve_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string) (*models.MembershipInvitation, error)) *MockStore_MembershipInvitationResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MembershipInvitationResolveBySig provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationResolveBySig(ctx context.Context, sig string) (*models.MembershipInvitation, error) {
+	ret := _mock.Called(ctx, sig)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationResolveBySig")
+	}
+
+	var r0 *models.MembershipInvitation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.MembershipInvitation, error)); ok {
+		return returnFunc(ctx, sig)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, sig)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, sig)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_MembershipInvitationResolveBySig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationResolveBySig'
+type MockStore_MembershipInvitationResolveBySig_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationResolveBySig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sig string
+func (_e *MockStore_Expecter) MembershipInvitationResolveBySig(ctx any, sig any) *MockStore_MembershipInvitationResolveBySig_Call {
+	return &MockStore_MembershipInvitationResolveBySig_Call{Call: _e.mock.On("MembershipInvitationResolveBySig", ctx, sig)}
+}
+
+func (_c *MockStore_MembershipInvitationResolveBySig_Call) Run(run func(ctx context.Context, sig string)) *MockStore_MembershipInvitationResolveBySig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationResolveBySig_Call) Return(membershipInvitation *models.MembershipInvitation, err error) *MockStore_MembershipInvitationResolveBySig_Call {
+	_c.Call.Return(membershipInvitation, err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationResolveBySig_Call) RunAndReturn(run func(ctx context.Context, sig string) (*models.MembershipInvitation, error)) *MockStore_MembershipInvitationResolveBySig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MembershipInvitationUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error {
+	ret := _mock.Called(ctx, invitation)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitation) error); ok {
+		r0 = returnFunc(ctx, invitation)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MembershipInvitationUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationUpdate'
+type MockStore_MembershipInvitationUpdate_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - invitation *models.MembershipInvitation
+func (_e *MockStore_Expecter) MembershipInvitationUpdate(ctx any, invitation any) *MockStore_MembershipInvitationUpdate_Call {
+	return &MockStore_MembershipInvitationUpdate_Call{Call: _e.mock.On("MembershipInvitationUpdate", ctx, invitation)}
+}
+
+func (_c *MockStore_MembershipInvitationUpdate_Call) Run(run func(ctx context.Context, invitation *models.MembershipInvitation)) *MockStore_MembershipInvitationUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.MembershipInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*models.MembershipInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationUpdate_Call) Return(err error) *MockStore_MembershipInvitationUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationUpdate_Call) RunAndReturn(run func(ctx context.Context, invitation *models.MembershipInvitation) error) *MockStore_MembershipInvitationUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceConflicts provides a mock function for the type MockStore
 func (_mock *MockStore) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
 	ret := _mock.Called(ctx, target)
@@ -1891,6 +2204,95 @@ func (_c *MockStore_NamespaceDeleteMembership_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// NamespaceGetMembers provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceGetMembers(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, tenantID, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, tenantID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceGetMembers")
+	}
+
+	var r0 []models.MemberView
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) ([]models.MemberView, int, error)); ok {
+		return returnFunc(ctx, tenantID, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) []models.MemberView); ok {
+		r0 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.MemberView)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_NamespaceGetMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceGetMembers'
+type MockStore_NamespaceGetMembers_Call struct {
+	*mock.Call
+}
+
+// NamespaceGetMembers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) NamespaceGetMembers(ctx any, tenantID any, opts ...any) *MockStore_NamespaceGetMembers_Call {
+	return &MockStore_NamespaceGetMembers_Call{Call: _e.mock.On("NamespaceGetMembers",
+		append([]any{ctx, tenantID}, opts...)...)}
+}
+
+func (_c *MockStore_NamespaceGetMembers_Call) Run(run func(ctx context.Context, tenantID string, opts ...store.QueryOption)) *MockStore_NamespaceGetMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetMembers_Call) Return(memberViews []models.MemberView, n int, err error) *MockStore_NamespaceGetMembers_Call {
+	_c.Call.Return(memberViews, n, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetMembers_Call) RunAndReturn(run func(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error)) *MockStore_NamespaceGetMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceGetPreferred provides a mock function for the type MockStore
 func (_mock *MockStore) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, userID)
@@ -2107,6 +2509,95 @@ func (_c *MockStore_NamespaceList_Call) Return(namespaces []models.Namespace, n 
 }
 
 func (_c *MockStore_NamespaceList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error)) *MockStore_NamespaceList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NamespaceMembershipInvitationList provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceMembershipInvitationList(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, tenantID, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, tenantID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceMembershipInvitationList")
+	}
+
+	var r0 []models.MembershipInvitation
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) ([]models.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, tenantID, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) []models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...store.QueryOption) int64); ok {
+		r1 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, tenantID, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_NamespaceMembershipInvitationList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceMembershipInvitationList'
+type MockStore_NamespaceMembershipInvitationList_Call struct {
+	*mock.Call
+}
+
+// NamespaceMembershipInvitationList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) NamespaceMembershipInvitationList(ctx any, tenantID any, opts ...any) *MockStore_NamespaceMembershipInvitationList_Call {
+	return &MockStore_NamespaceMembershipInvitationList_Call{Call: _e.mock.On("NamespaceMembershipInvitationList",
+		append([]any{ctx, tenantID}, opts...)...)}
+}
+
+func (_c *MockStore_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, tenantID string, opts ...store.QueryOption)) *MockStore_NamespaceMembershipInvitationList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceMembershipInvitationList_Call) Return(membershipInvitations []models.MembershipInvitation, n int64, err error) *MockStore_NamespaceMembershipInvitationList_Call {
+	_c.Call.Return(membershipInvitations, n, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error)) *MockStore_NamespaceMembershipInvitationList_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4353,6 +4844,203 @@ func (_c *MockStore_UserGetInfo_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// UserInvitationGet provides a mock function for the type MockStore
+func (_mock *MockStore) UserInvitationGet(ctx context.Context, resolver store.UserInvitationResolver, value string) (*models.UserInvitation, error) {
+	ret := _mock.Called(ctx, resolver, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserInvitationGet")
+	}
+
+	var r0 *models.UserInvitation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.UserInvitationResolver, string) (*models.UserInvitation, error)); ok {
+		return returnFunc(ctx, resolver, value)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.UserInvitationResolver, string) *models.UserInvitation); ok {
+		r0 = returnFunc(ctx, resolver, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.UserInvitationResolver, string) error); ok {
+		r1 = returnFunc(ctx, resolver, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_UserInvitationGet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserInvitationGet'
+type MockStore_UserInvitationGet_Call struct {
+	*mock.Call
+}
+
+// UserInvitationGet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resolver store.UserInvitationResolver
+//   - value string
+func (_e *MockStore_Expecter) UserInvitationGet(ctx any, resolver any, value any) *MockStore_UserInvitationGet_Call {
+	return &MockStore_UserInvitationGet_Call{Call: _e.mock.On("UserInvitationGet", ctx, resolver, value)}
+}
+
+func (_c *MockStore_UserInvitationGet_Call) Run(run func(ctx context.Context, resolver store.UserInvitationResolver, value string)) *MockStore_UserInvitationGet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.UserInvitationResolver
+		if args[1] != nil {
+			arg1 = args[1].(store.UserInvitationResolver)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserInvitationGet_Call) Return(userInvitation *models.UserInvitation, err error) *MockStore_UserInvitationGet_Call {
+	_c.Call.Return(userInvitation, err)
+	return _c
+}
+
+func (_c *MockStore_UserInvitationGet_Call) RunAndReturn(run func(ctx context.Context, resolver store.UserInvitationResolver, value string) (*models.UserInvitation, error)) *MockStore_UserInvitationGet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserInvitationUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) UserInvitationUpdate(ctx context.Context, invitation *models.UserInvitation) error {
+	ret := _mock.Called(ctx, invitation)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserInvitationUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.UserInvitation) error); ok {
+		r0 = returnFunc(ctx, invitation)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserInvitationUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserInvitationUpdate'
+type MockStore_UserInvitationUpdate_Call struct {
+	*mock.Call
+}
+
+// UserInvitationUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - invitation *models.UserInvitation
+func (_e *MockStore_Expecter) UserInvitationUpdate(ctx any, invitation any) *MockStore_UserInvitationUpdate_Call {
+	return &MockStore_UserInvitationUpdate_Call{Call: _e.mock.On("UserInvitationUpdate", ctx, invitation)}
+}
+
+func (_c *MockStore_UserInvitationUpdate_Call) Run(run func(ctx context.Context, invitation *models.UserInvitation)) *MockStore_UserInvitationUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.UserInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*models.UserInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserInvitationUpdate_Call) Return(err error) *MockStore_UserInvitationUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserInvitationUpdate_Call) RunAndReturn(run func(ctx context.Context, invitation *models.UserInvitation) error) *MockStore_UserInvitationUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserInvitationsUpsert provides a mock function for the type MockStore
+func (_mock *MockStore) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
+	ret := _mock.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserInvitationsUpsert")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return returnFunc(ctx, email)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = returnFunc(ctx, email)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_UserInvitationsUpsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserInvitationsUpsert'
+type MockStore_UserInvitationsUpsert_Call struct {
+	*mock.Call
+}
+
+// UserInvitationsUpsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockStore_Expecter) UserInvitationsUpsert(ctx any, email any) *MockStore_UserInvitationsUpsert_Call {
+	return &MockStore_UserInvitationsUpsert_Call{Call: _e.mock.On("UserInvitationsUpsert", ctx, email)}
+}
+
+func (_c *MockStore_UserInvitationsUpsert_Call) Run(run func(ctx context.Context, email string)) *MockStore_UserInvitationsUpsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserInvitationsUpsert_Call) Return(upsertedID string, err error) *MockStore_UserInvitationsUpsert_Call {
+	_c.Call.Return(upsertedID, err)
+	return _c
+}
+
+func (_c *MockStore_UserInvitationsUpsert_Call) RunAndReturn(run func(ctx context.Context, email string) (string, error)) *MockStore_UserInvitationsUpsert_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UserList provides a mock function for the type MockStore
 func (_mock *MockStore) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	var tmpRet mock.Arguments
@@ -4432,6 +5120,95 @@ func (_c *MockStore_UserList_Call) Return(users []models.User, n int, err error)
 }
 
 func (_c *MockStore_UserList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error)) *MockStore_UserList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserMembershipInvitationList provides a mock function for the type MockStore
+func (_mock *MockStore) UserMembershipInvitationList(ctx context.Context, userID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, userID, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, userID)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserMembershipInvitationList")
+	}
+
+	var r0 []models.MembershipInvitation
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) ([]models.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, userID, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) []models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, userID, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...store.QueryOption) int64); ok {
+		r1 = returnFunc(ctx, userID, opts...)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, userID, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_UserMembershipInvitationList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserMembershipInvitationList'
+type MockStore_UserMembershipInvitationList_Call struct {
+	*mock.Call
+}
+
+// UserMembershipInvitationList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) UserMembershipInvitationList(ctx any, userID any, opts ...any) *MockStore_UserMembershipInvitationList_Call {
+	return &MockStore_UserMembershipInvitationList_Call{Call: _e.mock.On("UserMembershipInvitationList",
+		append([]any{ctx, userID}, opts...)...)}
+}
+
+func (_c *MockStore_UserMembershipInvitationList_Call) Run(run func(ctx context.Context, userID string, opts ...store.QueryOption)) *MockStore_UserMembershipInvitationList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserMembershipInvitationList_Call) Return(membershipInvitations []models.MembershipInvitation, n int64, err error) *MockStore_UserMembershipInvitationList_Call {
+	_c.Call.Return(membershipInvitations, n, err)
+	return _c
+}
+
+func (_c *MockStore_UserMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, userID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error)) *MockStore_UserMembershipInvitationList_Call {
 	_c.Call.Return(run)
 	return _c
 }

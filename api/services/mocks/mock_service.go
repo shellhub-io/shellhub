@@ -7,7 +7,6 @@ package mocks
 import (
 	"context"
 	"crypto/rsa"
-	"time"
 
 	responses0 "github.com/shellhub-io/shellhub/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -118,16 +117,16 @@ func (_c *MockService_AcceptDevicePairing_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
-// ActivateUser provides a mock function for the type MockService
-func (_mock *MockService) ActivateUser(ctx context.Context, req *requests.ActivateUser) error {
+// AcceptInvite provides a mock function for the type MockService
+func (_mock *MockService) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) error {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ActivateUser")
+		panic("no return value specified for AcceptInvite")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ActivateUser) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.AcceptInvite) error); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
 		r0 = ret.Error(0)
@@ -135,27 +134,27 @@ func (_mock *MockService) ActivateUser(ctx context.Context, req *requests.Activa
 	return r0
 }
 
-// MockService_ActivateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateUser'
-type MockService_ActivateUser_Call struct {
+// MockService_AcceptInvite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AcceptInvite'
+type MockService_AcceptInvite_Call struct {
 	*mock.Call
 }
 
-// ActivateUser is a helper method to define mock.On call
+// AcceptInvite is a helper method to define mock.On call
 //   - ctx context.Context
-//   - req *requests.ActivateUser
-func (_e *MockService_Expecter) ActivateUser(ctx any, req any) *MockService_ActivateUser_Call {
-	return &MockService_ActivateUser_Call{Call: _e.mock.On("ActivateUser", ctx, req)}
+//   - req *requests.AcceptInvite
+func (_e *MockService_Expecter) AcceptInvite(ctx any, req any) *MockService_AcceptInvite_Call {
+	return &MockService_AcceptInvite_Call{Call: _e.mock.On("AcceptInvite", ctx, req)}
 }
 
-func (_c *MockService_ActivateUser_Call) Run(run func(ctx context.Context, req *requests.ActivateUser)) *MockService_ActivateUser_Call {
+func (_c *MockService_AcceptInvite_Call) Run(run func(ctx context.Context, req *requests.AcceptInvite)) *MockService_AcceptInvite_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.ActivateUser
+		var arg1 *requests.AcceptInvite
 		if args[1] != nil {
-			arg1 = args[1].(*requests.ActivateUser)
+			arg1 = args[1].(*requests.AcceptInvite)
 		}
 		run(
 			arg0,
@@ -165,12 +164,12 @@ func (_c *MockService_ActivateUser_Call) Run(run func(ctx context.Context, req *
 	return _c
 }
 
-func (_c *MockService_ActivateUser_Call) Return(err error) *MockService_ActivateUser_Call {
+func (_c *MockService_AcceptInvite_Call) Return(err error) *MockService_AcceptInvite_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockService_ActivateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.ActivateUser) error) *MockService_ActivateUser_Call {
+func (_c *MockService_AcceptInvite_Call) RunAndReturn(run func(ctx context.Context, req *requests.AcceptInvite) error) *MockService_AcceptInvite_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -737,6 +736,63 @@ func (_c *MockService_AuthUncacheToken_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// CancelMembershipInvitation provides a mock function for the type MockService
+func (_mock *MockService) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelMembershipInvitation")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CancelMembershipInvitation) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_CancelMembershipInvitation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelMembershipInvitation'
+type MockService_CancelMembershipInvitation_Call struct {
+	*mock.Call
+}
+
+// CancelMembershipInvitation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.CancelMembershipInvitation
+func (_e *MockService_Expecter) CancelMembershipInvitation(ctx any, req any) *MockService_CancelMembershipInvitation_Call {
+	return &MockService_CancelMembershipInvitation_Call{Call: _e.mock.On("CancelMembershipInvitation", ctx, req)}
+}
+
+func (_c *MockService_CancelMembershipInvitation_Call) Run(run func(ctx context.Context, req *requests.CancelMembershipInvitation)) *MockService_CancelMembershipInvitation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.CancelMembershipInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*requests.CancelMembershipInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CancelMembershipInvitation_Call) Return(err error) *MockService_CancelMembershipInvitation_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.CancelMembershipInvitation) error) *MockService_CancelMembershipInvitation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAPIKey provides a mock function for the type MockService
 func (_mock *MockService) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
 	ret := _mock.Called(ctx, req)
@@ -1289,78 +1345,6 @@ func (_c *MockService_CreateTag_Call) Return(insertedID string, conflicts []stri
 }
 
 func (_c *MockService_CreateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateTag) (string, []string, error)) *MockService_CreateTag_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// CreateUserActivationToken provides a mock function for the type MockService
-func (_mock *MockService) CreateUserActivationToken(ctx context.Context, req *requests.CreateUserActivation) (string, time.Time, error) {
-	ret := _mock.Called(ctx, req)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateUserActivationToken")
-	}
-
-	var r0 string
-	var r1 time.Time
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserActivation) (string, time.Time, error)); ok {
-		return returnFunc(ctx, req)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserActivation) string); ok {
-		r0 = returnFunc(ctx, req)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateUserActivation) time.Time); ok {
-		r1 = returnFunc(ctx, req)
-	} else {
-		r1 = ret.Get(1).(time.Time)
-	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.CreateUserActivation) error); ok {
-		r2 = returnFunc(ctx, req)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
-}
-
-// MockService_CreateUserActivationToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserActivationToken'
-type MockService_CreateUserActivationToken_Call struct {
-	*mock.Call
-}
-
-// CreateUserActivationToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - req *requests.CreateUserActivation
-func (_e *MockService_Expecter) CreateUserActivationToken(ctx any, req any) *MockService_CreateUserActivationToken_Call {
-	return &MockService_CreateUserActivationToken_Call{Call: _e.mock.On("CreateUserActivationToken", ctx, req)}
-}
-
-func (_c *MockService_CreateUserActivationToken_Call) Run(run func(ctx context.Context, req *requests.CreateUserActivation)) *MockService_CreateUserActivationToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *requests.CreateUserActivation
-		if args[1] != nil {
-			arg1 = args[1].(*requests.CreateUserActivation)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_CreateUserActivationToken_Call) Return(token string, expiresAt time.Time, err error) *MockService_CreateUserActivationToken_Call {
-	_c.Call.Return(token, expiresAt, err)
-	return _c
-}
-
-func (_c *MockService_CreateUserActivationToken_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateUserActivation) (string, time.Time, error)) *MockService_CreateUserActivationToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2245,6 +2229,72 @@ func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// GenerateInvitationLink provides a mock function for the type MockService
+func (_mock *MockService) GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateInvitationLink")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GenerateInvitationLink) (string, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GenerateInvitationLink) string); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.GenerateInvitationLink) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GenerateInvitationLink_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateInvitationLink'
+type MockService_GenerateInvitationLink_Call struct {
+	*mock.Call
+}
+
+// GenerateInvitationLink is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.GenerateInvitationLink
+func (_e *MockService_Expecter) GenerateInvitationLink(ctx any, req any) *MockService_GenerateInvitationLink_Call {
+	return &MockService_GenerateInvitationLink_Call{Call: _e.mock.On("GenerateInvitationLink", ctx, req)}
+}
+
+func (_c *MockService_GenerateInvitationLink_Call) Run(run func(ctx context.Context, req *requests.GenerateInvitationLink)) *MockService_GenerateInvitationLink_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.GenerateInvitationLink
+		if args[1] != nil {
+			arg1 = args[1].(*requests.GenerateInvitationLink)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GenerateInvitationLink_Call) Return(s string, err error) *MockService_GenerateInvitationLink_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockService_GenerateInvitationLink_Call) RunAndReturn(run func(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)) *MockService_GenerateInvitationLink_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDevice provides a mock function for the type MockService
 func (_mock *MockService) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _mock.Called(ctx, uid)
@@ -3072,6 +3122,80 @@ func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// ListNamespaceMembers provides a mock function for the type MockService
+func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListNamespaceMembers")
+	}
+
+	var r0 []models.MemberView
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) ([]models.MemberView, int, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) []models.MemberView); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.MemberView)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.MemberList) int); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.MemberList) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListNamespaceMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNamespaceMembers'
+type MockService_ListNamespaceMembers_Call struct {
+	*mock.Call
+}
+
+// ListNamespaceMembers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.MemberList
+func (_e *MockService_Expecter) ListNamespaceMembers(ctx any, req any) *MockService_ListNamespaceMembers_Call {
+	return &MockService_ListNamespaceMembers_Call{Call: _e.mock.On("ListNamespaceMembers", ctx, req)}
+}
+
+func (_c *MockService_ListNamespaceMembers_Call) Run(run func(ctx context.Context, req *requests.MemberList)) *MockService_ListNamespaceMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.MemberList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.MemberList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListNamespaceMembers_Call) Return(memberViews []models.MemberView, n int, err error) *MockService_ListNamespaceMembers_Call {
+	_c.Call.Return(memberViews, n, err)
+	return _c
+}
+
+func (_c *MockService_ListNamespaceMembers_Call) RunAndReturn(run func(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)) *MockService_ListNamespaceMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListNamespaces provides a mock function for the type MockService
 func (_mock *MockService) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
 	ret := _mock.Called(ctx, req)
@@ -3442,6 +3566,80 @@ func (_c *MockService_LookupDevice_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// NamespaceMembershipInvitationList provides a mock function for the type MockService
+func (_mock *MockService) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceMembershipInvitationList")
+	}
+
+	var r0 []responses0.MembershipInvitation
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceMembershipInvitationList) []responses0.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]responses0.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceMembershipInvitationList) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.NamespaceMembershipInvitationList) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_NamespaceMembershipInvitationList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceMembershipInvitationList'
+type MockService_NamespaceMembershipInvitationList_Call struct {
+	*mock.Call
+}
+
+// NamespaceMembershipInvitationList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.NamespaceMembershipInvitationList
+func (_e *MockService_Expecter) NamespaceMembershipInvitationList(ctx any, req any) *MockService_NamespaceMembershipInvitationList_Call {
+	return &MockService_NamespaceMembershipInvitationList_Call{Call: _e.mock.On("NamespaceMembershipInvitationList", ctx, req)}
+}
+
+func (_c *MockService_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, req *requests.NamespaceMembershipInvitationList)) *MockService_NamespaceMembershipInvitationList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.NamespaceMembershipInvitationList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.NamespaceMembershipInvitationList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_NamespaceMembershipInvitationList_Call) Return(membershipInvitations []responses0.MembershipInvitation, n int64, err error) *MockService_NamespaceMembershipInvitationList_Call {
+	_c.Call.Return(membershipInvitations, n, err)
+	return _c
+}
+
+func (_c *MockService_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)) *MockService_NamespaceMembershipInvitationList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OfflineDevice provides a mock function for the type MockService
 func (_mock *MockService) OfflineDevice(ctx context.Context, uid models.UID) error {
 	ret := _mock.Called(ctx, uid)
@@ -3745,6 +3943,88 @@ func (_c *MockService_PushTagTo_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// RegisterUser provides a mock function for the type MockService
+func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error) {
+	ret := _mock.Called(ctx, req, forwardedHost)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterUser")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 []string
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string) (*models.UserAuthResponse, []string, error)); ok {
+		return returnFunc(ctx, req, forwardedHost)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, req, forwardedHost)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.RegisterUser, string) []string); ok {
+		r1 = returnFunc(ctx, req, forwardedHost)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, requests.RegisterUser, string) error); ok {
+		r2 = returnFunc(ctx, req, forwardedHost)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_RegisterUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterUser'
+type MockService_RegisterUser_Call struct {
+	*mock.Call
+}
+
+// RegisterUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req requests.RegisterUser
+//   - forwardedHost string
+func (_e *MockService_Expecter) RegisterUser(ctx any, req any, forwardedHost any) *MockService_RegisterUser_Call {
+	return &MockService_RegisterUser_Call{Call: _e.mock.On("RegisterUser", ctx, req, forwardedHost)}
+}
+
+func (_c *MockService_RegisterUser_Call) Run(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string)) *MockService_RegisterUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 requests.RegisterUser
+		if args[1] != nil {
+			arg1 = args[1].(requests.RegisterUser)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RegisterUser_Call) Return(userAuthResponse *models.UserAuthResponse, strings []string, err error) *MockService_RegisterUser_Call {
+	_c.Call.Return(userAuthResponse, strings, err)
+	return _c
+}
+
+func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error)) *MockService_RegisterUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveNamespaceMember provides a mock function for the type MockService
 func (_mock *MockService) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, req)
@@ -4020,6 +4300,74 @@ func (_c *MockService_ResolveDeviceLoginCode_Call) Return(deviceLoginCodePreview
 }
 
 func (_c *MockService_ResolveDeviceLoginCode_Call) RunAndReturn(run func(ctx context.Context, userID string, code string) (*models.DeviceLoginCodePreview, error)) *MockService_ResolveDeviceLoginCode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResolveInvitation provides a mock function for the type MockService
+func (_mock *MockService) ResolveInvitation(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveInvitation")
+	}
+
+	var r0 *responses0.ResolveInvitation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ResolveInvitation) (*responses0.ResolveInvitation, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ResolveInvitation) *responses0.ResolveInvitation); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses0.ResolveInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ResolveInvitation) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ResolveInvitation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveInvitation'
+type MockService_ResolveInvitation_Call struct {
+	*mock.Call
+}
+
+// ResolveInvitation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ResolveInvitation
+func (_e *MockService_Expecter) ResolveInvitation(ctx any, req any) *MockService_ResolveInvitation_Call {
+	return &MockService_ResolveInvitation_Call{Call: _e.mock.On("ResolveInvitation", ctx, req)}
+}
+
+func (_c *MockService_ResolveInvitation_Call) Run(run func(ctx context.Context, req *requests.ResolveInvitation)) *MockService_ResolveInvitation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ResolveInvitation
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ResolveInvitation)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ResolveInvitation_Call) Return(resolveInvitation *responses0.ResolveInvitation, err error) *MockService_ResolveInvitation_Call {
+	_c.Call.Return(resolveInvitation, err)
+	return _c
+}
+
+func (_c *MockService_ResolveInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error)) *MockService_ResolveInvitation_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4833,6 +5181,80 @@ func (_c *MockService_UpdateUser_Call) Return(conflicts []string, err error) *Mo
 }
 
 func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateUser) ([]string, error)) *MockService_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserMembershipInvitationList provides a mock function for the type MockService
+func (_mock *MockService) UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserMembershipInvitationList")
+	}
+
+	var r0 []responses0.MembershipInvitation
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UserMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UserMembershipInvitationList) []responses0.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]responses0.MembershipInvitation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.UserMembershipInvitationList) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.UserMembershipInvitationList) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_UserMembershipInvitationList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserMembershipInvitationList'
+type MockService_UserMembershipInvitationList_Call struct {
+	*mock.Call
+}
+
+// UserMembershipInvitationList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.UserMembershipInvitationList
+func (_e *MockService_Expecter) UserMembershipInvitationList(ctx any, req any) *MockService_UserMembershipInvitationList_Call {
+	return &MockService_UserMembershipInvitationList_Call{Call: _e.mock.On("UserMembershipInvitationList", ctx, req)}
+}
+
+func (_c *MockService_UserMembershipInvitationList_Call) Run(run func(ctx context.Context, req *requests.UserMembershipInvitationList)) *MockService_UserMembershipInvitationList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.UserMembershipInvitationList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.UserMembershipInvitationList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UserMembershipInvitationList_Call) Return(membershipInvitations []responses0.MembershipInvitation, n int64, err error) *MockService_UserMembershipInvitationList_Call {
+	_c.Call.Return(membershipInvitations, n, err)
+	return _c
+}
+
+func (_c *MockService_UserMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)) *MockService_UserMembershipInvitationList_Call {
 	_c.Call.Return(run)
 	return _c
 }

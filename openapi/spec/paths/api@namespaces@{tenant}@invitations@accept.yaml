@@ -5,7 +5,7 @@ patch:
     Accepts a pending membership invitation for the authenticated user.
     The user must be logged into the account that was invited.
   tags:
-    - cloud
+    - community
     - members
     - namespaces
     - users

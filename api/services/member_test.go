@@ -27,6 +27,8 @@ func TestService_AddNamespaceMember(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 
+	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
 	cases := []struct {
 		description   string
 		req           *requests.NamespaceAddMember
@@ -189,7 +191,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when the user was not found by email",
+			description: "succeeds inviting a brand-new email via the invitation flow",
 			req: &requests.NamespaceAddMember{
 				FowardedHost: "localhost",
 				UserID:       "000000000000000000000000",
@@ -198,103 +200,42 @@ func TestService_AddNamespaceMember(t *testing.T) {
 				MemberRole:   authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
+				ns := &models.Namespace{
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Name:     "namespace",
+					Owner:    "000000000000000000000000",
+					Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+				}
+				// Resolved once up front and once to return the refreshed namespace after commit.
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-						},
-					}, nil).
-					Once()
+					Return(ns, nil).
+					Twice()
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
+					Return(&models.User{ID: "000000000000000000000000", UserData: models.UserData{Username: "owner"}}, nil).
 					Once()
+				// The transaction body runs so the invitation write is exercised.
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				// No account for this email yet: a placeholder user_invitation is upserted.
 				storeMock.
 					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errors.New("error")).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("john.doe@test.com", errors.New("error")),
-			},
-		},
-		{
-			description: "admin provisions a new account inline when the email has no account",
-			req: &requests.NamespaceAddMember{
-				FowardedHost:   "localhost",
-				UserID:         "000000000000000000000000",
-				TenantID:       "00000000-0000-4000-0000-000000000000",
-				MemberEmail:    "john.doe@test.com",
-				MemberRole:     authorizer.RoleObserver,
-				MemberName:     "John Doe",
-				MemberUsername: "john_doe",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-						},
-					}, nil).
+					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{ID: "000000000000000000000000", Admin: true, UserData: models.UserData{Username: "jane_doe"}}, nil).
+					On("UserInvitationsUpsert", ctx, "john.doe@test.com").
+					Return("placeholder-id", nil).
 					Once()
 				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errors.New("not found")).
+					On("MembershipInvitationResolve", ctx, "00000000-0000-4000-0000-000000000000", "placeholder-id").
+					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("WithTransaction", ctx, mock.Anything).
-					Run(func(args mock.Arguments) { _ = args.Get(1).(store.TransactionCb)(ctx) }).
+					On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
 					Return(nil).
-					Once()
-				// An admin's inline provisioning is auto-approved: the account is created
-				// not-confirmed but not awaiting approval, so its link can be minted at once.
-				storeMock.
-					On("UserCreate", ctx, mock.MatchedBy(func(u *models.User) bool {
-						return u.Status == models.UserStatusNotConfirmed &&
-							!u.AwaitingApproval &&
-							u.Password.Hash == "" &&
-							u.Email == "john.doe@test.com" &&
-							u.Username == "john_doe"
-					})).
-					Return("000000000000000000000001", nil).
-					Once()
-				clockMock.On("Now").Return(now).Once()
-				storeMock.
-					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", mock.MatchedBy(func(m *models.Member) bool {
-						return m.ID == "000000000000000000000001" && m.Role == authorizer.RoleObserver
-					})).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-							{ID: "000000000000000000000001", Role: authorizer.RoleObserver},
-						},
-					}, nil).
 					Once()
 			},
 			expected: Expected{
@@ -302,221 +243,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 					TenantID: "00000000-0000-4000-0000-000000000000",
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
-					Members: []models.Member{
-						{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-						{ID: "000000000000000000000001", Role: authorizer.RoleObserver},
-					},
-				},
-				err: nil,
-			},
-		},
-		{
-			description: "fails when an admin provisions inline without a name and username",
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{ID: "000000000000000000000000", Admin: true, UserData: models.UserData{Username: "jane_doe"}}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errors.New("not found")).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberProvisionProfile(nil),
-			},
-		},
-		{
-			description: "fails when the member is duplicated",
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-							{
-								ID:   "000000000000000000000001",
-								Role: authorizer.RoleAdministrator,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberDuplicated("000000000000000000000001", nil),
-			},
-		},
-		{
-			description: "fails when the transaction fails",
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
-					}, nil).
-					Once()
-				storeMock.
-					On("WithTransaction", ctx, mock.Anything).
-					Return(errors.New("error")).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       errors.New("error"),
-			},
-		},
-		{
-			description: "succeeds creating the membership directly",
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(&models.User{
-						ID:       "000000000000000000000001",
-						UserData: models.UserData{Username: "john_doe"},
-					}, nil).
-					Once()
-				storeMock.
-					On("WithTransaction", ctx, mock.Anything).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members: []models.Member{
-							{
-								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOwner,
-							},
-							{
-								ID:   "000000000000000000000001",
-								Role: authorizer.RoleObserver,
-							},
-						},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Name:     "namespace",
-					Owner:    "000000000000000000000000",
-					Members: []models.Member{
-						{
-							ID:   "000000000000000000000000",
-							Role: authorizer.RoleOwner,
-						},
-						{
-							ID:   "000000000000000000000001",
-							Role: authorizer.RoleObserver,
-						},
-					},
+					Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
 				},
 				err: nil,
 			},
@@ -528,219 +255,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
-			tc.requiredMocks(ctx)
-			ns, err := s.AddNamespaceMember(ctx, tc.req)
-			assert.Equal(t, tc.expected, Expected{ns, err})
-		})
-	}
-
-	storeMock.AssertExpectations(t)
-}
-
-// TestService_AddNamespaceMember_ProvisionRequest covers the enterprise seam where a
-// namespace admin who is *not* an instance admin adds an unknown email: with the non-admin
-// provisioning capability enabled the account is provisioned awaiting approval instead of
-// hitting the community "must already have an account" dead end.
-func TestService_AddNamespaceMember_ProvisionRequest(t *testing.T) {
-	type Expected struct {
-		namespace *models.Namespace
-		err       error
-	}
-
-	errNotFound := errors.New("not found")
-
-	// The actor is a namespace administrator (Admin: false), so it cannot provision inline.
-	nonAdminActor := &models.User{
-		ID:       "000000000000000000000000",
-		Admin:    false,
-		UserData: models.UserData{Username: "jane_doe"},
-	}
-	namespace := &models.Namespace{
-		TenantID: "00000000-0000-4000-0000-000000000000",
-		Name:     "namespace",
-		Owner:    "000000000000000000000000",
-		Members: []models.Member{
-			{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator},
-		},
-	}
-
-	storeMock := storemock.NewMockStore(t)
-
-	cases := []struct {
-		description    string
-		withCapability bool
-		req            *requests.NamespaceAddMember
-		requiredMocks  func(context.Context)
-		expected       Expected
-	}{
-		{
-			description:    "returns not found when a non-admin adds an unknown email and the capability is off",
-			withCapability: false,
-			req: &requests.NamespaceAddMember{
-				FowardedHost:   "localhost",
-				UserID:         "000000000000000000000000",
-				TenantID:       "00000000-0000-4000-0000-000000000000",
-				MemberEmail:    "john.doe@test.com",
-				MemberRole:     authorizer.RoleObserver,
-				MemberName:     "John Doe",
-				MemberUsername: "john_doe",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(namespace, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nonAdminActor, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errNotFound).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("john.doe@test.com", errNotFound),
-			},
-		},
-		{
-			description:    "requires name and username before provisioning",
-			withCapability: true,
-			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(namespace, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nonAdminActor, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errNotFound).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrNamespaceMemberProvisionProfile(nil),
-			},
-		},
-		{
-			description:    "provisions an awaiting-approval account instead of returning not found",
-			withCapability: true,
-			req: &requests.NamespaceAddMember{
-				FowardedHost:   "localhost",
-				UserID:         "000000000000000000000000",
-				TenantID:       "00000000-0000-4000-0000-000000000000",
-				MemberEmail:    "john.doe@test.com",
-				MemberRole:     authorizer.RoleObserver,
-				MemberName:     "John Doe",
-				MemberUsername: "john_doe",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(namespace, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nonAdminActor, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errNotFound).
-					Once()
-				storeMock.
-					On("WithTransaction", ctx, mock.Anything).
-					Run(func(args mock.Arguments) { _ = args.Get(1).(store.TransactionCb)(ctx) }).
-					Return(nil).
-					Once()
-				// A non-admin's provisioned account must be created not-confirmed, without a
-				// password, and awaiting approval — this is the enterprise approval gate.
-				storeMock.
-					On("UserCreate", ctx, mock.MatchedBy(func(u *models.User) bool {
-						return u.Status == models.UserStatusNotConfirmed &&
-							u.AwaitingApproval &&
-							u.Password.Hash == "" &&
-							u.Origin == models.UserOriginLocal &&
-							u.Email == "john.doe@test.com" &&
-							u.Username == "john_doe"
-					})).
-					Return("000000000000000000000001", nil).
-					Once()
-				clockMock.On("Now").Return(now).Once()
-				storeMock.
-					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", mock.MatchedBy(func(m *models.Member) bool {
-						return m.ID == "000000000000000000000001" && m.Role == authorizer.RoleObserver
-					})).
-					Return(nil).
-					Once()
-				// provisionNamespaceMember re-resolves and returns the namespace.
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(namespace, nil).
-					Once()
-			},
-			expected: Expected{
-				namespace: namespace,
-				err:       nil,
-			},
-		},
-		{
-			description:    "propagates the error when provisioning fails",
-			withCapability: true,
-			req: &requests.NamespaceAddMember{
-				FowardedHost:   "localhost",
-				UserID:         "000000000000000000000000",
-				TenantID:       "00000000-0000-4000-0000-000000000000",
-				MemberEmail:    "john.doe@test.com",
-				MemberRole:     authorizer.RoleObserver,
-				MemberName:     "John Doe",
-				MemberUsername: "john_doe",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(namespace, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nonAdminActor, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
-					Return(nil, errNotFound).
-					Once()
-				storeMock.
-					On("WithTransaction", ctx, mock.Anything).
-					Return(errors.New("tx failed")).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       errors.New("tx failed"),
-			},
-		},
-	}
-
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			if tc.withCapability {
-				EnableNonAdminProvisioning()
-			}
-			t.Cleanup(func() { nonAdminProvisioningEnabled = false })
-
-			ctx := context.TODO()
+			mockClockNow(t, now)
 			tc.requiredMocks(ctx)
 			ns, err := s.AddNamespaceMember(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{ns, err})

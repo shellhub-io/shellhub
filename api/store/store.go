@@ -13,6 +13,8 @@ type Store interface {
 	APIKeyStore
 	TransactionStore
 	SystemStore
+	MembershipInvitationStore
+	UserInvitationStore
 
 	Options() QueryOptions
 }

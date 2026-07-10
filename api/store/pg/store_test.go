@@ -108,6 +108,23 @@ func TestPgStore(t *testing.T) {
 		suite.TestNamespaceDeleteMembership(t)
 	})
 
+	runSubSuite(t, "MembershipInvitationStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestMembershipInvitationCreate(t)
+		suite.TestMembershipInvitationResolve(t)
+		suite.TestMembershipInvitationResolveBySig(t)
+		suite.TestMembershipInvitationUpdate(t)
+		suite.TestMembershipInvitationDelete(t)
+		suite.TestUserMembershipInvitationList(t)
+		suite.TestNamespaceMembershipInvitationList(t)
+		suite.TestNamespaceMembershipInvitationListWithStatusFilter(t)
+	})
+
+	runSubSuite(t, "UserInvitationStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestUserInvitationsUpsert(t)
+		suite.TestUserInvitationGet(t)
+		suite.TestUserInvitationUpdate(t)
+	})
+
 	runSubSuite(t, "SystemStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestSystemGetDefault(t)
 		suite.TestSystemGet(t)

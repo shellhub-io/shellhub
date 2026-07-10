@@ -318,6 +318,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		break
 	}
 
+	// A completed account added by a non-superadmin on enterprise stays inert until a system
+	// admin approves it. Ordering is irrelevant: this gate blocks login whether the invitee
+	// completes before or after approval, and the approve step clears the flag.
+	if user.AwaitingApproval {
+		return nil, 0, "", NewErrUserAwaitingApproval(nil)
+	}
+
 	// Checks whether the user is currently blocked from new login attempts
 	if lockout, attempt, _ := s.cache.HasAccountLockout(ctx, sourceIP, user.ID); lockout > 0 {
 		log.

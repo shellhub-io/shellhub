@@ -2,7 +2,7 @@ post:
   operationId: registerUser
   summary: Register a new user
   tags:
-    - cloud
+    - community
     - users
   security: []
   requestBody:

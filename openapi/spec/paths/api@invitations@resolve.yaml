@@ -1,0 +1,43 @@
+get:
+  operationId: resolveInvitation
+  summary: Resolve an invitation by its code
+  description: |
+    Resolves a pending invitation from its invite code alone — the only thing the
+    accept-invite link carries — returning the namespace, the user, their email,
+    and account status so the accept-invite page can route the invitee to accept,
+    sign-up, or login. Public: the code is the credential.
+  tags:
+    - community
+    - namespaces
+    - members
+  security: []
+  parameters:
+    - name: invite
+      in: query
+      required: true
+      description: The invite code from the accept-invite link.
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tenant_id:
+                type: string
+              user_id:
+                type: string
+              email:
+                type: string
+              status:
+                type: string
+                example: invited
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

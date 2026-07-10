@@ -26,7 +26,11 @@ import { registerUser as registerUserSdk } from "@/client";
 
 const mockedRegisterUser = vi.mocked(registerUserSdk);
 
-type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+type SdkResponse<T = unknown> = {
+  data: T;
+  request: Request;
+  response: Response;
+};
 
 function mockSdkResponse<T>(data: T): SdkResponse<T> {
   return {
@@ -76,7 +80,10 @@ async function fillValidForm(
   await user.type(screen.getByLabelText(/^username$/i), username);
   await user.type(screen.getByLabelText(/^email$/i), email);
   await user.type(screen.getByLabelText(/^password$/i), password);
-  await user.type(screen.getByLabelText(/^confirm password$/i), confirmPassword);
+  await user.type(
+    screen.getByLabelText(/^confirm password$/i),
+    confirmPassword,
+  );
 
   // Accept privacy policy (required)
   await user.click(screen.getByLabelText(/privacy policy/i));
@@ -214,7 +221,10 @@ describe("SignUp", () => {
       await user.type(screen.getByLabelText(/^username$/i), "alice");
       await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
       await user.type(screen.getByLabelText(/^password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Secret123",
+      );
 
       const submit = screen.getByRole("button", { name: /create account/i });
       expect(submit).toBeDisabled();
@@ -230,7 +240,10 @@ describe("SignUp", () => {
       renderSignUp();
 
       await user.type(screen.getByLabelText(/^password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "DifferentPass");
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "DifferentPass",
+      );
       await user.tab();
 
       expect(
@@ -245,7 +258,9 @@ describe("SignUp", () => {
       await user.type(screen.getByLabelText(/^password$/i), "Secret123");
       // No blur on confirmPassword
 
-      expect(screen.queryByText(/passwords do not match/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/passwords do not match/i),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -281,7 +296,9 @@ describe("SignUp", () => {
       ).toBeInTheDocument();
 
       // Submit should be disabled because of the server field error
-      expect(screen.getByRole("button", { name: /create account/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /create account/i }),
+      ).toBeDisabled();
     });
 
     it("shows server-side email error on the email field", async () => {
@@ -323,63 +340,6 @@ describe("SignUp", () => {
       expect(
         screen.getByRole("button", { name: /create account/i }),
       ).toBeEnabled();
-    });
-  });
-
-  /* ---------------------------------------------------------------- */
-  /* 7. Invite flow: prefills and disables email, includes sig        */
-  /* ---------------------------------------------------------------- */
-  describe("invite flow", () => {
-    const INVITE_EMAIL = "invited@example.com";
-    const INVITE_SIG = "abc123signature";
-
-    function renderInviteSignUp() {
-      return renderSignUp(
-        `?email=${encodeURIComponent(INVITE_EMAIL)}&sig=${INVITE_SIG}`,
-      );
-    }
-
-    it("prefills the email field from the query param", () => {
-      renderInviteSignUp();
-      expect(screen.getByLabelText(/^email$/i)).toHaveValue(INVITE_EMAIL);
-    });
-
-    it("disables the email field in invite mode", () => {
-      renderInviteSignUp();
-      expect(screen.getByLabelText(/^email$/i)).toBeDisabled();
-    });
-
-    it("includes sig in the signUp payload during invite flow", async () => {
-      mockedRegisterUser.mockResolvedValue(mockSdkResponse({ token: "tok", tenant: "t1" }));
-      const user = userEvent.setup();
-      renderInviteSignUp();
-
-      // Fill all other fields (email is prefilled)
-      await user.type(screen.getByLabelText(/^name$/i), "Alice Smith");
-      await user.type(screen.getByLabelText(/^username$/i), "alice");
-      // email is already filled via query param and disabled
-      await user.type(screen.getByLabelText(/^password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
-      await user.click(screen.getByLabelText(/privacy policy/i));
-
-      await user.click(screen.getByRole("button", { name: /create account/i }));
-
-      await waitFor(() => expect(mockedRegisterUser).toHaveBeenCalledTimes(1));
-      expect(mockedRegisterUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({
-            email: INVITE_EMAIL,
-            sig: INVITE_SIG,
-          }),
-        }),
-      );
-    });
-
-    it("shows the invite warning callout", () => {
-      renderInviteSignUp();
-      expect(
-        screen.getByText(/please create your account before accepting/i),
-      ).toBeInTheDocument();
     });
   });
 });

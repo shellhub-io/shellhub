@@ -37,6 +37,33 @@ func MembershipFromModel(namespaceID string, member *models.Member) *Membership 
 	}
 }
 
+// MembershipToMemberView maps a joined membership (with its User relation) to the enriched
+// MemberView returned by GET /api/namespaces/members. Unlike MembershipToModel it keeps the
+// user's name/username and flattens the account state into Status.
+func MembershipToMemberView(entity *Membership) *models.MemberView {
+	view := &models.MemberView{
+		ID:      entity.UserID,
+		AddedAt: entity.CreatedAt,
+		Role:    authorizer.Role(entity.Role),
+		Status:  models.MemberStatusActive,
+	}
+
+	if entity.User != nil {
+		view.Name = entity.User.Name
+		view.Username = entity.User.Username
+		view.Email = entity.User.Email
+
+		switch {
+		case entity.User.AwaitingApproval:
+			view.Status = models.MemberStatusAwaitingApproval
+		case models.UserStatus(entity.User.Status) == models.UserStatusNotConfirmed:
+			view.Status = models.MemberStatusNotConfirmed
+		}
+	}
+
+	return view
+}
+
 func MembershipToModel(entity *Membership) *models.Member {
 	member := &models.Member{
 		ID:      entity.UserID,

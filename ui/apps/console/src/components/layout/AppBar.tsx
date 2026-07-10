@@ -6,7 +6,6 @@ import { IconButton } from "@shellhub/design-system/primitives";
 import NamespaceSelector from "./NamespaceSelector";
 
 import UserMenu from "./UserMenu";
-import InvitationsMenu from "./InvitationsMenu";
 import SupportButton from "./SupportButton";
 import { TerminalInfo, TerminalActions } from "../terminal/TerminalControls";
 
@@ -156,7 +155,6 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
           {displayed && <TerminalActions session={displayed} />}
         </div>
 
-        <InvitationsMenu />
         <SupportButton />
         <UserMenu />
       </div>

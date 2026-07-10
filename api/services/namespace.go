@@ -35,6 +35,7 @@ type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error)
 	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
+	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
 	EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error
@@ -186,6 +187,20 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 	}
 
 	return namespace, nil
+}
+
+// ListNamespaceMembers returns the namespace's members as enriched MemberView rows (name,
+// username, email, role and a flattened account status), paginated. The tenant is the caller's
+// current namespace (X-Tenant-ID). Cloud/enterprise overrides the route to also fold pending
+// invitations into the response; core returns only real members.
+func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error) {
+	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
+		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	opts := []store.QueryOption{s.store.Options().Paginate(&req.Paginator)}
+
+	return s.store.NamespaceGetMembers(ctx, req.TenantID, opts...)
 }
 
 // DeleteNamespace deletes a namespace.

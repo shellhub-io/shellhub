@@ -112,10 +112,6 @@ paths:
     $ref: paths/api@users@{id}@data.yaml
   /api/users/{id}/password:
     $ref: paths/api@users@{id}@password.yaml
-  /api/users/{id}/activation:
-    $ref: paths/api@users@{id}@activation.yaml
-  /api/users/{id}/activate:
-    $ref: paths/api@users@{id}@activate.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/namespaces/device-auto-accept/{tenant}:
@@ -260,16 +256,13 @@ paths:
     $ref: paths/api@user@mfa@reset@{user-id}.yaml
   /api/user:
     $ref: paths/api@user.yaml
-  # Lookup user status
-  # TODO: rename this endpoint
-  /api/namespaces/{tenant}/members/{id}/accept-invite:
-    $ref: paths/api@namespaces@{tenant}@members@{id}@accept-invite.yaml
+  # Resolve an invitation by its code (accept-invite pipeline)
+  /api/invitations/resolve:
+    $ref: paths/api@invitations@resolve.yaml
   /api/namespaces/{tenant}/invitations/links:
     $ref: paths/api@namespaces@{tenant}@invitations@links.yaml
   /api/namespaces/{tenant}/invitations/accept:
     $ref: paths/api@namespaces@{tenant}@invitations@accept.yaml
-  /api/namespaces/{tenant}/invitations/decline:
-    $ref: paths/api@namespaces@{tenant}@invitations@decline.yaml
   /api/namespaces/{tenant}/invitations/{user-id}:
     $ref: paths/api@namespaces@{tenant}@invitations@{user-id}.yaml
   /api/namespaces/{tenant}/invitations:
