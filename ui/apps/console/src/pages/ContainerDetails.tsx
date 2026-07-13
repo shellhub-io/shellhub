@@ -7,9 +7,7 @@ import {
 } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import {
-  TagIcon,
   XMarkIcon,
-  PlusIcon,
   PencilSquareIcon,
   CheckIcon,
   TrashIcon,
@@ -36,15 +34,13 @@ import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
-import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
+import TagsSection from "@/components/common/TagsSection";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { LABEL_BASE } from "@/utils/styles";
 
-/* ─── Shared styles ─── */
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ─── Info Row ─── */
@@ -65,7 +61,7 @@ function InfoItem({
 
   return (
     <div>
-      <dt className={LABEL}>{label}</dt>
+      <dt className={LABEL_BASE}>{label}</dt>
       <dd className="flex items-center gap-1 mt-0.5">
         <span
           className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
@@ -74,130 +70,6 @@ function InfoItem({
         </span>
         {copyable && value && <CopyButton text={value} />}
       </dd>
-    </div>
-  );
-}
-
-/* ─── Tags Section ─── */
-function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
-  const addTagMutation = useAddContainerTag();
-  const removeTagMutation = useRemoveContainerTag();
-  const canEditTags = useHasPermission("tag:edit");
-  const [input, setInput] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAdd = async () => {
-    const tag = input.trim();
-    if (!tag) return;
-    setError(null);
-
-    if (tags.includes(tag)) {
-      setError("This tag is already added.");
-      return;
-    }
-    if (tags.length >= 3) return;
-    if (tag.length < 3) {
-      setError("Tag must be at least 3 characters.");
-      return;
-    }
-    if (tag.length > 255) {
-      setError("Tag must be at most 255 characters.");
-      return;
-    }
-    if (!/^[a-zA-Z0-9]+$/.test(tag)) {
-      setError("Tag must contain only letters and numbers.");
-      return;
-    }
-
-    setAdding(true);
-    try {
-      await addTagMutation.mutateAsync({ path: { uid, name: tag } });
-      setInput("");
-    } catch (e) {
-      const status = isSdkError(e) ? e.status : undefined;
-      if (status === 403) setError("You don't have permission to add tags.");
-      else if (status === 400) setError(`"${tag}" is not a valid tag name.`);
-      else setError("Failed to add tag.");
-    }
-    setAdding(false);
-  };
-
-  const handleRemove = async (tag: string) => {
-    setError(null);
-    try {
-      await removeTagMutation.mutateAsync({ path: { uid, name: tag } });
-    } catch (e) {
-      const status = isSdkError(e) ? e.status : undefined;
-      if (status === 403) setError("You don't have permission to remove tags.");
-      else setError(`Failed to remove "${tag}".`);
-    }
-  };
-
-  return (
-    <div>
-      <h3 className={LABEL + " mb-2"}>Tags</h3>
-      <div className="flex flex-wrap items-center gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium"
-          >
-            <TagIcon className="w-3 h-3" strokeWidth={2} />
-            {tag}
-            {canEditTags && (
-              <button
-                type="button"
-                onClick={() => void handleRemove(tag)}
-                aria-label={`Remove tag ${tag}`}
-                className="hover:text-white transition-colors"
-              >
-                <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-              </button>
-            )}
-          </span>
-        ))}
-        {canEditTags && tags.length < 3 && (
-          <div className="flex items-center gap-1.5">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setError(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void handleAdd();
-                }
-              }}
-              placeholder="Add tag..."
-              aria-label="Add tag"
-              className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-            />
-            <IconButton
-              variant="primary"
-              size="sm"
-              disabled={adding || !input.trim()}
-              aria-label="Add tag"
-              onClick={() => void handleAdd()}
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            </IconButton>
-          </div>
-        )}
-      </div>
-      {tags.length >= 3 && (
-        <p className="text-2xs text-text-muted mt-1.5">
-          Maximum of 3 tags reached.
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="text-2xs text-accent-red mt-1.5">
-          {error}
-        </p>
-      )}
     </div>
   );
 }
@@ -312,6 +184,8 @@ export default function ContainerDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
 
+  const addTagMutation = useAddContainerTag();
+  const removeTagMutation = useRemoveContainerTag();
   const containerActions = useContainerActions({
     // ContainerDetails never showed the billing warning on master — a 402 on
     // accept surfaces as the dialog's inline error instead. Keep that behavior.
@@ -516,7 +390,7 @@ export default function ContainerDetails() {
       {container.status === "accepted" && (
         <Card className="p-4 mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className={LABEL}>SSHID</p>
+            <p className={LABEL_BASE}>SSHID</p>
             <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
               {sshid}
             </code>
@@ -585,11 +459,11 @@ export default function ContainerDetails() {
           </h3>
           <dl className="space-y-3">
             <div>
-              <dt className={LABEL}>Created</dt>
+              <dt className={LABEL_BASE}>Created</dt>
               <dd className={VALUE}>{formatDateFull(container.created_at)}</dd>
             </div>
             <div>
-              <dt className={LABEL}>Last Seen</dt>
+              <dt className={LABEL_BASE}>Last Seen</dt>
               <dd className="flex items-center gap-2 mt-0.5">
                 <span className="text-sm text-text-primary font-medium">
                   {formatRelative(container.last_seen)}
@@ -600,7 +474,7 @@ export default function ContainerDetails() {
               </dd>
             </div>
             <div>
-              <dt className={LABEL}>Status Updated</dt>
+              <dt className={LABEL_BASE}>Status Updated</dt>
               <dd className={VALUE}>
                 {formatDateFull(container.status_update_at ?? "")}
               </dd>
@@ -611,7 +485,12 @@ export default function ContainerDetails() {
 
       {/* Tags */}
       <Card className="p-5 mb-6">
-        <TagsSection uid={container.uid} tags={tags} />
+        <TagsSection
+          uid={container.uid}
+          tags={tags}
+          addTag={addTagMutation.mutateAsync}
+          removeTag={removeTagMutation.mutateAsync}
+        />
       </Card>
 
       {/* Connect Drawer */}
