@@ -12,6 +12,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
 import { useDeviceActions } from "../hooks/useDeviceActions";
+import {
+  useAddDeviceTag,
+  useRemoveDeviceTag,
+} from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
@@ -24,7 +28,7 @@ import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "./devices/InfoItem";
-import TagsSection from "./devices/TagsSection";
+import TagsSection from "@/components/common/TagsSection";
 import RenameSection from "./devices/RenameSection";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
@@ -46,6 +50,8 @@ export default function DeviceDetails() {
   );
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
+  const addTagMutation = useAddDeviceTag();
+  const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useDeviceActions({
     onSuccess: (action) => {
       if (action === "remove") void navigate("/devices");
@@ -339,7 +345,12 @@ export default function DeviceDetails() {
       {/* Tags + Custom Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="p-5">
-          <TagsSection uid={device.uid} tags={tags} />
+          <TagsSection
+            uid={device.uid}
+            tags={tags}
+            addTag={addTagMutation.mutateAsync}
+            removeTag={removeTagMutation.mutateAsync}
+          />
         </Card>
         <Card className="p-5">
           <CustomFieldsSection
