@@ -60,6 +60,10 @@ type DeviceStore interface {
 	// It returns the number of modified devices and an error if any.
 	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (modifiedCount int64, err error)
 
+	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
+	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.
+	DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error
+
 	// DeviceSetCustomField sets or updates a single custom_fields entry on the device atomically.
 	DeviceSetCustomField(ctx context.Context, uid, key, value string) error
 	// DeviceDeleteCustomField removes a single custom_fields entry from the device atomically.

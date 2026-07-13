@@ -211,6 +211,25 @@ func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.T
 	return r.RowsAffected()
 }
 
+func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("disconnected_at = ?", disconnectedAt).
+		Where("id = ?", uid).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 	deletedCount, err := pg.DeviceDeleteMany(ctx, []string{device.UID})
 	switch {

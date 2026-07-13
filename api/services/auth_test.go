@@ -296,6 +296,10 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
+				storeMock.
+					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					Return(int64(1), nil).
+					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -343,6 +347,10 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					Return(int64(1), nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
@@ -399,6 +407,10 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					Return(int64(1), nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
@@ -497,6 +509,10 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
+				storeMock.
+					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					Return(int64(1), nil).
+					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -559,6 +575,10 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdate", ctx, device).
 					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceHeartbeat", ctx, []string{uid}, now).
+					Return(int64(1), nil).
 					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
@@ -1760,6 +1780,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
+				mock.
+					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
+					Return(nil).
+					Once()
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
@@ -1886,6 +1910,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
+				mock.
+					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
@@ -1933,6 +1961,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				// UserUpdate receives the user unchanged; the preferred namespace is persisted
+				// separately via UserUpdatePreferredNamespace, so it stays empty here.
 				updatedUser := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1950,7 +1980,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
 					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						PreferredNamespace: "",
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
@@ -2011,6 +2041,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 				mock.
 					On("UserUpdate", ctx, updatedUser).
+					Return(nil).
+					Once()
+				mock.
+					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
 			},
@@ -2115,6 +2149,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 				mock.
 					On("UserUpdate", ctx, &expectedUser).
+					Return(nil).
+					Once()
+				mock.
+					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
 					Return(nil).
 					Once()
 			},
@@ -2295,25 +2333,6 @@ func TestCreateUserToken(t *testing.T) {
 						PreferredNamespace: "",
 					},
 				}
-				updatedUser := &models.User{
-					ID:        "000000000000000000000000",
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-					},
-				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2335,7 +2354,7 @@ func TestCreateUserToken(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("UserUpdate", ctx, updatedUser).
+					On("UserUpdatePreferredNamespace", ctx, "000000000000000000000000", "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
 				cacheMock.
@@ -3061,6 +3080,10 @@ func TestAuthDevice_AutoAcceptLicenseLimitReRegistered(t *testing.T) {
 	storeMock.
 		On("DeviceUpdate", ctx, device).
 		Return(nil).
+		Once()
+	storeMock.
+		On("DeviceHeartbeat", ctx, []string{uid}, now).
+		Return(int64(1), nil).
 		Once()
 	cacheMock.
 		On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).

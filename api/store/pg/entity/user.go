@@ -28,7 +28,9 @@ type User struct {
 }
 
 type UserPreferences struct {
-	PreferredNamespace string   `bun:"preferred_namespace_id,nullzero"`
+	// skipupdate: written only through UserUpdatePreferredNamespace and the membership/namespace
+	// removal clears, so a full-model UserUpdate can't restore a preference a concurrent removal cleared.
+	PreferredNamespace string   `bun:"preferred_namespace_id,nullzero,skipupdate"`
 	AuthMethods        []string `bun:"auth_methods,array"`
 	SecurityEmail      string   `bun:"security_email,nullzero"`
 	MaxNamespaces      int      `bun:"namespace_ownership_limit"`

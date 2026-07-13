@@ -124,6 +124,30 @@ func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 	return fromSQLError(err)
 }
 
+func (pg *Pg) UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID string) error {
+	db := pg.GetConnection(ctx)
+
+	q := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Where("id = ?", userID)
+	if tenantID == "" {
+		q = q.Set("preferred_namespace_id = NULL")
+	} else {
+		q = q.Set("preferred_namespace_id = ?", tenantID)
+	}
+
+	r, err := q.Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 	db := pg.GetConnection(ctx)
 

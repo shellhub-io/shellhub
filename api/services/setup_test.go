@@ -483,7 +483,7 @@ func TestSetup(t *testing.T) {
 							{ID: "000000000000000000000000", Role: authorizer.RoleOwner, AddedAt: now},
 						},
 					}, nil).Once()
-				storeMock.On("UserUpdate", ctx, mock.Anything).Return(nil).Once()
+				storeMock.On("UserUpdatePreferredNamespace", ctx, mock.Anything, mock.Anything).Return(nil).Once()
 			},
 			expected: nil,
 		},

@@ -147,15 +147,11 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		tenantID := s.CreateNamespace(t, WithOwner(userID))
 		s.CreateMembership(t, tenantID, userID, "observer")
 
-		// Set preferred namespace
-		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
-		require.NoError(t, err)
-		user.Preferences.PreferredNamespace = tenantID
-		err = st.UserUpdate(ctx, user)
-		require.NoError(t, err)
+		// Set preferred namespace (targeted write; full UserUpdate no longer persists it)
+		require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, tenantID))
 
 		// Verify preferred is set
-		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, user.Preferences.PreferredNamespace)
 

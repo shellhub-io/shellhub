@@ -51,18 +51,15 @@ func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, me
 		return store.ErrNoDocuments
 	}
 
-	// Check if user has this namespace as preferred and clear it if so
-	user := new(entity.User)
-	err = db.NewSelect().Model(user).Where("id = ? AND preferred_namespace_id = ?", member.ID, tenantID).Limit(1).Scan(ctx)
-
-	// If user was found (no error), clear the preferred namespace
-	if err == nil && user.ID != "" {
-		user.Preferences.PreferredNamespace = ""
-		if _, err := db.NewUpdate().Model(user).Column("preferred_namespace_id").WherePK().Exec(ctx); err != nil {
-			return fromSQLError(err)
-		}
+	// Clear the removed member's preferred namespace if it points at this one. Targeted Set, not a
+	// full-model update, since preferred_namespace_id is skipupdate.
+	if _, err := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("preferred_namespace_id = NULL").
+		Where("id = ? AND preferred_namespace_id = ?", member.ID, tenantID).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
 	}
-	// If user not found (err != nil), that's OK - just means they don't have this as preferred
 
 	return nil
 }

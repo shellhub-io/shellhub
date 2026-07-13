@@ -69,6 +69,12 @@ func (p *Provider) Store() store.Store {
 	return p.store
 }
 
+// DB returns the underlying Bun driver. It is intended for tests that must assert on columns
+// not exposed through the store models (e.g. active_sessions.created_at).
+func (p *Provider) DB() *bun.DB {
+	return p.driver
+}
+
 // LoadFixtures loads test data from YAML fixture files
 func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 	t.Helper()

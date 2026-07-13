@@ -10,18 +10,20 @@ import (
 type Namespace struct {
 	bun.BaseModel `bun:"table:namespaces"`
 
-	ID                   string            `bun:"id,pk,type:uuid"`
-	CreatedAt            time.Time         `bun:"created_at"`
-	UpdatedAt            time.Time         `bun:"updated_at"`
-	Type                 string            `bun:"scope"`
-	Name                 string            `bun:"name"`
-	OwnerID              string            `bun:"owner_id"` // TODO: Remove this column in the future, owner should be determined by membership role
-	Memberships          []Membership      `json:"members" bun:"rel:has-many,join:id=namespace_id"`
-	Settings             NamespaceSettings `bun:"embed:"`
-	DevicesAcceptedCount int64             `bun:"devices_accepted_count"`
-	DevicesPendingCount  int64             `bun:"devices_pending_count"`
-	DevicesRejectedCount int64             `bun:"devices_rejected_count"`
-	DevicesRemovedCount  int64             `bun:"devices_removed_count"`
+	ID          string            `bun:"id,pk,type:uuid"`
+	CreatedAt   time.Time         `bun:"created_at"`
+	UpdatedAt   time.Time         `bun:"updated_at"`
+	Type        string            `bun:"scope"`
+	Name        string            `bun:"name"`
+	OwnerID     string            `bun:"owner_id"` // TODO: Remove this column in the future, owner should be determined by membership role
+	Memberships []Membership      `json:"members" bun:"rel:has-many,join:id=namespace_id"`
+	Settings    NamespaceSettings `bun:"embed:"`
+	// skipupdate: counters are maintained by NamespaceIncrementDeviceCount/NamespaceSyncDeviceCounts,
+	// so NamespaceUpdate must never write a stale snapshot of them.
+	DevicesAcceptedCount int64 `bun:"devices_accepted_count,skipupdate"`
+	DevicesPendingCount  int64 `bun:"devices_pending_count,skipupdate"`
+	DevicesRejectedCount int64 `bun:"devices_rejected_count,skipupdate"`
+	DevicesRemovedCount  int64 `bun:"devices_removed_count,skipupdate"`
 }
 
 type NamespaceSettings struct {
