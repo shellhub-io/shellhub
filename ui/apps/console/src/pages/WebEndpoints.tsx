@@ -38,7 +38,12 @@ import {
 import RestrictedAction from "@/components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import Pagination from "@/components/common/Pagination";
-import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  IconButton,
+  Toggle,
+} from "@shellhub/design-system/primitives";
 
 /* ─── Constants ─── */
 
@@ -231,8 +236,8 @@ function TimeoutSelector({
   const hasExpiration = value !== "-1";
   const [isEditingCustom, setIsEditingCustom] = useState(false);
 
-  const handleToggle = () => {
-    onChange(hasExpiration ? "-1" : "3600");
+  const handleToggle = (enabled: boolean) => {
+    onChange(enabled ? "3600" : "-1");
     setIsEditingCustom(false);
     onErrorChange(null);
   };
@@ -266,17 +271,11 @@ function TimeoutSelector({
         <span id="endpoint-expiration-label" className={LABEL_BASE}>
           Set expiration
         </span>
-        <button
-          type="button"
-          onClick={handleToggle}
+        <Toggle
+          enabled={hasExpiration}
+          onChange={handleToggle}
           aria-labelledby="endpoint-expiration-label"
-          aria-pressed={hasExpiration}
-          className={`relative w-9 h-5 rounded-full transition-colors ${hasExpiration ? "bg-primary" : "bg-border"}`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${hasExpiration ? "translate-x-4" : ""}`}
-          />
-        </button>
+        />
       </div>
 
       {hasExpiration ? (
@@ -623,18 +622,11 @@ function EndpointDrawer({
             >
               Service on the device uses HTTPS
             </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={tlsEnabled}
+            <Toggle
+              enabled={tlsEnabled}
+              onChange={setTlsEnabled}
               aria-labelledby="endpoint-tls-https-label"
-              onClick={() => setTlsEnabled(!tlsEnabled)}
-              className={`relative w-9 h-5 rounded-full transition-colors ${tlsEnabled ? "bg-primary" : "bg-border"}`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${tlsEnabled ? "translate-x-4" : ""}`}
-              />
-            </button>
+            />
           </div>
           <p className="text-2xs text-text-muted leading-relaxed">
             Enable when the service on the device listens over HTTPS. The proxy

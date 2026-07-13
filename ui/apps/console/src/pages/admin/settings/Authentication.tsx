@@ -14,41 +14,14 @@ import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
 import SamlConfigDrawer from "./SamlConfigDrawer";
 import PageLoader from "@/components/common/PageLoader";
-import { Button, Callout, Card } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Callout,
+  Card,
+  Toggle,
+} from "@shellhub/design-system/primitives";
 
 type AuthSettings = GetAuthenticationSettingsResponse;
-
-function Toggle({
-  enabled,
-  loading,
-  onToggle,
-  ariaLabel,
-}: {
-  enabled: boolean;
-  loading: boolean;
-  onToggle: () => void;
-  ariaLabel: string;
-}) {
-  return (
-    <button
-      role="switch"
-      type="button"
-      aria-checked={enabled}
-      aria-label={ariaLabel}
-      disabled={loading}
-      onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 disabled:opacity-dim disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-card ${
-        enabled ? "bg-primary" : "bg-border"
-      }`}
-    >
-      <span
-        className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-          enabled ? "translate-x-[18px]" : "translate-x-[2px]"
-        }`}
-      />
-    </button>
-  );
-}
 
 export default function AdminAuthentication() {
   const [settings, setSettings] = useState<AuthSettings | null>(null);
@@ -186,9 +159,9 @@ export default function AdminAuthentication() {
             </div>
             <Toggle
               enabled={localEnabled}
-              loading={togglingLocal}
-              onToggle={() => void handleLocalToggle()}
-              ariaLabel="Toggle local authentication"
+              disabled={togglingLocal}
+              onChange={() => void handleLocalToggle()}
+              aria-label="Toggle local authentication"
             />
           </div>
         </Card>
@@ -212,9 +185,9 @@ export default function AdminAuthentication() {
             </div>
             <Toggle
               enabled={samlEnabled}
-              loading={togglingSaml}
-              onToggle={() => void handleSamlToggle()}
-              ariaLabel="Toggle SAML authentication"
+              disabled={togglingSaml}
+              onChange={() => void handleSamlToggle()}
+              aria-label="Toggle SAML authentication"
             />
           </div>
 

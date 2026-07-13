@@ -5,10 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 import type { Webendpoint } from "@/client/types.gen";
 import WebEndpoints from "../WebEndpoints";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
 vi.mock("@/hooks/useWebEndpoints");
 vi.mock("@/hooks/useWebEndpointMutations");
 vi.mock("@/hooks/useDevices");
@@ -17,7 +13,10 @@ vi.mock("@/hooks/useHasPermission");
 vi.mock("@/hooks/useDebouncedValue");
 
 import { useWebEndpoints } from "@/hooks/useWebEndpoints";
-import { useDeleteWebEndpoint, useCreateWebEndpoint } from "@/hooks/useWebEndpointMutations";
+import {
+  useDeleteWebEndpoint,
+  useCreateWebEndpoint,
+} from "@/hooks/useWebEndpointMutations";
 import { useDevices } from "@/hooks/useDevices";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -29,8 +28,6 @@ const mockUseDevices = vi.mocked(useDevices);
 const mockUseHasPermission = vi.mocked(useHasPermission);
 const mockUseDebouncedValue = vi.mocked(useDebouncedValue);
 
-// Minimal fixture for the fields WebEndpoints renders; cast to the full
-// generated type so the mocked hook return stays type-compatible.
 function makeEndpoint(address: string): Webendpoint {
   return {
     address,
@@ -78,17 +75,12 @@ function renderPage(initialEntries: string[] = ["/"]) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Tests                                                               */
-/* ------------------------------------------------------------------ */
-
 beforeEach(() => {
   setupDefaultMocks();
 });
 
 describe("WebEndpoints — pagination count / controls decoupling", () => {
   it("shows the endpoint count when totalCount > 0 and only one page exists", () => {
-    // One endpoint fits on a single page — totalPages = Math.ceil(1/10) = 1
     mockUseWebEndpoints.mockReturnValue({
       webEndpoints: [makeEndpoint("ep1.example.com")],
       totalCount: 1,
@@ -98,7 +90,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
     renderPage();
 
-    // The count span MUST appear even though there is only 1 page
     expect(screen.getByText(/1 endpoint/i)).toBeInTheDocument();
   });
 
@@ -112,8 +103,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
     renderPage();
 
-    // Prev/Next must NOT be present when totalPages === 1.
-    // The buttons expose their accessible name via aria-label ("Previous/Next page").
     expect(
       screen.queryByRole("button", { name: /previous page/i }),
     ).not.toBeInTheDocument();
@@ -123,7 +112,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
   });
 
   it("shows Prev/Next controls and the count when multiple pages exist", () => {
-    // 15 endpoints across 2 pages (perPage = 10)
     const endpoints = Array.from({ length: 10 }, (_, i) =>
       makeEndpoint(`ep${i + 1}.example.com`),
     );
@@ -137,15 +125,15 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
     renderPage();
 
     expect(screen.getByText(/15 endpoints/i)).toBeInTheDocument();
-    // The buttons expose their accessible name via aria-label ("Previous/Next page").
     expect(
       screen.getByRole("button", { name: /previous page/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /next page/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /next page/i }),
+    ).toBeInTheDocument();
   });
 
-  it("does not show the Pagination nav when there are no endpoints (truly empty, no search)", () => {
-    // isTrulyEmpty=true -> EmptyState renders; Pagination component is never mounted.
+  it("does not show the Pagination nav when there are no endpoints", () => {
     mockUseWebEndpoints.mockReturnValue({
       webEndpoints: [],
       totalCount: 0,
@@ -155,7 +143,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
 
     renderPage();
 
-    // The EmptyState branch is taken — no pagination rendered at all.
     expect(screen.queryByText(/0 endpoints/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /previous page/i }),
@@ -163,8 +150,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
   });
 
   it("does not flash a '0 endpoints' count while a search request is in-flight", () => {
-    // isSearching=true, isLoading=true -> the Pagination component must be suppressed
-    // so stale zero counts do not appear mid-request.
     mockUseDebouncedValue.mockReturnValue("some-query");
     mockUseWebEndpoints.mockReturnValue({
       webEndpoints: [],
@@ -181,8 +166,6 @@ describe("WebEndpoints — pagination count / controls decoupling", () => {
     ).not.toBeInTheDocument();
   });
 });
-
-// ── URL hydration (usePaginatedListState adoption) ────────────────────────────
 
 describe("WebEndpoints — URL hydration", () => {
   it("reads page=2 and search=myhost from the URL and passes them to useWebEndpoints", () => {
@@ -216,13 +199,10 @@ describe("WebEndpoints — URL hydration", () => {
   });
 });
 
-// ── Search resets page ────────────────────────────────────────────────────────
-
 describe("WebEndpoints — search resets page to 1", () => {
   it("resets to page=1 when a new search term is typed while on page 2", async () => {
     const user = userEvent.setup();
 
-    // Start on page 2 with existing results so the content branch (not EmptyState) renders.
     mockUseWebEndpoints.mockReturnValue({
       webEndpoints: [makeEndpoint("ep1.example.com")],
       totalCount: 25,
@@ -232,29 +212,23 @@ describe("WebEndpoints — search resets page to 1", () => {
 
     renderPage(["/?page=2"]);
 
-    // Confirm initial render passes page=2
     expect(mockUseWebEndpoints).toHaveBeenCalledWith(
       expect.objectContaining({ page: 2 }),
     );
 
-    // Type in the search field
     const searchInput = screen.getByPlaceholderText(/search by address/i);
     await user.type(searchInput, "x");
 
-    // After typing, the hook must now be called with page=1
     expect(mockUseWebEndpoints).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1 }),
     );
   });
 });
 
-// ── Page change writes to URL ─────────────────────────────────────────────────
-
 describe("WebEndpoints — page change writes to URL", () => {
   it("calls useWebEndpoints with page=2 after clicking the Next page button", async () => {
     const user = userEvent.setup();
 
-    // 15 endpoints across 2 pages so Prev/Next controls are present.
     mockUseWebEndpoints.mockReturnValue({
       webEndpoints: Array.from({ length: 10 }, (_, i) =>
         makeEndpoint(`ep${i + 1}.example.com`),
@@ -272,5 +246,60 @@ describe("WebEndpoints — page change writes to URL", () => {
     expect(mockUseWebEndpoints).toHaveBeenCalledWith(
       expect.objectContaining({ page: 2 }),
     );
+  });
+});
+
+async function openEndpointDrawer(user: ReturnType<typeof userEvent.setup>) {
+  mockUseWebEndpoints.mockReturnValue({
+    webEndpoints: [makeEndpoint("ep1.example.com")],
+    totalCount: 1,
+    isLoading: false,
+    error: null,
+  });
+
+  renderPage();
+  await user.click(screen.getByRole("button", { name: /new endpoint/i }));
+}
+
+describe("WebEndpoints — expiration toggle", () => {
+  it("exposes the expiration control as a switch with aria-checked and no aria-pressed", async () => {
+    const user = userEvent.setup();
+    await openEndpointDrawer(user);
+
+    const toggle = screen.getByRole("switch", { name: /set expiration/i });
+
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(toggle).not.toHaveAttribute("aria-pressed");
+  });
+
+  it("flips aria-checked when the expiration switch is clicked", async () => {
+    const user = userEvent.setup();
+    await openEndpointDrawer(user);
+
+    const toggle = screen.getByRole("switch", { name: /set expiration/i });
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+  });
+});
+
+describe("WebEndpoints — TLS toggle", () => {
+  it("exposes the TLS control as a switch with aria-checked reflecting state", async () => {
+    const user = userEvent.setup();
+    await openEndpointDrawer(user);
+
+    const toggle = screen.getByRole("switch", { name: /uses https/i });
+
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("calls the TLS handler with the toggled boolean when clicked", async () => {
+    const user = userEvent.setup();
+    await openEndpointDrawer(user);
+
+    const toggle = screen.getByRole("switch", { name: /uses https/i });
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-checked", "true");
   });
 });
