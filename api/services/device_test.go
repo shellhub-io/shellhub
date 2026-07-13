@@ -1328,81 +1328,29 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
-					Return(nil, store.ErrNoDocuments).
-					Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
-		},
-		{
-			name: "fails when device resolve returns nil device",
-			uid:  models.UID("uid"),
-			mocks: func(ctx context.Context) {
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
-					Return(nil, nil).
-					Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), nil),
-		},
-		{
-			name: "fails when cannot update the device",
-			uid:  models.UID("uid"),
-			mocks: func(ctx context.Context) {
-				device := &models.Device{UID: "uid"}
-
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.DisconnectedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(errors.New("error", "", 0)).
-					Once()
-			},
-			expected: errors.New("error", "", 0),
-		},
-		{
-			name: "fails when device update returns ErrNoDocuments",
-			uid:  models.UID("uid"),
-			mocks: func(ctx context.Context) {
-				device := &models.Device{UID: "uid"}
-
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.DisconnectedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceOffline", ctx, "uid", now).
 					Return(store.ErrNoDocuments).
 					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
 		},
 		{
+			name: "fails when cannot update the device",
+			uid:  models.UID("uid"),
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceOffline", ctx, "uid", now).
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: errors.New("error", "", 0),
+		},
+		{
 			name: "succeeds",
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
-				device := &models.Device{UID: "uid"}
-
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.DisconnectedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceOffline", ctx, "uid", now).
 					Return(nil).
 					Once()
 			},

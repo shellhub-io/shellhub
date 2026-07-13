@@ -257,14 +257,7 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
-	if err != nil || device == nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	now := clock.Now()
-	device.DisconnectedAt = &now
-	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+	if err := s.store.DeviceOffline(ctx, string(uid), clock.Now()); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}

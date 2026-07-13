@@ -254,6 +254,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 
 			return nil, err
 		}
+
+		// last_seen/disconnected_at are skipupdate, so DeviceUpdate no longer brings the device
+		// online; do it through the targeted heartbeat path.
+		if _, err := s.store.DeviceHeartbeat(ctx, []string{uid}, device.LastSeen); err != nil {
+			log.WithError(err).Error("failed to update device last_seen to online")
+
+			return nil, err
+		}
 	}
 
 	for _, sessionUID := range req.Sessions {
@@ -409,7 +417,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
 	user.LastLogin = clock.Now()
-	user.Preferences.PreferredNamespace = tenantID
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
 			user.Password = neo
@@ -418,6 +425,11 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 
 	// TODO: evaluate make this update in a go routine.
 	if err := s.store.UserUpdate(ctx, user); err != nil {
+		return nil, 0, "", NewErrUserUpdate(user, err)
+	}
+
+	// preferred_namespace_id is skipupdate, so the UserUpdate above doesn't persist it.
+	if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -486,8 +498,9 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
 			user.Preferences.PreferredNamespace = tenantID
+			// preferred_namespace_id is skipupdate; write it through the targeted update.
 			// TODO: evaluate make this update in a go routine.
-			if err := s.store.UserUpdate(ctx, user); err != nil {
+			if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
 				return nil, NewErrUserUpdate(user, err)
 			}
 		}

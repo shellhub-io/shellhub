@@ -10,29 +10,33 @@ import (
 type Device struct {
 	bun.BaseModel `bun:"table:devices"`
 
-	ID              string            `bun:"id,pk"`
-	NamespaceID     string            `bun:"namespace_id,type:uuid"`
-	CreatedAt       time.Time         `bun:"created_at"`
-	UpdatedAt       time.Time         `bun:"updated_at"`
-	RemovedAt       *time.Time        `bun:"removed_at"`
-	LastSeen        time.Time         `bun:"last_seen"`
-	DisconnectedAt  time.Time         `bun:"disconnected_at,nullzero"`
-	Online          bool              `bun:",scanonly"`
-	Acceptable      bool              `bun:",scanonly"`
-	Status          string            `bun:"status"`
-	StatusUpdatedAt time.Time         `bun:"status_updated_at"`
-	Name            string            `bun:"name"`
-	MAC             string            `bun:"mac"`
-	PublicKey       string            `bun:"public_key"`
-	Identifier      string            `bun:"identifier"`
-	PrettyName      string            `bun:"pretty_name"`
-	Version         string            `bun:"version"`
-	Arch            string            `bun:"arch"`
-	Platform        string            `bun:"platform"`
-	RemoteAddr      string            `bun:"remote_addr"`
-	Longitude       float64           `bun:"longitude,type:numeric"`
-	Latitude        float64           `bun:"latitude,type:numeric"`
-	CustomFields    map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}'"`
+	ID          string     `bun:"id,pk"`
+	NamespaceID string     `bun:"namespace_id,type:uuid"`
+	CreatedAt   time.Time  `bun:"created_at"`
+	UpdatedAt   time.Time  `bun:"updated_at"`
+	RemovedAt   *time.Time `bun:"removed_at"`
+	// skipupdate: owned by DeviceHeartbeat/DeviceOffline, so DeviceUpdate can't roll a device
+	// offline with a stale snapshot. Writers that must change these use those targeted paths.
+	LastSeen        time.Time `bun:"last_seen,skipupdate"`
+	DisconnectedAt  time.Time `bun:"disconnected_at,nullzero,skipupdate"`
+	Online          bool      `bun:",scanonly"`
+	Acceptable      bool      `bun:",scanonly"`
+	Status          string    `bun:"status"`
+	StatusUpdatedAt time.Time `bun:"status_updated_at"`
+	Name            string    `bun:"name"`
+	MAC             string    `bun:"mac"`
+	PublicKey       string    `bun:"public_key"`
+	Identifier      string    `bun:"identifier"`
+	PrettyName      string    `bun:"pretty_name"`
+	Version         string    `bun:"version"`
+	Arch            string    `bun:"arch"`
+	Platform        string    `bun:"platform"`
+	RemoteAddr      string    `bun:"remote_addr"`
+	Longitude       float64   `bun:"longitude,type:numeric"`
+	Latitude        float64   `bun:"latitude,type:numeric"`
+	// skipupdate: maintained by DeviceSetCustomField/DeviceDeleteCustomField, so DeviceUpdate
+	// must never write a stale snapshot of it.
+	CustomFields map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}',skipupdate"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`

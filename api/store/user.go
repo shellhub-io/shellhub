@@ -30,6 +30,11 @@ type UserStore interface {
 
 	UserUpdate(ctx context.Context, user *models.User) error
 
+	// UserUpdatePreferredNamespace sets a user's preferred namespace (empty tenantID clears it to
+	// NULL) through a targeted write, since preferred_namespace_id is skipupdate. Returns
+	// [ErrNoDocuments] if no user is found.
+	UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID string) error
+
 	// UserGetInfo retrieves the user's information, like the owned and associated namespaces.
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)

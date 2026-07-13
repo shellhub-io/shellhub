@@ -1219,6 +1219,69 @@ func (_c *MockStore_DeviceList_Call) RunAndReturn(run func(ctx context.Context, 
 	return _c
 }
 
+// DeviceOffline provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error {
+	ret := _mock.Called(ctx, uid, disconnectedAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceOffline")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time) error); ok {
+		r0 = returnFunc(ctx, uid, disconnectedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeviceOffline_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceOffline'
+type MockStore_DeviceOffline_Call struct {
+	*mock.Call
+}
+
+// DeviceOffline is a helper method to define mock.On call
+//   - ctx context.Context
+//   - uid string
+//   - disconnectedAt time.Time
+func (_e *MockStore_Expecter) DeviceOffline(ctx any, uid any, disconnectedAt any) *MockStore_DeviceOffline_Call {
+	return &MockStore_DeviceOffline_Call{Call: _e.mock.On("DeviceOffline", ctx, uid, disconnectedAt)}
+}
+
+func (_c *MockStore_DeviceOffline_Call) Run(run func(ctx context.Context, uid string, disconnectedAt time.Time)) *MockStore_DeviceOffline_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceOffline_Call) Return(err error) *MockStore_DeviceOffline_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeviceOffline_Call) RunAndReturn(run func(ctx context.Context, uid string, disconnectedAt time.Time) error) *MockStore_DeviceOffline_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceResolve provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
 	var tmpRet mock.Arguments
@@ -5355,6 +5418,69 @@ func (_c *MockStore_UserUpdate_Call) Return(err error) *MockStore_UserUpdate_Cal
 }
 
 func (_c *MockStore_UserUpdate_Call) RunAndReturn(run func(ctx context.Context, user *models.User) error) *MockStore_UserUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UserUpdatePreferredNamespace provides a mock function for the type MockStore
+func (_mock *MockStore) UserUpdatePreferredNamespace(ctx context.Context, userID string, tenantID string) error {
+	ret := _mock.Called(ctx, userID, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserUpdatePreferredNamespace")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, userID, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserUpdatePreferredNamespace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserUpdatePreferredNamespace'
+type MockStore_UserUpdatePreferredNamespace_Call struct {
+	*mock.Call
+}
+
+// UserUpdatePreferredNamespace is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - tenantID string
+func (_e *MockStore_Expecter) UserUpdatePreferredNamespace(ctx any, userID any, tenantID any) *MockStore_UserUpdatePreferredNamespace_Call {
+	return &MockStore_UserUpdatePreferredNamespace_Call{Call: _e.mock.On("UserUpdatePreferredNamespace", ctx, userID, tenantID)}
+}
+
+func (_c *MockStore_UserUpdatePreferredNamespace_Call) Run(run func(ctx context.Context, userID string, tenantID string)) *MockStore_UserUpdatePreferredNamespace_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserUpdatePreferredNamespace_Call) Return(err error) *MockStore_UserUpdatePreferredNamespace_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserUpdatePreferredNamespace_Call) RunAndReturn(run func(ctx context.Context, userID string, tenantID string) error) *MockStore_UserUpdatePreferredNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }

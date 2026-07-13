@@ -11,10 +11,12 @@ import (
 type UserInvitation struct {
 	bun.BaseModel `bun:"table:user_invitations,alias:user_invitations"`
 
-	ID          string    `bun:"id,pk"`
-	Email       string    `bun:"email"`
-	Status      string    `bun:"status"`
-	Invitations int       `bun:"invitations"`
+	ID     string `bun:"id,pk"`
+	Email  string `bun:"email"`
+	Status string `bun:"status"`
+	// skipupdate: incremented atomically by UserInvitationsUpsert, so no full-model update
+	// may write a stale count.
+	Invitations int       `bun:"invitations,skipupdate"`
 	CreatedAt   time.Time `bun:"created_at"`
 	UpdatedAt   time.Time `bun:"updated_at"`
 }
