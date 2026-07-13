@@ -66,7 +66,7 @@ type NamespaceEdit struct {
 }
 
 type NamespaceAddMember struct {
-	FowardedHost   string          `header:"X-Forwarded-Host" validate:"required"`
+	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
 	UserID         string          `header:"X-ID" validate:"required"`
 	TenantID       string          `param:"tenant" validate:"required,uuid"`

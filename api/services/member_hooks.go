@@ -8,10 +8,11 @@ import (
 )
 
 // MembershipInvitedHookFn is called after a membership invitation is created or refreshed and
-// the transaction has committed. It receives the durable invitation (with its Sig and ExpiresAt).
-// Cloud uses it to deliver the invitation email; the hook runs outside the DB transaction, so a
-// delivery failure never rolls back the (successful) invite.
-type MembershipInvitedHookFn func(ctx context.Context, invitation *models.MembershipInvitation, forwardedHost, forwardedProto string) error
+// the transaction has committed. It receives the fully-populated notification (invitation
+// signature, expiry, recipient email + name, forwarded proto + host) — everything the email
+// needs, assembled by the intake flow. Cloud uses it to deliver the invitation email; the hook
+// runs outside the DB transaction, so a delivery failure never rolls back the (successful) invite.
+type MembershipInvitedHookFn func(ctx context.Context, notification *models.MembershipInvitationNotification) error
 
 var membershipInvitedHooks []MembershipInvitedHookFn
 
@@ -25,12 +26,12 @@ func OnMembershipInvited(fn MembershipInvitedHookFn) {
 	membershipInvitedHooks = append(membershipInvitedHooks, fn)
 }
 
-// fireMembershipInvited dispatches all registered post-invite hooks sequentially. forwardedHost and
-// forwardedProto come from the request and are used to build the emailed link. Errors are returned
-// to the caller, which logs them without failing the request (the invite is durable).
-func fireMembershipInvited(ctx context.Context, invitation *models.MembershipInvitation, forwardedHost, forwardedProto string) error {
+// fireMembershipInvited dispatches all registered post-invite hooks sequentially, passing the typed
+// notification assembled by the intake flow. Errors are returned to the caller, which logs them
+// without failing the request (the invite is durable).
+func fireMembershipInvited(ctx context.Context, notification *models.MembershipInvitationNotification) error {
 	for _, fn := range membershipInvitedHooks {
-		if err := fn(ctx, invitation, forwardedHost, forwardedProto); err != nil {
+		if err := fn(ctx, notification); err != nil {
 			return fmt.Errorf("membership invited hook failed: %w", err)
 		}
 	}

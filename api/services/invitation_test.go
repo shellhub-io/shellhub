@@ -313,6 +313,8 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 						TenantID: "tenant",
 						Members:  []models.Member{owner, {ID: "invitee", Role: authorizer.RoleObserver}},
 					}, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
 			},
@@ -323,6 +325,8 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(namespace, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
 				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
@@ -337,6 +341,8 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(namespace, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("UserInvitationsUpsert", ctx, "invitee@test.com").
@@ -349,11 +355,35 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			expected: Expected{true, nil},
 		},
 		{
+			description: "resends an expired invitation and returns a fresh link",
+			requiredMocks: func() {
+				expired := now.Add(-time.Hour)
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(namespace, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
+					Return(&models.User{ID: "invitee"}, nil).Once()
+				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+					Return(&models.MembershipInvitation{
+						TenantID:  "tenant",
+						UserID:    "invitee",
+						Status:    models.MembershipInvitationStatusPending,
+						ExpiresAt: &expired,
+					}, nil).Once()
+				storeMock.On("MembershipInvitationUpdate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
+					Return(nil).Once()
+			},
+			expected: Expected{true, nil},
+		},
+		{
 			description:      "adds an existing account directly and returns no link when direct membership is on (enterprise)",
 			directMembership: true,
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(namespace, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
 				storeMock.On("NamespaceCreateMembership", ctx, "tenant", &models.Member{

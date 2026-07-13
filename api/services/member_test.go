@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestService_AddNamespaceMember(t *testing.T) {
@@ -38,11 +39,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the namespace was not found",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -58,11 +59,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member was not found",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -87,11 +88,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member is not on the namespace",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -119,11 +120,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the passive role is owner",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleOwner,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -156,11 +157,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member's role cannot act over passive member's role",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleAdministrator,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -193,11 +194,11 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "succeeds inviting a brand-new email via the invitation flow",
 			req: &requests.NamespaceAddMember{
-				FowardedHost: "localhost",
-				UserID:       "000000000000000000000000",
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				MemberEmail:  "john.doe@test.com",
-				MemberRole:   authorizer.RoleObserver,
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				ns := &models.Namespace{
@@ -1776,5 +1777,160 @@ func TestService_LeaveNamespace(t *testing.T) {
 		})
 	}
 
+	storeMock.AssertExpectations(t)
+}
+
+// TestService_AddNamespaceMember_LowercasesEmail pins that the intake flow lowercases the invited
+// email before both the account lookup and the placeholder upsert, so inviting the same person in
+// different letter-casing never produces a second placeholder account.
+func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
+	storeMock := storemock.NewMockStore(t)
+	ctx := context.TODO()
+	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	mockClockNow(t, now)
+
+	ns := &models.Namespace{
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Owner:    "000000000000000000000000",
+		Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+	}
+
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
+	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
+	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "jane@test.com").
+		Return(nil, store.ErrNoDocuments).Once()
+	storeMock.On("UserInvitationsUpsert", ctx, "jane@test.com").Return("placeholder", nil).Once()
+	storeMock.On("MembershipInvitationResolve", ctx, ns.TenantID, "placeholder").Return(nil, store.ErrNoDocuments).Once()
+	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).Return(nil).Once()
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+		ForwardedHost: "localhost",
+		UserID:        "000000000000000000000000",
+		TenantID:      ns.TenantID,
+		MemberEmail:   "Jane@Test.com",
+		MemberRole:    authorizer.RoleObserver,
+	})
+
+	assert.NoError(t, err)
+	storeMock.AssertExpectations(t)
+}
+
+// TestService_AddNamespaceMember_FiresNotification pins that the post-commit hook receives a
+// fully-populated notification assembled from the resolved invitee, the created invitation, and the
+// request — the whole reason the worker no longer needs to reload anything.
+func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
+	original := membershipInvitedHooks
+	t.Cleanup(func() { membershipInvitedHooks = original })
+	membershipInvitedHooks = nil
+
+	storeMock := storemock.NewMockStore(t)
+	ctx := context.TODO()
+	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	mockClockNow(t, now)
+
+	ns := &models.Namespace{
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Owner:    "000000000000000000000000",
+		Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+	}
+
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
+	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
+	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
+		Return(&models.User{ID: "invitee", UserData: models.UserData{Name: "Invitee Person", Email: "invitee@test.com"}}, nil).Once()
+	storeMock.On("MembershipInvitationResolve", ctx, ns.TenantID, "invitee").Return(nil, store.ErrNoDocuments).Once()
+
+	var created *models.MembershipInvitation
+	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
+		Run(func(args mock.Arguments) { created = args.Get(1).(*models.MembershipInvitation) }).
+		Return(nil).Once()
+
+	var got *models.MembershipInvitationNotification
+	OnMembershipInvited(func(_ context.Context, n *models.MembershipInvitationNotification) error {
+		got = n
+
+		return nil
+	})
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+		ForwardedHost:  "localhost",
+		ForwardedProto: "https",
+		UserID:         "000000000000000000000000",
+		TenantID:       ns.TenantID,
+		MemberEmail:    "Invitee@Test.com",
+		MemberRole:     authorizer.RoleObserver,
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.NotNil(t, created)
+	assert.Equal(t, "invitee@test.com", got.RecipientEmail)
+	assert.Equal(t, "Invitee Person", got.RecipientName)
+	assert.Equal(t, "https", got.ForwardedProto)
+	assert.Equal(t, "localhost", got.ForwardedHost)
+	assert.Equal(t, now.Add(7*24*time.Hour), got.ExpiresAt)
+	assert.Equal(t, created.Sig, got.Signature)
+	assert.NotEmpty(t, got.Signature)
+}
+
+// TestService_AddNamespaceMember_DirectMembershipFiresNoHook pins the direct-membership
+// short-circuit: an existing account is added straight to the namespace, no invitation is created,
+// and no delivery hook fires.
+func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
+	original := membershipInvitedHooks
+	t.Cleanup(func() { membershipInvitedHooks = original })
+	membershipInvitedHooks = nil
+
+	directMembershipEnabled = true
+	t.Cleanup(func() { directMembershipEnabled = false })
+
+	storeMock := storemock.NewMockStore(t)
+	ctx := context.TODO()
+	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	mockClockNow(t, now)
+
+	ns := &models.Namespace{
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Owner:    "000000000000000000000000",
+		Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+	}
+
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
+	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
+	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
+		Return(&models.User{ID: "invitee"}, nil).Once()
+	storeMock.On("NamespaceCreateMembership", ctx, ns.TenantID, &models.Member{
+		ID: "invitee", AddedAt: now, Role: authorizer.RoleObserver,
+	}).Return(nil).Once()
+
+	hookCalled := false
+	OnMembershipInvited(func(context.Context, *models.MembershipInvitationNotification) error {
+		hookCalled = true
+
+		return nil
+	})
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+		ForwardedHost: "localhost",
+		UserID:        "000000000000000000000000",
+		TenantID:      ns.TenantID,
+		MemberEmail:   "invitee@test.com",
+		MemberRole:    authorizer.RoleObserver,
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, hookCalled)
 	storeMock.AssertExpectations(t)
 }
