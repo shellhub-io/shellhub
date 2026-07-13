@@ -53,25 +53,57 @@ type MemberService interface {
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 }
 
-func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+// resolveActingMember resolves the namespace and the acting member — the authenticated member
+// identified by actorID performing an operation on it. The store is not consulted for the actor's
+// user record: a resolved membership already proves the account exists, so FindMember alone
+// suffices.
+//
+// When requireAuthorityOver is not [authorizer.RoleInvalid], it additionally asserts that the acting
+// member outranks that role, returning [NewErrRoleForbidden] otherwise. Passing RoleInvalid resolves
+// without any authority assertion.
+//
+// It returns [NewErrNamespaceNotFound] when the namespace does not exist and
+// [NewErrNamespaceMemberNotFound] when the actor is not a member of it.
+func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role) (*models.Namespace, *models.Member, error) {
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil || namespace == nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+		return nil, nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
-	if err != nil || user == nil {
-		return nil, NewErrUserNotFound(req.UserID, err)
-	}
-
-	// checks if the active member is in the namespace. user is the active member.
-	active, ok := namespace.FindMember(user.ID)
+	member, ok := namespace.FindMember(actorID)
 	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
+		return nil, nil, NewErrNamespaceMemberNotFound(actorID, nil)
 	}
 
-	if !active.Role.HasAuthority(req.MemberRole) {
-		return nil, NewErrRoleForbidden()
+	if requireAuthorityOver != authorizer.RoleInvalid && !member.Role.HasAuthority(requireAuthorityOver) {
+		return nil, nil, NewErrRoleForbidden()
+	}
+
+	return namespace, member, nil
+}
+
+// admitMember places a user into a namespace as a member and, when an invitation is supplied,
+// consumes it — the single "add-and-consume" write shared by every intake path.
+//
+// It opens no transaction of its own: the store's WithTransaction is not reentrant, so a caller that
+// needs the create and the delete to be atomic must wrap the call in its own transaction. admitMember
+// then joins that ambient transaction through the context.
+func (s *service) admitMember(ctx context.Context, tenantID string, member *models.Member, invitation *models.MembershipInvitation) error {
+	if err := s.store.NamespaceCreateMembership(ctx, tenantID, member); err != nil {
+		return err
+	}
+
+	if invitation != nil {
+		return s.store.MembershipInvitationDelete(ctx, invitation)
+	}
+
+	return nil
+}
+
+func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole)
+	if err != nil {
+		return nil, err
 	}
 
 	if _, err := s.intakeMembership(ctx, namespace, active.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto); err != nil {
@@ -124,7 +156,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 		if userExists && directMembershipAllowed() {
 			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: role}
 
-			return s.store.NamespaceCreateMembership(ctx, namespace.TenantID, member)
+			return s.admitMember(ctx, namespace.TenantID, member, nil)
 		}
 
 		existing, err := s.store.MembershipInvitationResolve(ctx, namespace.TenantID, passiveUser.ID)
@@ -229,24 +261,14 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
 	if err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
-	if err != nil {
-		return NewErrUserNotFound(req.UserID, err)
-	}
-
-	active, ok := namespace.FindMember(user.ID)
-	if !ok {
-		return NewErrNamespaceMemberNotFound(user.ID, err)
+		return err
 	}
 
 	member, ok := namespace.FindMember(req.MemberID)
 	if !ok {
-		return NewErrNamespaceMemberNotFound(req.MemberID, err)
+		return NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
 	// A member cannot change their own role through this endpoint. The dangerous case
@@ -291,24 +313,14 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 }
 
 func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
-	if err != nil {
-		return nil, NewErrUserNotFound(req.UserID, err)
-	}
-
-	active, ok := namespace.FindMember(user.ID)
-	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(user.ID, err)
+		return nil, err
 	}
 
 	passive, ok := namespace.FindMember(req.MemberID)
 	if !ok {
-		return nil, NewErrNamespaceMemberNotFound(req.MemberID, err)
+		return nil, NewErrNamespaceMemberNotFound(req.MemberID, nil)
 	}
 
 	// A member cannot remove themselves through this endpoint; doing so bypasses the
@@ -344,13 +356,12 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
-	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	ns, member, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+		return nil, err
 	}
 
-	member, ok := ns.FindMember(req.UserID)
-	if !ok || member.Role == authorizer.RoleOwner {
+	if member.Role == authorizer.RoleOwner {
 		return nil, NewErrAuthForbidden()
 	}
 

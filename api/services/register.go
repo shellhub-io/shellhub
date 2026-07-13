@@ -162,14 +162,10 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		// Completing the account through the link joins the namespace now. Login may still be
 		// gated by AwaitingApproval, but the membership is in place so approval alone unblocks
-		// them. The invitation is consumed, so we delete it (atomic with user + membership).
+		// them. admitMember consumes the invitation, atomic with the user + membership write.
 		if membership != nil {
 			member := &models.Member{ID: user.ID, AddedAt: clock.Now(), Role: membership.Role}
-			if err := s.store.NamespaceCreateMembership(ctx, membership.TenantID, member); err != nil {
-				return err
-			}
-
-			if err := s.store.MembershipInvitationDelete(ctx, membership); err != nil {
+			if err := s.admitMember(ctx, membership.TenantID, member, membership); err != nil {
 				return err
 			}
 		}
