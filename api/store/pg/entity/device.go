@@ -29,6 +29,7 @@ type Device struct {
 	Version         string            `bun:"version"`
 	Arch            string            `bun:"arch"`
 	Platform        string            `bun:"platform"`
+	RemoteAddr      string            `bun:"remote_addr"`
 	Longitude       float64           `bun:"longitude,type:numeric"`
 	Latitude        float64           `bun:"latitude,type:numeric"`
 	CustomFields    map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}'"`
@@ -55,6 +56,7 @@ func DeviceFromModel(model *models.Device) *Device {
 		StatusUpdatedAt: model.StatusUpdatedAt,
 		Name:            model.Name,
 		PublicKey:       model.PublicKey,
+		RemoteAddr:      model.RemoteAddr,
 		CustomFields:    model.CustomFields,
 		Tags:            []*Tag{},
 	}
@@ -113,7 +115,7 @@ func DeviceToModel(entity *Device) *models.Device {
 		Acceptable:      entity.Acceptable,
 		Namespace:       "",
 		DisconnectedAt:  nil,
-		RemoteAddr:      "",
+		RemoteAddr:      entity.RemoteAddr,
 		CustomFields:    entity.CustomFields,
 		Taggable: models.Taggable{
 			Tags: []models.Tag{},

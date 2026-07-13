@@ -493,6 +493,20 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, statusUpdatedAt.Equal(device.StatusUpdatedAt), "StatusUpdatedAt should match: expected %v, got %v", statusUpdatedAt, device.StatusUpdatedAt)
 	})
+
+	t.Run("succeeds persisting remote_addr on create", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithTenantID(tenantID),
+			WithDeviceRemoteAddr("203.0.113.7"),
+		)
+
+		created, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Equal(t, "203.0.113.7", created.RemoteAddr)
+	})
 }
 
 // TestDeviceConflicts tests checking for device conflicts
@@ -700,6 +714,28 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, newStatusUpdatedAt.Equal(updated.StatusUpdatedAt), "updated StatusUpdatedAt should match: expected %v, got %v", newStatusUpdatedAt, updated.StatusUpdatedAt)
 		assert.Equal(t, models.DeviceStatusAccepted, updated.Status)
+	})
+
+	t.Run("succeeds updating remote_addr", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithTenantID(tenantID),
+			WithDeviceRemoteAddr("203.0.113.7"),
+		)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Equal(t, "203.0.113.7", device.RemoteAddr)
+
+		device.RemoteAddr = "198.51.100.9"
+		err = st.DeviceUpdate(ctx, device)
+		require.NoError(t, err)
+
+		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Equal(t, "198.51.100.9", updated.RemoteAddr)
 	})
 }
 

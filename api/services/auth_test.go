@@ -196,6 +196,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
 				expectedDevice.Info = &models.DeviceInfo{
@@ -244,6 +245,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
 
@@ -286,6 +288,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
 
@@ -322,6 +325,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = clock.Now()
 
 				cacheMock.
@@ -377,6 +381,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 				device := &models.Device{UID: uid, Name: "hostname"}
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = clock.Now()
 
 				cacheMock.
@@ -477,6 +482,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
 				expectedDevice.Info = &models.DeviceInfo{
@@ -543,6 +549,7 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 
 				expectedDevice := *device
+				expectedDevice.RemoteAddr = "127.0.0.1"
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
 				expectedDevice.RemovedAt = nil
@@ -2755,6 +2762,226 @@ func TestAuthDevice_AutoAcceptLicenseLimitNewDevice(t *testing.T) {
 	assert.True(t, found, "expected log entry with message %q at WARN level; got entries: %v", wantMsg, hook.entries)
 
 	storeMock.AssertExpectations(t)
+}
+
+// TestAuthDevice_RemoteAddr verifies that RemoteAddr is persisted from the client-supplied
+// X-Real-IP only when it parses as an IP: an unparseable value (which is attacker-controlled
+// and could overflow the bounded remote_addr column) is stored as empty on create and leaves
+// the previously stored address untouched on reconnect, while a valid IP refreshes it.
+func TestAuthDevice_RemoteAddr(t *testing.T) {
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+
+	prevClock := clock.DefaultBackend
+	prevUUID := uuid.DefaultBackend
+	t.Cleanup(func() {
+		clock.DefaultBackend = prevClock
+		uuid.DefaultBackend = prevUUID
+	})
+
+	clockMock := clockmock.NewMockClock(t)
+	clockMock.On("Now").Return(now)
+	clock.DefaultBackend = clockMock
+
+	uuidMock := uuidmock.NewMockUUID(t)
+	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
+	uuid.DefaultBackend = uuidMock
+
+	toUID := func(tenantID, hostname, mac, publicKey string) string {
+		auth := models.DeviceAuth{
+			Hostname:  strings.ToLower(hostname),
+			Identity:  &models.DeviceIdentity{MAC: mac},
+			PublicKey: publicKey,
+			TenantID:  tenantID,
+		}
+
+		uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
+
+		return hex.EncodeToString(uidSHA[:])
+	}
+
+	toToken := func(tenantID, uid string) string {
+		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, privateKey)
+		require.NoError(t, err)
+
+		return token
+	}
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	oversizedIP := strings.Repeat("a", 200)
+
+	t.Run("[device creation] stores an empty RemoteAddr when RealIP is not a valid IP", func(t *testing.T) {
+		storeMock := mocks.NewMockStore(t)
+		cacheMock := mockcache.NewMockCache(t)
+		ctx := context.TODO()
+		uid := toUID(tenantID, "invalid-ip-device", "aa:bb:cc:dd:ee:ff", "public-key")
+
+		storeMock.
+			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Once()
+		cacheMock.
+			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+			Return(nil).
+			Once()
+		storeMock.
+			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			Return(nil, store.ErrNoDocuments).
+			Once()
+		storeMock.
+			On(
+				"DeviceCreate",
+				ctx,
+				&models.Device{
+					CreatedAt:       now,
+					UID:             uid,
+					TenantID:        tenantID,
+					LastSeen:        now,
+					DisconnectedAt:  nil,
+					Status:          models.DeviceStatusPending,
+					StatusUpdatedAt: now,
+					Name:            "invalid-ip-device",
+					Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+					PublicKey:       "public-key",
+					RemoteAddr:      "",
+					Taggable:        models.Taggable{TagIDs: []string{}},
+					Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
+				},
+			).
+			Return(uid, nil).
+			Once()
+		storeMock.
+			On("NamespaceIncrementDeviceCount", ctx, tenantID, models.DeviceStatusPending, int64(1)).
+			Return(nil).
+			Once()
+		cacheMock.
+			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "invalid-ip-device", "namespace_name": "test"}, time.Second*30).
+			Return(nil).
+			Once()
+
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+
+		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
+			TenantID:  tenantID,
+			Hostname:  "invalid-ip-device",
+			Identity:  &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+			PublicKey: "public-key",
+			Sessions:  []string{},
+			RealIP:    oversizedIP,
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, &models.DeviceAuthResponse{
+			UID:       uid,
+			Token:     toToken(tenantID, uid),
+			Name:      "invalid-ip-device",
+			Namespace: "test",
+		}, res)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("[device exists] refreshes RemoteAddr from a valid RealIP on reconnect", func(t *testing.T) {
+		storeMock := mocks.NewMockStore(t)
+		cacheMock := mockcache.NewMockCache(t)
+		ctx := context.TODO()
+		uid := toUID(tenantID, "reconnect-device", "", "")
+		device := &models.Device{UID: uid, Name: "reconnect-device", RemoteAddr: "198.51.100.1"}
+
+		storeMock.
+			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Once()
+		cacheMock.
+			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+			Return(nil).
+			Once()
+		storeMock.
+			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			Return(device, nil).
+			Once()
+
+		expectedDevice := *device
+		expectedDevice.RemoteAddr = "203.0.113.10"
+		expectedDevice.LastSeen = now
+		expectedDevice.DisconnectedAt = nil
+
+		storeMock.
+			On("DeviceUpdate", ctx, &expectedDevice).
+			Return(nil).
+			Once()
+		cacheMock.
+			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
+			Return(nil).
+			Once()
+
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+
+		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
+			TenantID:  tenantID,
+			Hostname:  "reconnect-device",
+			Identity:  &requests.DeviceIdentity{MAC: ""},
+			PublicKey: "",
+			Sessions:  []string{},
+			RealIP:    "203.0.113.10",
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, "reconnect-device", res.Name)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("[device exists] keeps the previous RemoteAddr when RealIP is invalid on reconnect", func(t *testing.T) {
+		storeMock := mocks.NewMockStore(t)
+		cacheMock := mockcache.NewMockCache(t)
+		ctx := context.TODO()
+		uid := toUID(tenantID, "reconnect-device", "", "")
+		device := &models.Device{UID: uid, Name: "reconnect-device", RemoteAddr: "198.51.100.1"}
+
+		storeMock.
+			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).
+			Once()
+		cacheMock.
+			On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+			Return(nil).
+			Once()
+		storeMock.
+			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			Return(device, nil).
+			Once()
+
+		expectedDevice := *device
+		expectedDevice.RemoteAddr = "198.51.100.1"
+		expectedDevice.LastSeen = now
+		expectedDevice.DisconnectedAt = nil
+
+		storeMock.
+			On("DeviceUpdate", ctx, &expectedDevice).
+			Return(nil).
+			Once()
+		cacheMock.
+			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
+			Return(nil).
+			Once()
+
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+
+		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
+			TenantID:  tenantID,
+			Hostname:  "reconnect-device",
+			Identity:  &requests.DeviceIdentity{MAC: ""},
+			PublicKey: "",
+			Sessions:  []string{},
+			RealIP:    oversizedIP,
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, "reconnect-device", res.Name)
+
+		storeMock.AssertExpectations(t)
+	})
 }
 
 // TestAuthDevice_AutoAcceptLicenseLimitReRegistered verifies that when a previously-removed

@@ -187,6 +187,13 @@ func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
 	}
 }
 
+// WithDeviceRemoteAddr sets the device remote address
+func WithDeviceRemoteAddr(addr string) DeviceOption {
+	return func(d *models.Device) {
+		d.RemoteAddr = addr
+	}
+}
+
 // CreateDevice creates a device with default or customized values
 // Returns the generated device UID
 // If tenant is not provided via WithTenantID(), a default namespace will be created
