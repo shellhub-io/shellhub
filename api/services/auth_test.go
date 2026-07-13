@@ -2929,6 +2929,10 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			On("DeviceUpdate", ctx, &expectedDevice).
 			Return(nil).
 			Once()
+		storeMock.
+			On("DeviceHeartbeat", ctx, []string{uid}, now).
+			Return(int64(1), nil).
+			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
 			Return(nil).
@@ -2979,6 +2983,10 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		storeMock.
 			On("DeviceUpdate", ctx, &expectedDevice).
 			Return(nil).
+			Once()
+		storeMock.
+			On("DeviceHeartbeat", ctx, []string{uid}, now).
+			Return(int64(1), nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "reconnect-device", "namespace_name": "test"}, time.Second*30).
