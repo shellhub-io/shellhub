@@ -25,6 +25,20 @@ post:
   responses:
     '200':
       description: Success to send the email.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                description: |
+                  Opaque token identifying this reset request. Present it in the
+                  `user-id` path segment of `PUT /api/user/mfa/reset/{user-id}`
+                  to complete the reset.
+                type: string
+                example: 4a5f6b3e-1234-4a12-9abc-1234567890ab
+            required:
+              - token
     '400':
       $ref: ../components/responses/400.yaml
     '401':
