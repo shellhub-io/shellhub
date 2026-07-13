@@ -825,16 +825,16 @@ func (_c *MockClient_GetPublicKey_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // InviteMember provides a mock function for the type MockClient
-func (_mock *MockClient) InviteMember(ctx context.Context, tenantID string, userID string, forwardedHost string, forwardedProto string) error {
-	ret := _mock.Called(ctx, tenantID, userID, forwardedHost, forwardedProto)
+func (_mock *MockClient) InviteMember(ctx context.Context, notification *models.MembershipInvitationNotification) error {
+	ret := _mock.Called(ctx, notification)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InviteMember")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
-		r0 = returnFunc(ctx, tenantID, userID, forwardedHost, forwardedProto)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitationNotification) error); ok {
+		r0 = returnFunc(ctx, notification)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -848,42 +848,24 @@ type MockClient_InviteMember_Call struct {
 
 // InviteMember is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
-//   - userID string
-//   - forwardedHost string
-//   - forwardedProto string
-func (_e *MockClient_Expecter) InviteMember(ctx any, tenantID any, userID any, forwardedHost any, forwardedProto any) *MockClient_InviteMember_Call {
-	return &MockClient_InviteMember_Call{Call: _e.mock.On("InviteMember", ctx, tenantID, userID, forwardedHost, forwardedProto)}
+//   - notification *models.MembershipInvitationNotification
+func (_e *MockClient_Expecter) InviteMember(ctx any, notification any) *MockClient_InviteMember_Call {
+	return &MockClient_InviteMember_Call{Call: _e.mock.On("InviteMember", ctx, notification)}
 }
 
-func (_c *MockClient_InviteMember_Call) Run(run func(ctx context.Context, tenantID string, userID string, forwardedHost string, forwardedProto string)) *MockClient_InviteMember_Call {
+func (_c *MockClient_InviteMember_Call) Run(run func(ctx context.Context, notification *models.MembershipInvitationNotification)) *MockClient_InviteMember_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 *models.MembershipInvitationNotification
 		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
+			arg1 = args[1].(*models.MembershipInvitationNotification)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
-			arg3,
-			arg4,
 		)
 	})
 	return _c
@@ -894,7 +876,7 @@ func (_c *MockClient_InviteMember_Call) Return(err error) *MockClient_InviteMemb
 	return _c
 }
 
-func (_c *MockClient_InviteMember_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string, forwardedHost string, forwardedProto string) error) *MockClient_InviteMember_Call {
+func (_c *MockClient_InviteMember_Call) RunAndReturn(run func(ctx context.Context, notification *models.MembershipInvitationNotification) error) *MockClient_InviteMember_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -2,10 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
 	"net/url"
-	"strings"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/api/store"
@@ -133,88 +130,15 @@ func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.Gene
 		return "", NewErrRoleForbidden()
 	}
 
-	passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, strings.ToLower(req.MemberEmail))
-	userExists := err == nil
-	if err != nil {
-		if !errors.Is(err, store.ErrNoDocuments) {
-			return "", err
-		}
-
-		passiveUser = &models.User{}
-		passiveUser.ID, err = s.store.UserInvitationsUpsert(ctx, req.MemberEmail)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	if _, ok := namespace.FindMember(passiveUser.ID); ok {
-		return "", NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
-	}
-
-	// Direct membership links an existing account to the namespace right away — no cross-tenant
-	// consent step, no link to hand over. Enabled only where it's an internal org (enterprise);
-	// community/cloud keep the invitation/link flow. The empty return signals the caller that the
-	// member was added, not invited.
-	if userExists && directMembershipAllowed() {
-		member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: req.MemberRole}
-
-		return "", s.store.NamespaceCreateMembership(ctx, req.TenantID, member)
-	}
-
-	invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, passiveUser.ID)
-	if err != nil && !errors.Is(err, store.ErrNoDocuments) {
-		return "", err
-	}
-
-	now := clock.Now()
-	expiresAt := now.Add(7 * (24 * time.Hour))
-
-	sig, err := pairingcode.New(pairingcode.InviteCodeLength)
+	invitation, err := s.intakeMembership(ctx, namespace, activeUser.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto)
 	if err != nil {
 		return "", err
 	}
 
-	if invitation == nil || !invitation.IsPending() {
-		invitation = &models.MembershipInvitation{
-			TenantID:        req.TenantID,
-			UserID:          passiveUser.ID,
-			InvitedBy:       req.UserID,
-			Status:          models.MembershipInvitationStatusPending,
-			Role:            req.MemberRole,
-			ExpiresAt:       &expiresAt,
-			CreatedAt:       now,
-			UpdatedAt:       now,
-			StatusUpdatedAt: now,
-			Invitations:     1,
-			Sig:             sig,
-		}
-
-		if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
-			return "", err
-		}
-	} else {
-		if !invitation.IsExpired() {
-			return "", NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
-		}
-
-		invitation.Status = models.MembershipInvitationStatusPending
-		invitation.Role = req.MemberRole
-		invitation.ExpiresAt = &expiresAt
-		invitation.UpdatedAt = now
-		invitation.StatusUpdatedAt = now
-		invitation.Invitations++
-		invitation.Sig = sig
-
-		if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
-			return "", err
-		}
-	}
-
-	// Post-commit: deliver the invitation email (cloud only; a no-op where no delivery hook is
-	// registered). Non-fatal — the admin still gets the link back, so a delivery failure is
-	// logged but doesn't fail the request.
-	if err := fireMembershipInvited(ctx, invitation, req.ForwardedHost, req.ForwardedProto); err != nil {
-		log.WithError(err).WithField("tenant-id", req.TenantID).Warn("failed to deliver membership invitation")
+	// Direct membership added the account right away — no invitation, no link to hand over. The
+	// empty return signals the caller that the member was added, not invited.
+	if invitation == nil {
+		return "", nil
 	}
 
 	return buildInviteURL(req.ForwardedProto, req.ForwardedHost, invitation.Sig), nil

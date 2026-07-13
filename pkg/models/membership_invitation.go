@@ -45,3 +45,28 @@ func (m MembershipInvitation) IsExpired() bool {
 func (m MembershipInvitation) IsPending() bool {
 	return m.Status == MembershipInvitationStatusPending
 }
+
+// MembershipInvitationNotification is the typed, email-relevant snapshot of a membership
+// invitation event. It is assembled once by the membership-intake flow and carried — via the
+// OnMembershipInvited hook and the internal client — to the worker that renders and sends the
+// invitation email, which reads it without a single store round-trip.
+//
+// It is the single contract across the shellhub↔cloud seam: JSON-encoded over the worker's
+// []byte transport, replacing the former positional colon-delimited string. It deliberately
+// carries only what the email template consumes — not the role or namespace name, which the
+// template uses neither of.
+type MembershipInvitationNotification struct {
+	// Signature is the invitation's one-time signature; the accept-invite link is keyed by it.
+	Signature string `json:"signature"`
+	// ExpiresAt is when the invitation stops resolving, shown to the recipient as the link expiry.
+	ExpiresAt time.Time `json:"expires_at"`
+	// RecipientEmail is the invited address, already lowercased.
+	RecipientEmail string `json:"recipient_email"`
+	// RecipientName is the invitee's display name, empty for a not-yet-registered invitee (exactly
+	// as before).
+	RecipientName string `json:"recipient_name"`
+	// ForwardedProto and ForwardedHost come from the originating request's X-Forwarded-* headers and
+	// build the accept-invite link in the email.
+	ForwardedProto string `json:"forwarded_proto"`
+	ForwardedHost  string `json:"forwarded_host"`
+}

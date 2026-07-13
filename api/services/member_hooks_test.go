@@ -23,7 +23,7 @@ func TestOnMembershipInvited(t *testing.T) {
 		membershipInvitedHooks = nil
 
 		called := false
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			called = true
 
 			return nil
@@ -31,7 +31,7 @@ func TestOnMembershipInvited(t *testing.T) {
 
 		require.Len(t, membershipInvitedHooks, 1)
 
-		err := membershipInvitedHooks[0](context.Background(), nil, "", "")
+		err := membershipInvitedHooks[0](context.Background(), nil)
 		assert.NoError(t, err)
 		assert.True(t, called)
 	})
@@ -41,12 +41,15 @@ func TestFireMembershipInvited(t *testing.T) {
 	original := membershipInvitedHooks
 	t.Cleanup(func() { membershipInvitedHooks = original })
 
-	inv := &models.MembershipInvitation{TenantID: "tenant", Sig: "ABCDEF123456"}
+	notification := &models.MembershipInvitationNotification{
+		Signature:      "ABCDEF123456",
+		RecipientEmail: "invitee@test.com",
+	}
 
 	t.Run("no hooks registered", func(t *testing.T) {
 		membershipInvitedHooks = nil
 
-		err := fireMembershipInvited(context.Background(), inv, "", "")
+		err := fireMembershipInvited(context.Background(), notification)
 		assert.NoError(t, err)
 	})
 
@@ -54,14 +57,14 @@ func TestFireMembershipInvited(t *testing.T) {
 		membershipInvitedHooks = nil
 
 		called := false
-		OnMembershipInvited(func(_ context.Context, got *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, got *models.MembershipInvitationNotification) error {
 			called = true
-			assert.Equal(t, inv, got)
+			assert.Equal(t, notification, got)
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), inv, "", "")
+		err := fireMembershipInvited(context.Background(), notification)
 		assert.NoError(t, err)
 		assert.True(t, called)
 	})
@@ -70,18 +73,18 @@ func TestFireMembershipInvited(t *testing.T) {
 		membershipInvitedHooks = nil
 
 		errHook := errors.New("hook failed")
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			return errHook
 		})
 
 		secondCalled := false
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			secondCalled = true
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), inv, "", "")
+		err := fireMembershipInvited(context.Background(), notification)
 		assert.ErrorIs(t, err, errHook)
 		assert.False(t, secondCalled)
 	})
@@ -90,18 +93,18 @@ func TestFireMembershipInvited(t *testing.T) {
 		membershipInvitedHooks = nil
 
 		var order []int
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			order = append(order, 1)
 
 			return nil
 		})
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitation, _, _ string) error {
+		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			order = append(order, 2)
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), inv, "", "")
+		err := fireMembershipInvited(context.Background(), notification)
 		assert.NoError(t, err)
 		assert.Equal(t, []int{1, 2}, order)
 	})

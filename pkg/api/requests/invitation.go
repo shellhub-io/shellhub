@@ -14,7 +14,7 @@ type ResolveInvitation struct {
 type GenerateInvitationLink struct {
 	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
-	TenantID       string          `param:"tenant" validate:"required"`
+	TenantID       string          `param:"tenant" validate:"required,uuid"`
 	UserID         string          `header:"X-ID" validate:"required"`
 	MemberEmail    string          `json:"email" validate:"required"`
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`

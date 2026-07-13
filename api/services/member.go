@@ -74,14 +74,34 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleForbidden()
 	}
 
-	// Base invitation flow (all editions). An existing account is either added directly
-	// (enterprise, internal org) or invited for consent; a brand-new email gets a placeholder
-	// user_invitation and a pending membership invitation. Email delivery and the approval gate
-	// are edition add-ons applied elsewhere (post-commit hook / registration completion).
-	var invitation *models.MembershipInvitation
+	if _, err := s.intakeMembership(ctx, namespace, active.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto); err != nil {
+		return nil, err
+	}
+
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+}
+
+// intakeMembership is the single membership-intake flow shared by AddNamespaceMember and
+// GenerateInvitationLink: given the already-resolved namespace, the acting member's ID, the invited
+// email, the role, and the forwarded host/proto, it resolves-or-upserts the placeholder account,
+// rejects duplicates, short-circuits to direct membership where enabled (enterprise), and creates
+// or resends the pending invitation. The invited email is always lowercased and the whole write runs
+// in one transaction, so both entry points behave identically.
+//
+// It returns the resulting invitation, or nil when direct membership was applied and no invitation
+// is needed. On the invitation path it assembles the typed notification (signature, expiry,
+// recipient email + name, forwarded proto + host) and fires the post-commit delivery hook; delivery
+// is non-fatal — the invite is durable, so a failure is logged but does not fail the call.
+func (s *service) intakeMembership(ctx context.Context, namespace *models.Namespace, invitedBy, email string, role authorizer.Role, forwardedHost, forwardedProto string) (*models.MembershipInvitation, error) {
+	email = strings.ToLower(email)
+
+	var (
+		invitation    *models.MembershipInvitation
+		recipientName string
+	)
 
 	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, strings.ToLower(req.MemberEmail))
+		passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, email)
 		userExists := err == nil
 		if err != nil {
 			if !errors.Is(err, store.ErrNoDocuments) {
@@ -89,35 +109,37 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 			}
 
 			passiveUser = &models.User{}
-			passiveUser.ID, err = s.store.UserInvitationsUpsert(ctx, strings.ToLower(req.MemberEmail))
+			passiveUser.ID, err = s.store.UserInvitationsUpsert(ctx, email)
 			if err != nil {
 				return err
 			}
 		}
+
+		recipientName = passiveUser.Name
 
 		if _, ok := namespace.FindMember(passiveUser.ID); ok {
 			return NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
 		if userExists && directMembershipAllowed() {
-			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: req.MemberRole}
+			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: role}
 
-			return s.store.NamespaceCreateMembership(ctx, req.TenantID, member)
+			return s.store.NamespaceCreateMembership(ctx, namespace.TenantID, member)
 		}
 
-		existing, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, passiveUser.ID)
+		existing, err := s.store.MembershipInvitationResolve(ctx, namespace.TenantID, passiveUser.ID)
 		if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 			return err
 		}
 
 		switch {
 		case existing == nil, !existing.IsPending():
-			inv, err := s.createMembershipInvitation(ctx, req, passiveUser.ID)
+			inv, err := s.createMembershipInvitation(ctx, namespace.TenantID, invitedBy, passiveUser.ID, role)
 			invitation = inv
 
 			return err
 		case existing.IsExpired():
-			if err := s.resendMembershipInvitation(ctx, existing, req); err != nil {
+			if err := s.resendMembershipInvitation(ctx, existing, role); err != nil {
 				return err
 			}
 			invitation = existing
@@ -130,20 +152,27 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, err
 	}
 
-	// Post-commit: deliver the invitation (email on cloud). Non-fatal — the invite is durable,
-	// so a delivery failure is logged but doesn't fail the add.
 	if invitation != nil {
-		if err := fireMembershipInvited(ctx, invitation, req.FowardedHost, req.ForwardedProto); err != nil {
-			log.WithError(err).WithField("tenant-id", req.TenantID).Warn("failed to deliver membership invitation")
+		notification := &models.MembershipInvitationNotification{
+			Signature:      invitation.Sig,
+			ExpiresAt:      *invitation.ExpiresAt,
+			RecipientEmail: email,
+			RecipientName:  recipientName,
+			ForwardedProto: forwardedProto,
+			ForwardedHost:  forwardedHost,
+		}
+
+		if err := fireMembershipInvited(ctx, notification); err != nil {
+			log.WithError(err).WithField("tenant-id", namespace.TenantID).Warn("failed to deliver membership invitation")
 		}
 	}
 
-	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	return invitation, nil
 }
 
 // createMembershipInvitation persists a fresh pending invitation with a one-time signature and a
 // 7-day expiry. The signature is generated here so the link is usable even when no email is sent.
-func (s *service) createMembershipInvitation(ctx context.Context, req *requests.NamespaceAddMember, userID string) (*models.MembershipInvitation, error) {
+func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invitedBy, userID string, role authorizer.Role) (*models.MembershipInvitation, error) {
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
@@ -153,10 +182,10 @@ func (s *service) createMembershipInvitation(ctx context.Context, req *requests.
 	}
 
 	invitation := &models.MembershipInvitation{
-		TenantID:        req.TenantID,
+		TenantID:        tenantID,
 		UserID:          userID,
-		InvitedBy:       req.UserID,
-		Role:            req.MemberRole,
+		InvitedBy:       invitedBy,
+		Role:            role,
 		Status:          models.MembershipInvitationStatusPending,
 		ExpiresAt:       &expiresAt,
 		CreatedAt:       now,
@@ -175,7 +204,7 @@ func (s *service) createMembershipInvitation(ctx context.Context, req *requests.
 
 // resendMembershipInvitation refreshes an expired invitation with a new signature and expiry. The
 // previous link stops resolving.
-func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, req *requests.NamespaceAddMember) error {
+func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, role authorizer.Role) error {
 	now := clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
@@ -185,7 +214,7 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 	}
 
 	invitation.Status = models.MembershipInvitationStatusPending
-	invitation.Role = req.MemberRole
+	invitation.Role = role
 	invitation.ExpiresAt = &expiresAt
 	invitation.UpdatedAt = now
 	invitation.StatusUpdatedAt = now
