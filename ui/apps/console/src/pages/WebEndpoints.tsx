@@ -44,6 +44,7 @@ import {
   IconButton,
   Toggle,
 } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 /* ─── Constants ─── */
 
@@ -136,14 +137,16 @@ function DeviceSelector({
   return (
     <div ref={wrapperRef} className="relative">
       <div
-        className={`flex items-center min-h-[42px] px-3.5 py-2 bg-card border rounded-lg cursor-text transition-all ${
-          open ? "border-primary/50 ring-1 ring-primary/20" : "border-border"
-        } ${error ? "border-accent-red/50" : ""}`}
+        className={cn(
+          "flex items-center min-h-[42px] px-3.5 py-2 bg-card border rounded-lg cursor-text transition-all",
+          open ? "border-primary/50 ring-1 ring-primary/20" : "border-border",
+          error && "border-accent-red/50",
+        )}
       >
         {selected ? (
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span
-              className={`w-2 h-2 rounded-full shrink-0 ${selected.online ? "bg-accent-green" : "bg-text-muted/40"}`}
+              className={cn("w-2 h-2 rounded-full shrink-0", selected.online ? "bg-accent-green" : "bg-text-muted/40")}
             />
             <span className="text-sm text-text-primary truncate">
               {selected.name}
@@ -196,7 +199,7 @@ function DeviceSelector({
                 className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors flex items-center gap-2"
               >
                 <span
-                  className={`w-2 h-2 rounded-full shrink-0 ${dev.online ? "bg-accent-green" : "bg-text-muted/40"}`}
+                  className={cn("w-2 h-2 rounded-full shrink-0", dev.online ? "bg-accent-green" : "bg-text-muted/40")}
                 />
                 <span className="truncate">{dev.name}</span>
                 <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
@@ -462,11 +465,12 @@ function EndpointDrawer({
           >
             {/* Localhost card */}
             <label
-              className={`relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
+              className={cn(
+                "relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
                 hostMode === "localhost"
                   ? "bg-primary/[0.06] border-primary/30"
-                  : "bg-card/50 border-border hover:border-border-light"
-              }`}
+                  : "bg-card/50 border-border hover:border-border-light",
+              )}
             >
               <input
                 type="radio"
@@ -482,19 +486,20 @@ function EndpointDrawer({
               <div className="flex gap-3.5">
                 <div
                   aria-hidden="true"
-                  className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                  className={cn(
+                    "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
                     hostMode === "localhost"
                       ? "bg-primary/15"
-                      : "bg-hover-medium"
-                  }`}
+                      : "bg-hover-medium",
+                  )}
                 >
                   <ServerStackIcon
-                    className={`w-5 h-5 transition-colors ${hostMode === "localhost" ? "text-primary" : "text-text-muted"}`}
+                    className={cn("w-5 h-5 transition-colors", hostMode === "localhost" ? "text-primary" : "text-text-muted")}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span
-                    className={`text-sm font-semibold transition-colors ${hostMode === "localhost" ? "text-primary" : "text-text-primary"}`}
+                    className={cn("text-sm font-semibold transition-colors", hostMode === "localhost" ? "text-primary" : "text-text-primary")}
                   >
                     Localhost
                   </span>
@@ -531,11 +536,12 @@ function EndpointDrawer({
 
             {/* Local network card */}
             <label
-              className={`relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
+              className={cn(
+                "relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
                 hostMode === "custom"
                   ? "bg-primary/[0.06] border-primary/30"
-                  : "bg-card/50 border-border hover:border-border-light"
-              }`}
+                  : "bg-card/50 border-border hover:border-border-light",
+              )}
             >
               <input
                 type="radio"
@@ -551,17 +557,18 @@ function EndpointDrawer({
               <div className="flex gap-3.5">
                 <div
                   aria-hidden="true"
-                  className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                    hostMode === "custom" ? "bg-primary/15" : "bg-hover-medium"
-                  }`}
+                  className={cn(
+                    "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                    hostMode === "custom" ? "bg-primary/15" : "bg-hover-medium",
+                  )}
                 >
                   <ArrowsRightLeftIcon
-                    className={`w-5 h-5 transition-colors ${hostMode === "custom" ? "text-primary" : "text-text-muted"}`}
+                    className={cn("w-5 h-5 transition-colors", hostMode === "custom" ? "text-primary" : "text-text-muted")}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span
-                    className={`text-sm font-semibold transition-colors ${hostMode === "custom" ? "text-primary" : "text-text-primary"}`}
+                    className={cn("text-sm font-semibold transition-colors", hostMode === "custom" ? "text-primary" : "text-text-primary")}
                   >
                     Local network
                   </span>
@@ -698,22 +705,24 @@ function EndpointCard({
 
   return (
     <div
-      className={`group bg-card border rounded-xl p-4 hover:bg-hover-subtle transition-all ${
+      className={cn(
+        "group bg-card border rounded-xl p-4 hover:bg-hover-subtle transition-all",
         expired
           ? "border-accent-yellow/30"
-          : "border-border hover:border-border-light"
-      }`}
+          : "border-border hover:border-border-light",
+      )}
     >
       <div className="flex items-start justify-between gap-3">
         {/* Left: icon + info */}
         <div className="flex items-start gap-3.5 min-w-0 flex-1">
           <div
-            className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5 ${
-              expired ? "bg-accent-yellow/10" : "bg-primary/10"
-            }`}
+            className={cn(
+              "shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5",
+              expired ? "bg-accent-yellow/10" : "bg-primary/10",
+            )}
           >
             <GlobeAltIcon
-              className={`w-4.5 h-4.5 ${expired ? "text-accent-yellow" : "text-primary"}`}
+              className={cn("w-4.5 h-4.5", expired ? "text-accent-yellow" : "text-primary")}
             />
           </div>
           <div className="min-w-0 flex-1">

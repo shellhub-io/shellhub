@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
 import PageHeader from "@/components/common/PageHeader";
 import MembersTab from "./MembersTab";
@@ -32,11 +33,7 @@ export default function Team() {
             type="button"
             key={t.value}
             onClick={() => setTab(t.value)}
-            className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
-              tab === t.value
-                ? "bg-primary/15 text-primary border border-primary/25"
-                : "text-text-muted hover:text-text-secondary border border-transparent"
-            }`}
+            className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", tab === t.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
           >
             {t.label}
           </button>

@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { configureSamlAuthentication } from "@/client";
 import type { GetAuthenticationSettingsResponse } from "@/client";
+import { cn } from "@shellhub/design-system/cn";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
@@ -325,7 +326,7 @@ export default function SamlConfigDrawer({
                 }
                 aria-invalid={certInvalid || undefined}
                 aria-describedby={certInvalid ? "certificate-error" : undefined}
-                className={`${INPUT} resize-none font-mono text-2xs leading-relaxed ${certInvalid ? "border-accent-red/50" : ""}`}
+                className={cn(INPUT, "resize-none font-mono text-2xs leading-relaxed", certInvalid && "border-accent-red/50")}
               />
               {certInvalid && (
                 <p
@@ -348,7 +349,7 @@ export default function SamlConfigDrawer({
           >
             <span>Advanced Settings</span>
             <ChevronDownIcon
-              className={`w-4 h-4 transition-transform duration-200 ${showAdvanced ? "rotate-180" : ""}`}
+              className={cn("w-4 h-4 transition-transform duration-200", showAdvanced && "rotate-180")}
               strokeWidth={2}
             />
           </button>

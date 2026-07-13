@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import { Button } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { Section } from "@/components/marketing";
@@ -77,11 +78,12 @@ export function TierCards() {
           <Reveal key={tier.name} delay={i * 0.08}>
             <ShimmerCard className="h-full">
               <div
-                className={`relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden ${
+                className={cn(
+                  "relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden",
                   tier.highlighted
                     ? "bg-card border border-primary/30 hover:border-primary/50 shadow-[0_0_40px_rgba(102,122,204,0.15)]"
-                    : "bg-card border border-border hover:border-border-light"
-                }`}
+                    : "bg-card border border-border hover:border-border-light",
+                )}
               >
                 {tier.highlighted && (
                   <GlowOrbs preset="corner" tone="primary" />
@@ -91,7 +93,7 @@ export function TierCards() {
                   <div className="flex items-center gap-3 mb-4">
                     <h3 className="text-lg font-bold">{tier.name}</h3>
                     <span
-                      className={`px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full ${tier.badgeClass}`}
+                      className={cn("px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full", tier.badgeClass)}
                     >
                       {tier.badge}
                     </span>

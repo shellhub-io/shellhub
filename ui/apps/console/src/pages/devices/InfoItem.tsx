@@ -1,3 +1,4 @@
+import { cn } from "@shellhub/design-system/cn";
 import CopyButton from "@/components/common/CopyButton";
 
 const LABEL =
@@ -25,7 +26,7 @@ export default function InfoItem({
       <dt className={LABEL}>{label}</dt>
       <dd className="flex items-center gap-1 mt-0.5">
         <span
-          className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
+          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
         >
           {display || "—"}
         </span>

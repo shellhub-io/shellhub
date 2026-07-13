@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import {
   UserIcon,
   EnvelopeIcon,
@@ -265,7 +266,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                     }));
                   }}
                   placeholder="Min. 5 chars"
-                  className={`${INPUT_BASE} pr-9`}
+                  className={cn(INPUT_BASE, "pr-9")}
                 />
                 <button
                   type="button"
@@ -331,7 +332,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                 className="flex items-start gap-3 w-full text-left group"
               >
                 <span
-                  className={`mt-px w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all duration-200 ${acceptPrivacy ? "bg-primary border-primary" : "bg-surface border-border group-hover:border-border-light"}`}
+                  className={cn("mt-px w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all duration-200", acceptPrivacy ? "bg-primary border-primary" : "bg-surface border-border group-hover:border-border-light")}
                 >
                   {acceptPrivacy && (
                     <CheckIcon
@@ -364,7 +365,7 @@ export function StepSignup({ onBack }: StepSignupProps) {
                 className="flex items-start gap-3 w-full text-left group"
               >
                 <span
-                  className={`mt-px w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all duration-200 ${acceptMarketing ? "bg-primary border-primary" : "bg-surface border-border group-hover:border-border-light"}`}
+                  className={cn("mt-px w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all duration-200", acceptMarketing ? "bg-primary border-primary" : "bg-surface border-border group-hover:border-border-light")}
                 >
                   {acceptMarketing && (
                     <CheckIcon

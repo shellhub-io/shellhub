@@ -1,6 +1,7 @@
 import { ReactNode, useId } from "react";
 import { IconBadge } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
+import { cn } from "@shellhub/design-system/cn";
 
 export type EmptyStateAccent = "primary" | "yellow";
 
@@ -94,12 +95,12 @@ export default function EmptyState({
         <div className="text-center mb-10">
           <div
             aria-hidden="true"
-            className={`w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-6 shadow-lg ${styles.badge} ${styles.icon}`}
+            className={cn("w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-6 shadow-lg", styles.badge, styles.icon)}
           >
             {icon}
           </div>
           <span
-            className={`inline-block text-2xs font-mono font-semibold uppercase tracking-wide mb-2 ${styles.overline}`}
+            className={cn("inline-block text-2xs font-mono font-semibold uppercase tracking-wide mb-2", styles.overline)}
           >
             {overline}
           </span>

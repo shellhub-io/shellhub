@@ -4,6 +4,7 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "@/components/common/BaseDialog";
@@ -50,13 +51,14 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
           {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
             <div
               key={s}
-              className={`rounded-full transition-all duration-300 ${
+              className={cn(
+                "rounded-full transition-all duration-300",
                 s < step
                   ? "w-2 h-2 bg-primary"
                   : s === step
                     ? "w-2.5 h-2.5 bg-primary shadow-[0_0_6px_rgba(102,122,204,0.5)]"
-                    : "w-2 h-2 bg-border"
-              }`}
+                    : "w-2 h-2 bg-border",
+              )}
             />
           ))}
         </div>

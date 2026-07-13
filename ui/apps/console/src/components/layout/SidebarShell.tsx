@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import {
   IconButton,
   ShellHubCloudIcon,
@@ -43,7 +44,7 @@ export function NavItemLink({
     return (
       <span
         aria-disabled="true"
-        className={`${navBase} ${navDisabled} ${align}`}
+        className={cn(navBase, navDisabled, align)}
       >
         {item.icon}
         {label}
@@ -57,7 +58,7 @@ export function NavItemLink({
       title={expanded ? undefined : item.label}
       onClick={onClick}
       className={({ isActive }) =>
-        `${navBase} transition-all duration-150 ${isActive ? navActive : navIdle} ${align}`
+        cn(navBase, "transition-all duration-150", isActive ? navActive : navIdle, align)
       }
     >
       {item.icon}
@@ -88,21 +89,17 @@ export function SidebarMobileDrawer({
       role="dialog"
       aria-modal={open}
       aria-label="Navigation menu"
-      className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
+      className={cn("fixed inset-0 z-50", !open && "pointer-events-none")}
       onKeyDown={onKeyDown}
       {...(!open && { inert: true })}
     >
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className={cn("absolute inset-0 bg-black/40 transition-opacity duration-200", open ? "opacity-100" : "opacity-0")}
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[220px] transition-transform duration-200 ease-in-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={cn("fixed inset-y-0 left-0 z-50 w-[220px] transition-transform duration-200 ease-in-out", open ? "translate-x-0" : "-translate-x-full")}
       >
         {children}
       </div>
@@ -147,9 +144,10 @@ export default function SidebarShell({
 
   return (
     <aside
-      className={`theme-dark bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
-        hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]"
-      }`}
+      className={cn(
+        "theme-dark bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden",
+        hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]",
+      )}
     >
       {/* Logo */}
       <div className="h-14 flex items-center justify-center border-b border-border px-3">
@@ -161,12 +159,12 @@ export default function SidebarShell({
         >
           <ShellHubLogo
             aria-hidden
-            className={`h-8 transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0 absolute"}`}
+            className={cn("h-8 transition-opacity duration-200", expanded ? "opacity-100" : "opacity-0 absolute")}
           />
           <ShellHubCloudIcon
             aria-hidden
             data-testid="sidebar-cloud-icon"
-            className={`h-6 w-6 transition-opacity duration-200 ${expanded ? "opacity-0 absolute" : "opacity-100"}`}
+            className={cn("h-6 w-6 transition-opacity duration-200", expanded ? "opacity-0 absolute" : "opacity-100")}
           />
         </NavLink>
       </div>
@@ -187,10 +185,10 @@ export default function SidebarShell({
 
       {/* Footer with context-specific sidebar toggle */}
       <div
-        className={`h-11 px-3 flex items-center justify-between transition-colors duration-200 ${expanded ? "border-t border-border" : "border-t border-transparent"}`}
+        className={cn("h-11 px-3 flex items-center justify-between transition-colors duration-200", expanded ? "border-t border-border" : "border-t border-transparent")}
       >
         <p
-          className={`text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+          className={cn("text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200", expanded ? "opacity-100" : "opacity-0")}
         >
           {footerLabel}
         </p>
@@ -200,12 +198,10 @@ export default function SidebarShell({
           tabIndex={expanded ? 0 : -1}
           aria-label={toggleLabel}
           title={toggleTitle}
-          className={`duration-200 ${expanded ? "opacity-100" : "opacity-0"} ${pinned ? "text-primary bg-primary/10" : ""}`}
+          className={cn("duration-200", expanded ? "opacity-100" : "opacity-0", pinned && "text-primary bg-primary/10")}
         >
           <ChevronLeftIcon
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              expanded ? "" : "rotate-180"
-            }`}
+            className={cn("w-3.5 h-3.5 transition-transform duration-200", !expanded && "rotate-180")}
             strokeWidth={2}
           />
         </IconButton>

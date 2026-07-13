@@ -7,6 +7,7 @@ import {
   CpuChipIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useDevices } from "@/hooks/useDevices";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useClickOutside } from "@/hooks/useClickOutside";
@@ -142,13 +143,14 @@ export default function PendingDevices() {
                   return (
                     <div
                       key={d.uid}
-                      className={`px-4 py-3 transition-all duration-300 ${
+                      className={cn(
+                        "px-4 py-3 transition-all duration-300",
                         isFlashed
                           ? flash.action === "accepted"
                             ? "bg-accent-green/10"
                             : "bg-accent-red/10"
-                          : "hover:bg-hover-subtle"
-                      }`}
+                          : "hover:bg-hover-subtle",
+                      )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
@@ -173,11 +175,7 @@ export default function PendingDevices() {
                         {/* Actions */}
                         {isFlashed ? (
                           <span
-                            className={`text-2xs font-mono font-semibold ${
-                              flash.action === "accepted"
-                                ? "text-accent-green"
-                                : "text-accent-red"
-                            }`}
+                            className={cn("text-2xs font-mono font-semibold", flash.action === "accepted" ? "text-accent-green" : "text-accent-red")}
                           >
                             {flash.action === "accepted"
                               ? "Accepted"

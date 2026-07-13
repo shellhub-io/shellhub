@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useTerminalThemeStore,
@@ -87,14 +88,10 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
               type="button"
               key={font}
               onClick={() => setFontFamily(font)}
-              className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150 ${
-                font === fontFamily
-                  ? "bg-primary/10 border border-primary/20"
-                  : "hover:bg-hover-subtle border border-transparent"
-              }`}
+              className={cn("flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150", font === fontFamily ? "bg-primary/10 border border-primary/20" : "hover:bg-hover-subtle border border-transparent")}
             >
               <span
-                className={`text-[13px] ${font === fontFamily ? "text-primary" : "text-text-secondary"}`}
+                className={cn("text-[13px]", font === fontFamily ? "text-primary" : "text-text-secondary")}
                 style={{ fontFamily: `"${font}", monospace` }}
               >
                 {font}
@@ -219,11 +216,7 @@ function ThemeCard({
     <button
       type="button"
       onClick={onClick}
-      className={`relative rounded-lg border p-2 text-left transition-all duration-150 ${
-        selected
-          ? "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10"
-          : "border-border hover:border-border-light bg-hover-subtle"
-      }`}
+      className={cn("relative rounded-lg border p-2 text-left transition-all duration-150", selected ? "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10" : "border-border hover:border-border-light bg-hover-subtle")}
     >
       {/* Color preview */}
       <div
@@ -249,13 +242,14 @@ function ThemeCard({
 
       {/* Name */}
       <div
-        className={`font-mono text-[11px] truncate ${
+        className={cn(
+          "font-mono text-[11px] truncate",
           selected
             ? "text-primary"
             : light
               ? "text-text-muted"
-              : "text-text-secondary"
-        }`}
+              : "text-text-secondary",
+        )}
       >
         {theme.name}
       </div>

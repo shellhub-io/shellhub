@@ -6,6 +6,7 @@ import {
   ServerStackIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useVaultStore } from "@/stores/vaultStore";
 import { loadLegacyKeysFromStorage } from "@/utils/vault-backend-local";
 import {
@@ -133,11 +134,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
               return (
                 <label
                   key={option.mode}
-                  className={`flex items-start gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-colors ${
-                    selected
-                      ? "border-primary bg-primary/[0.06]"
-                      : "border-border hover:border-border-light hover:bg-hover-subtle"
-                  }`}
+                  className={cn("flex items-start gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-colors", selected ? "border-primary bg-primary/[0.06]" : "border-border hover:border-border-light hover:bg-hover-subtle")}
                 >
                   <input
                     type="radio"
@@ -148,9 +145,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
                     className="sr-only"
                   />
                   <Icon
-                    className={`w-5 h-5 shrink-0 mt-0.5 ${
-                      selected ? "text-primary" : "text-text-muted"
-                    }`}
+                    className={cn("w-5 h-5 shrink-0 mt-0.5", selected ? "text-primary" : "text-text-muted")}
                     strokeWidth={2}
                   />
                   <div className="min-w-0 flex-1">

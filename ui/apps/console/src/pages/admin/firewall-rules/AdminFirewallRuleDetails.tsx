@@ -6,6 +6,7 @@ import {
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import Breadcrumb from "@/components/common/Breadcrumb";
@@ -58,11 +59,7 @@ export default function AdminFirewallRuleDetails() {
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
         <div
-          className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border ${
-            isAllow
-              ? "bg-accent-green/10 border-accent-green/20"
-              : "bg-accent-red/10 border-accent-red/20"
-          }`}
+          className={cn("w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border", isAllow ? "bg-accent-green/10 border-accent-green/20" : "bg-accent-red/10 border-accent-red/20")}
         >
           {isAllow ? (
             <CheckCircleIcon className="w-7 h-7 text-accent-green" />

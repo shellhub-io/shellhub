@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import { StepPath } from "./StepPath";
@@ -30,27 +31,19 @@ export default function GettingStarted() {
               <div key={step.label} className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors duration-300 ${
-                      i <= currentStep
-                        ? "bg-primary text-white"
-                        : "bg-border text-text-muted"
-                    }`}
+                    className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors duration-300", i <= currentStep ? "bg-primary text-white" : "bg-border text-text-muted")}
                   >
                     {i + 1}
                   </div>
                   <span
-                    className={`text-xs font-medium transition-colors duration-300 hidden sm:inline ${
-                      i <= currentStep ? "text-text-primary" : "text-text-muted"
-                    }`}
+                    className={cn("text-xs font-medium transition-colors duration-300 hidden sm:inline", i <= currentStep ? "text-text-primary" : "text-text-muted")}
                   >
                     {step.label}
                   </span>
                 </div>
                 {i < steps.length - 1 && (
                   <div
-                    className={`w-12 h-px transition-colors duration-300 ${
-                      i < currentStep ? "bg-primary" : "bg-border"
-                    }`}
+                    className={cn("w-12 h-px transition-colors duration-300", i < currentStep ? "bg-primary" : "bg-border")}
                   />
                 )}
               </div>

@@ -6,6 +6,7 @@ import {
   CheckIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useTags } from "@/hooks/useTags";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 
@@ -88,11 +89,12 @@ function TagFilterDropdown({
         type="button"
         ref={triggerRef}
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md border transition-all duration-150 ${
+        className={cn(
+          "flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md border transition-all duration-150",
           hasActive
             ? "bg-primary/15 text-primary border-primary/25"
-            : "bg-card text-text-muted border-border hover:text-text-secondary hover:border-border"
-        }`}
+            : "bg-card text-text-muted border-border hover:text-text-secondary hover:border-border",
+        )}
       >
         <TagIcon className="w-3 h-3" strokeWidth={2} />
         Tags
@@ -102,7 +104,7 @@ function TagFilterDropdown({
           </span>
         )}
         <ChevronDownIcon
-          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+          className={cn("w-3 h-3 transition-transform", open && "rotate-180")}
           strokeWidth={2}
         />
       </button>
@@ -145,11 +147,12 @@ function TagFilterDropdown({
                       className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-md hover:bg-hover-medium transition-colors"
                     >
                       <span
-                        className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                        className={cn(
+                          "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
                           active
                             ? "bg-primary border-primary"
-                            : "border-text-muted/30"
-                        }`}
+                            : "border-text-muted/30",
+                        )}
                       >
                         {active && (
                           <CheckIcon
@@ -159,7 +162,7 @@ function TagFilterDropdown({
                         )}
                       </span>
                       <span
-                        className={`truncate ${active ? "text-primary font-medium" : "text-text-secondary"}`}
+                        className={cn("truncate", active ? "text-primary font-medium" : "text-text-secondary")}
                       >
                         {tag}
                       </span>

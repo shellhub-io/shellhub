@@ -16,6 +16,7 @@ import { useNamespaces } from "@/hooks/useNamespaces";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
+import { cn } from "@shellhub/design-system/cn";
 import { getConfig } from "@/env";
 
 export default function AppLayout() {
@@ -35,7 +36,7 @@ export default function AppLayout() {
   return (
     <ChatwootProvider>
       <div
-        className={`flex flex-col h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden" : ""}`}
+        className={cn("flex flex-col h-screen bg-background", hasVisibleTerminal && "overflow-hidden")}
       >
         <SkipToContentLink />
         <ConnectivityBanner />

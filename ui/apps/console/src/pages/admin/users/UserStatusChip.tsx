@@ -3,6 +3,7 @@ import {
   ExclamationCircleIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 
 export type UserStatus = "confirmed" | "not-confirmed" | "awaiting_approval";
 
@@ -43,7 +44,7 @@ export default function UserStatusChip({ status }: UserStatusChipProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md ${className}`}
+      className={cn("inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md", className)}
     >
       <Icon className="w-3 h-3" />
       {label}

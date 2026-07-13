@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import { getConfig } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
@@ -167,13 +168,17 @@ function NavGroupItem({
         title={expanded ? undefined : group.label}
         aria-expanded={disabled ? undefined : isOpen}
         aria-disabled={disabled || undefined}
-        className={`w-full ${navBase} transition-all duration-150 ${
+        className={cn(
+          "w-full",
+          navBase,
+          "transition-all duration-150",
           disabled
             ? navDisabled
             : isChildActive
               ? "text-primary"
-              : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle"
-        } ${align}`}
+              : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle",
+          align,
+        )}
       >
         {group.icon}
         {expanded ? (
@@ -181,9 +186,7 @@ function NavGroupItem({
             <span className="flex-1 text-left truncate">{group.label}</span>
             {!disabled && (
               <ChevronDownIcon
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  isOpen ? "rotate-180" : ""
-                }`}
+                className={cn("w-3.5 h-3.5 transition-transform duration-200", isOpen && "rotate-180")}
                 strokeWidth={2}
               />
             )}
@@ -198,11 +201,7 @@ function NavGroupItem({
               to={child.to}
               onClick={onNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150 ${
-                  isActive
-                    ? "text-primary bg-primary/5"
-                    : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle"
-                }`
+                cn("flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150", isActive ? "text-primary bg-primary/5" : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle")
               }
             >
               <span className="truncate">{child.label}</span>

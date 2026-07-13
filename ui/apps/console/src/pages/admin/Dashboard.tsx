@@ -11,6 +11,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import DeviceChip from "@/components/common/DeviceChip";
@@ -120,11 +121,7 @@ export default function AdminDashboard() {
       headerClassName: "w-14",
       render: (s) => (
         <span
-          className={`w-2 h-2 rounded-full inline-block ${
-            s.active
-              ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-              : "bg-text-muted/40"
-          }`}
+          className={cn("w-2 h-2 rounded-full inline-block", s.active ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" : "bg-text-muted/40")}
         />
       ),
     },
@@ -160,9 +157,7 @@ export default function AdminDashboard() {
               />
             )}
             <code
-              className={`text-xs font-mono ${
-                suspicious ? "text-accent-red/60" : "text-text-secondary"
-              }`}
+              className={cn("text-xs font-mono", suspicious ? "text-accent-red/60" : "text-text-secondary")}
             >
               {s.username}
             </code>
@@ -177,7 +172,7 @@ export default function AdminDashboard() {
         const type = sessionType(s);
         return type ? (
           <span
-            className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+            className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", type.color)}
           >
             {type.label}
           </span>

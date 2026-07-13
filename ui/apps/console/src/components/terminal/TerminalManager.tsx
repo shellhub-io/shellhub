@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -72,13 +73,13 @@ export default function TerminalManager({
           <div
             key={s.id}
             style={{ left: isFullscreen ? 0 : sidebarOffset }}
-            className={[
+            className={cn(
               "fixed top-14 bottom-0 right-0 z-40 flex flex-col bg-background",
               "transition-[opacity,transform,left] duration-200 ease-out",
               isVisible
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-3 pointer-events-none",
-            ].join(" ")}
+            )}
           >
             <TerminalInstance session={s} visible={isVisible} />
           </div>

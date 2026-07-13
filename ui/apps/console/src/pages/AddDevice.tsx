@@ -37,6 +37,7 @@ import {
   DockerIcon,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 /* ─── Types ─── */
 type Method =
@@ -208,6 +209,13 @@ export default function AddDevice() {
     Boolean(enrollment.device) &&
     enrollment.device?.uid !== dismissedUid;
 
+  const enrollmentBorderColor =
+    enrollment.phase === "connected"
+      ? "border-accent-green/35 bg-accent-green/[0.06]"
+      : enrollment.phase === "expired"
+        ? "border-border-light bg-card"
+        : "border-primary/30 bg-primary/[0.04]";
+
   return (
     <div className="max-w-2xl animate-fade-in">
       <Breadcrumb
@@ -258,11 +266,12 @@ export default function AddDevice() {
               aria-label={opt.title}
               aria-checked={active}
               onClick={() => setMode(opt.id)}
-              className={`flex-1 flex items-center gap-3 px-3.5 h-14 rounded-lg border text-left transition-colors ${
+              className={cn(
+                "flex-1 flex items-center gap-3 px-3.5 h-14 rounded-lg border text-left transition-colors",
                 active
                   ? "bg-primary/15 border-primary/30 text-primary"
-                  : "border-transparent text-text-muted hover:text-text-secondary"
-              }`}
+                  : "border-transparent text-text-muted hover:text-text-secondary",
+              )}
             >
               <opt.icon className="w-5 h-5 shrink-0" strokeWidth={1.8} />
               <span className="flex flex-col min-w-0">
@@ -270,7 +279,7 @@ export default function AddDevice() {
                   {opt.title}
                 </span>
                 <span
-                  className={`text-2xs ${active ? "text-primary/75" : "text-text-muted"}`}
+                  className={cn("text-2xs", active ? "text-primary/75" : "text-text-muted")}
                 >
                   {opt.sub}
                 </span>
@@ -320,11 +329,12 @@ export default function AddDevice() {
                 adornment={
                   m.tag && (
                     <span
-                      className={`px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border ${
+                      className={cn(
+                        "px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border",
                         m.tag === "Manual"
                           ? "bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20"
-                          : "bg-accent-green/15 text-accent-green border-accent-green/20"
-                      }`}
+                          : "bg-accent-green/15 text-accent-green border-accent-green/20",
+                      )}
                     >
                       {m.tag}
                     </span>
@@ -441,7 +451,7 @@ export default function AddDevice() {
             className="flex items-center gap-1.5 text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
           >
             <ChevronRightIcon
-              className={`w-3 h-3 transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+              className={cn("w-3 h-3 transition-transform", showAdvanced && "rotate-90")}
               strokeWidth={2}
             />
             Advanced options
@@ -498,13 +508,7 @@ export default function AddDevice() {
           device the moment it connects — no trip through the pending list. */}
       {usePairingCode ? (
         <div
-          className={`flex items-center gap-3 rounded-xl px-4 py-3.5 mb-6 border ${
-            enrollment.phase === "connected"
-              ? "border-accent-green/35 bg-accent-green/[0.06]"
-              : enrollment.phase === "expired"
-                ? "border-border-light bg-card"
-                : "border-primary/30 bg-primary/[0.04]"
-          }`}
+          className={cn("flex items-center gap-3 rounded-xl px-4 py-3.5 mb-6 border", enrollmentBorderColor)}
         >
           {enrollment.phase === "connected" ? (
             <CheckCircleIcon className="w-5 h-5 text-accent-green shrink-0" />

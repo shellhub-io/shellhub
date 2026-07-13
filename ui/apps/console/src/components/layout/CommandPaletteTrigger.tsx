@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
 import { INPUT } from "@/utils/styles";
 import { navIcon } from "./SidebarShell";
@@ -52,7 +53,7 @@ export default function CommandPaletteTrigger({
     <button
       type="button"
       {...sharedHandlers}
-      className={`${INPUT} group flex items-center gap-2.5 text-left hover:border-primary/40`}
+      className={cn(INPUT, "group flex items-center gap-2.5 text-left hover:border-primary/40")}
     >
       <MagnifyingGlassIcon
         className="w-4 h-4 text-text-muted shrink-0"

@@ -12,6 +12,7 @@ import {
   DocumentIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
@@ -81,10 +82,10 @@ function LicenseStatusAlert({
     <div
       role={isUrgent ? "alert" : "status"}
       aria-live={isUrgent ? "assertive" : "polite"}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${s.container}`}
+      className={cn("flex items-center gap-3 px-4 py-3 rounded-lg border", s.container)}
     >
-      <s.Icon className={`w-5 h-5 ${s.text} shrink-0`} />
-      <p className={`text-sm font-medium ${s.text}`}>{config.message}</p>
+      <s.Icon className={cn("w-5 h-5 shrink-0", s.text)} />
+      <p className={cn("text-sm font-medium", s.text)}>{config.message}</p>
     </div>
   );
 }
@@ -322,16 +323,16 @@ function LicenseUpload() {
               onDragLeave={() => {
                 if (--dragCounter.current === 0) setIsDragging(false);
               }}
-              className={[
+              className={cn(
                 "flex items-center gap-3 w-full px-3.5 py-2.5 rounded-lg border border-dashed cursor-pointer select-none transition-all duration-150",
                 "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
-                file ? "pr-9" : "",
+                file && "pr-9",
                 isDragging
                   ? "border-primary/50 bg-primary/[0.07]"
                   : file
                     ? "border-border-light bg-hover-subtle hover:bg-hover-medium"
                     : "border-border hover:border-border-light hover:bg-hover-subtle",
-              ].join(" ")}
+              )}
             >
               {file ? (
                 <>
@@ -411,11 +412,12 @@ function LicenseUpload() {
           {feedback && (
             <p
               role={feedback.type === "error" ? "alert" : "status"}
-              className={`text-sm font-medium ${
+              className={cn(
+                "text-sm font-medium",
                 feedback.type === "success"
                   ? "text-accent-green"
-                  : "text-accent-red"
-              }`}
+                  : "text-accent-red",
+              )}
             >
               {feedback.message}
             </p>

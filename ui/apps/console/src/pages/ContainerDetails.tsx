@@ -40,6 +40,7 @@ import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -67,7 +68,7 @@ function InfoItem({
       <dt className={LABEL}>{label}</dt>
       <dd className="flex items-center gap-1 mt-0.5">
         <span
-          className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
+          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
         >
           {display || "—"}
         </span>
@@ -358,6 +359,13 @@ export default function ContainerDetails() {
 
   const tags = normalizeContainer(container).tags;
 
+  const statusColor =
+    container.status === "accepted"
+      ? "bg-accent-green/10 text-accent-green"
+      : container.status === "pending"
+        ? "bg-accent-yellow/10 text-accent-yellow"
+        : "bg-accent-red/10 text-accent-red";
+
   return (
     <div className="animate-fade-in">
       <Breadcrumb
@@ -375,11 +383,12 @@ export default function ContainerDetails() {
               <CubeIcon className="w-7 h-7 text-primary" />
             </div>
             <span
-              className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${
+              className={cn(
+                "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
                 container.online
                   ? "bg-accent-green shadow-[0_0_8px_rgba(130,165,104,0.5)]"
-                  : "bg-text-muted/40"
-              }`}
+                  : "bg-text-muted/40",
+              )}
             />
           </div>
 
@@ -387,25 +396,20 @@ export default function ContainerDetails() {
             <RenameSection uid={container.uid} currentName={container.name} />
             <div className="flex items-center gap-2 mt-1.5">
               <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md ${
+                className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md",
                   container.online
                     ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                    : "bg-text-muted/10 text-text-muted border border-border"
-                }`}
+                    : "bg-text-muted/10 text-text-muted border border-border",
+                )}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${container.online ? "bg-accent-green" : "bg-text-muted/60"}`}
+                  className={cn("w-1.5 h-1.5 rounded-full", container.online ? "bg-accent-green" : "bg-text-muted/60")}
                 />
                 {container.online ? "Online" : "Offline"}
               </span>
               <span
-                className={`inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md ${
-                  container.status === "accepted"
-                    ? "bg-accent-green/10 text-accent-green"
-                    : container.status === "pending"
-                      ? "bg-accent-yellow/10 text-accent-yellow"
-                      : "bg-accent-red/10 text-accent-red"
-                }`}
+                className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md", statusColor)}
               >
                 {container.status
                   ? container.status.charAt(0).toUpperCase() +

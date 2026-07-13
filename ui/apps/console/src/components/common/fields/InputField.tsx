@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, ReactNode } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import {
   INPUT,
   INPUT_ERROR,
@@ -56,15 +57,13 @@ export default function InputField({
     default: error ? INPUT_ERROR : INPUT,
     mono: error ? INPUT_MONO_ERROR : INPUT_MONO,
   };
-  const inputClassNames = [
+  const inputClassNames = cn(
     baseByVariant[variant],
     appendIcon && "pr-10",
     prependIcon && "pl-10",
     rest.readOnly && INPUT_READONLY,
     className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  );
 
   return (
     <div>

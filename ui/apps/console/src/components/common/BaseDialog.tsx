@@ -1,4 +1,5 @@
 import { ReactNode, RefObject, useCallback, useEffect, useRef } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useBackdropClose } from "@/hooks/useBackdropClose";
 
@@ -123,20 +124,18 @@ export default function BaseDialog({
   // - At sm and above: auto-height, border, rounded corners, max-width per size.
   // - "full" size omits the max-width class, staying full-screen at all sizes.
   const isFull = size === "full";
-  const panelClasses = [
+  const panelClasses = cn(
     "fixed inset-0 m-auto",
     "w-full h-full",
-    isFull ? "" : "sm:h-fit",
+    !isFull && "sm:h-fit",
     "bg-surface",
-    isFull ? "" : "sm:border sm:border-border sm:rounded-2xl",
+    !isFull && "sm:border sm:border-border sm:rounded-2xl",
     "shadow-2xl shadow-black/40",
     "animate-slide-up",
     "flex flex-col",
     SIZE_CLASSES[size],
-    className ?? "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+    className,
+  );
 
   return (
     <dialog

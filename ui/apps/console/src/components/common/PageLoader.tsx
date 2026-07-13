@@ -1,4 +1,5 @@
 import { Spinner, type SpinnerSize } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 type Padding = "none" | "sm" | "md" | "lg" | "fill";
 
@@ -34,15 +35,13 @@ export default function PageLoader({
   padding = "md",
 }: PageLoaderProps) {
   const resolvedSize = size ?? (showLabel ? "md" : "lg");
-  const wrapper = ["flex h-full items-center justify-center", PADDING[padding]]
-    .filter(Boolean)
-    .join(" ");
+  const wrapper = cn("flex h-full items-center justify-center", PADDING[padding]);
 
   if (showLabel) {
     // role="status" is `nameFrom: author` — the visible text doesn't become
     // the accessible name, so set it explicitly via aria-label.
     return (
-      <div role="status" aria-label={label} className={`${wrapper} gap-3`}>
+      <div role="status" aria-label={label} className={cn(wrapper, "gap-3")}>
         <Spinner size={resolvedSize} />
         <span className="text-xs font-mono text-text-muted">{label}</span>
       </div>

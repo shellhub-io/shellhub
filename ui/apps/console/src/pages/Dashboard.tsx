@@ -22,6 +22,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
 import { Card } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -47,11 +48,12 @@ export default function Dashboard() {
       headerClassName: "w-14",
       render: (s) => (
         <span
-          className={`w-2 h-2 rounded-full inline-block ${
+          className={cn(
+            "w-2 h-2 rounded-full inline-block",
             s.active
               ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-              : "bg-text-muted/40"
-          }`}
+              : "bg-text-muted/40",
+          )}
         />
       ),
     },
@@ -88,7 +90,7 @@ export default function Dashboard() {
               />
             )}
             <code
-              className={`text-xs font-mono ${suspicious ? "text-accent-red/60" : "text-text-secondary"}`}
+              className={cn("text-xs font-mono", suspicious ? "text-accent-red/60" : "text-text-secondary")}
             >
               {s.username}
             </code>
@@ -103,7 +105,7 @@ export default function Dashboard() {
         const type = sessionType(s);
         return type ? (
           <span
-            className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+            className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", type.color)}
           >
             {type.label}
           </span>

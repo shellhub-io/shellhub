@@ -7,6 +7,7 @@ import {
   InformationCircleIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
@@ -209,11 +210,7 @@ export default function NamespaceDetails() {
               <dt className={LABEL}>Session Recording</dt>
               <dd className="mt-1">
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md ${
-                    namespace.settings?.session_record
-                      ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                      : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20"
-                  }`}
+                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", namespace.settings?.session_record ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
                 >
                   {namespace.settings?.session_record ? "Enabled" : "Disabled"}
                 </span>
@@ -223,11 +220,7 @@ export default function NamespaceDetails() {
               <dt className={LABEL}>Auto-Accept Devices</dt>
               <dd className="mt-1">
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md ${
-                    namespace.settings?.device_auto_accept
-                      ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                      : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20"
-                  }`}
+                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", namespace.settings?.device_auto_accept ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
                 >
                   {namespace.settings?.device_auto_accept
                     ? "Enabled"

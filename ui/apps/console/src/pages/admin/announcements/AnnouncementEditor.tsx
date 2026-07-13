@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
+import { cn } from "@shellhub/design-system/cn";
 import { isAllowedUrl } from "@/utils/url";
 import "./AnnouncementEditor.css";
 
@@ -34,11 +35,7 @@ function ToolbarButton({
       title={title}
       aria-label={title}
       aria-pressed={active}
-      className={`p-1.5 rounded text-xs transition-colors ${
-        active
-          ? "bg-primary/15 text-primary"
-          : "text-text-muted hover:text-text-primary hover:bg-surface"
-      } disabled:opacity-30 disabled:cursor-not-allowed`}
+      className={cn("p-1.5 rounded text-xs transition-colors", active ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text-primary hover:bg-surface", "disabled:opacity-30 disabled:cursor-not-allowed")}
     >
       {children}
     </button>

@@ -8,6 +8,7 @@ import {
   ChevronDownIcon,
   ServerStackIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useVaultStore } from "@/stores/vaultStore";
 import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
 import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
@@ -167,7 +168,7 @@ function AutoLockTimeoutSelect({
       >
         {currentLabel}
         <ChevronDownIcon
-          className={`w-3.5 h-3.5 text-text-muted transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          className={cn("w-3.5 h-3.5 text-text-muted transition-transform duration-150", open && "rotate-180")}
           strokeWidth={2.5}
         />
       </button>
@@ -187,11 +188,7 @@ function AutoLockTimeoutSelect({
                 onChange(minutes);
                 setOpen(false);
               }}
-              className={`px-3 py-2 text-sm cursor-pointer transition-colors ${
-                value === minutes
-                  ? "text-primary bg-primary/10"
-                  : "text-text-secondary hover:text-text-primary hover:bg-hover-medium"
-              }`}
+              className={cn("px-3 py-2 text-sm cursor-pointer transition-colors", value === minutes ? "text-primary bg-primary/10" : "text-text-secondary hover:text-text-primary hover:bg-hover-medium")}
             >
               {TIMEOUT_LABELS[minutes]}
             </li>

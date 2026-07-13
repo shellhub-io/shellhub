@@ -8,6 +8,7 @@ import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import { Button } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import PageLoader from "@/components/common/PageLoader";
 
 const MAX_LENGTH = 4096;
@@ -48,17 +49,17 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     }
   };
 
+  const borderColor = overLimit
+    ? "border-accent-red/30"
+    : changed
+      ? "border-primary/30"
+      : "border-border";
+
   return (
     <div className="flex flex-col flex-1 min-h-0 animate-fade-in">
       {/* Textarea wrapper -- grows to fill */}
       <div
-        className={`flex flex-col flex-1 min-h-0 rounded-xl border overflow-hidden transition-colors ${
-          overLimit
-            ? "border-accent-red/30"
-            : changed
-              ? "border-primary/30"
-              : "border-border"
-        }`}
+        className={cn("flex flex-col flex-1 min-h-0 rounded-xl border overflow-hidden transition-colors", borderColor)}
       >
         <textarea
           value={text}
@@ -73,7 +74,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
         />
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-surface/50 shrink-0">
           <span
-            className={`text-2xs font-mono ${overLimit ? "text-accent-red font-semibold" : "text-text-muted/50"}`}
+            className={cn("text-2xs font-mono", overLimit ? "text-accent-red font-semibold" : "text-text-muted/50")}
           >
             {text.length.toLocaleString()}/{MAX_LENGTH.toLocaleString()}
           </span>

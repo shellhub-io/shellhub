@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import {
   CheckIcon,
   ComputerDesktopIcon,
@@ -388,9 +389,10 @@ export default function RemoteSupport() {
                   {auditRows.map((row, i) => (
                     <div
                       key={i}
-                      className={`grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center ${
-                        i % 2 === 0 ? "bg-surface" : "bg-transparent"
-                      }`}
+                      className={cn(
+                        "grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2.5 rounded-lg items-center",
+                        i % 2 === 0 ? "bg-surface" : "bg-transparent",
+                      )}
                     >
                       <span className="text-2xs font-mono text-text-muted">
                         {row.time}

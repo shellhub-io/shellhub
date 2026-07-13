@@ -1,4 +1,5 @@
 import { XMarkIcon, CommandLineIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 
@@ -23,35 +24,24 @@ export default function TerminalTaskbar({
         return (
           <div
             key={s.id}
-            className={`flex items-center gap-2 pl-3 pr-1.5 py-1.5 border rounded-lg transition-all duration-150 cursor-pointer group animate-fade-in ${
-              isConnected
-                ? "bg-accent-green/[0.06] border-accent-green/25 hover:border-accent-green/40 hover:bg-accent-green/[0.1]"
-                : "bg-card border-border hover:border-primary/30 hover:bg-primary/[0.04]"
-            }`}
+            className={cn("flex items-center gap-2 pl-3 pr-1.5 py-1.5 border rounded-lg transition-all duration-150 cursor-pointer group animate-fade-in", isConnected ? "bg-accent-green/[0.06] border-accent-green/25 hover:border-accent-green/40 hover:bg-accent-green/[0.1]" : "bg-card border-border hover:border-primary/30 hover:bg-primary/[0.04]")}
             onClick={() => restore(s.id)}
           >
             <span
-              className={`shrink-0 w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+              className={cn(
+                "shrink-0 w-1.5 h-1.5 rounded-full transition-colors duration-300",
                 isConnected
                   ? "bg-accent-green shadow-[0_0_4px_rgba(130,165,104,0.6)]"
                   : s.connectionStatus === "connecting"
                     ? "bg-accent-yellow animate-pulse"
-                    : "bg-accent-red"
-              }`}
+                    : "bg-accent-red",
+              )}
             />
             <CommandLineIcon
-              className={`w-3.5 h-3.5 transition-colors duration-150 ${
-                isConnected
-                  ? "text-accent-green group-hover:text-accent-green"
-                  : "text-text-muted group-hover:text-primary"
-              }`}
+              className={cn("w-3.5 h-3.5 transition-colors duration-150", isConnected ? "text-accent-green group-hover:text-accent-green" : "text-text-muted group-hover:text-primary")}
             />
             <span
-              className={`text-xs font-medium transition-colors duration-150 max-w-[160px] truncate ${
-                isConnected
-                  ? "text-accent-green"
-                  : "text-text-secondary group-hover:text-text-primary"
-              }`}
+              className={cn("text-xs font-medium transition-colors duration-150 max-w-[160px] truncate", isConnected ? "text-accent-green" : "text-text-secondary group-hover:text-text-primary")}
             >
               {s.deviceName}
             </span>

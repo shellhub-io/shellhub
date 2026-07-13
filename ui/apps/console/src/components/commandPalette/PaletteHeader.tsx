@@ -1,5 +1,6 @@
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import { LISTBOX_ID, icons } from "./items";
 
@@ -52,7 +53,7 @@ export default function PaletteHeader({
       ) : (
         <>
           <span
-            className={`shrink-0 ${commandMode ? "text-primary" : "text-text-muted"}`}
+            className={cn("shrink-0", commandMode ? "text-primary" : "text-text-muted")}
             aria-hidden="true"
           >
             {commandMode ? icons.command : icons.search}

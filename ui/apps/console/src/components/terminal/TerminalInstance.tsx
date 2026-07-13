@@ -19,6 +19,7 @@ import {
   parseMessage,
   resolveError,
 } from "./terminalErrors";
+import { cn } from "@shellhub/design-system/cn";
 import { OpfsCastRecorder } from "@/utils/recordings";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 
@@ -363,7 +364,7 @@ export default function TerminalInstance({
       )}
       <div
         ref={containerRef}
-        className={`flex-1 ${error !== null ? "opacity-30 pointer-events-none" : ""}`}
+        className={cn("flex-1", error !== null && "opacity-30 pointer-events-none")}
       />
     </div>
   );

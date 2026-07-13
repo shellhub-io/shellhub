@@ -4,6 +4,7 @@ import {
   PlusIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useNamespaces, useNamespace } from "@/hooks/useNamespaces";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useAuthStore } from "@/stores/authStore";
@@ -96,7 +97,7 @@ export default function NamespaceSelector({
           <span className="text-sm text-text-muted italic">No namespace</span>
         )}
         <ChevronDownIcon
-          className={`w-3 h-3 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={cn("w-3 h-3 text-text-muted transition-transform duration-200", open && "rotate-180")}
           strokeWidth={2.5}
         />
       </button>

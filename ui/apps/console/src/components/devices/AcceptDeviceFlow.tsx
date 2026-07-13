@@ -7,6 +7,7 @@ import {
   ArrowRightIcon,
   CommandLineIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
@@ -638,7 +639,7 @@ function ResultMessage({
   return (
     <div className="text-center animate-slide-up">
       <div
-        className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5 ${TONES[tone].ring}`}
+        className={cn("inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5", TONES[tone].ring)}
       >
         <span className={TONES[tone].icon}>{icon}</span>
       </div>

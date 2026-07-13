@@ -1,6 +1,7 @@
 import { ReactNode, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
@@ -39,18 +40,22 @@ export default function Drawer({
   return (
     <>
       <div
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={cn(
+          "fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300",
+          open ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
         onClick={onClose}
       />
       <div
         ref={panelRef}
         aria-hidden={!open}
         {...(!open ? { inert: true } : {})}
-        className={`fixed inset-y-0 right-0 z-[70] w-full ${WIDTH_MAP[width]} bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={cn(
+          "fixed inset-y-0 right-0 z-[70] w-full",
+          WIDTH_MAP[width],
+          "bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "translate-x-full",
+        )}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2.5">

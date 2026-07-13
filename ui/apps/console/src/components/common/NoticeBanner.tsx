@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { cn } from "@shellhub/design-system/cn";
 
 export interface NoticeBannerProps {
   visible: boolean;
@@ -45,9 +46,10 @@ export default function NoticeBanner({
     <div
       aria-hidden={!visible ? true : undefined}
       {...(!visible ? { inert: true } : {})}
-      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-        visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-      }`}
+      className={cn(
+        "grid transition-[grid-template-rows] duration-300 ease-out",
+        visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+      )}
     >
       <div className="overflow-hidden">
         {/*
@@ -70,12 +72,12 @@ export default function NoticeBanner({
         <div
           role={role}
           aria-live={ariaLive}
-          className={`${surface} ${text} ${justifyClass} px-5 py-1.5 flex items-center gap-2 border-b`}
+          className={cn(surface, text, justifyClass, "px-5 py-1.5 flex items-center gap-2 border-b")}
         >
           {visible && (
             <>
               <span
-                className={`inline-flex rounded-full h-1.5 w-1.5 shrink-0 ${dot}`}
+                className={cn("inline-flex rounded-full h-1.5 w-1.5 shrink-0", dot)}
               />
               <p className="text-xs font-mono">{children}</p>
             </>
