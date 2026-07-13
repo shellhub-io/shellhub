@@ -5,7 +5,7 @@ import {
   ChevronUpDownIcon,
 } from "@heroicons/react/24/outline";
 import { Card } from "@shellhub/design-system/primitives";
-import { cn } from "@/utils/cn";
+import { cn } from "@shellhub/design-system/cn";
 import Pagination from "./Pagination";
 import PageLoader from "@/components/common/PageLoader";
 

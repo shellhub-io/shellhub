@@ -5,6 +5,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -112,7 +113,7 @@ function ApiKeysTab() {
         const expired = isExpired(key.expires_in);
         return (
           <span
-            className={`text-xs ${expired ? "text-accent-red" : "text-text-secondary"}`}
+            className={cn("text-xs", expired ? "text-accent-red" : "text-text-secondary")}
           >
             {formatExpiry(key.expires_in)}
           </span>

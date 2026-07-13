@@ -11,6 +11,7 @@ import BillingLetter from "./BillingLetter";
 import BillingPayment from "./BillingPayment";
 import BillingCheckout from "./BillingCheckout";
 import BillingSuccessful from "./BillingSuccessful";
+import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const STEPS = ["Overview", "Payment method", "Review", "Success"] as const;
@@ -102,13 +103,14 @@ export default function BillingDialog({
           {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
             <div
               key={s}
-              className={`rounded-full transition-all duration-300 ${
+              className={cn(
+                "rounded-full transition-all duration-300",
                 s < step
                   ? "w-2 h-2 bg-primary"
                   : s === step
                     ? "w-2.5 h-2.5 bg-primary shadow-[0_0_6px_rgba(102,122,204,0.5)]"
-                    : "w-2 h-2 bg-border"
-              }`}
+                    : "w-2 h-2 bg-border",
+              )}
             />
           ))}
         </div>

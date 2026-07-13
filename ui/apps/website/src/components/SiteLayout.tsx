@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import { Navbar } from "@/pages/landing/Navbar";
 import { Footer } from "@shellhub/design-system/components";
 
@@ -23,7 +24,7 @@ export function SiteLayout({
 
   return (
     <div
-      className={`min-h-screen bg-background text-text-primary font-sans antialiased overflow-x-hidden${className ? " " + className : ""}`}
+      className={cn("min-h-screen bg-background text-text-primary font-sans antialiased overflow-x-hidden", className)}
     >
       <Navbar
         navSolid={navSolid}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import {
   ArrowDownIcon,
   ArrowsRightLeftIcon,
@@ -471,7 +472,7 @@ export default function Integrations() {
                         ).map((f, i) => (
                           <div
                             key={i}
-                            className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded text-2xs font-mono ${f.active ? "bg-accent-blue/10 text-accent-blue" : "text-text-secondary hover:bg-white/[0.03]"}`}
+                            className={cn("flex items-center gap-1.5 px-1.5 py-0.5 rounded text-2xs font-mono", f.active ? "bg-accent-blue/10 text-accent-blue" : "text-text-secondary hover:bg-white/[0.03]")}
                             style={{ paddingLeft: `${f.indent * 12 + 6}px` }}
                           >
                             {f.isDir ? (

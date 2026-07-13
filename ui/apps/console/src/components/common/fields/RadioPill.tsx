@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { cn } from "@shellhub/design-system/cn";
 import { useRadioGroupContext } from "@/components/common/fields/radioGroupContext";
 
 export default function RadioPill<T extends string>({
@@ -15,11 +16,12 @@ export default function RadioPill<T extends string>({
 
   return (
     <label
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all focus-within:ring-2 focus-within:ring-primary/40 ${
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border cursor-pointer transition-all focus-within:ring-2 focus-within:ring-primary/40",
         selected
           ? "bg-primary/[0.08] border-primary/30 text-primary ring-1 ring-primary/10"
-          : "bg-card border-border text-text-secondary hover:border-border-light"
-      }`}
+          : "bg-card border-border text-text-secondary hover:border-border-light",
+      )}
     >
       <input
         type="radio"

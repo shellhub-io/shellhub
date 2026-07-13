@@ -13,6 +13,7 @@ import {
   GlobeAltIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 import CommandPaletteTrigger from "./CommandPaletteTrigger";
 
@@ -183,11 +184,7 @@ export default function Sidebar({
           className={idx > 0 ? (expanded ? "mt-5" : "mt-1") : ""}
         >
           <p
-            className={`px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200 ${
-              expanded
-                ? "opacity-100 mb-1.5"
-                : "opacity-0 h-0 overflow-hidden mb-0"
-            }`}
+            className={cn("px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200", expanded ? "opacity-100 mb-1.5" : "opacity-0 h-0 overflow-hidden mb-0")}
           >
             {section.title}
           </p>

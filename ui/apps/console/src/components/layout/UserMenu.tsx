@@ -8,6 +8,7 @@ import {
   MoonIcon,
   SunIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useNamespaces } from "@/hooks/useNamespaces";
@@ -51,7 +52,7 @@ export default function UserMenu() {
           {user}
         </span>
         <ChevronDownIcon
-          className={`w-3 h-3 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={cn("w-3 h-3 text-text-muted transition-transform duration-200", open && "rotate-180")}
           strokeWidth={2.5}
         />
       </button>

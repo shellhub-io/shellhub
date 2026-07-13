@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { CpuChipIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import DistroIcon from "./DistroIcon";
 
 interface DeviceChipBaseProps {
@@ -48,11 +49,12 @@ export default function DeviceChip(props: DeviceChipProps) {
 
       {online !== undefined && (
         <span
-          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+          className={cn(
+            "w-1.5 h-1.5 rounded-full shrink-0",
             online
               ? "bg-accent-green shadow-[0_0_4px_rgba(130,165,104,0.6)]"
-              : "bg-text-muted/40"
-          }`}
+              : "bg-text-muted/40",
+          )}
         />
       )}
     </>
@@ -66,7 +68,7 @@ export default function DeviceChip(props: DeviceChipProps) {
     <Link
       to={`/devices/${props.uid}`}
       onClick={props.onClick}
-      className={`${BASE} hover:text-text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 group/chip`}
+      className={cn(BASE, "hover:text-text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 group/chip")}
     >
       {inner}
     </Link>

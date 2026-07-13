@@ -7,6 +7,7 @@ import {
   TagIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminDevice } from "@/hooks/useAdminDevices";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
@@ -64,9 +65,7 @@ export default function AdminDeviceDetails() {
           <CpuChipIcon className="w-7 h-7 text-primary" />
           {/* Online indicator dot */}
           <span
-            className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-surface ${
-              device.online ? "bg-accent-green" : "bg-text-muted/30"
-            }`}
+            className={cn("absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-surface", device.online ? "bg-accent-green" : "bg-text-muted/30")}
             title={device.online ? "Online" : "Offline"}
             aria-label={device.online ? "Online" : "Offline"}
           />
@@ -77,11 +76,7 @@ export default function AdminDeviceDetails() {
           </h1>
           <div className="flex items-center gap-2 mt-1.5">
             <span
-              className={`inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md ${
-                device.online
-                  ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                  : "bg-text-muted/10 text-text-muted border border-text-muted/20"
-              }`}
+              className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", device.online ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-text-muted/10 text-text-muted border border-text-muted/20")}
             >
               {device.online ? "Online" : "Offline"}
             </span>

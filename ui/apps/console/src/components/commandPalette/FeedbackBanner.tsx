@@ -2,6 +2,7 @@ import {
   ExclamationTriangleIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import type { Feedback } from "./items";
 
 interface FeedbackBannerProps {
@@ -17,11 +18,12 @@ export default function FeedbackBanner({ feedback }: FeedbackBannerProps) {
   return (
     <div
       role={feedback.kind === "error" ? "alert" : "status"}
-      className={`flex items-center gap-2 px-4 py-2 text-xs border-b shrink-0 ${
+      className={cn(
+        "flex items-center gap-2 px-4 py-2 text-xs border-b shrink-0",
         feedback.kind === "error"
           ? "text-accent-yellow bg-accent-yellow/10 border-accent-yellow/20"
-          : "text-accent-green bg-accent-green/10 border-accent-green/20"
-      }`}
+          : "text-accent-green bg-accent-green/10 border-accent-green/20",
+      )}
     >
       {feedback.kind === "error" ? (
         <ExclamationTriangleIcon

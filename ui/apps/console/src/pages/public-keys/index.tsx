@@ -26,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { PublicKeyResponse as PublicKey } from "@/client";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 const PER_PAGE = 10;
 
@@ -73,7 +74,7 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <span
-        className={`inline-flex items-center gap-1 text-xs font-mono ${isAllUsers ? "text-text-muted" : "text-text-secondary"}`}
+        className={cn("inline-flex items-center gap-1 text-xs font-mono", isAllUsers ? "text-text-muted" : "text-text-secondary")}
       >
         {isAllUsers ? (
           <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />

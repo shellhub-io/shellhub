@@ -21,6 +21,7 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
 
 type Branch =
@@ -516,7 +517,7 @@ function InvitationMessage({
   return (
     <div className="text-center">
       <div
-        className={`inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5 ${ringClass}`}
+        className={cn("inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5", ringClass)}
       >
         {icon}
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
 import {
   ChevronDownIcon,
@@ -121,7 +122,7 @@ function MegaMenuItem({ item }: { item: MenuItem }) {
   }
   return (
     <span
-      className={`${sharedClass} cursor-default`}
+      className={cn(sharedClass, "cursor-default")}
       aria-disabled="true"
       {...hoverHandlers}
     >
@@ -146,11 +147,12 @@ function FullWidthMenu({
 
   return (
     <div
-      className={`absolute top-full left-0 right-0 transition-all duration-[170ms] ease-out z-50 ${
+      className={cn(
+        "absolute top-full left-0 right-0 transition-all duration-[170ms] ease-out z-50",
         isOpen
           ? "opacity-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 -translate-y-1 pointer-events-none"
-      }`}
+          : "opacity-0 -translate-y-1 pointer-events-none",
+      )}
       style={{
         background: C.bg,
         borderBottom: `1px solid ${C.border}`,
@@ -199,7 +201,7 @@ function MobileDropdown({
       >
         {label}
         <ChevronDownIcon
-          className={`w-3 h-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={cn("w-3 h-3 transition-transform duration-200", open && "rotate-180")}
           aria-hidden="true"
         />
       </button>
@@ -273,7 +275,7 @@ function MobileDropdown({
             return (
               <span
                 key={item.label}
-                className={`${itemClass} cursor-default`}
+                className={cn(itemClass, "cursor-default")}
                 aria-disabled="true"
                 {...itemHover}
               >
@@ -329,11 +331,12 @@ export function Navbar({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 top-14 z-40 transition-all duration-200 ${
+        className={cn(
+          "fixed inset-0 top-14 z-40 transition-all duration-200",
           activeMenu
             ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+            : "opacity-0 pointer-events-none",
+        )}
         style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(2px)" }}
         onClick={() => setActiveMenu(null)}
       />
@@ -394,7 +397,7 @@ export function Navbar({
               >
                 {label}
                 <ChevronDownIcon
-                  className={`w-3 h-3 transition-transform duration-200 ${activeMenu === id ? "rotate-180" : ""}`}
+                  className={cn("w-3 h-3 transition-transform duration-200", activeMenu === id && "rotate-180")}
                   aria-hidden="true"
                 />
               </button>
@@ -455,7 +458,7 @@ export function Navbar({
         {/* Mobile nav */}
         <div
           data-testid="mobile-nav"
-          className={`${mobileMenu ? "flex" : "hidden"} lg:hidden absolute top-14 left-0 right-0 flex-col gap-0.5 items-stretch p-3 border-b shadow-xl`}
+          className={cn(mobileMenu ? "flex" : "hidden", "lg:hidden absolute top-14 left-0 right-0 flex-col gap-0.5 items-stretch p-3 border-b shadow-xl")}
           style={{
             background: `${C.surface}f8`,
             backdropFilter: "blur(20px)",

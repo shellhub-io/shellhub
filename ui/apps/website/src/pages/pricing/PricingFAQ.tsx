@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { Section, SectionHeader } from "@/components/marketing";
 import { Reveal } from "../landing/components";
 
@@ -59,9 +60,10 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
           )}
         </div>
         <div
-          className={`overflow-hidden transition-all duration-300 ${
-            open ? "max-h-40 opacity-100 mt-3" : "max-h-0 opacity-0"
-          }`}
+          className={cn(
+            "overflow-hidden transition-all duration-300",
+            open ? "max-h-40 opacity-100 mt-3" : "max-h-0 opacity-0",
+          )}
         >
           <p className="text-sm text-text-secondary leading-relaxed pr-8">
             {a}

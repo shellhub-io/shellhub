@@ -6,6 +6,7 @@ import {
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 import { Callout } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
 import type { Session } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -41,11 +42,7 @@ export default function AdminSessions() {
       headerClassName: "w-14",
       render: (s) => (
         <span
-          className={`w-2 h-2 rounded-full inline-block ${
-            s.active
-              ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-              : "bg-text-muted/40"
-          }`}
+          className={cn("w-2 h-2 rounded-full inline-block", s.active ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" : "bg-text-muted/40")}
         />
       ),
     },
@@ -93,9 +90,7 @@ export default function AdminSessions() {
               />
             )}
             <code
-              className={`text-xs font-mono ${
-                suspicious ? "text-accent-red/60" : "text-text-secondary"
-              }`}
+              className={cn("text-xs font-mono", suspicious ? "text-accent-red/60" : "text-text-secondary")}
             >
               {s.username}
             </code>

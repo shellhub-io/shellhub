@@ -7,6 +7,7 @@ import {
   ArrowsPointingOutIcon,
   ArrowsPointingInIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 import type { TerminalSession } from "@/stores/terminalStore";
@@ -26,13 +27,14 @@ export function TerminalInfo({ session }: { session: TerminalSession }) {
   return (
     <div className="flex items-center gap-2.5 min-w-0">
       <span
-        className={`shrink-0 w-2 h-2 rounded-full transition-colors duration-300 ${
+        className={cn(
+          "shrink-0 w-2 h-2 rounded-full transition-colors duration-300",
           status === "connected"
             ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.6)]"
             : status === "connecting"
               ? "bg-accent-yellow animate-pulse"
-              : "bg-accent-red"
-        }`}
+              : "bg-accent-red",
+        )}
       />
       <span className="text-[13px] font-mono text-text-secondary truncate">
         {status === "connected"

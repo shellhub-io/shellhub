@@ -9,6 +9,7 @@ import {
   ClockIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminUser } from "@/hooks/useAdminUsers";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
@@ -47,7 +48,7 @@ function InfoItem({
       <dt className={LABEL}>{label}</dt>
       <dd className="flex items-center gap-1 mt-0.5">
         <span
-          className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
+          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
         >
           {value || "\u2014"}
         </span>
@@ -230,11 +231,7 @@ export default function UserDetails() {
               <dt className={LABEL}>MFA</dt>
               <dd className="mt-1">
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md ${
-                    user.mfa.enabled
-                      ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                      : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20"
-                  }`}
+                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", user.mfa.enabled ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
                 >
                   {user.mfa.enabled ? "Enabled" : "Disabled"}
                 </span>

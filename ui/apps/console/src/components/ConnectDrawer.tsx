@@ -26,6 +26,7 @@ import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
 import { INPUT, LABEL } from "../utils/styles";
+import { cn } from "@shellhub/design-system/cn";
 import { Card, Button } from "@shellhub/design-system/primitives";
 import type { VaultKeyEntry } from "../types/vault";
 
@@ -446,7 +447,7 @@ export default function ConnectDrawer({
                       onChange={(e) => handleManualKeyChange(e.target.value)}
                       placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
                       rows={5}
-                      className={`${INPUT} font-mono text-xs resize-none`}
+                      className={cn(INPUT, "font-mono text-xs resize-none")}
                     />
                   </div>
                   {state.manualKeyEncrypted && (
@@ -503,11 +504,7 @@ export default function ConnectDrawer({
 
           {!namespaceRecords && recordingSupported && (
             <label
-              className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
-                state.recordSession
-                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                  : "bg-card border-border hover:border-border-light hover:bg-hover-subtle"
-              }`}
+              className={cn("flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40", state.recordSession ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10" : "bg-card border-border hover:border-border-light hover:bg-hover-subtle")}
             >
               <input
                 type="checkbox"
@@ -522,9 +519,7 @@ export default function ConnectDrawer({
               />
               <span
                 aria-hidden="true"
-                className={`mt-0.5 shrink-0 transition-colors ${
-                  state.recordSession ? "text-primary" : "text-text-muted"
-                }`}
+                className={cn("mt-0.5 shrink-0 transition-colors", state.recordSession ? "text-primary" : "text-text-muted")}
               >
                 <VideoCameraIcon className="w-4 h-4" />
               </span>
@@ -538,11 +533,7 @@ export default function ConnectDrawer({
               </div>
               <span
                 aria-hidden="true"
-                className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                  state.recordSession
-                    ? "bg-primary border-primary text-white"
-                    : "border-text-muted/40"
-                }`}
+                className={cn("mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all", state.recordSession ? "bg-primary border-primary text-white" : "border-text-muted/40")}
               >
                 {state.recordSession && (
                   <CheckIcon className="w-3 h-3" strokeWidth={3} />

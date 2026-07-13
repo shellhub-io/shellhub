@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import InputField from "@/components/common/fields/InputField";
 
 interface SearchFieldProps {
@@ -27,9 +28,7 @@ export default function SearchField({
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
-  const wrapperClasses = [full ? null : "max-w-sm w-full", className]
-    .filter(Boolean)
-    .join(" ");
+  const wrapperClasses = cn(!full && "max-w-sm w-full", className);
 
   return (
     <div className={wrapperClasses || undefined}>

@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "../components/common/AmbientBackground";
 import { ShellHubLogo, Spinner } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 
@@ -43,6 +44,20 @@ export default function MigrationPage() {
     };
   }, []);
 
+  const iconContainerColor =
+    status === "completed"
+      ? "bg-accent-green/10 border-accent-green/20 shadow-accent-green/5"
+      : status === "failed"
+        ? "bg-accent-red/10 border-accent-red/20 shadow-accent-red/5"
+        : "bg-primary/10 border-primary/20 shadow-primary/5";
+
+  const subtitleColor =
+    status === "completed"
+      ? "text-accent-green/60"
+      : status === "failed"
+        ? "text-accent-red/60"
+        : "text-primary/60";
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-background overflow-hidden">
       <AmbientBackground variant={status === "failed" ? "error" : "default"} />
@@ -52,13 +67,7 @@ export default function MigrationPage() {
 
         <div className="animate-float mb-6">
           <div
-            className={`w-20 h-20 rounded-2xl border flex items-center justify-center shadow-lg ${
-              status === "completed"
-                ? "bg-accent-green/10 border-accent-green/20 shadow-accent-green/5"
-                : status === "failed"
-                  ? "bg-accent-red/10 border-accent-red/20 shadow-accent-red/5"
-                  : "bg-primary/10 border-primary/20 shadow-primary/5"
-            }`}
+            className={cn("w-20 h-20 rounded-2xl border flex items-center justify-center shadow-lg", iconContainerColor)}
           >
             {status === "completed" ? (
               <CheckCircleIcon
@@ -80,13 +89,7 @@ export default function MigrationPage() {
         </div>
 
         <p
-          className={`text-2xs font-mono font-semibold uppercase tracking-wide mb-2 ${
-            status === "completed"
-              ? "text-accent-green/60"
-              : status === "failed"
-                ? "text-accent-red/60"
-                : "text-primary/60"
-          }`}
+          className={cn("text-2xs font-mono font-semibold uppercase tracking-wide mb-2", subtitleColor)}
         >
           Database Migration
         </p>

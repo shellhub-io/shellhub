@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 
 export interface BreadcrumbItem {
   label: ReactNode;
@@ -16,7 +17,7 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={`mb-5 ${className}`}>
+    <nav aria-label="Breadcrumb" className={cn("mb-5", className)}>
       <ol className="flex items-center gap-1.5 min-w-0">
         {items.map((item, i) => {
           const isLast = i === items.length - 1;

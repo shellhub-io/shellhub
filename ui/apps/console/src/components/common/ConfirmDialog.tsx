@@ -1,6 +1,7 @@
 import { ReactNode, useId, useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { Button, type ButtonVariant } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
 
@@ -117,7 +118,7 @@ export default function ConfirmDialog({
         {description != null && (
           <div
             id={descriptionId}
-            className={`text-sm text-text-muted ${children || errorMessage ? "mb-4" : "mb-6"}`}
+            className={cn("text-sm text-text-muted", children || errorMessage ? "mb-4" : "mb-6")}
           >
             {description}
           </div>
@@ -126,7 +127,7 @@ export default function ConfirmDialog({
         {errorMessage && (
           <div
             role="alert"
-            className={`${children ? "mt-4" : ""} flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red`}
+            className={cn("flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red", children && "mt-4")}
           >
             <ExclamationCircleIcon
               className="w-4 h-4 shrink-0 mt-px"

@@ -33,6 +33,7 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
 const PER_PAGE = 10;
@@ -354,11 +355,7 @@ export default function Devices() {
               type="button"
               key={tab.value}
               onClick={() => handleStatusChange(tab.value)}
-              className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
-                params.status === tab.value
-                  ? "bg-primary/15 text-primary border border-primary/25"
-                  : "text-text-muted hover:text-text-secondary border border-transparent"
-              }`}
+              className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", params.status === tab.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
             >
               {tab.label}
             </button>

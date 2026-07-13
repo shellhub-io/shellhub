@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useTags } from "@/hooks/useTags";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import FieldLabel from "@/components/common/fields/FieldLabel";
@@ -51,9 +52,11 @@ export default function TagsSelector({
       </FieldLabel>
       <div ref={wrapperRef} className="relative">
         <div
-          className={`flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 bg-card border rounded-lg cursor-text transition-all ${
-            open ? "border-primary/50 ring-1 ring-primary/20" : "border-border"
-          } ${error ? "border-accent-red/50" : ""}`}
+          className={cn(
+            "flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 bg-card border rounded-lg cursor-text transition-all",
+            open ? "border-primary/50 ring-1 ring-primary/20" : "border-border",
+            error && "border-accent-red/50",
+          )}
           onClick={() => setOpen(true)}
         >
           {selected.map((tag) => (

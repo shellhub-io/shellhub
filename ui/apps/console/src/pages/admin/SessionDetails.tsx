@@ -5,6 +5,7 @@ import {
   CheckCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { formatDateFull } from "@/utils/date";
@@ -38,7 +39,7 @@ function BoolField({
 }) {
   return (
     <span
-      className={`flex items-center gap-1.5 text-sm ${value ? "text-accent-green" : falseColor}`}
+      className={cn("flex items-center gap-1.5 text-sm", value ? "text-accent-green" : falseColor)}
     >
       {value ? (
         <CheckCircleIcon className="w-4 h-4" strokeWidth={2} />
@@ -102,11 +103,7 @@ export default function AdminSessionDetails() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={`w-2 h-2 rounded-full inline-block shrink-0 ${
-              session.active
-                ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-                : "bg-text-muted/40"
-            }`}
+            className={cn("w-2 h-2 rounded-full inline-block shrink-0", session.active ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" : "bg-text-muted/40")}
             aria-label={session.active ? "Active" : "Inactive"}
           />
           <code className="text-xs font-mono text-text-muted break-all">
@@ -148,7 +145,7 @@ export default function AdminSessionDetails() {
             <Field label="Type">
               {type ? (
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", type.color)}
                 >
                   {type.label}
                 </span>

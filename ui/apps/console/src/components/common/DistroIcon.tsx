@@ -1,3 +1,5 @@
+import { cn } from "@shellhub/design-system/cn";
+
 const distroMap: Record<string, string> = {
   alpine: "fl-alpine",
   arch: "fl-archlinux",
@@ -33,5 +35,5 @@ interface DistroIconProps {
 
 export default function DistroIcon({ id, className = "" }: DistroIconProps) {
   const icon = distroMap[id?.toLowerCase()] ?? "fl-tux";
-  return <i className={`${icon} ${className}`} aria-hidden="true" />;
+  return <i className={cn(icon, className)} aria-hidden="true" />;
 }

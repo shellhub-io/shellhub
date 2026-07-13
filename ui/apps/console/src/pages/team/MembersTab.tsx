@@ -8,6 +8,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import type { MemberView, MembershipInvitation } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -57,7 +58,7 @@ function Badge({
   }[tone];
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${styles}`}
+      className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", styles)}
     >
       {children}
     </span>
@@ -220,7 +221,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
               <Badge tone="yellow">Pending invite</Badge>
               {row.invite.expires_at && (
                 <span
-                  className={`text-2xs ${expired ? "text-accent-red" : "text-text-muted"}`}
+                  className={cn("text-2xs", expired ? "text-accent-red" : "text-text-muted")}
                 >
                   {expired
                     ? "expired"

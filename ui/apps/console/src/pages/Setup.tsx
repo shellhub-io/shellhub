@@ -17,6 +17,7 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -202,7 +203,7 @@ export default function Setup() {
 
   return (
     <div
-      className={`w-full mx-auto animate-fade-in ${step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm"}`}
+      className={cn("w-full mx-auto animate-fade-in", step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm")}
     >
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
@@ -394,9 +395,10 @@ function StepIndicator({ index, current }: { index: number; current: number }) {
 function StepDot({ active, label }: { active: boolean; label: string }) {
   return (
     <div
-      className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-mono font-bold transition-colors ${
-        active ? "bg-primary text-white" : "bg-border text-text-muted"
-      }`}
+      className={cn(
+        "w-5 h-5 rounded-full flex items-center justify-center text-3xs font-mono font-bold transition-colors",
+        active ? "bg-primary text-white" : "bg-border text-text-muted",
+      )}
     >
       {label}
     </div>

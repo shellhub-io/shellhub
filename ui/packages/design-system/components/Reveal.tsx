@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { cn } from "../primitives/cn";
 
 function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -18,7 +19,7 @@ function useReveal() {
 export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useReveal();
   return (
-    <div ref={ref} className={`landing-reveal ${className}`} style={delay ? { transitionDelay: `${delay}s` } : undefined}>
+    <div ref={ref} className={cn("landing-reveal", className)} style={delay ? { transitionDelay: `${delay}s` } : undefined}>
       {children}
     </div>
   );

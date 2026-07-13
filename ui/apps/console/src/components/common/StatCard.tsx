@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 interface StatCardBaseProps {
   icon: ReactNode;
@@ -39,7 +40,7 @@ export default function StatCard(props: StatCardProps) {
       </p>
 
       <p
-        className={`text-4xl font-mono font-bold mb-5 tabular-nums ${accent ?? "text-text-primary"}`}
+        className={cn("text-4xl font-mono font-bold mb-5 tabular-nums", accent ?? "text-text-primary")}
       >
         {value}
       </p>

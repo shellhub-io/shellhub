@@ -28,6 +28,7 @@ import {
 } from "@/hooks/useDeviceChooser";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
+import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 
 const PER_PAGE = 5;
@@ -407,9 +408,11 @@ const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
         disabled={disabled}
         onClick={onSelect}
         onKeyDown={onKeyDown}
-        className={`relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md
-          ${selected ? "text-text-primary" : "text-text-muted hover:text-text-secondary"}
-          ${disabled ? "opacity-40 cursor-not-allowed hover:text-text-muted" : ""}`}
+        className={cn(
+          "relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md",
+          selected ? "text-text-primary" : "text-text-muted hover:text-text-secondary",
+          disabled && "opacity-40 cursor-not-allowed hover:text-text-muted",
+        )}
       >
         {children}
         {selected && (
@@ -624,7 +627,7 @@ function SelectionStatus({ count, max }: { count: number; max: number }) {
     <p
       role="status"
       aria-live="polite"
-      className={`text-2xs font-mono tabular-nums ${tone}`}
+      className={cn("text-2xs font-mono tabular-nums", tone)}
     >
       {count} of {max} selected
     </p>

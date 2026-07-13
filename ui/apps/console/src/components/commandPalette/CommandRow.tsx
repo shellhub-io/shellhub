@@ -1,5 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { optionId, type BadgeVariant, type CommandItem } from "./items";
 
 const badgeStyles: Record<BadgeVariant, string> = {
@@ -34,25 +35,24 @@ export default function CommandRow({
       data-active={isActive}
       onClick={item.disabled ? undefined : item.onSelect}
       onMouseEnter={onActivate}
-      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75 ${
+      className={cn(
+        "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75",
         isActive
           ? "bg-primary/10"
-          : item.disabled
-            ? ""
-            : "hover:bg-hover-subtle"
-      } ${item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${
-        shaking ? "motion-safe:animate-shake" : ""
-      }`}
+          : !item.disabled && "hover:bg-hover-subtle",
+        item.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+        shaking && "motion-safe:animate-shake",
+      )}
     >
       <span
-        className={`shrink-0 ${isActive ? "text-primary" : "text-text-muted"} transition-colors duration-75`}
+        className={cn("shrink-0 transition-colors duration-75", isActive ? "text-primary" : "text-text-muted")}
         aria-hidden="true"
       >
         {item.icon}
       </span>
       <div className="flex-1 min-w-0 truncate">
         <span
-          className={`text-sm ${isActive ? "text-text-primary" : "text-text-secondary"} transition-colors duration-75`}
+          className={cn("text-sm transition-colors duration-75", isActive ? "text-text-primary" : "text-text-secondary")}
         >
           {item.label}
         </span>
@@ -64,7 +64,7 @@ export default function CommandRow({
       </div>
       {item.badge && (
         <span
-          className={`shrink-0 text-2xs font-mono font-semibold px-1.5 py-0.5 rounded border ${badgeStyles[item.badge.variant]}`}
+          className={cn("shrink-0 text-2xs font-mono font-semibold px-1.5 py-0.5 rounded border", badgeStyles[item.badge.variant])}
         >
           {item.badge.text}
         </span>

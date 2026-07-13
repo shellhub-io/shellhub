@@ -35,6 +35,7 @@ import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
@@ -284,7 +285,7 @@ function BannerPreview({
             className="inline-flex p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
           >
             <ChevronDownIcon
-              className={`w-4 h-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+              className={cn("w-4 h-4 transition-transform duration-200", open && "rotate-180")}
             />
           </button>
         </div>
@@ -293,7 +294,7 @@ function BannerPreview({
       {/* Collapsible content */}
       <div className="ml-11 mt-3">
         <div
-          className={`relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out ${open ? "max-h-[500px]" : "max-h-[120px]"}`}
+          className={cn("relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out", open ? "max-h-[500px]" : "max-h-[120px]")}
         >
           <pre className="px-3 py-2.5 text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words">
             {banner}
@@ -431,11 +432,12 @@ export default function Settings() {
             description="Defines whether this namespace belongs to one user or a team"
           >
             <span
-              className={`inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border ${
+              className={cn(
+                "inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border",
                 ns.type === "team"
                   ? "bg-primary/10 text-primary border-primary/20"
-                  : "bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20"
-              }`}
+                  : "bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20",
+              )}
             >
               {ns.type ?? "personal"}
             </span>
@@ -465,18 +467,19 @@ export default function Settings() {
               description="Record SSH sessions for audit and playback"
             >
               <div
-                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateRecording || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
+                className={cn("inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5", (!canUpdateRecording || togglingRecord) && "opacity-40 pointer-events-none")}
               >
                 <button
                   type="button"
                   onClick={() => {
                     if (sessionRecord) void handleToggleRecord();
                   }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  className={cn(
+                    "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
                     !sessionRecord
                       ? "bg-hover-strong text-text-secondary border border-border-light"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
+                      : "text-text-muted hover:text-text-secondary border border-transparent",
+                  )}
                 >
                   Off
                 </button>
@@ -485,11 +488,12 @@ export default function Settings() {
                   onClick={() => {
                     if (!sessionRecord) void handleToggleRecord();
                   }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  className={cn(
+                    "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
                     sessionRecord
                       ? "bg-primary/15 text-primary border border-primary/25"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
+                      : "text-text-muted hover:text-text-secondary border border-transparent",
+                  )}
                 >
                   On
                 </button>
@@ -509,18 +513,19 @@ export default function Settings() {
             description="Automatically accept new devices when they connect for the first time"
           >
             <div
-              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateAutoAccept || togglingAutoAccept ? "opacity-40 pointer-events-none" : ""}`}
+              className={cn("inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5", (!canUpdateAutoAccept || togglingAutoAccept) && "opacity-40 pointer-events-none")}
             >
               <button
                 type="button"
                 onClick={() => {
                   if (deviceAutoAccept) void handleToggleAutoAccept();
                 }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                className={cn(
+                  "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
                   !deviceAutoAccept
                     ? "bg-hover-strong text-text-secondary border border-border-light"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
+                    : "text-text-muted hover:text-text-secondary border border-transparent",
+                )}
               >
                 Off
               </button>
@@ -529,11 +534,12 @@ export default function Settings() {
                 onClick={() => {
                   if (!deviceAutoAccept) void handleToggleAutoAccept();
                 }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                className={cn(
+                  "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
                   deviceAutoAccept
                     ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
+                    : "text-text-muted hover:text-text-secondary border border-transparent",
+                )}
               >
                 On
               </button>

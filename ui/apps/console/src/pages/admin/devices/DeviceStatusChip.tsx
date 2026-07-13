@@ -4,6 +4,7 @@ import {
   XCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import type { DeviceStatus } from "@/client";
 
 const STATUS_CONFIG: Record<
@@ -53,7 +54,7 @@ export default function DeviceStatusChip({ status }: DeviceStatusChipProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md ${className}`}
+      className={cn("inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md", className)}
     >
       <Icon className="w-3 h-3" />
       {label}
