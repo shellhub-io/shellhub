@@ -57,35 +57,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when the active member was not found",
-			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nil, ErrUserNotFound).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
-			},
-		},
-		{
 			description: "fails when the active member is not on the namespace",
 			req: &requests.NamespaceAddMember{
 				ForwardedHost: "localhost",
@@ -102,13 +73,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 						Name:     "namespace",
 						Owner:    "000000000000000000000000",
 						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -141,13 +105,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -178,13 +135,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -212,10 +162,6 @@ func TestService_AddNamespaceMember(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(ns, nil).
 					Twice()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{ID: "000000000000000000000000", UserData: models.UserData{Username: "owner"}}, nil).
-					Once()
 				// The transaction body runs so the invitation write is exercised.
 				storeMock.
 					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -298,31 +244,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", ErrNamespaceNotFound),
 		},
 		{
-			description: "[community|enterprise|cloud] fails when the active member was not found",
-			req: &requests.NamespaceUpdateMember{
-				UserID:     "000000000000000000000000",
-				TenantID:   "00000000-0000-4000-0000-000000000000",
-				MemberID:   "000000000000000000000001",
-				MemberRole: authorizer.RoleObserver,
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nil, ErrUserNotFound).
-					Once()
-			},
-			expected: NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
-		},
-		{
 			description: "[community|enterprise|cloud] fails when the active member is not on the namespace",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -338,13 +259,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						Name:     "namespace",
 						Owner:    "000000000000000000000000",
 						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -371,13 +285,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleOwner,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -408,13 +315,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleOwner,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -457,13 +357,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: NewErrRoleForbidden(),
 		},
@@ -492,13 +385,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleAdministrator,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -533,13 +419,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleAdministrator,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -584,13 +463,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: NewErrRoleForbidden(),
 		},
@@ -631,13 +503,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
-				storeMock.
 					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
 					Once()
@@ -672,13 +537,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleOwner,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -718,13 +576,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: NewErrRoleForbidden(),
 		},
@@ -760,13 +611,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleInvalid, // corrupted/legacy record
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -816,13 +660,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: NewErrRoleForbidden(),
 		},
@@ -854,13 +691,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleOwner,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				// NO NamespaceUpdateMembership call — guard returns early
@@ -923,10 +753,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 							{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator},
 						},
 					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{ID: "000000000000000000000000", UserData: models.UserData{Username: "jane_doe"}}, nil).
 					Once()
 				storeMock.
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
@@ -994,10 +820,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{ID: "000000000000000000000000", UserData: models.UserData{Username: "jane_doe"}}, nil).
-					Once()
-				storeMock.
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
@@ -1057,33 +879,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "[community|enterprise|cloud] fails when the active member was not found",
-			req: &requests.NamespaceRemoveMember{
-				UserID:   "000000000000000000000000",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				MemberID: "000000000000000000000001",
-			},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Name:     "namespace",
-						Owner:    "000000000000000000000000",
-						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(nil, ErrUserNotFound).
-					Once()
-			},
-			expected: Expected{
-				namespace: nil,
-				err:       NewErrUserNotFound("000000000000000000000000", ErrUserNotFound),
-			},
-		},
-		{
 			description: "[community|enterprise|cloud] fails when the active member is not on the namespace",
 			req: &requests.NamespaceRemoveMember{
 				UserID:   "000000000000000000000000",
@@ -1098,13 +893,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						Name:     "namespace",
 						Owner:    "000000000000000000000000",
 						Members:  []models.Member{},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -1133,13 +921,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleOwner,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 			},
@@ -1174,13 +955,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -1213,13 +987,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 			},
 			expected: Expected{
 				namespace: nil,
@@ -1250,13 +1017,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleAdministrator,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -1293,13 +1053,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleAdministrator,
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -1370,13 +1123,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
-					}, nil).
-					Once()
 				// Simulate an unexpected store error from NamespaceDeleteMembership (e.g.
 				// TOCTOU: member disappeared after the FindMember precheck). The service
 				// must propagate it unchanged — the default branch must not remap it.
@@ -1418,13 +1164,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 								Role: authorizer.RoleInvalid, // corrupted/legacy record
 							},
 						},
-					}, nil).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:       "000000000000000000000000",
-						UserData: models.UserData{Username: "jane_doe"},
 					}, nil).
 					Once()
 				storeMock.
@@ -1534,7 +1273,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 			},
 			expected: Expected{
 				res: nil,
-				err: NewErrAuthForbidden(),
+				err: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
 			},
 		},
 		{
@@ -1796,8 +1535,6 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	}
 
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
-	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
 	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "jane@test.com").
@@ -1839,8 +1576,6 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	}
 
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
-	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
 	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
@@ -1904,8 +1639,6 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	}
 
 	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, ns.TenantID).Return(ns, nil).Twice()
-	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-		Return(&models.User{ID: "000000000000000000000000"}, nil).Once()
 	storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").

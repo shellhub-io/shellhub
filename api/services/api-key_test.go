@@ -765,6 +765,70 @@ func TestUpdateAPIKey(t *testing.T) {
 			},
 			expected: nil,
 		},
+		{
+			description: "fails when the role is empty and the actor is not a member",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{}}, nil).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
+		},
+		{
+			description: "succeeds updating only the name when the role is empty",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "",
+			},
+			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "newName",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
 	}
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)

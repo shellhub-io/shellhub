@@ -95,15 +95,10 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 		return NewErrNamespaceMemberNotFound(req.UserID, err)
 	}
 
-	// Adding the member and consuming the invitation must be atomic: a failure between them would
-	// add the member but leave the invitation stuck pending.
 	err = s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		member := &models.Member{ID: req.UserID, AddedAt: clock.Now(), Role: invitation.Role}
-		if err := s.store.NamespaceCreateMembership(ctx, req.TenantID, member); err != nil {
-			return err
-		}
 
-		return s.store.MembershipInvitationDelete(ctx, invitation)
+		return s.admitMember(ctx, req.TenantID, member, invitation)
 	})
 	if err != nil {
 		log.WithError(err).WithField("tenant-id", req.TenantID).WithField("user-id", req.UserID).
@@ -116,18 +111,9 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 }
 
 func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	namespace, activeUser, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole)
 	if err != nil {
-		return "", NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	activeUser, ok := namespace.FindMember(req.UserID)
-	if !ok {
-		return "", NewErrNamespaceMemberNotFound(req.UserID, err)
-	}
-
-	if !activeUser.Role.HasAuthority(req.MemberRole) {
-		return "", NewErrRoleForbidden()
+		return "", err
 	}
 
 	invitation, err := s.intakeMembership(ctx, namespace, activeUser.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto)
@@ -181,18 +167,8 @@ func (s *service) UserMembershipInvitationList(ctx context.Context, req *request
 }
 
 func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
-	if err != nil {
-		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	m, ok := n.FindMember(req.UserID)
-	if !ok {
-		return nil, 0, NewErrNamespaceMemberNotFound(req.UserID, nil)
-	}
-
-	if !m.Role.HasAuthority(authorizer.RoleAdministrator) {
-		return nil, 0, NewErrRoleForbidden()
+	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleAdministrator); err != nil {
+		return nil, 0, err
 	}
 
 	invitations, count, err := s.store.NamespaceMembershipInvitationList(
@@ -218,14 +194,9 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *re
 }
 
 func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	_, activeMember, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
 	if err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	activeMember, ok := n.FindMember(req.UserID)
-	if !ok {
-		return NewErrNamespaceMemberNotFound(req.UserID, nil)
+		return err
 	}
 
 	invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, req.InvitedUserID)

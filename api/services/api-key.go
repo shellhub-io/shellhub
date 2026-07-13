@@ -109,22 +109,10 @@ func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
-	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
-	if err != nil {
-		return NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	// If req.Role is not empty, the requesting user must be a namespace member
-	// with sufficient authority to assign that role.
-	if req.Role != "" {
-		m, ok := ns.FindMember(req.UserID)
-		if !ok {
-			return NewErrNamespaceMemberNotFound(req.UserID, nil)
-		}
-
-		if !m.Role.HasAuthority(req.Role) {
-			return NewErrRoleForbidden()
-		}
+	// The acting member must outrank the role being assigned. A RoleInvalid (empty) req.Role means
+	// no role change, so the seam resolves membership without an authority assertion.
+	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
+		return err
 	}
 
 	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.CurrentName, s.store.Options().InNamespace(req.TenantID))
