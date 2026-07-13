@@ -33,12 +33,17 @@ vi.mock("@/stores/authStore", () => ({
 }));
 
 vi.mock("@/stores/terminalStore", () => ({
-  useTerminalStore: (sel: (s: { sessions: []; restore: () => void }) => unknown) =>
-    sel({ sessions: [], restore: vi.fn() }),
+  useTerminalStore: (
+    sel: (s: { sessions: []; restore: () => void }) => unknown,
+  ) => sel({ sessions: [], restore: vi.fn() }),
 }));
 
 vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: () => true,
+}));
+
+vi.mock("@/hooks/useTags", () => ({
+  useTags: () => ({ tags: [], totalCount: 0, isLoading: false, error: null }),
 }));
 
 vi.mock("@/components/common/CopyButton", () => ({
@@ -106,7 +111,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
 import { useDevice } from "@/hooks/useDevice";
-import DeviceDetails from "../../DeviceDetails";
+import DeviceDetails from "@/pages/DeviceDetails";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -183,7 +188,9 @@ describe("DeviceDetails", () => {
 
     it("renders the device name as a heading", () => {
       renderPage();
-      expect(screen.getByRole("heading", { name: "my-device" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "my-device" }),
+      ).toBeInTheDocument();
     });
 
     it("renders the MAC address", () => {
@@ -205,7 +212,9 @@ describe("DeviceDetails", () => {
   describe("custom fields section", () => {
     it("renders key-value pairs when custom fields are present", () => {
       vi.mocked(useDevice).mockReturnValue({
-        device: makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
+        device: makeDevice({
+          custom_fields: { env: "production", owner: "team-a" },
+        }),
         isLoading: false,
         error: null,
         refetch: vi.fn(),
@@ -272,7 +281,9 @@ describe("DeviceDetails", () => {
     it("calls mutation without the deleted key when 'Yes' is clicked", async () => {
       const user = userEvent.setup();
       vi.mocked(useDevice).mockReturnValue({
-        device: makeDevice({ custom_fields: { env: "production", owner: "team-a" } }),
+        device: makeDevice({
+          custom_fields: { env: "production", owner: "team-a" },
+        }),
         isLoading: false,
         error: null,
         refetch: vi.fn(),
