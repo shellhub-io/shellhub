@@ -1,0 +1,1 @@
+ALTER TABLE devices DROP COLUMN IF EXISTS remote_addr;

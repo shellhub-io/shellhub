@@ -134,9 +134,13 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 
 		// NOTE: The position lookup is best-effort: a pairing accept materializes
 		// the device server-side without a device IP, and a lookup failure should
-		// not block registration.
+		// not block registration. RemoteAddr is only persisted when RealIP parses as
+		// an IP: it comes from the client-controlled X-Real-IP header, and storing an
+		// unbounded value would overflow the remote_addr column and fail registration.
 		position := geoip.Position{}
+		remoteAddr := ""
 		if ip := net.ParseIP(req.RealIP); ip != nil {
+			remoteAddr = req.RealIP
 			if position, err = s.locator.GetPosition(ip); err != nil {
 				log.WithError(err).WithFields(log.Fields{"real_ip": req.RealIP, "tenant_id": req.TenantID}).
 					Warn("failed to resolve the device position")
@@ -156,7 +160,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			Name:            strings.ToLower(hostname),
 			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
 			PublicKey:       req.PublicKey,
-			RemoteAddr:      req.RealIP,
+			RemoteAddr:      remoteAddr,
 			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
 			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
 		}
@@ -196,6 +200,14 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
+
+		// Refresh RemoteAddr to the current connection's address so it reflects the
+		// latest reconnect, not only first registration. Guarded on a parseable IP for
+		// the same reason as the create branch (client-controlled X-Real-IP, bounded
+		// column); an unparseable value leaves the last known address intact.
+		if ip := net.ParseIP(req.RealIP); ip != nil {
+			device.RemoteAddr = req.RealIP
+		}
 
 		if device.RemovedAt != nil {
 			device.RemovedAt = nil
