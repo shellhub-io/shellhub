@@ -340,8 +340,8 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrUserNotFound(req.UserID, err)
 	}
 
-	user.Preferences.PreferredNamespace = ""
-	if err := s.store.UserUpdate(ctx, user); err != nil {
+	// preferred_namespace_id is skipupdate, so a full-model UserUpdate can't clear it.
+	if err := s.store.UserUpdatePreferredNamespace(ctx, req.UserID, ""); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
 			WithField("user_id", req.UserID).

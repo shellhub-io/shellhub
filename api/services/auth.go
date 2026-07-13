@@ -497,7 +497,6 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			user.Preferences.PreferredNamespace = tenantID
 			// preferred_namespace_id is skipupdate; write it through the targeted update.
 			// TODO: evaluate make this update in a go routine.
 			if err := s.store.UserUpdatePreferredNamespace(ctx, user.ID, tenantID); err != nil {
