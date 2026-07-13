@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from "react";
+import { ReactNode, useId, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
@@ -33,6 +33,7 @@ export default function Drawer({
   bodyClassName,
 }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const headingId = useId();
   useEscapeKey(onClose, open);
   useFocusTrap(panelRef, open);
 
@@ -46,6 +47,9 @@ export default function Drawer({
       />
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
         aria-hidden={!open}
         {...(!open ? { inert: true } : {})}
         className={`fixed inset-y-0 right-0 z-[70] w-full ${WIDTH_MAP[width]} bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
@@ -60,7 +64,10 @@ export default function Drawer({
               </div>
             )}
             <div>
-              <h2 className="text-base font-semibold text-text-primary">
+              <h2
+                id={headingId}
+                className="text-base font-semibold text-text-primary"
+              >
                 {title}
               </h2>
               {subtitle && (
