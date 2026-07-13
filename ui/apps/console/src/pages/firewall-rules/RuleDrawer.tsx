@@ -25,8 +25,10 @@ import NumericInput from "@/components/common/fields/NumericInput";
 import { LABEL } from "@/utils/styles";
 import {
   Button,
+  Toggle,
   DevicesIcon as DevicesIconComponent,
 } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;
@@ -203,27 +205,14 @@ export default function RuleDrawer({
           <span id="rule-status-label" className={LABEL}>
             Status
           </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={active}
-            aria-labelledby="rule-status-label"
-            onClick={() => setActive(!active)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              active ? "bg-accent-green" : "bg-border"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                active ? "translate-x-6" : "translate-x-1"
-              }`}
+          <div className={cn("flex items-center gap-2.5 text-sm", active ? "text-primary" : "text-text-muted")}>
+            <Toggle
+              enabled={active}
+              onChange={setActive}
+              aria-labelledby="rule-status-label"
             />
-          </button>
-          <span
-            className={`ml-2.5 text-sm ${active ? "text-accent-green" : "text-text-muted"}`}
-          >
             {active ? "Active" : "Inactive"}
-          </span>
+          </div>
         </div>
 
         {/* Priority */}

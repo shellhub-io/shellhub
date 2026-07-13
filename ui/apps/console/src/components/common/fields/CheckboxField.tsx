@@ -1,4 +1,6 @@
 import { InputHTMLAttributes, ReactNode } from "react";
+import { Checkbox } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import FieldError from "@/components/common/fields/FieldError";
 import FieldHint from "@/components/common/fields/FieldHint";
 
@@ -40,30 +42,19 @@ export default function CheckboxField({
 
   return (
     <div>
-      <label
-        htmlFor={id}
-        title={title}
-        className={`flex ${alignment} gap-2.5 ${
-          rest.disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-        }`}
-      >
-        <input
+      <label htmlFor={id} title={title} className={cn("flex gap-2.5", alignment, rest.disabled ? "cursor-not-allowed" : "cursor-pointer")}>
+        <Checkbox
           {...rest}
           id={id}
-          type="checkbox"
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={onChange}
           aria-required={required ? true : undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`${description ? "mt-0.5 " : ""}shrink-0 w-4 h-4 rounded border-border bg-card text-primary focus:ring-1 focus:ring-primary/30 disabled:cursor-not-allowed`}
+          className={cn("shrink-0", description && "mt-0.5")}
         />
-        <span className={hideLabel ? "sr-only" : "min-w-0"}>
-          <span
-            className={`block text-sm ${
-              description ? "font-medium" : ""
-            } text-text-primary`}
-          >
+        <span className={cn(hideLabel ? "sr-only" : "min-w-0", rest.disabled && "opacity-dim")}>
+          <span className={cn("block text-sm text-text-primary", description && "font-medium")}>
             {label}
           </span>
           {description && (

@@ -4,6 +4,10 @@
 
 export { Button } from "./Button";
 export type { ButtonVariant, ButtonSize } from "./Button";
+export { Checkbox } from "./Checkbox";
+export type { CheckboxProps } from "./Checkbox";
+export { Toggle } from "./Toggle";
+export type { ToggleProps } from "./Toggle";
 export { IconButton } from "./IconButton";
 export type { IconButtonVariant, IconButtonSize } from "./IconButton";
 export { Badge } from "./Badge";
