@@ -98,7 +98,9 @@ describe("mfaResetStore", () => {
 
   describe("requestMfaReset", () => {
     it("sets mfaResetUserId and mfaResetIdentifier on success", async () => {
-      mockedRequestResetMfa.mockResolvedValueOnce(mockSdkResponse(null));
+      mockedRequestResetMfa.mockResolvedValueOnce(
+        mockSdkResponse({ token: "reset-token" }),
+      );
 
       await useMfaResetStore.getState().requestMfaReset("admin");
 
@@ -110,9 +112,9 @@ describe("mfaResetStore", () => {
     });
 
     it("sets loading during request", async () => {
-      let resolve!: (v: SdkResponse<null>) => void;
+      let resolve!: (v: SdkResponse<{ token: string }>) => void;
       mockedRequestResetMfa.mockReturnValueOnce(
-        new Promise<SdkResponse<null>>((r) => {
+        new Promise<SdkResponse<{ token: string }>>((r) => {
           resolve = r;
         }),
       );
@@ -120,7 +122,7 @@ describe("mfaResetStore", () => {
       const promise = useMfaResetStore.getState().requestMfaReset("admin");
       expect(useMfaResetStore.getState().loading).toBe(true);
 
-      resolve(mockSdkResponse(null));
+      resolve(mockSdkResponse({ token: "reset-token" }));
       await promise;
 
       expect(useMfaResetStore.getState().loading).toBe(false);
