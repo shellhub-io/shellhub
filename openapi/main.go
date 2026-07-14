@@ -10,23 +10,17 @@ import (
 )
 
 func main() {
-	// Determine which spec to use based on SHELLHUB_CLOUD and SHELLHUB_ENTERPRISE
-	isCloud := envs.IsCloud()
-	isEnterprise := envs.IsEnterprise()
+	edition := envs.CurrentEdition()
 
 	var specPath string
-	var edition string
 
-	switch {
-	case isCloud:
+	switch edition {
+	case envs.Cloud:
 		specPath = "spec/cloud-openapi.yaml"
-		edition = "cloud"
-	case isEnterprise:
+	case envs.Enterprise:
 		specPath = "spec/enterprise-openapi.yaml"
-		edition = "enterprise"
 	default:
 		specPath = "spec/community-openapi.yaml"
-		edition = "community"
 	}
 
 	fmt.Printf("info: generating OpenAPI server from %s (edition: %s)\n", specPath, edition)
@@ -40,7 +34,7 @@ func main() {
 	// leaving only the namespace-scoped, api-key usable surface. A failure here
 	// must not stop the server: the full spec above is what the frontend codegen
 	// and the response validator depend on.
-	customerAPI := edition + "-customer@v1"
+	customerAPI := string(edition) + "-customer@v1"
 	if err := exec.Command("redocly", "bundle", customerAPI, "-o", "static/customer.json").Run(); err != nil { //nolint:gosec
 		log.Printf("warning: failed to bundle the customer OpenAPI preview (%s): %v", customerAPI, err)
 	}

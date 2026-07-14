@@ -23,12 +23,12 @@ load helpers
 }
 
 @test "enterprise + prod: COMPOSE_FILE includes enterprise overlay" {
-    out=$(capture_with SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_EDITION=enterprise)
     [[ "$out" == *"docker-compose.enterprise.yml"* ]]
 }
 
 @test "enterprise: COMPOSE_ENV_FILES loads .env.enterprise" {
-    out=$(capture_with SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_EDITION=enterprise)
     [[ "$out" == *".env.enterprise"* ]]
 }
 
@@ -48,16 +48,16 @@ load helpers
     [[ "$out" == *"docker-compose.autossl.yml"* ]]
 }
 
-@test "guard: SHELLHUB_CLOUD=true without SHELLHUB_ENTERPRISE=true aborts" {
-    run capture_with SHELLHUB_CLOUD=true
+@test "guard: invalid SHELLHUB_EDITION value aborts" {
+    run capture_with SHELLHUB_EDITION=invalid
     [ "$status" -ne 0 ]
-    [[ "$output" == *"requires SHELLHUB_ENTERPRISE=true"* ]]
+    [[ "$output" == *"invalid SHELLHUB_EDITION"* ]]
 }
 
 @test "precedence: env_override is loaded LAST so user wins over cloud defaults" {
     make_cloud_stub
     echo "SHELLHUB_FROM=cloud" > "$CLOUD_DIR_OVERRIDE/.env"
-    out=$(capture_with SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_EDITION=enterprise)
     files=$(echo "$out" | grep '^COMPOSE_ENV_FILES=' | sed 's|.*=||')
     # The last entry must be the override tmpfile (lives in BATS_TEST_TMPDIR).
     last=$(echo "$files" | awk -F',' '{print $NF}')
@@ -65,4 +65,3 @@ load helpers
     # And cloud/.env must appear earlier in the chain.
     [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
 }
-

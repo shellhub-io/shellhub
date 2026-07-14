@@ -216,7 +216,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	// Community is single-namespace: the one namespace is created at setup and the store refuses
 	// any further one (once the instance is bound). Drop the create route so CE returns 404
 	// instead of a confusing error; Enterprise/Cloud keep it.
-	if !envs.IsCommunity() {
+	if envs.IsEnterpriseOrCloud() {
 		publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), routesmiddleware.BlockAPIKey)
 	}
 	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant))

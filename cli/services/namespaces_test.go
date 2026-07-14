@@ -13,7 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,8 +48,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-4000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
+				envstest.SetEdition(t, envs.Community)
 				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrUserNotFound},
@@ -61,10 +60,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envstest.SetEdition(t, envs.Community)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -104,10 +100,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
+				envstest.SetEdition(t, envs.Community)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -165,10 +158,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
+				envstest.SetEdition(t, envs.Cloud)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -226,10 +216,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("true").Twice()
+				envstest.SetEdition(t, envs.Cloud)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -287,10 +274,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "team",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
+				envstest.SetEdition(t, envs.Enterprise)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{
@@ -348,10 +332,7 @@ func TestNamespaceCreate(t *testing.T) {
 			tenant:        "00000000-0000-0000-0000-000000000000",
 			typeNamespace: "",
 			requiredMocks: func() {
-				envMock := &env_mocks.MockBackend{}
-				envs.DefaultBackend = envMock
-				envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("true").Once()
-				envMock.On("Get", "SHELLHUB_CLOUD").Return("false").Twice()
+				envstest.SetEdition(t, envs.Enterprise)
 				user := &models.User{
 					ID: "507f191e810c19729de860ea",
 					UserData: models.UserData{

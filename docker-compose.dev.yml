@@ -13,8 +13,7 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./.golangci.yaml:/.golangci.yaml
     environment:
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   api:
     image: api
@@ -36,8 +35,7 @@ services:
       - ./go.sum:/go/src/github.com/shellhub-io/shellhub/go.sum
     environment:
       - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
     image: ui
@@ -73,8 +71,7 @@ services:
       dockerfile: cli/Dockerfile
       target: development
     environment:
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_EDITION=${SHELLHUB_EDITION}
     volumes:
       - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
@@ -93,7 +90,6 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./.golangci.yaml:/.golangci.yaml
     environment:
-      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
-      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_EDITION=${SHELLHUB_EDITION}
     networks:
       - shellhub

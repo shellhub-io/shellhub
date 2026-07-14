@@ -2,10 +2,16 @@ package envs
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 )
 
+type Edition string
+
 const (
-	ENABLED = "true"
+	Community  Edition = "community"
+	Enterprise Edition = "enterprise"
+	Cloud      Edition = "cloud"
 )
 
 // Backend is an interface for any sort of underlying key/value store.
@@ -21,23 +27,39 @@ func init() {
 	DefaultBackend = &envBackend{}
 }
 
-// IsEnterprise returns true if the current ShellHub server instance is enterprise.
-func IsEnterprise() bool {
-	return DefaultBackend.Get("SHELLHUB_ENTERPRISE") == ENABLED
+// CurrentEdition returns the resolved edition. Panics on unrecognized values
+// so a misconfigured instance fails at startup rather than silently running
+// as community.
+func CurrentEdition() Edition {
+	raw := strings.TrimSpace(strings.ToLower(DefaultBackend.Get("SHELLHUB_EDITION")))
+	if raw == "" {
+		return Community
+	}
+
+	switch Edition(raw) {
+	case Community, Enterprise, Cloud:
+		return Edition(raw)
+	default:
+		panic(fmt.Sprintf("invalid SHELLHUB_EDITION %q: must be community, enterprise, or cloud", raw))
+	}
 }
 
-// IsCloud returns true if the current ShellHub server instance is cloud.
-func IsCloud() bool {
-	return DefaultBackend.Get("SHELLHUB_CLOUD") == ENABLED
-}
-
-// IsCommunity return true if the current ShellHub server instance is community.
-// It evaluates if the current ShellHub instance is neither enterprise or cloud .
 func IsCommunity() bool {
-	return (DefaultBackend.Get("SHELLHUB_CLOUD") != ENABLED && DefaultBackend.Get("SHELLHUB_ENTERPRISE") != ENABLED)
+	return CurrentEdition() == Community
 }
 
-// IsDevelopment returns true if the current environment is development
+func IsEnterprise() bool {
+	return CurrentEdition() == Enterprise
+}
+
+func IsCloud() bool {
+	return CurrentEdition() == Cloud
+}
+
+func IsEnterpriseOrCloud() bool {
+	return CurrentEdition() != Community
+}
+
 func IsDevelopment() bool {
 	return DefaultBackend.Get("SHELLHUB_ENV") == "development"
 }

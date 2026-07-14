@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sethvargo/go-envconfig"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 )
 
 // GatewayConfig holds the configuration settings for the gateway.
@@ -27,17 +29,17 @@ type GatewayConfig struct {
 	BacklogSize                  int         `env:"BACKLOG_SIZE"`
 	EnableAutoSSL                bool        `env:"SHELLHUB_AUTO_SSL"`
 	EnableProxyProtocol          bool        `env:"SHELLHUB_PROXY"`
-	EnableEnterprise             bool        `env:"SHELLHUB_ENTERPRISE"`
-	EnableCloud                  bool        `env:"SHELLHUB_CLOUD"`
+	Edition                      string      `env:"SHELLHUB_EDITION,default=community"`
 	Database                     string      `env:"SHELLHUB_DATABASE,default=mongo"`
 	EnableAccessLogs             bool        `env:"SHELLHUB_GATEWAY_ACCESS_LOGS" default:"true"`
 	APIRateLimit                 string      `env:"SHELLHUB_API_RATE_LIMIT,default=1000r/s"`
 	APIRateLimitZoneSize         string      `env:"SHELLHUB_API_RATE_LIMIT_ZONE_SIZE,default=10m"`
 	APIBurstSize                 string      `env:"SHELLHUB_API_BURST_SIZE,default=1"`
 	APIBurstDelay                string      `env:"SHELLHUB_API_BURST_DELAY,default=nodelay"`
-	// APIBackend is the backend service to use for API requests (api:8080 or cloud:8080)
-	// Set dynamically based on EnableCloud/EnableEnterprise
-	APIBackend string
+
+	EnableEnterprise bool
+	EnableCloud      bool
+	APIBackend       string
 }
 
 var validate = validator.New()
@@ -50,6 +52,12 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 	}
 
 	config.applyDefaults()
+
+	switch envs.Edition(config.Edition) {
+	case envs.Community, envs.Enterprise, envs.Cloud:
+	default:
+		return nil, fmt.Errorf("invalid SHELLHUB_EDITION %q: must be community, enterprise, or cloud", config.Edition)
+	}
 
 	if err := validate.Struct(config); err != nil {
 		return nil, err
@@ -77,7 +85,10 @@ func (gc *GatewayConfig) applyDefaults() {
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")
 
-	// Cloud and enterprise features are now unified into the api binary.
-	// All traffic always routes to api:8080 regardless of edition.
+	gc.Edition = strings.ToLower(strings.TrimSpace(gc.Edition))
+	edition := envs.Edition(gc.Edition)
+	gc.EnableEnterprise = edition == envs.Enterprise || edition == envs.Cloud
+	gc.EnableCloud = edition == envs.Cloud
+
 	gc.APIBackend = "api:8080"
 }
