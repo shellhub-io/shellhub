@@ -10,18 +10,14 @@ import (
 	serviceMocks "github.com/shellhub-io/shellhub/api/services/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	envMocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestSetup(t *testing.T) {
-	envMock := envMocks.NewMockBackend(t)
-	envs.DefaultBackend = envMock
-
-	envMock.On("Get", "SHELLHUB_CLOUD").Return("false")
-	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false")
+	envstest.SetEdition(t, envs.Community)
 
 	servicesMock := serviceMocks.NewMockService(t)
 
@@ -107,6 +103,4 @@ func TestSetup(t *testing.T) {
 			assert.Equal(t, test.expected, result.StatusCode)
 		})
 	}
-
-	envMock.AssertExpectations(t)
 }

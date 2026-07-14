@@ -15,7 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -488,19 +488,15 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
-	envMock := envmock.NewMockBackend(t)
 	storeMock := storemock.NewMockStore(t)
 	// A namespace create also provisions its legacy install key (best-effort).
 	storeMock.On("InstallKeyCreate", mock.Anything, mock.Anything).Return("", nil).Maybe()
 	clockMock := clockmock.NewMockClock(t)
 
-	prevEnvsBackend := envs.DefaultBackend
 	prevClockBackend := clock.DefaultBackend
 	t.Cleanup(func() {
-		envs.DefaultBackend = prevEnvsBackend
 		clock.DefaultBackend = prevClockBackend
 	})
-	envs.DefaultBackend = envMock
 	clock.DefaultBackend = clockMock
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
@@ -518,6 +514,7 @@ func TestCreateNamespace(t *testing.T) {
 
 	cases := []struct {
 		description   string
+		edition       envs.Edition
 		requiredMocks func()
 		req           *requests.NamespaceCreate
 		expected      Expected
@@ -629,6 +626,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when store namespace create fails",
+			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -655,21 +653,6 @@ func TestCreateNamespace(t *testing.T) {
 				storeMock.
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
-					Once()
-				// envs.IsCommunity = true
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				// --
-				// envs.IsCloud = false: Get("SHELLHUB_CLOUD") once
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On(
@@ -707,6 +690,7 @@ func TestCreateNamespace(t *testing.T) {
 			// NamespaceConflicts pre-check (case-sensitive name=? queries rely on lowercased
 			// writes). The service must map it to ErrNamespaceDuplicated, not ErrNamespaceCreateStore.
 			description: "fails when NamespaceCreate returns store.ErrDuplicate",
+			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -733,20 +717,6 @@ func TestCreateNamespace(t *testing.T) {
 				storeMock.
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
-					Once()
-				// envs.IsCommunity() calls SHELLHUB_CLOUD then SHELLHUB_ENTERPRISE.
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				// envs.IsCloud() calls SHELLHUB_CLOUD once more.
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On(
@@ -781,6 +751,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace",
+			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -807,20 +778,6 @@ func TestCreateNamespace(t *testing.T) {
 				storeMock.
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
-					Once()
-				// IsCommunity: Get("SHELLHUB_CLOUD") + Get("SHELLHUB_ENTERPRISE")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				// IsCloud: Get("SHELLHUB_CLOUD")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On(
@@ -872,6 +829,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace-:-without tenant id",
+			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -898,21 +856,6 @@ func TestCreateNamespace(t *testing.T) {
 				storeMock.
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
-					Once()
-				// envs.IsCommunity = true
-				// IsCommunity: Get("SHELLHUB_CLOUD") + Get("SHELLHUB_ENTERPRISE")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				// IsCloud: Get("SHELLHUB_CLOUD")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				uuidMock.
 					On("Generate").
@@ -968,6 +911,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace-:-env=cloud type team",
+			edition:     envs.Cloud,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -997,18 +941,6 @@ func TestCreateNamespace(t *testing.T) {
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
 					Once()
-				// IsCommunity short-circuits after Get("SHELLHUB_CLOUD")="true" (&&-false branch);
-				// Get("SHELLHUB_ENTERPRISE") is never called.
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
-				// IsCloud: Get("SHELLHUB_CLOUD")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
-				// IsCloud = true → MaxDevices = 3
 				storeMock.
 					On(
 						"NamespaceCreate",
@@ -1059,6 +991,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds to create a namespace-:-env=cloud",
+			edition:     envs.Cloud,
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
 				Name:     "namespace",
@@ -1087,17 +1020,6 @@ func TestCreateNamespace(t *testing.T) {
 				storeMock.
 					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
 					Return(nil, false, nil).
-					Once()
-				// IsCommunity short-circuits after Get("SHELLHUB_CLOUD")="true" (&&-false branch);
-				// Get("SHELLHUB_ENTERPRISE") is never called.
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
-				// IsCloud: Get("SHELLHUB_CLOUD")
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
 					Once()
 				storeMock.
 					On(
@@ -1151,6 +1073,10 @@ func TestCreateNamespace(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			if tc.edition != "" {
+				envstest.SetEdition(t, tc.edition)
+			}
+
 			tc.requiredMocks()
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
@@ -1465,12 +1391,14 @@ func TestDeleteNamespace(t *testing.T) {
 
 	cases := []struct {
 		description   string
+		edition       envs.Edition
 		tenantID      string
 		requiredMocks func()
 		expected      error
 	}{
 		{
 			description: "fails when namespace does not exist",
+			edition:     envs.Community,
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
 				storeMock.
@@ -1482,16 +1410,13 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when store delete fails",
+			edition:     envs.Community,
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(namespace, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On("NamespaceDelete", ctx, namespace).
@@ -1502,16 +1427,13 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 		{
 			description: "succeeds",
+			edition:     envs.Community,
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
 				namespace := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(namespace, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On("NamespaceDelete", ctx, namespace).
@@ -1526,6 +1448,10 @@ func TestDeleteNamespace(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			if tc.edition != "" {
+				envstest.SetEdition(t, tc.edition)
+			}
+
 			tc.requiredMocks()
 
 			err := s.DeleteNamespace(ctx, tc.tenantID)

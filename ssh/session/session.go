@@ -609,16 +609,13 @@ func (s *Session) checkLicense(ctx context.Context) (bool, error) {
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	snap := getSnapshot(ctx)
 
-	if envs.IsEnterprise() && !envs.IsCloud() {
+	if envs.IsEnterprise() {
 		if ok, err := s.checkLicense(ctx); err != nil || !ok {
 			return err
 		}
 	}
 
-	// Firewall rules are a Cloud + Enterprise feature, so the check must run in
-	// both modes. Previously it only ran in the enterprise-only branch, which
-	// silently skipped enforcement on cloud.
-	if envs.IsEnterprise() || envs.IsCloud() {
+	if envs.IsEnterpriseOrCloud() {
 		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
 			return err
 		}
@@ -796,7 +793,7 @@ func (s *Session) Finish() (err error) {
 				Error("Error when trying to finish the session")
 		}
 
-		if envs.IsEnterprise() {
+		if envs.IsEnterpriseOrCloud() {
 			log.WithFields(log.Fields{
 				"uid": s.UID,
 			}).Info("saving sessions as Asciinema files")

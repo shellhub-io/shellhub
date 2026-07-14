@@ -6,24 +6,24 @@ load helpers
 
 @test "dev-cloud: COMPOSE_FILE includes cloud/ base and enterprise.dev overlays" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true)
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_EDITION=cloud)
     [[ "$out" == *"../cloud/docker-compose.yml"* ]]
     [[ "$out" == *"../cloud/docker-compose.enterprise.dev.yml"* ]]
 }
 
 @test "SHELLHUB_BILLING propagates to COMPOSE_PROFILES" {
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true SHELLHUB_BILLING=acme)
+    out=$(capture_with SHELLHUB_EDITION=cloud SHELLHUB_BILLING=acme)
     [[ "$out" == *"COMPOSE_PROFILES=acme"* ]]
 }
 
 @test "user can override SHELLHUB_BILLING to change COMPOSE_PROFILES" {
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true SHELLHUB_BILLING=other)
+    out=$(capture_with SHELLHUB_EDITION=cloud SHELLHUB_BILLING=other)
     [[ "$out" == *"COMPOSE_PROFILES=other"* ]]
 }
 
 @test "prod-cloud: COMPOSE_FILE includes cloud/base and shellhub/enterprise (no dev overlays)" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true)
+    out=$(capture_with SHELLHUB_EDITION=cloud)
     [[ "$out" == *"docker-compose.enterprise.yml"* ]]
     [[ "$out" == *"../cloud/docker-compose.yml"* ]]
     [[ "$out" != *"../cloud/docker-compose.dev.yml"* ]]
@@ -32,26 +32,26 @@ load helpers
 
 @test "prod-cloud: COMPOSE_ENV_FILES loads cloud/.env" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true)
+    out=$(capture_with SHELLHUB_EDITION=cloud)
     [[ "$out" == *"../cloud/.env"* ]]
 }
 
-@test "dev-enterprise: COMPOSE_FILE includes cloud/enterprise.dev.yml even without CLOUD=true" {
+@test "dev-enterprise: COMPOSE_FILE includes cloud/enterprise.dev.yml even without cloud edition" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_EDITION=enterprise)
     [[ "$out" == *"../cloud/docker-compose.enterprise.dev.yml"* ]]
 }
 
-@test "dev-enterprise without CLOUD: does not load cloud base/dev overlays" {
+@test "dev-enterprise without cloud: does not load cloud base/dev overlays" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_ENV=development SHELLHUB_EDITION=enterprise)
     [[ "$out" != *"../cloud/docker-compose.yml"* ]]
     [[ "$out" != *"../cloud/docker-compose.dev.yml"* ]]
 }
 
 @test "enterprise: COMPOSE_ENV_FILES loads cloud/.env when cloud/ is present" {
     require_cloud
-    out=$(capture_with SHELLHUB_ENTERPRISE=true)
+    out=$(capture_with SHELLHUB_EDITION=enterprise)
     [[ "$out" == *"../cloud/.env"* ]]
 }
 
@@ -61,24 +61,24 @@ load helpers
     # With symmetric peek, the wrapper must source cloud/.env and see the
     # value, then export it as COMPOSE_PROFILES.
     printf 'SHELLHUB_BILLING=acme\n' > "$CLOUD_DIR_OVERRIDE/.env"
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true)
+    out=$(capture_with SHELLHUB_EDITION=cloud)
     [[ "$out" == *"COMPOSE_PROFILES=acme"* ]]
 }
 
 @test "override wins over cloud/.env for the same flag (last-wins ordering)" {
     make_cloud_stub
     printf 'SHELLHUB_BILLING=from-cloud\n' > "$CLOUD_DIR_OVERRIDE/.env"
-    out=$(capture_with SHELLHUB_ENTERPRISE=true SHELLHUB_CLOUD=true SHELLHUB_BILLING=from-override)
+    out=$(capture_with SHELLHUB_EDITION=cloud SHELLHUB_BILLING=from-override)
     [[ "$out" == *"COMPOSE_PROFILES=from-override"* ]]
     [[ "$out" != *"COMPOSE_PROFILES=from-cloud"* ]]
 }
 
-@test "BILLING without CLOUD: profile exported but cloud overlay not loaded" {
+@test "BILLING without cloud: profile exported but cloud overlay not loaded" {
     make_cloud_stub
     out=$(capture_with SHELLHUB_BILLING=acme)
-    # Profile is exported regardless of CLOUD (orthogonal concerns).
+    # Profile is exported regardless of edition (orthogonal concerns).
     [[ "$out" == *"COMPOSE_PROFILES=acme"* ]]
-    # But cloud/docker-compose.yml is NOT included (CLOUD is false), so any
+    # But cloud/docker-compose.yml is NOT included (edition is community), so any
     # service declared with profiles: [acme] in cloud/ won't actually run.
     [[ "$out" != *"../cloud/docker-compose.yml"* ]]
 }

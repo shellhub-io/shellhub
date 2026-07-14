@@ -18,7 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	envsmocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -267,6 +267,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 
 	cases := []struct {
 		description   string
+		edition       envs.Edition
 		req           *requests.DeviceList
 		requiredMocks func(context.Context)
 		expected      Expected
@@ -314,6 +315,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 		{
 			description: "[enterprise|community] fails when the namespace reached the device limit and cannot list the devices",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				DeviceStatus: models.DeviceStatusAccepted,
@@ -345,14 +347,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
 					Once()
 				storeMock.
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
@@ -367,6 +361,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 		{
 			description: "[enterprise|community] succeeds when the namespace reached the device limit and list the devices",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				DeviceStatus: models.DeviceStatusAccepted,
@@ -399,14 +394,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
 				storeMock.
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
 					Return([]models.Device{}, 0, nil).
@@ -420,6 +407,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 		{
 			description: "[enterprise|community] fails when the namespace do not reached the device limit and cannot list the devices",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				DeviceStatus: models.DeviceStatusAccepted,
@@ -451,14 +439,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
 					Once()
 				storeMock.
 					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
@@ -473,6 +453,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 		{
 			description: "[enterprise|community] succeeds when the namespace do not reached the device limit and list the devices",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceList{
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				DeviceStatus: models.DeviceStatusAccepted,
@@ -504,14 +485,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
 					Once()
 				storeMock.
 					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
@@ -530,6 +503,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
+			if tc.edition != "" {
+				envstest.SetEdition(tt, tc.edition)
+			}
+
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
@@ -1387,14 +1364,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
-	envMock := envsmocks.NewMockBackend(t)
-	prevEnvsBackend := envs.DefaultBackend
-	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
-	envs.DefaultBackend = envMock
-
 	ctx := context.Background()
 	cases := []struct {
 		description   string
+		edition       envs.Edition
 		req           *requests.DeviceUpdateStatus
 		requiredMocks func()
 		expectedError error
@@ -1830,6 +1803,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		},
 		{
 			description: "failure (accepted) (different MAC) - device limit reached [community]",
+			edition:     envs.Community,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "limit-device",
@@ -1881,15 +1855,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 			},
 			expectedError: NewErrDeviceMaxDevicesReached(3),
 		},
 		{
 			description: "success (accepted) (different MAC) - device acceptance [community]",
+			edition:     envs.Community,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "pending-device",
@@ -1940,10 +1911,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
@@ -1962,6 +1929,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		},
 		{
 			description: "failure (accepted) - duplicate accepted MAC index maps to device duplicated",
+			edition:     envs.Community,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "pending-device",
@@ -2012,10 +1980,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
 					Return(store.ErrDuplicate).
@@ -2025,6 +1989,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		},
 		{
 			description: "failure (accepted) (different MAC) - device limit reached [enterprise]",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "limit-device",
@@ -2076,15 +2041,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 			},
 			expectedError: NewErrDeviceMaxDevicesReached(3),
 		},
 		{
 			description: "success (accepted) (different MAC) - device acceptance [enterprise]",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "pending-device",
@@ -2135,10 +2097,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
@@ -2166,6 +2124,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			if tc.edition != "" {
+				envstest.SetEdition(t, tc.edition)
+			}
+
 			tc.requiredMocks()
 
 			// A successful accept/reject freezes the decision on the device's history event.
@@ -2179,7 +2141,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
-	envMock.AssertExpectations(t)
 }
 
 func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
@@ -2198,17 +2159,13 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock)
 
-	envMock := envsmocks.NewMockBackend(t)
-	prevEnvsBackend := envs.DefaultBackend
-	t.Cleanup(func() { envs.DefaultBackend = prevEnvsBackend })
-	envs.DefaultBackend = envMock
-
 	licenseEvaluator := servicemocks.NewMockLicenseEvaluator(t)
 
 	ctx := context.Background()
 
 	cases := []struct {
 		description   string
+		edition       envs.Edition
 		req           *requests.DeviceUpdateStatus
 		requiredMocks func()
 		expectedError error
@@ -2216,6 +2173,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		{
 			// (a) evaluator returns (false, nil) → ErrDeviceLicenseLimit
 			description: "failure (accepted) (different MAC) - license limit reached",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "license-limited-device",
@@ -2260,10 +2218,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 				licenseEvaluator.
 					On("CanAcceptDevice", ctx).
 					Return(false, nil).
@@ -2274,6 +2228,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		{
 			// (b) evaluator returns (true, nil) → device accepted
 			description: "success (accepted) (different MAC) - license allows acceptance",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "license-ok-device",
@@ -2325,10 +2280,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 				licenseEvaluator.
 					On("CanAcceptDevice", ctx).
 					Return(true, nil).
@@ -2351,6 +2302,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		{
 			// (c) evaluator returns (false, err) → fail-open, device accepted
 			description: "success (accepted) (different MAC) - license evaluator error is fail-open",
+			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				UID:      "license-error-device",
@@ -2401,10 +2353,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
 					Once()
 				licenseEvaluator.
 					On("CanAcceptDevice", ctx).
@@ -2539,6 +2487,10 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			if tc.edition != "" {
+				envstest.SetEdition(t, tc.edition)
+			}
+
 			tc.requiredMocks()
 
 			// A successful accept/reject freezes the decision on the device's history event.
@@ -2552,7 +2504,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
-	envMock.AssertExpectations(t)
 }
 
 func TestDeviceUpdate(t *testing.T) {

@@ -88,7 +88,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 		}()
 
 		writers := []io.Writer{client}
-		if envs.IsEnterprise() || envs.IsCloud() {
+		if envs.IsEnterpriseOrCloud() {
 			recorder, err := NewRecorder(sess, seat)
 			if err != nil {
 				log.WithError(err).

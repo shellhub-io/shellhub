@@ -1,11 +1,96 @@
-package envs
+package envs_test
 
 import (
 	"os"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCurrentEdition(t *testing.T) {
+	tests := []struct {
+		description string
+		envValue    string
+		expected    envs.Edition
+	}{
+		{
+			description: "unset defaults to community",
+			envValue:    "",
+			expected:    envs.Community,
+		},
+		{
+			description: "explicit community",
+			envValue:    "community",
+			expected:    envs.Community,
+		},
+		{
+			description: "explicit enterprise",
+			envValue:    "enterprise",
+			expected:    envs.Enterprise,
+		},
+		{
+			description: "explicit cloud",
+			envValue:    "cloud",
+			expected:    envs.Cloud,
+		},
+		{
+			description: "uppercase is normalized",
+			envValue:    "CLOUD",
+			expected:    envs.Cloud,
+		},
+		{
+			description: "mixed case is normalized",
+			envValue:    "Enterprise",
+			expected:    envs.Enterprise,
+		},
+		{
+			description: "whitespace is trimmed",
+			envValue:    "  cloud  ",
+			expected:    envs.Cloud,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			envstest.SetRawEdition(t, tt.envValue)
+
+			assert.Equal(t, tt.expected, envs.CurrentEdition())
+		})
+	}
+}
+
+func TestCurrentEdition_invalid_panics(t *testing.T) {
+	envstest.SetRawEdition(t, "invalid")
+
+	assert.Panics(t, func() { envs.CurrentEdition() })
+}
+
+func TestEditionPredicates(t *testing.T) {
+	tests := []struct {
+		edition             envs.Edition
+		isCommunity         bool
+		isEnterprise        bool
+		isCloud             bool
+		isEnterpriseOrCloud bool
+	}{
+		{envs.Community, true, false, false, false},
+		{envs.Enterprise, false, true, false, true},
+		{envs.Cloud, false, false, true, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.edition), func(t *testing.T) {
+			envstest.SetEdition(t, tt.edition)
+
+			assert.Equal(t, tt.isCommunity, envs.IsCommunity())
+			assert.Equal(t, tt.isEnterprise, envs.IsEnterprise())
+			assert.Equal(t, tt.isCloud, envs.IsCloud())
+			assert.Equal(t, tt.isEnterpriseOrCloud, envs.IsEnterpriseOrCloud())
+		})
+	}
+}
 
 func TestParseWithPrefix_with_default(t *testing.T) {
 	type Envs struct {
@@ -115,8 +200,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			tt.before()
 
-			envs, err := ParseWithPrefix[Envs](tt.prefix)
-			assert.Equal(t, tt.expected.Envs, envs)
+			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
+			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 
 			tt.after()
@@ -193,7 +278,7 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 			},
 			expected: Expected{
 				Envs:  nil,
-				Error: ErrParseWithPrefix,
+				Error: envs.ErrParseWithPrefix,
 			},
 		},
 	}
@@ -202,8 +287,8 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			tt.before()
 
-			envs, err := ParseWithPrefix[Envs](tt.prefix)
-			assert.Equal(t, tt.expected.Envs, envs)
+			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
+			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 
 			tt.after()
@@ -280,8 +365,8 @@ func TestParse_with_default(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			tt.before()
 
-			envs, err := Parse[Envs]()
-			assert.Equal(t, tt.expected.Envs, envs)
+			result, err := envs.Parse[Envs]()
+			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 
 			tt.after()
@@ -333,7 +418,7 @@ func TestParse_with_required(t *testing.T) {
 				os.Unsetenv("REDIS_URI")
 			},
 			expected: Expected{
-				Error: ErrParse,
+				Error: envs.ErrParse,
 			},
 		},
 		{
@@ -344,7 +429,7 @@ func TestParse_with_required(t *testing.T) {
 			},
 			expected: Expected{
 				Envs:  nil,
-				Error: ErrParse,
+				Error: envs.ErrParse,
 			},
 		},
 	}
@@ -353,8 +438,8 @@ func TestParse_with_required(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			tt.before()
 
-			envs, err := Parse[Envs]()
-			assert.Equal(t, tt.expected.Envs, envs)
+			result, err := envs.Parse[Envs]()
+			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
 
 			tt.after()
