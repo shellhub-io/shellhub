@@ -8,3 +8,15 @@ properties:
     description: User's recovery code.
     type: string
     example: 6UIHAIN3CYUEFY5X
+  main_email_code:
+    description: |
+      The code sent to the main email address by `requestResetMFA`. Must be
+      provided together with `recovery_email_code`.
+    type: string
+    example: JR36Q
+  recovery_email_code:
+    description: |
+      The code sent to the recovery email address by `requestResetMFA`. Must be
+      provided together with `main_email_code`.
+    type: string
+    example: AB2D8

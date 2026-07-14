@@ -2,8 +2,10 @@ put:
   operationId: disableMFA
   summary: Disable MFA
   description: |
-    Disable MFA for a user. To disable MFA, the user must provide either
-    a recovery code or the current MFA code. If a recovery code is used, it will be invalidated for future use.
+    Disable MFA for a user. To disable MFA, the user must provide one of: the current MFA
+    code, a recovery code, or the two codes emailed by `requestResetMFA`
+    (`main_email_code` and `recovery_email_code`, which must be sent together). If a recovery
+    code is used, it will be invalidated for future use.
 
     The recovery code used to regain access to the account can be used within a 10-minute window on this
     endpoint.
