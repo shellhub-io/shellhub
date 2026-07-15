@@ -1,4 +1,4 @@
-import { getConfig } from "@/env";
+import { isCloud } from "@/env";
 import { BookOpenIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { GithubIcon } from "@shellhub/design-system/primitives";
 import { Link } from "react-router-dom";
@@ -28,7 +28,7 @@ export default function AuthFooterLinks() {
         <GithubIcon className="w-3.5 h-3.5" />
         Community
       </a>
-      {getConfig().cloud && (
+      {isCloud() && (
         <>
           <span className="w-px h-3 bg-border" />
           <Link

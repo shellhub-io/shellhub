@@ -1,36 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 import { getConfig, defaultConfig } from "@/env";
 import { getAcceptDeviceErrorMessage } from "../deviceErrors";
 
-// ── Typed mocks ───────────────────────────────────────────────────────────────
-
 const mockGetConfig = vi.mocked(getConfig);
 
-// ── Setup / teardown ──────────────────────────────────────────────────────────
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  // Default: community edition (no enterprise, no cloud)
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
-});
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe("getAcceptDeviceErrorMessage", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetConfig.mockReturnValue({ ...defaultConfig });
+  });
+
   describe("402 Payment Required", () => {
     it("returns license copy for enterprise (non-cloud) on 402", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       const msg = getAcceptDeviceErrorMessage({ status: 402 });
       expect(msg).toMatch(/license/i);
@@ -39,8 +23,7 @@ describe("getAcceptDeviceErrorMessage", () => {
     it("returns billing copy for cloud on 402", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       const msg = getAcceptDeviceErrorMessage({ status: 402 });
       expect(msg).toMatch(/billing|subscription|plan/i);
@@ -49,15 +32,13 @@ describe("getAcceptDeviceErrorMessage", () => {
     it("cloud 402 message is distinct from enterprise 402 message", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       const cloudMsg = getAcceptDeviceErrorMessage({ status: 402 });
 
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       const enterpriseMsg = getAcceptDeviceErrorMessage({ status: 402 });
 
@@ -67,8 +48,6 @@ describe("getAcceptDeviceErrorMessage", () => {
     it("returns generic fallback for community on 402 (not billing copy)", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: false,
-        cloud: false,
       });
       const msg = getAcceptDeviceErrorMessage({ status: 402 });
       // Should NOT match cloud billing copy
@@ -85,8 +64,7 @@ describe("getAcceptDeviceErrorMessage", () => {
     it("returns namespace copy even when enterprise is true (403 ignores enterprise flag)", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       const msg = getAcceptDeviceErrorMessage({ status: 403 });
       expect(msg).toMatch(/namespace|permission/i);

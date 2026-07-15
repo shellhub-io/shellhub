@@ -4,7 +4,7 @@ import {
   useSwitchNamespace,
 } from "@/hooks/useNamespaceMutations";
 import { getNamespaces } from "@/client";
-import { getConfig } from "@/env";
+import { isEnterpriseOrCloud } from "@/env";
 import { isSdkError } from "@/api/errors";
 import {
   CommandLineIcon,
@@ -188,7 +188,7 @@ function CommunityInstructions() {
 
 /* ─── Main component ─── */
 export default function CreateNamespace() {
-  const canCreate = getConfig().cloud || getConfig().enterprise;
+  const canCreate = isEnterpriseOrCloud();
 
   return (
     <div className="relative w-full min-h-0 flex-1 flex overflow-auto">

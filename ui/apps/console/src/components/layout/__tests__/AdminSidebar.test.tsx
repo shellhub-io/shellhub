@@ -6,13 +6,6 @@ import React from "react";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/hooks/useAdminLicense", () => ({
   useAdminLicense: vi.fn(),
 }));
@@ -72,12 +65,12 @@ describe("AdminSidebar", () => {
       isLoading: false,
       isExpired: false,
     } as never);
-    mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
+    mockGetConfig.mockReturnValue({ ...defaultConfig });
   });
 
   describe("cloud admin (cloud=true, isAdmin=true)", () => {
     beforeEach(() => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
     });
 
     it("shows the core nav entries", () => {

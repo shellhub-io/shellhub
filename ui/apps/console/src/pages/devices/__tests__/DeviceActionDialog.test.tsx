@@ -3,13 +3,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
-
-// Mock @/env before importing getAcceptDeviceErrorMessage (which reads getConfig)
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 const mockMutateAsync = vi.fn();
 
 vi.mock("@/hooks/useDeviceMutations", () => ({
@@ -87,8 +80,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
       // Set enterprise config BEFORE triggering action
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       mockMutateAsync.mockRejectedValue({ status: 402 });
 
@@ -108,8 +100,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
     it("cloud (onBillingWarning provided): calls onBillingWarning, no error rendered", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       mockMutateAsync.mockRejectedValue({ status: 402 });
 
@@ -128,8 +119,6 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
     it("community (no enterprise, no cloud): shows generic fallback copy", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: false,
-        cloud: false,
       });
       mockMutateAsync.mockRejectedValue({ status: 402 });
 

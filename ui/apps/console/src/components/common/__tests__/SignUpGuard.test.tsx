@@ -6,20 +6,15 @@ import { render, screen, cleanup } from "@testing-library/react";
 afterEach(cleanup);
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-import { getConfig, defaultConfig } from "@/env";
+import { getConfig, defaultConfig, Edition } from "@/env";
 import SignUpGuard from "../SignUpGuard";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-function renderWithRouter(cloud: boolean) {
+function renderWithRouter(edition: Edition) {
   mockedGetConfig.mockReturnValue({
     ...defaultConfig,
-    cloud,
-    enterprise: cloud,
+    edition,
   });
   return render(
     <MemoryRouter initialEntries={["/sign-up"]}>
@@ -34,13 +29,13 @@ function renderWithRouter(cloud: boolean) {
 }
 
 describe("SignUpGuard", () => {
-  it("renders child route when cloud is true", () => {
-    renderWithRouter(true);
+  it("renders child route when edition is cloud", () => {
+    renderWithRouter("cloud");
     expect(screen.getByText("sign up")).toBeInTheDocument();
   });
 
-  it("redirects to /login when cloud is false", () => {
-    renderWithRouter(false);
+  it.each(["community", "enterprise"] as const)("redirects to /login when edition is %s", (edition) => {
+    renderWithRouter(edition);
     expect(screen.queryByText("sign up")).not.toBeInTheDocument();
     expect(screen.getByText("login")).toBeInTheDocument();
   });

@@ -39,7 +39,7 @@ import {
   NAMESPACE_NAME_HINT,
   NAMESPACE_NAME_MAX_LENGTH,
 } from "@/utils/validation";
-import { getConfig } from "../env";
+import { isCloud, isEnterpriseOrCloud } from "../env";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import PageLoader from "@/components/common/PageLoader";
@@ -274,7 +274,10 @@ function BannerPreview({
             className="inline-flex p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
           >
             <ChevronDownIcon
-              className={cn("w-4 h-4 transition-transform duration-200", open && "rotate-180")}
+              className={cn(
+                "w-4 h-4 transition-transform duration-200",
+                open && "rotate-180",
+              )}
             />
           </button>
         </div>
@@ -283,7 +286,10 @@ function BannerPreview({
       {/* Collapsible content */}
       <div className="ml-11 mt-3">
         <div
-          className={cn("relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out", open ? "max-h-[500px]" : "max-h-[120px]")}
+          className={cn(
+            "relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out",
+            open ? "max-h-[500px]" : "max-h-[120px]",
+          )}
         >
           <pre className="px-3 py-2.5 text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words">
             {banner}
@@ -427,14 +433,18 @@ export default function Settings() {
         {/* ── SSH ── */}
         <SettingsCard title="SSH">
           {/* Session Recording (Cloud/Enterprise only) */}
-          {(getConfig().cloud || getConfig().enterprise) && (
+          {isEnterpriseOrCloud() && (
             <SettingsRow
               icon={<VideoCameraIcon className="w-4 h-4" />}
               title="Session Recording"
               description="Record SSH sessions for audit and playback"
             >
               <div
-                className={cn("inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5", (!canUpdateRecording || togglingRecord) && "opacity-40 pointer-events-none")}
+                className={cn(
+                  "inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5",
+                  (!canUpdateRecording || togglingRecord) &&
+                    "opacity-40 pointer-events-none",
+                )}
               >
                 <button
                   type="button"
@@ -473,7 +483,7 @@ export default function Settings() {
         </SettingsCard>
 
         {/* ── Billing (Cloud only) ── */}
-        {getConfig().cloud && <BillingSection sectionId="billing" />}
+        {isCloud() && <BillingSection sectionId="billing" />}
 
         {/* ── Danger Zone ── */}
         <SettingsCard title="Danger Zone" danger>

@@ -1,4 +1,4 @@
-import { getConfig } from "@/env";
+import { isEnterpriseOrCloud } from "@/env";
 
 interface ErrorEntry {
   title?: string;
@@ -183,7 +183,7 @@ export function resolveError(raw: string, deviceUid: string): TerminalError {
     };
   }
 
-  const hasFirewall = getConfig().cloud || getConfig().enterprise;
+  const hasFirewall = isEnterpriseOrCloud();
 
   const hints = [...entry.hints];
   if (hasFirewall) {

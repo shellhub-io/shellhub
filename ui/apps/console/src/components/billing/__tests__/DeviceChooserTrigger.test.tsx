@@ -4,12 +4,6 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// ── Feature flag ──────────────────────────────────────────────────────────────
-
-vi.mock("@/env", () => ({ getConfig: vi.fn() }));
-
-// ── Hooks ─────────────────────────────────────────────────────────────────────
-
 vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: vi.fn(),
 }));
@@ -34,14 +28,18 @@ vi.mock("../DeviceChooserDialog", () => ({
       ? React.createElement(
           "div",
           { "data-testid": "device-chooser-dialog" },
-          React.createElement("button", { type: "button", onClick: onClose }, "Dismiss"),
+          React.createElement(
+            "button",
+            { type: "button", onClick: onClose },
+            "Dismiss",
+          ),
         )
       : null,
 }));
 
 // ── Post-mock imports ─────────────────────────────────────────────────────────
 
-import { getConfig } from "@/env";
+import { Edition, getConfig } from "@/env";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useStats } from "@/hooks/useStats";
 import { useNamespace } from "@/hooks/useNamespaces";
@@ -80,7 +78,7 @@ function makeNamespace(billingActive: boolean) {
 
 /** Sets up all hooks for the fully-open scenario and then overrides. */
 function setupHooks({
-  cloud = true,
+  edition = "cloud",
   canChoose = true,
   billingActive = false,
   registeredDevices = 4,
@@ -88,7 +86,7 @@ function setupHooks({
   statsLoading = false,
   namespace,
 }: {
-  cloud?: boolean;
+  edition?: Edition;
   canChoose?: boolean;
   billingActive?: boolean;
   registeredDevices?: number;
@@ -96,7 +94,7 @@ function setupHooks({
   statsLoading?: boolean;
   namespace?: ReturnType<typeof makeNamespace> | null;
 } = {}) {
-  mockGetConfig.mockReturnValue({ cloud } as ReturnType<typeof getConfig>);
+  mockGetConfig.mockReturnValue({ edition } as ReturnType<typeof getConfig>);
   mockUseHasPermission.mockReturnValue(canChoose);
   mockUseStats.mockReturnValue({
     stats: statsLoading ? null : makeStats(registeredDevices),
@@ -123,23 +121,23 @@ afterEach(cleanup);
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("DeviceChooserTrigger", () => {
-  // ── Gating matrix ────────────────────────────────────────────────────────────
-
-  describe("when cloud=false", () => {
-    it("renders nothing without mounting the inner component", () => {
-      setupHooks({ cloud: false });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
-      expect(
-        screen.queryByTestId("device-chooser-dialog"),
-      ).not.toBeInTheDocument();
-      // Inner component never mounts, so useHasPermission is never called
-      expect(mockUseHasPermission).not.toHaveBeenCalled();
-    });
+  describe("when edition isn't cloud", () => {
+    it.each(["community", "enterprise"] as const)(
+      "renders nothing without mounting the inner component for edition=%s",
+      (edition) => {
+        setupHooks({ edition });
+        render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+        expect(
+          screen.queryByTestId("device-chooser-dialog"),
+        ).not.toBeInTheDocument();
+        expect(mockUseHasPermission).not.toHaveBeenCalled();
+      },
+    );
   });
 
-  describe("when cloud=true but user lacks device:choose permission", () => {
+  describe("when edition=cloud but user lacks device:choose permission", () => {
     it("renders nothing", async () => {
-      setupHooks({ cloud: true, canChoose: false });
+      setupHooks({ canChoose: false });
       render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
       await waitFor(() =>
         expect(
@@ -149,9 +147,9 @@ describe("DeviceChooserTrigger", () => {
     });
   });
 
-  describe("when cloud=true, owner, billing is active", () => {
+  describe("when edition=cloud, owner, billing is active", () => {
     it("renders nothing", async () => {
-      setupHooks({ cloud: true, canChoose: true, billingActive: true });
+      setupHooks({ billingActive: true });
       render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
       await waitFor(() =>
         expect(
@@ -161,14 +159,9 @@ describe("DeviceChooserTrigger", () => {
     });
   });
 
-  describe("when cloud=true, owner, billing inactive, registered_devices=3 (boundary)", () => {
+  describe("when edition=cloud, owner, billing inactive, registered_devices=3 (boundary)", () => {
     it("renders nothing — limit is strictly greater than 3", async () => {
-      setupHooks({
-        cloud: true,
-        canChoose: true,
-        billingActive: false,
-        registeredDevices: 3,
-      });
+      setupHooks({ registeredDevices: 3 });
       render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
       await waitFor(() =>
         expect(

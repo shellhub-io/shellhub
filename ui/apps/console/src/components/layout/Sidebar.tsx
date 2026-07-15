@@ -1,5 +1,5 @@
 import { useCallback, type ReactNode } from "react";
-import { getConfig } from "@/env";
+import { getConfig, isEnterpriseOrCloud } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
 import {
   HomeIcon,
@@ -52,7 +52,7 @@ function buildSections(): NavSection[] {
     },
   ];
 
-  if (config.webEndpoints && (config.cloud || config.enterprise)) {
+  if (config.webEndpoints && isEnterpriseOrCloud()) {
     resources.push({
       to: "/web-endpoints",
       label: "Web Endpoints",
@@ -137,9 +137,7 @@ function BetaBadge() {
 }
 
 function pickBadge(item: NavItem): ReactNode | undefined {
-  const config = getConfig();
-  const isPaidEdition = config.cloud || config.enterprise;
-  if (item.premium && !isPaidEdition) return <ProBadge />;
+  if (item.premium && !isEnterpriseOrCloud()) return <ProBadge />;
   if (item.beta) return <BetaBadge />;
   return undefined;
 }
@@ -190,7 +188,12 @@ export default function Sidebar({
           className={idx > 0 ? (expanded ? "mt-5" : "mt-1") : ""}
         >
           <p
-            className={cn("px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200", expanded ? "opacity-100 mb-1.5" : "opacity-0 h-0 overflow-hidden mb-0")}
+            className={cn(
+              "px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200",
+              expanded
+                ? "opacity-100 mb-1.5"
+                : "opacity-0 h-0 overflow-hidden mb-0",
+            )}
           >
             {section.title}
           </p>

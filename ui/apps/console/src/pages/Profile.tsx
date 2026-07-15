@@ -23,7 +23,7 @@ import {
   FormInputField,
   FormPasswordField,
 } from "@/components/common/fields/rhf";
-import { getConfig } from "../env";
+import { isCloud, isCommunity } from "../env";
 import {
   UserIcon,
   PencilSquareIcon,
@@ -40,7 +40,7 @@ import {
 } from "@heroicons/react/24/outline";
 import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
 import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
-import { hasMfaSupport } from "../utils/features";
+import { isEnterpriseOrCloud } from "../env";
 import { Button } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
@@ -457,9 +457,8 @@ export default function Profile() {
   const [pwDrawerOpen, setPwDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const config = getConfig();
-  const isCloud = config.cloud;
-  const isCommunity = !config.cloud && !config.enterprise;
+  const isCloudEdition = isCloud();
+  const isCommunityEdition = isCommunity();
   const [mfaEnableOpen, setMfaEnableOpen] = useState(false);
   const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
 
@@ -555,7 +554,7 @@ export default function Profile() {
             </Button>
           </SettingsRow>
 
-          {hasMfaSupport() ? (
+          {isEnterpriseOrCloud() ? (
             <SettingsRow
               icon={<ShieldCheckIcon className="w-4 h-4" />}
               title="Multi-Factor Authentication"
@@ -615,7 +614,7 @@ export default function Profile() {
             icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
             title="Delete Account"
             description={
-              isCloud
+              isCloudEdition
                 ? "Permanently remove your account and all associated data."
                 : "Account deletion requires CLI or Admin Console access."
             }
@@ -645,7 +644,7 @@ export default function Profile() {
         open={pwDrawerOpen}
         onClose={() => setPwDrawerOpen(false)}
       />
-      {isCloud ? (
+      {isCloudEdition ? (
         <DeleteAccountDialog
           key={String(deleteDialogOpen)}
           open={deleteDialogOpen}
@@ -655,7 +654,7 @@ export default function Profile() {
         <DeleteAccountWarningDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
-          isCommunity={isCommunity}
+          isCommunity={isCommunityEdition}
         />
       )}
       <MfaEnableDrawer

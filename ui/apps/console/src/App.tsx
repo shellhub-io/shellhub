@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { getConfig } from "./env";
+import { getConfig, isCloud } from "./env";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import AppLayout from "./components/layout/AppLayout";
@@ -106,7 +106,7 @@ export default function App() {
                 />
               </Route>
               <Route path="/accept-device" element={<AcceptDevice />} />
-              {getConfig().cloud && (
+              {isCloud() && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
@@ -126,7 +126,7 @@ export default function App() {
                   <Route
                     path="/admin/license"
                     element={
-                      getConfig().cloud ? (
+                      isCloud() ? (
                         <Navigate to="/admin/dashboard" replace />
                       ) : (
                         <AdminLicense />

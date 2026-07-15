@@ -6,23 +6,20 @@ import {
 } from "../useActionDialogState";
 import { useDeviceActions } from "../useDeviceActions";
 import { useContainerActions } from "../useContainerActions";
-import { defaultConfig, type ClientConfig } from "@/env";
+import { defaultConfig, getConfig } from "@/env";
 
-// Only the wrapper hooks read getConfig().cloud; the core hook never touches env.
-const mockGetConfig = vi.fn<() => ClientConfig>();
-vi.mock("@/env", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/env")>()),
-  getConfig: () => mockGetConfig(),
-}));
+const mockGetConfig = vi.mocked(getConfig);
 
 const entity = { uid: "device-123", name: "Device 123" };
 
 const setup = (options: Partial<UseActionDialogStateOptions> = {}) =>
-  renderHook(() => useActionDialogState({ enableBillingWarning: false, ...options }));
+  renderHook(() =>
+    useActionDialogState({ enableBillingWarning: false, ...options }),
+  );
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
 });
 
 describe("useActionDialogState", () => {
@@ -114,8 +111,11 @@ describe("useActionDialogState", () => {
       const first = vi.fn();
       const second = vi.fn();
       const { result, rerender } = renderHook(
-        ({ onSuccess }: { onSuccess: UseActionDialogStateOptions["onSuccess"] }) =>
-          useActionDialogState({ enableBillingWarning: false, onSuccess }),
+        ({
+          onSuccess,
+        }: {
+          onSuccess: UseActionDialogStateOptions["onSuccess"];
+        }) => useActionDialogState({ enableBillingWarning: false, onSuccess }),
         { initialProps: { onSuccess: first } },
       );
 
@@ -130,28 +130,47 @@ describe("useActionDialogState", () => {
 
   it("returns referentially stable callbacks across re-renders and state changes", () => {
     const { result, rerender } = setup({ onSuccess: vi.fn() });
-    const callbacks = ["requestAction", "close", "closeBillingWarning", "runSuccess"] as const;
+    const callbacks = [
+      "requestAction",
+      "close",
+      "closeBillingWarning",
+      "runSuccess",
+    ] as const;
     const before = callbacks.map((name) => result.current[name]);
 
     act(() => result.current.requestAction(entity, "remove")); // operation changes
     rerender();
 
-    callbacks.forEach((name, i) => expect(result.current[name]).toBe(before[i]));
+    callbacks.forEach((name, i) =>
+      expect(result.current[name]).toBe(before[i]),
+    );
   });
 });
 
 // Both wrappers are thin adapters over the core hook that only differ in their
 // domain label, so they share one parametrised suite.
 describe.each([
-  { name: "useDeviceActions", useActions: useDeviceActions, target: { uid: "d-1", name: "my-device" } },
-  { name: "useContainerActions", useActions: useContainerActions, target: { uid: "c-1", name: "my-container" } },
+  {
+    name: "useDeviceActions",
+    useActions: useDeviceActions,
+    target: { uid: "d-1", name: "my-device" },
+  },
+  {
+    name: "useContainerActions",
+    useActions: useContainerActions,
+    target: { uid: "c-1", name: "my-container" },
+  },
 ])("$name", ({ useActions, target }) => {
   it("derives onBillingWarning from getConfig().cloud", () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
-    expect(renderHook(() => useActions()).result.current.onBillingWarning).toBeTypeOf("function");
+    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+    expect(
+      renderHook(() => useActions()).result.current.onBillingWarning,
+    ).toBeTypeOf("function");
 
-    mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
-    expect(renderHook(() => useActions()).result.current.onBillingWarning).toBeUndefined();
+    mockGetConfig.mockReturnValue({ ...defaultConfig });
+    expect(
+      renderHook(() => useActions()).result.current.onBillingWarning,
+    ).toBeUndefined();
   });
 
   it("stores a requested action as an operation", () => {
@@ -159,7 +178,10 @@ describe.each([
 
     act(() => result.current.requestAction(target, "accept"));
 
-    expect(result.current.operation).toEqual({ entity: target, action: "accept" });
+    expect(result.current.operation).toEqual({
+      entity: target,
+      action: "accept",
+    });
   });
 
   it("forwards onSuccess, even after close() (cancel-race)", () => {

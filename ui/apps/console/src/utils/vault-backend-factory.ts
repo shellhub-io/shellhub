@@ -1,4 +1,4 @@
-import { getConfig } from "@/env";
+import { isEnterpriseOrCloud } from "@/env";
 import type { IVaultBackend } from "@/utils/vault-backend";
 import {
   LocalVaultBackend,
@@ -22,8 +22,7 @@ function modeKey(scope?: VaultScope): string {
  * (Cloud/Enterprise). Community Edition is always local.
  */
 export function isVaultServerEnabled(): boolean {
-  const config = getConfig();
-  return config.cloud || config.enterprise;
+  return isEnterpriseOrCloud();
 }
 
 /**

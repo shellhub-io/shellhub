@@ -5,13 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLatestAnnouncement } from "../useLatestAnnouncement";
 import type { Announcement } from "@/client";
 
-// ── Module mocks ─────────────────────────────────────────────────────────────
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 // Mock the generated query-option factories so we control what queryFn runs
 vi.mock("@/client/@tanstack/react-query.gen", () => ({
   listAnnouncementsOptions: vi.fn(),

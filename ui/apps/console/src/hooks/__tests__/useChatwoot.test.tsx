@@ -1,18 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { defaultConfig } from "@/env";
+import type { ClientConfig } from "@/env";
 
-// ─── Module mocks (must come before any import of the module under test) ──────
-
-const mockGetConfig = vi.fn();
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return {
-    ...actual,
-    getConfig: (): unknown => mockGetConfig(),
-  };
-});
+let defaultConfig: ClientConfig;
+let mockGetConfig: ReturnType<typeof vi.fn<() => ClientConfig>>;
 
 const mockUseAuthStore = vi.fn();
 
@@ -99,13 +90,17 @@ async function importHook() {
 
 beforeEach(async () => {
   vi.clearAllMocks();
-  // Reset DOM + window globals between tests
   document.body.innerHTML = "";
   delete window.$chatwoot;
   delete window.chatwootSDK;
   delete window.chatwootSettings;
-  // Reset module-level chatwoot runtime state (script latch, watchdog timer,
-  // bootstrapFailed flag) so each test starts from a clean slate.
+
+  // vi.resetModules() in afterEach clears the module registry, so re-import
+  // @/env to get the fresh manual-mock instance each cycle.
+  const env = await import("@/env");
+  defaultConfig = env.defaultConfig;
+  mockGetConfig = vi.mocked(env.getConfig);
+
   const runtime = await import("../chatwootRuntime");
   runtime.tearDownChatwoot("logout");
 });
@@ -144,11 +139,10 @@ describe("useChatwoot", () => {
   });
 
   describe("status: unavailable", () => {
-    it("returns 'unavailable' when cloud=true but chatwootWebsiteToken is missing", async () => {
+    it("returns 'unavailable' when in a cloud instance but chatwootWebsiteToken is missing", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -162,11 +156,10 @@ describe("useChatwoot", () => {
       expect(result.current.status).toBe("unavailable");
     });
 
-    it("returns 'unavailable' when cloud=true but chatwootBaseUrl is missing", async () => {
+    it("returns 'unavailable' when in a cloud instance but chatwootBaseUrl is missing", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "",
       });
@@ -185,8 +178,7 @@ describe("useChatwoot", () => {
     it("returns 'loading' when namespace is null", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -205,8 +197,7 @@ describe("useChatwoot", () => {
     it("returns 'no-subscription' when namespace loaded but billing.active !== true", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -223,8 +214,7 @@ describe("useChatwoot", () => {
     it("returns 'no-subscription' when namespace has no billing object", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -243,8 +233,7 @@ describe("useChatwoot", () => {
     it("returns 'loading' while support identifier is being fetched", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -261,8 +250,7 @@ describe("useChatwoot", () => {
     it("returns 'loading' when identifier has not arrived yet (isLoading=false but identifier=null)", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -281,8 +269,7 @@ describe("useChatwoot", () => {
     it("returns 'ready' after the chatwoot:ready event fires with window.$chatwoot set", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -306,8 +293,7 @@ describe("useChatwoot", () => {
       const baseURL = "https://chat.example.com";
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: baseURL,
       });
@@ -328,8 +314,7 @@ describe("useChatwoot", () => {
     it("does not inject a second script when the hook renders twice (StrictMode safety)", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -352,8 +337,7 @@ describe("useChatwoot", () => {
     it("sets chatwootSettings with the correct values before script injection", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -381,8 +365,7 @@ describe("useChatwoot", () => {
     it("calls setUser with identifier_hash when widget reports ready", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -412,8 +395,7 @@ describe("useChatwoot", () => {
     it("does not call setUser again when re-rendered with the same identity", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -448,8 +430,7 @@ describe("useChatwoot", () => {
     it("calls setConversationCustomAttributes with namespace data on chatwoot:on-message", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -484,8 +465,7 @@ describe("useChatwoot", () => {
     it("calls window.$chatwoot.toggle('open') when status is ready", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -512,8 +492,7 @@ describe("useChatwoot", () => {
     it("does not call toggle when status is not ready (loading)", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -547,8 +526,7 @@ describe("useChatwoot", () => {
     it("flips to 'unavailable' when /support returns an error (e.g. backend identity key missing)", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -571,8 +549,7 @@ describe("useChatwoot", () => {
       try {
         mockGetConfig.mockReturnValue({
           ...defaultConfig,
-          cloud: true,
-          enterprise: true,
+          edition: "cloud",
           chatwootWebsiteToken: "token-abc",
           chatwootBaseUrl: "https://chat.example.com",
         });
@@ -613,8 +590,7 @@ describe("useChatwoot", () => {
     it("flips to 'unavailable' when the SDK script fails to load (script.onerror)", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -647,8 +623,7 @@ describe("useChatwoot", () => {
     it("tearDownChatwoot('logout') removes the script tag and clears window globals", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -677,8 +652,7 @@ describe("useChatwoot", () => {
     it("after teardown, a re-mount cleanly re-injects the script", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -703,8 +677,7 @@ describe("useChatwoot", () => {
     it("removes SDK-injected DOM (chat bubble holders, iframe) on teardown", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        cloud: true,
-        enterprise: true,
+        edition: "cloud",
         chatwootWebsiteToken: "token-abc",
         chatwootBaseUrl: "https://chat.example.com",
       });
@@ -740,8 +713,7 @@ describe("useChatwoot", () => {
       try {
         mockGetConfig.mockReturnValue({
           ...defaultConfig,
-          cloud: true,
-          enterprise: true,
+          edition: "cloud",
           chatwootWebsiteToken: "token-abc",
           chatwootBaseUrl: "https://chat.example.com",
         });

@@ -14,7 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
-import { getConfig } from "../env";
+import { isCloud, isEnterpriseOrCloud } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
@@ -73,7 +73,8 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
 }
 
 export default function Login() {
-  const { cloud: isCloud, enterprise: isEnterprise } = getConfig();
+  const isCloudEdition = isCloud();
+  const isEnterpriseOrCloudEdition = isEnterpriseOrCloud();
   const location = useLocation();
   const rawState = location.state as Record<string, unknown> | null;
   const notice =
@@ -202,8 +203,9 @@ export default function Login() {
   // On enterprise, show the local form only once we know local auth is enabled.
   // Using an explicit === true guard (not !ssoOnly) prevents the form from
   // flashing while authentication info is still loading (null state).
-  const showLocalForm = !isEnterprise || authentication?.local === true;
-  const ssoOnly = isEnterprise && authentication?.local === false;
+  const showLocalForm =
+    !isEnterpriseOrCloudEdition || authentication?.local === true;
+  const ssoOnly = isEnterpriseOrCloudEdition && authentication?.local === false;
 
   // Already authenticated (e.g. straight after setup's auto-login): the login form
   // has nothing to do here, so send the user into the app. Skipped while a query
@@ -301,7 +303,7 @@ export default function Login() {
               autoComplete="current-password"
             />
 
-            {isCloud && (
+            {isCloudEdition && (
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
@@ -328,7 +330,7 @@ export default function Login() {
       )}
 
       {/* SSO login */}
-      {isEnterprise && authentication?.saml && (
+      {isEnterpriseOrCloudEdition && authentication?.saml && (
         <div
           className="w-full max-w-sm animate-slide-up"
           style={{ animationDelay: ssoOnly ? "200ms" : "300ms" }}

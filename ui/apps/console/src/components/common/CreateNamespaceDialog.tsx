@@ -16,7 +16,7 @@ import {
   NAMESPACE_NAME_MIN_LENGTH,
   validateNamespaceName,
 } from "@/utils/validation";
-import { getConfig } from "@/env";
+import { isEnterpriseOrCloud } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 
 const FORM_ID = "create-namespace-form";
@@ -65,7 +65,7 @@ export default function CreateNamespaceDialog({
   const inputId = `create-ns-input-${autoId}`;
   // Namespace creation is a premium (Cloud/Enterprise) feature. Community is single-namespace,
   // so this dialog never renders there — the selector shows the upsell instead.
-  const isCloud = getConfig().cloud || getConfig().enterprise;
+  const isPremium = isEnterpriseOrCloud();
 
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -111,7 +111,7 @@ export default function CreateNamespaceDialog({
     }
   };
 
-  if (!isCloud) return null;
+  if (!isPremium) return null;
 
   return (
     <BaseDialog
