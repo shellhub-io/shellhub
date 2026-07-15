@@ -8,7 +8,7 @@ import {
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
 import { setup } from "../client";
-import { getConfig } from "../env";
+import { getConfig, isCommunity } from "../env";
 import { useAuthStore } from "@/stores/authStore";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
 import { suggestNamespace } from "./setup/validate";
@@ -27,8 +27,7 @@ export default function Setup() {
   const config = getConfig();
   const loginWithToken = useAuthStore((state) => state.loginWithToken);
 
-  const isCommunity = !config.cloud && !config.enterprise;
-  const showOnboarding = isCommunity && !!config.onboardingUrl;
+  const showOnboarding = isCommunity() && !!config.onboardingUrl;
 
   const [step, setStep] = useState(
     showOnboarding ? STEP_ONBOARDING : STEP_ACCOUNT,
@@ -203,7 +202,10 @@ export default function Setup() {
 
   return (
     <div
-      className={cn("w-full mx-auto animate-fade-in", step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm")}
+      className={cn(
+        "w-full mx-auto animate-fade-in",
+        step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm",
+      )}
     >
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">

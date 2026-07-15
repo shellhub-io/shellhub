@@ -16,12 +16,6 @@ const mockUseNamespaces = vi.fn<
     refetch: () => void;
   }
 >();
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
   useNamespace: () => ({ tenant_id: "t1", name: "ns1" }),
@@ -183,11 +177,10 @@ describe("AppLayout", () => {
   });
 
   describe("enterprise banners", () => {
-    it("mounts LicenseBanner and DeviceLimitBanner when enterprise and not cloud", () => {
+    it("mounts LicenseBanner and DeviceLimitBanner in an enterprise instance", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       renderLayout();
       expect(screen.getByTestId("device-limit-banner")).toBeInTheDocument();
@@ -197,8 +190,6 @@ describe("AppLayout", () => {
     it("does not mount the enterprise banners on a community instance", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: false,
-        cloud: false,
       });
       renderLayout();
       expect(
@@ -207,11 +198,10 @@ describe("AppLayout", () => {
       expect(screen.queryByTestId("license-banner")).not.toBeInTheDocument();
     });
 
-    it("does not mount the enterprise banners when cloud is true (even if enterprise is true)", () => {
+    it("does not mount the enterprise banners in a cloud instance", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       renderLayout();
       expect(

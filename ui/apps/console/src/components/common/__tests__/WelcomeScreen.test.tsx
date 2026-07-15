@@ -13,11 +13,6 @@ vi.mock("@shellhub/design-system/primitives", async (importOriginal) => {
     GithubIcon: vi.fn((props) => original.GithubIcon(props)),
   };
 });
-
-vi.mock("@/env", () => ({
-  getConfig: vi.fn(() => ({ cloud: false })),
-}));
-
 function renderWelcomeScreen() {
   return render(
     <MemoryRouter>

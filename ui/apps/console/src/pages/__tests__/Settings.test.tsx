@@ -10,12 +10,6 @@ vi.mock("@/client", () => ({
   deleteNamespace: vi.fn(),
   leaveNamespace: vi.fn(),
 }));
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
-});
-
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespace: vi.fn(() => ({
     namespace: {

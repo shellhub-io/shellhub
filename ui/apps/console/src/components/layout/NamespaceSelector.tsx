@@ -10,7 +10,7 @@ import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useAuthStore } from "@/stores/authStore";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { getInitials } from "@/utils/string";
-import { isPremiumFeature } from "@/utils/features";
+import { isEnterpriseOrCloud } from "@/env";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 import NamespaceUpsellDialog from "../common/NamespaceUpsellDialog";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +38,7 @@ export default function NamespaceSelector({
 
   useClickOutside(containerRef, () => setOpen(false));
 
-  const showAdminLink = !isAdminContext && isPremiumFeature() && isAdmin;
+  const showAdminLink = !isAdminContext && isEnterpriseOrCloud() && isAdmin;
 
   const availableNamespaces = isAdminContext
     ? namespaces
@@ -56,7 +56,7 @@ export default function NamespaceSelector({
     setOpen(false);
     // Community is single-namespace: creating another is a premium feature, so pitch the
     // upgrade instead of the (CLI-only) create dialog.
-    if (isPremiumFeature()) {
+    if (isEnterpriseOrCloud()) {
       setCreateOpen(true);
     } else {
       setUpsellOpen(true);
@@ -97,7 +97,10 @@ export default function NamespaceSelector({
           <span className="text-sm text-text-muted italic">No namespace</span>
         )}
         <ChevronDownIcon
-          className={cn("w-3 h-3 text-text-muted transition-transform duration-200", open && "rotate-180")}
+          className={cn(
+            "w-3 h-3 text-text-muted transition-transform duration-200",
+            open && "rotate-180",
+          )}
           strokeWidth={2.5}
         />
       </button>

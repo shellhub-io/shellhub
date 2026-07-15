@@ -1,18 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolveError } from "./terminalErrors";
-
-vi.mock("@/env", () => ({
-  getConfig: vi.fn(),
-}));
-
 import { getConfig } from "@/env";
 
 const mockGetConfig = vi.mocked(getConfig);
 
 beforeEach(() => {
   mockGetConfig.mockReturnValue({
-    cloud: false,
-    enterprise: false,
+    edition: "community",
   } as ReturnType<typeof getConfig>);
 });
 
@@ -55,8 +49,7 @@ describe("resolveError", () => {
 
     it("does not show the word 'firewall' twice when cloud edition appends its hint", () => {
       mockGetConfig.mockReturnValue({
-        cloud: true,
-        enterprise: false,
+        edition: "cloud",
       } as ReturnType<typeof getConfig>);
       const result = resolveError(
         "access to the device has been denied",
@@ -69,8 +62,7 @@ describe("resolveError", () => {
 
     it("includes a firewall/rules link when cloud or enterprise is enabled", () => {
       mockGetConfig.mockReturnValue({
-        cloud: true,
-        enterprise: false,
+        edition: "cloud",
       } as ReturnType<typeof getConfig>);
       const result = resolveError(
         "access to the device has been denied",
@@ -123,8 +115,7 @@ describe("resolveError", () => {
 
     it("includes firewall/rules link for authentication errors on cloud edition", () => {
       mockGetConfig.mockReturnValue({
-        cloud: true,
-        enterprise: false,
+        edition: "cloud",
       } as ReturnType<typeof getConfig>);
       const result = resolveError("failed to authenticate to device", "uid-4");
       expect(result.links.some((l) => l.to === "/firewall-rules")).toBe(true);

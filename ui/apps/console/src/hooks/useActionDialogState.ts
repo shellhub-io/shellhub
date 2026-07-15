@@ -50,7 +50,7 @@ export interface UseActionDialogStateResult {
  * - `billingWarningOpen` / `closeBillingWarning` — control the billing warning overlay.
  * - `onBillingWarning` — defined only when `enableBillingWarning` is truthy; call it to show
  *   the billing warning before the action proceeds. Callers (e.g. `useDeviceActions`) are
- *   responsible for passing `enableBillingWarning: !!getConfig().cloud`.
+ *   responsible for passing `enableBillingWarning: isCloud()`.
  * - `runSuccess(action)` — invoke `onSuccess` with the explicitly passed action. The caller
  *   must capture the action at confirm time and pass it here, so the correct action is reported
  *   even if the dialog was cancelled (via `close()`) while a mutation was in-flight. Does NOT
@@ -65,9 +65,12 @@ export function useActionDialogState({
   const [operation, setOperation] = useState<Operation | undefined>(undefined);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
 
-  const requestAction = useCallback((entity: EntityBase, action: EntityAction) => {
-    setOperation({ entity, action });
-  }, []);
+  const requestAction = useCallback(
+    (entity: EntityBase, action: EntityAction) => {
+      setOperation({ entity, action });
+    },
+    [],
+  );
 
   const close = useCallback(() => {
     setOperation(undefined);
@@ -82,7 +85,9 @@ export function useActionDialogState({
     setBillingWarningOpen(true);
   }, []);
 
-  const onBillingWarning = enableBillingWarning ? openBillingWarning : undefined;
+  const onBillingWarning = enableBillingWarning
+    ? openBillingWarning
+    : undefined;
 
   // Keep a ref to onSuccess so runSuccess always invokes the latest callback
   // without being in the useCallback dep array. This avoids stale-closure bugs

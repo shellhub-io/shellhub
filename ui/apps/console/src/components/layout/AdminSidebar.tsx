@@ -15,7 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
-import { getConfig } from "@/env";
+import { getConfig, isCloud } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
 import SidebarShell, {
@@ -124,7 +124,7 @@ function buildNavEntries(): NavEntry[] {
     entries.push(announcementsEntry);
   }
 
-  const settings = getConfig().cloud
+  const settings = isCloud()
     ? {
         ...settingsGroup,
         children: settingsGroup.children.filter(
@@ -186,7 +186,10 @@ function NavGroupItem({
             <span className="flex-1 text-left truncate">{group.label}</span>
             {!disabled && (
               <ChevronDownIcon
-                className={cn("w-3.5 h-3.5 transition-transform duration-200", isOpen && "rotate-180")}
+                className={cn(
+                  "w-3.5 h-3.5 transition-transform duration-200",
+                  isOpen && "rotate-180",
+                )}
                 strokeWidth={2}
               />
             )}
@@ -201,7 +204,12 @@ function NavGroupItem({
               to={child.to}
               onClick={onNavClick}
               className={({ isActive }) =>
-                cn("flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150", isActive ? "text-primary bg-primary/5" : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle")
+                cn(
+                  "flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150",
+                  isActive
+                    ? "text-primary bg-primary/5"
+                    : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle",
+                )
               }
             >
               <span className="truncate">{child.label}</span>

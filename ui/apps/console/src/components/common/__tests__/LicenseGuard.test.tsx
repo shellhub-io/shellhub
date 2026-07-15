@@ -12,13 +12,6 @@ import type { GetLicenseResponse } from "@/client/types.gen";
 vi.mock("@/hooks/useAdminLicense", () => ({
   useAdminLicense: vi.fn(),
 }));
-
-// These mocks are used by the real useAdminLicense in the cloud integration case.
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
 }));
@@ -126,7 +119,7 @@ afterEach(cleanup);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
   mockUseAdminLicense.mockReturnValue(makeHookReturn());
 });
 
@@ -197,7 +190,7 @@ describe("LicenseGuard", () => {
       >("@/hooks/useAdminLicense");
       mockUseAdminLicense.mockImplementation(real);
 
-      mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       useAuthStore.setState({ isAdmin: true } as never);
       // getLicense must never fire on cloud deployments.
       mockGetLicense.mockRejectedValue({ status: 400 });

@@ -1,7 +1,8 @@
+export type Edition = "community" | "enterprise" | "cloud";
+
 export interface ClientConfig {
   version: string;
-  enterprise: boolean;
-  cloud: boolean;
+  edition: Edition;
   announcements: boolean;
   webEndpoints: boolean;
   onboardingUrl: string;
@@ -17,8 +18,7 @@ export interface ClientConfig {
  */
 export const defaultConfig: ClientConfig = {
   version: "",
-  enterprise: false,
-  cloud: false,
+  edition: "community",
   announcements: false,
   webEndpoints: false,
   onboardingUrl: "",
@@ -54,4 +54,20 @@ export async function loadConfig(): Promise<ClientConfig> {
 
 export function getConfig(): ClientConfig {
   return cached ?? defaultConfig;
+}
+
+export function isCommunity(): boolean {
+  return getConfig().edition === "community";
+}
+
+export function isEnterprise(): boolean {
+  return getConfig().edition === "enterprise";
+}
+
+export function isCloud(): boolean {
+  return getConfig().edition === "cloud";
+}
+
+export function isEnterpriseOrCloud(): boolean {
+  return getConfig().edition !== "community";
 }

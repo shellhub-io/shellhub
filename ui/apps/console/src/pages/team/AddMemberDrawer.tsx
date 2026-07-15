@@ -10,7 +10,7 @@ import CopyButton from "@/components/common/CopyButton";
 import { FormInputField } from "@/components/common/fields/rhf";
 import FormRootError from "@/components/common/fields/FormRootError";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
-import { getConfig } from "@/env";
+import { isCloud } from "@/env";
 import { FormRoleSelector } from "./constants";
 import {
   addMemberSchema,
@@ -28,7 +28,7 @@ interface AddMemberDrawerProps {
 
 function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
   const generateLink = useGenerateInvitationLink();
-  const emailDelivery = getConfig().cloud;
+  const emailDelivery = isCloud();
   const form = useDrawerForm(open, addMemberSchema, ADD_MEMBER_DEFAULTS);
   const {
     control,

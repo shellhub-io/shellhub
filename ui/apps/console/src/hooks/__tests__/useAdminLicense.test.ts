@@ -6,12 +6,6 @@ import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 
 // ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
 }));
@@ -66,7 +60,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Default: enterprise admin, non-cloud
   useAuthStore.setState({ isAdmin: true } as never);
-  mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -155,7 +149,7 @@ describe("useAdminLicense", () => {
 
   describe("cloud admin — bypass", () => {
     it("does NOT call getLicense on cloud deployments", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
 
       const { result } = renderHook(() => useAdminLicense(), {
         wrapper: createWrapper(),
@@ -169,7 +163,7 @@ describe("useAdminLicense", () => {
     });
 
     it("returns isExpired false on cloud deployments", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
 
       const { result } = renderHook(() => useAdminLicense(), {
         wrapper: createWrapper(),

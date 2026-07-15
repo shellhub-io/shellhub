@@ -3,13 +3,6 @@ import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
 
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/hooks/useLatestAnnouncement", () => ({
   useLatestAnnouncement: vi.fn(),
 }));
@@ -29,7 +22,9 @@ vi.mock("../AnnouncementModal", () => ({
     open ? (
       <div data-testid="announcement-modal">
         <span data-testid="modal-title">{announcement.title}</span>
-        <button type="button" onClick={onClose}>Close</button>
+        <button type="button" onClick={onClose}>
+          Close
+        </button>
       </div>
     ) : null,
 }));

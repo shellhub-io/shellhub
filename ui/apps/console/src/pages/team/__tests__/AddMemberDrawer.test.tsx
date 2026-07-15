@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AddMemberDrawer from "../AddMemberDrawer";
+import { defaultConfig, getConfig } from "@/env";
 import type { SdkHttpError } from "@/api/errors";
 
 /* ------------------------------------------------------------------ */
@@ -64,13 +65,7 @@ vi.mock("@/utils/styles", () => ({
   INPUT_MONO: "input-mono",
   INPUT_MONO_ERROR: "input-mono-error",
 }));
-
-// Edition only shapes the result copy now: Cloud also emails the invitee, so the
-// success screen says so; a non-cloud edition (Enterprise) just hands over the link.
-const envState = vi.hoisted(() => ({ cloud: true }));
-vi.mock("@/env", () => ({
-  getConfig: () => ({ cloud: envState.cloud, enterprise: !envState.cloud }),
-}));
+const mockGetConfig = vi.mocked(getConfig);
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -115,7 +110,7 @@ function makeSdkError(status: number): SdkHttpError {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  envState.cloud = true;
+  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
   mockGenerateLinkMutateAsync.mockResolvedValue({ link: null });
 });
 
@@ -201,7 +196,10 @@ describe("AddMemberDrawer", () => {
     });
 
     it("does not mention email on a non-cloud edition (link-only)", async () => {
-      envState.cloud = false;
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        edition: "enterprise",
+      });
       mockGenerateLinkMutateAsync.mockResolvedValue({
         link: "https://shellhub.example.com/invite/abc123",
       });

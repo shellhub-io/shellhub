@@ -3,7 +3,7 @@ import { getLicenseQueryKey } from "../client/@tanstack/react-query.gen";
 import { getLicense } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
-import { getConfig } from "../env";
+import { isCloud } from "../env";
 import type { GetLicenseResponse } from "../client/types.gen";
 
 export { getLicenseQueryKey };
@@ -12,8 +12,7 @@ type LicenseData = GetLicenseResponse | null;
 
 export function useAdminLicense() {
   const isAdmin = useAuthStore((s) => s.isAdmin);
-  const isCloud = getConfig().cloud;
-  const enabled = isAdmin && !isCloud;
+  const enabled = isAdmin && !isCloud();
 
   const query = useQuery<LicenseData>({
     queryKey: getLicenseQueryKey(),

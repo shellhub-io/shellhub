@@ -1,4 +1,4 @@
-import { getConfig } from "@/env";
+import { isCloud } from "@/env";
 import {
   useActionDialogState,
   type UseActionDialogStateOptions,
@@ -14,10 +14,12 @@ export type UseDeviceActionsResult = UseActionDialogStateResult;
  * (e.g. ContainerDetails disables it to preserve its inline-error flow).
  */
 export function useDeviceActions(
-  options?: Partial<Pick<UseActionDialogStateOptions, "enableBillingWarning" | "onSuccess">>,
+  options?: Partial<
+    Pick<UseActionDialogStateOptions, "enableBillingWarning" | "onSuccess">
+  >,
 ): UseDeviceActionsResult {
   return useActionDialogState({
     ...options,
-    enableBillingWarning: options?.enableBillingWarning ?? !!getConfig().cloud,
+    enableBillingWarning: options?.enableBillingWarning ?? isCloud(),
   });
 }

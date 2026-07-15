@@ -7,11 +7,12 @@
 
 OUTPUT="${1:?usage: gen-config.sh OUTPUT_FILE}"
 
+EDITION=$(printf '%s' "${SHELLHUB_EDITION:-community}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+
 cat > "$OUTPUT" <<EOF
 {
   "version": "${SHELLHUB_VERSION:-}",
-  "enterprise": ${SHELLHUB_ENTERPRISE:-false},
-  "cloud": ${SHELLHUB_CLOUD:-false},
+  "edition": "${EDITION}",
   "onboardingUrl": "${SHELLHUB_ONBOARDING_URL:-}",
   "announcements": ${SHELLHUB_ANNOUNCEMENTS:-false},
   "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false},

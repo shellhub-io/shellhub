@@ -13,12 +13,6 @@ import "./helpers/setup-dialog";
 vi.mock("@/hooks/useFocusTrap", () => ({
   useFocusTrap: vi.fn(),
 }));
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/hooks/useNamespaceMutations", () => ({
   useCreateNamespace: vi.fn(),
 }));
@@ -65,7 +59,7 @@ describe("CreateNamespaceDialog (community)", () => {
 
 describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
+    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
   });
 
   describe("when open=false", () => {

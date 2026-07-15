@@ -17,11 +17,9 @@ import { useTerminalStore } from "@/stores/terminalStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
-import { getConfig } from "@/env";
+import { isEnterprise } from "@/env";
 
 export default function AppLayout() {
-  const { enterprise, cloud } = getConfig();
-  const isEnterprise = enterprise && !cloud;
   const { pathname } = useLocation();
   const { namespaces } = useNamespaces();
   const hasVisibleTerminal = useTerminalStore((s) =>
@@ -36,11 +34,14 @@ export default function AppLayout() {
   return (
     <ChatwootProvider>
       <div
-        className={cn("flex flex-col h-screen bg-background", hasVisibleTerminal && "overflow-hidden")}
+        className={cn(
+          "flex flex-col h-screen bg-background",
+          hasVisibleTerminal && "overflow-hidden",
+        )}
       >
         <SkipToContentLink />
         <ConnectivityBanner />
-        {isEnterprise && (
+        {isEnterprise() && (
           <>
             <LicenseBanner />
             <DeviceLimitBanner />

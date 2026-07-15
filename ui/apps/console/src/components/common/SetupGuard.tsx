@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { getInfo } from "@/client";
-import { getConfig } from "@/env";
+import { isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@shellhub/design-system/primitives";
 
 export default function SetupGuard() {
-  const isCloud = getConfig().cloud;
-  const [loading, setLoading] = useState(!isCloud);
+  const isCloudEdition = isCloud();
+  const [loading, setLoading] = useState(!isCloudEdition);
   const [setupDone, setSetupDone] = useState(true);
   const location = useLocation();
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
-    if (isCloud) return;
+    if (isCloudEdition) return;
 
     getInfo({ throwOnError: true })
       .then(({ data }) => setSetupDone(data.setup))
       .catch(() => setSetupDone(true))
       .finally(() => setLoading(false));
-  }, [isCloud, location.pathname]);
+  }, [isCloudEdition, location.pathname]);
 
   const authed = !!token;
 

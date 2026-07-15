@@ -22,11 +22,6 @@ vi.mock("@/hooks/useAdminAccountRequestMutations", () => ({
   useApproveAccountRequest: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useRejectAccountRequest: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
-
-vi.mock("@/env", () => ({
-  getConfig: () => ({ enterprise: false, cloud: false }),
-}));
-
 vi.mock("../AccountRequestsTab", () => ({
   default: () => null,
 }));

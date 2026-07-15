@@ -22,12 +22,6 @@ vi.mock("@/stores/authStore", () => ({
     selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
   ) => selector({ loginWithToken: mockLoginWithToken }),
 }));
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
-});
-
 import { setup as setupSdk } from "@/client";
 import { getConfig, defaultConfig } from "@/env";
 

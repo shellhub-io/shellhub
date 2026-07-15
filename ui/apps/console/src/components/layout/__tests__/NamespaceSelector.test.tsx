@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
-import { defaultConfig } from "@/env";
+import { defaultConfig, getConfig } from "@/env";
 import NamespaceSelector from "../NamespaceSelector";
 
 /* ------------------------------------------------------------------ */
@@ -18,13 +18,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const mockGetConfig = vi.fn();
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: (): unknown => mockGetConfig() };
-});
+const mockGetConfig = vi.mocked(getConfig);
 
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => ({
@@ -102,12 +96,10 @@ beforeEach(() => {
 
 describe("NamespaceSelector", () => {
   describe("showAdminLink", () => {
-    // Case 1 — enterprise=true and cloud=true: link must appear and navigate to /admin.
-    it("shows Admin Console link when enterprise=true, cloud=true, isAdmin=true, isAdminContext=false", async () => {
+    it("shows Admin Console link in a cloud instance for admins not in the Admin context", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: true });
       renderSelector(false);
@@ -120,12 +112,11 @@ describe("NamespaceSelector", () => {
       expect(mockNavigate).toHaveBeenCalledWith("/admin");
     });
 
-    // Case 2 — already passes with current logic (enterprise=true, cloud=false).
-    it("shows Admin Console link when enterprise=true, cloud=false, isAdmin=true, isAdminContext=false", async () => {
+    // Case 2 — edition=enterprise.
+    it("shows Admin Console link in a Enterprise instance for admins not in the Admin context", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: true });
       renderSelector(false);
@@ -138,31 +129,9 @@ describe("NamespaceSelector", () => {
       expect(mockNavigate).toHaveBeenCalledWith("/admin");
     });
 
-    // Case 7 — cloud-only admin: the key case this fix enables.
-    // cloud=true, enterprise=false → admin link must appear and navigate to /admin.
-    it("shows Admin Console link when cloud=true, enterprise=false, isAdmin=true, isAdminContext=false", async () => {
+    it("hides Admin Console link in a community instance", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: false,
-        cloud: true,
-      });
-      useAuthStore.setState({ tenant: "t1", isAdmin: true });
-      renderSelector(false);
-      await userEvent.click(
-        screen.getByRole("button", { name: /select namespace/i }),
-      );
-      const adminLink = screen.getByRole("button", { name: /admin console/i });
-      expect(adminLink).toBeInTheDocument();
-      await userEvent.click(adminLink);
-      expect(mockNavigate).toHaveBeenCalledWith("/admin");
-    });
-
-    // Case 3 — community instance (no enterprise, no cloud): link must be absent.
-    it("hides Admin Console link when enterprise=false, cloud=false, isAdmin=true, isAdminContext=false", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        enterprise: false,
-        cloud: false,
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: true });
       renderSelector(false);
@@ -176,12 +145,10 @@ describe("NamespaceSelector", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Case 4 — non-admin user on enterprise: link must be absent.
-    it("hides Admin Console link when enterprise=true, cloud=false, isAdmin=false, isAdminContext=false", async () => {
+    it("hides Admin Console link in a Enterprise instance for non-admin users", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: false,
+        edition: "enterprise",
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: false });
       renderSelector(false);
@@ -195,15 +162,10 @@ describe("NamespaceSelector", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Case 5 — already inside admin context: showAdminLink must be false
-    // because !isAdminContext short-circuits before enterprise/cloud.
-    // The trigger is labeled "Admin Console" when isAdminContext=true; the dropdown
-    // shows an "Admin Console" header (a <p>), but NOT the footer link button.
-    it("hides Admin Console link when enterprise=true, cloud=true, isAdmin=true, isAdminContext=true", async () => {
+    it("hides Admin Console link in the Admin context", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: true });
       renderSelector(true);
@@ -219,12 +181,10 @@ describe("NamespaceSelector", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Case 6 — cloud=true but non-admin user: isAdmin=false means link must be absent.
-    it("hides Admin Console link when enterprise=false, cloud=true, isAdmin=false, isAdminContext=false", async () => {
+    it("hides Admin Console link for non-admin users in a cloud instance", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: false,
-        cloud: true,
+        edition: "cloud",
       });
       useAuthStore.setState({ tenant: "t1", isAdmin: false });
       renderSelector(false);

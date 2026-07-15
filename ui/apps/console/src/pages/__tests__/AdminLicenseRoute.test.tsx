@@ -11,19 +11,13 @@ import {
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
 /* ------------------------------------------------------------------ */
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
-});
-
 // Stub AdminLicense — its real implementation pulls in many hooks/components
 // that are irrelevant to the routing behaviour under test.
 vi.mock("../admin/License", () => ({
   default: () => <div data-testid="admin-license-page">Admin License</div>,
 }));
 
-import { getConfig, defaultConfig } from "@/env";
+import { getConfig, isCloud, defaultConfig } from "@/env";
 import AdminLicense from "../admin/License";
 
 const mockedGetConfig = vi.mocked(getConfig);
@@ -45,7 +39,7 @@ function renderRoute() {
         <Route
           path="/admin/license"
           element={
-            getConfig().cloud ? (
+            isCloud() ? (
               <Navigate to="/admin/dashboard" replace />
             ) : (
               <AdminLicense />
@@ -73,9 +67,9 @@ beforeEach(() => {
 /* ================================================================== */
 
 describe("AdminLicenseRoute — /admin/license element", () => {
-  describe("cloud=true", () => {
+  describe("Cloud Edition", () => {
     beforeEach(() => {
-      mockedGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
     });
 
     it("redirects to /admin/dashboard in cloud mode", () => {
@@ -90,9 +84,9 @@ describe("AdminLicenseRoute — /admin/license element", () => {
     });
   });
 
-  describe("cloud=false (enterprise / self-hosted)", () => {
+  describe("Enterprise Edition", () => {
     beforeEach(() => {
-      mockedGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
     });
 
     it("renders the AdminLicense page when not in cloud mode", () => {

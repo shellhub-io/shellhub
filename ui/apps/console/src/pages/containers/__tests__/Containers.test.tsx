@@ -108,11 +108,6 @@ vi.mock("@/components/common/RestrictedAction", () => ({
 vi.mock("@/components/billing/BillingWarning", () => ({
   default: () => <div />,
 }));
-
-vi.mock("@/env", () => ({
-  getConfig: () => ({ cloud: false }),
-}));
-
 const mockRequestAction = vi.fn();
 vi.mock("@/hooks/useContainerActions", () => ({
   useContainerActions: () => ({

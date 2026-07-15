@@ -18,16 +18,6 @@ vi.mock("@/client", () => ({
   getSamlAuthUrl: vi.fn(),
   listNamespaces: vi.fn(),
 }));
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
-});
-
-vi.mock("@/utils/features", () => ({
-  hasMfaSupport: vi.fn(() => false),
-}));
-
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: vi.fn(() => ({ namespaces: [] })),
 }));

@@ -10,13 +10,6 @@ import { useAuthStore } from "@/stores/authStore";
 vi.mock("@/hooks/useAdminLicense", () => ({
   useAdminLicense: vi.fn(),
 }));
-
-// These mocks are used by the real useAdminLicense in the cloud integration case.
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: vi.fn() };
-});
-
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
 }));
@@ -92,9 +85,7 @@ function makeLicense(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: enterprise non-cloud config
-  mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: false });
-  // Default: admin with no license installed
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
   mockUseAdminLicense.mockReturnValue(makeQueryResult({ data: null }));
 });
 
@@ -354,7 +345,7 @@ describe("LicenseBanner", () => {
       >("@/hooks/useAdminLicense");
       mockUseAdminLicense.mockImplementation(real);
 
-      mockGetConfig.mockReturnValue({ ...defaultConfig, cloud: true });
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       useAuthStore.setState({ isAdmin: true } as never);
       // getLicense must never fire on cloud deployments.
       mockGetLicense.mockRejectedValue({ status: 400 });

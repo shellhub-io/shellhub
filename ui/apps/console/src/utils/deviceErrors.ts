@@ -1,5 +1,5 @@
 import { isSdkError } from "@/api/errors";
-import { getConfig } from "@/env";
+import { isCloud, isEnterprise } from "@/env";
 
 const FALLBACK =
   "An error occurred while accepting the device. Please try again.";
@@ -25,10 +25,8 @@ export function getAcceptDeviceErrorMessage(err: unknown): string {
 
   switch (err.status) {
     case 402: {
-      const { enterprise, cloud } = getConfig();
-      // Cloud implies Enterprise, so `{ cloud: true, enterprise: false }` never occurs; check cloud first.
-      if (cloud) return BILLING_402;
-      if (enterprise) return LICENSE_402;
+      if (isCloud()) return BILLING_402;
+      if (isEnterprise()) return LICENSE_402;
       return FALLBACK;
     }
     case 403:

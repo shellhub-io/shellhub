@@ -5,13 +5,6 @@ import { useAuthStore } from "@/stores/authStore";
 import SetupGuard from "../SetupGuard";
 
 vi.mock("@/client", () => ({ getInfo: vi.fn() }));
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return {
-    ...actual,
-    getConfig: vi.fn(() => ({ ...actual.defaultConfig, cloud: false })),
-  };
-});
 
 import { getInfo } from "@/client";
 

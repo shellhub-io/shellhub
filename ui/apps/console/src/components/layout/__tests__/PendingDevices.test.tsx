@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { defaultConfig } from "@/env";
+import { defaultConfig, getConfig } from "@/env";
 import PendingDevices from "../PendingDevices";
 
 /* ------------------------------------------------------------------ */
@@ -17,13 +17,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const mockGetConfig = vi.fn();
-
-vi.mock("@/env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/env")>();
-  return { ...actual, getConfig: (): unknown => mockGetConfig() };
-});
+const mockGetConfig = vi.mocked(getConfig);
 
 const mockAcceptMutateAsync = vi.fn();
 const mockRejectMutateAsync = vi.fn();
@@ -99,8 +93,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({
     ...defaultConfig,
-    enterprise: true,
-    cloud: false,
+    edition: "enterprise",
   });
   mockUseDevices.mockReturnValue({
     devices: [makeDevice()],
@@ -136,8 +129,7 @@ describe("PendingDevices", () => {
     it("shows billing message when accept returns 402 on cloud", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
-        enterprise: true,
-        cloud: true,
+        edition: "cloud",
       });
       mockAcceptMutateAsync.mockRejectedValue({ status: 402 });
 
