@@ -12,12 +12,9 @@ import ActiveBadge from "@/components/common/ActiveBadge";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import CopyButton from "@/components/common/CopyButton";
 import FilterBadge from "@/components/common/FilterBadge";
+import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import { Card } from "@shellhub/design-system/primitives";
-
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 export default function AdminFirewallRuleDetails() {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +56,12 @@ export default function AdminFirewallRuleDetails() {
       {/* Header */}
       <div className="flex items-start gap-4 mb-8">
         <div
-          className={cn("w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border", isAllow ? "bg-accent-green/10 border-accent-green/20" : "bg-accent-red/10 border-accent-red/20")}
+          className={cn(
+            "w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border",
+            isAllow
+              ? "bg-accent-green/10 border-accent-green/20"
+              : "bg-accent-red/10 border-accent-red/20",
+          )}
         >
           {isAllow ? (
             <CheckCircleIcon className="w-7 h-7 text-accent-green" />
@@ -89,60 +91,37 @@ export default function AdminFirewallRuleDetails() {
             Rule Properties
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>ID</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <span
-                  className="text-xs font-mono text-text-primary truncate min-w-0"
-                  title={rule.id}
-                >
-                  {rule.id}
-                </span>
-                <CopyButton text={rule.id} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Namespace</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <Link
-                  to={`/admin/namespaces/${rule.tenant_id}`}
-                  className="text-xs font-mono text-primary hover:underline truncate min-w-0"
-                >
-                  {rule.tenant_id}
-                </Link>
-                <CopyButton text={rule.tenant_id} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Priority</dt>
-              <dd className={VALUE}>{rule.priority}</dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Action</dt>
-              <dd className="flex items-center gap-1.5 mt-0.5">
-                {isAllow ? (
-                  <>
-                    <CheckCircleIcon className="w-4 h-4 text-accent-green" />
-                    <span className="text-sm font-medium text-accent-green">
-                      Allow
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <NoSymbolIcon className="w-4 h-4 text-accent-red" />
-                    <span className="text-sm font-medium text-accent-red">
-                      Deny
-                    </span>
-                  </>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Status</dt>
-              <dd className="mt-0.5">
-                <ActiveBadge active={rule.active} />
-              </dd>
-            </div>
+            <InfoItem label="ID" value={rule.id} mono copyable />
+            <InfoItem label="Namespace">
+              <Link
+                to={`/admin/namespaces/${rule.tenant_id}`}
+                className="text-xs font-mono text-primary hover:underline truncate min-w-0"
+              >
+                {rule.tenant_id}
+              </Link>
+              <CopyButton text={rule.tenant_id} />
+            </InfoItem>
+            <InfoItem label="Priority" value={String(rule.priority)} />
+            <InfoItem label="Action">
+              {isAllow ? (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 text-accent-green" />
+                  <span className="text-sm font-medium text-accent-green">
+                    Allow
+                  </span>
+                </>
+              ) : (
+                <>
+                  <NoSymbolIcon className="w-4 h-4 text-accent-red" />
+                  <span className="text-sm font-medium text-accent-red">
+                    Deny
+                  </span>
+                </>
+              )}
+            </InfoItem>
+            <InfoItem label="Status">
+              <ActiveBadge active={rule.active} />
+            </InfoItem>
           </dl>
         </Card>
 
@@ -153,32 +132,23 @@ export default function AdminFirewallRuleDetails() {
             Connection Criteria
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Source IP</dt>
-              <dd className={VALUE}>
-                {rule.source_ip === ".*" ? (
-                  <span className="text-text-secondary">Any IP</span>
-                ) : (
-                  <span className="font-mono text-xs">{rule.source_ip}</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Username</dt>
-              <dd className={VALUE}>
-                {rule.username === ".*" ? (
-                  <span className="text-text-secondary">All users</span>
-                ) : (
-                  <span className="font-mono text-xs">{rule.username}</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Device Filter</dt>
-              <dd className="mt-1">
-                <FilterBadge filter={rule.filter} />
-              </dd>
-            </div>
+            <InfoItem label="Source IP">
+              {rule.source_ip === ".*" ? (
+                <span className="text-text-secondary">Any IP</span>
+              ) : (
+                <span className="font-mono text-xs">{rule.source_ip}</span>
+              )}
+            </InfoItem>
+            <InfoItem label="Username">
+              {rule.username === ".*" ? (
+                <span className="text-text-secondary">All users</span>
+              ) : (
+                <span className="font-mono text-xs">{rule.username}</span>
+              )}
+            </InfoItem>
+            <InfoItem label="Device Filter">
+              <FilterBadge filter={rule.filter} />
+            </InfoItem>
           </dl>
         </Card>
       </div>

@@ -34,44 +34,10 @@ import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
 import TagsSection from "@/components/common/TagsSection";
 import PageLoader from "@/components/common/PageLoader";
+import InfoItem from "@/components/common/InfoItem";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { LABEL_BASE } from "@/utils/styles";
-
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
-
-function InfoItem({
-  label,
-  value,
-  mono,
-  copyable,
-  truncate,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  copyable?: boolean;
-  truncate?: number;
-}) {
-  const display = truncate && value ? value.slice(0, truncate) : value;
-
-  return (
-    <div>
-      <dt className={LABEL_BASE}>{label}</dt>
-      <dd className="flex items-center gap-1 mt-0.5">
-        <span
-          className={cn(
-            "text-sm text-text-primary",
-            mono ? "font-mono text-xs" : "font-medium",
-          )}
-        >
-          {display || "—"}
-        </span>
-        {copyable && value && <CopyButton text={value} />}
-      </dd>
-    </div>
-  );
-}
 
 export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
@@ -374,27 +340,22 @@ export default function ContainerDetails() {
             Timeline
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL_BASE}>Created</dt>
-              <dd className={VALUE}>{formatDateFull(container.created_at)}</dd>
-            </div>
-            <div>
-              <dt className={LABEL_BASE}>Last Seen</dt>
-              <dd className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm text-text-primary font-medium">
-                  {formatRelative(container.last_seen)}
-                </span>
-                <span className="text-2xs text-text-muted">
-                  {formatDateFull(container.last_seen)}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL_BASE}>Status Updated</dt>
-              <dd className={VALUE}>
-                {formatDateFull(container.status_update_at ?? "")}
-              </dd>
-            </div>
+            <InfoItem
+              label="Created"
+              value={formatDateFull(container.created_at)}
+            />
+            <InfoItem label="Last Seen">
+              <span className="text-sm text-text-primary font-medium">
+                {formatRelative(container.last_seen)}
+              </span>
+              <span className="text-2xs text-text-muted">
+                {formatDateFull(container.last_seen)}
+              </span>
+            </InfoItem>
+            <InfoItem
+              label="Status Updated"
+              value={formatDateFull(container.status_update_at ?? "")}
+            />
           </dl>
         </Card>
       </div>

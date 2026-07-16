@@ -43,9 +43,8 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import InfoItem from "@/components/common/InfoItem";
 import SessionTypeBadge from "./sessions/SessionTypeBadge";
-
-/* ── timeline builder ────────────────────────────── */
 
 type EventStatus = "success" | "error" | "info" | "active" | "muted";
 
@@ -166,8 +165,6 @@ function buildTimeline(session: Session): TLEvent[] {
   return events;
 }
 
-/* ── node colors ─────────────────────────────────── */
-
 const NODE_COLORS: Record<EventStatus, string> = {
   success: "text-accent-green border-accent-green/50 bg-accent-green/10",
   error: "text-accent-red border-accent-red/50 bg-accent-red/10",
@@ -175,43 +172,6 @@ const NODE_COLORS: Record<EventStatus, string> = {
   active: "text-accent-green border-accent-green/50 bg-accent-green/10",
   muted: "text-text-muted border-border bg-surface",
 };
-
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
-
-/* ── Info Row ── */
-function InfoItem({
-  label,
-  value,
-  mono,
-  copyable,
-  truncate,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  copyable?: boolean;
-  truncate?: number;
-}) {
-  const display = truncate && value ? value.slice(0, truncate) : value;
-
-  return (
-    <div>
-      <dt className={LABEL}>{label}</dt>
-      <dd className="flex items-center gap-1 mt-0.5">
-        <span
-          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
-        >
-          {display || "—"}
-        </span>
-        {copyable && value && <CopyButton text={value} />}
-      </dd>
-    </div>
-  );
-}
-
-/* ── sub-components ──────────────────────────────── */
 
 function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
   const titleColor =
@@ -228,7 +188,10 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
       {/* Spine */}
       <div className="flex flex-col items-center shrink-0">
         <div
-          className={cn("w-6 h-6 rounded-full border flex items-center justify-center", NODE_COLORS[event.status])}
+          className={cn(
+            "w-6 h-6 rounded-full border flex items-center justify-center",
+            NODE_COLORS[event.status],
+          )}
         >
           {event.status === "active" && event.icon === null ? (
             <span className="relative flex w-2 h-2">
@@ -278,8 +241,6 @@ function DurationStat({
     </span>
   );
 }
-
-/* ── page ────────────────────────────────────────── */
 
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
@@ -397,7 +358,10 @@ export default function SessionDetails() {
                 )}
               >
                 <span
-                  className={cn("w-1.5 h-1.5 rounded-full", session.active ? "bg-accent-green" : "bg-text-muted/60")}
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    session.active ? "bg-accent-green" : "bg-text-muted/60",
+                  )}
                 />
                 {session.active ? "Active" : "Closed"}
               </span>
@@ -506,22 +470,19 @@ export default function SessionDetails() {
                 truncate={8}
               />
               <InfoItem label="From" value={session.ip_address} mono copyable />
-              <div>
-                <dt className={LABEL}>Started</dt>
-                <dd className={VALUE}>{formatDateFull(session.started_at)}</dd>
-              </div>
+              <InfoItem
+                label="Started"
+                value={formatDateFull(session.started_at)}
+              />
               {!session.active && (
-                <div>
-                  <dt className={LABEL}>Ended</dt>
-                  <dd className="flex items-center gap-2 mt-0.5">
-                    <span className="text-sm text-text-primary font-medium">
-                      {formatRelative(session.last_seen)}
-                    </span>
-                    <span className="text-2xs text-text-muted">
-                      {formatDateFull(session.last_seen)}
-                    </span>
-                  </dd>
-                </div>
+                <InfoItem label="Ended">
+                  <span className="text-sm text-text-primary font-medium">
+                    {formatRelative(session.last_seen)}
+                  </span>
+                  <span className="text-2xs text-text-muted">
+                    {formatDateFull(session.last_seen)}
+                  </span>
+                </InfoItem>
               )}
             </dl>
           </Card>
@@ -546,18 +507,15 @@ export default function SessionDetails() {
               </div>
               {session.device.info && (
                 <dl className="space-y-3">
-                  <div>
-                    <dt className={LABEL}>OS</dt>
-                    <dd className="flex items-center gap-1.5 mt-0.5">
-                      <DistroIcon
-                        id={session.device.info.id}
-                        className="text-[0.85rem] leading-none text-text-muted shrink-0"
-                      />
-                      <span className="text-sm text-text-primary font-medium">
-                        {session.device.info.pretty_name}
-                      </span>
-                    </dd>
-                  </div>
+                  <InfoItem label="OS">
+                    <DistroIcon
+                      id={session.device.info.id}
+                      className="text-[0.85rem] leading-none text-text-muted shrink-0"
+                    />
+                    <span className="text-sm text-text-primary font-medium">
+                      {session.device.info.pretty_name}
+                    </span>
+                  </InfoItem>
                   <InfoItem
                     label="Architecture"
                     value={session.device.info.arch}

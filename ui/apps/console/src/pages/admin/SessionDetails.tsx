@@ -8,27 +8,11 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import InfoItem from "@/components/common/InfoItem";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import PageLoader from "@/components/common/PageLoader";
 import { Card } from "@shellhub/design-system/primitives";
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="py-3 border-b border-border/50 last:border-0">
-      <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1">
-        {label}
-      </p>
-      <div className="text-sm text-text-primary">{children}</div>
-    </div>
-  );
-}
 
 function BoolField({
   value,
@@ -39,7 +23,10 @@ function BoolField({
 }) {
   return (
     <span
-      className={cn("flex items-center gap-1.5 text-sm", value ? "text-accent-green" : falseColor)}
+      className={cn(
+        "flex items-center gap-1.5 text-sm",
+        value ? "text-accent-green" : falseColor,
+      )}
     >
       {value ? (
         <CheckCircleIcon className="w-4 h-4" strokeWidth={2} />
@@ -103,7 +90,12 @@ export default function AdminSessionDetails() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={cn("w-2 h-2 rounded-full inline-block shrink-0", session.active ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" : "bg-text-muted/40")}
+            className={cn(
+              "w-2 h-2 rounded-full inline-block shrink-0",
+              session.active
+                ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
+                : "bg-text-muted/40",
+            )}
             aria-label={session.active ? "Active" : "Inactive"}
           />
           <code className="text-xs font-mono text-text-muted break-all">
@@ -112,40 +104,41 @@ export default function AdminSessionDetails() {
         </div>
       </div>
 
-      <Card className="rounded-lg overflow-hidden animate-fade-in">
+      <Card className="rounded-lg overflow-hidden animate-fade-in py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-          <div className="px-6 py-2">
-            <Field label="UID">
-              <code className="text-xs font-mono text-text-secondary break-all">
-                {session.uid}
-              </code>
-            </Field>
+          <dl className="px-6 py-2 space-y-3">
+            <InfoItem
+              label="UID"
+              value={session.uid}
+              mono
+              copyable
+              truncate={8}
+            />
 
             {session.device && (
-              <Field label="Device">
+              <InfoItem label="Device">
                 <Link
                   to={`/admin/devices/${session.device.uid}`}
                   className="text-primary hover:underline text-sm"
                 >
                   {session.device.name || session.device.uid}
                 </Link>
-              </Field>
+              </InfoItem>
             )}
 
-            <Field label="Username">
+            <InfoItem label="Username">
               <code className="text-xs font-mono">{session.username}</code>
-            </Field>
+            </InfoItem>
 
-            <Field label="IP Address">
-              <code className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded">
-                {session.ip_address}
-              </code>
-            </Field>
+            <InfoItem label="IP Address" value={session.ip_address} mono />
 
-            <Field label="Type">
+            <InfoItem label="Type">
               {type ? (
                 <span
-                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", type.color)}
+                  className={cn(
+                    "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border",
+                    type.color,
+                  )}
                 >
                   {type.label}
                 </span>
@@ -154,50 +147,45 @@ export default function AdminSessionDetails() {
                   {session.type}
                 </span>
               )}
-            </Field>
+            </InfoItem>
 
-            <Field label="Terminal">
-              <span className="text-text-secondary">
-                {session.term === "none" || !session.term ? "—" : session.term}
-              </span>
-            </Field>
-          </div>
+            <InfoItem
+              label="Terminal"
+              value={
+                session.term === "none" || !session.term ? "" : session.term
+              }
+            />
+          </dl>
 
-          <div className="px-6 py-2">
+          <dl className="px-6 py-2 space-y-3">
             {session.device?.namespace && (
-              <Field label="Namespace">
-                <span className="text-text-secondary">
-                  {session.device.namespace}
-                </span>
-              </Field>
+              <InfoItem label="Namespace" value={session.device.namespace} />
             )}
 
-            <Field label="Authenticated">
+            <InfoItem label="Authenticated">
               <BoolField
                 value={session.authenticated}
                 falseColor="text-accent-red"
               />
-            </Field>
+            </InfoItem>
 
-            <Field label="Recorded">
+            <InfoItem label="Recorded">
               <BoolField
                 value={session.recorded}
                 falseColor="text-text-secondary"
               />
-            </Field>
+            </InfoItem>
 
-            <Field label="Started At">
-              <span className="text-text-secondary">
-                {formatDateFull(session.started_at)}
-              </span>
-            </Field>
+            <InfoItem
+              label="Started At"
+              value={formatDateFull(session.started_at)}
+            />
 
-            <Field label="Last Seen">
-              <span className="text-text-secondary">
-                {formatDateFull(session.last_seen)}
-              </span>
-            </Field>
-          </div>
+            <InfoItem
+              label="Last Seen"
+              value={formatDateFull(session.last_seen)}
+            />
+          </dl>
         </div>
       </Card>
     </div>

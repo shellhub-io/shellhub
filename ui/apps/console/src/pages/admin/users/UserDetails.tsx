@@ -13,12 +13,12 @@ import { cn } from "@shellhub/design-system/cn";
 import { useAdminUser } from "@/hooks/useAdminUsers";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
-import CopyButton from "@/components/common/CopyButton";
 import UserStatusChip from "./UserStatusChip";
 import EditUserDrawer from "./EditUserDrawer";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
+import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import {
   Badge,
@@ -27,36 +27,7 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 const ZERO_DATE = "0001-01-01T00:00:00Z";
-
-function InfoItem({
-  label,
-  value,
-  mono,
-  copyable,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  copyable?: boolean;
-}) {
-  return (
-    <div>
-      <dt className={LABEL}>{label}</dt>
-      <dd className="flex items-center gap-1 mt-0.5">
-        <span
-          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
-        >
-          {value || "\u2014"}
-        </span>
-        {copyable && value && <CopyButton text={value} />}
-      </dd>
-    </div>
-  );
-}
 
 function formatMaxNamespaces(value: number): string {
   if (value < 0) return "Unlimited";
@@ -191,12 +162,9 @@ export default function UserDetails() {
               label="Recovery Email"
               value={user.recovery_email ?? ""}
             />
-            <div>
-              <dt className={LABEL}>Status</dt>
-              <dd className="mt-1">
-                <UserStatusChip status={userStatus} />
-              </dd>
-            </div>
+            <InfoItem label="Status">
+              <UserStatusChip status={userStatus} />
+            </InfoItem>
           </dl>
         </Card>
 
@@ -207,46 +175,38 @@ export default function UserDetails() {
             Account
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Created</dt>
-              <dd className={VALUE}>{formatDateFull(user.created_at)}</dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Last Login</dt>
-              <dd className={VALUE}>
-                {lastLogin ? formatDateFull(lastLogin) : "Never logged in"}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Max Namespaces</dt>
-              <dd className={VALUE}>
-                {formatMaxNamespaces(user.max_namespaces)}
-              </dd>
-            </div>
+            <InfoItem label="Created" value={formatDateFull(user.created_at)} />
+            <InfoItem
+              label="Last Login"
+              value={lastLogin ? formatDateFull(lastLogin) : "Never logged in"}
+            />
+            <InfoItem
+              label="Max Namespaces"
+              value={formatMaxNamespaces(user.max_namespaces)}
+            />
             <InfoItem
               label="Namespaces Owned"
               value={String(user.namespacesOwned)}
             />
-            <div>
-              <dt className={LABEL}>MFA</dt>
-              <dd className="mt-1">
-                <span
-                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", user.mfa.enabled ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
-                >
-                  {user.mfa.enabled ? "Enabled" : "Disabled"}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Auth Methods</dt>
-              <dd className="flex items-center gap-1.5 mt-1">
-                {user.preferences.auth_methods.map((method) => (
-                  <Badge key={method} color="primary">
-                    {method.toUpperCase()}
-                  </Badge>
-                ))}
-              </dd>
-            </div>
+            <InfoItem label="MFA">
+              <span
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md",
+                  user.mfa.enabled
+                    ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                    : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20",
+                )}
+              >
+                {user.mfa.enabled ? "Enabled" : "Disabled"}
+              </span>
+            </InfoItem>
+            <InfoItem label="Auth Methods">
+              {user.preferences.auth_methods.map((method) => (
+                <Badge key={method} color="primary">
+                  {method.toUpperCase()}
+                </Badge>
+              ))}
+            </InfoItem>
           </dl>
         </Card>
       </div>

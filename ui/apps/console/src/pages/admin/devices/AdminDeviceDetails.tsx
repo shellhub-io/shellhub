@@ -10,17 +10,13 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useAdminDevice } from "@/hooks/useAdminDevices";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import CopyButton from "@/components/common/CopyButton";
 import DistroIcon from "@/components/common/DistroIcon";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatDateFull, formatRelative } from "@/utils/date";
+import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import { Card } from "@shellhub/design-system/primitives";
-
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 export default function AdminDeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
@@ -65,7 +61,10 @@ export default function AdminDeviceDetails() {
           <CpuChipIcon className="w-7 h-7 text-primary" />
           {/* Online indicator dot */}
           <span
-            className={cn("absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-surface", device.online ? "bg-accent-green" : "bg-text-muted/30")}
+            className={cn(
+              "absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-surface",
+              device.online ? "bg-accent-green" : "bg-text-muted/30",
+            )}
             title={device.online ? "Online" : "Offline"}
             aria-label={device.online ? "Online" : "Offline"}
           />
@@ -76,7 +75,12 @@ export default function AdminDeviceDetails() {
           </h1>
           <div className="flex items-center gap-2 mt-1.5">
             <span
-              className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", device.online ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-text-muted/10 text-text-muted border border-text-muted/20")}
+              className={cn(
+                "inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md",
+                device.online
+                  ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                  : "bg-text-muted/10 text-text-muted border border-text-muted/20",
+              )}
             >
               {device.online ? "Online" : "Offline"}
             </span>
@@ -94,37 +98,24 @@ export default function AdminDeviceDetails() {
             Identity
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>UID</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <span
-                  className="text-xs font-mono text-text-primary truncate max-w-[180px]"
-                  title={device.uid}
-                >
-                  {device.uid}
-                </span>
-                <CopyButton text={device.uid} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>MAC Address</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <span className="text-xs font-mono text-text-primary">
-                  {device.identity?.mac ?? "\u2014"}
-                </span>
-                {device.identity?.mac && (
-                  <CopyButton text={device.identity.mac} />
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Remote Address</dt>
-              <dd className={VALUE}>
-                <span className="font-mono text-xs">
-                  {device.remote_addr ?? "\u2014"}
-                </span>
-              </dd>
-            </div>
+            <InfoItem
+              label="UID"
+              value={device.uid}
+              mono
+              copyable
+              truncate={8}
+            />
+            <InfoItem
+              label="MAC Address"
+              value={device.identity?.mac ?? ""}
+              mono
+              copyable
+            />
+            <InfoItem
+              label="Remote Address"
+              value={device.remote_addr ?? ""}
+              mono
+            />
           </dl>
         </Card>
 
@@ -135,44 +126,32 @@ export default function AdminDeviceDetails() {
             System
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Operating System</dt>
-              <dd className="flex items-center gap-2 mt-0.5">
-                <DistroIcon
-                  id={device.info?.id ?? ""}
-                  className="text-base leading-none"
-                />
-                <span className="text-sm text-text-primary">
-                  {device.info?.pretty_name ?? "\u2014"}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Architecture</dt>
-              <dd className={VALUE}>
-                <span className="font-mono text-xs">
-                  {device.info?.arch ?? "\u2014"}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Platform</dt>
-              <dd className="mt-0.5">
-                {device.info?.platform ? (
-                  <PlatformBadge platform={device.info.platform} />
-                ) : (
-                  <span className="text-sm text-text-muted">&mdash;</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Agent Version</dt>
-              <dd className={VALUE}>
-                <span className="font-mono text-xs">
-                  {device.info?.version ?? "\u2014"}
-                </span>
-              </dd>
-            </div>
+            <InfoItem label="Operating System">
+              <DistroIcon
+                id={device.info?.id ?? ""}
+                className="text-base leading-none"
+              />
+              <span className="text-sm text-text-primary">
+                {device.info?.pretty_name ?? "\u2014"}
+              </span>
+            </InfoItem>
+            <InfoItem
+              label="Architecture"
+              value={device.info?.arch ?? ""}
+              mono
+            />
+            <InfoItem label="Platform">
+              {device.info?.platform ? (
+                <PlatformBadge platform={device.info.platform} />
+              ) : (
+                <span className="text-sm text-text-muted">&mdash;</span>
+              )}
+            </InfoItem>
+            <InfoItem
+              label="Agent Version"
+              value={device.info?.version ?? ""}
+              mono
+            />
           </dl>
         </Card>
 
@@ -183,38 +162,32 @@ export default function AdminDeviceDetails() {
             Namespace & Timeline
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Namespace</dt>
-              <dd className="mt-0.5">
-                {device.namespace ? (
-                  <Link
-                    to={`/admin/namespaces/${device.tenant_id}`}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    {device.namespace}
-                  </Link>
-                ) : (
-                  <span className="text-sm text-text-muted">&mdash;</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Tenant ID</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <span className="text-xs font-mono text-text-primary">
-                  {device.tenant_id}
-                </span>
-                <CopyButton text={device.tenant_id} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Created</dt>
-              <dd className={VALUE}>{formatDateFull(device.created_at)}</dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Last Seen</dt>
-              <dd className={VALUE}>{formatRelative(device.last_seen)}</dd>
-            </div>
+            <InfoItem label="Namespace">
+              {device.namespace ? (
+                <Link
+                  to={`/admin/namespaces/${device.tenant_id}`}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {device.namespace}
+                </Link>
+              ) : (
+                <span className="text-sm text-text-muted">&mdash;</span>
+              )}
+            </InfoItem>
+            <InfoItem
+              label="Tenant ID"
+              value={device.tenant_id}
+              mono
+              copyable
+            />
+            <InfoItem
+              label="Created"
+              value={formatDateFull(device.created_at)}
+            />
+            <InfoItem
+              label="Last Seen"
+              value={formatRelative(device.last_seen)}
+            />
           </dl>
         </Card>
       </div>
