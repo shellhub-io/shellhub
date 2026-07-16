@@ -13,6 +13,7 @@ import {
 import { useDevice } from "../hooks/useDevice";
 import { useDeviceActions } from "../hooks/useDeviceActions";
 import {
+  useRenameDevice,
   useAddDeviceTag,
   useRemoveDeviceTag,
 } from "../hooks/useDeviceMutations";
@@ -29,7 +30,8 @@ import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "./devices/InfoItem";
 import TagsSection from "@/components/common/TagsSection";
-import RenameSection from "./devices/RenameSection";
+import RenameSection from "@/components/common/RenameSection";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
@@ -50,6 +52,8 @@ export default function DeviceDetails() {
   );
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
+  const renameMutation = useRenameDevice();
+  const canRename = useHasPermission("device:rename");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useDeviceActions({
@@ -129,7 +133,13 @@ export default function DeviceDetails() {
           </div>
 
           <div>
-            <RenameSection uid={device.uid} currentName={device.name} />
+            <RenameSection
+              uid={device.uid}
+              currentName={device.name}
+              rename={renameMutation.mutateAsync}
+              entityLabel="device"
+              canRename={canRename}
+            />
             <div className="flex items-center gap-2 mt-1.5">
               <span
                 className={cn(
@@ -140,12 +150,18 @@ export default function DeviceDetails() {
                 )}
               >
                 <span
-                  className={cn("w-1.5 h-1.5 rounded-full", device.online ? "bg-accent-green" : "bg-text-muted/60")}
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    device.online ? "bg-accent-green" : "bg-text-muted/60",
+                  )}
                 />
                 {device.online ? "Online" : "Offline"}
               </span>
               <span
-                className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md", statusColor)}
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md",
+                  statusColor,
+                )}
               >
                 {device.status.charAt(0).toUpperCase() + device.status.slice(1)}
               </span>
@@ -186,7 +202,9 @@ export default function DeviceDetails() {
                   title="Delete device"
                   aria-label="Delete device"
                   className="border border-border"
-                  onClick={() => actionsController.requestAction(device, "remove")}
+                  onClick={() =>
+                    actionsController.requestAction(device, "remove")
+                  }
                 >
                   <TrashIcon className="w-4 h-4" />
                 </IconButton>
@@ -198,7 +216,9 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => actionsController.requestAction(device, "accept")}
+                  onClick={() =>
+                    actionsController.requestAction(device, "accept")
+                  }
                 >
                   Accept
                 </Button>
@@ -206,7 +226,9 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:reject">
                 <Button
                   variant="warning"
-                  onClick={() => actionsController.requestAction(device, "reject")}
+                  onClick={() =>
+                    actionsController.requestAction(device, "reject")
+                  }
                 >
                   Reject
                 </Button>
@@ -218,7 +240,9 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:accept">
                 <Button
                   variant="success"
-                  onClick={() => actionsController.requestAction(device, "accept")}
+                  onClick={() =>
+                    actionsController.requestAction(device, "accept")
+                  }
                 >
                   Accept
                 </Button>
@@ -226,7 +250,9 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:remove">
                 <Button
                   variant="destructive"
-                  onClick={() => actionsController.requestAction(device, "remove")}
+                  onClick={() =>
+                    actionsController.requestAction(device, "remove")
+                  }
                 >
                   Remove
                 </Button>

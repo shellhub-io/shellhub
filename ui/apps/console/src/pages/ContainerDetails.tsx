@@ -6,10 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
+import RenameSection from "@/components/common/RenameSection";
 import {
-  XMarkIcon,
-  PencilSquareIcon,
-  CheckIcon,
   TrashIcon,
   InformationCircleIcon,
   ServerIcon,
@@ -17,7 +15,6 @@ import {
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { isSdkError } from "../api/errors";
 import { useContainer } from "../hooks/useContainer";
 import {
   useRenameContainer,
@@ -43,7 +40,6 @@ import { LABEL_BASE } from "@/utils/styles";
 
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
-/* ─── Info Row ─── */
 function InfoItem({
   label,
   value,
@@ -64,7 +60,10 @@ function InfoItem({
       <dt className={LABEL_BASE}>{label}</dt>
       <dd className="flex items-center gap-1 mt-0.5">
         <span
-          className={cn("text-sm text-text-primary", mono ? "font-mono text-xs" : "font-medium")}
+          className={cn(
+            "text-sm text-text-primary",
+            mono ? "font-mono text-xs" : "font-medium",
+          )}
         >
           {display || "—"}
         </span>
@@ -74,101 +73,6 @@ function InfoItem({
   );
 }
 
-/* ─── Rename Inline ─── */
-function RenameSection({
-  uid,
-  currentName,
-}: {
-  uid: string;
-  currentName: string;
-}) {
-  const renameMutation = useRenameContainer();
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(currentName);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSave = async () => {
-    if (!name.trim() || name.trim() === currentName) {
-      setEditing(false);
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await renameMutation.mutateAsync({
-        path: { uid },
-        body: { name: name.trim() },
-      });
-      setEditing(false);
-    } catch (e) {
-      const status = isSdkError(e) ? e.status : undefined;
-      if (status === 409)
-        setError("A container with that name already exists.");
-      else if (status === 400) setError("Invalid container name.");
-      else setError("Failed to rename container.");
-    }
-    setSaving(false);
-  };
-
-  if (!editing) {
-    return (
-      <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
-        <IconButton
-          variant="primary"
-          title="Rename container"
-          aria-label="Rename container"
-          onClick={() => {
-            setName(currentName);
-            setEditing(true);
-          }}
-        >
-          <PencilSquareIcon className="w-4 h-4" />
-        </IconButton>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") void handleSave();
-            if (e.key === "Escape") setEditing(false);
-          }}
-          aria-label="Container name"
-          className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
-        />
-        <IconButton
-          variant="primary"
-          aria-label="Save name"
-          disabled={saving}
-          onClick={() => void handleSave()}
-        >
-          <CheckIcon className="w-4 h-4" strokeWidth={2} />
-        </IconButton>
-        <IconButton
-          aria-label="Cancel rename"
-          onClick={() => setEditing(false)}
-        >
-          <XMarkIcon className="w-4 h-4" strokeWidth={2} />
-        </IconButton>
-      </div>
-      {error && (
-        <p role="alert" className="text-2xs text-accent-red mt-1">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ─── Page ─── */
 export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
@@ -184,6 +88,7 @@ export default function ContainerDetails() {
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const [connectOpen, setConnectOpen] = useState(false);
 
+  const renameMutation = useRenameContainer();
   const addTagMutation = useAddContainerTag();
   const removeTagMutation = useRemoveContainerTag();
   const containerActions = useContainerActions({
@@ -267,7 +172,12 @@ export default function ContainerDetails() {
           </div>
 
           <div>
-            <RenameSection uid={container.uid} currentName={container.name} />
+            <RenameSection
+              uid={container.uid}
+              currentName={container.name}
+              rename={renameMutation.mutateAsync}
+              entityLabel="container"
+            />
             <div className="flex items-center gap-2 mt-1.5">
               <span
                 className={cn(
@@ -278,12 +188,18 @@ export default function ContainerDetails() {
                 )}
               >
                 <span
-                  className={cn("w-1.5 h-1.5 rounded-full", container.online ? "bg-accent-green" : "bg-text-muted/60")}
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    container.online ? "bg-accent-green" : "bg-text-muted/60",
+                  )}
                 />
                 {container.online ? "Online" : "Offline"}
               </span>
               <span
-                className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md", statusColor)}
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 text-2xs font-medium rounded-md",
+                  statusColor,
+                )}
               >
                 {container.status
                   ? container.status.charAt(0).toUpperCase() +
