@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -24,6 +24,7 @@ import DeviceActionsPortal from "./DeviceActionsPortal";
 import {
   PlusIcon,
   TagIcon,
+  ArrowRightIcon,
   XMarkIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
@@ -33,7 +34,6 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
 const PER_PAGE = 10;
@@ -70,11 +70,17 @@ const DEFAULTS: DevicesParams = {
 type SortField = "name" | "last_seen";
 
 export default function Devices() {
-  const { params, setPage, setSearch, setFilter, setArrayFilter, mapArrayFilter } =
-    usePaginatedListState<DevicesParams>({
-      defaults: DEFAULTS,
-      constraints: CONSTRAINTS,
-    });
+  const {
+    params,
+    setPage,
+    setSearch,
+    setFilter,
+    setArrayFilter,
+    mapArrayFilter,
+  } = usePaginatedListState<DevicesParams>({
+    defaults: DEFAULTS,
+    constraints: CONSTRAINTS,
+  });
 
   const debouncedSearch = useDebouncedValue(
     params.search.trim(),
@@ -111,9 +117,22 @@ export default function Devices() {
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const nsName = currentNamespace?.name ?? "";
 
+  // Acceptance lives in the install-keys area (each key's registration activity), so the devices list
+  // shows only accepted devices and drops the Pending/Rejected tabs. This is UI-only; the API is
+  // unchanged, and a link points to where pending devices are reviewed.
+  const visibleTabs = statusTabs.filter((tab) => tab.value === "accepted");
+
   const handleStatusChange = (newStatus: ValidStatus) => {
     setFilter("status", newStatus);
   };
+
+  // A lingering pending/rejected filter (e.g. a bookmarked URL) has no tab here, so snap back to
+  // accepted.
+  useEffect(() => {
+    if (params.status !== "accepted") {
+      setFilter("status", "accepted");
+    }
+  }, [params.status, setFilter]);
 
   const addFilterTag = useCallback(
     (tag: string) => {
@@ -349,17 +368,32 @@ export default function Devices() {
 
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
-          {statusTabs.map((tab) => (
-            <button
-              type="button"
-              key={tab.value}
-              onClick={() => handleStatusChange(tab.value)}
-              className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", params.status === tab.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
+            {visibleTabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.value}
+                onClick={() => handleStatusChange(tab.value)}
+                className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
+                  params.status === tab.value
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+            {/* Acceptance moved to the install-keys area, so the tab that used to be Pending now
+                navigates there instead of filtering (the arrow signals it leaves the list). */}
+            <Link
+              to="/install-keys"
+              className="h-full inline-flex items-center gap-1 px-3.5 text-xs font-medium rounded border border-transparent text-text-muted transition-all duration-150 hover:text-primary hover:bg-primary/10"
             >
-              {tab.label}
-            </button>
-          ))}
+              Install Keys
+              <ArrowRightIcon className="w-3 h-3" strokeWidth={2.5} />
+            </Link>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -469,9 +503,7 @@ export default function Devices() {
           );
         }}
         onTagDeleted={(name) => {
-          mapArrayFilter("tags", (tags) =>
-            tags.filter((t) => t !== name),
-          );
+          mapArrayFilter("tags", (tags) => tags.filter((t) => t !== name));
         }}
       />
     </div>

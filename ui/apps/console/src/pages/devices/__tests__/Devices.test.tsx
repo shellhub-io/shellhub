@@ -199,17 +199,22 @@ describe("Devices list", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders all status filter tabs", () => {
+    it("renders the Accepted tab and the Install Keys link, not the pending/rejected tabs", () => {
       renderPage();
       expect(
         screen.getByRole("button", { name: "Accepted" }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Pending" }),
+        screen.getByRole("link", { name: "Install Keys" }),
       ).toBeInTheDocument();
+      // Pending/rejected devices are managed from the install-keys area now, so the list is
+      // accepted-only and no longer offers those tabs.
       expect(
-        screen.getByRole("button", { name: "Rejected" }),
-      ).toBeInTheDocument();
+        screen.queryByRole("button", { name: "Pending" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Rejected" }),
+      ).not.toBeInTheDocument();
     });
 
     it("renders the search input", () => {
@@ -294,12 +299,16 @@ describe("Devices list", () => {
       });
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: "Sort by Hostname" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sort by Hostname" }),
+      );
       let calls = vi.mocked(useDevices).mock.calls;
       let last = calls[calls.length - 1][0];
       expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
 
-      await user.click(screen.getByRole("button", { name: "Sort by Hostname" }));
+      await user.click(
+        screen.getByRole("button", { name: "Sort by Hostname" }),
+      );
       calls = vi.mocked(useDevices).mock.calls;
       last = calls[calls.length - 1][0];
       expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
@@ -385,44 +394,8 @@ describe("Devices list", () => {
       );
     });
 
-    it("calls requestAction(device, 'accept') when the Accept button is clicked on a pending device", async () => {
-      const user = userEvent.setup();
-      const pending = makeDevice({ uid: "p-1", name: "pending-device", status: "pending", online: false });
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [pending],
-        totalCount: 1,
-      });
-      renderPage(["/?status=pending"]);
-      await user.click(screen.getByRole("button", { name: "Accept" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(pending, "accept");
-    });
-
-    it("calls requestAction(device, 'reject') when the Reject button is clicked on a pending device", async () => {
-      const user = userEvent.setup();
-      const pending = makeDevice({ uid: "p-2", name: "pending-device-2", status: "pending", online: false });
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [pending],
-        totalCount: 1,
-      });
-      renderPage(["/?status=pending"]);
-      await user.click(screen.getByRole("button", { name: "Reject" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(pending, "reject");
-    });
-
-    it("calls requestAction(device, 'remove') when the Remove button is clicked on a rejected device", async () => {
-      const user = userEvent.setup();
-      const rejected = makeDevice({ uid: "r-1", name: "rejected-device", status: "rejected", online: false });
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [rejected],
-        totalCount: 1,
-      });
-      renderPage(["/?status=rejected"]);
-      await user.click(screen.getByRole("button", { name: "Remove" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(rejected, "remove");
-    });
+    // Accept/reject/remove of pending and rejected devices moved to the install-keys area; the list is
+    // accepted-only (status is forced to accepted), so those inline actions are no longer reachable here.
   });
 
   // ── Tag mutation callbacks ────────────────────────────────────────────────────
@@ -479,7 +452,9 @@ describe("Devices list", () => {
         expect.objectContaining({ filterTags: ["existing"] }),
       );
       // The filter bar is still visible and the tags array remains stable
-      expect(screen.getByPlaceholderText("Search by hostname...")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Search by hostname..."),
+      ).toBeInTheDocument();
     });
   });
 });

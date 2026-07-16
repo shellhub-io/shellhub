@@ -1,8 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  editNamespaceMutation,
-  setDeviceAutoAcceptMutation,
-} from "../client/@tanstack/react-query.gen";
+import { editNamespaceMutation } from "../client/@tanstack/react-query.gen";
 import {
   getNamespaceToken,
   createNamespace as createNamespaceSdk,
@@ -16,14 +13,6 @@ export function useEditNamespace() {
   const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
     ...editNamespaceMutation(),
-    onSuccess: invalidate,
-  });
-}
-
-export function useSetDeviceAutoAccept() {
-  const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
-  return useMutation({
-    ...setDeviceAutoAcceptMutation(),
     onSuccess: invalidate,
   });
 }

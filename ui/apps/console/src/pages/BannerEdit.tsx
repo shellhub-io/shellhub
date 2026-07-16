@@ -38,7 +38,6 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
           settings: {
             connection_announcement: text,
             session_record: ns.settings?.session_record ?? false,
-            device_auto_accept: ns.settings?.device_auto_accept ?? false,
           },
         },
       });
@@ -70,7 +69,6 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
           disabled={!canEdit}
           placeholder="Enter the banner message..."
           className="flex-1 w-full px-4 py-3.5 bg-card text-sm text-text-primary font-mono placeholder:text-text-muted/30 focus:outline-none transition-all resize-none leading-relaxed disabled:opacity-dim disabled:cursor-not-allowed"
-
         />
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-surface/50 shrink-0">
           <span

@@ -213,6 +213,15 @@
     100% { background-position: -200% 0; }
   }
 
+  /* Unlimited usage bar: a barber-pole hatch in the primary hue over a chip-toned track. */
+  .usage-infinity {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(var(--color-primary-rgb), 0.35) 0 6px,
+      transparent 6px 12px
+    );
+  }
+
   /* Page transition fade */
   .page-enter {
     animation: pageEnter 1s ease-out;

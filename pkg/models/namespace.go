@@ -51,7 +51,6 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 type NamespaceSettings struct {
 	SessionRecord          bool   `json:"session_record"`
 	ConnectionAnnouncement string `json:"connection_announcement"`
-	DeviceAutoAccept       bool   `json:"device_auto_accept"`
 }
 
 // default Announcement Message for the shellhub namespace

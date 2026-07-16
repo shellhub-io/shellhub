@@ -1,0 +1,77 @@
+type: object
+properties:
+  key:
+    type: string
+    description: |
+      The plaintext install key. It is returned at creation and afterwards only
+      through the reveal endpoint. Pass it to the installer as `INSTALL_KEY`.
+    example: c629572a-b643-4301-90fe-4572b00d007e
+  tenant_id:
+    description: The tenant ID of the namespace with which the install key is associated.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  created_by:
+    description: The ID of the user who created the install key.
+    type: string
+    pattern: ^[0-9a-f]{24}$
+    example: 507f1f77bcf86cd799439011
+  name:
+    type: string
+    description: The name of the install key. It is unique per namespace.
+    example: ci-runners
+  reusable:
+    type: boolean
+    example: true
+  usage_limit:
+    type: integer
+    example: 10
+  used_times:
+    type: integer
+    example: 0
+  last_used_at:
+    type: string
+    format: date-time
+    nullable: true
+    example: null
+  ephemeral:
+    type: boolean
+    example: false
+  ephemeral_timeout:
+    type: integer
+    example: 10
+  tags:
+    type: array
+    items:
+      type: string
+    example:
+      - production
+  revoked:
+    type: boolean
+    example: false
+  expires_at:
+    type: string
+    format: date
+    nullable: true
+    example: 2026-08-20
+  created_at:
+    type: string
+    format: date
+    example: 2020-05-01
+  updated_at:
+    type: string
+    format: date
+    example: 2020-05-01
+required:
+  - key
+  - tenant_id
+  - created_by
+  - name
+  - reusable
+  - usage_limit
+  - used_times
+  - ephemeral
+  - tags
+  - revoked
+  - created_at
+  - updated_at

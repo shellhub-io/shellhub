@@ -51,6 +51,20 @@ type Device struct {
 
 	CustomFields map[string]string `json:"custom_fields,omitempty"`
 
+	// Ephemeral reports whether the device was enrolled with an ephemeral install key and should be
+	// removed automatically once it stays offline past EphemeralTimeout.
+	Ephemeral bool `json:"ephemeral"`
+	// EphemeralTimeout is how many minutes the device may stay offline before removal, copied from
+	// the install key at enrollment. Only meaningful when Ephemeral is true.
+	EphemeralTimeout int `json:"ephemeral_timeout,omitempty"`
+	// InstallKeyID is the digest of the install key the device enrolled with (a real key or the
+	// namespace's legacy key). It attributes the device to its enrollment source.
+	InstallKeyID string `json:"install_key_id,omitempty"`
+	// LastEnrollmentAttemptAt is when the enrollment policy was last (re-)evaluated for the device. It
+	// throttles reconciliation of a still-pending enrollment on the agent's periodic AuthDevice. Nil
+	// until the first re-evaluation.
+	LastEnrollmentAttemptAt *time.Time `json:"last_enrollment_attempt_at,omitempty"`
+
 	Taggable `json:",inline"`
 }
 
@@ -65,6 +79,9 @@ type DeviceAuth struct {
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
 	PublicKey string          `json:"public_key"`
 	TenantID  string          `json:"tenant_id"`
+	// InstallKey is an optional install key presented at install time to auto-accept the device. It is
+	// excluded from the UID hash so it never changes a device's identity.
+	InstallKey string `json:"install_key,omitempty" hash:"-"`
 }
 
 type DeviceAuthResponse struct {
@@ -72,6 +89,11 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+	// Status is the device's enrollment status after this auth (accepted/pending/rejected). It lets a
+	// current agent react to its authorization state (e.g. stop opening the tunnel when not accepted)
+	// instead of connecting blind. Additive and optional: older agents that don't read it are
+	// unaffected.
+	Status DeviceStatus `json:"status,omitempty"`
 	// Config holds device-specific configuration settings.
 	// This can include various parameters that the device needs to operate correctly.
 	// The structure of this map can vary depending on the device type and its requirements.

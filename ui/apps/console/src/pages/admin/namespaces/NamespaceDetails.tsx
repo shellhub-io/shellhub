@@ -204,20 +204,6 @@ export default function NamespaceDetails() {
                 {namespace.settings?.session_record ? "Enabled" : "Disabled"}
               </span>
             </InfoItem>
-            <InfoItem label="Auto-Accept Devices">
-              <span
-                className={cn(
-                  "inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md",
-                  namespace.settings?.device_auto_accept
-                    ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
-                    : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20",
-                )}
-              >
-                {namespace.settings?.device_auto_accept
-                  ? "Enabled"
-                  : "Disabled"}
-              </span>
-            </InfoItem>
             {namespace.settings?.connection_announcement && (
               <InfoItem label="Connection Announcement">
                 <div className="overflow-x-auto rounded-lg bg-surface border border-border p-3">

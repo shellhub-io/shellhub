@@ -141,11 +141,16 @@ type DeviceInfo struct {
 
 // DeviceAuth is the structure to represent the request data for device auth endpoint.
 type DeviceAuth struct {
-	Info      *DeviceInfo     `json:"info" validate:"required"`
-	Sessions  []string        `json:"sessions,omitempty"`
-	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
-	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
-	PublicKey string          `json:"public_key" validate:"required"`
-	TenantID  string          `json:"tenant_id" validate:"required"`
-	RealIP    string          `header:"X-Real-IP"`
+	Info       *DeviceInfo     `json:"info" validate:"required"`
+	Sessions   []string        `json:"sessions,omitempty"`
+	Hostname   string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
+	Identity   *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
+	PublicKey  string          `json:"public_key" validate:"required"`
+	TenantID   string          `json:"tenant_id" validate:"required"`
+	InstallKey string          `json:"install_key,omitempty"`
+	RealIP     string          `header:"X-Real-IP"`
+	// ForwardedHost/ForwardedProto carry the public base (set by the gateway) so a webhook-mode
+	// enrollment can build an absolute callback URL for the integrator.
+	ForwardedHost  string `header:"X-Forwarded-Host"`
+	ForwardedProto string `header:"X-Forwarded-Proto"`
 }

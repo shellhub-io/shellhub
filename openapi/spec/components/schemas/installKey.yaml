@@ -1,0 +1,143 @@
+type: object
+properties:
+  id:
+    description: |
+      The install key's digest (SHA256 of the plaintext key). The plaintext is never
+      returned; this digest is safe to expose and matches a device's `install_key_id`.
+    type: string
+    example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  tenant_id:
+    description: The tenant ID of the namespace with which the install key is associated.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  created_by:
+    description: The ID of the user who created the install key.
+    type: string
+    pattern: ^[0-9a-f]{24}$
+    example: 507f1f77bcf86cd799439011
+  name:
+    type: string
+    description: |
+      The name of the install key. It serves as an "external ID" since the key
+      itself is never returned after creation. It is unique per namespace.
+    example: ci-runners
+  mode:
+    type: string
+    enum: [automatic, manual, webhook, allowlist]
+    description: |
+      The registration policy applied to devices that register with the key:
+      `automatic` accepts, `manual` leaves the device pending for review,
+      `webhook` defers to an integrator endpoint, `allowlist` accepts a device
+      whose MAC is in `allowed_macs` and rejects the rest. The legacy/system key
+      defaults to `manual` but its mode can be changed like any other key.
+    example: automatic
+  webhook_url:
+    type: string
+    description: The integrator endpoint called at registration when `mode` is `webhook`.
+    example: https://register.example.com/hook
+  allowed_macs:
+    type: array
+    items:
+      type: string
+    description: The device MACs accepted when `mode` is `allowlist`.
+    example:
+      - "aa:bb:cc:dd:ee:ff"
+  webhook_timeout:
+    type: integer
+    description: Seconds the synchronous webhook call may take (0 = default).
+    example: 5
+  webhook_callback_ttl:
+    type: integer
+    description: Seconds the deferred-decision callback token stays valid (0 = default).
+    example: 3600
+  reusable:
+    type: boolean
+    description: Whether the key may register more than one device.
+    example: true
+  usage_limit:
+    type: integer
+    description: How many devices may register with the key. 0 means unlimited.
+    example: 10
+  used_times:
+    type: integer
+    description: How many devices have registered with the key.
+    example: 3
+  last_used_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: The UTC date a device last registered with the key.
+    example: 2020-05-01T00:00:00Z
+  ephemeral:
+    type: boolean
+    description: |
+      Whether devices registered with the key are removed automatically once they
+      stay offline past the ephemeral timeout.
+    example: false
+  ephemeral_timeout:
+    type: integer
+    description: Minutes an ephemeral device may stay offline before removal (1-10).
+    example: 10
+  tags:
+    type: array
+    items:
+      type: string
+    description: The names of the namespace tags applied to registered devices.
+    example:
+      - production
+  revoked:
+    type: boolean
+    description: Whether the key has been permanently revoked (one-way).
+    example: false
+  disabled:
+    type: boolean
+    description: |
+      Whether the key is temporarily paused. Unlike `revoked`, this is
+      reversible: a disabled key stops registering but can be re-enabled.
+    example: false
+  system:
+    type: boolean
+    description: |
+      Whether this is the namespace's auto-managed legacy key (the source of
+      devices registered with only a tenant ID). System keys cannot be edited or
+      deleted.
+    example: false
+  key_hint:
+    type: string
+    description: |
+      A short, non-secret prefix of the plaintext key, used to render a
+      recognizable masked fingerprint. Empty for the system key and for keys
+      created before at-rest encryption. The full key is available via reveal.
+    example: 1e7b0f4b
+  expires_at:
+    description: The absolute date the key expires. Null means it never expires.
+    type: string
+    format: date
+    nullable: true
+    example: 2026-08-20
+  created_at:
+    type: string
+    description: The UTC date when the key was created.
+    format: date
+    example: 2020-05-01
+  updated_at:
+    type: string
+    description: The UTC date when the key was last updated.
+    format: date
+    example: 2020-05-01
+required:
+  - id
+  - tenant_id
+  - created_by
+  - name
+  - mode
+  - reusable
+  - usage_limit
+  - used_times
+  - ephemeral
+  - tags
+  - revoked
+  - disabled
+  - created_at
+  - updated_at

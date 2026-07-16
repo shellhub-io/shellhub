@@ -28,14 +28,12 @@ export default function EditNamespaceDrawer({
     String(namespace?.max_devices ?? -1),
   );
   const [sessionRecord, setSessionRecord] = useState(false);
-  const [deviceAutoAccept, setDeviceAutoAccept] = useState(false);
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
     setName(namespace?.name ?? "");
     setMaxDevices(String(namespace?.max_devices ?? -1));
     setSessionRecord(namespace?.settings?.session_record ?? false);
-    setDeviceAutoAccept(namespace?.settings?.device_auto_accept ?? false);
     setError("");
   });
 
@@ -61,7 +59,6 @@ export default function EditNamespaceDrawer({
             connection_announcement:
               namespace.settings?.connection_announcement ?? "",
             session_record: sessionRecord,
-            device_auto_accept: deviceAutoAccept,
           },
         },
       });
@@ -129,13 +126,6 @@ export default function EditNamespaceDrawer({
           label="Session Recording"
           checked={sessionRecord}
           onChange={setSessionRecord}
-        />
-
-        <CheckboxField
-          id="edit-namespace-device-auto-accept"
-          label="Auto-Accept Devices"
-          checked={deviceAutoAccept}
-          onChange={setDeviceAutoAccept}
         />
 
         {error && (

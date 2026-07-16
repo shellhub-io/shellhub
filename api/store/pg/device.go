@@ -72,7 +72,7 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 
 	entities := make([]entity.Device, 0)
 
-	onlineExpr, onlineThreshold := deviceExprOnline(time.Now().Add(-2 * time.Minute))
+	onlineExpr, onlineThreshold := deviceExprOnline(clock.Now().Add(-2 * time.Minute))
 	query := db.
 		NewSelect().
 		Model(&entities).
@@ -103,6 +103,31 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 	return devices, count, nil
 }
 
+func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, error) {
+	db := pg.GetConnection(ctx)
+
+	entities := make([]entity.Device, 0)
+	// disconnected_at is NULL while online; the interval math keeps only ephemeral devices offline
+	// longer than their own timeout (in minutes).
+	err := db.NewSelect().
+		Model(&entities).
+		Where("ephemeral = TRUE").
+		Where("disconnected_at IS NOT NULL").
+		Where("disconnected_at + make_interval(mins => ephemeral_timeout) < ?", clock.Now()).
+		Limit(1000).
+		Scan(ctx)
+	if err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	devices := make([]models.Device, len(entities))
+	for i, e := range entities {
+		devices[i] = *entity.DeviceToModel(&e)
+	}
+
+	return devices, nil
+}
+
 func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, val string, opts ...store.QueryOption) (*models.Device, error) {
 	db := pg.GetConnection(ctx)
 
@@ -113,7 +138,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 
 	d := new(entity.Device)
 
-	onlineExpr, onlineThreshold := deviceExprOnline(time.Now().Add(-2 * time.Minute))
+	onlineExpr, onlineThreshold := deviceExprOnline(clock.Now().Add(-2 * time.Minute))
 	query := db.
 		NewSelect().
 		Model(d).

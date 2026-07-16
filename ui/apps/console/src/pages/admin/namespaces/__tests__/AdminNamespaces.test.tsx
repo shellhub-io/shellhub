@@ -61,7 +61,6 @@ function makeNamespace(overrides: Partial<Namespace> = {}): Namespace {
     settings: {
       session_record: true,
       connection_announcement: "",
-      device_auto_accept: false,
     },
     max_devices: 10,
     devices_accepted_count: 2,

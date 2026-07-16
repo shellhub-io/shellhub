@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -8,10 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	log "github.com/sirupsen/logrus"
@@ -207,7 +209,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	starTime := time.Now()
+	startTime := clock.Now()
 
 	go func() {
 		defer wg.Done()
@@ -232,7 +234,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	wg.Wait()
 
 	logger.WithFields(log.Fields{
-		"duration": time.Since(starTime).String(),
+		"duration": clock.Now().Sub(startTime).String(),
 	}).Info("web endpoint request completed")
 
 	return nil
@@ -244,34 +246,66 @@ func (h *Handlers) HandleHealthcheck(c echo.Context) error {
 	return c.String(http.StatusOK, "OK")
 }
 
+// requireAcceptedDevice fetches the device and refuses the connection unless it is accepted. A pending
+// or rejected device authenticates (it holds a token) but must not open a reverse tunnel: it is
+// unreachable over SSH anyway (device lookup filters accepted), so the tunnel would be an idle,
+// unreachable connection. Refusing here keeps pending and rejected devices from holding tunnels; the
+// agent keeps re-authenticating and connects once it is accepted.
+func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*models.Device, error) {
+	device, err := h.Client.GetDevice(ctx, uid)
+	if err != nil {
+		log.WithError(err).WithField("uid", uid).Error("unable to retrieve device for connection")
+
+		return nil, err
+	}
+
+	if device.Status != models.DeviceStatusAccepted {
+		log.WithFields(log.Fields{"uid": uid, "status": device.Status}).
+			Debug("refusing reverse tunnel for a non-accepted device")
+
+		return nil, echo.NewHTTPError(http.StatusForbidden, "device is not accepted")
+	}
+
+	return device, nil
+}
+
 // HandleConnectionV1 upgrades the HTTP connection to WebSocket and
 // registers a legacy (V1) reverse dialer for the agent. Each new logical
 // session requires an extra reverse dial handshake.
 func (h *Handlers) HandleConnectionV1(c echo.Context) error {
-	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
 	requestID := c.Request().Header.Get("X-Request-ID")
 
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	uid := c.Request().Header.Get("X-Device-UID")
 
-	// WARN: In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID" header.
-	// This can cause issues with establishing sessions and tracking online devices. To solve this,
-	// we retrieve the tenant ID by querying the API. Maybe this can be removed in a future release.
-	if tenant == "" {
+	if h.Config.RequireAcceptedTunnel {
+		// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused
+		// device gets a clean HTTP error instead of a dropped WebSocket).
+		device, err := h.requireAcceptedDevice(c.Request().Context(), uid)
+		if err != nil {
+			return err
+		}
+
+		if tenant == "" {
+			tenant = device.TenantID
+		}
+	} else if tenant == "" {
+		// WARN: In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID"
+		// header. This can cause issues with establishing sessions and tracking online devices. To solve
+		// this, we fall back to the device's tenant. Maybe this can be removed in a future release.
 		device, err := h.Client.GetDevice(c.Request().Context(), uid)
 		if err != nil {
-			log.WithError(err).
-				WithField("uid", uid).
-				Error("unable to retrieve device's tenant id")
+			log.WithError(err).WithField("uid", uid).Error("unable to retrieve device's tenant id")
 
 			return err
 		}
 
 		tenant = device.TenantID
+	}
+
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	h.Dialer.Manager.Set(
@@ -301,11 +335,6 @@ func (h *Handlers) HandleConnectionV2(c echo.Context) error {
 	log.Trace("handling v2 connection")
 	defer log.Trace("v2 connection handle closed")
 
-	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
 	var data HandleConnectionV2Data
 
 	if err := c.Bind(&data); err != nil {
@@ -318,6 +347,19 @@ func (h *Handlers) HandleConnectionV2(c echo.Context) error {
 		log.WithError(err).Error("failed to validate the request")
 
 		return err
+	}
+
+	// Only an accepted device may hold a reverse tunnel (checked before upgrading, so a refused device
+	// gets a clean HTTP error instead of a dropped WebSocket).
+	if h.Config.RequireAcceptedTunnel {
+		if _, err := h.requireAcceptedDevice(c.Request().Context(), data.UID); err != nil {
+			return err
+		}
+	}
+
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	logger := log.WithFields(log.Fields{

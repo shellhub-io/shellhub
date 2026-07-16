@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Registration Webhook — demo integrator</title>
+<style>
+  :root {
+    --bg: #18191B;
+    --surface: #1E2127;
+    --border: #2C2F36;
+    --primary: #667ACC;
+    --text: #E1E4EA;
+    --muted: #8B8F99;
+    --green: #5FA87E;
+    --red: #C77074;
+    --amber: #C7A15A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  a { color: var(--primary); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+  header h1 { font-size: 20px; margin: 0 0 4px; }
+  header p.sub { color: var(--muted); margin: 0 0 20px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  .kv { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .kv .label { color: var(--muted); min-width: 130px; }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12.5px;
+  }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+  .seg button {
+    background: transparent; color: var(--text); border: none; padding: 8px 14px;
+    cursor: pointer; font-size: 13px; border-right: 1px solid var(--border);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.active { background: var(--primary); color: #fff; }
+  .seg button:hover:not(.active) { background: var(--border); }
+  textarea {
+    width: 100%; margin-top: 12px; min-height: 92px; resize: vertical;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px;
+  }
+  .btn-primary {
+    background: var(--primary); color: #fff; border: none; border-radius: 6px;
+    padding: 11px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary:active { transform: translateY(1px); }
+  table { width: 100%; border-collapse: collapse; }
+  .table-scroll { overflow-x: auto; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  td.wrap-cell { white-space: normal; }
+  .sub-muted { color: var(--muted); font-size: 12px; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.accept { background: rgba(95,168,126,.16); color: var(--green); }
+  .pill.reject { background: rgba(199,112,116,.16); color: var(--red); }
+  .pill.pending { background: rgba(199,161,90,.16); color: var(--amber); }
+  .pill.defer { background: rgba(102,122,204,.16); color: var(--primary); }
+  .decide-btns { display: inline-flex; gap: 6px; margin-top: 6px; }
+  .decide-btns button {
+    border: 1px solid transparent; border-radius: 5px; padding: 4px 14px;
+    font-size: 12px; cursor: pointer; font-weight: 600;
+  }
+  .decide-btns button.accept { color: var(--green); background: rgba(95,168,126,.14); border-color: rgba(95,168,126,.45); }
+  .decide-btns button.accept:hover { background: rgba(95,168,126,.28); }
+  .decide-btns button.reject { color: var(--red); background: rgba(199,112,116,.14); border-color: rgba(199,112,116,.45); }
+  .decide-btns button.reject:hover { background: rgba(199,112,116,.28); }
+  .outcome { font-size: 11.5px; margin-top: 4px; }
+  .outcome.ok { color: var(--green); }
+  .outcome.bad { color: var(--red); }
+  .badge { font-weight: 700; }
+  .badge.ok { color: var(--green); }
+  .badge.bad { color: var(--red); }
+  .empty { color: var(--muted); padding: 24px 10px; text-align: center; }
+  .note { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+  .row-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Registration Webhook — demo integrator</h1>
+    <p class="sub">Receives ShellHub's device-registration webhook, verifies its HMAC signature, and decides accept / reject / pending.</p>
+  </header>
+
+  <div class="card">
+    <h2>Configure on the ShellHub install key</h2>
+    <div class="kv"><span class="label">Webhook URL</span> <code id="webhook-url">…</code></div>
+    <div class="kv"><span class="label">Shared secret</span> <code id="secret">…</code></div>
+    <p class="note">Set the install key's mode to <strong>webhook</strong>, point its URL at the address above (reachable from the ShellHub API container), and use the same secret on both sides. ShellHub signs each request with <code>X-ShellHub-Signature: hex(HMAC-SHA256(secret, body))</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Policy</h2>
+    <div class="seg" id="policy-seg">
+      <button data-policy="accept">Accept all</button>
+      <button data-policy="reject">Reject all</button>
+      <button data-policy="pending">Pending (manual)</button>
+      <button data-policy="defer">Defer (async)</button>
+      <button data-policy="allowlist">MAC allowlist</button>
+    </div>
+    <div id="allowlist-box" style="display:none">
+      <textarea id="allowlist" placeholder="One MAC per line, e.g.&#10;00:1a:2b:3c:4d:5e"></textarea>
+      <p class="note">Accept if the device's <code>mac</code> is listed (case-insensitive), otherwise reject. Edits save on blur.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row-actions">
+      <button class="btn-primary" id="simulate">Simulate registration</button>
+      <span class="sub-muted">Crafts a signed fake payload and POSTs it to <code>/webhook</code>, exercising the full verification path.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Live feed</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th><th>Device</th><th>OS</th><th>Key ID</th><th>Source IP</th><th>Signature</th><th>Decision</th><th>Reason</th>
+          </tr>
+        </thead>
+        <tbody id="feed"><tr><td colspan="8" class="empty">No registrations yet. Hit “Simulate registration”, or point a ShellHub key here.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:14px">ShellHub calls this endpoint synchronously at device registration. The returned decision maps to the device's initial status (accept → accepted, reject → rejected, pending → manual queue). ShellHub fails closed to <strong>pending</strong> on timeout, non-2xx, an unparseable body, or an unknown decision.</p>
+    <p class="note"><strong>Async / deferred:</strong> returning <code>defer</code> lands the device pending and keeps the payload's token-authenticated <code>callback_url</code>. Decide later with the <strong>Accept / Reject</strong> buttons on the row — the server POSTs the decision to that URL (the token in the URL is the only credential) and shows the callback's HTTP outcome.</p>
+  </div>
+</div>
+
+<script>
+  var currentPolicy = "accept";
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function fmtTime(iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? esc(iso) : d.toLocaleTimeString();
+  }
+
+  function pill(decision) {
+    var cls = decision === "accept" ? "accept"
+      : decision === "reject" ? "reject"
+      : decision === "defer" ? "defer" : "pending";
+    return '<span class="pill ' + cls + '">' + esc(decision) + "</span>";
+  }
+
+  // decisionCell renders the sync decision, plus the async controls/outcome for
+  // deferred events.
+  function decisionCell(e) {
+    if (e.final_decision) {
+      var oc = e.callback_outcome || "";
+      var ocOk = /→ 2\d\d/.test(oc);
+      return pill(e.final_decision) +
+        '<div class="outcome ' + (ocOk ? "ok" : "bad") + '">' + esc(oc) + "</div>";
+    }
+    if (e.decision === "defer") {
+      if (!e.callback_url) {
+        return pill("defer") + '<div class="outcome bad">no callback_url</div>';
+      }
+      return pill("defer") +
+        '<div class="decide-btns">' +
+        '<button class="accept" onclick="decide(\'' + esc(e.id) + "','accept')\">Accept</button>" +
+        '<button class="reject" onclick="decide(\'' + esc(e.id) + "','reject')\">Reject</button>" +
+        "</div>";
+    }
+    return pill(e.decision);
+  }
+
+  function decide(id, decision) {
+    fetch("/api/decide", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, decision: decision, reason: "resolved from demo UI" })
+    }).then(function () { poll(); }).catch(function () {});
+  }
+
+  function renderPolicy(policy, allowlist) {
+    currentPolicy = policy;
+    var btns = document.querySelectorAll("#policy-seg button");
+    btns.forEach(function (b) { b.classList.toggle("active", b.dataset.policy === policy); });
+    document.getElementById("allowlist-box").style.display = policy === "allowlist" ? "block" : "none";
+    var ta = document.getElementById("allowlist");
+    if (document.activeElement !== ta) ta.value = (allowlist || []).join("\n");
+  }
+
+  function renderFeed(events) {
+    var tbody = document.getElementById("feed");
+    if (!events || !events.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">No registrations yet. Hit “Simulate registration”, or point a ShellHub key here.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = events.map(function (e) {
+      var p = e.payload || {};
+      var info = p.info || {};
+      var kid = p.install_key_id || "";
+      var kidShort = kid ? esc(kid.slice(0, 10)) + "…" : '<span class="sub-muted">—</span>';
+      var kname = esc(p.install_key_name || "—");
+      var os = esc(info.pretty_name || "—") + (info.arch ? ' <span class="sub-muted">· ' + esc(info.arch) + "</span>" : "");
+      var sig = e.verified
+        ? '<span class="badge ok">✓ verified</span>'
+        : '<span class="badge bad">✗ mismatch</span>';
+      return "<tr>" +
+        "<td>" + fmtTime(e.time) + "</td>" +
+        "<td>" + esc(p.hostname || "—") + '<br><span class="sub-muted mono">' + esc(p.mac || "") + "</span></td>" +
+        "<td>" + os + "</td>" +
+        "<td>" + kname + '<br><span class="sub-muted mono" title="' + esc(kid) + '">' + kidShort + "</span></td>" +
+        '<td class="mono">' + esc(p.source_ip || "—") + "</td>" +
+        "<td>" + sig + "</td>" +
+        "<td>" + decisionCell(e) + "</td>" +
+        '<td class="wrap-cell sub-muted">' + esc(e.reason || "") + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  function poll() {
+    fetch("/api/state").then(function (r) { return r.json(); }).then(function (s) {
+      var origin = location.origin;
+      document.getElementById("webhook-url").textContent = origin + (s.webhook_path || "/webhook");
+      document.getElementById("secret").textContent = s.secret;
+      renderPolicy(s.policy, s.allowlist);
+      renderFeed(s.events);
+    }).catch(function () {});
+  }
+
+  function savePolicy() {
+    var allowlist = document.getElementById("allowlist").value
+      .split("\n").map(function (x) { return x.trim(); }).filter(Boolean);
+    fetch("/api/policy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ policy: currentPolicy, allowlist: allowlist })
+    }).then(poll);
+  }
+
+  document.querySelectorAll("#policy-seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      currentPolicy = b.dataset.policy;
+      renderPolicy(currentPolicy, document.getElementById("allowlist").value.split("\n"));
+      savePolicy();
+    });
+  });
+  document.getElementById("allowlist").addEventListener("blur", savePolicy);
+  document.getElementById("simulate").addEventListener("click", function () {
+    fetch("/api/simulate", { method: "POST" }).then(poll);
+  });
+
+  poll();
+  setInterval(poll, 1000);
+</script>
+</body>
+</html>

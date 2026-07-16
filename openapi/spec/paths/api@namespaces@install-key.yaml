@@ -1,0 +1,84 @@
+post:
+  operationId: installKeyCreate
+  summary: Creates a install key.
+  description: |
+    The `created_by` and `tenant_id` values are obtained from the JWT token. The
+    plaintext key is returned only once, in the response.
+  tags:
+    - install-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/installKeyCreate.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/installKeyWithKey.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: installKeyList
+  summary: List install keys
+  tags:
+    - install-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: The list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+      required: false
+      in: query
+    - name: sort_by
+      description: The property to sort of.
+      schema:
+        type: string
+        example: name
+        default: created_at
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/installKey.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -46,6 +46,10 @@ vi.mock("@/hooks/useTags", () => ({
   useTags: () => ({ tags: [], totalCount: 0, isLoading: false, error: null }),
 }));
 
+vi.mock("@/hooks/useInstallKeys", () => ({
+  useInstallKeys: () => ({ installKeys: [], totalCount: 0, isLoading: false }),
+}));
+
 vi.mock("@/components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
     <button type="button" aria-label={`Copy ${text}`} />

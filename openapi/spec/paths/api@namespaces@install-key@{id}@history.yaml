@@ -1,0 +1,58 @@
+get:
+  summary: List an install key's registration history
+  description: |
+    Returns the append-only registration history of an install key: one row per device that registered
+    with it, newest first. Restricted to administrators and owners.
+  operationId: installKeyHistory
+  tags:
+    - install-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - name: id
+      schema:
+        type: string
+        description: The install key's digest (its unique id). History is keyed by digest, not name.
+        example: 469dd055c1e0f3a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293
+      required: true
+      in: path
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: The list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+      required: false
+      in: query
+    - name: sort_by
+      description: The property to sort of.
+      schema:
+        type: string
+        example: created_at
+        default: created_at
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/installKeyEvent.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

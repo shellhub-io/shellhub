@@ -37,12 +37,29 @@ type (
 		authorizer.DeviceClaims
 		jwt.RegisteredClaims
 	}
+
+	// enrollmentDecisionClaims is the auxiliary type used to sign a deferred enrollment-decision
+	// callback token.
+	enrollmentDecisionClaims struct {
+		Kind claimKind `json:"claims"`
+		EnrollmentDecisionClaims
+		jwt.RegisteredClaims
+	}
 )
 
+// EnrollmentDecisionClaims scopes a deferred-decision callback token to exactly one enrolling device,
+// so a webhook integrator can accept/reject it later without any standing credential.
+type EnrollmentDecisionClaims struct {
+	DeviceUID    string `json:"device_uid"`
+	TenantID     string `json:"tenant_id"`
+	InstallKeyID string `json:"install_key_id"`
+}
+
 const (
-	kindUserClaims    claimKind = "user"
-	kindDeviceClaims  claimKind = "device"
-	kindUnknownClaims claimKind = "unknown"
+	kindUserClaims               claimKind = "user"
+	kindDeviceClaims             claimKind = "device"
+	kindEnrollmentDecisionClaims claimKind = "enroll_decision"
+	kindUnknownClaims            claimKind = "unknown"
 )
 
 // claimKindFromString converts a string to a claimKind.
@@ -62,7 +79,7 @@ func claimKindFromString(str string) claimKind {
 //
 // The token is valid for 72 hours; tenantID is optional.
 func EncodeUserClaims(claims authorizer.UserClaims, privateKey *rsa.PrivateKey) (string, error) {
-	now := time.Now()
+	now := clock.Now()
 	jwtClaims := userClaims{
 		Kind:       kindUserClaims,
 		UserClaims: claims,
@@ -104,6 +121,39 @@ func EncodeDeviceClaims(claims authorizer.DeviceClaims, privateKey *rsa.PrivateK
 	}
 
 	return token, nil
+}
+
+// EncodeEnrollmentDecisionClaims signs a deferred enrollment-decision callback token, valid for ttl.
+func EncodeEnrollmentDecisionClaims(claims EnrollmentDecisionClaims, ttl time.Duration, privateKey *rsa.PrivateKey) (string, error) {
+	now := clock.Now()
+	jwtClaims := enrollmentDecisionClaims{
+		Kind:                     kindEnrollmentDecisionClaims,
+		EnrollmentDecisionClaims: claims,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.Generate(),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
+		},
+	}
+
+	return encodeClaims(jwtClaims, privateKey)
+}
+
+// DecodeEnrollmentDecisionClaims verifies the signature and expiry of a callback token and returns its
+// claims together with the token's unique id (jti), which the caller records to keep the token
+// single-use. It errors on an invalid/expired token or one that is not an enrollment-decision token.
+func DecodeEnrollmentDecisionClaims(publicKey *rsa.PublicKey, raw string) (*EnrollmentDecisionClaims, string, error) {
+	claims := new(enrollmentDecisionClaims)
+	if err := decodeClaims(publicKey, raw, claims); err != nil {
+		return nil, "", err
+	}
+
+	if claims.Kind != kindEnrollmentDecisionClaims {
+		return nil, "", errors.New("invalid JWT's kind")
+	}
+
+	return &claims.EnrollmentDecisionClaims, claims.ID, nil
 }
 
 // ClaimsFromBearerToken decodes the provided bearer token into either [github.com/shellhub-io/shellhub/pkg/api/authorizer.UserClaims]

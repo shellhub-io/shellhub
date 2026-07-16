@@ -44,7 +44,6 @@ const permissions = {
   "namespace:removeMember": RoleLevel.ADMINISTRATOR,
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
-  "namespace:updateDeviceAutoAccept": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
   // Tags
@@ -83,6 +82,13 @@ const permissions = {
   "apiKey:create": RoleLevel.ADMINISTRATOR,
   "apiKey:edit": RoleLevel.ADMINISTRATOR,
   "apiKey:delete": RoleLevel.ADMINISTRATOR,
+
+  // Install Keys — edit/disable/revoke all map to the backend's InstallKeyUpdate permission.
+  "installKey:create": RoleLevel.ADMINISTRATOR,
+  "installKey:reveal": RoleLevel.ADMINISTRATOR,
+  "installKey:edit": RoleLevel.ADMINISTRATOR,
+  "installKey:disable": RoleLevel.ADMINISTRATOR,
+  "installKey:revoke": RoleLevel.ADMINISTRATOR,
 
   // Namespace settings
   "namespace:editBanner": RoleLevel.ADMINISTRATOR,

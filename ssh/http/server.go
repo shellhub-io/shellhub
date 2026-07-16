@@ -39,6 +39,9 @@ type Config struct {
 	// Domain is the fallback base domain when WebEndpointsDomain is not
 	// set.
 	Domain string
+	// RequireAcceptedTunnel refuses the reverse tunnel for a device that is not accepted (pending or
+	// rejected). Off by default; opt-in per instance.
+	RequireAcceptedTunnel bool
 }
 
 // webEndpointHost builds the full host value for a tunneled HTTP

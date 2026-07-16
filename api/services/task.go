@@ -17,9 +17,11 @@ import (
 )
 
 const (
-	TaskDevicesHeartbeat         = worker.TaskPattern("api:heartbeat")
-	CronDeviceCleanup            = worker.CronSpec("0 2 * * *")
-	CronNamespaceDeviceCountSync = worker.CronSpec("0 3 * * *")
+	TaskDevicesHeartbeat          = worker.TaskPattern("api:heartbeat")
+	CronDeviceCleanup             = worker.CronSpec("0 2 * * *")
+	CronNamespaceDeviceCountSync  = worker.CronSpec("0 3 * * *")
+	CronEphemeralCleanup          = worker.CronSpec("*/5 * * * *")
+	CronEnrollmentCallbackCleanup = worker.CronSpec("0 4 * * *")
 )
 
 // DevicesHeartbeat creates a task handler for processing device heartbeat signals. The payload format is a
@@ -65,6 +67,35 @@ func (s *service) DevicesHeartbeat() worker.TaskHandler {
 func (s *service) DeviceCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
 		return s.store.WithTransaction(ctx, s.deviceCleanup())
+	}
+}
+
+// EphemeralCleanup removes devices enrolled with an ephemeral install key that have stayed offline
+// past their own per-device timeout. It runs on its own, more frequent schedule than the daily
+// removed-device cleanup.
+func (s *service) EphemeralCleanup() worker.CronHandler {
+	return func(ctx context.Context) error {
+		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+	}
+}
+
+// EnrollmentCallbackCleanup prunes single-use callback redemption records once older than the maximum
+// token TTL, past which the token has expired and can no longer gate a replay. The table only gains a
+// row per resolved deferred webhook, so this keeps its growth bounded.
+func (s *service) EnrollmentCallbackCleanup() worker.CronHandler {
+	return func(ctx context.Context) error {
+		cutoff := clock.Now().Add(-time.Duration(models.InstallKeyWebhookMaxCallbackTTL) * time.Second)
+
+		deleted, err := s.store.EnrollmentCallbackCleanup(ctx, cutoff)
+		if err != nil {
+			return err
+		}
+
+		if deleted > 0 {
+			log.WithField("deleted", deleted).Info("pruned expired enrollment callback redemptions")
+		}
+
+		return nil
 	}
 }
 
@@ -166,6 +197,64 @@ func (s *service) deviceCleanup() store.TransactionCb {
 
 		log.WithFields(log.Fields{"total_found": totalCount, "total_deleted": totalDeleted}).
 			Info("Device cleanup completed successfully")
+
+		return nil
+	}
+}
+
+func (s *service) ephemeralCleanup() store.TransactionCb {
+	return func(ctx context.Context) error {
+		log.Info("Starting cleanup for offline ephemeral devices")
+
+		// The store selects ephemeral devices offline longer than their own per-device timeout. It is
+		// capped per run, so a large scale-down drains across successive cron ticks.
+		devices, err := s.store.DeviceListExpiredEphemeral(ctx)
+		if err != nil {
+			log.WithError(err).Error("Failed to list offline ephemeral devices")
+
+			return err
+		}
+
+		if len(devices) == 0 {
+			log.Info("No offline ephemeral devices found, cleanup completed")
+
+			return nil
+		}
+
+		log.WithField("total_devices", len(devices)).Info("Found offline ephemeral devices to cleanup")
+
+		// Decrement per (tenant, status): ephemeral devices are usually accepted, but a pending one
+		// (whose accept failed) must not be counted against the accepted total.
+		uids := make([]string, len(devices))
+		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)
+		for i, device := range devices {
+			uids[i] = device.UID
+			if deletedPerTenant[device.TenantID] == nil {
+				deletedPerTenant[device.TenantID] = make(map[models.DeviceStatus]int64)
+			}
+			deletedPerTenant[device.TenantID][device.Status]++
+		}
+
+		if _, err := s.store.DeviceDeleteMany(ctx, uids); err != nil {
+			log.WithError(err).Error("Failed to delete offline ephemeral devices")
+
+			return err
+		}
+
+		// Iterate tenants and statuses in a stable order so the decrement sequence is deterministic.
+		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
+			for _, status := range slices.Sorted(maps.Keys(deletedPerTenant[tenantID])) {
+				count := deletedPerTenant[tenantID][status]
+				if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, status, -count); err != nil {
+					log.WithFields(log.Fields{"tenant_id": tenantID, "status": status, "deleted_count": count, "error": err}).
+						Error("Failed to decrement ephemeral device count for namespace")
+
+					return err
+				}
+			}
+		}
+
+		log.WithField("total_deleted", len(devices)).Info("Ephemeral device cleanup completed successfully")
 
 		return nil
 	}

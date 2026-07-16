@@ -32,6 +32,10 @@ type Envs struct {
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
 	WebEndpoints                 bool `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	// RequireAcceptedTunnel refuses the agent's reverse tunnel unless the device is accepted, so a
+	// pending or rejected device holds no connection. Off by default: not every fleet can adopt it
+	// (some rely on seeing pending devices online), so it is opt-in per instance.
+	RequireAcceptedTunnel bool `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
 	// WebEndpointsDomain is the dedicated subdomain for web endpoints. When
 	// empty, Domain is used as the fallback. The env key must stay
 	// SHELLHUB_WEB_ENDPOINTS_DOMAIN (not SSH_SHELLHUB_WEB_ENDPOINTS_DOMAIN)
@@ -64,9 +68,10 @@ func main() {
 	d := dialer.NewDialer(cli)
 
 	h := http.NewServer(d, cli, &http.Config{
-		WebEndpoints:       env.WebEndpoints,
-		WebEndpointsDomain: env.WebEndpointsDomain,
-		Domain:             env.Domain,
+		WebEndpoints:          env.WebEndpoints,
+		WebEndpointsDomain:    env.WebEndpointsDomain,
+		Domain:                env.Domain,
+		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
 	router := h.Router

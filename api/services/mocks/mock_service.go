@@ -1003,6 +1003,74 @@ func (_c *MockService_CreateDevicePairing_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
+// CreateInstallKey provides a mock function for the type MockService
+func (_mock *MockService) CreateInstallKey(ctx context.Context, req *requests.CreateInstallKey) (*responses.CreateInstallKey, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateInstallKey")
+	}
+
+	var r0 *responses.CreateInstallKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateInstallKey) (*responses.CreateInstallKey, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateInstallKey) *responses.CreateInstallKey); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses.CreateInstallKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateInstallKey) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateInstallKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateInstallKey'
+type MockService_CreateInstallKey_Call struct {
+	*mock.Call
+}
+
+// CreateInstallKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.CreateInstallKey
+func (_e *MockService_Expecter) CreateInstallKey(ctx any, req any) *MockService_CreateInstallKey_Call {
+	return &MockService_CreateInstallKey_Call{Call: _e.mock.On("CreateInstallKey", ctx, req)}
+}
+
+func (_c *MockService_CreateInstallKey_Call) Run(run func(ctx context.Context, req *requests.CreateInstallKey)) *MockService_CreateInstallKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.CreateInstallKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.CreateInstallKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateInstallKey_Call) Return(res *responses.CreateInstallKey, err error) *MockService_CreateInstallKey_Call {
+	_c.Call.Return(res, err)
+	return _c
+}
+
+func (_c *MockService_CreateInstallKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateInstallKey) (*responses.CreateInstallKey, error)) *MockService_CreateInstallKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateNamespace provides a mock function for the type MockService
 func (_mock *MockService) CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, namespace)
@@ -1824,69 +1892,6 @@ func (_c *MockService_DeleteTag_Call) Return(err error) *MockService_DeleteTag_C
 }
 
 func (_c *MockService_DeleteTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeleteTag) error) *MockService_DeleteTag_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// EditDeviceAutoAccept provides a mock function for the type MockService
-func (_mock *MockService) EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error {
-	ret := _mock.Called(ctx, deviceAutoAccept, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for EditDeviceAutoAccept")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
-		r0 = returnFunc(ctx, deviceAutoAccept, tenantID)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockService_EditDeviceAutoAccept_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EditDeviceAutoAccept'
-type MockService_EditDeviceAutoAccept_Call struct {
-	*mock.Call
-}
-
-// EditDeviceAutoAccept is a helper method to define mock.On call
-//   - ctx context.Context
-//   - deviceAutoAccept bool
-//   - tenantID string
-func (_e *MockService_Expecter) EditDeviceAutoAccept(ctx any, deviceAutoAccept any, tenantID any) *MockService_EditDeviceAutoAccept_Call {
-	return &MockService_EditDeviceAutoAccept_Call{Call: _e.mock.On("EditDeviceAutoAccept", ctx, deviceAutoAccept, tenantID)}
-}
-
-func (_c *MockService_EditDeviceAutoAccept_Call) Run(run func(ctx context.Context, deviceAutoAccept bool, tenantID string)) *MockService_EditDeviceAutoAccept_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 bool
-		if args[1] != nil {
-			arg1 = args[1].(bool)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_EditDeviceAutoAccept_Call) Return(err error) *MockService_EditDeviceAutoAccept_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockService_EditDeviceAutoAccept_Call) RunAndReturn(run func(ctx context.Context, deviceAutoAccept bool, tenantID string) error) *MockService_EditDeviceAutoAccept_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3122,6 +3127,154 @@ func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// ListInstallKeyEvents provides a mock function for the type MockService
+func (_mock *MockService) ListInstallKeyEvents(ctx context.Context, req *requests.ListInstallKeyEvents) ([]models.InstallKeyEvent, int, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInstallKeyEvents")
+	}
+
+	var r0 []models.InstallKeyEvent
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstallKeyEvents) ([]models.InstallKeyEvent, int, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstallKeyEvents) []models.InstallKeyEvent); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.InstallKeyEvent)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListInstallKeyEvents) int); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListInstallKeyEvents) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListInstallKeyEvents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstallKeyEvents'
+type MockService_ListInstallKeyEvents_Call struct {
+	*mock.Call
+}
+
+// ListInstallKeyEvents is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListInstallKeyEvents
+func (_e *MockService_Expecter) ListInstallKeyEvents(ctx any, req any) *MockService_ListInstallKeyEvents_Call {
+	return &MockService_ListInstallKeyEvents_Call{Call: _e.mock.On("ListInstallKeyEvents", ctx, req)}
+}
+
+func (_c *MockService_ListInstallKeyEvents_Call) Run(run func(ctx context.Context, req *requests.ListInstallKeyEvents)) *MockService_ListInstallKeyEvents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListInstallKeyEvents
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListInstallKeyEvents)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListInstallKeyEvents_Call) Return(events []models.InstallKeyEvent, count int, err error) *MockService_ListInstallKeyEvents_Call {
+	_c.Call.Return(events, count, err)
+	return _c
+}
+
+func (_c *MockService_ListInstallKeyEvents_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstallKeyEvents) ([]models.InstallKeyEvent, int, error)) *MockService_ListInstallKeyEvents_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListInstallKeys provides a mock function for the type MockService
+func (_mock *MockService) ListInstallKeys(ctx context.Context, req *requests.ListInstallKey) ([]models.InstallKey, int, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInstallKeys")
+	}
+
+	var r0 []models.InstallKey
+	var r1 int
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstallKey) ([]models.InstallKey, int, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListInstallKey) []models.InstallKey); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.InstallKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListInstallKey) int); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListInstallKey) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListInstallKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstallKeys'
+type MockService_ListInstallKeys_Call struct {
+	*mock.Call
+}
+
+// ListInstallKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListInstallKey
+func (_e *MockService_Expecter) ListInstallKeys(ctx any, req any) *MockService_ListInstallKeys_Call {
+	return &MockService_ListInstallKeys_Call{Call: _e.mock.On("ListInstallKeys", ctx, req)}
+}
+
+func (_c *MockService_ListInstallKeys_Call) Run(run func(ctx context.Context, req *requests.ListInstallKey)) *MockService_ListInstallKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListInstallKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListInstallKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListInstallKeys_Call) Return(installKeys []models.InstallKey, count int, err error) *MockService_ListInstallKeys_Call {
+	_c.Call.Return(installKeys, count, err)
+	return _c
+}
+
+func (_c *MockService_ListInstallKeys_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListInstallKey) ([]models.InstallKey, int, error)) *MockService_ListInstallKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListNamespaceMembers provides a mock function for the type MockService
 func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error) {
 	ret := _mock.Called(ctx, req)
@@ -4304,6 +4457,63 @@ func (_c *MockService_ResolveDeviceLoginCode_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// ResolveEnrollmentCallback provides a mock function for the type MockService
+func (_mock *MockService) ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveEnrollmentCallback")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.EnrollmentCallback) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_ResolveEnrollmentCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveEnrollmentCallback'
+type MockService_ResolveEnrollmentCallback_Call struct {
+	*mock.Call
+}
+
+// ResolveEnrollmentCallback is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.EnrollmentCallback
+func (_e *MockService_Expecter) ResolveEnrollmentCallback(ctx any, req any) *MockService_ResolveEnrollmentCallback_Call {
+	return &MockService_ResolveEnrollmentCallback_Call{Call: _e.mock.On("ResolveEnrollmentCallback", ctx, req)}
+}
+
+func (_c *MockService_ResolveEnrollmentCallback_Call) Run(run func(ctx context.Context, req *requests.EnrollmentCallback)) *MockService_ResolveEnrollmentCallback_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.EnrollmentCallback
+		if args[1] != nil {
+			arg1 = args[1].(*requests.EnrollmentCallback)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ResolveEnrollmentCallback_Call) Return(err error) *MockService_ResolveEnrollmentCallback_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_ResolveEnrollmentCallback_Call) RunAndReturn(run func(ctx context.Context, req *requests.EnrollmentCallback) error) *MockService_ResolveEnrollmentCallback_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResolveInvitation provides a mock function for the type MockService
 func (_mock *MockService) ResolveInvitation(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error) {
 	ret := _mock.Called(ctx, req)
@@ -4368,6 +4578,72 @@ func (_c *MockService_ResolveInvitation_Call) Return(resolveInvitation *response
 }
 
 func (_c *MockService_ResolveInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error)) *MockService_ResolveInvitation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RevealInstallKey provides a mock function for the type MockService
+func (_mock *MockService) RevealInstallKey(ctx context.Context, req *requests.RevealInstallKey) (string, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RevealInstallKey")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.RevealInstallKey) (string, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.RevealInstallKey) string); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.RevealInstallKey) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_RevealInstallKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RevealInstallKey'
+type MockService_RevealInstallKey_Call struct {
+	*mock.Call
+}
+
+// RevealInstallKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.RevealInstallKey
+func (_e *MockService_Expecter) RevealInstallKey(ctx any, req any) *MockService_RevealInstallKey_Call {
+	return &MockService_RevealInstallKey_Call{Call: _e.mock.On("RevealInstallKey", ctx, req)}
+}
+
+func (_c *MockService_RevealInstallKey_Call) Run(run func(ctx context.Context, req *requests.RevealInstallKey)) *MockService_RevealInstallKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.RevealInstallKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.RevealInstallKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RevealInstallKey_Call) Return(key string, err error) *MockService_RevealInstallKey_Call {
+	_c.Call.Return(key, err)
+	return _c
+}
+
+func (_c *MockService_RevealInstallKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.RevealInstallKey) (string, error)) *MockService_RevealInstallKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4776,6 +5052,63 @@ func (_c *MockService_UpdateDeviceStatus_Call) Return(err error) *MockService_Up
 }
 
 func (_c *MockService_UpdateDeviceStatus_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeviceUpdateStatus) error) *MockService_UpdateDeviceStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateInstallKey provides a mock function for the type MockService
+func (_mock *MockService) UpdateInstallKey(ctx context.Context, req *requests.UpdateInstallKey) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateInstallKey")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateInstallKey) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_UpdateInstallKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateInstallKey'
+type MockService_UpdateInstallKey_Call struct {
+	*mock.Call
+}
+
+// UpdateInstallKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.UpdateInstallKey
+func (_e *MockService_Expecter) UpdateInstallKey(ctx any, req any) *MockService_UpdateInstallKey_Call {
+	return &MockService_UpdateInstallKey_Call{Call: _e.mock.On("UpdateInstallKey", ctx, req)}
+}
+
+func (_c *MockService_UpdateInstallKey_Call) Run(run func(ctx context.Context, req *requests.UpdateInstallKey)) *MockService_UpdateInstallKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.UpdateInstallKey
+		if args[1] != nil {
+			arg1 = args[1].(*requests.UpdateInstallKey)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UpdateInstallKey_Call) Return(err error) *MockService_UpdateInstallKey_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_UpdateInstallKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateInstallKey) error) *MockService_UpdateInstallKey_Call {
 	_c.Call.Return(run)
 	return _c
 }

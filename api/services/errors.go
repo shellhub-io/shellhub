@@ -143,6 +143,10 @@ var (
 	ErrSameTags                        = errors.New("trying to update tags with the same content", ErrLayer, ErrCodeNoContentChange)
 	ErrAPIKeyNotFound                  = errors.New("APIKey not found", ErrLayer, ErrCodeNotFound)
 	ErrAPIKeyDuplicated                = errors.New("APIKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrInstallKeyNotFound              = errors.New("InstallKey not found", ErrLayer, ErrCodeNotFound)
+	ErrInstallKeyDuplicated            = errors.New("InstallKey duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrInstallKeyForbidden             = errors.New("the legacy install key cannot be modified", ErrLayer, ErrCodeForbidden)
+	ErrInstallKeyInvalidField          = errors.New("install key field is invalid", ErrLayer, ErrCodeInvalid)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
@@ -221,6 +225,35 @@ func NewErrAPIKeyInvalid(name string) error {
 // NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.
 func NewErrAPIKeyDuplicated(conflicts []string) error {
 	return NewErrDuplicated(ErrAPIKeyDuplicated, conflicts, nil)
+}
+
+// NewErrInstallKeyNotFound returns an error when the InstallKey is not found.
+func NewErrInstallKeyNotFound(name string, next error) error {
+	return NewErrNotFound(ErrInstallKeyNotFound, name, next)
+}
+
+// NewErrInstallKeyDuplicated returns an error when the InstallKey name is duplicated.
+func NewErrInstallKeyDuplicated(conflicts []string) error {
+	return NewErrDuplicated(ErrInstallKeyDuplicated, conflicts, nil)
+}
+
+// NewErrInstallKeyForbidden returns an error when a install key cannot be modified: a system-managed
+// key, or a revoked (terminal) key that is edited.
+func NewErrInstallKeyForbidden() error {
+	return NewErrForbidden(ErrInstallKeyForbidden, nil)
+}
+
+// ErrDataInvalidFields carries the offending field(s) and why they are invalid, so the route can
+// answer with a per-field body ({"fields": {...}}) instead of a bare, bodyless 400. This mirrors the
+// shape the UI already consumes from the user/invitation endpoints.
+type ErrDataInvalidFields struct {
+	Fields map[string]string `json:"fields"`
+}
+
+// NewErrInstallKeyInvalidField returns a bad-request error tagging install key field(s) with a
+// human-readable reason, retrievable by the route from the error's Data.
+func NewErrInstallKeyInvalidField(fields map[string]string) error {
+	return errors.WithData(ErrInstallKeyInvalidField, ErrDataInvalidFields{Fields: fields})
 }
 
 // NewErrTagInvalid returns an error when the tag is invalid.
