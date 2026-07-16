@@ -354,7 +354,7 @@ export default function ContainerDetails() {
             </InfoItem>
             <InfoItem
               label="Status Updated"
-              value={formatDateFull(container.status_update_at ?? "")}
+              value={formatDateFull(container.status_updated_at ?? "")}
             />
           </dl>
         </Card>

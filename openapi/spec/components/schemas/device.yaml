@@ -33,8 +33,8 @@ properties:
     $ref: namespaceName.yaml
   status:
     $ref: deviceStatus.yaml
-  status_update_at:
-    $ref: deviceUpdateAt.yaml
+  status_updated_at:
+    $ref: deviceUpdatedAt.yaml
   created_at:
     description: Device's creation date
     type: string
