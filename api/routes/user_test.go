@@ -235,6 +235,21 @@ func TestUpdateUserPassword(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
+			title: "fails when current password does not match",
+			uid:   "123",
+			updatePayloadMock: requests.UserPasswordUpdate{
+				UserParam: requests.UserParam{
+					ID: "123",
+				},
+				CurrentPassword: "wrong_password",
+				NewPassword:     "new_password",
+			},
+			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
+				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(svc.ErrUserPasswordNotMatch).Once()
+			},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
 			title: "fails when try to updating a password an existing user",
 			uid:   "123",
 			updatePayloadMock: requests.UserPasswordUpdate{
