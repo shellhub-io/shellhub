@@ -10,12 +10,12 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
+import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import {
   Badge,
@@ -24,9 +24,6 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 const ZERO_DATE = "0001-01-01T00:00:00Z";
 
 type Member = NonNullable<
@@ -162,34 +159,25 @@ export default function NamespaceDetails() {
             Properties
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Name</dt>
-              <dd className={VALUE}>{namespace.name}</dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Tenant ID</dt>
-              <dd className="flex items-center gap-1 mt-0.5">
-                <span className="text-xs font-mono text-text-primary">
-                  {namespace.tenant_id}
-                </span>
-                <CopyButton text={namespace.tenant_id} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Owner</dt>
-              <dd className="mt-0.5">
-                <Link
-                  to={`/admin/users/${namespace.owner}`}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {ownerLabel}
-                </Link>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Created</dt>
-              <dd className={VALUE}>{formatDateFull(namespace.created_at)}</dd>
-            </div>
+            <InfoItem label="Name" value={namespace.name} />
+            <InfoItem
+              label="Tenant ID"
+              value={namespace.tenant_id}
+              mono
+              copyable
+            />
+            <InfoItem label="Owner">
+              <Link
+                to={`/admin/users/${namespace.owner}`}
+                className="text-sm text-primary hover:underline"
+              >
+                {ownerLabel}
+              </Link>
+            </InfoItem>
+            <InfoItem
+              label="Created"
+              value={formatDateFull(namespace.created_at)}
+            />
           </dl>
         </Card>
 
@@ -200,67 +188,59 @@ export default function NamespaceDetails() {
             Settings
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL}>Max Devices</dt>
-              <dd className={VALUE}>
-                {formatMaxDevices(namespace.max_devices)}
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Session Recording</dt>
-              <dd className="mt-1">
-                <span
-                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", namespace.settings?.session_record ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
-                >
-                  {namespace.settings?.session_record ? "Enabled" : "Disabled"}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Auto-Accept Devices</dt>
-              <dd className="mt-1">
-                <span
-                  className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md", namespace.settings?.device_auto_accept ? "bg-accent-green/10 text-accent-green border border-accent-green/20" : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20")}
-                >
-                  {namespace.settings?.device_auto_accept
-                    ? "Enabled"
-                    : "Disabled"}
-                </span>
-              </dd>
-            </div>
+            <InfoItem
+              label="Max Devices"
+              value={formatMaxDevices(namespace.max_devices)}
+            />
+            <InfoItem label="Session Recording">
+              <span
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md",
+                  namespace.settings?.session_record
+                    ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                    : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20",
+                )}
+              >
+                {namespace.settings?.session_record ? "Enabled" : "Disabled"}
+              </span>
+            </InfoItem>
+            <InfoItem label="Auto-Accept Devices">
+              <span
+                className={cn(
+                  "inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md",
+                  namespace.settings?.device_auto_accept
+                    ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                    : "bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20",
+                )}
+              >
+                {namespace.settings?.device_auto_accept
+                  ? "Enabled"
+                  : "Disabled"}
+              </span>
+            </InfoItem>
             {namespace.settings?.connection_announcement && (
-              <div>
-                <dt className={LABEL}>Connection Announcement</dt>
-                <dd className="mt-1.5 overflow-x-auto rounded-lg bg-surface border border-border p-3">
+              <InfoItem label="Connection Announcement">
+                <div className="overflow-x-auto rounded-lg bg-surface border border-border p-3">
                   <pre className="text-xs font-mono text-text-primary whitespace-pre">
                     {namespace.settings.connection_announcement}
                   </pre>
-                </dd>
-              </div>
+                </div>
+              </InfoItem>
             )}
-            <div>
-              <dt className={LABEL}>Total Devices</dt>
-              <dd className={VALUE}>{totalDevices}</dd>
-            </div>
             <div className="flex items-center gap-6">
-              <div>
-                <dt className={LABEL}>Accepted</dt>
-                <dd className={VALUE}>
-                  {namespace.devices_accepted_count || 0}
-                </dd>
-              </div>
-              <div>
-                <dt className={LABEL}>Pending</dt>
-                <dd className={VALUE}>
-                  {namespace.devices_pending_count || 0}
-                </dd>
-              </div>
-              <div>
-                <dt className={LABEL}>Rejected</dt>
-                <dd className={VALUE}>
-                  {namespace.devices_rejected_count || 0}
-                </dd>
-              </div>
+              <InfoItem label="Total Devices" value={String(totalDevices)} />
+              <InfoItem
+                label="Accepted"
+                value={String(namespace.devices_accepted_count || 0)}
+              />
+              <InfoItem
+                label="Pending"
+                value={String(namespace.devices_pending_count || 0)}
+              />
+              <InfoItem
+                label="Rejected"
+                value={String(namespace.devices_rejected_count || 0)}
+              />
             </div>
           </dl>
         </Card>

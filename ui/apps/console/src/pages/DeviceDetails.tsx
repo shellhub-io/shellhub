@@ -28,7 +28,7 @@ import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
-import InfoItem from "./devices/InfoItem";
+import InfoItem from "@/components/common/InfoItem";
 import TagsSection from "@/components/common/TagsSection";
 import RenameSection from "@/components/common/RenameSection";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -36,10 +36,6 @@ import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 
-/* ─── Shared styles ─── */
-const VALUE = "text-sm text-text-primary font-medium mt-0.5";
-
-/* ─── Page ─── */
 export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
@@ -319,16 +315,13 @@ export default function DeviceDetails() {
               value={device.info?.arch ?? ""}
               mono
             />
-            <div>
-              <dt className={LABEL_BASE}>Platform</dt>
-              <dd className="mt-1">
-                {device.info?.platform ? (
-                  <PlatformBadge platform={device.info.platform} />
-                ) : (
-                  <span className="text-sm text-text-muted">—</span>
-                )}
-              </dd>
-            </div>
+            <InfoItem label="Platform">
+              {device.info?.platform ? (
+                <PlatformBadge platform={device.info.platform} />
+              ) : (
+                <span className="text-sm text-text-muted">—</span>
+              )}
+            </InfoItem>
             <InfoItem
               label="Agent Version"
               value={device.info?.version ?? ""}
@@ -343,27 +336,22 @@ export default function DeviceDetails() {
             Timeline
           </h3>
           <dl className="space-y-3">
-            <div>
-              <dt className={LABEL_BASE}>Created</dt>
-              <dd className={VALUE}>{formatDateFull(device.created_at)}</dd>
-            </div>
-            <div>
-              <dt className={LABEL_BASE}>Last Seen</dt>
-              <dd className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm text-text-primary font-medium">
-                  {formatRelative(device.last_seen)}
-                </span>
-                <span className="text-2xs text-text-muted">
-                  {formatDateFull(device.last_seen)}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL_BASE}>Status Updated</dt>
-              <dd className={VALUE}>
-                {formatDateFull(device.status_update_at ?? "")}
-              </dd>
-            </div>
+            <InfoItem
+              label="Created"
+              value={formatDateFull(device.created_at)}
+            />
+            <InfoItem label="Last Seen">
+              <span className="text-sm text-text-primary font-medium">
+                {formatRelative(device.last_seen)}
+              </span>
+              <span className="text-2xs text-text-muted">
+                {formatDateFull(device.last_seen)}
+              </span>
+            </InfoItem>
+            <InfoItem
+              label="Status Updated"
+              value={formatDateFull(device.status_update_at ?? "")}
+            />
           </dl>
         </Card>
       </div>
