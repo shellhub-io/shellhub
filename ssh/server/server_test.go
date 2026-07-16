@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"testing"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -15,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // stubContext is a minimal gliderssh.Context implementation for tests.
@@ -118,4 +120,55 @@ func TestBannerHandlerSuccess(t *testing.T) {
 
 	assert.Empty(t, result,
 		"BannerHandler must return an empty string on the success path")
+}
+
+func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
+	raw, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	proxy := newProxyListener(raw)
+	defer proxy.Close() //nolint:errcheck
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	done := make(chan error, 1)
+	go func() {
+		conn, err := proxy.Accept()
+		if err != nil {
+			done <- err
+
+			return
+		}
+		defer conn.Close() //nolint:errcheck
+
+		conn.SetDeadline(deadline) //nolint:errcheck
+
+		buf := make([]byte, 5)
+		n, err := conn.Read(buf)
+		if err != nil {
+			done <- err
+
+			return
+		}
+
+		_, err = conn.Write(buf[:n])
+		done <- err
+	}()
+
+	conn, err := net.Dial("tcp", proxy.Addr().String())
+	require.NoError(t, err)
+
+	defer conn.Close() //nolint:errcheck
+
+	conn.SetDeadline(deadline) //nolint:errcheck
+
+	_, err = conn.Write([]byte("hello"))
+	assert.NoError(t, err)
+
+	buf := make([]byte, 5)
+	n, err := conn.Read(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, "hello", string(buf[:n]))
+
+	assert.NoError(t, <-done)
 }

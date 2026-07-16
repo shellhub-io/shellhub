@@ -148,6 +148,15 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 	return server
 }
 
+func newProxyListener(lis net.Listener) *proxyproto.Listener {
+	return &proxyproto.Listener{ // nolint: exhaustruct
+		Listener: lis,
+		ConnPolicy: func(_ proxyproto.ConnPolicyOptions) (proxyproto.Policy, error) {
+			return proxyproto.USE, nil
+		},
+	}
+}
+
 func (s *Server) ListenAndServe() error {
 	log.WithFields(log.Fields{
 		"addr": s.sshd.Addr,
@@ -160,8 +169,8 @@ func (s *Server) ListenAndServe() error {
 		return err
 	}
 
-	proxy := &proxyproto.Listener{Listener: list} // nolint: exhaustruct
-	defer proxy.Close()                           //nolint:errcheck
+	proxy := newProxyListener(list)
+	defer proxy.Close() //nolint:errcheck
 
 	return s.sshd.Serve(proxy)
 }
