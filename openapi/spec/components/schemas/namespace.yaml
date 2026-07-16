@@ -20,7 +20,8 @@ properties:
           description: The time when the member was added.
           example: 2024-09-03T23:17:50.51Z
         role:
-          $ref: namespaceMemberRole.yaml
+          allOf:
+            - $ref: namespaceMemberRole.yaml
           default: owner
         email:
           type: string
@@ -51,7 +52,7 @@ properties:
   max_devices:
     description: Namespace's max device numbers
     type: integer
-    minimum: 3
+    minimum: -1
     default: 3
   created_at:
     description: Namespace's creation date

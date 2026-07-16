@@ -1,4 +1,4 @@
 description: User's ID.
 type: string
-pattern: ^[0-9a-f]{24}$
-example: 507f1f77bcf86cd799439011
+format: uuid
+example: 1857f8cd-94c2-4b2a-930a-0bb608a33457

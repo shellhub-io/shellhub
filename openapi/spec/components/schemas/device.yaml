@@ -13,7 +13,6 @@ properties:
   identity:
     $ref: deviceIdentity.yaml
   info:
-    description: Device's info
     $ref: deviceInfo.yaml
   public_key:
     description: Device's public key.
@@ -31,7 +30,6 @@ properties:
     type: boolean
     example: true
   namespace:
-    description: Device's namespace
     $ref: namespaceName.yaml
   status:
     $ref: deviceStatus.yaml

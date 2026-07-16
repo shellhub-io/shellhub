@@ -2,5 +2,5 @@ description: Namespace's name
 type: string
 minLength: 1
 maxLength: 30
-pattern: /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
 example: examplespace
