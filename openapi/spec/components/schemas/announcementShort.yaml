@@ -12,5 +12,6 @@ required:
   - title
   - date
 example:
+  uuid: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
   title: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
   date: 2017-07-21T17:32:28Z
