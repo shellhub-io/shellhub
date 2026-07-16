@@ -14,6 +14,7 @@ import (
 	env_mocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
 var (
@@ -24,6 +25,9 @@ var (
 	clockMock  *clockmocks.MockClock
 	hashMock   *hashmock.MockHasher
 	now        time.Time
+	// realUUIDBackend is the real UUID generator captured before any test can swap uuid.DefaultBackend
+	// for a fixed-value mock. Tests that need genuinely unique IDs (the PG e2e) reset to it.
+	realUUIDBackend uuid.UUID
 )
 
 func TestMain(m *testing.M) {
@@ -32,6 +36,7 @@ func TestMain(m *testing.M) {
 	// Capture now before swapping clock.DefaultBackend so that clock.Now()
 	// uses the real wall-clock backend and returns a valid timestamp.
 	now = clock.Now()
+	realUUIDBackend = uuid.DefaultBackend
 	clientMock = &mocks.MockClient{}
 	clockMock = &clockmocks.MockClock{}
 	envMock = &env_mocks.MockBackend{}

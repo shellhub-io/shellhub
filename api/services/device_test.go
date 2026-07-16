@@ -2168,6 +2168,11 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
+			// A successful accept/reject freezes the decision on the device's history event.
+			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
+				storeMock.On("InstallKeyEventStampDecision", ctx, tc.req.TenantID, tc.req.UID, st, mock.Anything).Return(nil).Once()
+			}
+
 			err := service.UpdateDeviceStatus(ctx, tc.req)
 			require.Equal(t, tc.expectedError, err)
 		})
@@ -2535,6 +2540,11 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
+
+			// A successful accept/reject freezes the decision on the device's history event.
+			if st := models.DeviceStatus(tc.req.Status); tc.expectedError == nil && (st == models.DeviceStatusAccepted || st == models.DeviceStatusRejected) {
+				storeMock.On("InstallKeyEventStampDecision", ctx, tc.req.TenantID, tc.req.UID, st, mock.Anything).Return(nil).Once()
+			}
 
 			err := service.UpdateDeviceStatus(ctx, tc.req)
 			assert.ErrorIs(t, err, tc.expectedError)

@@ -26,6 +26,14 @@ interface KeyFileInputProps {
   disabledHint?: string;
   loadedLabel?: string;
   emptyLabel?: string;
+  /** Max accepted file size in bytes. Defaults to 512 KB. */
+  maxBytes?: number;
+}
+
+function formatBytes(bytes: number): string {
+  return bytes >= 1024 * 1024
+    ? `${Math.round(bytes / (1024 * 1024))} MB`
+    : `${Math.round(bytes / 1024)} KB`;
 }
 
 export default function KeyFileInput({
@@ -44,6 +52,7 @@ export default function KeyFileInput({
   disabledHint,
   loadedLabel = "Key loaded",
   emptyLabel = "Drop key file, paste, or browse",
+  maxBytes = 512 * 1024,
 }: KeyFileInputProps) {
   const {
     fileInputRef,
@@ -55,7 +64,7 @@ export default function KeyFileInput({
     handleDrop,
     handleFileInputChange,
     setDragging,
-  } = useKeyFileInput({ validate, onChange, onFileName, disabled });
+  } = useKeyFileInput({ validate, onChange, onFileName, disabled, maxBytes });
 
   const errorId = `${id}-error`;
   const hintId = `${id}-hint`;
@@ -163,7 +172,7 @@ export default function KeyFileInput({
 
       {fileSizeError && (
         <FieldError id={`${id}-file-size-error`}>
-          {renderErrorRow("File is too large (max 512 KB).")}
+          {renderErrorRow(`File is too large (max ${formatBytes(maxBytes)}).`)}
         </FieldError>
       )}
       {fileReadError && (

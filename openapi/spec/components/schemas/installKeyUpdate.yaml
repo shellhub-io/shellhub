@@ -1,0 +1,92 @@
+type: object
+properties:
+  name:
+    type: string
+    description: A new name for the install key. It is unique per namespace.
+    maxLength: 20
+    minLength: 3
+    pattern: ^[a-zA-Z0-9_-]{3,20}$
+    example: ci-runners
+  mode:
+    type: string
+    enum: [automatic, manual, webhook, allowlist]
+    description: |
+      Change the enrollment policy. Omit to leave unchanged. Mode-specific config
+      (`webhook_url`/`webhook_secret`, `allowed_macs`) may be sent alongside.
+    example: webhook
+  webhook_url:
+    type: string
+    format: uri
+    description: Update the integrator endpoint for `webhook` mode.
+    example: https://enroll.example.com/hook
+  webhook_secret:
+    type: string
+    description: Update the webhook signing secret. Write-only; never returned.
+    example: s3cr3t
+  allowed_macs:
+    type: array
+    items:
+      type: string
+    description: Replace the allowlist MACs.
+    example:
+      - "aa:bb:cc:dd:ee:ff"
+  webhook_timeout:
+    type: integer
+    description: Update the synchronous webhook timeout in seconds (1-15). 0 uses the default.
+    minimum: 0
+    maximum: 15
+    example: 5
+  webhook_callback_ttl:
+    type: integer
+    description: Update the deferred-decision token TTL in seconds (max 24h). 0 uses the default.
+    minimum: 0
+    maximum: 86400
+    example: 3600
+  revoked:
+    type: boolean
+    description: |
+      Set to true to revoke the key. Revocation is one-way: a revoked key cannot
+      be un-revoked.
+    example: true
+  disabled:
+    type: boolean
+    description: |
+      Pause or resume the key. Reversible: set to true to stop the key enrolling
+      devices, false to re-enable it.
+    example: true
+  expires_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: |
+      Set a new absolute expiration date (must be in the future). Omit to leave
+      the current expiry unchanged; null makes the key never expire.
+    example: 2026-08-20T00:00:00Z
+  usage_limit:
+    type: integer
+    minimum: 0
+    description: |
+      Set a new enrollment cap: 0 unlimited, 1 single-use, or the number of
+      devices. Omit to leave it unchanged. Reusability is re-derived from it.
+    example: 10
+  tags:
+    type: array
+    items:
+      type: string
+    description: The names of the namespace tags to apply to enrolled devices.
+    example:
+      - production
+  ephemeral:
+    type: boolean
+    description: |
+      Toggle whether devices enrolled with the key are removed automatically once
+      offline past the timeout. Omit to leave unchanged.
+    example: false
+  ephemeral_timeout:
+    type: integer
+    description: |
+      Minutes an ephemeral device may stay offline before removal (1-10). Only
+      honored when `ephemeral` is true.
+    minimum: 1
+    maximum: 10
+    example: 10

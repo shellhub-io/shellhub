@@ -92,6 +92,12 @@ func TestPgStore(t *testing.T) {
 		suite.TestAPIKeyDelete(t)
 	})
 
+	runSubSuite(t, "InstallKeyStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestInstallKeyModeRoundTrip(t)
+		suite.TestInstallKeyEventCreate(t)
+		suite.TestInstallKeyEventList(t)
+	})
+
 	runSubSuite(t, "PublicKeyStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestPublicKeyResolve(t)
 		suite.TestPublicKeyList(t)

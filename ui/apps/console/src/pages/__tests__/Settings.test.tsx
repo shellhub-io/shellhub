@@ -12,7 +12,6 @@ vi.mock("@/client", () => ({
   editNamespace: vi.fn(),
   deleteNamespace: vi.fn(),
   leaveNamespace: vi.fn(),
-  setDeviceAutoAccept: vi.fn(),
 }));
 
 vi.mock("@/env", async (importOriginal) => {
@@ -28,7 +27,6 @@ vi.mock("@/hooks/useNamespaces", () => ({
       type: "personal",
       settings: {
         session_record: false,
-        device_auto_accept: false,
         connection_announcement: "",
       },
     },
@@ -39,7 +37,6 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
   useEditNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useDeleteNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useLeaveNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
-  useSetDeviceAutoAccept: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
 vi.mock("@/components/billing/BillingSection", () => ({
@@ -124,22 +121,23 @@ describe("Settings", () => {
   describe("renders settings sections", () => {
     it("shows the General card heading", () => {
       renderSettings();
-      expect(screen.getByRole("heading", { name: /^general$/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /^general$/i }),
+      ).toBeInTheDocument();
     });
 
     it("shows the SSH card heading", () => {
       renderSettings();
-      expect(screen.getByRole("heading", { name: /^ssh$/i })).toBeInTheDocument();
-    });
-
-    it("shows the Devices card heading", () => {
-      renderSettings();
-      expect(screen.getByRole("heading", { name: /^devices$/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /^ssh$/i }),
+      ).toBeInTheDocument();
     });
 
     it("shows the Danger Zone card heading", () => {
       renderSettings();
-      expect(screen.getByRole("heading", { name: /danger zone/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /danger zone/i }),
+      ).toBeInTheDocument();
     });
 
     it("renders the namespace name", () => {
@@ -158,7 +156,9 @@ describe("Settings", () => {
   describe("danger zone", () => {
     it("renders the Delete button for owners", () => {
       renderSettings();
-      expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /delete/i }),
+      ).toBeInTheDocument();
     });
   });
 });

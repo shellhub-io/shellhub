@@ -61,6 +61,13 @@ tags:
 
       Except for `GET` endpoints, API key-related routes cannot be
       authenticated with an API key.
+  - name: install-keys
+    description: |
+      A install key is a reusable, revocable, namespace-scoped credential that
+      auto-accepts a device at install time. It can carry an expiration, a usage
+      limit, auto-applied tags, and an ephemeral flag. It is passed to the
+      installer as `INSTALL_KEY` and is the automation counterpart to the
+      interactive browser-based device enrollment.
   - name: system
     description: Routes related to running instance.
   - name: sessions
@@ -114,8 +121,6 @@ paths:
     $ref: paths/api@users@{id}@password.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
-  /api/namespaces/device-auto-accept/{tenant}:
-    $ref: paths/api@namespaces@device-auto-accept@{tenant}.yaml
   /api/devices:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:
@@ -126,6 +131,8 @@ paths:
     $ref: paths/api@devices@{uid}@{status}.yaml
   /api/devices/{uid}/custom_fields/{key}:
     $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
+  /api/devices/enroll/callback/{token}:
+    $ref: paths/api@devices@enroll@callback@{token}.yaml
   /api/devices/auth/code:
     $ref: paths/api@devices@auth@code.yaml
   /api/devices/auth/status:
@@ -166,6 +173,14 @@ paths:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:
     $ref: paths/api@namespaces@api-key@{key}.yaml
+  /api/namespaces/install-key:
+    $ref: paths/api@namespaces@install-key.yaml
+  /api/namespaces/install-key/{key}:
+    $ref: paths/api@namespaces@install-key@{key}.yaml
+  /api/namespaces/install-key/{key}/reveal:
+    $ref: paths/api@namespaces@install-key@{key}@reveal.yaml
+  /api/namespaces/install-key/{id}/history:
+    $ref: paths/api@namespaces@install-key@{id}@history.yaml
   /api/tags:
     $ref: paths/api@tags.yaml
   /api/tags/{name}:

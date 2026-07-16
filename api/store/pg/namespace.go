@@ -2,6 +2,8 @@ package pg
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/pg/entity"
@@ -12,8 +14,6 @@ import (
 )
 
 func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
-	db := pg.GetConnection(ctx)
-
 	namespace.CreatedAt = clock.Now()
 
 	// Single-namespace binding: once the instance is bound to a namespace
@@ -34,15 +34,44 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.TenantID = uuid.Generate()
 	}
 
-	nsEntity := entity.NamespaceFromModel(namespace)
-	if _, err := db.NewInsert().Model(nsEntity).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
-	}
+	// Insert the namespace, its memberships, and its legacy install key atomically, so a failure can't
+	// leave a namespace without the legacy key that keyless enrollments attribute to. InstallKeyCreate
+	// resolves its connection from ctx, so it joins this transaction transparently.
+	if err := pg.WithTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
 
-	if len(nsEntity.Memberships) > 0 {
-		if _, err := db.NewInsert().Model(&nsEntity.Memberships).Exec(ctx); err != nil {
-			return "", fromSQLError(err)
+		nsEntity := entity.NamespaceFromModel(namespace)
+		if _, err := db.NewInsert().Model(nsEntity).Exec(ctx); err != nil {
+			return fromSQLError(err)
 		}
+
+		if len(nsEntity.Memberships) > 0 {
+			if _, err := db.NewInsert().Model(&nsEntity.Memberships).Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		// Every namespace gets its system-managed legacy install key, so a tenant-only enrollment (a
+		// device presenting only the tenant ID) always has a source to attribute to. Created here, at
+		// the single namespace-creation chokepoint every path funnels through — the API, setup, the CLI,
+		// and the cloud/enterprise store that delegates here — so no path can skip it. The digest is
+		// derived from the tenant; agents never present it, it is resolved by the system flag.
+		digest := sha256.Sum256([]byte("system:" + namespace.TenantID))
+		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
+			ID:        hex.EncodeToString(digest[:]),
+			Name:      "legacy",
+			TenantID:  namespace.TenantID,
+			Mode:      models.InstallKeyModeManual,
+			Reusable:  true,
+			System:    true,
+			CreatedBy: namespace.Owner,
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return "", err
 	}
 
 	return namespace.TenantID, nil

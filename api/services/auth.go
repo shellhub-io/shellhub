@@ -84,6 +84,101 @@ func deviceHostname(hostname, mac string) string {
 	return ""
 }
 
+// applyInstallKeyTags resolves each of the install key's tag names within the namespace, creating any
+// that don't exist yet, and associates them with the device. Failures are logged but never block
+// enrollment — tags are metadata, not a gate.
+func (s *service) applyInstallKeyTags(ctx context.Context, tenantID, deviceUID string, tags []string) {
+	for _, name := range tags {
+		tag, err := s.store.TagResolve(ctx, store.TagNameResolver, name, s.store.Options().InNamespace(tenantID))
+		if err != nil {
+			if !errors.Is(err, store.ErrNoDocuments) {
+				log.WithError(err).WithField("tag", name).Warn("failed to resolve install key tag")
+
+				continue
+			}
+
+			id, cerr := s.store.TagCreate(ctx, &models.Tag{Name: name, TenantID: tenantID})
+			if cerr != nil {
+				log.WithError(cerr).WithField("tag", name).Warn("failed to create install key tag")
+
+				continue
+			}
+
+			tag = &models.Tag{ID: id, Name: name, TenantID: tenantID}
+		}
+
+		if err := s.store.TagPushToTarget(ctx, tag.ID, store.TagTargetDevice, deviceUID); err != nil {
+			log.WithError(err).WithField("tag", name).Warn("failed to apply install key tag to device")
+		}
+	}
+}
+
+// appendInstallKeyEvent records one immutable row in the install key's enrollment history. It is
+// best-effort: a failure is logged but never returned, so an audit write can't break enrollment.
+// Ephemeral enrollments are recorded too (stamped ephemeral) for audit completeness.
+func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+	event := &models.InstallKeyEvent{
+		InstallKeyID:   key.ID,
+		TenantID:       req.TenantID,
+		DeviceUID:      uid,
+		Hostname:       hostname,
+		SourceIP:       req.RealIP,
+		PublicKey:      req.PublicKey,
+		Ephemeral:      key.Ephemeral,
+		ReRegistration: reRegistration,
+	}
+
+	if req.Identity != nil {
+		event.MAC = req.Identity.MAC
+	}
+
+	if req.Info != nil {
+		event.Info = &models.DeviceInfo{
+			ID:         req.Info.ID,
+			PrettyName: req.Info.PrettyName,
+			Version:    req.Info.Version,
+			Arch:       req.Info.Arch,
+			Platform:   req.Info.Platform,
+		}
+	}
+
+	if err := s.store.InstallKeyEventCreate(ctx, event); err != nil {
+		log.WithError(err).WithField("install_key", key.Name).Warn("failed to append install key enrollment event")
+	}
+}
+
+// enrollmentInstallKey resolves the install key for a fresh enrollment. With a presented key it
+// validates it, rejecting an invalid or system key. With no key it resolves the namespace's legacy
+// (system) key, so a keyless enrollment is governed by the legacy key's (manual) mode. It returns the
+// resolved key (nil only when no legacy key exists), the digest to store on the device, and an error
+// only when a presented key is invalid.
+func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceAuth) (*models.InstallKey, string, error) {
+	if req.InstallKey != "" {
+		sk, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey), s.store.Options().InNamespace(req.TenantID))
+		// The legacy system key is never presentable by an agent; treat it like any invalid key.
+		if err != nil || sk.System || !sk.IsValid() {
+			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, err)
+		}
+
+		return sk, sk.ID, nil
+	}
+
+	if legacy, err := s.store.InstallKeyResolveSystem(ctx, req.TenantID); err == nil {
+		// A disabled legacy key means the namespace opted out of keyless enrollment: it requires an
+		// install key, so a device that shows up without one is hard-rejected here (no device row, no
+		// pending queue) rather than enrolled. Enabled is the default, so this is backward-compatible.
+		if !legacy.IsValid() {
+			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "required"}, nil)
+		}
+
+		// Return the legacy key itself (not nil) so the enrollment decision reads its mode uniformly:
+		// the legacy key is a manual key, so a keyless enrollment lands pending.
+		return legacy, legacy.ID, nil
+	}
+
+	return nil, "", nil
+}
+
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
@@ -98,6 +193,12 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 	if hostname == "" {
 		return nil, NewErrAuthDeviceNoIdentityAndHostname()
 	}
+
+	// The install key is resolved lazily, only when actually enrolling (device create or
+	// re-registration): a plain reconnect neither validates nor consumes it, so a revoked key never
+	// deauthorizes an already-enrolled device.
+	var installKey *models.InstallKey
+	installKeyID := ""
 
 	auth := models.DeviceAuth{
 		Hostname:  strings.ToLower(hostname),
@@ -132,6 +233,11 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 
+		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+
 		// NOTE: The position lookup is best-effort: a pairing accept materializes
 		// the device server-side without a device IP, and a lookup failure should
 		// not block registration. RemoteAddr is only persisted when RealIP parses as
@@ -163,6 +269,12 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			RemoteAddr:      remoteAddr,
 			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
 			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
+			Ephemeral:       installKey != nil && installKey.Ephemeral,
+			InstallKeyID:    installKeyID,
+		}
+
+		if device.Ephemeral {
+			device.EphemeralTimeout = installKey.EphemeralTimeout
 		}
 
 		if req.Info != nil {
@@ -183,20 +295,16 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 
-		if namespace.Settings != nil && namespace.Settings.DeviceAutoAccept {
-			autoAcceptReq := &requests.DeviceUpdateStatus{
-				TenantID: req.TenantID,
-				UID:      uid,
-				Status:   string(models.DeviceStatusAccepted),
-			}
-			if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
-				if errors.Is(err, ErrDeviceLicenseLimit) {
-					log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
-				} else {
-					log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
-				}
-			}
+		if installKey != nil && len(installKey.Tags) > 0 {
+			s.applyInstallKeyTags(ctx, req.TenantID, uid, installKey.Tags)
 		}
+
+		// The install key's mode is the enrollment policy: it decides whether this device is accepted,
+		// rejected, or left pending. A keyless enrollment resolves the legacy (manual) key, so it lands
+		// pending, exactly as before.
+		// Reflect the decision on the in-memory device so the response carries the resulting status
+		// (the store was already updated through UpdateDeviceStatus by applyEnrollmentDecision).
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, installKey, req, uid, hostname), installKey, req, uid, hostname, false, true)
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
@@ -210,9 +318,20 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		}
 
 		if device.RemovedAt != nil {
+			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req)
+			if err != nil {
+				return nil, err
+			}
+
 			device.RemovedAt = nil
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = clock.Now()
+			device.Ephemeral = installKey != nil && installKey.Ephemeral
+			device.EphemeralTimeout = 0
+			if device.Ephemeral {
+				device.EphemeralTimeout = installKey.EphemeralTimeout
+			}
+			device.InstallKeyID = installKeyID
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusRemoved, -1); err != nil {
 				return nil, err
 			}
@@ -220,23 +339,35 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 				return nil, err
 			}
 
-			if namespace.Settings != nil && namespace.Settings.DeviceAutoAccept {
-				autoAcceptReq := &requests.DeviceUpdateStatus{
-					TenantID: req.TenantID,
-					UID:      uid,
-					Status:   string(models.DeviceStatusAccepted),
-				}
-				if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
-					if errors.Is(err, ErrDeviceLicenseLimit) {
-						log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
-					} else {
-						log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed for re-registered device; device remains pending")
-					}
-				} else {
-					device.Status = models.DeviceStatusAccepted
-					device.StatusUpdatedAt = clock.Now()
+			if installKey != nil && len(installKey.Tags) > 0 {
+				s.applyInstallKeyTags(ctx, req.TenantID, uid, installKey.Tags)
+			}
+
+			// A re-registration is a fresh enrollment: the key's mode is re-evaluated (a webhook is
+			// called again, a use is consumed on accept). Keep the in-memory device status consistent
+			// with the decision so the DeviceUpdate below persists it.
+			decision := s.evaluateEnrollment(ctx, installKey, req, uid, hostname)
+
+			// An accept/reject runs through UpdateDeviceStatus, which derives the namespace counter delta
+			// from the device's *stored* status. Persist the pending transition first so it reads this
+			// fresh "pending", not the stale "removed" left by the soft-delete, or the counters drift.
+			if decision == enrollAccept || decision == enrollReject {
+				if err := s.store.DeviceUpdate(ctx, device); err != nil {
+					return nil, err
 				}
 			}
+
+			status := s.applyEnrollmentDecision(ctx, decision, installKey, req, uid, hostname, true, true)
+			if status != models.DeviceStatusPending {
+				device.Status = status
+				device.StatusUpdatedAt = clock.Now()
+			}
+		} else if device.Status == models.DeviceStatusPending {
+			// A still-pending device re-evaluates its enrollment policy on the agent's periodic
+			// AuthDevice, so a webhook decision the integrator couldn't make synchronously (or an accept
+			// the license limit blocked) can land on a later phone-home. Mutations land on the in-memory
+			// device and are persisted by the DeviceUpdate below.
+			s.reconcileEnrollment(ctx, device, req, uid, hostname)
 		}
 
 		if req.Info != nil {
@@ -307,6 +438,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		Token:     token,
 		Name:      cachedData["device_name"],
 		Namespace: cachedData["namespace_name"],
+		Status:    device.Status,
 	}
 
 	return resp, nil

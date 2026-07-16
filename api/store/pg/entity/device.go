@@ -36,7 +36,12 @@ type Device struct {
 	Latitude        float64   `bun:"latitude,type:numeric"`
 	// skipupdate: maintained by DeviceSetCustomField/DeviceDeleteCustomField, so DeviceUpdate
 	// must never write a stale snapshot of it.
-	CustomFields map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}',skipupdate"`
+	CustomFields     map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}',skipupdate"`
+	Ephemeral        bool              `bun:"ephemeral"`
+	EphemeralTimeout int               `bun:"ephemeral_timeout"`
+	InstallKeyID     string            `bun:"install_key_id,nullzero"`
+
+	LastEnrollmentAttemptAt *time.Time `bun:"last_enrollment_attempt_at,nullzero"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
@@ -50,19 +55,25 @@ func DeviceFromModel(model *models.Device) *Device {
 	}
 
 	device := &Device{
-		ID:              model.UID,
-		NamespaceID:     model.TenantID,
-		CreatedAt:       model.CreatedAt,
-		UpdatedAt:       time.Time{},
-		RemovedAt:       model.RemovedAt,
-		LastSeen:        model.LastSeen,
-		Status:          status,
-		StatusUpdatedAt: model.StatusUpdatedAt,
-		Name:            model.Name,
-		PublicKey:       model.PublicKey,
-		RemoteAddr:      model.RemoteAddr,
-		CustomFields:    model.CustomFields,
-		Tags:            []*Tag{},
+		ID:               model.UID,
+		NamespaceID:      model.TenantID,
+		CreatedAt:        model.CreatedAt,
+		UpdatedAt:        time.Time{},
+		RemovedAt:        model.RemovedAt,
+		LastSeen:         model.LastSeen,
+		Status:           status,
+		StatusUpdatedAt:  model.StatusUpdatedAt,
+		Name:             model.Name,
+		PublicKey:        model.PublicKey,
+		RemoteAddr:       model.RemoteAddr,
+		CustomFields:     model.CustomFields,
+		Ephemeral:        model.Ephemeral,
+		EphemeralTimeout: model.EphemeralTimeout,
+		InstallKeyID:     model.InstallKeyID,
+
+		LastEnrollmentAttemptAt: model.LastEnrollmentAttemptAt,
+
+		Tags: []*Tag{},
 	}
 
 	if model.DisconnectedAt != nil {
@@ -106,21 +117,27 @@ func DeviceFromModel(model *models.Device) *Device {
 
 func DeviceToModel(entity *Device) *models.Device {
 	device := &models.Device{
-		UID:             entity.ID,
-		TenantID:        entity.NamespaceID,
-		CreatedAt:       entity.CreatedAt,
-		RemovedAt:       entity.RemovedAt,
-		LastSeen:        entity.LastSeen,
-		Status:          models.DeviceStatus(entity.Status),
-		StatusUpdatedAt: entity.StatusUpdatedAt,
-		Name:            entity.Name,
-		PublicKey:       entity.PublicKey,
-		Online:          entity.Online,
-		Acceptable:      entity.Acceptable,
-		Namespace:       "",
-		DisconnectedAt:  nil,
-		RemoteAddr:      entity.RemoteAddr,
-		CustomFields:    entity.CustomFields,
+		UID:              entity.ID,
+		TenantID:         entity.NamespaceID,
+		CreatedAt:        entity.CreatedAt,
+		RemovedAt:        entity.RemovedAt,
+		LastSeen:         entity.LastSeen,
+		Status:           models.DeviceStatus(entity.Status),
+		StatusUpdatedAt:  entity.StatusUpdatedAt,
+		Name:             entity.Name,
+		PublicKey:        entity.PublicKey,
+		Online:           entity.Online,
+		Acceptable:       entity.Acceptable,
+		Namespace:        "",
+		DisconnectedAt:   nil,
+		RemoteAddr:       entity.RemoteAddr,
+		CustomFields:     entity.CustomFields,
+		Ephemeral:        entity.Ephemeral,
+		EphemeralTimeout: entity.EphemeralTimeout,
+		InstallKeyID:     entity.InstallKeyID,
+
+		LastEnrollmentAttemptAt: entity.LastEnrollmentAttemptAt,
+
 		Taggable: models.Taggable{
 			Tags: []models.Tag{},
 		},

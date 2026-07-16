@@ -128,6 +128,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
 	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
 	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
+	// Token-authenticated (the callback token is the credential); no JWT/API-key middleware.
+	publicAPI.POST(EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback))
 	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))
 	publicAPI.POST(AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser))
 	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
@@ -136,6 +138,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys), routesmiddleware.BlockAPIKey)
 	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyUpdate))
 	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyDelete))
+
+	publicAPI.POST(CreateInstallKeyURL, gateway.Handler(handler.CreateInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyCreate))
+	publicAPI.GET(ListInstallKeysURL, gateway.Handler(handler.ListInstallKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyList))
+	publicAPI.PATCH(UpdateInstallKeyURL, gateway.Handler(handler.UpdateInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyUpdate))
+	publicAPI.GET(RevealInstallKeyURL, gateway.Handler(handler.RevealInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyReveal))
+	publicAPI.GET(HistoryInstallKeyURL, gateway.Handler(handler.HistoryInstallKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.InstallKeyList))
 
 	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
@@ -223,7 +231,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
 
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
-	publicAPI.PUT(EditDeviceAutoAcceptURL, gateway.Handler(handler.EditDeviceAutoAccept), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceDeviceAutoAccept))
 
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))

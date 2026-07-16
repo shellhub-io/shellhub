@@ -1,0 +1,111 @@
+type: object
+description: |
+  One immutable row in an install key's append-only registration history: a single device that
+  registered with the key. The device facts are captured at registration time and never change.
+properties:
+  id:
+    description: The unique identifier of the event.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  install_key_id:
+    description: The digest of the install key the device registered with.
+    type: string
+    example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  tenant_id:
+    description: The registering device's namespace ID.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  device_uid:
+    description: The registered device's UID at registration time.
+    type: string
+    example: 13b0c8ea878e61ff849db69e795f0ca35b95eef0a5abe259b620b3f6a5a01e0d
+  hostname:
+    description: The registered device's hostname at registration time.
+    type: string
+    example: web-01
+  mac:
+    description: The registered device's MAC at registration time. May be empty.
+    type: string
+    example: 00:1a:2b:3c:4d:5e
+  info:
+    description: The registered device's system info at registration time. May be null.
+    type: object
+    nullable: true
+    properties:
+      id:
+        type: string
+        example: debian
+      pretty_name:
+        type: string
+        example: Debian GNU/Linux 12 (bookworm)
+      version:
+        type: string
+        example: v0.18.0
+      arch:
+        type: string
+        example: amd64
+      platform:
+        type: string
+        example: docker
+  source_ip:
+    description: The device's remote address at registration time. May be empty.
+    type: string
+    example: 203.0.113.7
+  public_key:
+    description: |
+      The registered device's public key (PEM) at registration time. Identifies the exact credential, so
+      re-keyed registrations are told apart. May be empty for events recorded before this was captured.
+    type: string
+  fingerprint:
+    description: |
+      The SHA256 fingerprint of public_key, computed at read time (not stored). Empty when the key is
+      absent or unparseable.
+    type: string
+    example: SHA256:abc123...
+  ephemeral:
+    description: Whether the key marked the device ephemeral.
+    type: boolean
+    example: false
+  re_registration:
+    description: Whether this was a re-registration of a previously removed device.
+    type: boolean
+    example: false
+  timestamp:
+    description: The UTC date the registration was recorded.
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00Z
+  device_status:
+    # The registered device's current status, joined live so the history can offer an accept/reject
+    # action. Empty when the device no longer exists.
+    $ref: deviceStatus.yaml
+  decided_status:
+    # The registration's frozen outcome (accepted or rejected), stamped when the device was decided.
+    # Empty while still pending. Survives the device being removed, unlike the live device_status.
+    $ref: deviceStatus.yaml
+  decided_at:
+    description: |
+      When the registration was decided (accepted/rejected), stamped once. Distinct from timestamp (the
+      registration time). Null while still pending.
+    type: string
+    format: date-time
+    nullable: true
+    example: 2020-05-02T00:00:00Z
+  is_current:
+    description: |
+      Whether this is the device's newest registration event. A device removed and re-registered shares
+      one device row across several events; the live status/decision belongs to the newest one alone,
+      so older events should not display it.
+    type: boolean
+    example: true
+required:
+  - id
+  - install_key_id
+  - tenant_id
+  - device_uid
+  - hostname
+  - ephemeral
+  - re_registration
+  - timestamp

@@ -38,7 +38,6 @@ type NamespaceService interface {
 	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
-	EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error
 }
 
 // CreateNamespace creates a new namespace.
@@ -129,6 +128,9 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 
 		return nil, NewErrNamespaceCreateStore(err)
 	}
+
+	// The namespace's legacy install key is created by the store at namespace creation, so every
+	// creation path (here, setup, the CLI, cloud/enterprise) gets it uniformly.
 
 	return ns, nil
 }
@@ -292,26 +294,6 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 	}
 
 	n.Settings.SessionRecord = sessionRecord
-	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
-		return err
-	}
-
-	return nil
-}
-
-// EditDeviceAutoAccept defines if new devices will be automatically accepted.
-func (s *service) EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return NewErrNamespaceNotFound(tenantID, err)
-		default:
-			return err
-		}
-	}
-
-	n.Settings.DeviceAutoAccept = deviceAutoAccept
 	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
 		return err
 	}

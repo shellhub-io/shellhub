@@ -1,0 +1,44 @@
+post:
+  summary: Submit a deferred enrollment decision
+  description: |
+    Redeems the signed callback token that ShellHub included in a webhook-mode enrollment request
+    (`callback_url`). The token is the credential, not an API key or JWT, and is scoped to a single
+    device, single-use (it only acts while the device is pending), and expires. Used by an integrator
+    that answered `defer` to accept or reject the device later.
+  operationId: enrollmentCallback
+  tags:
+    - devices
+    - community
+  # The signed token in the path is the only credential, so this endpoint takes no API key or JWT.
+  security: []
+  parameters:
+    - name: token
+      description: The signed callback token from the enrollment webhook's `callback_url`.
+      schema:
+        type: string
+      required: true
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            decision:
+              type: string
+              enum: [accept, reject]
+              example: accept
+            reason:
+              type: string
+              example: matched inventory record
+          required:
+            - decision
+  responses:
+    '200':
+      description: Decision applied.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      description: The callback token is invalid or expired.
+    '500':
+      $ref: ../components/responses/500.yaml

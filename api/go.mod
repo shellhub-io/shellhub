@@ -3,6 +3,7 @@ module github.com/shellhub-io/shellhub/api
 go 1.25.8
 
 require (
+	code.dny.dev/ssrf v0.3.0
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/getkin/kin-openapi v0.142.0
 	github.com/getsentry/sentry-go v0.47.0

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -40,6 +40,15 @@ export interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string | undefined;
 
+  /** When a row's key matches, an extra full-width row is rendered below it with
+   * `renderExpandedRow`. Used for inline accordion panels. */
+  expandedRowKey?: string | null;
+  renderExpandedRow?: (row: T) => ReactNode;
+
+  /** Hide the column header row. For compact/embedded previews where the columns
+   * are self-evident and a header would read as a separate table. */
+  hideHeader?: boolean;
+
   isLoading?: boolean;
   loadingMessage?: string;
   emptyState?: ReactNode;
@@ -51,6 +60,12 @@ export interface DataTableProps<T> {
    * provides the chrome.
    */
   noWrapper?: boolean;
+  /**
+   * When true, the header row gets a top rule so it reads as a boundary in an
+   * embedded context with no surrounding border. Keep it off (the default) when
+   * the parent already draws a border, or the two rules stack into a thick edge.
+   */
+  headerTopBorder?: boolean;
 }
 
 function SortIndicator({
@@ -109,11 +124,15 @@ export default function DataTable<T>({
   onSort,
   onRowClick,
   rowClassName,
+  expandedRowKey,
+  renderExpandedRow,
+  hideHeader = false,
   isLoading,
   loadingMessage = "Loading...",
   emptyState,
   emptyMessage = "No data available",
   noWrapper = false,
+  headerTopBorder = false,
 }: DataTableProps<T>) {
   const hasPagination =
     page !== undefined &&
@@ -123,42 +142,51 @@ export default function DataTable<T>({
   const tableContent = (
     <div className="overflow-x-auto">
       <table className="w-full" aria-label={label}>
-        <thead>
-          <tr className="border-b border-border bg-surface/50">
-            {columns.map((col) => {
-              const isSortable = !!(col.sortable && onSort);
-              return (
-                <th
-                  key={col.key}
-                  className={cn(TH_CLASS, col.headerClassName)}
-                  aria-sort={
-                    isSortable
-                      ? getAriaSort(col.key, sortField, sortOrder)
-                      : undefined
-                  }
-                >
-                  {isSortable ? (
-                    <button
-                      type="button"
-                      onClick={() => onSort(col.key)}
-                      aria-label={`Sort by ${col.header}`}
-                      className="text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted inline-flex items-center rounded-sm hover:text-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50"
-                    >
-                      {col.header}
-                      <SortIndicator
-                        field={col.key}
-                        sortField={sortField}
-                        sortOrder={sortOrder}
-                      />
-                    </button>
-                  ) : (
-                    col.header
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
+        {!hideHeader && (
+          <thead>
+            <tr
+              className={cn(
+                "border-b border-border bg-surface/50",
+                // Only an embedded table with no surrounding border asks for a top rule; keying it off
+                // noWrapper would double the border on callers embedded inside an already-bordered card.
+                headerTopBorder && "border-t",
+              )}
+            >
+              {columns.map((col) => {
+                const isSortable = !!(col.sortable && onSort);
+                return (
+                  <th
+                    key={col.key}
+                    className={cn(TH_CLASS, col.headerClassName)}
+                    aria-sort={
+                      isSortable
+                        ? getAriaSort(col.key, sortField, sortOrder)
+                        : undefined
+                    }
+                  >
+                    {isSortable ? (
+                      <button
+                        type="button"
+                        onClick={() => onSort(col.key)}
+                        aria-label={`Sort by ${col.header}`}
+                        className="text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted inline-flex items-center rounded-sm hover:text-text-primary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50"
+                      >
+                        {col.header}
+                        <SortIndicator
+                          field={col.key}
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                        />
+                      </button>
+                    ) : (
+                      col.header
+                    )}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+        )}
         <tbody className="divide-y divide-border/60">
           {isLoading && data.length === 0 ? (
             <tr>
@@ -181,34 +209,44 @@ export default function DataTable<T>({
               const extraClass = rowClassName?.(row) ?? "";
               const clickHandler = onRowClick;
               const isClickable = !!clickHandler;
+              const key = rowKey(row, index);
+              const isExpanded = !!renderExpandedRow && expandedRowKey === key;
               return (
-                <tr
-                  key={rowKey(row, index)}
-                  onClick={clickHandler ? () => clickHandler(row) : undefined}
-                  onKeyDown={
-                    clickHandler
-                      ? (e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            clickHandler(row);
+                <Fragment key={key}>
+                  <tr
+                    onClick={clickHandler ? () => clickHandler(row) : undefined}
+                    onKeyDown={
+                      clickHandler
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              clickHandler(row);
+                            }
                           }
-                        }
-                      : undefined
-                  }
-                  tabIndex={isClickable ? 0 : undefined}
-                  className={cn(
-                    "group transition-colors",
-                    isClickable &&
-                      "cursor-pointer hover:bg-hover-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 focus-visible:-outline-offset-2",
-                    extraClass,
+                        : undefined
+                    }
+                    tabIndex={isClickable ? 0 : undefined}
+                    className={cn(
+                      "group transition-colors",
+                      isClickable &&
+                        "cursor-pointer hover:bg-hover-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50 focus-visible:-outline-offset-2",
+                      extraClass,
+                    )}
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} className="px-4 py-3.5">
+                        {col.render(row)}
+                      </td>
+                    ))}
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={columns.length} className="p-0">
+                        {renderExpandedRow(row)}
+                      </td>
+                    </tr>
                   )}
-                >
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3.5">
-                      {col.render(row)}
-                    </td>
-                  ))}
-                </tr>
+                </Fragment>
               );
             })
           )}

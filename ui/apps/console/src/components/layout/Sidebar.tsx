@@ -12,6 +12,7 @@ import {
   CubeIcon,
   GlobeAltIcon,
   ShieldExclamationIcon,
+  TicketIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
@@ -103,6 +104,11 @@ function buildSections(): NavSection[] {
           to: "/team",
           label: "Team",
           icon: <UsersIcon className={navIcon} />,
+        },
+        {
+          to: "/install-keys",
+          label: "Install Keys",
+          icon: <TicketIcon className={navIcon} />,
         },
         {
           to: "/settings",

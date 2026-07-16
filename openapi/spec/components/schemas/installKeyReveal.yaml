@@ -1,0 +1,8 @@
+type: object
+properties:
+  key:
+    type: string
+    description: The plaintext install key, decrypted on demand from its at-rest ciphertext.
+    example: 1e7b0f4b-aca4-48eb-a353-7469f00665ed
+required:
+  - key

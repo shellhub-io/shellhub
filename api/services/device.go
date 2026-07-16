@@ -269,7 +269,22 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 }
 
 func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error {
-	return s.store.WithTransaction(ctx, s.updateDeviceStatus(req))
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req)); err != nil {
+		return err
+	}
+
+	// Freeze the decision on the device's enrollment history event so the audit keeps it after the
+	// device is removed. Best-effort and outside the transaction: a stamp failure must not roll back the
+	// accept/reject that already committed. This is the single chokepoint every accept/reject reaches.
+	status := models.DeviceStatus(req.Status)
+	if status == models.DeviceStatusAccepted || status == models.DeviceStatusRejected {
+		if err := s.store.InstallKeyEventStampDecision(ctx, req.TenantID, req.UID, status, clock.Now()); err != nil {
+			log.WithError(err).WithFields(log.Fields{"device_uid": req.UID, "status": req.Status}).
+				Warn("failed to stamp the enrollment decision on the history event")
+		}
+	}
+
+	return nil
 }
 
 func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.TransactionCb {

@@ -1,0 +1,34 @@
+get:
+  summary: Reveal a install key
+  description: |
+    Returns the plaintext of a install key, decrypted on demand from its at-rest
+    ciphertext. Restricted to administrators and owners. The system (legacy) key
+    and keys created before at-rest encryption cannot be revealed.
+  operationId: installKeyReveal
+  tags:
+    - install-keys
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - name: key
+      schema:
+        type: string
+        description: The install key name.
+        example: ci-runners
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/installKeyReveal.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -100,9 +100,3 @@ type SessionEditRecordStatus struct {
 	TenantParam
 	SessionRecord bool `json:"session_record"`
 }
-
-// EditDeviceAutoAccept is the structure to represent the request data for edit device auto accept endpoint.
-type EditDeviceAutoAccept struct {
-	TenantParam
-	DeviceAutoAccept bool `json:"device_auto_accept"`
-}

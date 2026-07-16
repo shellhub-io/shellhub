@@ -44,6 +44,7 @@ type Service interface {
 	SetupService
 	SystemService
 	APIKeyService
+	InstallKeyService
 
 	// Store returns the underlying store instance.
 	//

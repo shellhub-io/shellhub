@@ -11,6 +11,7 @@ type Store interface {
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore
+	InstallKeyStore
 	TransactionStore
 	SystemStore
 	MembershipInvitationStore

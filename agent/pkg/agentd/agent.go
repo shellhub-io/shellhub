@@ -99,6 +99,12 @@ type Config struct {
 	// code's namespace automatically, so it never lands in the pending list.
 	PairingCode string `env:"PAIRING_CODE"`
 
+	// InstallKey is a reusable install key handed to the agent at install time (minted from the
+	// console's Install Keys page). It rides alongside TenantID: the server auto-accepts the device
+	// into the key's namespace, applying the key's tags and ephemeral flag, so it never lands in the
+	// pending list.
+	InstallKey string `env:"INSTALL_KEY"`
+
 	// Determine the interval to send the keep alive message to the server. This
 	// has a direct impact of the bandwidth used by the device when in idle
 	// state. Default is 30 seconds.
@@ -433,10 +439,11 @@ var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostn
 // fields, and the UID hash must match the later device auth.
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 	auth := &models.DeviceAuth{
-		Hostname:  a.config.PreferredHostname,
-		Identity:  a.Identity,
-		TenantID:  a.config.TenantID,
-		PublicKey: string(keygen.EncodePublicKeyToPem(a.pubKey)),
+		Hostname:   a.config.PreferredHostname,
+		Identity:   a.Identity,
+		TenantID:   a.config.TenantID,
+		PublicKey:  string(keygen.EncodePublicKeyToPem(a.pubKey)),
+		InstallKey: a.config.InstallKey,
 	}
 
 	// NOTE: A MAC address can be empty when the network interface used to communicate with the external world isn't a

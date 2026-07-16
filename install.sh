@@ -87,6 +87,13 @@ enroll_agent_interactively() {
     return 0
   fi
 
+  if [ -n "$INSTALL_KEY" ]; then
+    echo ""
+    echo "The device will be accepted automatically via the install key."
+
+    return 0
+  fi
+
   if [ -n "$TENANT_ID" ]; then
     echo ""
     echo "The device will appear as pending in the console — accept it there."
@@ -111,6 +118,7 @@ podman_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
+  [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
@@ -196,6 +204,7 @@ docker_install() {
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
+  [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."

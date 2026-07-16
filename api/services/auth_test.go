@@ -23,7 +23,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -31,6 +30,7 @@ import (
 
 func TestAuthDevice(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
+	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 	clockMock := clockmock.NewMockClock(t)
 	uuidMock := uuidmock.NewMockUUID(t)
@@ -591,6 +591,7 @@ func TestAuthDevice(t *testing.T) {
 					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")),
 					Name:      "hostname",
 					Namespace: "test",
+					Status:    models.DeviceStatusPending,
 				},
 				err: nil,
 			},
@@ -841,6 +842,7 @@ func TestAuthDevice(t *testing.T) {
 					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")),
 					Name:      "new-device",
 					Namespace: "test",
+					Status:    models.DeviceStatusPending,
 				},
 				err: nil,
 			},
@@ -921,6 +923,7 @@ func TestAuthDevice(t *testing.T) {
 					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")),
 					Name:      "new-device",
 					Namespace: "test",
+					Status:    models.DeviceStatusPending,
 				},
 				err: nil,
 			},
@@ -1001,6 +1004,7 @@ func TestAuthDevice(t *testing.T) {
 					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "aa-bb-cc-dd-ee-ff", "aa:bb:cc:dd:ee:ff", "public-key")),
 					Name:      "aa-bb-cc-dd-ee-ff",
 					Namespace: "test",
+					Status:    models.DeviceStatusPending,
 				},
 				err: nil,
 			},
@@ -1101,6 +1105,7 @@ func TestAuthDevice(t *testing.T) {
 					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")),
 					Name:      "new-device",
 					Namespace: "test",
+					Status:    models.DeviceStatusPending,
 				},
 				err: nil,
 			},
@@ -2199,6 +2204,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 
 func TestCreateUserToken(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
+	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
 	type Expected struct {
@@ -2521,6 +2527,7 @@ func TestAuthAPIKey(t *testing.T) {
 	}
 
 	storeMock := mocks.NewMockStore(t)
+	storeMock.On("InstallKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
 	tests := []struct {
@@ -2626,163 +2633,6 @@ func TestAuthAPIKey(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-// logHook captures logrus log entries emitted during a test.
-type logHook struct {
-	entries []*log.Entry
-}
-
-func (h *logHook) Levels() []log.Level { return log.AllLevels }
-
-func (h *logHook) Fire(e *log.Entry) error {
-	h.entries = append(h.entries, e)
-
-	return nil
-}
-
-func newLogHook() *logHook {
-	hook := &logHook{}
-	log.AddHook(hook)
-
-	return hook
-}
-
-// TestAuthDevice_AutoAcceptLicenseLimitNewDevice verifies that when a brand-new device is
-// created and auto-accept is enabled, an UpdateDeviceStatus that returns ErrDeviceLicenseLimit
-// does NOT propagate the error to the caller and emits the distinct license-limit warning
-// instead of the generic auto-accept warning.
-func TestAuthDevice_AutoAcceptLicenseLimitNewDevice(t *testing.T) {
-	storeMock := mocks.NewMockStore(t)
-	cacheMock := mockcache.NewMockCache(t)
-	clockMock := clockmock.NewMockClock(t)
-	uuidMock := uuidmock.NewMockUUID(t)
-
-	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
-
-	toUID := func(tenantID, hostname, mac, publicKey string) string {
-		auth := models.DeviceAuth{
-			Hostname:  strings.ToLower(hostname),
-			Identity:  &models.DeviceIdentity{MAC: mac},
-			PublicKey: publicKey,
-			TenantID:  tenantID,
-		}
-
-		uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
-
-		return hex.EncodeToString(uidSHA[:])
-	}
-
-	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, privateKey)
-		require.NoError(t, err)
-
-		return token
-	}
-
-	ctx := context.TODO()
-	uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
-
-	storeMock.
-		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-		Return(&models.Namespace{
-			TenantID: "00000000-0000-4000-0000-000000000000",
-			Name:     "test",
-			Settings: &models.NamespaceSettings{DeviceAutoAccept: true},
-		}, nil).
-		Once()
-	cacheMock.
-		On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
-		Return(nil).
-		Once()
-	storeMock.
-		On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-		Return(nil, store.ErrNoDocuments).
-		Once()
-	storeMock.
-		On(
-			"DeviceCreate",
-			ctx,
-			&models.Device{
-				CreatedAt:       now,
-				UID:             uid,
-				TenantID:        "00000000-0000-4000-0000-000000000000",
-				LastSeen:        now,
-				DisconnectedAt:  nil,
-				Status:          models.DeviceStatusPending,
-				StatusUpdatedAt: now,
-				Name:            "new-device",
-				Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-				PublicKey:       "public-key",
-				RemoteAddr:      "127.0.0.1",
-				Taggable:        models.Taggable{TagIDs: []string{}},
-				Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
-			},
-		).
-		Return(uid, nil).
-		Once()
-	storeMock.
-		On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
-		Return(nil).
-		Once()
-	storeMock.
-		On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
-		Return(ErrDeviceLicenseLimit).
-		Once()
-	cacheMock.
-		On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "new-device", "namespace_name": "test"}, time.Second*30).
-		Return(nil).
-		Once()
-
-	hook := newLogHook()
-	t.Cleanup(func() { log.StandardLogger().ReplaceHooks(log.LevelHooks{}) })
-
-	svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
-
-	authRes, err := svc.AuthDevice(ctx, requests.DeviceAuth{
-		TenantID:  "00000000-0000-4000-0000-000000000000",
-		Hostname:  "new-device",
-		Identity:  &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-		PublicKey: "public-key",
-		Sessions:  []string{},
-		RealIP:    "127.0.0.1",
-	})
-
-	// ErrDeviceLicenseLimit must NOT propagate to the caller.
-	require.NoError(t, err)
-	require.Equal(t, &models.DeviceAuthResponse{
-		UID:       uid,
-		Token:     toToken("00000000-0000-4000-0000-000000000000", uid),
-		Name:      "new-device",
-		Namespace: "test",
-	}, authRes)
-
-	// The distinct license-limit warning must be emitted.
-	const wantMsg = "license limit reached; device remains pending"
-
-	found := false
-
-	for _, e := range hook.entries {
-		if e.Message == wantMsg && e.Level == log.WarnLevel {
-			found = true
-
-			break
-		}
-	}
-
-	assert.True(t, found, "expected log entry with message %q at WARN level; got entries: %v", wantMsg, hook.entries)
-
-	storeMock.AssertExpectations(t)
-}
-
 // TestAuthDevice_RemoteAddr verifies that RemoteAddr is persisted from the client-supplied
 // X-Real-IP only when it parses as an IP: an unparseable value (which is attacker-controlled
 // and could overflow the bounded remote_addr column) is stored as empty on create and leaves
@@ -2847,6 +2697,11 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
 			Return(nil, store.ErrNoDocuments).
 			Once()
+		// A tenant-only enrollment resolves the namespace's legacy key; none here.
+		storeMock.
+			On("InstallKeyResolveSystem", ctx, tenantID).
+			Return(nil, store.ErrNoDocuments).
+			Once()
 		storeMock.
 			On(
 				"DeviceCreate",
@@ -2895,6 +2750,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Token:     toToken(tenantID, uid),
 			Name:      "invalid-ip-device",
 			Namespace: "test",
+			Status:    models.DeviceStatusPending,
 		}, res)
 
 		storeMock.AssertExpectations(t)
@@ -3009,132 +2865,4 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 		storeMock.AssertExpectations(t)
 	})
-}
-
-// TestAuthDevice_AutoAcceptLicenseLimitReRegistered verifies that when a previously-removed
-// device re-registers and auto-accept is enabled, an UpdateDeviceStatus that returns
-// ErrDeviceLicenseLimit does NOT propagate the error to the caller and emits the distinct
-// license-limit warning.
-func TestAuthDevice_AutoAcceptLicenseLimitReRegistered(t *testing.T) {
-	storeMock := mocks.NewMockStore(t)
-	cacheMock := mockcache.NewMockCache(t)
-	clockMock := clockmock.NewMockClock(t)
-	uuidMock := uuidmock.NewMockUUID(t)
-
-	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
-	prevClock := clock.DefaultBackend
-	prevUUID := uuid.DefaultBackend
-	t.Cleanup(func() {
-		clock.DefaultBackend = prevClock
-		uuid.DefaultBackend = prevUUID
-	})
-	clock.DefaultBackend = clockMock
-	clockMock.On("Now").Return(now)
-	uuid.DefaultBackend = uuidMock
-	uuidMock.On("Generate").Return("00000000-0000-0000-0000-000000000000")
-
-	toUID := func(tenantID, hostname, mac, publicKey string) string {
-		auth := models.DeviceAuth{
-			Hostname:  strings.ToLower(hostname),
-			Identity:  &models.DeviceIdentity{MAC: mac},
-			PublicKey: publicKey,
-			TenantID:  tenantID,
-		}
-
-		uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
-
-		return hex.EncodeToString(uidSHA[:])
-	}
-
-	toToken := func(tenantID, uid string) string {
-		token, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: uid, TenantID: tenantID}, privateKey)
-		require.NoError(t, err)
-
-		return token
-	}
-
-	ctx := context.TODO()
-	uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
-	device := &models.Device{UID: uid, Name: "hostname", RemovedAt: &now, Status: models.DeviceStatusRemoved}
-
-	storeMock.
-		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-		Return(&models.Namespace{
-			TenantID: "00000000-0000-4000-0000-000000000000",
-			Name:     "test",
-			Settings: &models.NamespaceSettings{DeviceAutoAccept: true},
-		}, nil).
-		Once()
-	cacheMock.
-		On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
-		Return(nil).
-		Once()
-	storeMock.
-		On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-		Return(device, nil).
-		Once()
-	storeMock.
-		On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusRemoved, int64(-1)).
-		Return(nil).
-		Once()
-	storeMock.
-		On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
-		Return(nil).
-		Once()
-	storeMock.
-		On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
-		Return(ErrDeviceLicenseLimit).
-		Once()
-	storeMock.
-		On("DeviceUpdate", ctx, device).
-		Return(nil).
-		Once()
-	storeMock.
-		On("DeviceHeartbeat", ctx, []string{uid}, now).
-		Return(int64(1), nil).
-		Once()
-	cacheMock.
-		On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
-		Return(nil).
-		Once()
-
-	hook := newLogHook()
-	t.Cleanup(func() { log.StandardLogger().ReplaceHooks(log.LevelHooks{}) })
-
-	svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
-
-	authRes, err := svc.AuthDevice(ctx, requests.DeviceAuth{
-		TenantID:  "00000000-0000-4000-0000-000000000000",
-		Hostname:  "hostname",
-		Identity:  &requests.DeviceIdentity{MAC: ""},
-		PublicKey: "",
-		Sessions:  []string{},
-		RealIP:    "127.0.0.1",
-	})
-
-	// ErrDeviceLicenseLimit must NOT propagate to the caller.
-	require.NoError(t, err)
-	require.Equal(t, &models.DeviceAuthResponse{
-		UID:       uid,
-		Token:     toToken("00000000-0000-4000-0000-000000000000", uid),
-		Name:      "hostname",
-		Namespace: "test",
-	}, authRes)
-
-	// The distinct license-limit warning must be emitted.
-	const wantMsg = "license limit reached; device remains pending"
-
-	found := false
-
-	for _, e := range hook.entries {
-		if e.Message == wantMsg && e.Level == log.WarnLevel {
-			found = true
-
-			break
-		}
-	}
-
-	assert.True(t, found, "expected log entry with message %q at WARN level; got entries: %v", wantMsg, hook.entries)
-
-	storeMock.AssertExpectations(t)
 }

@@ -70,6 +70,22 @@ properties:
     $ref: devicePublicURL.yaml
   acceptable:
     $ref: deviceAcceptable.yaml
+  ephemeral:
+    description: |
+      Whether the device was registered with an ephemeral install key and is removed
+      automatically once it stays offline past its ephemeral timeout.
+    type: boolean
+    example: false
+  ephemeral_timeout:
+    description: Minutes the device may stay offline before removal (when ephemeral).
+    type: integer
+    example: 10
+  install_key_id:
+    description: |
+      The digest of the install key the device registered with (a real key or the
+      namespace's legacy key). Attributes the device to its registration source.
+    type: string
+    example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 required:
   - uid
   - name

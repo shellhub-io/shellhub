@@ -13,6 +13,8 @@ interface UseKeyFileInputOptions {
   onChange: (text: string) => void;
   onFileName?: (name: string) => void;
   disabled?: boolean;
+  /** Max accepted file size in bytes. Defaults to 512 KB. */
+  maxBytes?: number;
 }
 
 interface UseKeyFileInputReturn {
@@ -33,6 +35,7 @@ export function useKeyFileInput({
   onChange,
   onFileName,
   disabled,
+  maxBytes = 512 * 1024,
 }: UseKeyFileInputOptions): UseKeyFileInputReturn {
   const [inputMode, setInputMode] = useState<"file" | "text">(
     disabled ? "text" : "file",
@@ -52,29 +55,32 @@ export function useKeyFileInput({
     onFileNameRef.current = onFileName;
   }, [onChange, validate, onFileName]);
 
-  const processFile = useCallback((file: File) => {
-    if (file.size > 512 * 1024) {
-      setFileSizeError(true);
-      setFileReadError(false);
-      return;
-    }
-    setFileSizeError(false);
-    setFileReadError(false);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      if (!validateRef.current(text.trim())) return;
-      onChangeRef.current(text);
-      if (onFileNameRef.current) {
-        const base = file.name.replace(/\.[^.]+$/, "");
-        onFileNameRef.current(base);
+  const processFile = useCallback(
+    (file: File) => {
+      if (file.size > maxBytes) {
+        setFileSizeError(true);
+        setFileReadError(false);
+        return;
       }
-    };
-    reader.onerror = () => {
-      setFileReadError(true);
-    };
-    reader.readAsText(file);
-  }, []);
+      setFileSizeError(false);
+      setFileReadError(false);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = reader.result as string;
+        if (!validateRef.current(text.trim())) return;
+        onChangeRef.current(text);
+        if (onFileNameRef.current) {
+          const base = file.name.replace(/\.[^.]+$/, "");
+          onFileNameRef.current(base);
+        }
+      };
+      reader.onerror = () => {
+        setFileReadError(true);
+      };
+      reader.readAsText(file);
+    },
+    [maxBytes],
+  );
 
   const handleDrop = useCallback(
     (e: DragEvent) => {
@@ -97,7 +103,11 @@ export function useKeyFileInput({
 
   const handlePaste = useCallback((e: ClipboardEvent) => {
     const active = document.activeElement;
-    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return;
+    if (
+      active instanceof HTMLInputElement ||
+      active instanceof HTMLTextAreaElement
+    )
+      return;
 
     const text = e.clipboardData?.getData("text");
     if (text && validateRef.current(text.trim())) {

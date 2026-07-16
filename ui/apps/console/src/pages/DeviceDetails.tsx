@@ -16,6 +16,9 @@ import {
   useRemoveDeviceTag,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
+import { useInstallKeys } from "../hooks/useInstallKeys";
+import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
+import { DeprecatedBadge } from "@/pages/install-keys/constants";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import DeviceActionsPortal from "./devices/DeviceActionsPortal";
@@ -42,6 +45,7 @@ export default function DeviceDetails() {
   const { device, isLoading } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { installKeys } = useInstallKeys({ perPage: 100 });
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
@@ -89,6 +93,11 @@ export default function DeviceDetails() {
 
   const nsName = currentNamespace?.name ?? "";
   const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
+
+  const enrollment = resolveEnrollmentSource(
+    device.install_key_id,
+    installKeys,
+  );
 
   const tags: string[] = Array.isArray(device.tags)
     ? device.tags.map((t) =>
@@ -276,6 +285,19 @@ export default function DeviceDetails() {
           uid={device.uid}
           mac={device.identity?.mac ?? ""}
           remoteAddr={device.remote_addr ?? ""}
+          registeredVia={
+            enrollment ? (
+              enrollment.kind === "legacy" ? (
+                <DeprecatedBadge />
+              ) : (
+                <span className="text-sm font-medium text-text-primary">
+                  {enrollment.name}
+                </span>
+              )
+            ) : (
+              <span className="text-sm text-text-muted">—</span>
+            )
+          }
         />
 
         <Card className="p-5 space-y-4">

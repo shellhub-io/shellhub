@@ -73,4 +73,8 @@ type DeviceStore interface {
 	DeviceDelete(ctx context.Context, device *models.Device) error
 	// DeviceDeleteMany deletes multiple devices by their UIDs.
 	DeviceDeleteMany(ctx context.Context, uids []string) (deletedCount int64, err error)
+
+	// DeviceListExpiredEphemeral lists ephemeral devices that have stayed offline longer than their
+	// per-device ephemeral timeout (in minutes), so the cleanup can remove them.
+	DeviceListExpiredEphemeral(ctx context.Context) (devices []models.Device, err error)
 }

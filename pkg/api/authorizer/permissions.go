@@ -34,7 +34,6 @@ const (
 	NamespaceRemoveMember
 	NamespaceEditMember
 	NamespaceEnableSessionRecord
-	NamespaceDeviceAutoAccept
 	NamespaceDelete
 
 	BillingCreateCustomer
@@ -50,6 +49,11 @@ const (
 	APIKeyCreate
 	APIKeyUpdate
 	APIKeyDelete
+
+	InstallKeyCreate
+	InstallKeyUpdate
+	InstallKeyReveal
+	InstallKeyList
 
 	ConnectorDelete
 	ConnectorUpdate
@@ -114,11 +118,15 @@ var adminPermissions = []Permission{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
-	NamespaceDeviceAutoAccept,
 
 	APIKeyCreate,
 	APIKeyUpdate,
 	APIKeyDelete,
+
+	InstallKeyCreate,
+	InstallKeyUpdate,
+	InstallKeyReveal,
+	InstallKeyList,
 
 	ConnectorDelete,
 	ConnectorUpdate,
@@ -160,7 +168,6 @@ var ownerPermissions = []Permission{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
-	NamespaceDeviceAutoAccept,
 	NamespaceDelete,
 
 	BillingCreateCustomer,
@@ -175,6 +182,11 @@ var ownerPermissions = []Permission{
 	APIKeyCreate,
 	APIKeyUpdate,
 	APIKeyDelete,
+
+	InstallKeyCreate,
+	InstallKeyUpdate,
+	InstallKeyReveal,
+	InstallKeyList,
 
 	ConnectorDelete,
 	ConnectorUpdate,

@@ -1,0 +1,88 @@
+type: object
+properties:
+  name:
+    type: string
+    description: The name of the install key. It is unique per namespace.
+    maxLength: 20
+    minLength: 3
+    pattern: ^[a-zA-Z0-9_-]{3,20}$
+    example: ci-runners
+  mode:
+    type: string
+    enum: [automatic, manual, webhook, allowlist]
+    description: |
+      The enrollment policy. Omitted defaults to `automatic`. `webhook` requires
+      `webhook_url` (http/https) and `webhook_secret`; `allowlist` requires at least
+      one MAC in `allowed_macs`.
+    example: automatic
+  webhook_url:
+    type: string
+    format: uri
+    description: The integrator endpoint called at enrollment (required for `webhook` mode).
+    example: https://enroll.example.com/hook
+  webhook_secret:
+    type: string
+    description: |
+      Secret used to sign the webhook request (HMAC-SHA256, `X-ShellHub-Signature`
+      header). Write-only; never returned.
+    example: s3cr3t
+  allowed_macs:
+    type: array
+    items:
+      type: string
+    description: The device MACs accepted for `allowlist` mode.
+    example:
+      - "aa:bb:cc:dd:ee:ff"
+  webhook_timeout:
+    type: integer
+    description: |
+      Seconds the synchronous webhook call may take before failing closed to pending (1-15). Omitted/0
+      uses the default (5).
+    minimum: 0
+    maximum: 15
+    example: 5
+  webhook_callback_ttl:
+    type: integer
+    description: |
+      Seconds the deferred-decision callback token stays valid (max 86400 = 24h). Omitted/0 uses the
+      default (3600 = 1h).
+    minimum: 0
+    maximum: 86400
+    example: 3600
+  expires_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: |
+      Absolute date the key expires (must be in the future). Null or omitted
+      means the key never expires.
+    example: 2026-08-20T00:00:00Z
+  usage_limit:
+    type: integer
+    description: |
+      How many devices may enroll: 1 is single-use (one-off), a higher value is that many devices,
+      0 (or omitted) is unlimited. Whether the key is reusable is derived from this.
+    minimum: 0
+    example: 10
+  ephemeral:
+    type: boolean
+    description: Whether devices enrolled with the key are removed automatically once offline past the timeout.
+    default: false
+    example: false
+  ephemeral_timeout:
+    type: integer
+    description: |
+      Minutes an ephemeral device may stay offline before removal (1-10). Only honored when
+      ephemeral; defaults to the maximum when omitted.
+    minimum: 1
+    maximum: 10
+    example: 10
+  tags:
+    type: array
+    items:
+      type: string
+    description: The names of the namespace tags to apply to enrolled devices.
+    example:
+      - production
+required:
+  - name

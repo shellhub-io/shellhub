@@ -71,6 +71,10 @@ post:
                 $ref: ../components/schemas/deviceName.yaml
               namespace:
                 $ref: ../components/schemas/deviceNamespaceName.yaml
+              # The device's enrollment status after this auth, so a current agent can react to its
+              # authorization state instead of connecting blind. Additive and optional.
+              status:
+                $ref: ../components/schemas/deviceStatus.yaml
     '400':
       $ref: ../components/responses/400.yaml
     '401':
