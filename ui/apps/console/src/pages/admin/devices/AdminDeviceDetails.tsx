@@ -1,7 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import {
   CpuChipIcon,
-  InformationCircleIcon,
   ComputerDesktopIcon,
   ClockIcon,
   TagIcon,
@@ -14,6 +13,7 @@ import DistroIcon from "@/components/common/DistroIcon";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatDateFull, formatRelative } from "@/utils/date";
+import IdentityCard from "@/components/common/IdentityCard";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import { Card } from "@shellhub/design-system/primitives";
@@ -91,33 +91,11 @@ export default function AdminDeviceDetails() {
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Identity Card */}
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-            <InformationCircleIcon className="w-4 h-4 text-primary" />
-            Identity
-          </h3>
-          <dl className="space-y-3">
-            <InfoItem
-              label="UID"
-              value={device.uid}
-              mono
-              copyable
-              truncate={8}
-            />
-            <InfoItem
-              label="MAC Address"
-              value={device.identity?.mac ?? ""}
-              mono
-              copyable
-            />
-            <InfoItem
-              label="Remote Address"
-              value={device.remote_addr ?? ""}
-              mono
-            />
-          </dl>
-        </Card>
+        <IdentityCard
+          uid={device.uid}
+          mac={device.identity?.mac ?? ""}
+          remoteAddr={device.remote_addr ?? ""}
+        />
 
         {/* System Card */}
         <Card className="p-5 space-y-4">

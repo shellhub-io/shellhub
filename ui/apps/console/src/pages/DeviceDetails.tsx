@@ -4,9 +4,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import { LABEL_BASE } from "@/utils/styles";
 import {
   TrashIcon,
-  InformationCircleIcon,
   ComputerDesktopIcon,
-  ClockIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
@@ -24,11 +22,12 @@ import DeviceActionsPortal from "./devices/DeviceActionsPortal";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
-import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
+import IdentityCard from "@/components/common/IdentityCard";
 import InfoItem from "@/components/common/InfoItem";
+import TimelineCard from "@/components/common/TimelineCard";
 import TagsSection from "@/components/common/TagsSection";
 import RenameSection from "@/components/common/RenameSection";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -273,32 +272,11 @@ export default function DeviceDetails() {
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-            <InformationCircleIcon className="w-4 h-4 text-primary" />
-            Identity
-          </h3>
-          <dl className="space-y-3">
-            <InfoItem
-              label="UID"
-              value={device.uid}
-              mono
-              copyable
-              truncate={8}
-            />
-            <InfoItem
-              label="MAC Address"
-              value={device.identity?.mac ?? ""}
-              mono
-              copyable
-            />
-            <InfoItem
-              label="Remote Address"
-              value={device.remote_addr ?? ""}
-              mono
-            />
-          </dl>
-        </Card>
+        <IdentityCard
+          uid={device.uid}
+          mac={device.identity?.mac ?? ""}
+          remoteAddr={device.remote_addr ?? ""}
+        />
 
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
@@ -330,30 +308,11 @@ export default function DeviceDetails() {
           </dl>
         </Card>
 
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-            <ClockIcon className="w-4 h-4 text-primary" />
-            Timeline
-          </h3>
-          <dl className="space-y-3">
-            <InfoItem
-              label="Created"
-              value={formatDateFull(device.created_at)}
-            />
-            <InfoItem label="Last Seen">
-              <span className="text-sm text-text-primary font-medium">
-                {formatRelative(device.last_seen)}
-              </span>
-              <span className="text-2xs text-text-muted">
-                {formatDateFull(device.last_seen)}
-              </span>
-            </InfoItem>
-            <InfoItem
-              label="Status Updated"
-              value={formatDateFull(device.status_updated_at ?? "")}
-            />
-          </dl>
-        </Card>
+        <TimelineCard
+          createdAt={device.created_at}
+          lastSeen={device.last_seen}
+          statusUpdatedAt={device.status_updated_at ?? ""}
+        />
       </div>
 
       {/* Tags + Custom Fields */}
