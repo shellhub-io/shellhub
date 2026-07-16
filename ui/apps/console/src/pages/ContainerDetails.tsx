@@ -9,9 +9,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import RenameSection from "@/components/common/RenameSection";
 import {
   TrashIcon,
-  InformationCircleIcon,
   ServerIcon,
-  ClockIcon,
   CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
@@ -29,12 +27,13 @@ import { useContainerActions } from "../hooks/useContainerActions";
 import ContainerActionsPortal from "./containers/ContainerActionsPortal";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
-import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
 import TagsSection from "@/components/common/TagsSection";
 import PageLoader from "@/components/common/PageLoader";
+import IdentityCard from "@/components/common/IdentityCard";
 import InfoItem from "@/components/common/InfoItem";
+import TimelineCard from "@/components/common/TimelineCard";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { LABEL_BASE } from "@/utils/styles";
@@ -283,32 +282,11 @@ export default function ContainerDetails() {
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-            <InformationCircleIcon className="w-4 h-4 text-primary" />
-            Identity
-          </h3>
-          <dl className="space-y-3">
-            <InfoItem
-              label="UID"
-              value={container.uid}
-              mono
-              copyable
-              truncate={8}
-            />
-            <InfoItem
-              label="MAC Address"
-              value={container.identity?.mac ?? ""}
-              mono
-              copyable
-            />
-            <InfoItem
-              label="Remote Address"
-              value={container.remote_addr ?? ""}
-              mono
-            />
-          </dl>
-        </Card>
+        <IdentityCard
+          uid={container.uid}
+          mac={container.identity?.mac ?? ""}
+          remoteAddr={container.remote_addr ?? ""}
+        />
 
         <Card className="p-5 space-y-4">
           <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
@@ -334,30 +312,11 @@ export default function ContainerDetails() {
           </dl>
         </Card>
 
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-            <ClockIcon className="w-4 h-4 text-primary" />
-            Timeline
-          </h3>
-          <dl className="space-y-3">
-            <InfoItem
-              label="Created"
-              value={formatDateFull(container.created_at)}
-            />
-            <InfoItem label="Last Seen">
-              <span className="text-sm text-text-primary font-medium">
-                {formatRelative(container.last_seen)}
-              </span>
-              <span className="text-2xs text-text-muted">
-                {formatDateFull(container.last_seen)}
-              </span>
-            </InfoItem>
-            <InfoItem
-              label="Status Updated"
-              value={formatDateFull(container.status_updated_at ?? "")}
-            />
-          </dl>
-        </Card>
+        <TimelineCard
+          createdAt={container.created_at}
+          lastSeen={container.last_seen}
+          statusUpdatedAt={container.status_updated_at ?? ""}
+        />
       </div>
 
       {/* Tags */}
