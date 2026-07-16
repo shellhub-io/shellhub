@@ -85,7 +85,7 @@ var (
 	ErrUserUnhandledDuplicate          = errors.New("unhandled duplicated field for the user", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserPasswordDuplicated          = errors.New("user password is equal to new password", ErrLayer, ErrCodeDuplicated)
-	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeInvalid)
+	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeForbidden)
 	ErrUserNotConfirmed                = errors.New("user not confirmed", ErrLayer, ErrCodeForbidden)
 	ErrUserAwaitingApproval            = errors.New("user awaiting approval", ErrLayer, ErrCodeLocked)
 	ErrUserUpdate                      = errors.New("user update", ErrLayer, ErrCodeStore)
@@ -292,7 +292,7 @@ func NewErrUserPasswordDuplicated(next error) error {
 
 // NewErrUserPasswordNotMatch returns an error when the user's password doesn't match with the current password.
 func NewErrUserPasswordNotMatch(next error) error {
-	return NewErrInvalid(ErrUserPasswordNotMatch, nil, next)
+	return NewErrForbidden(ErrUserPasswordNotMatch, next)
 }
 
 // NewErrPublicKeyNotFound returns an error when the public key is not found.
