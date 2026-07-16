@@ -350,7 +350,7 @@ export default function DeviceDetails() {
             </InfoItem>
             <InfoItem
               label="Status Updated"
-              value={formatDateFull(device.status_update_at ?? "")}
+              value={formatDateFull(device.status_updated_at ?? "")}
             />
           </dl>
         </Card>
