@@ -72,6 +72,15 @@ export default function MfaDisableDialog({
           body: { recovery_code: recoveryCode },
           throwOnError: true,
         });
+      } else if (mode === "email-reset") {
+        if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
+        await disableMfa({
+          body: {
+            main_email_code: otpMainEmail.getValue(),
+            recovery_email_code: otpRecoveryEmail.getValue(),
+          },
+          throwOnError: true,
+        });
       }
 
       onSuccess();
@@ -157,7 +166,7 @@ export default function MfaDisableDialog({
                     <input
                       key={index}
                       ref={(el) => {
-                        (otp.inputRefs.current[index] = el);
+                        otp.inputRefs.current[index] = el;
                       }}
                       type="text"
                       inputMode="numeric"
@@ -253,46 +262,98 @@ export default function MfaDisableDialog({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 text-center">
-                  <div className="flex justify-center">
-                    <div className="w-14 h-14 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-                      <CheckCircleIcon
-                        className="w-7 h-7 text-accent-green"
-                        strokeWidth={2}
-                      />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 justify-center">
+                    <CheckCircleIcon
+                      className="w-5 h-5 text-accent-green"
+                      strokeWidth={2}
+                    />
+                    <p className="text-xs font-semibold text-text-primary">
+                      Emails Sent!
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5 text-center">
+                      Main Email Code
+                    </p>
+                    <div
+                      className="flex justify-center gap-2 mb-2"
+                      role="group"
+                      aria-label="Main Email Code"
+                      onPaste={otpMainEmail.handlePaste}
+                    >
+                      {otpMainEmail.code.map((char, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            otpMainEmail.inputRefs.current[index] = el;
+                          }}
+                          type="text"
+                          maxLength={1}
+                          value={char}
+                          aria-label={`Main email code character ${index + 1} of 5`}
+                          onChange={(e) =>
+                            otpMainEmail.handleChange(index, e.target.value)
+                          }
+                          onKeyDown={(e) =>
+                            otpMainEmail.handleKeyDown(index, e)
+                          }
+                          className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all uppercase"
+                        />
+                      ))}
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-text-primary mb-2">
-                      Emails Sent!
-                    </h4>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      Verification codes have been sent to both your main and
-                      recovery email addresses.
+                    <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5 text-center">
+                      Recovery Email Code
                     </p>
+                    <div
+                      className="flex justify-center gap-2 mb-2"
+                      role="group"
+                      aria-label="Recovery Email Code"
+                      onPaste={otpRecoveryEmail.handlePaste}
+                    >
+                      {otpRecoveryEmail.code.map((char, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            otpRecoveryEmail.inputRefs.current[index] = el;
+                          }}
+                          type="text"
+                          maxLength={1}
+                          value={char}
+                          aria-label={`Recovery email code character ${index + 1} of 5`}
+                          onChange={(e) =>
+                            otpRecoveryEmail.handleChange(index, e.target.value)
+                          }
+                          onKeyDown={(e) =>
+                            otpRecoveryEmail.handleKeyDown(index, e)
+                          }
+                          className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all uppercase"
+                        />
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="p-3 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg">
-                    <p className="text-2xs text-text-muted leading-relaxed">
-                      <span className="font-semibold text-accent-yellow">
-                        Next step:
-                      </span>{" "}
-                      Check both email inboxes and click the link in either
-                      email to continue.
-                    </p>
+                  <div className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void handleRequestEmailReset()}
+                      loading={requestingEmail}
+                    >
+                      Resend codes
+                    </Button>
                   </div>
-
-                  <Button fullWidth onClick={onClose}>
-                    Close
-                  </Button>
                 </div>
               )}
             </>
           )}
 
           {/* Actions */}
-          {mode !== "email-reset" && (
+          {(mode !== "email-reset" || emailRequested) && (
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="secondary" onClick={onClose}>
                 Cancel
