@@ -3,7 +3,7 @@ import { requestResetMfa, resetMfa } from "../client";
 import { useAuthStore } from "./authStore";
 
 interface MfaResetState {
-  mfaResetUserId: string | null;
+  mfaResetToken: string | null;
   mfaResetIdentifier: string | null;
   loading: boolean;
   error: string | null;
@@ -16,7 +16,7 @@ interface MfaResetState {
 }
 
 const initialState = {
-  mfaResetUserId: null,
+  mfaResetToken: null,
   mfaResetIdentifier: null,
   loading: false,
   error: null,
@@ -28,12 +28,12 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
   requestMfaReset: async (identifier: string) => {
     set({ loading: true, error: null });
     try {
-      await requestResetMfa({
+      const { data } = await requestResetMfa({
         body: { identifier },
         throwOnError: true,
       });
       set({
-        mfaResetUserId: identifier,
+        mfaResetToken: data.token,
         mfaResetIdentifier: identifier,
         loading: false,
       });
@@ -50,16 +50,16 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
     mainEmailCode: string,
     recoveryEmailCode: string,
   ) => {
-    const { mfaResetUserId } = get();
-    if (!mfaResetUserId) {
+    const { mfaResetToken } = get();
+    if (!mfaResetToken) {
       set({ error: "Invalid reset session. Please start over." });
-      throw new Error("No user ID available");
+      throw new Error("No reset token available");
     }
 
     set({ loading: true, error: null });
     try {
       const { data } = await resetMfa({
-        path: { "user-id": mfaResetUserId },
+        path: { "user-id": mfaResetToken },
         body: {
           main_email_code: mainEmailCode,
           recovery_email_code: recoveryEmailCode,
@@ -67,18 +67,17 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
         throwOnError: true,
       });
 
-      const userData = data;
       useAuthStore.setState({
-        token: userData.token,
-        user: userData.user,
-        userId: userData.id,
-        email: userData.email,
-        tenant: userData.tenant,
-        name: userData.name,
-        isAdmin: userData.admin ?? false,
-        mfaEnabled: userData.mfa || false,
+        token: data.token,
+        user: data.user,
+        userId: data.id,
+        email: data.email,
+        tenant: data.tenant,
+        name: data.name,
+        isAdmin: data.admin ?? false,
+        mfaEnabled: data.mfa ?? false,
       });
-      set({ mfaResetUserId: null, mfaResetIdentifier: null, loading: false });
+      set({ mfaResetToken: null, mfaResetIdentifier: null, loading: false });
     } catch {
       set({
         loading: false,

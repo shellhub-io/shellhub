@@ -11,6 +11,7 @@ function renderPage() {
     <MemoryRouter initialEntries={["/mfa-reset-request"]}>
       <Routes>
         <Route path="/mfa-reset-request" element={<MfaResetRequest />} />
+        <Route path="/mfa-reset-verify" element={<div>Verify Page</div>} />
         <Route path="/login" element={<div>Login Page</div>} />
       </Routes>
     </MemoryRouter>,
@@ -34,27 +35,33 @@ describe("MfaResetRequest", () => {
     renderPage();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /send verification codes/i }));
+    await user.click(
+      screen.getByRole("button", { name: /send verification codes/i }),
+    );
 
     await waitFor(() => {
       expect(mockRequest).toHaveBeenCalledWith("admin");
     });
   });
 
-  it("shows the email-sent success view after a successful submit", async () => {
+  it("navigates to /mfa-reset-verify after a successful submit", async () => {
     renderPage();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /send verification codes/i }));
+    await user.click(
+      screen.getByRole("button", { name: /send verification codes/i }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
+      expect(screen.getByText("Verify Page")).toBeInTheDocument();
     });
   });
 
   it("shows the store error in a Callout when the request fails", async () => {
     const mockRequest = vi.fn().mockImplementation(async () => {
-      useMfaResetStore.setState({ error: "Unable to send reset emails. Please check your identifier." });
+      useMfaResetStore.setState({
+        error: "Unable to send reset emails. Please check your identifier.",
+      });
       throw new Error("Reset request failed");
     });
     useMfaResetStore.setState({ requestMfaReset: mockRequest, error: null });
@@ -62,10 +69,14 @@ describe("MfaResetRequest", () => {
     renderPage();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /send verification codes/i }));
+    await user.click(
+      screen.getByRole("button", { name: /send verification codes/i }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/Unable to send reset emails/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Unable to send reset emails/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -80,7 +91,11 @@ describe("MfaResetRequest", () => {
   });
 
   it("renders nothing when there is no identifier but an active mfaToken", () => {
-    useAuthStore.setState({ user: null, username: null, mfaToken: "active-tok" });
+    useAuthStore.setState({
+      user: null,
+      username: null,
+      mfaToken: "active-tok",
+    });
 
     const { container } = renderPage();
 

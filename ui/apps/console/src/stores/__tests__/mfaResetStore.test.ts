@@ -54,7 +54,7 @@ function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
 
 beforeEach(() => {
   useMfaResetStore.setState({
-    mfaResetUserId: null,
+    mfaResetToken: null,
     mfaResetIdentifier: null,
     loading: false,
     error: null,
@@ -83,7 +83,7 @@ describe("mfaResetStore", () => {
   describe("initial state", () => {
     it("initializes with clean state", () => {
       const state = useMfaResetStore.getState();
-      expect(state.mfaResetUserId).toBeNull();
+      expect(state.mfaResetToken).toBeNull();
       expect(state.mfaResetIdentifier).toBeNull();
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
@@ -97,7 +97,7 @@ describe("mfaResetStore", () => {
   });
 
   describe("requestMfaReset", () => {
-    it("sets mfaResetUserId and mfaResetIdentifier on success", async () => {
+    it("stores the opaque token from the API response", async () => {
       mockedRequestResetMfa.mockResolvedValueOnce(
         mockSdkResponse({ token: "reset-token" }),
       );
@@ -105,7 +105,7 @@ describe("mfaResetStore", () => {
       await useMfaResetStore.getState().requestMfaReset("admin");
 
       const state = useMfaResetStore.getState();
-      expect(state.mfaResetUserId).toBe("admin");
+      expect(state.mfaResetToken).toBe("reset-token");
       expect(state.mfaResetIdentifier).toBe("admin");
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
@@ -140,21 +140,21 @@ describe("mfaResetStore", () => {
       expect(state.error).toBe(
         "Unable to send reset emails. Please check your identifier.",
       );
-      expect(state.mfaResetUserId).toBeNull();
+      expect(state.mfaResetToken).toBeNull();
     });
   });
 
   describe("completeMfaReset", () => {
     beforeEach(() => {
-      useMfaResetStore.setState({ mfaResetUserId: "user-123" });
+      useMfaResetStore.setState({ mfaResetToken: "user-123" });
     });
 
-    it("throws when no mfaResetUserId", async () => {
-      useMfaResetStore.setState({ mfaResetUserId: null });
+    it("throws when no mfaResetToken", async () => {
+      useMfaResetStore.setState({ mfaResetToken: null });
 
       await expect(
         useMfaResetStore.getState().completeMfaReset("code1", "code2"),
-      ).rejects.toThrow("No user ID available");
+      ).rejects.toThrow("No reset token available");
 
       expect(useMfaResetStore.getState().error).toBe(
         "Invalid reset session. Please start over.",
@@ -178,9 +178,9 @@ describe("mfaResetStore", () => {
       expect(auth.mfaEnabled).toBe(false);
     });
 
-    it("clears mfaResetUserId and mfaResetIdentifier on success", async () => {
+    it("clears mfaResetToken and mfaResetIdentifier on success", async () => {
       useMfaResetStore.setState({
-        mfaResetUserId: "user-123",
+        mfaResetToken: "user-123",
         mfaResetIdentifier: "admin",
       });
       mockedResetMfa.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
@@ -188,7 +188,7 @@ describe("mfaResetStore", () => {
       await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
 
       const state = useMfaResetStore.getState();
-      expect(state.mfaResetUserId).toBeNull();
+      expect(state.mfaResetToken).toBeNull();
       expect(state.mfaResetIdentifier).toBeNull();
       expect(state.loading).toBe(false);
     });
@@ -217,15 +217,14 @@ describe("mfaResetStore", () => {
       expect(state.error).toBe(
         "Invalid verification codes. Please check and try again.",
       );
-      // Reset fields not cleared on failure
-      expect(state.mfaResetUserId).toBe("user-123");
+      expect(state.mfaResetToken).toBe("user-123");
     });
   });
 
   describe("reset", () => {
     it("clears all state to initial values", () => {
       useMfaResetStore.setState({
-        mfaResetUserId: "user-abc",
+        mfaResetToken: "user-abc",
         mfaResetIdentifier: "admin",
         loading: true,
         error: "some error",
@@ -234,7 +233,7 @@ describe("mfaResetStore", () => {
       useMfaResetStore.getState().reset();
 
       const state = useMfaResetStore.getState();
-      expect(state.mfaResetUserId).toBeNull();
+      expect(state.mfaResetToken).toBeNull();
       expect(state.mfaResetIdentifier).toBeNull();
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();

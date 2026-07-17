@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
@@ -11,7 +11,6 @@ export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
   const { requestMfaReset, loading, error } = useMfaResetStore();
   const navigate = useNavigate();
-  const [emailsSent, setEmailsSent] = useState(false);
 
   const identifier = user || username;
 
@@ -37,7 +36,7 @@ export default function MfaResetRequest() {
   const onSubmit = async () => {
     try {
       await requestMfaReset(identifier);
-      setEmailsSent(true);
+      void navigate("/mfa-reset-verify");
     } catch {
       // Error is set in store
     }
@@ -67,92 +66,48 @@ export default function MfaResetRequest() {
         </p>
       </div>
 
-      {/* Form or Success Card */}
+      {/* Form */}
       <div
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        {!emailsSent ? (
-          <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-5">
-            {error && <Callout variant="error">{error}</Callout>}
+        <form
+          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+          className="space-y-5"
+        >
+          {error && <Callout variant="error">{error}</Callout>}
 
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-              <p className="text-xs text-text-muted text-center">
-                Verification codes will be sent to the email addresses
-                registered for:
-              </p>
-              <p className="text-sm font-mono font-semibold text-primary text-center mt-2">
-                {identifier}
-              </p>
-            </div>
+          <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <p className="text-xs text-text-muted text-center">
+              Verification codes will be sent to the email addresses registered
+              for:
+            </p>
+            <p className="text-sm font-mono font-semibold text-primary text-center mt-2">
+              {identifier}
+            </p>
+          </div>
 
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              type="submit"
-              className="px-4"
-              loading={loading}
-              disabled={loading}
-            >
-              {loading ? "Sending..." : "Send Verification Codes"}
-            </Button>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            type="submit"
+            className="px-4"
+            loading={loading}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send Verification Codes"}
+          </Button>
 
-            <div className="text-center pt-2">
-              <Link
-                to="/mfa-recover"
-                className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
-              >
-                ← Back to recovery
-              </Link>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-5 text-center">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-                <CheckCircleIcon
-                  className="w-8 h-8 text-accent-green"
-                  strokeWidth={2}
-                />
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-text-primary mb-2">
-                Emails Sent!
-              </h3>
-              <p className="text-sm text-text-muted leading-relaxed">
-                We've sent verification codes to both your{" "}
-                <span className="font-semibold text-text-primary">
-                  main email
-                </span>{" "}
-                and{" "}
-                <span className="font-semibold text-text-primary">
-                  recovery email
-                </span>{" "}
-                addresses.
-              </p>
-            </div>
-
-            <div className="p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg">
-              <p className="text-xs text-text-muted leading-relaxed">
-                <span className="font-semibold text-accent-yellow">
-                  Next step:
-                </span>{" "}
-                Check both email inboxes and click the link in either email to
-                continue with the reset process.
-              </p>
-            </div>
-
+          <div className="text-center pt-2">
             <Link
-              to="/login"
+              to="/mfa-recover"
               className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
             >
-              ← Back to login
+              ← Back to recovery
             </Link>
           </div>
-        )}
+        </form>
       </div>
 
       {/* Info Note */}
