@@ -12,6 +12,11 @@ vi.mock("@/hooks/useDevices", () => ({
   buildFilter: vi.fn(),
 }));
 
+vi.mock("@/hooks/useDeviceMutations", () => ({
+  useAddDeviceTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useRemoveDeviceTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
+}));
+
 // Return the value immediately (no timer) so tests don't need fake timers.
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -90,9 +95,9 @@ vi.mock("@/components/ConnectDrawer", () => ({
   default: () => <div />,
 }));
 
-vi.mock("../TagsPopover", () => ({
-  default: ({ device }: { device: NormalizedDevice }) => (
-    <span>{device.tags.length > 0 ? device.tags.join(", ") : "No tags"}</span>
+vi.mock("@/components/common/TagsPopover", () => ({
+  default: ({ tags }: { tags: string[] }) => (
+    <span>{tags.length > 0 ? tags.join(", ") : "No tags"}</span>
   ),
 }));
 

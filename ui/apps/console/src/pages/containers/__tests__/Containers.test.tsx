@@ -10,6 +10,11 @@ vi.mock("@/hooks/useContainers", () => ({
   useContainers: vi.fn(),
 }));
 
+vi.mock("@/hooks/useContainerMutations", () => ({
+  useAddContainerTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useRemoveContainerTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
+}));
+
 // Return the value immediately (no timer) so tests don't need fake timers.
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -84,11 +89,9 @@ vi.mock("@/components/ConnectDrawer", () => ({
   default: () => <div />,
 }));
 
-vi.mock("../ContainerTagsPopover", () => ({
-  default: ({ container }: { container: NormalizedContainer }) => (
-    <span>
-      {container.tags.length > 0 ? container.tags.join(", ") : "No tags"}
-    </span>
+vi.mock("@/components/common/TagsPopover", () => ({
+  default: ({ tags }: { tags: string[] }) => (
+    <span>{tags.length > 0 ? tags.join(", ") : "No tags"}</span>
   ),
 }));
 
@@ -409,7 +412,7 @@ describe("Containers list", () => {
     });
 
     it("adds a tag to URL array when setArrayFilter is called via addFilterTag", () => {
-      // TagFilterDropdown and ContainerTagsPopover are mocked away; verify URL
+      // TagFilterDropdown and TagsPopover are mocked away; verify URL
       // array hydration indirectly: render with an existing tag in the URL and
       // confirm useContainers receives it.
       renderPage(["/?tags=existing"]);
@@ -465,7 +468,10 @@ describe("Containers list", () => {
       });
       renderPage(["/?status=pending"]);
       await user.click(screen.getByRole("button", { name: "Accept" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(pendingContainer, "accept");
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        pendingContainer,
+        "accept",
+      );
     });
 
     it("calls requestAction(container, 'reject') when Reject is clicked in pending view", async () => {
@@ -483,7 +489,10 @@ describe("Containers list", () => {
       });
       renderPage(["/?status=pending"]);
       await user.click(screen.getByRole("button", { name: "Reject" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(pendingContainer, "reject");
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        pendingContainer,
+        "reject",
+      );
     });
 
     it("calls requestAction(container, 'remove') when Remove is clicked in rejected view", async () => {
@@ -501,7 +510,10 @@ describe("Containers list", () => {
       });
       renderPage(["/?status=rejected"]);
       await user.click(screen.getByRole("button", { name: "Remove" }));
-      expect(mockRequestAction).toHaveBeenCalledWith(rejectedContainer, "remove");
+      expect(mockRequestAction).toHaveBeenCalledWith(
+        rejectedContainer,
+        "remove",
+      );
     });
   });
 });

@@ -16,7 +16,11 @@ import SearchField from "@/components/common/fields/SearchField";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
-import ContainerTagsPopover from "./ContainerTagsPopover";
+import TagsPopover from "@/components/common/TagsPopover";
+import {
+  useAddContainerTag,
+  useRemoveContainerTag,
+} from "@/hooks/useContainerMutations";
 import ContainerActionsPortal from "./ContainerActionsPortal";
 import { useContainerActions } from "@/hooks/useContainerActions";
 import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
@@ -69,17 +73,25 @@ const DEFAULTS: ContainersParams = {
 type SortField = "name" | "last_seen";
 
 export default function Containers() {
-  const { params, setPage, setSearch, setFilter, setArrayFilter, mapArrayFilter } =
-    usePaginatedListState<ContainersParams>({
-      defaults: DEFAULTS,
-      constraints: CONSTRAINTS,
-    });
+  const {
+    params,
+    setPage,
+    setSearch,
+    setFilter,
+    setArrayFilter,
+    mapArrayFilter,
+  } = usePaginatedListState<ContainersParams>({
+    defaults: DEFAULTS,
+    constraints: CONSTRAINTS,
+  });
 
   const debouncedSearch = useDebouncedValue(
     params.search.trim(),
     SEARCH_DEBOUNCE_MS,
   );
 
+  const addContainerTag = useAddContainerTag();
+  const removeContainerTag = useRemoveContainerTag();
   const containerActions = useContainerActions();
   const { requestAction: requestContainerAction } = containerActions;
   const [connectTarget, setConnectTarget] = useState<{
@@ -157,9 +169,13 @@ export default function Containers() {
         key: "tags",
         header: "Tags",
         render: (container) => (
-          <ContainerTagsPopover
-            container={container}
+          <TagsPopover
+            uid={container.uid}
+            tags={container.tags}
+            addTag={addContainerTag.mutateAsync}
+            removeTag={removeContainerTag.mutateAsync}
             onFilterTag={addFilterTag}
+            editLabel="Manage container tags"
           />
         ),
       },
@@ -336,7 +352,14 @@ export default function Containers() {
         ),
       },
     ];
-  }, [params.status, nsName, addFilterTag, requestContainerAction]);
+  }, [
+    params.status,
+    nsName,
+    addFilterTag,
+    requestContainerAction,
+    addContainerTag.mutateAsync,
+    removeContainerTag.mutateAsync,
+  ]);
 
   return (
     <div>
@@ -368,7 +391,12 @@ export default function Containers() {
               role="tab"
               aria-selected={params.status === tab.value}
               onClick={() => handleStatusChange(tab.value)}
-              className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", params.status === tab.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
+              className={cn(
+                "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+                params.status === tab.value
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-text-muted hover:text-text-secondary border border-transparent",
+              )}
             >
               {tab.label}
             </button>
@@ -484,9 +512,7 @@ export default function Containers() {
           );
         }}
         onTagDeleted={(name) => {
-          mapArrayFilter("tags", (tags) =>
-            tags.filter((t) => t !== name),
-          );
+          mapArrayFilter("tags", (tags) => tags.filter((t) => t !== name));
         }}
       />
 

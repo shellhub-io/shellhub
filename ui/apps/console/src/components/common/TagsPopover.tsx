@@ -6,26 +6,31 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
+import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
-import {
-  useAddDeviceTag,
-  useRemoveDeviceTag,
-} from "@/hooks/useDeviceMutations";
-import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 
-/* ─── Tags Popover (portal-based, no table layout bugs) ─── */
-function TagsPopover({
-  device,
-  onFilterTag,
-}: {
-  device: NormalizedDevice;
+interface TagsPopoverProps {
+  uid: string;
+  tags: string[];
+  addTag: (opts: { path: { uid: string; name: string } }) => Promise<unknown>;
+  removeTag: (opts: {
+    path: { uid: string; name: string };
+  }) => Promise<unknown>;
   onFilterTag: (tag: string) => void;
-}) {
-  const addTag = useAddDeviceTag();
-  const removeTag = useRemoveDeviceTag();
+  editLabel?: string;
+}
 
+export default function TagsPopover({
+  uid,
+  tags: entityTags,
+  addTag,
+  removeTag,
+  onFilterTag,
+  editLabel = "Manage tags",
+}: TagsPopoverProps) {
   const { tags: tagObjects } = useTags();
   const allTags = tagObjects.map((t) => t.name);
 
@@ -37,7 +42,7 @@ function TagsPopover({
   const popoverRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const canEditTags = useHasPermission("tag:edit");
-  const tags = device.tags || [];
+  const tags = entityTags || [];
 
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
@@ -50,12 +55,10 @@ function TagsPopover({
     setPos({ top: rect.bottom + 6, left });
   }, []);
 
-  const [prevTagsOpen, setPrevTagsOpen] = useState(false);
-  if (open && !prevTagsOpen) {
+  useResetOnOpen(open, () => {
     setInput("");
     setError(null);
-  }
-  if (open !== prevTagsOpen) setPrevTagsOpen(open);
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +73,6 @@ function TagsPopover({
     };
   }, [open, updatePosition]);
 
-  // Close on click outside
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -90,14 +92,24 @@ function TagsPopover({
   useEscapeKey(() => setOpen(false), open);
 
   const handleAdd = async (tag: string) => {
-    if (tags.includes(tag) || tags.length >= 3) return;
+    if (
+      tags.includes(tag) ||
+      tags.length >= 3 ||
+      tag.length < 3 ||
+      tag.length > 255 ||
+      !/^[a-zA-Z0-9]+$/.test(tag)
+    )
+      return;
     setLoading(true);
     setError(null);
     try {
-      await addTag.mutateAsync({ path: { uid: device.uid, name: tag } });
+      await addTag({ path: { uid, name: tag } });
       setInput("");
-    } catch {
-      setError(`Failed to add "${tag}"`);
+    } catch (e) {
+      const status = isSdkError(e) ? e.status : undefined;
+      if (status === 403) setError("You don't have permission to add tags.");
+      else if (status === 400) setError(`"${tag}" is not a valid tag name.`);
+      else setError(`Failed to add "${tag}".`);
     }
     setLoading(false);
   };
@@ -106,9 +118,11 @@ function TagsPopover({
     setLoading(true);
     setError(null);
     try {
-      await removeTag.mutateAsync({ path: { uid: device.uid, name: tag } });
-    } catch {
-      setError(`Failed to remove "${tag}"`);
+      await removeTag({ path: { uid, name: tag } });
+    } catch (e) {
+      const status = isSdkError(e) ? e.status : undefined;
+      if (status === 403) setError("You don't have permission to remove tags.");
+      else setError(`Failed to remove "${tag}".`);
     }
     setLoading(false);
   };
@@ -127,7 +141,6 @@ function TagsPopover({
 
   return (
     <>
-      {/* Trigger — inline in the table cell */}
       <div className="flex items-center gap-1 min-h-[28px] group/tags">
         {tags.length > 0 ? (
           <div className="flex items-center gap-1">
@@ -161,25 +174,27 @@ function TagsPopover({
               setOpen(!open);
             }}
             className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:!text-primary hover:bg-primary/10 transition-all shrink-0"
-            title="Manage tags"
-            aria-label="Manage tags"
+            title={editLabel}
+            aria-label={editLabel}
           >
             <PencilIcon className="w-3 h-3" strokeWidth={2} />
           </button>
         )}
       </div>
 
-      {/* Popover — portaled to body */}
       {open &&
         createPortal(
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- event containment, not user interaction
           <div
             ref={popoverRef}
+            role="dialog"
+            aria-label="Manage tags"
             className="fixed z-50 w-[300px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
             style={{ top: pos.top, left: pos.left }}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="p-3 space-y-3">
-              {/* Current tags */}
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {tags.map((tag) => (
@@ -203,7 +218,6 @@ function TagsPopover({
                 </div>
               )}
 
-              {/* Input */}
               {tags.length < 3 ? (
                 <div>
                   <input
@@ -221,6 +235,7 @@ function TagsPopover({
                       }
                     }}
                     placeholder="Search or create tag..."
+                    aria-label="Search or create tag"
                     className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
                   {input.trim() && input.trim().length < 3 && (
@@ -236,7 +251,6 @@ function TagsPopover({
                     </p>
                   )}
 
-                  {/* Suggestions dropdown */}
                   {(suggestions.length > 0 || isNew) &&
                     input.trim() &&
                     inputValid && (
@@ -282,7 +296,9 @@ function TagsPopover({
               )}
 
               {error && (
-                <p className="text-2xs font-mono text-accent-red">{error}</p>
+                <p role="alert" className="text-2xs font-mono text-accent-red">
+                  {error}
+                </p>
               )}
             </div>
           </div>,
@@ -291,5 +307,3 @@ function TagsPopover({
     </>
   );
 }
-
-export default TagsPopover;
