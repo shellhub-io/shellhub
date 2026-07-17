@@ -28,7 +28,6 @@ export default function TagsSelector({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
-
   useClickOutside(wrapperRef, () => setOpen(false));
 
   const filtered = tags.filter(
@@ -52,6 +51,7 @@ export default function TagsSelector({
       </FieldLabel>
       <div ref={wrapperRef} className="relative">
         <div
+          role="presentation"
           className={cn(
             "flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 bg-card border rounded-lg cursor-text transition-all",
             open ? "border-primary/50 ring-1 ring-primary/20" : "border-border",

@@ -41,6 +41,7 @@ export default function Drawer({
   return (
     <>
       <div
+        role="presentation"
         className={cn(
           "fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0 pointer-events-none",

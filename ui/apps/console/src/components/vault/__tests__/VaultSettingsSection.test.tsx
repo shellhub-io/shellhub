@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useVaultStore } from "@/stores/vaultStore";
 import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
@@ -209,6 +209,25 @@ describe("VaultSettingsSection", () => {
       expect(
         screen.queryByRole("option", { name: "5 minutes" }),
       ).not.toBeInTheDocument();
+    });
+
+    it("selects an option via Enter key", async () => {
+      setUnlocked({ autoLockTimeoutMinutes: 15 });
+      const updateAutoLockSettings = vi.fn();
+      useVaultStore.setState({ updateAutoLockSettings });
+
+      renderSection();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /auto-lock timeout/i }),
+      );
+
+      const option = screen.getByRole("option", { name: /30 minutes/i });
+      fireEvent.keyDown(option, { key: "Enter" });
+
+      expect(updateAutoLockSettings).toHaveBeenCalledWith({
+        autoLockTimeoutMinutes: 30,
+      });
     });
   });
 
