@@ -219,14 +219,17 @@ describe("KeyFileInput", () => {
   });
 
   describe("file input via browse", () => {
-    it("clicking the drop zone triggers the hidden file input", async () => {
+    it("clicking the browse button triggers the hidden file input", async () => {
       const { container } = renderComponent();
       const fileInput = container.querySelector(
         'input[type="file"]',
       ) as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, "click");
-      const dropZone = container.querySelector(".border-dashed") as HTMLElement;
-      await userEvent.click(dropZone);
+      await userEvent.click(
+        screen.getByRole("button", {
+          name: /drop key file, paste, or browse/i,
+        }),
+      );
       expect(clickSpy).toHaveBeenCalled();
     });
 

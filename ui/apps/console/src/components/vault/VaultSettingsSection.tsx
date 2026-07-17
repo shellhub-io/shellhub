@@ -168,7 +168,10 @@ function AutoLockTimeoutSelect({
       >
         {currentLabel}
         <ChevronDownIcon
-          className={cn("w-3.5 h-3.5 text-text-muted transition-transform duration-150", open && "rotate-180")}
+          className={cn(
+            "w-3.5 h-3.5 text-text-muted transition-transform duration-150",
+            open && "rotate-180",
+          )}
           strokeWidth={2.5}
         />
       </button>
@@ -183,12 +186,25 @@ function AutoLockTimeoutSelect({
             <li
               key={minutes}
               role="option"
+              tabIndex={-1}
               aria-selected={value === minutes}
               onClick={() => {
                 onChange(minutes);
                 setOpen(false);
               }}
-              className={cn("px-3 py-2 text-sm cursor-pointer transition-colors", value === minutes ? "text-primary bg-primary/10" : "text-text-secondary hover:text-text-primary hover:bg-hover-medium")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onChange(minutes);
+                  setOpen(false);
+                }
+              }}
+              className={cn(
+                "px-3 py-2 text-sm cursor-pointer transition-colors",
+                value === minutes
+                  ? "text-primary bg-primary/10"
+                  : "text-text-secondary hover:text-text-primary hover:bg-hover-medium",
+              )}
             >
               {TIMEOUT_LABELS[minutes]}
             </li>

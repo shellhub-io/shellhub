@@ -15,7 +15,14 @@ vi.mock("@/utils/welcomeState", () => ({
 // Mock WelcomeWizard so we don't render the full modal in these unit tests
 vi.mock("../WelcomeWizard", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
-    open ? <div data-testid="welcome-wizard" onClick={onClose} /> : null,
+    open ? (
+      <button
+        type="button"
+        aria-label="Close wizard"
+        data-testid="welcome-wizard"
+        onClick={onClose}
+      />
+    ) : null,
 }));
 
 import { useStats } from "@/hooks/useStats";

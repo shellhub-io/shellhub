@@ -88,14 +88,24 @@ export default function KeyFileInput({
               <button
                 type="button"
                 onClick={() => setInputMode("file")}
-                className={cn("px-2 py-0.5 rounded text-2xs font-medium transition-all", inputMode === "file" ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary")}
+                className={cn(
+                  "px-2 py-0.5 rounded text-2xs font-medium transition-all",
+                  inputMode === "file"
+                    ? "bg-primary/10 text-primary"
+                    : "text-text-muted hover:text-text-secondary",
+                )}
               >
                 File
               </button>
               <button
                 type="button"
                 onClick={() => setInputMode("text")}
-                className={cn("px-2 py-0.5 rounded text-2xs font-medium transition-all", inputMode === "text" ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary")}
+                className={cn(
+                  "px-2 py-0.5 rounded text-2xs font-medium transition-all",
+                  inputMode === "text"
+                    ? "bg-primary/10 text-primary"
+                    : "text-text-muted hover:text-text-secondary",
+                )}
               >
                 Text
               </button>
@@ -114,9 +124,8 @@ export default function KeyFileInput({
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer transition-all",
+            "flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg transition-all",
             dragging
               ? "border-primary bg-primary/5"
               : value
@@ -140,20 +149,21 @@ export default function KeyFileInput({
               </span>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange("");
-                }}
+                onClick={() => onChange("")}
                 className="text-2xs text-text-muted hover:text-text-primary transition-colors"
               >
                 Clear
               </button>
             </>
           ) : (
-            <>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 cursor-pointer"
+            >
               <ArrowUpTrayIcon className="w-5 h-5 text-text-muted" />
               <span className="text-xs text-text-secondary">{emptyLabel}</span>
-            </>
+            </button>
           )}
         </div>
       ) : (
@@ -166,7 +176,11 @@ export default function KeyFileInput({
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={cn(INPUT_MONO, "resize-none", disabled && "opacity-50 cursor-not-allowed")}
+          className={cn(
+            INPUT_MONO,
+            "resize-none",
+            disabled && "opacity-50 cursor-not-allowed",
+          )}
         />
       )}
 
