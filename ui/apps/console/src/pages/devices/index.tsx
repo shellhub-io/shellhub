@@ -19,7 +19,11 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
-import TagsPopover from "./TagsPopover";
+import TagsPopover from "@/components/common/TagsPopover";
+import {
+  useAddDeviceTag,
+  useRemoveDeviceTag,
+} from "@/hooks/useDeviceMutations";
 import DeviceActionsPortal from "./DeviceActionsPortal";
 import {
   PlusIcon,
@@ -34,6 +38,7 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
 const PER_PAGE = 10;
@@ -87,6 +92,8 @@ export default function Devices() {
     SEARCH_DEBOUNCE_MS,
   );
 
+  const addDeviceTag = useAddDeviceTag();
+  const removeDeviceTag = useRemoveDeviceTag();
   const deviceActions = useDeviceActions();
   const { requestAction: requestDeviceAction } = deviceActions;
   const [connectTarget, setConnectTarget] = useState<{
@@ -181,7 +188,13 @@ export default function Devices() {
         key: "tags",
         header: "Tags",
         render: (device) => (
-          <TagsPopover device={device} onFilterTag={addFilterTag} />
+          <TagsPopover
+            uid={device.uid}
+            tags={device.tags}
+            addTag={addDeviceTag.mutateAsync}
+            removeTag={removeDeviceTag.mutateAsync}
+            onFilterTag={addFilterTag}
+          />
         ),
       },
       {
@@ -345,7 +358,14 @@ export default function Devices() {
         ),
       },
     ];
-  }, [params.status, nsName, addFilterTag, requestDeviceAction]);
+  }, [
+    params.status,
+    nsName,
+    addFilterTag,
+    requestDeviceAction,
+    addDeviceTag.mutateAsync,
+    removeDeviceTag.mutateAsync,
+  ]);
 
   return (
     <div>
@@ -375,11 +395,11 @@ export default function Devices() {
                 type="button"
                 key={tab.value}
                 onClick={() => handleStatusChange(tab.value)}
-                className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
+                className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
                   params.status === tab.value
                     ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
+                    : "text-text-muted hover:text-text-secondary border border-transparent",
+                )}
               >
                 {tab.label}
               </button>
