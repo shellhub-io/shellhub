@@ -9,7 +9,7 @@ import AuthFooterLinks from "../components/common/AuthFooterLinks";
 export default function MfaResetVerify() {
   const {
     completeMfaReset,
-    mfaResetUserId,
+    mfaResetToken,
     mfaResetIdentifier,
     loading,
     error,
@@ -26,12 +26,12 @@ export default function MfaResetVerify() {
 
   // State guard: redirect if no reset session
   useEffect(() => {
-    if (!mfaResetUserId) {
+    if (!mfaResetToken) {
       void navigate("/mfa-recover");
     }
-  }, [mfaResetUserId, navigate]);
+  }, [mfaResetToken, navigate]);
 
-  if (!mfaResetUserId) {
+  if (!mfaResetToken) {
     return null; // Prevent rendering while redirecting
   }
 
@@ -95,7 +95,7 @@ export default function MfaResetVerify() {
                 <input
                   key={index}
                   ref={(el) => {
-                    (otpMain.inputRefs.current[index] = el);
+                    otpMain.inputRefs.current[index] = el;
                   }}
                   type="text"
                   maxLength={1}
@@ -127,7 +127,7 @@ export default function MfaResetVerify() {
                 <input
                   key={index}
                   ref={(el) => {
-                    (otpRecovery.inputRefs.current[index] = el);
+                    otpRecovery.inputRefs.current[index] = el;
                   }}
                   type="text"
                   maxLength={1}
