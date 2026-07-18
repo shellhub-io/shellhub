@@ -3,11 +3,15 @@
 -- key's registration activity and the devices list shows only accepted devices, so a device that was
 -- pending at upgrade time would be unreachable: absent from the accepted-only list and from every key's
 -- activity, with no way to accept it. One synthetic event per device that has a key but no event closes
--- that gap. The decision is frozen for devices already accepted/rejected so the history reads correctly;
--- a pending device gets an open event (decided_status NULL), which is what surfaces the accept control.
+-- that gap. The device's own facts are copied onto the event (the same fields an enrollment captures):
+-- its OS identity (identifier -> info_id, which drives the distro icon, plus the pretty name, version,
+-- arch, and platform), MAC, public key, and source address. The decision is frozen for devices already
+-- accepted/rejected so the history reads correctly; a pending device gets an open event (decided_status
+-- NULL), which is what surfaces the accept control.
 INSERT INTO install_key_events (
-    id, install_key_id, namespace_id, device_uid, hostname, mac, public_key, source_ip,
-    ephemeral, re_registration, decided_status, decided_at, created_at
+    id, install_key_id, namespace_id, device_uid, hostname, mac,
+    info_id, info_pretty_name, info_version, info_arch, info_platform,
+    public_key, source_ip, ephemeral, re_registration, decided_status, decided_at, created_at
 )
 SELECT
     gen_random_uuid(),
@@ -16,6 +20,11 @@ SELECT
     d.id,
     d.name,
     d.mac,
+    d.identifier,
+    d.pretty_name,
+    d.version,
+    d.arch,
+    d.platform,
     d.public_key,
     d.remote_addr,
     d.ephemeral,
