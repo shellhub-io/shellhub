@@ -74,6 +74,7 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 			TenantID:        tenant,
 			Name:            uidSeed,
 			Identity:        &models.DeviceIdentity{MAC: mac},
+			Info:            &models.DeviceInfo{ID: "arch", PrettyName: "Arch Linux", Version: "v1.2.3", Arch: "amd64", Platform: "docker"},
 			PublicKey:       "pk-" + uidSeed,
 			Status:          status,
 			StatusUpdatedAt: now,
@@ -101,21 +102,32 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	type row struct {
-		DeviceUID string `bun:"device_uid"`
-		Decided   string `bun:"decided_status"`
+		DeviceUID  string `bun:"device_uid"`
+		Decided    string `bun:"decided_status"`
+		InfoID     string `bun:"info_id"`
+		InfoPretty string `bun:"info_pretty_name"`
+		InfoArch   string `bun:"info_arch"`
 	}
 	events := make(map[string][]row)
 	var rows []row
-	require.NoError(t, provider.DB().NewRaw("SELECT device_uid, coalesce(decided_status, '') AS decided_status FROM install_key_events").Scan(ctx, &rows))
+	require.NoError(t, provider.DB().
+		NewRaw("SELECT device_uid, coalesce(decided_status, '') AS decided_status, coalesce(info_id, '') AS info_id, coalesce(info_pretty_name, '') AS info_pretty_name, coalesce(info_arch, '') AS info_arch FROM install_key_events").
+		Scan(ctx, &rows))
 	for _, r := range rows {
 		events[r.DeviceUID] = append(events[r.DeviceUID], r)
 	}
 
 	require.Len(t, events[pendingUID], 1, "a pending device without an event gets one")
 	assert.Empty(t, events[pendingUID][0].Decided, "a pending device's backfilled event stays open so the accept control shows")
+	// The device's OS facts must ride along so the registration activity shows the distro icon and name,
+	// not a blank generic row: info_id drives the icon, info_pretty_name/arch the labels.
+	assert.Equal(t, "arch", events[pendingUID][0].InfoID, "the device's distro id (identifier) is copied so the icon renders")
+	assert.Equal(t, "Arch Linux", events[pendingUID][0].InfoPretty)
+	assert.Equal(t, "amd64", events[pendingUID][0].InfoArch)
 
 	require.Len(t, events[acceptedUID], 1, "an accepted device without an event gets one")
 	assert.Equal(t, "accepted", events[acceptedUID][0].Decided, "an accepted device's decision is frozen on the event")
+	assert.Equal(t, "arch", events[acceptedUID][0].InfoID, "OS facts ride along regardless of decision")
 
 	require.Len(t, events[withEventUID], 1, "a device that already had an event is not given a second one")
 
