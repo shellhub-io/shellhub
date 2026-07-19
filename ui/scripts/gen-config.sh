@@ -9,6 +9,14 @@ OUTPUT="${1:?usage: gen-config.sh OUTPUT_FILE}"
 
 EDITION=$(printf '%s' "${SHELLHUB_EDITION:-community}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
 
+case "$EDITION" in
+    community|enterprise|cloud) ;;
+    *)
+        echo "🚫 ERROR: invalid SHELLHUB_EDITION '$EDITION': must be community, enterprise, or cloud." >&2
+        exit 1
+        ;;
+esac
+
 cat > "$OUTPUT" <<EOF
 {
   "version": "${SHELLHUB_VERSION:-}",
