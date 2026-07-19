@@ -67,6 +67,47 @@ func TestCurrentEdition_invalid_panics(t *testing.T) {
 	assert.Panics(t, func() { envs.CurrentEdition() })
 }
 
+func TestResolveEdition(t *testing.T) {
+	tests := []struct {
+		description string
+		envValue    string
+		expected    envs.Edition
+		expectErr   bool
+	}{
+		{
+			description: "unset defaults to community",
+			envValue:    "",
+			expected:    envs.Community,
+		},
+		{
+			description: "normalizes case and whitespace",
+			envValue:    "  Cloud  ",
+			expected:    envs.Cloud,
+		},
+		{
+			description: "invalid returns an error instead of panicking",
+			envValue:    "invalid",
+			expectErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			envstest.SetRawEdition(t, tt.envValue)
+
+			edition, err := envs.ResolveEdition()
+			if tt.expectErr {
+				assert.Error(t, err)
+
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, edition)
+		})
+	}
+}
+
 func TestEditionPredicates(t *testing.T) {
 	tests := []struct {
 		edition             envs.Edition

@@ -47,6 +47,10 @@ type Envs struct {
 }
 
 func main() {
+	if _, err := envs.ResolveEdition(); err != nil {
+		log.WithError(err).Fatal("Failed to resolve ShellHub edition")
+	}
+
 	// Populates configuration based on environment variables prefixed with 'SSH_'.
 	env, err := envs.ParseWithPrefix[Envs]("SSH_")
 	if err != nil {

@@ -37,6 +37,10 @@ func init() {
 func main() {
 	ctx := context.Background()
 
+	if _, err := envs.ResolveEdition(); err != nil {
+		log.WithError(err).Fatal("failed to resolve ShellHub edition")
+	}
+
 	cfg, err := envs.ParseWithPrefix[config]("CLI_")
 	if err != nil {
 		log.WithError(err).Fatal("failed to parse config envs")
