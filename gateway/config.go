@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sethvargo/go-envconfig"
@@ -29,7 +28,6 @@ type GatewayConfig struct {
 	BacklogSize                  int         `env:"BACKLOG_SIZE"`
 	EnableAutoSSL                bool        `env:"SHELLHUB_AUTO_SSL"`
 	EnableProxyProtocol          bool        `env:"SHELLHUB_PROXY"`
-	Edition                      string      `env:"SHELLHUB_EDITION,default=community"`
 	Database                     string      `env:"SHELLHUB_DATABASE,default=mongo"`
 	EnableAccessLogs             bool        `env:"SHELLHUB_GATEWAY_ACCESS_LOGS" default:"true"`
 	APIRateLimit                 string      `env:"SHELLHUB_API_RATE_LIMIT,default=1000r/s"`
@@ -51,13 +49,15 @@ func loadGatewayConfig() (*GatewayConfig, error) {
 		return nil, err
 	}
 
-	config.applyDefaults()
-
-	switch envs.Edition(config.Edition) {
-	case envs.Community, envs.Enterprise, envs.Cloud:
-	default:
-		return nil, fmt.Errorf("invalid SHELLHUB_EDITION %q: must be community, enterprise, or cloud", config.Edition)
+	edition, err := envs.ResolveEdition()
+	if err != nil {
+		return nil, err
 	}
+
+	config.EnableEnterprise = edition == envs.Enterprise || edition == envs.Cloud
+	config.EnableCloud = edition == envs.Cloud
+
+	config.applyDefaults()
 
 	if err := validate.Struct(config); err != nil {
 		return nil, err
@@ -84,11 +84,6 @@ func (gc *GatewayConfig) applyDefaults() {
 	}
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")
-
-	gc.Edition = strings.ToLower(strings.TrimSpace(gc.Edition))
-	edition := envs.Edition(gc.Edition)
-	gc.EnableEnterprise = edition == envs.Enterprise || edition == envs.Cloud
-	gc.EnableCloud = edition == envs.Cloud
 
 	gc.APIBackend = "api:8080"
 }
