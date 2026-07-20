@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 
 // Mock the focus trap so it doesn't interfere with jsdom focus state
 vi.mock("@/hooks/useFocusTrap", () => ({
@@ -18,33 +19,60 @@ HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
   this.removeAttribute("open");
 });
 
-// Mock the step sub-components to keep tests focused on the orchestrator. Step 2
-// exposes onConnected so a test can simulate the device connecting.
-vi.mock("../WizardStep1Welcome", () => ({
-  default: () => <div data-testid="step-1-welcome">Step 1 content</div>,
+// Mock the step sub-components to keep tests focused on the orchestrator. The
+// install and code faces are presentational markers; the link-path watcher
+// (mounted across both faces of step 1) exposes onConnected so a test can
+// simulate the device being accepted via the link from either face.
+vi.mock("../WizardStepInstall", () => ({
+  default: () => <div data-testid="step-install">Install step</div>,
 }));
 
-vi.mock("../WizardStep2Install", () => ({
+vi.mock("../WizardStepCode", () => ({
+  default: () => <div data-testid="step-code">Code step</div>,
+}));
+
+vi.mock("../WizardAcceptedWatcher", () => ({
   default: ({
     onConnected,
   }: {
     onConnected: (d: { uid: string; name: string }) => void;
   }) => (
-    <div data-testid="step-2-install">
-      Step 2 content
-      <button
-        type="button"
-        onClick={() => onConnected({ uid: "dev-uid-123", name: "my-device" })}
-        data-testid="simulate-connected"
-      >
-        Simulate device connected
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={() => onConnected({ uid: "dev-uid-123", name: "my-device" })}
+      data-testid="simulate-connected"
+    >
+      Simulate device connected
+    </button>
   ),
 }));
 
-vi.mock("../WizardStep4Complete", () => ({
+vi.mock("../WizardStepComplete", () => ({
   default: () => <div data-testid="step-complete">Complete content</div>,
+}));
+
+// The code face's Accept button is footer-driven off these two hooks (owned by
+// the orchestrator). Stub them: a complete code and a submit that accepts.
+vi.mock("@/hooks/useOtpInput", () => ({
+  useOtpInput: () => ({
+    code: Array(8).fill("A"),
+    inputRefs: { current: [] },
+    handleChange: vi.fn(),
+    handleKeyDown: vi.fn(),
+    handlePaste: vi.fn(),
+    reset: vi.fn(),
+    getValue: () => "AAAAAAAA",
+    isComplete: true,
+  }),
+}));
+
+vi.mock("@/hooks/useAcceptDeviceByCode", () => ({
+  useAcceptDeviceByCode: () => ({
+    submit: vi.fn().mockResolvedValue({ uid: "code-uid", name: "code-device" }),
+    isPending: false,
+    error: "",
+    clearError: vi.fn(),
+  }),
 }));
 
 import WelcomeWizard from "../WelcomeWizard";
@@ -55,17 +83,26 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-function renderWizard(open = true, onClose = vi.fn()) {
+function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
   return {
     onClose,
-    ...render(<WelcomeWizard open={open} onClose={onClose} />),
+    onDismiss,
+    ...render(
+      <MemoryRouter>
+        <WelcomeWizard open={open} onClose={onClose} onDismiss={onDismiss} />
+      </MemoryRouter>,
+    ),
   };
 }
 
 describe("WelcomeWizard", () => {
   describe("when open=false", () => {
     it("renders nothing", () => {
-      render(<WelcomeWizard open={false} onClose={vi.fn()} />);
+      render(
+        <MemoryRouter>
+          <WelcomeWizard open={false} onClose={vi.fn()} onDismiss={vi.fn()} />
+        </MemoryRouter>,
+      );
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -79,36 +116,34 @@ describe("WelcomeWizard", () => {
     });
   });
 
-  describe("Step 1", () => {
-    it("shows step indicator at step 1 of 3 and renders its content", () => {
+  describe("Step 1 (install)", () => {
+    it("opens on the install step, at step 1 of 2", () => {
       renderWizard();
       expect(
-        screen.getByRole("progressbar", { name: /step 1 of 3/i }),
+        screen.getByRole("progressbar", { name: /step 1 of 2/i }),
       ).toBeInTheDocument();
-      expect(screen.getByTestId("step-1-welcome")).toBeInTheDocument();
+      expect(screen.getByTestId("step-install")).toBeInTheDocument();
     });
 
-    it("clicking 'Next' advances to step 2", async () => {
-      const user = userEvent.setup();
+    it("has an enabled 'Next' and a 'Skip'", () => {
       renderWizard();
-
-      await user.click(screen.getByRole("button", { name: /next/i }));
-
+      expect(screen.getByRole("button", { name: /next/i })).toBeEnabled();
       expect(
-        screen.getByRole("progressbar", { name: /step 2 of 3/i }),
+        screen.getByRole("button", { name: /^skip$/i }),
       ).toBeInTheDocument();
     });
 
-    it("clicking 'Close' calls onClose", async () => {
+    it("clicking 'Skip' dismisses for good, not just closes", async () => {
       const user = userEvent.setup();
-      const { onClose } = renderWizard();
+      const { onClose, onDismiss } = renderWizard();
 
-      await user.click(screen.getByRole("button", { name: /^close$/i }));
+      await user.click(screen.getByRole("button", { name: /^skip$/i }));
 
-      expect(onClose).toHaveBeenCalledOnce();
+      expect(onDismiss).toHaveBeenCalledOnce();
+      expect(onClose).not.toHaveBeenCalled();
     });
 
-    it("clicking the X (aria-label 'Close wizard') calls onClose", async () => {
+    it("clicking the X (aria-label 'Close wizard') defers via onClose", async () => {
       const user = userEvent.setup();
       const { onClose } = renderWizard();
 
@@ -116,33 +151,67 @@ describe("WelcomeWizard", () => {
 
       expect(onClose).toHaveBeenCalledOnce();
     });
-  });
 
-  describe("Step 2", () => {
-    async function goToStep2() {
+    it("auto-advances to the final step when the device connects via the link", async () => {
       const user = userEvent.setup();
-      const result = renderWizard();
-      await user.click(screen.getByRole("button", { name: /next/i }));
-      return { user, ...result };
-    }
-
-    it("renders step 2 with a disabled 'Next' and a 'Close'", async () => {
-      await goToStep2();
-      expect(screen.getByTestId("step-2-install")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
-      expect(
-        screen.getByRole("button", { name: /^close$/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("auto-advances to the final step when the device connects", async () => {
-      const { user } = await goToStep2();
+      renderWizard();
 
       await user.click(screen.getByTestId("simulate-connected"));
 
       expect(
-        screen.getByRole("progressbar", { name: /step 3 of 3/i }),
+        screen.getByRole("progressbar", { name: /step 2 of 2/i }),
       ).toBeInTheDocument();
+      expect(screen.getByTestId("step-complete")).toBeInTheDocument();
+    });
+  });
+
+  describe("Code-entry face (the 'not on that machine' path)", () => {
+    it("clicking 'Next' switches to the code step, still at step 1 of 2", async () => {
+      const user = userEvent.setup();
+      renderWizard();
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+
+      expect(screen.getByTestId("step-code")).toBeInTheDocument();
+      expect(screen.queryByTestId("step-install")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("progressbar", { name: /step 1 of 2/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("the footer 'Back' returns to the install step", async () => {
+      const user = userEvent.setup();
+      renderWizard();
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await user.click(screen.getByRole("button", { name: /^back$/i }));
+
+      expect(screen.getByTestId("step-install")).toBeInTheDocument();
+      expect(screen.queryByTestId("step-code")).not.toBeInTheDocument();
+    });
+
+    it("the footer 'Pair device' advances to the final step", async () => {
+      const user = userEvent.setup();
+      renderWizard();
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await user.click(screen.getByRole("button", { name: /pair device/i }));
+
+      expect(
+        await screen.findByRole("progressbar", { name: /step 2 of 2/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByTestId("step-complete")).toBeInTheDocument();
+    });
+
+    it("accepting via the link while on the code face still advances", async () => {
+      const user = userEvent.setup();
+      renderWizard();
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      // The watcher stays mounted on the code face, so a link acceptance here
+      // must still drive the wizard forward.
+      await user.click(screen.getByTestId("simulate-connected"));
+
       expect(screen.getByTestId("step-complete")).toBeInTheDocument();
     });
   });
@@ -151,81 +220,79 @@ describe("WelcomeWizard", () => {
     async function goToFinal() {
       const user = userEvent.setup();
       const result = renderWizard();
-      await user.click(screen.getByRole("button", { name: /next/i }));
       await user.click(screen.getByTestId("simulate-connected"));
       return { user, ...result };
     }
 
-    it("shows 'Finish' and hides the close affordances", async () => {
+    it("shows 'Finish' and keeps the X close affordance", async () => {
       await goToFinal();
       expect(
         screen.getByRole("button", { name: /finish/i }),
       ).toBeInTheDocument();
+      // The X stays available on the final step (onboarding is done, so it
+      // dismisses for good rather than deferring).
       expect(
-        screen.queryByRole("button", { name: /^close$/i }),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /close wizard/i }),
-      ).not.toBeInTheDocument();
+        screen.getByRole("button", { name: /close wizard/i }),
+      ).toBeInTheDocument();
     });
 
-    it("clicking 'Finish' calls onClose", async () => {
-      const { user, onClose } = await goToFinal();
+    it("clicking 'Finish' dismisses for good", async () => {
+      const { user, onClose, onDismiss } = await goToFinal();
 
       await user.click(screen.getByRole("button", { name: /finish/i }));
 
-      expect(onClose).toHaveBeenCalled();
+      expect(onDismiss).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("clicking the X on the final step dismisses for good", async () => {
+      const { user, onClose, onDismiss } = await goToFinal();
+
+      await user.click(screen.getByRole("button", { name: /close wizard/i }));
+
+      expect(onDismiss).toHaveBeenCalledOnce();
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 
-  describe("dismissal is blocked on the final step", () => {
+  describe("closing routes to defer or dismiss by step", () => {
     async function goToFinal() {
       const user = userEvent.setup();
-      const { onClose } = renderWizard();
-      await user.click(screen.getByRole("button", { name: /next/i }));
+      const result = renderWizard();
       await user.click(screen.getByTestId("simulate-connected"));
-      onClose.mockClear();
-      return onClose;
+      result.onClose.mockClear();
+      result.onDismiss.mockClear();
+      return result;
     }
 
-    it("Escape calls onClose on step 1 but not on the final step", async () => {
-      const { onClose } = renderWizard();
+    it("Escape defers (onClose) on step 1 but dismisses (onDismiss) on the final step", async () => {
+      const { onClose, onDismiss } = renderWizard();
       fireEvent(screen.getByRole("dialog"), new Event("cancel"));
       expect(onClose).toHaveBeenCalled();
+      expect(onDismiss).not.toHaveBeenCalled();
       cleanup();
 
-      const finalOnClose = await goToFinal();
+      const final = await goToFinal();
       fireEvent(screen.getByRole("dialog"), new Event("cancel"));
-      expect(finalOnClose).not.toHaveBeenCalled();
+      expect(final.onDismiss).toHaveBeenCalled();
+      expect(final.onClose).not.toHaveBeenCalled();
     });
 
-    it("backdrop click calls onClose on step 1 but not on the final step", async () => {
-      const { onClose } = renderWizard();
+    it("backdrop click defers on step 1 but dismisses on the final step", async () => {
+      const { onClose, onDismiss } = renderWizard();
       let dialog = document.querySelector("dialog") as HTMLElement;
       fireEvent.mouseDown(dialog);
       fireEvent.click(dialog);
       expect(onClose).toHaveBeenCalled();
+      expect(onDismiss).not.toHaveBeenCalled();
       cleanup();
 
-      const finalOnClose = await goToFinal();
+      const final = await goToFinal();
       dialog = document.querySelector("dialog") as HTMLElement;
       fireEvent.mouseDown(dialog);
       fireEvent.click(dialog);
-      expect(finalOnClose).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("progress bar", () => {
-    it("advances width across steps", async () => {
-      const user = userEvent.setup();
-      renderWizard();
-
-      let bar = document.querySelector("[style*='width']") as HTMLElement;
-      expect(bar.style.width).toMatch(/^33\./);
-
-      await user.click(screen.getByRole("button", { name: /next/i }));
-      bar = document.querySelector("[style*='width']") as HTMLElement;
-      expect(bar.style.width).toMatch(/^66\./);
+      expect(final.onDismiss).toHaveBeenCalled();
+      expect(final.onClose).not.toHaveBeenCalled();
     });
   });
 });

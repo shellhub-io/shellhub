@@ -1,43 +1,96 @@
 import { useState } from "react";
+import type { GetStatusDevicesResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import { useStats } from "@/hooks/useStats";
-import { hasAnyDevices } from "@/utils/stats";
+import { hasAcceptedDevices } from "@/utils/stats";
 import { hasSeenWelcome, markWelcomeSeen } from "@/utils/welcomeState";
 import WelcomeWizard from "./WelcomeWizard";
+import { isWizardDemo } from "./demo";
 
 /**
  * Mounts the WelcomeWizard automatically when:
- *   - The current tenant has never seen the wizard
- *   - The namespace has zero devices of any status
+ *   - The current tenant has never dismissed the wizard for good
+ *   - The namespace has no accepted device yet
+ *
+ * Onboarding is "done" only once a device is accepted, not when any device
+ * appears, so a device left pending (the user ran the command but closed
+ * before accepting) still reopens the wizard.
  *
  * Rendered inside AppLayout so it works regardless of which page the user
- * lands on. The tenant is marked as "seen" when the user closes the wizard,
- * not when it opens — so closing early doesn't permanently suppress it until
- * the user consciously dismisses it.
+ * lands on. Closing merely defers it (reappears next visit); only an explicit
+ * skip or finishing marks the tenant as "seen".
  *
- * Uses the shared stats query so that when the wizard completes and is closed,
- * a stats refresh causes the Dashboard to re-render with up-to-date data
- * instead of lingering on the WelcomeScreen empty state.
+ * Eligibility is decided ONCE, from the device state at page load: this outer
+ * component waits for stats+tenant to resolve, then mounts the gate, which
+ * freezes the decision in a lazy initializer. Deleting the last device
+ * mid-session therefore can't pop the wizard back open in the user's face;
+ * only a fresh page load reconsiders.
  */
 export default function WelcomeWizardTrigger() {
   const tenant = useAuthStore((s) => s.tenant);
   const { stats, refetch } = useStats();
+
+  // Hold off until stats+tenant resolve, so the gate's lazy initializer below
+  // captures the actual page-load device state rather than a loading null.
+  if (!stats || !tenant) return null;
+
+  return (
+    <WelcomeWizardGate
+      tenant={tenant}
+      initialStats={stats}
+      refetch={() => void refetch()}
+    />
+  );
+}
+
+interface WelcomeWizardGateProps {
+  tenant: string;
+  /** Device stats snapshot taken when the gate first mounts (page load). */
+  initialStats: GetStatusDevicesResponse;
+  refetch: () => void;
+}
+
+/**
+ * Owns the open/dismiss state. The eligibility decision is frozen at mount via
+ * a lazy useState initializer, so later stats changes never reopen the wizard.
+ *
+ * Refetches stats when closed so the Dashboard re-renders with up-to-date data
+ * instead of lingering on the WelcomeScreen empty state.
+ */
+function WelcomeWizardGate({
+  tenant,
+  initialStats,
+  refetch,
+}: WelcomeWizardGateProps) {
   const [dismissed, setDismissed] = useState(false);
+  const [eligible] = useState(
+    () => !hasSeenWelcome(tenant) && !hasAcceptedDevices(initialStats),
+  );
 
-  // Derive open state during render — no setState-in-effect needed
-  const show
-    = !!stats
-      && !!tenant
-      && !dismissed
-      && !hasSeenWelcome(tenant)
-      && !hasAnyDevices(stats);
+  // `?wizard=demo` (dev only) forces the wizard open, bypassing the gate, but
+  // dismissing it still closes it for the session.
+  const show = !dismissed && (isWizardDemo() || eligible);
 
+  // Close for now: hide it this session only, so it reappears next visit while
+  // the namespace is still empty.
   const handleClose = () => {
-    if (tenant) markWelcomeSeen(tenant);
     setDismissed(true);
-    // Refresh the shared query so the Dashboard re-renders with current data
     void refetch();
   };
 
-  return <WelcomeWizard open={show} onClose={handleClose} />;
+  // Dismiss for good: the user skipped explicitly or finished onboarding, so
+  // never show it for this tenant again.
+  const handleDismiss = () => {
+    markWelcomeSeen(tenant);
+    setDismissed(true);
+    void refetch();
+  };
+
+  return (
+    <WelcomeWizard
+      open={show}
+      onClose={handleClose}
+      onDismiss={handleDismiss}
+    />
+  );
 }

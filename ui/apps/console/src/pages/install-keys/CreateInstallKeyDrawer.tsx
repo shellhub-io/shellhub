@@ -27,9 +27,13 @@ import { LABEL } from "@/utils/styles";
 function CreateInstallKeyDrawer({
   open,
   onClose,
+  onCreated,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Fires with the new key's name once it's created, so a caller (Add Device)
+   * can select it. The plaintext still lives in this drawer's generated view. */
+  onCreated?: (name: string) => void;
 }) {
   const createKey = useCreateInstallKey();
   const tenant = useAuthStore((s) => s.tenant);
@@ -124,6 +128,7 @@ function CreateInstallKeyDrawer({
         },
       });
       setGeneratedKey(result.key);
+      onCreated?.(name.trim());
     } catch (err) {
       if (isSdkError(err) && err.status === 409) {
         setNameError("A key with that name already exists.");
