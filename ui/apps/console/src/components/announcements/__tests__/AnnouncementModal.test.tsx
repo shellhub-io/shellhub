@@ -3,11 +3,6 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
 
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-// Silence the CSS import — jsdom cannot process it
-vi.mock("../AnnouncementModal.css", () => ({}));
-
 // Mock the focus trap so jsdom focus state doesn't interfere
 vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
 

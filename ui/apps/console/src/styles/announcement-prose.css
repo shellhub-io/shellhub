@@ -1,0 +1,118 @@
+.announcement-prose .ProseMirror {
+  outline: none;
+  color: rgb(var(--c-text-primary));
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+.announcement-prose .ProseMirror h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.announcement-prose .ProseMirror h1:first-child {
+  margin-top: 0;
+}
+
+.announcement-prose .ProseMirror h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.announcement-prose .ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.announcement-prose .ProseMirror p {
+  margin-bottom: 0.75rem;
+}
+
+.announcement-prose .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+.announcement-prose .ProseMirror ul,
+.announcement-prose .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.announcement-prose .ProseMirror ul {
+  list-style: disc;
+}
+
+.announcement-prose .ProseMirror ol {
+  list-style: decimal;
+}
+
+.announcement-prose .ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+.announcement-prose .ProseMirror blockquote {
+  border-left: 3px solid rgb(var(--c-border));
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-bottom: 0.75rem;
+  color: rgb(var(--c-text-muted));
+  font-style: italic;
+}
+
+.announcement-prose .ProseMirror code {
+  background: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8125rem;
+}
+
+.announcement-prose .ProseMirror pre {
+  background: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  overflow-x: auto;
+}
+
+.announcement-prose .ProseMirror pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.announcement-prose .ProseMirror a {
+  color: rgba(var(--color-primary-rgb), 1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.announcement-prose .ProseMirror a:hover {
+  opacity: 0.8;
+}
+
+.announcement-prose .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.announcement-prose .ProseMirror hr {
+  border: none;
+  border-top: 1px solid rgb(var(--c-border));
+  margin: 1.25rem 0;
+}

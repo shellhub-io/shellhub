@@ -4,7 +4,7 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
 import { isAllowedUrl } from "@/utils/url";
-import "./AnnouncementEditor.css";
+import "@/styles/announcement-prose.css";
 
 interface AnnouncementContentProps {
   content: string;
@@ -37,7 +37,7 @@ export default function AnnouncementContent({
   if (!editor) return <div className="min-h-[120px]" />;
 
   return (
-    <div className="announcement-editor">
+    <div className="announcement-prose">
       <EditorContent editor={editor} />
     </div>
   );
