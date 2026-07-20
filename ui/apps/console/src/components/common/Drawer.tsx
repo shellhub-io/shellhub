@@ -35,7 +35,7 @@ export default function Drawer({
 }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
-  useEscapeKey(onClose, open);
+  useEscapeKey(onClose, open, panelRef);
   useFocusTrap(panelRef, open);
 
   return (
