@@ -6,7 +6,7 @@ import Image from "@tiptap/extension-image";
 import { Markdown } from "@tiptap/markdown";
 import { cn } from "@shellhub/design-system/cn";
 import { isAllowedUrl } from "@/utils/url";
-import "./AnnouncementEditor.css";
+import "@/styles/announcement-prose.css";
 
 interface AnnouncementEditorProps {
   content: string;
@@ -35,7 +35,13 @@ function ToolbarButton({
       title={title}
       aria-label={title}
       aria-pressed={active}
-      className={cn("p-1.5 rounded text-xs transition-colors", active ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text-primary hover:bg-surface", "disabled:opacity-30 disabled:cursor-not-allowed")}
+      className={cn(
+        "p-1.5 rounded text-xs transition-colors",
+        active
+          ? "bg-primary/15 text-primary"
+          : "text-text-muted hover:text-text-primary hover:bg-surface",
+        "disabled:opacity-30 disabled:cursor-not-allowed",
+      )}
     >
       {children}
     </button>
@@ -269,7 +275,7 @@ export default function AnnouncementEditor({
   if (!editor) return null;
 
   return (
-    <div className="announcement-editor border border-border rounded-lg overflow-hidden bg-card">
+    <div className="announcement-prose border border-border rounded-lg overflow-hidden bg-card [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:p-4">
       <EditorToolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>

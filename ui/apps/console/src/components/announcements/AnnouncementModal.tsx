@@ -14,7 +14,7 @@ import BaseDialog from "@/components/common/BaseDialog";
 import { formatDateShort } from "@/utils/date";
 import { isAllowedUrl } from "@/utils/url";
 import type { Announcement } from "@/client";
-import "./AnnouncementModal.css";
+import "@/styles/announcement-prose.css";
 
 interface AnnouncementContentProps {
   content: string;
@@ -43,7 +43,7 @@ function AnnouncementContent({ content }: AnnouncementContentProps) {
   if (!editor) return <div className="min-h-[80px]" />;
 
   return (
-    <div className="announcement-modal-content">
+    <div className="announcement-prose">
       <EditorContent editor={editor} />
     </div>
   );
