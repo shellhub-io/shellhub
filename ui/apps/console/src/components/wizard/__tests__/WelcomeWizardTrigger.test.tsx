@@ -12,16 +12,33 @@ vi.mock("@/utils/welcomeState", () => ({
   markWelcomeSeen: vi.fn(),
 }));
 
-// Mock WelcomeWizard so we don't render the full modal in these unit tests
+// Mock WelcomeWizard so we don't render the full modal in these unit tests.
+// Exposes close (defer) and dismiss (for good) as separate controls.
 vi.mock("../WelcomeWizard", () => ({
-  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+  default: ({
+    open,
+    onClose,
+    onDismiss,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    onDismiss: () => void;
+  }) =>
     open ? (
-      <button
-        type="button"
-        aria-label="Close wizard"
-        data-testid="welcome-wizard"
-        onClick={onClose}
-      />
+      <>
+        <button
+          type="button"
+          aria-label="Close wizard"
+          data-testid="welcome-wizard"
+          onClick={onClose}
+        />
+        <button
+          type="button"
+          aria-label="Dismiss wizard"
+          data-testid="wizard-dismiss"
+          onClick={onDismiss}
+        />
+      </>
     ) : null,
 }));
 
@@ -88,7 +105,7 @@ describe("WelcomeWizardTrigger", () => {
       expect(screen.getByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
-    it("calls markWelcomeSeen with the tenant id when wizard is closed", async () => {
+    it("does not call markWelcomeSeen when merely closed", async () => {
       mockUseStats.mockReturnValue({
         stats: zeroStats,
         isLoading: false,
@@ -98,13 +115,26 @@ describe("WelcomeWizardTrigger", () => {
 
       render(<WelcomeWizardTrigger />);
 
-      const wizard = screen.getByTestId("welcome-wizard");
+      // Closing defers the wizard for this session; it must not be suppressed
+      // for good, so markWelcomeSeen is never called.
+      screen.getByTestId("welcome-wizard").click();
 
-      // markWelcomeSeen should NOT be called yet (only on close)
+      expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
+    });
+
+    it("calls markWelcomeSeen with the tenant id when dismissed for good", async () => {
+      mockUseStats.mockReturnValue({
+        stats: zeroStats,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      });
+
+      render(<WelcomeWizardTrigger />);
+
       expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
 
-      // Simulate closing the wizard via the onClose prop
-      wizard.click();
+      screen.getByTestId("wizard-dismiss").click();
 
       await waitFor(() => {
         expect(mockMarkWelcomeSeen).toHaveBeenCalledWith("tenant-abc");
@@ -159,7 +189,7 @@ describe("WelcomeWizardTrigger", () => {
       expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
     });
 
-    it("does not show the wizard when there are pending devices", () => {
+    it("still shows the wizard when a device is only pending (not accepted)", () => {
       mockUseStats.mockReturnValue({
         stats: { ...zeroStats, pending_devices: 2 },
         isLoading: false,
@@ -169,10 +199,12 @@ describe("WelcomeWizardTrigger", () => {
 
       render(<WelcomeWizardTrigger />);
 
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      // Onboarding isn't done until a device is accepted, so a pending device
+      // must not suppress the wizard.
+      expect(screen.getByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
-    it("does not show the wizard when there are rejected devices", () => {
+    it("still shows the wizard when a device is only rejected (not accepted)", () => {
       mockUseStats.mockReturnValue({
         stats: { ...zeroStats, rejected_devices: 1 },
         isLoading: false,
@@ -182,7 +214,7 @@ describe("WelcomeWizardTrigger", () => {
 
       render(<WelcomeWizardTrigger />);
 
-      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+      expect(screen.getByTestId("welcome-wizard")).toBeInTheDocument();
     });
 
     it("does not call markWelcomeSeen when there are devices", () => {
@@ -196,6 +228,34 @@ describe("WelcomeWizardTrigger", () => {
       render(<WelcomeWizardTrigger />);
 
       expect(mockMarkWelcomeSeen).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("eligibility is decided once, at page load", () => {
+    it("does not reopen when the last device is deleted mid-session", () => {
+      // Page loads with an accepted device -> wizard suppressed.
+      mockUseStats.mockReturnValue({
+        stats: { ...zeroStats, registered_devices: 1 },
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      });
+
+      const { rerender } = render(<WelcomeWizardTrigger />);
+      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
+
+      // The device is deleted, dropping the namespace back to zero. The wizard
+      // must NOT pop back open in the user's face — only a fresh page load
+      // reconsiders eligibility.
+      mockUseStats.mockReturnValue({
+        stats: zeroStats,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      });
+      rerender(<WelcomeWizardTrigger />);
+
+      expect(screen.queryByTestId("welcome-wizard")).not.toBeInTheDocument();
     });
   });
 

@@ -26,6 +26,10 @@ export interface BaseDialogProps {
    *  Returning `true` (or omitting this prop) allows closing. */
   canClose?: () => boolean;
 
+  /** When false, no control is focused on open (the dialog itself takes focus)
+   *  instead of the first focusable child. Defaults to true. */
+  focusOnOpen?: boolean;
+
   /** Panel max-width. Defaults to "sm" (max-w-sm = 384px).
    *  Below the sm breakpoint all sizes go full-screen. */
   size?: DialogSize;
@@ -58,6 +62,7 @@ export default function BaseDialog({
   open,
   onClose,
   canClose: canCloseProp,
+  focusOnOpen = true,
   size = "sm",
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
@@ -80,7 +85,7 @@ export default function BaseDialog({
   );
 
   const backdropHandlers = useBackdropClose(ref, onClose, canClose);
-  useFocusTrap(ref, open);
+  useFocusTrap(ref, open, focusOnOpen);
 
   // Drive showModal() / close() from the open prop.
   useEffect(() => {
@@ -140,6 +145,7 @@ export default function BaseDialog({
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       data-custom-backdrop
       aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}

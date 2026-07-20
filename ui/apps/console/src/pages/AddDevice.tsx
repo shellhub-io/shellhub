@@ -1,22 +1,20 @@
 import { useState, type JSX } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import BaseDialog from "@/components/common/BaseDialog";
 import { useAuthStore } from "../stores/authStore";
 import {
   ArchiveBoxIcon,
   ArrowTopRightOnSquareIcon,
   BookOpenIcon,
-  CheckCircleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-  ClockIcon,
   CommandLineIcon,
   ComputerDesktopIcon,
   CpuChipIcon,
   CubeIcon,
   InformationCircleIcon,
+  KeyIcon,
   PlusIcon,
   ServerStackIcon,
   SparklesIcon,
@@ -24,13 +22,15 @@ import {
 } from "@heroicons/react/24/outline";
 import CopyButton from "../components/common/CopyButton";
 import PairingCodeDialog from "@/components/common/PairingCodeDialog";
-import { useDevicePairingEnrollment } from "@/hooks/useDevicePairingEnrollment";
+import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer";
+import { modeInfo } from "@/pages/install-keys/constants";
+import { useInstallKeys } from "@/hooks/useInstallKeys";
+import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
 import InputField from "@/components/common/fields/InputField";
 import NumericInput from "@/components/common/fields/NumericInput";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { LABEL_BASE } from "@/utils/styles";
-import { formatCountdown } from "@/utils/date";
 import {
   Button,
   Card,
@@ -63,10 +63,47 @@ interface MethodInfo {
 
 const INITIAL_VISIBLE = 3;
 
-/* Methods that run the agent in a container, where a tenant-less install can
- * claim a pre-authorized pairing code and be accepted automatically. Other
- * methods still take a tenant and land the device in the pending list. */
-const LIVE_METHODS: Method[] = ["auto", "docker", "podman"];
+/* Methods that run the agent in a container support a tenant-less install: the
+ * agent boots without credentials, mints its own pairing code at runtime and
+ * prints an accept URL for the browser, so nothing sensitive rides on the
+ * command line. Other methods still take a tenant and land the device in the
+ * pending list. */
+const CODELESS_METHODS: Method[] = ["auto", "docker", "podman"];
+
+/* Two audiences, following the pattern the field has settled on (Tailscale,
+ * NetBird): you pick who you're adding, and the mechanism follows. "This
+ * machine" installs clean and confirms in the browser; "Fleet" bakes a reusable
+ * install key into many machines. */
+type Audience = "machine" | "fleet";
+
+const AUDIENCES: {
+  id: Audience;
+  icon: typeof ComputerDesktopIcon;
+  title: string;
+  sub: string;
+}[] = [
+  {
+    id: "machine",
+    icon: ComputerDesktopIcon,
+    title: "One device",
+    sub: "Install it, then accept in your browser.",
+  },
+  {
+    id: "fleet",
+    icon: ServerStackIcon,
+    title: "Fleet",
+    sub: "Provision many, unattended, with a reusable install key.",
+  },
+];
+
+/* Explains where each install-key mode lands a device, shown next to the key
+ * picker so the operator knows the outcome before baking the command. */
+const MODE_OUTCOME: Record<string, string> = {
+  automatic: "accepted the moment it connects",
+  manual: "left pending for you to accept",
+  webhook: "decided by your integrator",
+  allowlist: "accepted if its MAC is allowed",
+};
 
 /* ─── Constants ─── */
 const METHODS: MethodInfo[] = [
@@ -147,9 +184,11 @@ const METHODS: MethodInfo[] = [
 /* ─── Page ─── */
 export default function AddDevice() {
   const { tenant } = useAuthStore();
-  const [mode, setMode] = useState<"single" | "fleet">("single");
+  const [aud, setAud] = useState<Audience>("machine");
   const [method, setMethod] = useState<Method>("auto");
   const [pairOpen, setPairOpen] = useState(false);
+  const [selectedKeyName, setSelectedKeyName] = useState<string | null>(null);
+  const [createKeyOpen, setCreateKeyOpen] = useState(false);
   const [showAllMethods, setShowAllMethods] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [hostname, setHostname] = useState("");
@@ -171,20 +210,32 @@ export default function AddDevice() {
 
   const origin = window.location.origin;
 
-  // "This device" on a container method hands the installer a pre-authorized
-  // code so the device is accepted automatically and this page confirms it live.
-  // The fleet path, non-container methods, and mint failures all fall back to the
-  // tenant, which lands devices in the pending tab.
-  const liveEnrollment = mode === "single" && LIVE_METHODS.includes(method);
-  const enrollment = useDevicePairingEnrollment(liveEnrollment, tenant ?? "");
-  const usePairingCode = liveEnrollment && enrollment.phase !== "error";
+  // Install keys that can enroll a fleet: skip the system/legacy key (it's the
+  // keyless default, not something you bake in) and anything unusable.
+  const { installKeys } = useInstallKeys({ perPage: 50 });
+  const usableKeys = installKeys.filter(
+    (k) => !k.system && !k.revoked && !k.disabled,
+  );
+  const selectedKey =
+    usableKeys.find((k) => k.name === selectedKeyName) ?? usableKeys[0];
+  // Reveal the plaintext only for the picked key, only in fleet mode — it rides
+  // in the copyable command, which is exactly what an install key is for.
+  const { key: revealedKey } = useRevealInstallKey(
+    aud === "fleet" ? (selectedKey?.name ?? null) : null,
+    aud === "fleet",
+  );
+
+  // "This machine" on a container method installs tenant-less: the agent mints
+  // its own pairing code and prints an accept URL, so the command line stays
+  // clean. Non-container methods take a tenant and land the device pending.
+  const codeless = aud === "machine" && CODELESS_METHODS.includes(method);
 
   const buildCommand = () => {
     const parts = ["curl -sSf", `${origin}/install.sh`, "|"];
     if (method !== "auto") parts.push(`INSTALL_METHOD=${method}`);
-    if (usePairingCode) {
-      parts.push(`CODE=${enrollment.code || "…"}`);
-    } else {
+    if (aud === "fleet") {
+      parts.push(`INSTALL_KEY=${revealedKey || "…"}`);
+    } else if (!codeless) {
       parts.push(`TENANT_ID=${tenant}`);
     }
     if (hostname.trim()) parts.push(`PREFERRED_HOSTNAME=${hostname.trim()}`);
@@ -196,25 +247,8 @@ export default function AddDevice() {
   };
 
   const command = buildCommand();
-  // While the pre-authorized code is still being minted there is no runnable
-  // command yet, so don't show or let the user copy a placeholder.
-  const commandReady = !usePairingCode || Boolean(enrollment.code);
-
-  // Pop a success modal the moment a device connects and is auto-accepted.
-  // Tracking the dismissed device by uid re-arms it for the next device without
-  // a state-resetting effect.
-  const [dismissedUid, setDismissedUid] = useState<string | null>(null);
-  const connectedModalOpen =
-    enrollment.phase === "connected" &&
-    Boolean(enrollment.device) &&
-    enrollment.device?.uid !== dismissedUid;
-
-  const enrollmentBorderColor =
-    enrollment.phase === "connected"
-      ? "border-accent-green/35 bg-accent-green/[0.06]"
-      : enrollment.phase === "expired"
-        ? "border-border-light bg-card"
-        : "border-primary/30 bg-primary/[0.04]";
+  // Fleet needs a usable key before it can show a runnable command.
+  const fleetBlocked = aud === "fleet" && !selectedKey;
 
   return (
     <div className="max-w-2xl animate-fade-in">
@@ -235,53 +269,41 @@ export default function AddDevice() {
         </div>
       </div>
 
-      {/* Mode: one device you have shell on (auto-accept) vs many (fleet). */}
+      {/* Audience tabs: pick who you're adding; the mechanism follows. */}
       <div
-        role="radiogroup"
-        aria-label="How many devices"
-        className="flex gap-1 p-1 mb-3 bg-card border border-border rounded-xl"
+        role="tablist"
+        aria-label="What are you adding"
+        className="flex gap-1 border-b border-border mb-3"
       >
-        {(
-          [
-            {
-              id: "single" as const,
-              icon: ComputerDesktopIcon,
-              title: "One device",
-              sub: "Accepted automatically",
-            },
-            {
-              id: "fleet" as const,
-              icon: ServerStackIcon,
-              title: "A fleet",
-              sub: "Accept each device manually",
-            },
-          ] as const
-        ).map((opt) => {
-          const active = mode === opt.id;
+        {AUDIENCES.map((a) => {
+          const active = aud === a.id;
           return (
             <button
-              key={opt.id}
+              key={a.id}
               type="button"
-              role="radio"
-              aria-label={opt.title}
-              aria-checked={active}
-              onClick={() => setMode(opt.id)}
+              role="tab"
+              aria-label={a.title}
+              aria-selected={active}
+              onClick={() => setAud(a.id)}
               className={cn(
-                "flex-1 flex items-center gap-3 px-3.5 h-14 rounded-lg border text-left transition-colors",
+                "flex items-start gap-2.5 px-4 pt-3 pb-3 -mb-px border-b-2 text-left transition-colors max-w-[20rem]",
                 active
-                  ? "bg-primary/15 border-primary/30 text-primary"
+                  ? "border-primary text-primary"
                   : "border-transparent text-text-muted hover:text-text-secondary",
               )}
             >
-              <opt.icon className="w-5 h-5 shrink-0" strokeWidth={1.8} />
-              <span className="flex flex-col min-w-0">
+              <a.icon className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.8} />
+              <span className="flex flex-col gap-0.5 min-w-0">
                 <span className="text-sm font-semibold leading-tight">
-                  {opt.title}
+                  {a.title}
                 </span>
                 <span
-                  className={cn("text-2xs", active ? "text-primary/75" : "text-text-muted")}
+                  className={cn(
+                    "text-2xs leading-snug font-normal hidden sm:block",
+                    active ? "text-text-secondary" : "text-text-muted",
+                  )}
                 >
-                  {opt.sub}
+                  {a.sub}
                 </span>
               </span>
             </button>
@@ -289,19 +311,7 @@ export default function AddDevice() {
         })}
       </div>
 
-      {/* Secondary, narrow case (headless, no shell, no pre-shared key): claim a
-          device that's already running and showing a code. Kept a quiet link
-          right under the mode select so all three paths sit together. */}
-      <button
-        type="button"
-        onClick={() => setPairOpen(true)}
-        className="mb-8 text-xs text-text-muted hover:text-text-secondary transition-colors"
-      >
-        <span>
-          Already running and showing a code?{" "}
-          <span className="text-primary font-medium">Claim it</span>
-        </span>
-      </button>
+      <div className="mb-8" />
 
       {/* Step 1 — Method */}
       <div className="mb-6">
@@ -367,22 +377,110 @@ export default function AddDevice() {
         </div>
       </div>
 
-      {/* Step 2 — Command or Manual Instructions */}
+      {/* Fleet — pick (or create) the reusable install key baked into the
+          command. Its mode decides where each device lands. */}
+      {aud === "fleet" && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="w-5 h-5 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-2xs font-bold text-primary">
+              2
+            </span>
+            <span id="add-device-key-label" className={LABEL_BASE}>
+              Install key
+            </span>
+          </div>
+
+          {usableKeys.length === 0 ? (
+            <Card className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                  <KeyIcon className="w-4.5 h-4.5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-text-primary font-medium mb-1">
+                    No install key yet
+                  </p>
+                  <p className="text-2xs text-text-muted leading-relaxed mb-3">
+                    A fleet enrolls with a reusable install key. Create one,
+                    then bake it into your image or provisioning.
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setCreateKeyOpen(true)}
+                  >
+                    Create an install key
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              <RadioGroupField
+                labelledBy="add-device-key-label"
+                value={selectedKey?.name ?? ""}
+                onChange={setSelectedKeyName}
+              >
+                {usableKeys.map((k) => {
+                  const info = modeInfo(k.mode);
+                  const ModeIcon = info.icon;
+                  return (
+                    <RadioCard
+                      key={k.name}
+                      value={k.name}
+                      icon={
+                        <span className="grid place-items-center w-7 h-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                          <ModeIcon className="w-4 h-4" strokeWidth={1.8} />
+                        </span>
+                      }
+                      label={k.name}
+                      description={`${info.label} · devices ${MODE_OUTCOME[k.mode]}`}
+                    />
+                  );
+                })}
+              </RadioGroupField>
+
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCreateKeyOpen(true)}
+                  className="flex items-center gap-1.5 text-2xs font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  <PlusIcon className="w-3 h-3" strokeWidth={2.5} />
+                  New install key
+                </button>
+                <Link
+                  to="/install-keys"
+                  className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  Manage keys
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Command or Manual Instructions */}
       <div className="mb-6">
         <div className="flex items-center gap-2.5 mb-3">
           <span className="w-5 h-5 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-2xs font-bold text-primary">
-            2
+            {aud === "fleet" ? "3" : "2"}
           </span>
           <span className={LABEL_BASE}>
             {selectedMethod.manual
               ? "Follow the documentation"
-              : mode === "fleet"
+              : aud === "fleet"
                 ? "Bake into your image or provisioning"
                 : "Run on your device"}
           </span>
         </div>
 
-        {selectedMethod.manual ? (
+        {fleetBlocked ? (
+          <div className="text-xs text-text-muted bg-card border border-border rounded-lg px-4 py-3.5">
+            Create an install key above to get your command.
+          </div>
+        ) : selectedMethod.manual ? (
           <Card className="p-5">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-center justify-center shrink-0">
@@ -419,20 +517,12 @@ export default function AddDevice() {
           <WindowChrome
             variant="terminal"
             size="sm"
-            titleBarSlot={
-              commandReady ? <CopyButton text={command} showLabel /> : null
-            }
+            titleBarSlot={<CopyButton text={command} showLabel />}
           >
             <div className="relative">
               <pre className="text-accent-cyan whitespace-pre overflow-x-auto">
                 <span className="text-text-muted select-none">$ </span>
-                {commandReady ? (
-                  command
-                ) : (
-                  <span className="text-text-muted">
-                    Preparing your install command…
-                  </span>
-                )}
+                {command}
               </pre>
               {/* Chrome renders overlay scrollbars here (no persistent bar), so
                   cue the horizontal scroll with a fade on the right edge. */}
@@ -451,7 +541,10 @@ export default function AddDevice() {
             className="flex items-center gap-1.5 text-2xs font-mono text-text-muted hover:text-text-secondary transition-colors"
           >
             <ChevronRightIcon
-              className={cn("w-3 h-3 transition-transform", showAdvanced && "rotate-90")}
+              className={cn(
+                "w-3 h-3 transition-transform",
+                showAdvanced && "rotate-90",
+              )}
               strokeWidth={2}
             />
             Advanced options
@@ -504,105 +597,32 @@ export default function AddDevice() {
         </div>
       )}
 
-      {/* Live status: the code carries the acceptance, so the page confirms the
-          device the moment it connects — no trip through the pending list. */}
-      {usePairingCode ? (
-        <div
-          className={cn("flex items-center gap-3 rounded-xl px-4 py-3.5 mb-6 border", enrollmentBorderColor)}
-        >
-          {enrollment.phase === "connected" ? (
-            <CheckCircleIcon className="w-5 h-5 text-accent-green shrink-0" />
-          ) : enrollment.phase === "expired" ? (
-            <ClockIcon className="w-5 h-5 text-text-muted shrink-0" />
-          ) : (
-            <span className="relative flex h-3 w-3 shrink-0">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
-            </span>
-          )}
-
-          <div className="flex-1 min-w-0">
-            {enrollment.phase === "connected" ? (
-              <>
-                <p className="text-sm font-medium text-accent-green">
-                  {enrollment.device?.name || "Device"} is connected
-                </p>
-                <p className="text-2xs text-text-muted mt-0.5">
-                  Accepted automatically. It&apos;s ready to use.
-                </p>
-              </>
-            ) : enrollment.phase === "expired" ? (
-              <>
-                <p className="text-sm font-medium text-text-primary">
-                  Code expired
-                </p>
-                <p className="text-2xs text-text-muted mt-0.5">
-                  The pairing code timed out.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-text-primary">
-                  Waiting for this device to connect…
-                </p>
-                <p className="text-2xs text-text-muted mt-0.5">
-                  Run the command above. The device shows up here automatically.
-                  {enrollment.secondsLeft > 0
-                    ? ` Code expires in ${formatCountdown(enrollment.secondsLeft)}.`
-                    : ""}
-                </p>
-              </>
-            )}
-          </div>
-
-          {enrollment.phase === "connected" ? (
-            <div className="flex items-center gap-2 shrink-0">
-              <Button variant="ghost" size="sm" onClick={enrollment.regenerate}>
-                New code
-              </Button>
-              {enrollment.device?.uid ? (
-                <Button
-                  as={Link}
-                  to={`/devices/${enrollment.device.uid}`}
-                  variant="successSoft"
-                  size="sm"
-                >
-                  View device
-                </Button>
-              ) : null}
-            </div>
-          ) : enrollment.phase === "expired" ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={enrollment.regenerate}
-            >
-              New code
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={enrollment.regenerate}
-              className="shrink-0"
-            >
-              New code
-            </Button>
-          )}
-        </div>
-      ) : mode === "fleet" ? (
+      {/* Outcome, per audience: browser accept (container), install-key mode
+          (fleet), or the pending list (a machine on a non-container method). */}
+      {fleetBlocked ? null : codeless ? (
         <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
           <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div className="text-xs text-text-secondary leading-relaxed">
-            Bake this command into your image or provisioning so every device
-            installs the agent on first boot. Each one lands in the{" "}
-            <Link
-              to="/devices?status=pending"
+            Run the command above. The agent prints a link — open it to accept
+            this device in your browser, and it&apos;s ready to use. Away from
+            that machine? Use{" "}
+            <button
+              type="button"
+              onClick={() => setPairOpen(true)}
               className="text-primary font-medium hover:text-primary/80 transition-colors"
             >
-              Pending tab
-            </Link>{" "}
-            for you to accept one by one, or automate it with the API.
+              the code it shows
+            </button>{" "}
+            instead.
+          </div>
+        </div>
+      ) : aud === "fleet" ? (
+        <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
+          <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <div className="text-xs text-text-secondary leading-relaxed">
+            Bake this command into your image or provisioning so every machine
+            enrolls on first boot with this key. Where each device lands is set
+            by the key&apos;s mode above.
           </div>
         </div>
       ) : (
@@ -637,47 +657,13 @@ export default function AddDevice() {
 
       <PairingCodeDialog open={pairOpen} onClose={() => setPairOpen(false)} />
 
-      <BaseDialog
-        open={connectedModalOpen}
-        onClose={() => setDismissedUid(enrollment.device?.uid ?? null)}
-        size="sm"
-        aria-label="Device connected"
-      >
-        <div className="p-6 text-center">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-            <CheckCircleIcon className="w-8 h-8 text-accent-green" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary">
-            <span className="font-mono">{enrollment.device?.name}</span> is
-            connected
-          </h2>
-          <p className="text-sm text-text-muted mt-1">
-            Accepted automatically. It&apos;s ready to use.
-          </p>
-          <div className="flex gap-2 mt-6">
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => {
-                setDismissedUid(enrollment.device?.uid ?? null);
-                enrollment.regenerate();
-              }}
-            >
-              Add another
-            </Button>
-            {enrollment.device?.uid ? (
-              <Button
-                as={Link}
-                to={`/devices/${enrollment.device.uid}`}
-                variant="primary"
-                fullWidth
-              >
-                View device
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      </BaseDialog>
+      {/* Create a key without leaving the page; on success it becomes the
+          selected key and the command below fills in. */}
+      <CreateInstallKeyDrawer
+        open={createKeyOpen}
+        onClose={() => setCreateKeyOpen(false)}
+        onCreated={(name) => setSelectedKeyName(name)}
+      />
     </div>
   );
 }

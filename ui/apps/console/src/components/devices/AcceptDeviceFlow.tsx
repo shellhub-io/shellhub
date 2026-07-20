@@ -201,7 +201,8 @@ export default function AcceptDeviceFlow({
               Claim a device
             </h2>
             <p className="text-sm text-text-muted mt-1">
-              Run <CommandChip /> on the device and enter the code it prints.
+              Enter the code your device is showing. Not showing one? Run{" "}
+              <CommandChip /> to generate it.
             </p>
           </div>
 
@@ -639,7 +640,10 @@ function ResultMessage({
   return (
     <div className="text-center animate-slide-up">
       <div
-        className={cn("inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5", TONES[tone].ring)}
+        className={cn(
+          "inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5",
+          TONES[tone].ring,
+        )}
       >
         <span className={TONES[tone].icon}>{icon}</span>
       </div>

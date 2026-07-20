@@ -9,10 +9,16 @@ const FOCUSABLE =
 /**
  * Traps keyboard focus within `containerRef` while `active` is true.
  * Restores focus to the previously focused element when deactivated.
+ *
+ * With `autoFocus` false the container itself takes focus instead of its first
+ * focusable child, so no control shows a focus ring on open (the browser would
+ * otherwise land on the close button). Tab still works, moving into the content
+ * from the container.
  */
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   active: boolean,
+  autoFocus: boolean = true,
 ): void {
   useEffect(() => {
     if (!active || !containerRef.current) return;
@@ -20,8 +26,12 @@ export function useFocusTrap(
     const container = containerRef.current;
     const previousFocus = document.activeElement as HTMLElement | null;
 
-    // Move focus into the modal on the next frame so the element is painted
+    // Move focus into the modal on the next frame so the element is painted.
     const raf = requestAnimationFrame(() => {
+      if (!autoFocus) {
+        container.focus();
+        return;
+      }
       const first = container.querySelectorAll<HTMLElement>(FOCUSABLE)[0];
       first?.focus();
     });
@@ -56,5 +66,5 @@ export function useFocusTrap(
       container.removeEventListener("keydown", handleKeyDown);
       previousFocus?.focus();
     };
-  }, [active, containerRef]);
+  }, [active, containerRef, autoFocus]);
 }
