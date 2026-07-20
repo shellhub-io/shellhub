@@ -18,7 +18,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -538,47 +538,17 @@ export default function DevopsCiCd() {
         </div>
       </Section>
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      <Section>
-        <Reveal>
-          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-            <ConnectionGrid />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
-
-            <div className="relative z-10">
-              <SectionHeader
-                variant="cta"
-                eyebrow="Ready to automate?"
-                title="Automate your device deployments today"
-                subtitle="Connect ShellHub to your CI/CD pipeline and start deploying to remote devices in minutes -- no VPN, no static IPs, no hassle."
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  as={Link}
-                  to="/getting-started"
-                  variant="primary"
-                  size="xl"
-                  glow
-                  iconRight={<ArrowRight />}
-                >
-                  Get Started Free
-                </Button>
-                <Button
-                  as="a"
-                  href={docsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outline"
-                  size="xl"
-                >
-                  Read the Docs
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </Section>
+      <CTABanner
+        eyebrow="Ready to automate?"
+        title="Automate your device deployments today"
+        subtitle="Connect ShellHub to your CI/CD pipeline and start deploying to remote devices in minutes -- no VPN, no static IPs, no hassle."
+        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
+        secondaryAction={{
+          label: "Read the Docs",
+          href: docsUrl,
+          external: true,
+        }}
+      />
     </SiteLayout>
   );
 }

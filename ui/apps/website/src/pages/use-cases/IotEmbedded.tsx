@@ -22,7 +22,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
@@ -755,46 +755,18 @@ export default function IotEmbedded() {
         </Reveal>
       </Section>
 
-      {/* ═══════ CTA with ConnectionGrid ═══════ */}
-      <Section>
-        <Reveal>
-          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-            <ConnectionGrid />
-            <div className="absolute inset-0 bg-gradient-to-br from-accent-green/[0.06] via-transparent to-primary/[0.04] pointer-events-none" />
-
-            <div className="relative z-10">
-              <SectionHeader
-                variant="cta"
-                eyebrowColor="green"
-                eyebrow="Ready to get started?"
-                title="Start managing your IoT fleet today"
-                subtitle="Deploy the ShellHub agent on your devices and get instant remote access — no network changes, no VPNs, no exposed ports."
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  as={Link}
-                  to="/getting-started"
-                  variant="primary"
-                  size="xl"
-                  glow
-                  iconRight={<ArrowRight />}
-                >
-                  Get Started Free
-                </Button>
-                <Button
-                  as="a"
-                  href="mailto:sales@shellhub.io"
-                  variant="outline"
-                  size="xl"
-                >
-                  Contact Sales
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </Section>
+      <CTABanner
+        eyebrow="Ready to get started?"
+        title="Start managing your IoT fleet today"
+        subtitle="Deploy the ShellHub agent on your devices and get instant remote access — no network changes, no VPNs, no exposed ports."
+        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
+        secondaryAction={{
+          label: "Contact Sales",
+          href: "mailto:sales@shellhub.io",
+        }}
+        eyebrowColor="green"
+        gradient={{ from: "accent-green", to: "primary" }}
+      />
     </SiteLayout>
   );
 }

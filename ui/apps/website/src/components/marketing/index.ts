@@ -6,3 +6,5 @@ export { FeatureListItem } from "./FeatureListItem";
 export type { FeatureListItemProps } from "./FeatureListItem";
 export { CommandBlock } from "./CommandBlock";
 export type { CommandBlockProps } from "./CommandBlock";
+export { CTABanner } from "./CTABanner";
+export type { CTABannerProps } from "./CTABanner";
