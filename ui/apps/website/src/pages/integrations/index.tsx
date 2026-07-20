@@ -24,7 +24,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -472,7 +472,12 @@ export default function Integrations() {
                         ).map((f, i) => (
                           <div
                             key={i}
-                            className={cn("flex items-center gap-1.5 px-1.5 py-0.5 rounded text-2xs font-mono", f.active ? "bg-accent-blue/10 text-accent-blue" : "text-text-secondary hover:bg-white/[0.03]")}
+                            className={cn(
+                              "flex items-center gap-1.5 px-1.5 py-0.5 rounded text-2xs font-mono",
+                              f.active
+                                ? "bg-accent-blue/10 text-accent-blue"
+                                : "text-text-secondary hover:bg-white/[0.03]",
+                            )}
                             style={{ paddingLeft: `${f.indent * 12 + 6}px` }}
                           >
                             {f.isDir ? (
@@ -1036,47 +1041,18 @@ export default function Integrations() {
         </div>
       </Section>
 
-      {/* ─────────── CTA ─────────── */}
-      <Section>
-        <Reveal>
-          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-            <ConnectionGrid />
-            <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/[0.06] via-transparent to-primary/[0.04] pointer-events-none" />
-
-            <div className="relative z-10">
-              <SectionHeader
-                variant="cta"
-                eyebrow="Ready to integrate?"
-                title="Start integrating today"
-                subtitle="Get ShellHub running and connect it to your existing workflow in minutes. Standard SSH means zero learning curve."
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  as={Link}
-                  to="/getting-started"
-                  variant="primary"
-                  size="xl"
-                  glow
-                  iconRight={<ArrowRight />}
-                >
-                  Get Started Free
-                </Button>
-                <Button
-                  as="a"
-                  href={docsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outline"
-                  size="xl"
-                >
-                  Read the Docs
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </Section>
+      <CTABanner
+        eyebrow="Ready to integrate?"
+        title="Start integrating today"
+        subtitle="Get ShellHub running and connect it to your existing workflow in minutes. Standard SSH means zero learning curve."
+        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
+        secondaryAction={{
+          label: "Read the Docs",
+          href: docsUrl,
+          external: true,
+        }}
+        gradient={{ from: "accent-cyan", to: "primary" }}
+      />
     </SiteLayout>
   );
 }

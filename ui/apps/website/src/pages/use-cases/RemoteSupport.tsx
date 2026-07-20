@@ -19,7 +19,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -624,40 +624,13 @@ export default function RemoteSupport() {
         </div>
       </Section>
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      <Section>
-        <Reveal>
-          <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-            <ConnectionGrid />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
-
-            <div className="relative z-10">
-              <SectionHeader
-                variant="cta"
-                eyebrow="Ready to get started?"
-                title="Secure support starts here"
-                subtitle="Enable audited, accountable remote support for your team in minutes. No VPN required, no SSH keys to manage, no audit gaps."
-              />
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  as={Link}
-                  to="/getting-started"
-                  variant="primary"
-                  size="xl"
-                  glow
-                  iconRight={<ArrowRight />}
-                >
-                  Get Started Free
-                </Button>
-                <Button as={Link} to="/pricing" variant="outline" size="xl">
-                  View Pricing
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </Section>
+      <CTABanner
+        eyebrow="Ready to get started?"
+        title="Secure support starts here"
+        subtitle="Enable audited, accountable remote support for your team in minutes. No VPN required, no SSH keys to manage, no audit gaps."
+        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
+        secondaryAction={{ label: "View Pricing", to: "/pricing" }}
+      />
     </SiteLayout>
   );
 }

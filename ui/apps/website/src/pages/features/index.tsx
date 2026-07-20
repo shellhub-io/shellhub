@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -1341,50 +1341,18 @@ function DeviceOrganization() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  CTA                                                           */
-/* ═══════════════════════════════════════════════════════════════ */
 function FeaturesCTA() {
   return (
-    <Section>
-      <Reveal>
-        <div className="relative bg-card border border-border rounded-2xl p-12 text-center overflow-hidden">
-          <ConnectionGrid />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent-cyan/[0.04] pointer-events-none" />
-
-          <div className="relative z-10">
-            <SectionHeader
-              variant="cta"
-              eyebrow="Ready to get started?"
-              title="Deploy ShellHub in minutes"
-              subtitle="Open-source and free to start. Run a single command and manage your first device in under five minutes."
-            />
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as={Link} to="/pricing" variant="outline" size="xl">
-                View Pricing
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Reveal>
-    </Section>
+    <CTABanner
+      eyebrow="Ready to get started?"
+      title="Deploy ShellHub in minutes"
+      subtitle="Open-source and free to start. Run a single command and manage your first device in under five minutes."
+      primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
+      secondaryAction={{ label: "View Pricing", to: "/pricing" }}
+    />
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  PAGE                                                          */
-/* ═══════════════════════════════════════════════════════════════ */
 export default function Features() {
   return (
     <SiteLayout>
