@@ -49,12 +49,16 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
       label: "Containers",
       icon: <CubeIcon className={navIcon} />,
     },
-    {
+  ];
+
+  // In identity mode sessions move under the SSH section; keep them in Resources otherwise.
+  if (!isIdentityMode) {
+    resources.push({
       to: "/sessions",
       label: "Sessions",
       icon: <CommandLineIcon className={navIcon} />,
-    },
-  ];
+    });
+  }
 
   if (config.webEndpoints && isEnterpriseOrCloud()) {
     resources.push({
@@ -65,9 +69,18 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
     });
   }
 
-  // Identity access mode authorizes SSH via Access Policies and SSH Identities;
-  // the legacy key ACL, firewall, and key vault are all bypassed, so hide them.
+  // Identity access mode authorizes SSH via Access Policies and SSH Identities; the
+  // legacy key ACL, firewall, and key vault are bypassed, so hide them. The section is
+  // titled "SSH" there and leads with sessions.
   const security: NavItem[] = [];
+
+  if (isIdentityMode) {
+    security.push({
+      to: "/sessions",
+      label: "Sessions",
+      icon: <CommandLineIcon className={navIcon} />,
+    });
+  }
 
   if (!isIdentityMode) {
     security.push({
@@ -122,7 +135,7 @@ function buildSections(isIdentityMode: boolean): NavSection[] {
       items: resources,
     },
     {
-      title: "Security",
+      title: isIdentityMode ? "SSH" : "Security",
       items: security,
     },
     {
