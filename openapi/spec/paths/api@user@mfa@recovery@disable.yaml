@@ -1,0 +1,27 @@
+put:
+  operationId: recoveryDisableMFA
+  summary: Disable MFA via recovery session
+  description: |
+    Disable MFA for the authenticated user during the 10-minute recovery window
+    established by `mfaRecover`. No request body is needed — the endpoint checks for a
+    valid, single-use recovery session tied to the user. If the session has expired or
+    was already consumed, the request is rejected.
+  tags:
+    - cloud
+    - mfa
+    - users
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: MFA successfully disabled.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

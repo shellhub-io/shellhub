@@ -122,6 +122,8 @@ paths:
     $ref: paths/api@user@mfa@enable.yaml
   /api/user/mfa/disable:
     $ref: paths/api@user@mfa@disable.yaml
+  /api/user/mfa/recovery/disable:
+    $ref: paths/api@user@mfa@recovery@disable.yaml
   /api/user/mfa/reset/{user-id}:
     $ref: paths/api@user@mfa@reset@{user-id}.yaml
   /api/user:
