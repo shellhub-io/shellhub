@@ -64,14 +64,36 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 		return nil, err
 	}
 
+	// Deny wins: a matching deny blocks access before any allow is considered,
+	// however specific the allow. It is fail-closed — a deny whose filter cannot
+	// be evaluated denies rather than silently opening access.
 	for _, policy := range policies {
-		if !subjectMatches(policy.Subject, userID, member.Role) {
+		if policy.Effect != models.PolicyEffectDeny {
 			continue
 		}
 
-		// A malformed hostname regexp cannot grant access; treat it as a non-match
-		// so one broken policy never blocks a valid one, and the default stays deny.
-		matched, err := policy.Filter.Matches(dev)
+		matched, err := policyApplies(policy, dev, userID, member.Role, login)
+		if err != nil {
+			log.WithError(err).WithField("access_policy", policy.ID).
+				Warn("deny access policy filter failed to evaluate; denying")
+
+			return &models.Decision{Allowed: false, Reason: fmt.Sprintf("denied: policy %q could not be evaluated", policy.Name)}, nil
+		}
+
+		if matched {
+			return &models.Decision{Allowed: false, Reason: fmt.Sprintf("denied by policy %q", policy.Name)}, nil
+		}
+	}
+
+	// Allow: the first allow policy that matches grants access. A malformed
+	// hostname regexp is treated as a non-match so one broken policy never blocks
+	// a valid one, and the default stays deny.
+	for _, policy := range policies {
+		if policy.Effect == models.PolicyEffectDeny {
+			continue
+		}
+
+		matched, err := policyApplies(policy, dev, userID, member.Role, login)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("access policy filter failed to evaluate; treating as non-match")
@@ -79,12 +101,29 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 			continue
 		}
 
-		if matched && loginMatches(policy.Logins, login) {
+		if matched {
 			return &models.Decision{Allowed: true, RequireStepUp: policy.RequireStepUp}, nil
 		}
 	}
 
 	return &models.Decision{Allowed: false, Reason: fmt.Sprintf("no policy grants %q on this device", login)}, nil
+}
+
+// policyApplies reports whether the policy's subject, device filter, and login
+// all match the request. The bool is only meaningful when err is nil; a non-nil
+// error means the filter could not be evaluated, and the caller decides how to
+// treat it (deny fails closed, allow treats it as a non-match).
+func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, login string) (bool, error) {
+	if !subjectMatches(policy.Subject, userID, role) {
+		return false, nil
+	}
+
+	matched, err := policy.Filter.Matches(dev)
+	if err != nil {
+		return false, err
+	}
+
+	return matched && loginMatches(policy.Logins, login), nil
 }
 
 func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error) {
@@ -111,7 +150,7 @@ func subjectMatches(subject models.PolicySubject, userID string, role authorizer
 	}
 }
 
-// loginMatches reports whether the login is granted by the policy's login list:
+// loginMatches reports whether the login is covered by the policy's login list:
 // an exact match, or a wildcard entry.
 func loginMatches(logins []string, login string) bool {
 	for _, l := range logins {
@@ -121,6 +160,16 @@ func loginMatches(logins []string, login string) bool {
 	}
 
 	return false
+}
+
+// defaultEffect resolves a request's effect, defaulting an omitted value to
+// allow so clients need not send it for the common grant case.
+func defaultEffect(effect string) models.PolicyEffect {
+	if effect == "" {
+		return models.PolicyEffectAllow
+	}
+
+	return models.PolicyEffect(effect)
 }
 
 func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error) {
@@ -161,6 +210,7 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Subject:       models.PolicySubject{Type: models.PolicySubjectType(req.Subject.Type), Value: req.Subject.Value},
 		Filter:        filter,
 		Logins:        req.Logins,
+		Effect:        defaultEffect(req.Effect),
 		RequireStepUp: req.RequireStepUp,
 	}
 
@@ -189,6 +239,7 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Subject:       models.PolicySubject{Type: models.PolicySubjectType(req.Subject.Type), Value: req.Subject.Value},
 		Filter:        filter,
 		Logins:        req.Logins,
+		Effect:        defaultEffect(req.Effect),
 		RequireStepUp: req.RequireStepUp,
 	}
 
@@ -264,6 +315,7 @@ func (s *service) seedAccessPolicy(ctx context.Context, tenantID string) error {
 		Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 		Filter:   models.PublicKeyFilter{},
 		Logins:   []string{"*"},
+		Effect:   models.PolicyEffectAllow,
 	}
 
 	if _, err := s.store.AccessPolicyCreate(ctx, seed); err != nil {

@@ -36,6 +36,7 @@ type AccessPolicyCreate struct {
 	Subject       AccessPolicySubject `json:"subject" validate:"required"`
 	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
+	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
 	RequireStepUp bool                `json:"require_step_up" validate:""`
 	TenantID      string              `json:"-"`
 }
@@ -47,6 +48,7 @@ type AccessPolicyUpdate struct {
 	Subject       AccessPolicySubject `json:"subject" validate:"required"`
 	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
+	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
 	RequireStepUp bool                `json:"require_step_up" validate:""`
 	TenantID      string              `json:"-"`
 }

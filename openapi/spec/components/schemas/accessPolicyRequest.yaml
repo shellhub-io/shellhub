@@ -11,6 +11,16 @@ properties:
     $ref: publicKeyFilterRequest.yaml
   logins:
     $ref: accessPolicyLogins.yaml
+  effect:
+    description: |
+      Whether the policy grants (allow) or blocks (deny) the covered access.
+      Deny wins over any allow. Defaults to allow when omitted.
+    type: string
+    enum:
+      - allow
+      - deny
+    default: allow
+    example: allow
   require_step_up:
     description: |
       Whether a recognized key must still get a per-session browser approval

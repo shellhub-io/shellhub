@@ -102,7 +102,7 @@ func (pg *Pg) AccessPolicyUpdate(ctx context.Context, accessPolicy *models.Acces
 
 		r, err := db.NewUpdate().
 			Model(e).
-			Column("name", "subject_type", "subject_value", "filter_hostname", "logins", "require_step_up", "updated_at").
+			Column("name", "subject_type", "subject_value", "filter_hostname", "logins", "effect", "require_step_up", "updated_at").
 			Where("id = ?", accessPolicy.ID).
 			Where("namespace_id = ?", accessPolicy.TenantID).
 			Exec(ctx)

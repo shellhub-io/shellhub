@@ -20,20 +20,37 @@ type PolicySubject struct {
 	Value string            `json:"value"`
 }
 
-// AccessPolicy is a namespace-scoped, default-deny authorization grant for the
-// identity-based SSH access mode: it grants a subject (user, role, or all
-// members) the ability to reach the devices selected by Filter, as the unix
-// logins listed in Logins. Policies can only grant; there are no deny rules and
-// no priority. Access is authorized iff at least one policy grants it.
+// PolicyEffect is whether an Access Policy grants access (allow) or blocks it
+// (deny).
+type PolicyEffect string
+
+const (
+	// PolicyEffectAllow grants access to the subject; the default.
+	PolicyEffectAllow PolicyEffect = "allow"
+	// PolicyEffectDeny blocks access. Deny is evaluated before allow and wins
+	// over any allow, however specific: it is a subtractive blocklist carved out
+	// of the broad grants, not a base layer (default-deny already blocks the rest).
+	PolicyEffectDeny PolicyEffect = "deny"
+)
+
+// AccessPolicy is a namespace-scoped authorization rule for the identity-based
+// SSH access mode: for a subject (user, role, or all members) reaching the
+// devices selected by Filter as the unix logins listed in Logins, it either
+// grants (Effect allow) or blocks (Effect deny) access. Evaluation is
+// default-deny and deny-first: a matching deny wins over any allow, and access
+// is authorized iff some allow grants it and no deny blocks it.
 type AccessPolicy struct {
 	ID       string          `json:"id"`
 	TenantID string          `json:"-"`
 	Name     string          `json:"name"`
 	Subject  PolicySubject   `json:"subject"`
 	Filter   PublicKeyFilter `json:"filter"`
-	// Logins are the unix logins this policy grants: exact names, or ["*"] for
+	// Logins are the unix logins this policy covers: exact names, or ["*"] for
 	// any login.
 	Logins []string `json:"logins"`
+	// Effect is whether this policy grants (allow) or blocks (deny) the covered
+	// access. Defaults to allow.
+	Effect PolicyEffect `json:"effect"`
 	// RequireStepUp gates access granted by this policy on an extra per-session
 	// browser approval (JIT step-up), even when the connecting key is already
 	// enrolled. Off by default; enrollment alone is the norm.

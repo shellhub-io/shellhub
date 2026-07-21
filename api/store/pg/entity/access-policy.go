@@ -20,6 +20,7 @@ type AccessPolicy struct {
 	FilterHostname string    `bun:"filter_hostname"`
 	Logins         []string  `bun:"logins,array"`
 	RequireStepUp  bool      `bun:"require_step_up"`
+	Effect         string    `bun:"effect"`
 
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
 }
@@ -50,6 +51,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		FilterHostname: model.Filter.Hostname,
 		Logins:         model.Logins,
 		RequireStepUp:  model.RequireStepUp,
+		Effect:         string(model.Effect),
 		Tags:           []*Tag{},
 	}
 
@@ -89,6 +91,7 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 		},
 		Logins:        entity.Logins,
 		RequireStepUp: entity.RequireStepUp,
+		Effect:        models.PolicyEffect(entity.Effect),
 	}
 
 	if len(entity.Tags) > 0 {

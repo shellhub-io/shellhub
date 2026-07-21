@@ -303,6 +303,168 @@ func TestAuthorize(t *testing.T) {
 			expectedAllowed: false,
 			expectedErr:     false,
 		},
+		{
+			description: "deny wins over a matching allow",
+			login:       "root",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"root"},
+							Effect:  models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "deny does not fire for a login outside its list; allow still grants",
+			login:       "teste",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"root"},
+							Effect:  models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "deny with a wildcard login blocks every login",
+			login:       "anything",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "deny with a broken hostname regexp fails closed",
+			login:       "root",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{Hostname: "["},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "denies when only a matching deny policy exists",
+			login:       "root",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"root"},
+							Effect:  models.PolicyEffectDeny,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "a deny-all blocks even a specific allow for the same subject",
+			login:       "teste",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectDeny,
+						},
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"teste"},
+							Effect:  models.PolicyEffectAllow,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
 	}
 
 	for _, tc := range cases {

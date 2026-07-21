@@ -12,6 +12,8 @@ import {
   TrashIcon,
   IdentificationIcon,
   ExclamationTriangleIcon,
+  CheckCircleIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
@@ -115,6 +117,25 @@ function LoginsCell({ policy }: { policy: AccessPolicy }) {
   );
 }
 
+/* ── effect cell ──────────────────────────────────── */
+
+function EffectCell({ policy }: { policy: AccessPolicy }) {
+  if (policy.effect === "deny") {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-red/10 text-accent-red text-2xs font-mono rounded uppercase">
+        <NoSymbolIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+        Deny
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-green/10 text-accent-green text-2xs font-mono rounded uppercase">
+      <CheckCircleIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+      Allow
+    </span>
+  );
+}
+
 /* ── page ─────────────────────────────────────────── */
 
 export default function AccessPolicies() {
@@ -166,6 +187,11 @@ export default function AccessPolicies() {
       render: (p) => (
         <span className="text-sm font-medium text-text-primary">{p.name}</span>
       ),
+    },
+    {
+      key: "effect",
+      header: "Effect",
+      render: (p) => <EffectCell policy={p} />,
     },
     {
       key: "subject",
@@ -242,7 +268,7 @@ export default function AccessPolicies() {
           description={
             isIdentityMode
               ? "Identity mode is on but this namespace has no policies, so every SSH login is denied. Add a policy to allow access."
-              : "Decide who may reach which devices, as which login, under the identity SSH access mode. Policies are allow-only and default-deny."
+              : "Decide who may reach which devices, as which login, under the identity SSH access mode. Policies are default-deny; deny rules win over allow."
           }
           features={[
             {

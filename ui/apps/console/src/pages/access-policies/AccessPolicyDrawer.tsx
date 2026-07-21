@@ -7,6 +7,8 @@ import {
   CommandLineIcon,
   ClipboardDocumentListIcon,
   ExclamationCircleIcon,
+  CheckCircleIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
@@ -51,6 +53,7 @@ function AccessPolicyDrawer({
   );
 
   const [name, setName] = useState("");
+  const [effect, setEffect] = useState<"allow" | "deny">("allow");
   const [subjectType, setSubjectType] = useState<SubjectType>("all-members");
   const [roleValue, setRoleValue] = useState<string>("administrator");
   const [userValue, setUserValue] = useState<string>("");
@@ -78,6 +81,7 @@ function AccessPolicyDrawer({
         : "any";
 
     setName(editPolicy?.name ?? "");
+    setEffect(editPolicy?.effect ?? "allow");
     setSubjectType(editPolicy?.subject.type ?? "all-members");
     setRoleValue(
       editPolicy?.subject.type === "role"
@@ -142,6 +146,7 @@ function AccessPolicyDrawer({
     setSubmitting(true);
     const body: AccessPolicyRequest = {
       name: name.trim(),
+      effect,
       subject: buildSubject(),
       filter: buildFilter(),
       logins: buildLogins(),
@@ -201,10 +206,26 @@ function AccessPolicyDrawer({
           placeholder="Name used to identify the policy"
         />
 
+        {/* Effect */}
+        <RadioGroupField label="Effect" value={effect} onChange={setEffect}>
+          <RadioCard
+            value="allow"
+            icon={<CheckCircleIcon className="w-4 h-4" />}
+            label="Allow"
+            description="Grant the matched access."
+          />
+          <RadioCard
+            value="deny"
+            icon={<NoSymbolIcon className="w-4 h-4" />}
+            label="Deny"
+            description="Block the matched access. Deny is evaluated first and wins over any allow."
+          />
+        </RadioGroupField>
+
         {/* Subject */}
         <div>
           <RadioGroupField
-            label="Grant access to"
+            label={effect === "deny" ? "Block access for" : "Grant access to"}
             value={subjectType}
             onChange={setSubjectType}
           >
@@ -321,7 +342,7 @@ function AccessPolicyDrawer({
         {/* Allowed logins */}
         <div>
           <RadioGroupField
-            label="Allowed logins"
+            label={effect === "deny" ? "Blocked logins" : "Allowed logins"}
             value={loginsOption}
             onChange={setLoginsOption}
           >

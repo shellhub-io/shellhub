@@ -1,7 +1,8 @@
 description: |
-  An access policy grants a subject (user, role, or all members) the right to
-  reach a set of devices as a set of unix logins, under the identity SSH access
-  mode. Policies are allow-only and default-deny.
+  An access policy either grants (effect allow) or blocks (effect deny) a
+  subject (user, role, or all members) reaching a set of devices as a set of
+  unix logins, under the identity SSH access mode. Evaluation is default-deny
+  and deny-first: a matching deny wins over any allow.
 type: object
 properties:
   id:
@@ -18,6 +19,16 @@ properties:
     $ref: accessPolicyFilterResponse.yaml
   logins:
     $ref: accessPolicyLogins.yaml
+  effect:
+    description: |
+      Whether the policy grants (allow) or blocks (deny) the covered access.
+      Deny is evaluated first and wins over any allow.
+    type: string
+    enum:
+      - allow
+      - deny
+    default: allow
+    example: allow
   require_step_up:
     description: |
       Whether a recognized key must still get a per-session browser approval
@@ -40,6 +51,7 @@ required:
   - subject
   - filter
   - logins
+  - effect
   - require_step_up
   - created_at
   - updated_at
