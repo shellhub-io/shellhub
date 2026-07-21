@@ -10,6 +10,7 @@ import (
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -326,9 +327,17 @@ func (*webIdentityAuth) Auth() authFunc {
 }
 
 func (a *webIdentityAuth) Evaluate(session *Session) error {
-	_, err := session.authorize(a.ctx)
+	if _, err := session.authorize(a.ctx); err != nil {
+		// Surface the denial as an access-denied banner so the web bridge maps it
+		// to a clear "Access denied" in the console. Without it, a policy denial
+		// reaches the browser as a generic auth failure ("username or password is
+		// incorrect"), which is misleading in identity mode.
+		sendBanner(a.ctx, banner.Message(banner.KindAccessDenied))
 
-	return err
+		return err
+	}
+
+	return nil
 }
 
 // ResolveKeyAuth resolves the presented key to a ShellHub identity (identity
