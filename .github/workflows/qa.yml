@@ -75,7 +75,7 @@ jobs:
 
       - name: Set up Go 1.x [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
         id: go
