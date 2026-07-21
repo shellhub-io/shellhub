@@ -81,6 +81,11 @@ const permissions = {
   "sshIdentity:enroll": RoleLevel.OPERATOR,
   "sshIdentity:manage": RoleLevel.ADMINISTRATOR,
 
+  // Service Accounts
+  "serviceAccount:view": RoleLevel.ADMINISTRATOR,
+  "serviceAccount:create": RoleLevel.ADMINISTRATOR,
+  "serviceAccount:delete": RoleLevel.ADMINISTRATOR,
+
   // Billing
   "billing:subscribe": RoleLevel.OWNER,
   "billing:unsubscribe": RoleLevel.OWNER,

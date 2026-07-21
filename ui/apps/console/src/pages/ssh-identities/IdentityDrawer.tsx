@@ -1,5 +1,9 @@
 import { useState, FormEvent } from "react";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  UserIcon,
+  CpuChipIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
@@ -7,11 +11,20 @@ import {
   useCreateSSHIdentity,
   useRenameSSHIdentity,
 } from "@/hooks/useSSHIdentityMutations";
+import { useCreateServiceAccount } from "@/hooks/useServiceAccountMutations";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import type { SshIdentity } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
+import RadioCard from "@/components/common/fields/RadioCard";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
+
+// Who a newly added key belongs to: the caller, or a new service account. Enrolling for a
+// service account gives an automated system its own identity instead of binding the key to a
+// person. Only offered to callers who can create service accounts; rename never shows it.
+type Target = "self" | "service-account";
 
 function IdentityDrawer({
   open,
@@ -24,8 +37,11 @@ function IdentityDrawer({
 }) {
   const createIdentity = useCreateSSHIdentity();
   const renameIdentity = useRenameSSHIdentity();
+  const createServiceAccount = useCreateServiceAccount();
+  const canCreateServiceAccount = useHasPermission("serviceAccount:create");
   const isEdit = !!editIdentity;
 
+  const [target, setTarget] = useState<Target>("self");
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -33,12 +49,15 @@ function IdentityDrawer({
   const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
+    setTarget("self");
     setName(editIdentity?.name ?? "");
     setKeyData("");
     setKeyError(null);
     setSubmitting(false);
     setError(null);
   });
+
+  const isServiceAccount = !isEdit && target === "service-account";
 
   const handleKeyDataChange = (v: string) => {
     setKeyData(v);
@@ -66,6 +85,10 @@ function IdentityDrawer({
           path: { id: editIdentity.id },
           body: { name: name.trim() },
         });
+      } else if (isServiceAccount) {
+        await createServiceAccount.mutateAsync({
+          body: { name: name.trim(), data: keyData.trim() },
+        });
       } else {
         await createIdentity.mutateAsync({
           body: { name: name.trim(), data: keyData.trim() },
@@ -87,6 +110,14 @@ function IdentityDrawer({
     }
   };
 
+  const submitLabel = submitting
+    ? "Saving..."
+    : isEdit
+      ? "Save Changes"
+      : isServiceAccount
+        ? "Create Service Account"
+        : "Add Key";
+
   return (
     <Drawer
       open={open}
@@ -104,18 +135,43 @@ function IdentityDrawer({
             disabled={submitting || confirmDisabled}
             loading={submitting}
           >
-            {submitting ? "Saving..." : isEdit ? "Save Changes" : "Add Key"}
+            {submitLabel}
           </Button>
         </>
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+        {!isEdit && canCreateServiceAccount && (
+          <RadioGroupField
+            label="Enroll this key for"
+            value={target}
+            onChange={setTarget}
+          >
+            <RadioCard
+              value="self"
+              icon={<UserIcon className="w-4 h-4" />}
+              label="Myself"
+              description="The key becomes your own identity."
+            />
+            <RadioCard
+              value="service-account"
+              icon={<CpuChipIcon className="w-4 h-4" />}
+              label="A new service account"
+              description="A non-human identity for an automated system, separate from you."
+            />
+          </RadioGroupField>
+        )}
+
         <InputField
           id="ssh-identity-name"
-          label="Name"
+          label={isServiceAccount ? "Service account name" : "Name"}
           value={name}
           onChange={setName}
-          placeholder="Name used to identify the key, e.g. laptop"
+          placeholder={
+            isServiceAccount
+              ? "Name for the service account, e.g. ci-bot"
+              : "Name used to identify the key, e.g. laptop"
+          }
         />
 
         {!isEdit && (
@@ -130,7 +186,11 @@ function IdentityDrawer({
             accept=".pub,.pem,.key,.txt"
             placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5..."
             rows={3}
-            hint="Paste an OpenSSH public key to pre-enroll it (e.g. a CI or server key)."
+            hint={
+              isServiceAccount
+                ? "Paste the OpenSSH public key the automated system will connect with."
+                : "Paste an OpenSSH public key to pre-enroll it (e.g. a CI or server key)."
+            }
           />
         )}
 

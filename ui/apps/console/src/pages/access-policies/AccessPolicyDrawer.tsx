@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import {
   UsersIcon,
   UserIcon,
+  CpuChipIcon,
   ShieldCheckIcon,
   TagIcon,
   CommandLineIcon,
@@ -14,6 +15,7 @@ import { DevicesIcon } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
+import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import {
   useCreateAccessPolicy,
   useUpdateAccessPolicy,
@@ -29,7 +31,7 @@ import Drawer from "@/components/common/Drawer";
 import { INPUT, LABEL } from "@/utils/styles";
 import { Button } from "@shellhub/design-system/primitives";
 
-type SubjectType = "all-members" | "role" | "user";
+type SubjectType = "all-members" | "role" | "user" | "service-account";
 type FilterOption = "all" | "hostname" | "tags";
 type LoginsOption = "any" | "specific";
 
@@ -48,15 +50,22 @@ function AccessPolicyDrawer({
   const updatePolicy = useUpdateAccessPolicy();
   const isEdit = !!editPolicy;
 
+  // Service accounts share the namespace membership but are not human members, so
+  // keep them out of the member picker (they carry the "service" role). Target a
+  // service account from a policy via the role=service subject instead.
   const members = (namespace?.members ?? []).filter(
-    (m): m is NamespaceMember => !!m.id && !!m.role && !!m.email,
+    (m): m is NamespaceMember =>
+      !!m.id && !!m.role && !!m.email && String(m.role) !== "service",
   );
+
+  const { serviceAccounts } = useServiceAccounts();
 
   const [name, setName] = useState("");
   const [effect, setEffect] = useState<"allow" | "deny">("allow");
   const [subjectType, setSubjectType] = useState<SubjectType>("all-members");
   const [roleValue, setRoleValue] = useState<string>("administrator");
   const [userValue, setUserValue] = useState<string>("");
+  const [saValue, setSaValue] = useState<string>("");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
   const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -81,17 +90,31 @@ function AccessPolicyDrawer({
         ? "specific"
         : "any";
 
+    // A subject of type "user" whose value is a service account is shown as the
+    // "service account" option, not the member picker (which excludes them).
+    const editValue = editPolicy?.subject.value ?? "";
+    const editIsServiceAccount =
+      editPolicy?.subject.type === "user" &&
+      serviceAccounts.some((sa) => sa.id === editValue);
+
     setName(editPolicy?.name ?? "");
     setEffect(editPolicy?.effect ?? "allow");
-    setSubjectType(editPolicy?.subject.type ?? "all-members");
+    setSubjectType(
+      editIsServiceAccount
+        ? "service-account"
+        : (editPolicy?.subject.type ?? "all-members"),
+    );
     setRoleValue(
       editPolicy?.subject.type === "role"
         ? editPolicy.subject.value
         : "administrator",
     );
     setUserValue(
-      editPolicy?.subject.type === "user" ? editPolicy.subject.value : "",
+      editPolicy?.subject.type === "user" && !editIsServiceAccount
+        ? editValue
+        : "",
     );
+    setSaValue(editIsServiceAccount ? editValue : "");
     setFilterOption(filterInit);
     setHostname(
       editPolicy && filterInit === "hostname"
@@ -114,6 +137,9 @@ function AccessPolicyDrawer({
   const buildSubject = (): AccessPolicyRequest["subject"] => {
     if (subjectType === "role") return { type: "role", value: roleValue };
     if (subjectType === "user") return { type: "user", value: userValue };
+    // A service account is targeted through a user subject bound to its id.
+    if (subjectType === "service-account")
+      return { type: "user", value: saValue };
     return { type: "all-members", value: "" };
   };
 
@@ -136,6 +162,7 @@ function AccessPolicyDrawer({
   const confirmDisabled =
     !name.trim() ||
     (subjectType === "user" && !userValue) ||
+    (subjectType === "service-account" && !saValue) ||
     (filterOption === "hostname" && !hostname.trim()) ||
     (filterOption === "tags" &&
       (selectedTags.length === 0 || selectedTags.length > 3)) ||
@@ -250,6 +277,12 @@ function AccessPolicyDrawer({
               label="A specific member"
               description="Only the selected member is granted access."
             />
+            <RadioCard
+              value="service-account"
+              icon={<CpuChipIcon className="w-4 h-4" />}
+              label="A service account"
+              description="Only the selected service account is granted access."
+            />
           </RadioGroupField>
           {subjectType === "role" && (
             <div className="mt-2">
@@ -283,6 +316,28 @@ function AccessPolicyDrawer({
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {subjectType === "service-account" && (
+            <div className="mt-2">
+              <span className={LABEL}>Service account</span>
+              <select
+                id="access-policy-service-account"
+                value={saValue}
+                onChange={(e) => setSaValue(e.target.value)}
+                className={INPUT}
+              >
+                <option value="" disabled>
+                  {serviceAccounts.length === 0
+                    ? "No service accounts yet"
+                    : "Select a service account..."}
+                </option>
+                {serviceAccounts.map((sa) => (
+                  <option key={sa.id} value={sa.id}>
+                    {sa.name}
                   </option>
                 ))}
               </select>
