@@ -400,7 +400,7 @@ export default function Integrations() {
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
               <HighlightCard color="accent-blue" className="h-full">
-                <div className="relative">
+                <div className="flex flex-col h-full">
                   {/* VS Code title bar */}
                   <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-[#1E1E2E]">
                     <div className="w-3 h-3 rounded-full bg-accent-red/60" />
@@ -416,7 +416,7 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  <div className="flex min-h-[240px]">
+                  <div className="flex flex-1">
                     {/* Sidebar */}
                     <div className="w-44 shrink-0 border-r border-border bg-surface/40 p-3">
                       <p className="text-2xs font-mono text-text-muted uppercase tracking-wider mb-2">
