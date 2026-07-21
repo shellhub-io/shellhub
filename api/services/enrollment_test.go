@@ -30,19 +30,24 @@ func TestEvaluateEnrollment(t *testing.T) {
 	cases := []struct {
 		description string
 		key         *models.InstallKey
+		paired      bool
 		expected    enrollmentDecision
 	}{
-		{"a keyless enrollment (nil key) lands pending", nil, enrollPending},
-		{"automatic accepts", &models.InstallKey{Mode: models.InstallKeyModeAutomatic}, enrollAccept},
-		{"manual stays pending", &models.InstallKey{Mode: models.InstallKeyModeManual}, enrollPending},
-		{"allowlist accepts a listed MAC (case-insensitive)", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"aa:bb:cc:dd:ee:ff"}}, enrollAccept},
-		{"allowlist rejects an unlisted MAC", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, enrollReject},
-		{"an unknown mode stays pending", &models.InstallKey{Mode: "bogus"}, enrollPending},
+		{"a keyless enrollment (nil key) lands pending", nil, false, enrollPending},
+		{"automatic accepts", &models.InstallKey{Mode: models.InstallKeyModeAutomatic}, false, enrollAccept},
+		{"manual stays pending", &models.InstallKey{Mode: models.InstallKeyModeManual}, false, enrollPending},
+		{"allowlist accepts a listed MAC (case-insensitive)", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
+		{"allowlist rejects an unlisted MAC", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, false, enrollReject},
+		{"an unknown mode stays pending", &models.InstallKey{Mode: "bogus"}, false, enrollPending},
+		// The pairing-code flow is its own acceptance: paired accepts regardless of the key's mode, so a
+		// manual/allowlist-miss pairing key still accepts (and never fires the webhook/reject).
+		{"paired accepts despite a manual key", &models.InstallKey{Mode: models.InstallKeyModeManual}, true, enrollAccept},
+		{"paired accepts despite an allowlist miss", &models.InstallKey{Mode: models.InstallKeyModeAllowlist, AllowedMACs: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			got := svc.evaluateEnrollment(context.Background(), tc.key, req, "uid", "host")
+			got := svc.evaluateEnrollment(context.Background(), tc.key, req, "uid", "host", tc.paired)
 			require.Equal(t, tc.expected, got)
 		})
 	}
@@ -86,7 +91,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 				_ = json.NewEncoder(w).Encode(enrollmentWebhookResponse{Decision: string(decision)})
 			}))
 
-			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host")
+			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false)
 			require.Equal(t, decision, got)
 			// The integrator can trust the request: the signature it received matches HMAC(secret, body).
 			require.Equal(t, signEnrollmentWebhook(secret, gotBody), gotSignature)
@@ -101,11 +106,11 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host"))
+		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false))
 	})
 
 	t.Run("fails closed to pending when the integrator is unreachable", func(t *testing.T) {
-		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor("http://127.0.0.1:1"), req, "uid", "host"))
+		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor("http://127.0.0.1:1"), req, "uid", "host", false))
 	})
 
 	t.Run("fails closed to pending on an unrecognized decision", func(t *testing.T) {
@@ -114,7 +119,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host"))
+		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false))
 	})
 
 	t.Run("fails closed to pending on a cancelled context", func(t *testing.T) {
@@ -126,7 +131,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		require.Equal(t, enrollPending, svc.evaluateEnrollment(ctx, keyFor(srv.URL), req, "uid", "host"))
+		require.Equal(t, enrollPending, svc.evaluateEnrollment(ctx, keyFor(srv.URL), req, "uid", "host", false))
 	})
 }
 

@@ -27,6 +27,11 @@ type InstallKeyStore interface {
 	// found and an error, if any.
 	InstallKeyResolveSystem(ctx context.Context, tenantID string) (*models.InstallKey, error)
 
+	// InstallKeyResolveSystemPairing fetches the namespace's system-managed pairing key: the source
+	// attributed to devices accepted through the tenant-less pairing-code flow. It returns the key if
+	// found and an error, if any.
+	InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error)
+
 	// InstallKeyConflicts reports whether the target contains conflicting attributes with the database. Pass zero
 	// values for attributes you do not wish to match on. It returns an array of conflicting attribute fields and
 	// an error, if any.

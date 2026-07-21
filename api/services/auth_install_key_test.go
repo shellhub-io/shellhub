@@ -99,7 +99,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				queryOptionsMock.On("InNamespace", tenant).Return(nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, badDigest, testifymock.AnythingOfType("[]store.QueryOption")).Return(&models.InstallKey{ID: badDigest, TenantID: tenant, System: true, Reusable: true}, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, badDigest, testifymock.AnythingOfType("[]store.QueryOption")).Return(&models.InstallKey{ID: badDigest, TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true}, nil).Once()
 			},
 			expected: Expected{res: nil, err: NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, nil)},
 		},
@@ -111,7 +111,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("InstallKeyResolveSystem", ctx, tenant).Return(&models.InstallKey{ID: "legacydigest", TenantID: tenant, System: true, Mode: models.InstallKeyModeManual}, nil).Once()
+				storeMock.On("InstallKeyResolveSystem", ctx, tenant).Return(&models.InstallKey{ID: "legacydigest", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Mode: models.InstallKeyModeManual}, nil).Once()
 				storeMock.On("DeviceCreate", ctx, &models.Device{
 					CreatedAt:       now,
 					UID:             uid,
@@ -162,4 +162,67 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+// TestEnrollmentInstallKey covers keyless enrollment-source resolution: the pairing-code flow (paired)
+// attributes to the pairing system key, a plain tenant-only enrollment attributes to the legacy key,
+// and neither resolves the other's key.
+func TestEnrollmentInstallKey(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	legacy := &models.InstallKey{ID: "legacydigest", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Mode: models.InstallKeyModeManual}
+	pairing := &models.InstallKey{ID: "pairingdigest", TenantID: tenant, Type: models.InstallKeyTypePairing, Mode: models.InstallKeyModeAutomatic}
+
+	cases := []struct {
+		description   string
+		paired        bool
+		requiredMocks func(context.Context, *mocks.MockStore)
+		expectedKey   *models.InstallKey
+		expectedID    string
+	}{
+		{
+			description: "attributes a tenant-only enrollment to the legacy key",
+			paired:      false,
+			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
+				s.On("InstallKeyResolveSystem", ctx, tenant).Return(legacy, nil).Once()
+			},
+			expectedKey: legacy,
+			expectedID:  "legacydigest",
+		},
+		{
+			description: "attributes a paired enrollment to the pairing key, not the legacy key",
+			paired:      true,
+			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
+				s.On("InstallKeyResolveSystemPairing", ctx, tenant).Return(pairing, nil).Once()
+			},
+			expectedKey: pairing,
+			expectedID:  "pairingdigest",
+		},
+		{
+			description: "attributes nothing when the pairing key is missing",
+			paired:      true,
+			requiredMocks: func(ctx context.Context, s *mocks.MockStore) {
+				s.On("InstallKeyResolveSystemPairing", ctx, tenant).Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedKey: nil,
+			expectedID:  "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			ctx := context.TODO()
+			storeMock := mocks.NewMockStore(tt)
+			cacheMock := mockcache.NewMockCache(tt)
+			tc.requiredMocks(ctx, storeMock)
+
+			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+			key, id, err := svc.enrollmentInstallKey(ctx, requests.DeviceAuth{TenantID: tenant}, tc.paired)
+
+			require.NoError(tt, err)
+			require.Equal(tt, tc.expectedKey, key)
+			require.Equal(tt, tc.expectedID, id)
+			storeMock.AssertExpectations(tt)
+		})
+	}
 }

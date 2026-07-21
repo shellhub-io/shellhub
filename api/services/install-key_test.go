@@ -357,8 +357,8 @@ func TestUpdateInstallKey(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
-					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
-				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeAutomatic}).
+					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
+				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeAutomatic}).
 					Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -370,8 +370,8 @@ func TestUpdateInstallKey(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
-					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
-				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeManual, Disabled: true}).
+					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
+				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual, Disabled: true}).
 					Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -383,7 +383,7 @@ func TestUpdateInstallKey(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
-					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
+					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyForbidden(),
 		},
@@ -476,7 +476,7 @@ func TestUpdateInstallKey(t *testing.T) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
 				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
-					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, System: true, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
+					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyForbidden(),
 		},

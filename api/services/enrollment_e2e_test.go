@@ -103,15 +103,15 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	return &enrollmentE2E{svc: svc, st: st, tenantID: tenantID}
 }
 
-// legacyKey inserts the namespace's system (legacy) install key in the given mode.
-func (e *enrollmentE2E) installKey(t *testing.T, digest, name string, mode models.InstallKeyMode, system bool, opts func(*models.InstallKey)) {
+// installKey inserts an install key of the given type in the given mode.
+func (e *enrollmentE2E) installKey(t *testing.T, digest, name string, mode models.InstallKeyMode, keyType models.InstallKeyType, opts func(*models.InstallKey)) {
 	t.Helper()
 	key := &models.InstallKey{
 		ID:        digest,
 		Name:      name,
 		TenantID:  e.tenantID,
 		Mode:      mode,
-		System:    system,
+		Type:      keyType,
 		Reusable:  true,
 		Tags:      []string{},
 		CreatedBy: "00000000-0000-4000-0000-000000000009",
@@ -237,7 +237,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	t.Run("automatic accepts on enrollment", func(t *testing.T) {
-		e.installKey(t, digest(0x01), "auto", models.InstallKeyModeAutomatic, false, func(k *models.InstallKey) {
+		e.installKey(t, digest(0x01), "auto", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:10", plaintextFor(0x01))
@@ -253,7 +253,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("manual key lands pending", func(t *testing.T) {
-		e.installKey(t, digest(0x02), "manual", models.InstallKeyModeManual, false, func(k *models.InstallKey) {
+		e.installKey(t, digest(0x02), "manual", models.InstallKeyModeManual, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:20", plaintextFor(0x02))
@@ -261,7 +261,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	})
 
 	t.Run("allowlist accepts a listed MAC and rejects others", func(t *testing.T) {
-		e.installKey(t, digest(0x03), "allow", models.InstallKeyModeAllowlist, false, func(k *models.InstallKey) {
+		e.installKey(t, digest(0x03), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 			k.AllowedMACs = []string{"aa:bb:cc:dd:ee:31"}
 			k.KeyEncrypted, k.KeyHint = "", ""
 		})
@@ -283,7 +283,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 	t.Run("the auth response carries the device status", func(t *testing.T) {
 		// The response exposes the enrollment status so an agent can react to its authorization state
 		// instead of connecting blind.
-		e.installKey(t, digest(0x04), "auto-status", models.InstallKeyModeAutomatic, false, clearSecret)
+		e.installKey(t, digest(0x04), "auto-status", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
 		res, err := e.svc.AuthDevice(context.Background(), requests.DeviceAuth{
 			TenantID:   e.tenantID,
 			Hostname:   "host-status",
@@ -304,7 +304,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
 	t.Run("re-registration re-runs the policy and consumes another use", func(t *testing.T) {
-		e.installKey(t, digest(0x40), "auto", models.InstallKeyModeAutomatic, false, clearSecret)
+		e.installKey(t, digest(0x40), "auto", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:40", plaintextFor(0x40))
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
@@ -330,7 +330,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	})
 
 	t.Run("a plain reconnect does not re-run the policy", func(t *testing.T) {
-		e.installKey(t, digest(0x41), "auto2", models.InstallKeyModeAutomatic, false, clearSecret)
+		e.installKey(t, digest(0x41), "auto2", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, clearSecret)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:41", plaintextFor(0x41))
 		require.Equal(t, 1, e.usedTimes(t, digest(0x41)))
@@ -342,7 +342,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 	})
 
 	t.Run("an auto-rejected device can be manually re-accepted", func(t *testing.T) {
-		e.installKey(t, digest(0x42), "allow", models.InstallKeyModeAllowlist, false, func(k *models.InstallKey) {
+		e.installKey(t, digest(0x42), "allow", models.InstallKeyModeAllowlist, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 			k.AllowedMACs = []string{"aa:bb:cc:dd:ee:99"}
 			clearSecret(k)
 		})
@@ -374,7 +374,7 @@ func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x50), "webhook", models.InstallKeyModeWebhook, false, func(k *models.InstallKey) {
+	e.installKey(t, digest(0x50), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -415,7 +415,7 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, false, func(k *models.InstallKey) {
+	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -459,7 +459,7 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		e.installKey(t, digest(keyByte), name, models.InstallKeyModeWebhook, false, func(k *models.InstallKey) {
+		e.installKey(t, digest(keyByte), name, models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 			k.WebhookURL = srv.URL
 			k.WebhookSecret = "s3cr3t"
 			k.UsageLimit = 1
@@ -518,7 +518,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, false, func(k *models.InstallKey) {
+	e.installKey(t, digest(0x60), "webhook", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -581,7 +581,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e.installKey(t, digest(0x61), "webhook-revoked", models.InstallKeyModeWebhook, false, func(k *models.InstallKey) {
+	e.installKey(t, digest(0x61), "webhook-revoked", models.InstallKeyModeWebhook, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 		k.WebhookURL = srv.URL
 		k.WebhookSecret = "s3cr3t"
 		clearSecret(k)
@@ -612,7 +612,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 // check — decides who gets the slot, and it can never land past the limit.
 func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x80), "single-use", models.InstallKeyModeAutomatic, false, func(k *models.InstallKey) {
+	e.installKey(t, digest(0x80), "single-use", models.InstallKeyModeAutomatic, models.InstallKeyTypeUser, func(k *models.InstallKey) {
 		k.UsageLimit = 1
 		clearSecret(k)
 	})
@@ -672,7 +672,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 // time (device status_updated_at) distinct from the immutable enrollment time.
 func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x70), "man", models.InstallKeyModeManual, false, clearSecret)
+	e.installKey(t, digest(0x70), "man", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
 
 	// A mutable clock so the decision time can advance past the enrollment time deterministically.
 	base := now
@@ -722,7 +722,7 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 // current (owns the live status/decision) so the older one doesn't borrow it.
 func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 	e := setupEnrollmentE2E(t)
-	e.installKey(t, digest(0x80), "man2", models.InstallKeyModeManual, false, clearSecret)
+	e.installKey(t, digest(0x80), "man2", models.InstallKeyModeManual, models.InstallKeyTypeUser, clearSecret)
 
 	// A mutable clock so the two events get distinct created_at (the "newest per device" window keys on
 	// it); the shared setup clock is fixed, which would tie them.

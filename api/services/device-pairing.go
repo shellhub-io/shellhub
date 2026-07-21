@@ -399,7 +399,7 @@ func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairin
 		}
 	}
 
-	auth, err := s.AuthDevice(ctx, authReq)
+	auth, err := s.authDevice(ctx, authReq, true)
 	if err != nil {
 		return nil, err
 	}

@@ -90,9 +90,18 @@ const (
 // evaluateEnrollment runs the install key's mode as a policy and returns the enrollment decision for
 // the device. A nil key (no key presented and no legacy key resolved) defaults to pending for manual
 // review, preserving the historical keyless behavior.
-func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string) enrollmentDecision {
+func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey, req requests.DeviceAuth, uid, hostname string, paired bool) enrollmentDecision {
 	if key == nil {
 		return enrollPending
+	}
+
+	// The pairing-code flow is its own acceptance: the user already approved by entering the code, and
+	// the whole stack (the agent's accepted-only waiter, the code-accept UI) assumes pairing == accepted.
+	// So a paired enrollment accepts outright, ignoring the pairing key's mode — never firing the
+	// webhook POST, the allowlist reject, or a manual/pending hold, which would hang the agent or lie in
+	// the UI. The pairing key's mode is meaningless by construction.
+	if paired {
+		return enrollAccept
 	}
 
 	switch key.Mode {
@@ -236,7 +245,9 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 	now := clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
-	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname), key, req, uid, hostname, false, false)
+	// A reconcile re-evaluates a still-pending device (webhook/allowlist); a pairing enrollment never
+	// reaches this path (it accepts outright), so paired is always false here.
+	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, uid, hostname, false, false)
 	if status != models.DeviceStatusPending {
 		device.Status = status
 		device.StatusUpdatedAt = clock.Now()
