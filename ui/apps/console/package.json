@@ -34,7 +34,7 @@
     "@xterm/xterm": "^6.0.0",
     "asciinema-player": "^3.17.0",
     "axios": "^1.18.1",
-    "font-logos": "^1.3.0",
+    "font-logos": "^1.4.0",
     "node-rsa": "^1.1.1",
     "react-day-picker": "^10.0.1",
     "react-hook-form": "^7.81.0",
