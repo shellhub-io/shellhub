@@ -14,6 +14,7 @@ import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
+import LegacyAccessGuard from "./components/common/LegacyAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
@@ -222,23 +223,30 @@ export default function App() {
                   />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
-                  <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/access-policies" element={<AccessPolicies />} />
                   <Route path="/ssh-identities" element={<SSHIdentities />}>
                     <Route path="enroll/:code" element={<SSHEnroll />} />
                   </Route>
-                  <Route path="/secure-vault" element={<SecureVault />} />
-                  <Route
-                    path="/firewall-rules"
-                    element={
-                      <FeatureGate
-                        feature="Firewall Rules"
-                        description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
-                      >
-                        <FirewallRules />
-                      </FeatureGate>
-                    }
-                  />
+                  {/* Legacy key ACL, vault, and firewall are bypassed in
+                      identity mode; redirect them to Access Policies there. */}
+                  <Route element={<LegacyAccessGuard />}>
+                    <Route
+                      path="/sshkeys/public-keys"
+                      element={<PublicKeys />}
+                    />
+                    <Route path="/secure-vault" element={<SecureVault />} />
+                    <Route
+                      path="/firewall-rules"
+                      element={
+                        <FeatureGate
+                          feature="Firewall Rules"
+                          description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+                        >
+                          <FirewallRules />
+                        </FeatureGate>
+                      }
+                    />
+                  </Route>
                   {getConfig().webEndpoints && (
                     <Route
                       path="/web-endpoints"

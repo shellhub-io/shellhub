@@ -276,8 +276,13 @@ export function useCommandPalette(): CommandPaletteViewModel {
   );
 
   const commandItems = useMemo(
-    () => buildCommandItems({ go, onLogout }),
-    [go, onLogout],
+    () =>
+      buildCommandItems({
+        go,
+        onLogout,
+        isIdentityMode: namespace?.settings?.ssh_access_mode === "identity",
+      }),
+    [go, onLogout, namespace?.settings?.ssh_access_mode],
   );
 
   /* Whether the drilled-in device has an open session to restore — lets its
