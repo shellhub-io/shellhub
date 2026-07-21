@@ -8,6 +8,7 @@ import {
 import { Button, Card, Spinner } from "@shellhub/design-system/primitives";
 import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
 import { type InstallKey } from "@/client";
+import { installKeyDisplayName } from "./helpers";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -32,7 +33,7 @@ export default function RevealInstallKeyDialog({
   const secretLabelId = `reveal-install-key-secret-${autoId}`;
 
   const name = installKey?.name ?? null;
-  const displayName = installKey?.system ? "Tenant-only registration" : name;
+  const displayName = installKey ? installKeyDisplayName(installKey) : name;
   const hasSecret = !!installKey?.key_hint;
   const fingerprint = installKey?.id ?? "";
 
@@ -92,9 +93,8 @@ export default function RevealInstallKeyDialog({
           </p>
         </div>
 
-        {/* The secret, behind a deliberate reveal. Same card as the fingerprint (neutral); the amber
-            warning line below is what marks it sensitive — never a red/error tint. The system key has
-            no secret, so this section is simply absent (the subtitle above already says so). */}
+        {/* The secret, behind a deliberate reveal. The amber warning line below is what marks it
+            sensitive — never a red/error tint. */}
         {hasSecret && (
           <div>
             <span id={secretLabelId} className={LABEL}>

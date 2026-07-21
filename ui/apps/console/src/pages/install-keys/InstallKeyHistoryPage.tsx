@@ -20,7 +20,8 @@ import {
   getExpiryInfo,
   getKeyBlockers,
   getUsageInfo,
-  isSystemKey,
+  installKeyDisplayName,
+  isPairingKey,
 } from "./helpers";
 
 /** One labelled fact in the key summary strip. */
@@ -50,11 +51,7 @@ export default function InstallKeyHistoryPage() {
   // The list caps at 100 keys; past that a deep link degrades to the leaner header.
   const { installKeys } = useInstallKeys({ perPage: 100 });
   const key = installKeys.find((k) => k.id === id) ?? state?.key ?? null;
-  const name = key
-    ? isSystemKey(key)
-      ? "Tenant-only registration"
-      : key.name
-    : (state?.name ?? "");
+  const name = key ? installKeyDisplayName(key) : (state?.name ?? "");
   const [revealOpen, setRevealOpen] = useState(false);
 
   const mode = key ? modeInfo(key.mode) : null;
@@ -149,18 +146,23 @@ export default function InstallKeyHistoryPage() {
                   </span>
                 </Fact>
               )}
-              <Fact label="Install Key">
-                <KeyValueChip
-                  label="Key"
-                  labelTone="primary"
-                  value={
-                    key.key_hint ? `${key.key_hint}••••••` : "••••••••••••••"
-                  }
-                  onClick={() => setRevealOpen(true)}
-                  title="Reveal Install Key"
-                  ariaLabel="Reveal Install Key"
-                />
-              </Fact>
+              {/* The install key chip: user and legacy keys show it (click reveals the key — or, for the
+                  secretless legacy key, its fingerprint). Pairing has nothing to reveal (it accepts on the
+                  printed code), so it's the only one without the chip. */}
+              {!isPairingKey(key) && (
+                <Fact label="Install Key">
+                  <KeyValueChip
+                    label="Key"
+                    labelTone="primary"
+                    value={
+                      key.key_hint ? `${key.key_hint}••••••` : "••••••••••••••"
+                    }
+                    onClick={() => setRevealOpen(true)}
+                    title="Reveal Install Key"
+                    ariaLabel="Reveal Install Key"
+                  />
+                </Fact>
+              )}
             </div>
             <InstallKeyActions installKey={key} />
           </div>

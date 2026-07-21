@@ -4,13 +4,16 @@ import {
   ClockIcon,
   NoSymbolIcon,
   PauseCircleIcon,
+  PlusIcon,
+  QrCodeIcon,
+  TicketIcon,
 } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon as ExclamationCircleSolidIcon } from "@heroicons/react/24/solid";
+import { Button } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import RestrictedAction from "@/components/common/RestrictedAction";
 import InstallKeyActionsMenu from "./InstallKeyActionsMenu";
-import InstallKeyEventsTable from "./InstallKeyEventsTable";
-import KeyValueChip from "./KeyValueChip";
 import StatusChip from "./StatusChip";
 import UsageMeter, { usageLabel } from "./UsageMeter";
 import { DeprecatedBadge, modeInfo } from "./constants";
@@ -18,36 +21,10 @@ import {
   getExpiryInfo,
   getKeyBlockers,
   getUsageInfo,
+  installKeyDisplayName,
+  isPairingKey,
   isSystemKey,
 } from "./helpers";
-
-/**
- * The install key's value under its name: the masked secret hint with an inline reveal. This is the
- * artifact the feature is named for — the string you paste into an agent — so it sits in the identity
- * cell, not a separate column. The fingerprint (webhook/route identifier) lives in the reveal dialog.
- */
-function KeyValue({
-  installKey,
-  onReveal,
-}: {
-  installKey: InstallKey;
-  onReveal: (key: InstallKey) => void;
-}) {
-  const hasSecret = !!installKey.key_hint;
-
-  return (
-    <div className="mt-1.5">
-      <KeyValueChip
-        label="Install Key"
-        labelTone="primary"
-        value={hasSecret ? `${installKey.key_hint}••••••` : "••••••••••••••"}
-        onClick={() => onReveal(installKey)}
-        title="Reveal Install Key"
-        ariaLabel="Reveal Install Key"
-      />
-    </div>
-  );
-}
 
 /**
  * The Mode cell: the key's mode identity (icon tile + label). Its secondary line is the mode summary
@@ -56,9 +33,14 @@ function KeyValue({
  * columns instead. The tile dims when the key is inert.
  */
 function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
-  const mode = modeInfo(installKey.mode);
-  const Icon = mode.icon;
   const { revoked, disabled, inert } = getKeyBlockers(installKey);
+
+  // The pairing key has no configurable admission mode — it always accepts via the printed code — so
+  // it reads as a pairing source, not a mode. Every other key shows its actual mode.
+  const info = isPairingKey(installKey)
+    ? { icon: QrCodeIcon, label: "Code pairing", summary: "Accepted by code" }
+    : modeInfo(installKey.mode);
+  const Icon = info.icon;
 
   const state = revoked
     ? { label: "Revoked", glyph: NoSymbolIcon }
@@ -81,7 +63,7 @@ function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
         <div
           className={`text-xs font-semibold whitespace-nowrap ${inert ? "text-text-muted" : "text-text-primary"}`}
         >
-          {mode.label}
+          {info.label}
         </div>
         {state ? (
           <div className="flex items-center gap-1 text-2xs text-text-muted whitespace-nowrap">
@@ -90,9 +72,40 @@ function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
           </div>
         ) : (
           <div className="text-2xs text-text-muted whitespace-nowrap">
-            {mode.summary}
+            {info.summary}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Onboarding placeholder for the "Custom keys" section when the namespace has none yet. The built-in
+ * keys always fill the table, so this replaces the old full-page hero: it lives inside the section it
+ * belongs to, keeping the built-in rows (and their queues) reachable above it.
+ */
+function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="px-4 py-6">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border-light px-5 py-9 text-center">
+        <TicketIcon className="w-8 h-8 text-text-muted" strokeWidth={1.5} />
+        <h3 className="text-sm font-semibold text-text-primary">
+          No custom keys yet
+        </h3>
+        <p className="max-w-xl text-xs text-text-muted">
+          Create a key with its own secret and mode to register devices with
+          your namespace.
+        </p>
+        <RestrictedAction action="installKey:create">
+          <Button
+            size="sm"
+            onClick={onCreate}
+            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
+          >
+            Create Install Key
+          </Button>
+        </RestrictedAction>
       </div>
     </div>
   );
@@ -109,8 +122,9 @@ export default function InstallKeysTable({
   page,
   totalPages,
   totalCount,
+  noCustomKeys,
   onPageChange,
-  onReveal,
+  onCreate,
   onEdit,
   onToggleDisabled,
   onRevoke,
@@ -119,8 +133,12 @@ export default function InstallKeysTable({
   page: number;
   totalPages: number;
   totalCount: number;
+  /** True when the namespace has only built-in keys (no user-created ones), so the Custom keys
+   * section shows its onboarding placeholder instead of rows. Computed by the caller off the true
+   * count — page data alone can't distinguish "none" from "on a later page". */
+  noCustomKeys: boolean;
   onPageChange: (page: number) => void;
-  onReveal: (key: InstallKey) => void;
+  onCreate: () => void;
   onEdit: (key: InstallKey) => void;
   onToggleDisabled: (key: InstallKey) => void;
   onRevoke: (key: InstallKey) => void;
@@ -141,23 +159,21 @@ export default function InstallKeysTable({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-text-primary">
-                Tenant-only registration
+                {installKeyDisplayName(key)}
               </span>
-              <DeprecatedBadge />
+              {!isPairingKey(key) && <DeprecatedBadge />}
             </div>
             <p className="mt-0.5 text-2xs text-text-muted">
-              The legacy path for devices that register without an install key.
-              Kept for compatibility and will be removed in a future release.
-              Its mode controls how those devices are handled.
+              {isPairingKey(key)
+                ? "Devices that pair by the code the agent prints during install — or by opening the link printed with it. Accepted on the code itself."
+                : "The legacy path for devices that register without an install key. Kept for compatibility and will be removed in a future release. Its mode controls how those devices are handled."}
             </p>
-            <KeyValue installKey={key} onReveal={onReveal} />
           </div>
         ) : (
           <div>
             <span className="text-sm font-semibold text-text-primary">
               {key.name}
             </span>
-            <KeyValue installKey={key} onReveal={onReveal} />
             {key.tags && key.tags.length > 0 && (
               <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                 {key.tags.map((tag) => (
@@ -242,48 +258,29 @@ export default function InstallKeysTable({
     },
   ];
 
-  // The tenant-only (system) row stays permanently expanded, previewing its recent registrations
-  // inline so the legacy path's activity is visible without leaving the list. When it's disabled the
-  // path is off, so the preview collapses.
-  const systemKey = data.find(isSystemKey);
-  const expandSystemKey = systemKey && !systemKey.disabled;
-
   return (
     <DataTable
       label="Install keys"
       columns={columns}
       data={data}
       rowKey={(key) => key.name}
-      expandedRowKey={expandSystemKey ? systemKey.name : null}
-      renderExpandedRow={(key) => (
-        // The key's registration preview, tied to the row above by a shared left rail and a recessed
-        // background so it reads as this row's nested detail.
-        <div className="-ml-px border-l-2 border-l-primary/50 bg-surface/60">
-          <InstallKeyEventsTable
-            id={key.id}
-            perPage={10}
-            compact
-            viewAll={{
-              to: `/install-keys/${encodeURIComponent(key.id)}/activity`,
-              state: { name: "Tenant-only registration", key },
-            }}
-          />
-        </div>
-      )}
-      // Tall, roomy rows; clicking a row opens the key's full enrollment history. The pinned legacy
-      // row gets a faint tint so it reads as the default/system entry.
+      // The auto-managed keys (legacy, pairing) come with the namespace ("Built-in"); the keys an admin
+      // creates are grouped under "Custom keys". `data` is already ordered system-first, so the
+      // sections stay contiguous.
+      sectionOf={(key) => (isSystemKey(key) ? "system" : "user")}
+      sectionLabel={(section) =>
+        section === "system" ? "Built-in" : "Custom keys"
+      }
+      // With only built-in keys, the "Custom keys" section has no rows — render its onboarding
+      // placeholder under the built-in rows instead of the old full-page hero (which never showed,
+      // since the built-in keys keep the table non-empty). The placeholder names the section itself,
+      // so no "Custom keys" header precedes it.
+      trailingEmptyState={
+        noCustomKeys ? <CustomKeysEmpty onCreate={onCreate} /> : undefined
+      }
+      // Tall, roomy rows; clicking a row opens the key's full registration history.
       rowClassName={(key) => {
-        const system = isSystemKey(key);
-        // An expanded tenant-only row shares its preview's recessed background and left rail so the two
-        // read as one block. `[&+tr]:!border-t-transparent` drops the table's divider between the row
-        // and the accordion, so the rail runs unbroken (no grey notch at the seam). Collapsed, the row
-        // keeps only the faint primary tint that marks the system row.
-        const systemClass = system
-          ? expandSystemKey
-            ? " [&>td:first-child]:border-l-2 [&>td:first-child]:border-l-primary/50 [&+tr]:!border-t-transparent"
-            : " bg-primary/[0.03]"
-          : "";
-        const base = `[&>td]:py-5${systemClass}`;
+        const base = "[&>td]:py-5";
         // A revoked key is terminal and archival: fade the whole row so it recedes, while a disabled
         // key (reversible pause) stays at full presence.
         return key.revoked ? `${base} opacity-55` : base;
@@ -291,7 +288,7 @@ export default function InstallKeysTable({
       onRowClick={(key) => {
         void navigate(`/install-keys/${encodeURIComponent(key.id)}/activity`, {
           state: {
-            name: isSystemKey(key) ? "Tenant-only registration" : key.name,
+            name: installKeyDisplayName(key),
             key,
           },
         });

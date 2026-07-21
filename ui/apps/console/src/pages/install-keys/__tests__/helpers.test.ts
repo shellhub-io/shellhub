@@ -5,7 +5,10 @@ import {
   getInstallKeyStatus,
   getKeyBlockers,
   getUsageInfo,
+  installKeyDisplayName,
+  isPairingKey,
   parseAllowedMacs,
+  resolveEnrollmentSource,
   validateModeConfig,
   validateName,
 } from "../helpers";
@@ -218,5 +221,33 @@ describe("parseAllowedMacs", () => {
 
   it("returns an empty list for blank input", () => {
     expect(parseAllowedMacs("\n  \n")).toEqual([]);
+  });
+});
+
+describe("enrollment source", () => {
+  const legacy = key({ id: "leg", name: "legacy", type: "legacy" });
+  const pairing = key({ id: "pair", name: "pairing", type: "pairing" });
+  const real = key({ id: "abc", name: "fleet", type: "user" });
+
+  it("resolves a device to its enrollment source, or null when unmatched", () => {
+    const keys = [legacy, pairing, real];
+    expect(resolveEnrollmentSource(undefined, keys)).toBeNull();
+    expect(resolveEnrollmentSource("nope", keys)).toBeNull();
+    expect(resolveEnrollmentSource("abc", keys)).toEqual({
+      kind: "key",
+      name: "fleet",
+    });
+    expect(resolveEnrollmentSource("leg", keys)).toEqual({ kind: "legacy" });
+    expect(resolveEnrollmentSource("pair", keys)).toEqual({ kind: "pairing" });
+  });
+
+  it("labels the pairing system key apart from the legacy one", () => {
+    expect(isPairingKey(pairing)).toBe(true);
+    expect(isPairingKey(legacy)).toBe(false);
+    expect(isPairingKey(real)).toBe(false);
+
+    expect(installKeyDisplayName(pairing)).toBe("Pairing code");
+    expect(installKeyDisplayName(legacy)).toBe("Tenant-only registration");
+    expect(installKeyDisplayName(real)).toBe("fleet");
   });
 });

@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   EllipsisVerticalIcon,
   NoSymbolIcon,
@@ -8,10 +15,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
-import { useClickOutside } from "@/hooks/useClickOutside";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { type Action } from "@/utils/permission";
+import { isPairingKey, isSystemKey } from "./helpers";
 
 function MenuItem({
   action,
@@ -47,10 +54,9 @@ function MenuItem({
 }
 
 /**
- * Trailing overflow menu for a install key row. Built on the codebase's
- * click-outside popover pattern (no shared dropdown primitive exists): an
- * ellipsis trigger toggles an absolutely-positioned menu, closed on Escape or
- * an outside click.
+ * Trailing overflow menu for an install key row. An ellipsis trigger toggles a menu closed on Escape
+ * or an outside click. The menu renders in a portal (see the position effect) so it escapes the
+ * table's horizontal-scroll clip; there's no shared dropdown primitive to lean on.
  */
 export default function InstallKeyActionsMenu({
   installKey,
@@ -64,20 +70,49 @@ export default function InstallKeyActionsMenu({
   onRevoke: (key: InstallKey) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  // Right-aligned position, in viewport coordinates. The menu renders in a portal on document.body so
+  // it escapes the table's `overflow-x-auto` clip — otherwise opening it extends the scroll width and
+  // shifts the whole table (and the menu is clipped out of view).
+  const [pos, setPos] = useState({ top: 0, right: 0 });
 
-  useClickOutside(wrapperRef, () => setOpen(false));
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+  }, []);
+
   useEscapeKey(() => setOpen(false), open);
 
-  // Move focus into the menu when it opens so it can be driven from the keyboard.
   useEffect(() => {
-    if (open) {
-      menuRef.current
-        ?.querySelector<HTMLButtonElement>('[role="menuitem"]')
-        ?.focus();
-    }
-  }, [open]);
+    if (!open) return undefined;
+    updatePosition();
+    // Move focus into the menu when it opens so it can be driven from the keyboard.
+    menuRef.current
+      ?.querySelector<HTMLButtonElement>('[role="menuitem"]')
+      ?.focus();
+
+    const reposition = () => updatePosition();
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    const onDown = (e: MouseEvent) => {
+      if (
+        !menuRef.current?.contains(e.target as Node) &&
+        !triggerRef.current?.contains(e.target as Node)
+      )
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [open, updatePosition]);
+
+  // The pairing key force-accepts and has no editable fields, so it has no actions at all.
+  if (isPairingKey(installKey)) return null;
 
   // Arrow keys (and Home/End) roam the rendered menu items, wrapping around. Queried live because
   // items are conditionally shown (permissions, the system key hides Revoke).
@@ -117,14 +152,13 @@ export default function InstallKeyActionsMenu({
     fn();
   };
 
-  // A revoked key is terminal — no actions. The legacy/system key is auto-managed but still editable
-  // (its mode governs keyless enrollments), so it keeps Edit; Revoke stays hidden — it's permanent.
+  // A revoked key is terminal, so it has no actions.
   if (installKey.revoked) {
     return null;
   }
 
   return (
-    <div ref={wrapperRef} className="relative shrink-0">
+    <div ref={triggerRef} className="shrink-0">
       <IconButton
         variant="ghost"
         aria-label="Install Key actions"
@@ -135,45 +169,48 @@ export default function InstallKeyActionsMenu({
         <EllipsisVerticalIcon className="w-4 h-4" />
       </IconButton>
 
-      {open && (
-        <div
-          ref={menuRef}
-          role="menu"
-          tabIndex={-1}
-          onKeyDown={onMenuKeyDown}
-          className="absolute right-0 top-full mt-1 z-50 w-40 py-1 bg-surface border border-border rounded-lg shadow-2xl animate-fade-in"
-        >
-          <MenuItem
-            action="installKey:edit"
-            icon={<PencilIcon className="w-4 h-4" />}
-            label="Edit"
-            onSelect={run(() => onEdit(installKey))}
-          />
-          {/* Disable is available for the legacy key too: disabling it turns off keyless enrollment
-              (devices without a key are rejected). Revoke stays hidden — the legacy key is permanent. */}
-          <MenuItem
-            action="installKey:disable"
-            icon={
-              installKey.disabled ? (
-                <PlayIcon className="w-4 h-4" />
-              ) : (
-                <PauseIcon className="w-4 h-4" />
-              )
-            }
-            label={installKey.disabled ? "Enable" : "Disable"}
-            onSelect={run(() => onToggleDisabled(installKey))}
-          />
-          {!installKey.system && (
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            tabIndex={-1}
+            onKeyDown={onMenuKeyDown}
+            style={{ top: pos.top, right: pos.right }}
+            className="fixed z-50 w-40 py-1 bg-surface border border-border rounded-lg shadow-2xl animate-fade-in"
+          >
             <MenuItem
-              action="installKey:revoke"
-              icon={<NoSymbolIcon className="w-4 h-4" />}
-              label="Revoke"
-              danger
-              onSelect={run(() => onRevoke(installKey))}
+              action="installKey:edit"
+              icon={<PencilIcon className="w-4 h-4" />}
+              label="Edit"
+              onSelect={run(() => onEdit(installKey))}
             />
-          )}
-        </div>
-      )}
+            {/* Disable is available for the legacy key too: disabling it turns off keyless enrollment
+                (devices without a key are rejected). Revoke stays hidden — the legacy key is permanent. */}
+            <MenuItem
+              action="installKey:disable"
+              icon={
+                installKey.disabled ? (
+                  <PlayIcon className="w-4 h-4" />
+                ) : (
+                  <PauseIcon className="w-4 h-4" />
+                )
+              }
+              label={installKey.disabled ? "Enable" : "Disable"}
+              onSelect={run(() => onToggleDisabled(installKey))}
+            />
+            {!isSystemKey(installKey) && (
+              <MenuItem
+                action="installKey:revoke"
+                icon={<NoSymbolIcon className="w-4 h-4" />}
+                label="Revoke"
+                danger
+                onSelect={run(() => onRevoke(installKey))}
+              />
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

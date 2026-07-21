@@ -5,6 +5,7 @@ import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
 import { type InstallKey, type InstallKeyUpdate } from "@/client";
+import { isSystemKey } from "./helpers";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
@@ -24,7 +25,7 @@ function EditInstallKeyDrawer({
   const updateKey = useUpdateInstallKey();
   const open = installKey !== null;
   // The legacy/system key is edit-restricted: only its enrollment mode is shown and sent.
-  const isSystem = installKey?.system ?? false;
+  const isSystem = installKey ? isSystemKey(installKey) : false;
   const [name, setName] = useState("");
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");

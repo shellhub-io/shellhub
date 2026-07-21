@@ -291,7 +291,9 @@ export default function DeviceDetails() {
                 <DeprecatedBadge />
               ) : (
                 <span className="text-sm font-medium text-text-primary">
-                  {enrollment.name}
+                  {enrollment.kind === "pairing"
+                    ? "Pairing code"
+                    : enrollment.name}
                 </span>
               )
             ) : (

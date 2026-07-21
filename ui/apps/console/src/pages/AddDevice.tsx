@@ -23,6 +23,7 @@ import {
 import CopyButton from "../components/common/CopyButton";
 import PairingCodeDialog from "@/components/common/PairingCodeDialog";
 import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer";
+import { isSystemKey } from "@/pages/install-keys/helpers";
 import { modeInfo } from "@/pages/install-keys/constants";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
 import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
@@ -214,7 +215,7 @@ export default function AddDevice() {
   // keyless default, not something you bake in) and anything unusable.
   const { installKeys } = useInstallKeys({ perPage: 50 });
   const usableKeys = installKeys.filter(
-    (k) => !k.system && !k.revoked && !k.disabled,
+    (k) => !isSystemKey(k) && !k.revoked && !k.disabled,
   );
   const selectedKey =
     usableKeys.find((k) => k.name === selectedKeyName) ?? usableKeys[0];
