@@ -774,3 +774,79 @@ func TestNormalizeSourceIPs(t *testing.T) {
 		})
 	}
 }
+
+func TestSubjectMatches(t *testing.T) {
+	const saID = "00000000-0000-0000-0000-00000000000a"
+
+	cases := []struct {
+		description string
+		subject     models.PolicySubject
+		userID      string
+		role        authorizer.Role
+		userType    models.UserType
+		expected    bool
+	}{
+		{
+			description: "all-members matches a human",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
+			userID:      "human-id",
+			role:        authorizer.RoleObserver,
+			userType:    models.UserTypeHuman,
+			expected:    true,
+		},
+		{
+			description: "all-members does NOT match a service account (footgun)",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
+			userID:      saID,
+			role:        authorizer.RoleService,
+			userType:    models.UserTypeService,
+			expected:    false,
+		},
+		{
+			description: "a human role subject does not match a service account",
+			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "observer"},
+			userID:      saID,
+			role:        authorizer.RoleService,
+			userType:    models.UserTypeService,
+			expected:    false,
+		},
+		{
+			description: "role=service matches a service account",
+			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
+			userID:      saID,
+			role:        authorizer.RoleService,
+			userType:    models.UserTypeService,
+			expected:    true,
+		},
+		{
+			description: "role=service does not match a human observer",
+			subject:     models.PolicySubject{Type: models.PolicySubjectRole, Value: "service"},
+			userID:      "human-id",
+			role:        authorizer.RoleObserver,
+			userType:    models.UserTypeHuman,
+			expected:    false,
+		},
+		{
+			description: "user subject matches a service account by id",
+			subject:     models.PolicySubject{Type: models.PolicySubjectUser, Value: saID},
+			userID:      saID,
+			role:        authorizer.RoleService,
+			userType:    models.UserTypeService,
+			expected:    true,
+		},
+		{
+			description: "empty type is treated as human for all-members",
+			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
+			userID:      "legacy-id",
+			role:        authorizer.RoleObserver,
+			userType:    "",
+			expected:    true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			require.Equal(t, tc.expected, subjectMatches(tc.subject, tc.userID, tc.role, tc.userType))
+		})
+	}
+}

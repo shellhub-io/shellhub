@@ -39,6 +39,9 @@ tags:
   - name: ssh-identities
     x-displayName: SSH Identities
     description: Manage enrolled SSH key identities for the identity access mode.
+  - name: service-accounts
+    x-displayName: Service Accounts
+    description: Manage non-human SSH principals for automated systems.
   - name: tags
     x-displayName: Tags
     description: Create tags and attach them to devices.
@@ -144,6 +147,10 @@ paths:
     $ref: paths/api@ssh-identities.yaml
   /api/ssh-identities/{id}:
     $ref: paths/api@ssh-identities@{id}.yaml
+  /api/service-accounts:
+    $ref: paths/api@service-accounts.yaml
+  /api/service-accounts/{id}:
+    $ref: paths/api@service-accounts@{id}.yaml
   /api/stats:
     $ref: paths/api@stats.yaml
   /api/namespaces:

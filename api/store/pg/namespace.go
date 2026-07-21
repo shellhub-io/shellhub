@@ -192,6 +192,8 @@ func (pg *Pg) NamespaceGetMembers(ctx context.Context, tenantID string, opts ...
 		Model(&entities).
 		Relation("User").
 		Where("membership.namespace_id = ?", tenantID).
+		// Service accounts are not human members; keep them out of the members list.
+		Where("membership.user_id IN (SELECT id FROM users WHERE type != ?)", string(models.UserTypeService)).
 		OrderExpr("membership.created_at ASC")
 
 	var err error

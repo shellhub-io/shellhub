@@ -10,6 +10,7 @@ type Store interface {
 	PublicKeyStore
 	AccessPolicyStore
 	SSHIdentityStore
+	ServiceAccountStore
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore

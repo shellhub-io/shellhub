@@ -73,6 +73,10 @@ const (
 	SSHIdentityManage
 )
 
+// servicePermissions is intentionally empty: a service account has no management
+// permissions (see [RoleService]).
+var servicePermissions = []Permission{}
+
 var observerPermissions = []Permission{
 	DeviceConnect,
 	DeviceDetails,

@@ -480,6 +480,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
+	// Service accounts are SSH-only principals and never sign in to the console. Reject
+	// before any auth-method check, returning the generic unauthorized error so this path
+	// can't be used to tell a service account apart from a nonexistent user.
+	if user.Type == models.UserTypeService {
+		return nil, 0, "", NewErrAuthUnathorized(nil)
+	}
+
 	if !slices.Contains(user.Preferences.AuthMethods, models.UserAuthMethodLocal) {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}

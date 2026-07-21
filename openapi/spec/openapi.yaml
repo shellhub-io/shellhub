@@ -52,6 +52,8 @@ tags:
     description: Routes related to SSH access policies (identity access mode).
   - name: ssh-identities
     description: Routes related to enrolled SSH key identities (identity access mode).
+  - name: service-accounts
+    description: Routes related to service accounts (non-human SSH principals).
   - name: api-keys
     description: |
       An API key is a unique identifier used to access protected endpoints. It
@@ -179,6 +181,10 @@ paths:
     $ref: paths/api@ssh-identities.yaml
   /api/ssh-identities/{id}:
     $ref: paths/api@ssh-identities@{id}.yaml
+  /api/service-accounts:
+    $ref: paths/api@service-accounts.yaml
+  /api/service-accounts/{id}:
+    $ref: paths/api@service-accounts@{id}.yaml
   /api/stats:
     $ref: paths/api@stats.yaml
   /api/namespaces:

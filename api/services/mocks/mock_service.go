@@ -1691,6 +1691,74 @@ func (_c *MockService_CreateSSHIdentity_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// CreateServiceAccount provides a mock function for the type MockService
+func (_mock *MockService) CreateServiceAccount(ctx context.Context, req *requests.ServiceAccountCreate) (*models.ServiceAccount, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateServiceAccount")
+	}
+
+	var r0 *models.ServiceAccount
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ServiceAccountCreate) (*models.ServiceAccount, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ServiceAccountCreate) *models.ServiceAccount); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ServiceAccount)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ServiceAccountCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateServiceAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateServiceAccount'
+type MockService_CreateServiceAccount_Call struct {
+	*mock.Call
+}
+
+// CreateServiceAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ServiceAccountCreate
+func (_e *MockService_Expecter) CreateServiceAccount(ctx any, req any) *MockService_CreateServiceAccount_Call {
+	return &MockService_CreateServiceAccount_Call{Call: _e.mock.On("CreateServiceAccount", ctx, req)}
+}
+
+func (_c *MockService_CreateServiceAccount_Call) Run(run func(ctx context.Context, req *requests.ServiceAccountCreate)) *MockService_CreateServiceAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ServiceAccountCreate
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ServiceAccountCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateServiceAccount_Call) Return(serviceAccount *models.ServiceAccount, err error) *MockService_CreateServiceAccount_Call {
+	_c.Call.Return(serviceAccount, err)
+	return _c
+}
+
+func (_c *MockService_CreateServiceAccount_Call) RunAndReturn(run func(ctx context.Context, req *requests.ServiceAccountCreate) (*models.ServiceAccount, error)) *MockService_CreateServiceAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateSession provides a mock function for the type MockService
 func (_mock *MockService) CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error) {
 	ret := _mock.Called(ctx, session)
@@ -2365,6 +2433,63 @@ func (_c *MockService_DeleteSSHIdentity_Call) Return(err error) *MockService_Del
 }
 
 func (_c *MockService_DeleteSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityDelete) error) *MockService_DeleteSSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteServiceAccount provides a mock function for the type MockService
+func (_mock *MockService) DeleteServiceAccount(ctx context.Context, req *requests.ServiceAccountDelete) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteServiceAccount")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ServiceAccountDelete) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteServiceAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteServiceAccount'
+type MockService_DeleteServiceAccount_Call struct {
+	*mock.Call
+}
+
+// DeleteServiceAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ServiceAccountDelete
+func (_e *MockService_Expecter) DeleteServiceAccount(ctx any, req any) *MockService_DeleteServiceAccount_Call {
+	return &MockService_DeleteServiceAccount_Call{Call: _e.mock.On("DeleteServiceAccount", ctx, req)}
+}
+
+func (_c *MockService_DeleteServiceAccount_Call) Run(run func(ctx context.Context, req *requests.ServiceAccountDelete)) *MockService_DeleteServiceAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ServiceAccountDelete
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ServiceAccountDelete)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteServiceAccount_Call) Return(err error) *MockService_DeleteServiceAccount_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteServiceAccount_Call) RunAndReturn(run func(ctx context.Context, req *requests.ServiceAccountDelete) error) *MockService_DeleteServiceAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4507,6 +4632,74 @@ func (_c *MockService_ListSSHIdentities_Call) Return(sSHIdentitys []models.SSHId
 }
 
 func (_c *MockService_ListSSHIdentities_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error)) *MockService_ListSSHIdentities_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListServiceAccounts provides a mock function for the type MockService
+func (_mock *MockService) ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListServiceAccounts")
+	}
+
+	var r0 []models.ServiceAccount
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ServiceAccountList) ([]models.ServiceAccount, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ServiceAccountList) []models.ServiceAccount); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.ServiceAccount)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ServiceAccountList) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ListServiceAccounts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListServiceAccounts'
+type MockService_ListServiceAccounts_Call struct {
+	*mock.Call
+}
+
+// ListServiceAccounts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ServiceAccountList
+func (_e *MockService_Expecter) ListServiceAccounts(ctx any, req any) *MockService_ListServiceAccounts_Call {
+	return &MockService_ListServiceAccounts_Call{Call: _e.mock.On("ListServiceAccounts", ctx, req)}
+}
+
+func (_c *MockService_ListServiceAccounts_Call) Run(run func(ctx context.Context, req *requests.ServiceAccountList)) *MockService_ListServiceAccounts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ServiceAccountList
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ServiceAccountList)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListServiceAccounts_Call) Return(serviceAccounts []models.ServiceAccount, err error) *MockService_ListServiceAccounts_Call {
+	_c.Call.Return(serviceAccounts, err)
+	return _c
+}
+
+func (_c *MockService_ListServiceAccounts_Call) RunAndReturn(run func(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error)) *MockService_ListServiceAccounts_Call {
 	_c.Call.Return(run)
 	return _c
 }

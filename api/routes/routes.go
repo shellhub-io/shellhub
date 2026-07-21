@@ -271,6 +271,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.PATCH(UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityEnroll))
 	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
 
+	// Service accounts (non-human SSH principals). Managed by owner/admin, reusing the
+	// member-management permission.
+	publicAPI.GET(ListServiceAccountsURL, gateway.Handler(handler.ListServiceAccounts), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
+	publicAPI.POST(CreateServiceAccountURL, gateway.Handler(handler.CreateServiceAccount), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
+	publicAPI.DELETE(DeleteServiceAccountURL, gateway.Handler(handler.DeleteServiceAccount), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
+
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}

@@ -75,7 +75,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, login, sourceIP)
+		matched, err := policyApplies(policy, dev, userID, member.Role, member.Type, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("deny access policy failed to evaluate; denying")
@@ -96,7 +96,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, login, sourceIP)
+		matched, err := policyApplies(policy, dev, userID, member.Role, member.Type, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("access policy failed to evaluate; treating as non-match")
@@ -117,8 +117,8 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 // a non-nil error means a matcher could not be evaluated (a broken filter regexp,
 // or a malformed source CIDR / client IP), and the caller decides how to treat it
 // (deny fails closed, allow treats it as a non-match).
-func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, login, sourceIP string) (bool, error) {
-	if !subjectMatches(policy.Subject, userID, role) {
+func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, userType models.UserType, login, sourceIP string) (bool, error) {
+	if !subjectMatches(policy.Subject, userID, role, userType) {
 		return false, nil
 	}
 
@@ -197,12 +197,15 @@ func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID strin
 	return count > 0, nil
 }
 
-// subjectMatches reports whether the policy subject applies to the given user
-// and role.
-func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role) bool {
+// subjectMatches reports whether the policy subject applies to the given principal.
+func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role, userType models.UserType) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
-		return true
+		// Only all-members needs the service carve-out: a role subject already excludes
+		// service accounts by exact equality, so an over-broad "*" allow is the one place a
+		// service account could be swept in by accident. Grant one on purpose via a
+		// role=service or user=<sa> subject.
+		return userType != models.UserTypeService
 	case models.PolicySubjectRole:
 		return subject.Value == role.String()
 	case models.PolicySubjectUser:

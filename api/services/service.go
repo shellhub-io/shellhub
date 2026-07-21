@@ -36,6 +36,7 @@ type Service interface {
 	SSHEnrollmentService
 	AccessPolicyService
 	SSHIdentityService
+	ServiceAccountService
 	UserService
 	SSHKeysService
 	SessionService
