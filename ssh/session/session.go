@@ -304,7 +304,16 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 				return nil, err
 			}
 
-			parts := strings.Split(data, ":")
+			// SplitN, not Split: the value is "<device>:<clientIP>" and an IPv6
+			// client IP contains colons, so a plain Split would truncate it to the
+			// first hextet. The device UID has no colon, so the first one separates.
+			parts := strings.SplitN(data, ":", 2)
+			if len(parts) != 2 {
+				log.Error("malformed web session ip from cache")
+
+				return nil, fmt.Errorf("malformed web session ip")
+			}
+
 			target.Data = parts[0]
 			hos.Host = parts[1]
 
