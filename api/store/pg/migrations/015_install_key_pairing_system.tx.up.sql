@@ -3,14 +3,22 @@
 -- `user`. This also adds the pairing key: the source attributed to devices accepted through the
 -- tenant-less pairing-code flow, so they no longer attribute to the legacy key.
 --
--- Fix-forward only: existing pairing devices already stamped with the legacy key are byte-identical to
--- keyless-legacy devices and cannot be re-attributed reliably, so they are left as-is.
+-- Fix-forward only, in two respects:
+--   1. Existing pairing devices already stamped with the legacy key are byte-identical to keyless-legacy
+--      devices and cannot be re-attributed reliably, so they are left as-is.
+--   2. The pairing INSERT below relies on the pre-existing (namespace_id, name) unique index. Unlike
+--      'legacy' (reserved since migration 013), 'pairing' was never a reserved name, so a namespace that
+--      already holds a user key named 'pairing' keeps it and does NOT get a pairing system key (ON
+--      CONFLICT DO NOTHING skips it). Code pairing there still works (acceptPairingDevice accepts the
+--      device explicitly, independent of the resolved key); it just falls back to keyless-legacy
+--      attribution. New namespaces are unaffected: the key is created at NamespaceCreate, before any
+--      user key can claim the name. Accepted as deliberate fix-forward, not worth mutating user data for.
 
 ALTER TABLE install_keys ADD COLUMN type text NOT NULL DEFAULT 'user';
 
 -- Backfill the existing legacy system key (migration 013 created one per namespace with system = true,
--- name = 'legacy'). Only system keys are touched; a user key can't be named 'legacy' — it would have
--- collided with that key on creation.
+-- name = 'legacy'). Only system keys are touched; a user key can't be named 'legacy' (it would have
+-- collided with that key on creation).
 UPDATE install_keys SET type = 'legacy' WHERE system = true AND name = 'legacy';
 
 -- One pairing (system) key per existing namespace. Automatic mode (acceptance is the code itself);
