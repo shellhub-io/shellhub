@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Drawer from "@/components/common/Drawer";
 
@@ -59,6 +59,11 @@ describe("Drawer Escape key", () => {
         </dialog>
       </>,
     );
+
+    // Wait for the drawer's focus trap to finish its one-time auto-focus before
+    // moving focus into the sibling dialog; otherwise its rAF steals focus back
+    // into the panel and Escape would close the drawer.
+    await waitFor(() => expect(screen.getByLabelText("Close")).toHaveFocus());
 
     const inner = screen.getByText("Inside dialog");
     inner.focus();
