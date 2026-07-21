@@ -17,7 +17,8 @@ export default function KeyValueChip({
   ariaLabel,
   labelTone = "muted",
 }: {
-  label: string;
+  /** The prepend label pill. Omit to show just the value (e.g. a bare masked secret). */
+  label?: string;
   value: ReactNode;
   onClick?: () => void;
   /** A trailing affordance (e.g. a reveal eye) shown after the value. */
@@ -34,11 +35,13 @@ export default function KeyValueChip({
 
   const inner = (
     <>
-      <span
-        className={`rounded-full px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-wider ${labelCls}`}
-      >
-        {label}
-      </span>
+      {label && (
+        <span
+          className={`rounded-full px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-wider ${labelCls}`}
+        >
+          {label}
+        </span>
+      )}
       <span className="min-w-0 font-mono text-2xs text-text-secondary">
         {value}
       </span>

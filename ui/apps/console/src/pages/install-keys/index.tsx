@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  ArrowPathIcon,
-  BoltIcon,
-  TagIcon,
-  TicketIcon,
-} from "@heroicons/react/24/outline";
+import { TicketIcon } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
 import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
@@ -12,12 +7,11 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type InstallKey } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import EmptyState from "@/components/common/EmptyState";
 import InstallKeysTable from "./InstallKeysTable";
 import CreateInstallKeyDrawer from "./CreateInstallKeyDrawer";
 import EditInstallKeyDrawer from "./EditInstallKeyDrawer";
-import RevealInstallKeyDialog from "./RevealInstallKeyDialog";
 import RevokeInstallKeyDialog from "./RevokeInstallKeyDialog";
+import { isSystemKey } from "./helpers";
 
 const PER_PAGE = 10;
 
@@ -35,16 +29,14 @@ export default function InstallKeys() {
   const page = params.page;
   const { installKeys, totalCount, isLoading } = useInstallKeys({ page });
 
-  // The store pins the namespace's auto-managed legacy key first (its keyless-enrollment queue) and
-  // paginates it together with the user's keys, so totalCount already counts it. Drive both the page
-  // count and the item count off that one base, or the "N keys" label and the page controls disagree.
+  // The store pins the namespace's auto-managed built-in keys (legacy, pairing) first and paginates
+  // them together with the user's keys, so totalCount already counts them. Drive both the page count
+  // and the item count off that one base, or the "N keys" label and the page controls disagree.
   const totalPages = Math.ceil(totalCount / PER_PAGE);
-  const cards = installKeys;
 
   const updateKey = useUpdateInstallKey();
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InstallKey | null>(null);
-  const [revealTarget, setRevealTarget] = useState<InstallKey | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<InstallKey | null>(null);
   const [revokeConfirmText, setRevokeConfirmText] = useState("");
   const [revokeError, setRevokeError] = useState<string | null>(null);
@@ -97,58 +89,12 @@ export default function InstallKeys() {
     }
   };
 
-  // First run only when the namespace has no keys at all. The auto-managed legacy key always exists in
-  // practice, so this hero is effectively a safety net: otherwise the table renders so the pinned legacy
-  // (tenant-only) row — and the pending queue of keyless devices behind it — stays reachable even with
-  // no user-created keys.
-  if (!isLoading && totalCount === 0) {
-    return (
-      <>
-        <EmptyState
-          icon={<TicketIcon className="w-8 h-8" />}
-          overline="Provisioning"
-          title="Install Keys"
-          description="Reusable, revocable credentials that register devices with your namespace. When an agent first connects with a key, the key's mode decides what happens: accept automatically, hold for review, ask your endpoint, or match a MAC allowlist."
-          features={[
-            {
-              icon: <BoltIcon className="w-5 h-5" />,
-              title: "Register on first connect",
-              description:
-                "A device joins your namespace the first time its agent reaches ShellHub, not when it is installed.",
-            },
-            {
-              icon: <ArrowPathIcon className="w-5 h-5" />,
-              title: "Reusable and revocable",
-              description:
-                "Register a single device or a whole fleet, then revoke the key to cut off new ones.",
-            },
-            {
-              icon: <TagIcon className="w-5 h-5" />,
-              title: "Tagged on arrival",
-              description:
-                "Apply namespace tags to every device that registers with the key.",
-            },
-          ]}
-          footnote="Keys can expire, cap their usage, or make their devices ephemeral."
-        >
-          <RestrictedAction action="installKey:create">
-            <Button
-              size="lg"
-              onClick={() => setCreateOpen(true)}
-              icon={<TicketIcon className="w-4 h-4" strokeWidth={2} />}
-            >
-              Create your first key
-            </Button>
-          </RestrictedAction>
-        </EmptyState>
-
-        <CreateInstallKeyDrawer
-          open={createOpen}
-          onClose={() => setCreateOpen(false)}
-        />
-      </>
-    );
-  }
+  // The built-in keys (legacy + pairing) always fill the table, so a namespace with no user-created
+  // keys is not an empty page — it's an empty "Custom keys" section. Detect that (any non-built-in key
+  // on this page, or more than one page, means custom keys exist) so the table can show the onboarding
+  // placeholder in that section instead. Replaces the old full-page hero, which never showed.
+  const noCustomKeys =
+    !installKeys.some((key) => !isSystemKey(key)) && totalPages <= 1;
 
   return (
     <div>
@@ -179,12 +125,13 @@ export default function InstallKeys() {
           )}
 
           <InstallKeysTable
-            data={cards}
+            data={installKeys}
             page={page}
             totalPages={totalPages}
             totalCount={totalCount}
+            noCustomKeys={noCustomKeys}
             onPageChange={setPage}
-            onReveal={setRevealTarget}
+            onCreate={() => setCreateOpen(true)}
             onEdit={setEditTarget}
             onToggleDisabled={(k) => void toggleDisabled(k)}
             onRevoke={openRevoke}
@@ -199,10 +146,6 @@ export default function InstallKeys() {
       <EditInstallKeyDrawer
         installKey={editTarget}
         onClose={() => setEditTarget(null)}
-      />
-      <RevealInstallKeyDialog
-        installKey={revealTarget}
-        onClose={() => setRevealTarget(null)}
       />
       <RevokeInstallKeyDialog
         installKey={revokeTarget}

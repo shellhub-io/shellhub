@@ -12,21 +12,34 @@ export function defaultExpiry(): string {
 }
 
 /**
- * The auto-managed "legacy" key: every namespace has exactly one key with
- * `system === true`, the source attributed to devices enrolled with only a
- * tenant ID. It cannot be edited or deleted (the API returns 403).
+ * The auto-managed system keys: every namespace has two, discriminated by `type` — `legacy` (devices
+ * enrolled with only a tenant ID) and `pairing` (devices accepted through the pairing-code flow). A
+ * user-created key is `user`. System keys are not presentable by an agent.
  */
 export function isSystemKey(key: InstallKey): boolean {
-  return key.system === true;
+  return key.type === "legacy" || key.type === "pairing";
+}
+
+/** The pairing system key specifically. */
+export function isPairingKey(key: InstallKey): boolean {
+  return key.type === "pairing";
+}
+
+/** The display name for a key: a friendly label for either system key, else the key's own name. */
+export function installKeyDisplayName(key: InstallKey): string {
+  if (isPairingKey(key)) return "Pairing code";
+  if (isSystemKey(key)) return "Tenant-only registration";
+  return key.name;
 }
 
 export type EnrollmentSource =
-  { kind: "legacy" } | { kind: "key"; name: string };
+  { kind: "legacy" } | { kind: "pairing" } | { kind: "key"; name: string };
 
 /**
  * Resolve a device's enrollment source by matching its `install_key_id` digest
- * against the namespace's install keys: the system key → legacy/direct, a real
- * key → its name, no digest or no match → null (render as "—").
+ * against the namespace's install keys: the pairing system key → pairing, the
+ * legacy system key → legacy, a real key → its name, no digest or no match →
+ * null (render as "—").
  */
 export function resolveEnrollmentSource(
   installKeyId: string | undefined,
@@ -35,7 +48,9 @@ export function resolveEnrollmentSource(
   if (!installKeyId) return null;
   const match = installKeys.find((k) => k.id === installKeyId);
   if (!match) return null;
-  return match.system ? { kind: "legacy" } : { kind: "key", name: match.name };
+  if (isSystemKey(match))
+    return isPairingKey(match) ? { kind: "pairing" } : { kind: "legacy" };
+  return { kind: "key", name: match.name };
 }
 
 /** Split a MAC-allowlist textarea into a normalized, deduped list (lowercased, blanks dropped). */
