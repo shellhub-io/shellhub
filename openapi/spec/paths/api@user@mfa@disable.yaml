@@ -9,6 +9,10 @@ put:
 
     The recovery code used to regain access to the account can be used within a 10-minute window on this
     endpoint.
+
+    An empty payload is also accepted during the 10-minute recovery window established by
+    `mfaRecover`. In this case, the endpoint checks for a valid recovery session tied to
+    the authenticated user.
   tags:
     - cloud
     - mfa
