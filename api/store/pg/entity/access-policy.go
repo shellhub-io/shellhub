@@ -19,6 +19,7 @@ type AccessPolicy struct {
 	SubjectValue   string    `bun:"subject_value"`
 	FilterHostname string    `bun:"filter_hostname"`
 	Logins         []string  `bun:"logins,array"`
+	SourceIP       []string  `bun:"source_ip,array"`
 	RequireStepUp  bool      `bun:"require_step_up"`
 	Effect         string    `bun:"effect"`
 
@@ -50,6 +51,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		SubjectValue:   model.Subject.Value,
 		FilterHostname: model.Filter.Hostname,
 		Logins:         model.Logins,
+		SourceIP:       model.SourceIP,
 		RequireStepUp:  model.RequireStepUp,
 		Effect:         string(model.Effect),
 		Tags:           []*Tag{},
@@ -90,6 +92,7 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 			},
 		},
 		Logins:        entity.Logins,
+		SourceIP:      entity.SourceIP,
 		RequireStepUp: entity.RequireStepUp,
 		Effect:        models.PolicyEffect(entity.Effect),
 	}

@@ -34,6 +34,7 @@ func TestAuthorize(t *testing.T) {
 	cases := []struct {
 		description     string
 		login           string
+		sourceIP        string
 		requireMocks    func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expectedAllowed bool
 		expectedStepUp  bool
@@ -465,6 +466,239 @@ func TestAuthorize(t *testing.T) {
 			expectedAllowed: false,
 			expectedErr:     false,
 		},
+		{
+			description: "allow grants when the client IP is inside the source CIDR",
+			login:       "root",
+			sourceIP:    "10.1.2.3",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"10.0.0.0/8"},
+							Effect:   models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "allow does not grant when the client IP is outside the source CIDR",
+			login:       "root",
+			sourceIP:    "192.168.1.1",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"10.0.0.0/8"},
+							Effect:   models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "empty source IP matches any client IP",
+			login:       "root",
+			sourceIP:    "203.0.113.9",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "deny fires when the client IP is inside the deny source CIDR",
+			login:       "root",
+			sourceIP:    "203.0.113.9",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"203.0.113.0/24"},
+							Effect:   models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "deny does not fire when the client IP is outside the deny source CIDR",
+			login:       "root",
+			sourceIP:    "10.0.0.5",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"203.0.113.0/24"},
+							Effect:   models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "allow grants for a specific host /32",
+			login:       "root",
+			sourceIP:    "203.0.113.9",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"203.0.113.9/32"},
+							Effect:   models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "allow grants when the client IP is in any of multiple source CIDRs",
+			login:       "root",
+			sourceIP:    "192.168.5.5",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"10.0.0.0/8", "192.168.0.0/16"},
+							Effect:   models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: true,
+			expectedErr:     false,
+		},
+		{
+			description: "deny with a source IP fails closed on an unparseable client IP",
+			login:       "root",
+			sourceIP:    "not-an-ip",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:  models.PublicKeyFilter{},
+							Logins:  []string{"*"},
+							Effect:  models.PolicyEffectAllow,
+						},
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"10.0.0.0/8"},
+							Effect:   models.PolicyEffectDeny,
+						},
+					}, 2, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
+		{
+			description: "allow with an invalid source CIDR is skipped and stays default-deny",
+			login:       "root",
+			sourceIP:    "10.0.0.1",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+					Return(device, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{
+						{
+							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
+							Filter:   models.PublicKeyFilter{},
+							Logins:   []string{"*"},
+							SourceIP: []string{"garbage"},
+							Effect:   models.PolicyEffectAllow,
+						},
+					}, 1, nil).Once()
+			},
+			expectedAllowed: false,
+			expectedErr:     false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -477,7 +711,7 @@ func TestAuthorize(t *testing.T) {
 
 			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
 
-			decision, err := service.Authorize(ctx, tenantID, userID, &models.Device{UID: deviceID}, tc.login)
+			decision, err := service.Authorize(ctx, tenantID, userID, &models.Device{UID: deviceID}, tc.login, tc.sourceIP)
 			if tc.expectedErr {
 				require.Error(t, err)
 			} else {
@@ -487,6 +721,56 @@ func TestAuthorize(t *testing.T) {
 			}
 
 			storeMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestNormalizeSourceIPs(t *testing.T) {
+	cases := []struct {
+		description string
+		in          []string
+		expected    []string
+	}{
+		{
+			description: "nil yields empty",
+			in:          nil,
+			expected:    []string{},
+		},
+		{
+			description: "a bare IPv4 becomes a /32 host route",
+			in:          []string{"203.0.113.5"},
+			expected:    []string{"203.0.113.5/32"},
+		},
+		{
+			description: "a bare IPv6 becomes a /128 host route",
+			in:          []string{"2001:db8::1"},
+			expected:    []string{"2001:db8::1/128"},
+		},
+		{
+			description: "an existing CIDR passes through unchanged",
+			in:          []string{"10.0.0.0/8"},
+			expected:    []string{"10.0.0.0/8"},
+		},
+		{
+			description: "a mix of bare IP and CIDR normalizes only the bare IP",
+			in:          []string{"10.0.0.0/8", "192.168.1.1"},
+			expected:    []string{"10.0.0.0/8", "192.168.1.1/32"},
+		},
+		{
+			description: "surrounding whitespace is trimmed",
+			in:          []string{" 1.2.3.4 "},
+			expected:    []string{"1.2.3.4/32"},
+		},
+		{
+			description: "empty entries are dropped",
+			in:          []string{"", "   ", "1.2.3.4"},
+			expected:    []string{"1.2.3.4/32"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			require.Equal(t, tc.expected, normalizeSourceIPs(tc.in))
 		})
 	}
 }

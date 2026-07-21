@@ -19,6 +19,15 @@ properties:
     $ref: accessPolicyFilterResponse.yaml
   logins:
     $ref: accessPolicyLogins.yaml
+  source_ip:
+    description: |
+      CIDRs the connection's client IP must fall within for the policy to apply
+      (a client IP in any of them matches). Empty matches any IP; a single host
+      is a /32 (or /128 for IPv6).
+    type: array
+    items:
+      type: string
+      example: 10.0.0.0/8
   effect:
     description: |
       Whether the policy grants (allow) or blocks (deny) the covered access.
@@ -51,6 +60,7 @@ required:
   - subject
   - filter
   - logins
+  - source_ip
   - effect
   - require_step_up
   - created_at

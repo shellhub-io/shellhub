@@ -117,8 +117,8 @@ func (_c *MockClient_AttachSSHEnrollmentKey_Call) RunAndReturn(run func(ctx cont
 }
 
 // AuthorizeSSHAccess provides a mock function for the type MockClient
-func (_mock *MockClient) AuthorizeSSHAccess(ctx context.Context, tenant string, userID string, device *models.Device, login string) (*models.Decision, error) {
-	ret := _mock.Called(ctx, tenant, userID, device, login)
+func (_mock *MockClient) AuthorizeSSHAccess(ctx context.Context, tenant string, userID string, device *models.Device, login string, sourceIP string) (*models.Decision, error) {
+	ret := _mock.Called(ctx, tenant, userID, device, login, sourceIP)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthorizeSSHAccess")
@@ -126,18 +126,18 @@ func (_mock *MockClient) AuthorizeSSHAccess(ctx context.Context, tenant string, 
 
 	var r0 *models.Decision
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) (*models.Decision, error)); ok {
-		return returnFunc(ctx, tenant, userID, device, login)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string, string) (*models.Decision, error)); ok {
+		return returnFunc(ctx, tenant, userID, device, login, sourceIP)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) *models.Decision); ok {
-		r0 = returnFunc(ctx, tenant, userID, device, login)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string, string) *models.Decision); ok {
+		r0 = returnFunc(ctx, tenant, userID, device, login, sourceIP)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Decision)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *models.Device, string) error); ok {
-		r1 = returnFunc(ctx, tenant, userID, device, login)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *models.Device, string, string) error); ok {
+		r1 = returnFunc(ctx, tenant, userID, device, login, sourceIP)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -155,11 +155,12 @@ type MockClient_AuthorizeSSHAccess_Call struct {
 //   - userID string
 //   - device *models.Device
 //   - login string
-func (_e *MockClient_Expecter) AuthorizeSSHAccess(ctx any, tenant any, userID any, device any, login any) *MockClient_AuthorizeSSHAccess_Call {
-	return &MockClient_AuthorizeSSHAccess_Call{Call: _e.mock.On("AuthorizeSSHAccess", ctx, tenant, userID, device, login)}
+//   - sourceIP string
+func (_e *MockClient_Expecter) AuthorizeSSHAccess(ctx any, tenant any, userID any, device any, login any, sourceIP any) *MockClient_AuthorizeSSHAccess_Call {
+	return &MockClient_AuthorizeSSHAccess_Call{Call: _e.mock.On("AuthorizeSSHAccess", ctx, tenant, userID, device, login, sourceIP)}
 }
 
-func (_c *MockClient_AuthorizeSSHAccess_Call) Run(run func(ctx context.Context, tenant string, userID string, device *models.Device, login string)) *MockClient_AuthorizeSSHAccess_Call {
+func (_c *MockClient_AuthorizeSSHAccess_Call) Run(run func(ctx context.Context, tenant string, userID string, device *models.Device, login string, sourceIP string)) *MockClient_AuthorizeSSHAccess_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -181,12 +182,17 @@ func (_c *MockClient_AuthorizeSSHAccess_Call) Run(run func(ctx context.Context, 
 		if args[4] != nil {
 			arg4 = args[4].(string)
 		}
+		var arg5 string
+		if args[5] != nil {
+			arg5 = args[5].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -197,7 +203,7 @@ func (_c *MockClient_AuthorizeSSHAccess_Call) Return(decision *models.Decision, 
 	return _c
 }
 
-func (_c *MockClient_AuthorizeSSHAccess_Call) RunAndReturn(run func(ctx context.Context, tenant string, userID string, device *models.Device, login string) (*models.Decision, error)) *MockClient_AuthorizeSSHAccess_Call {
+func (_c *MockClient_AuthorizeSSHAccess_Call) RunAndReturn(run func(ctx context.Context, tenant string, userID string, device *models.Device, login string, sourceIP string) (*models.Decision, error)) *MockClient_AuthorizeSSHAccess_Call {
 	_c.Call.Return(run)
 	return _c
 }

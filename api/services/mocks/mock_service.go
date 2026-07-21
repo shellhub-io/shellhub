@@ -794,8 +794,8 @@ func (_c *MockService_AuthUncacheToken_Call) RunAndReturn(run func(ctx context.C
 }
 
 // Authorize provides a mock function for the type MockService
-func (_mock *MockService) Authorize(ctx context.Context, tenantID string, userID string, device *models.Device, login string) (*models.Decision, error) {
-	ret := _mock.Called(ctx, tenantID, userID, device, login)
+func (_mock *MockService) Authorize(ctx context.Context, tenantID string, userID string, device *models.Device, login string, sourceIP string) (*models.Decision, error) {
+	ret := _mock.Called(ctx, tenantID, userID, device, login, sourceIP)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Authorize")
@@ -803,18 +803,18 @@ func (_mock *MockService) Authorize(ctx context.Context, tenantID string, userID
 
 	var r0 *models.Decision
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) (*models.Decision, error)); ok {
-		return returnFunc(ctx, tenantID, userID, device, login)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string, string) (*models.Decision, error)); ok {
+		return returnFunc(ctx, tenantID, userID, device, login, sourceIP)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string) *models.Decision); ok {
-		r0 = returnFunc(ctx, tenantID, userID, device, login)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *models.Device, string, string) *models.Decision); ok {
+		r0 = returnFunc(ctx, tenantID, userID, device, login, sourceIP)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Decision)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *models.Device, string) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID, device, login)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *models.Device, string, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, device, login, sourceIP)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -832,11 +832,12 @@ type MockService_Authorize_Call struct {
 //   - userID string
 //   - device *models.Device
 //   - login string
-func (_e *MockService_Expecter) Authorize(ctx any, tenantID any, userID any, device any, login any) *MockService_Authorize_Call {
-	return &MockService_Authorize_Call{Call: _e.mock.On("Authorize", ctx, tenantID, userID, device, login)}
+//   - sourceIP string
+func (_e *MockService_Expecter) Authorize(ctx any, tenantID any, userID any, device any, login any, sourceIP any) *MockService_Authorize_Call {
+	return &MockService_Authorize_Call{Call: _e.mock.On("Authorize", ctx, tenantID, userID, device, login, sourceIP)}
 }
 
-func (_c *MockService_Authorize_Call) Run(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string)) *MockService_Authorize_Call {
+func (_c *MockService_Authorize_Call) Run(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string, sourceIP string)) *MockService_Authorize_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -858,12 +859,17 @@ func (_c *MockService_Authorize_Call) Run(run func(ctx context.Context, tenantID
 		if args[4] != nil {
 			arg4 = args[4].(string)
 		}
+		var arg5 string
+		if args[5] != nil {
+			arg5 = args[5].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -874,7 +880,7 @@ func (_c *MockService_Authorize_Call) Return(decision *models.Decision, err erro
 	return _c
 }
 
-func (_c *MockService_Authorize_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string) (*models.Decision, error)) *MockService_Authorize_Call {
+func (_c *MockService_Authorize_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string, device *models.Device, login string, sourceIP string) (*models.Decision, error)) *MockService_Authorize_Call {
 	_c.Call.Return(run)
 	return _c
 }

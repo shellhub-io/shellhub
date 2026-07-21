@@ -62,6 +62,7 @@ function AccessPolicyDrawer({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loginsOption, setLoginsOption] = useState<LoginsOption>("any");
   const [logins, setLogins] = useState<string[]>([]);
+  const [sourceIP, setSourceIP] = useState<string[]>([]);
   const [requireStepUp, setRequireStepUp] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +105,7 @@ function AccessPolicyDrawer({
     );
     setLoginsOption(loginsInit);
     setLogins(loginsInit === "specific" ? (editPolicy?.logins ?? []) : []);
+    setSourceIP(editPolicy?.source_ip ?? []);
     setRequireStepUp(editPolicy?.require_step_up ?? false);
     setSubmitting(false);
     setError(null);
@@ -150,6 +152,7 @@ function AccessPolicyDrawer({
       subject: buildSubject(),
       filter: buildFilter(),
       logins: buildLogins(),
+      source_ip: sourceIP,
       require_step_up: requireStepUp,
     };
     try {
@@ -371,6 +374,18 @@ function AccessPolicyDrawer({
               />
             </div>
           )}
+        </div>
+
+        {/* Source IP */}
+        <div>
+          <ChipInput
+            id="access-policy-source-ip"
+            label="Source IP"
+            placeholder="e.g. 10.0.0.0/8, 203.0.113.5/32"
+            hint="Restrict to these CIDRs. Empty = any IP."
+            values={sourceIP}
+            onChange={setSourceIP}
+          />
         </div>
 
         {/* Step-up */}

@@ -48,6 +48,10 @@ type AccessPolicy struct {
 	// Logins are the unix logins this policy covers: exact names, or ["*"] for
 	// any login.
 	Logins []string `json:"logins"`
+	// SourceIP restricts the policy to connections from these CIDRs (a client IP
+	// in any of them matches). Empty matches any IP. A single host is a /32 (or
+	// /128 for IPv6).
+	SourceIP []string `json:"source_ip"`
 	// Effect is whether this policy grants (allow) or blocks (deny) the covered
 	// access. Defaults to allow.
 	Effect PolicyEffect `json:"effect"`

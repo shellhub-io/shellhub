@@ -197,7 +197,7 @@ func (s *Session) awaitEnrollment(gctx gliderssh.Context) (string, error) {
 // minted, so the agent is never contacted for a login the policies deny. It
 // returns the decision so the caller can honor a step-up requirement.
 func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
-	dec, err := s.api.AuthorizeSSHAccess(ctx, s.Namespace.TenantID, s.UserID, s.Device, s.Target.Username)
+	dec, err := s.api.AuthorizeSSHAccess(ctx, s.Namespace.TenantID, s.UserID, s.Device, s.Target.Username, s.IPAddress)
 	if err != nil || dec == nil || !dec.Allowed {
 		return nil, ErrAccessDenied
 	}

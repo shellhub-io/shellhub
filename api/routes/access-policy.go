@@ -41,8 +41,9 @@ func (h *Handler) AuthorizeSSHAccess(c gateway.Context) error {
 	userID := c.QueryParam("user_id")
 	device := c.QueryParam("device")
 	login := c.QueryParam("login")
+	sourceIP := c.QueryParam("source_ip")
 
-	decision, err := h.service.Authorize(c.Ctx(), tenant, userID, &models.Device{UID: device}, login)
+	decision, err := h.service.Authorize(c.Ctx(), tenant, userID, &models.Device{UID: device}, login, sourceIP)
 	if err != nil {
 		return err
 	}

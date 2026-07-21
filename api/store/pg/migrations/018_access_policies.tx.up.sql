@@ -12,6 +12,7 @@ CREATE TABLE access_policies (
     filter_hostname character varying DEFAULT ''::character varying,
     logins text[] NOT NULL DEFAULT '{}'::text[],
     effect character varying NOT NULL DEFAULT 'allow',
+    source_ip text[] NOT NULL DEFAULT '{}'::text[],
     PRIMARY KEY (id),
     FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE
 );

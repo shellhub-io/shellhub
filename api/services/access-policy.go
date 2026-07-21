@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"net/netip"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -12,12 +14,13 @@ import (
 )
 
 type AccessPolicyService interface {
-	// Authorize decides whether the user may reach the device as the given login
-	// under the namespace's Access Policies. It is default-deny and fail-closed:
-	// access is granted iff at least one policy grants it, and any store failure
-	// denies. It is the authorization model for the identity-based SSH access
-	// mode; the gateway calls it at the ephemeral-key mint point.
-	Authorize(ctx context.Context, tenantID, userID string, device *models.Device, login string) (*models.Decision, error)
+	// Authorize decides whether the user may reach the device as the given login,
+	// connecting from sourceIP, under the namespace's Access Policies. It is
+	// default-deny and fail-closed: access is granted iff at least one policy
+	// grants it, and any store failure denies. It is the authorization model for
+	// the identity-based SSH access mode; the gateway calls it at the
+	// ephemeral-key mint point.
+	Authorize(ctx context.Context, tenantID, userID string, device *models.Device, login, sourceIP string) (*models.Decision, error)
 
 	// ListAccessPolicies returns every access policy in the namespace.
 	ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error)
@@ -41,7 +44,7 @@ type AccessPolicyService interface {
 	DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error
 }
 
-func (s *service) Authorize(ctx context.Context, tenantID, userID string, device *models.Device, login string) (*models.Decision, error) {
+func (s *service) Authorize(ctx context.Context, tenantID, userID string, device *models.Device, login, sourceIP string) (*models.Decision, error) {
 	// Resolve the device from the store so the filter matches against the
 	// authoritative name and tag ids, not whatever the caller supplied.
 	dev, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, device.UID)
@@ -72,10 +75,10 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, login)
+		matched, err := policyApplies(policy, dev, userID, member.Role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
-				Warn("deny access policy filter failed to evaluate; denying")
+				Warn("deny access policy failed to evaluate; denying")
 
 			return &models.Decision{Allowed: false, Reason: fmt.Sprintf("denied: policy %q could not be evaluated", policy.Name)}, nil
 		}
@@ -93,10 +96,10 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 			continue
 		}
 
-		matched, err := policyApplies(policy, dev, userID, member.Role, login)
+		matched, err := policyApplies(policy, dev, userID, member.Role, login, sourceIP)
 		if err != nil {
 			log.WithError(err).WithField("access_policy", policy.ID).
-				Warn("access policy filter failed to evaluate; treating as non-match")
+				Warn("access policy failed to evaluate; treating as non-match")
 
 			continue
 		}
@@ -109,11 +112,12 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 	return &models.Decision{Allowed: false, Reason: fmt.Sprintf("no policy grants %q on this device", login)}, nil
 }
 
-// policyApplies reports whether the policy's subject, device filter, and login
-// all match the request. The bool is only meaningful when err is nil; a non-nil
-// error means the filter could not be evaluated, and the caller decides how to
-// treat it (deny fails closed, allow treats it as a non-match).
-func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, login string) (bool, error) {
+// policyApplies reports whether the policy's subject, device filter, login, and
+// source IP all match the request. The bool is only meaningful when err is nil;
+// a non-nil error means a matcher could not be evaluated (a broken filter regexp,
+// or a malformed source CIDR / client IP), and the caller decides how to treat it
+// (deny fails closed, allow treats it as a non-match).
+func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, login, sourceIP string) (bool, error) {
 	if !subjectMatches(policy.Subject, userID, role) {
 		return false, nil
 	}
@@ -123,7 +127,65 @@ func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string
 		return false, err
 	}
 
-	return matched && loginMatches(policy.Logins, login), nil
+	if !matched || !loginMatches(policy.Logins, login) {
+		return false, nil
+	}
+
+	return sourceIPMatches(policy.SourceIP, sourceIP)
+}
+
+// normalizeSourceIPs canonicalizes source entries to CIDR form so a bare IP the
+// user typed (e.g. "203.0.113.5") is stored and matched as a host route
+// ("203.0.113.5/32", or /128 for IPv6). Entries already in CIDR form pass
+// through; anything unparseable is left as-is (the handler validates first).
+func normalizeSourceIPs(entries []string) []string {
+	out := make([]string, 0, len(entries))
+
+	for _, entry := range entries {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+
+		if !strings.Contains(entry, "/") {
+			if addr, err := netip.ParseAddr(entry); err == nil {
+				entry = netip.PrefixFrom(addr.Unmap(), addr.Unmap().BitLen()).String()
+			}
+		}
+
+		out = append(out, entry)
+	}
+
+	return out
+}
+
+// sourceIPMatches reports whether the client IP falls within any of the policy's
+// source CIDRs (OR). An empty list matches any IP. A malformed CIDR or an
+// unparseable client IP returns an error so the caller can fail closed on deny.
+func sourceIPMatches(cidrs []string, clientIP string) (bool, error) {
+	if len(cidrs) == 0 {
+		return true, nil
+	}
+
+	addr, err := netip.ParseAddr(clientIP)
+	if err != nil {
+		return false, fmt.Errorf("invalid client ip %q: %w", clientIP, err)
+	}
+
+	addr = addr.Unmap()
+
+	for _, cidr := range cidrs {
+		prefix, err := netip.ParsePrefix(cidr)
+		if err != nil {
+			return false, fmt.Errorf("invalid source cidr %q: %w", cidr, err)
+		}
+
+		if prefix.Contains(addr) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error) {
@@ -210,6 +272,7 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Subject:       models.PolicySubject{Type: models.PolicySubjectType(req.Subject.Type), Value: req.Subject.Value},
 		Filter:        filter,
 		Logins:        req.Logins,
+		SourceIP:      normalizeSourceIPs(req.SourceIP),
 		Effect:        defaultEffect(req.Effect),
 		RequireStepUp: req.RequireStepUp,
 	}
@@ -239,6 +302,7 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Subject:       models.PolicySubject{Type: models.PolicySubjectType(req.Subject.Type), Value: req.Subject.Value},
 		Filter:        filter,
 		Logins:        req.Logins,
+		SourceIP:      normalizeSourceIPs(req.SourceIP),
 		Effect:        defaultEffect(req.Effect),
 		RequireStepUp: req.RequireStepUp,
 	}
