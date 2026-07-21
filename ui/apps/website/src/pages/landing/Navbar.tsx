@@ -41,20 +41,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function MegaMenuItem({ item }: { item: MenuItem }) {
   const inner = (
     <>
-      <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.07)",
-        }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.borderColor =
-            "rgba(255,255,255,0.12)")
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.borderColor = "")
-        }
-      >
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 bg-white/5 border border-white/[0.07] group-hover:border-white/15">
         {item.icon}
       </div>
       <div className="min-w-0">
@@ -201,7 +188,10 @@ function MobileDropdown({
       >
         {label}
         <ChevronDownIcon
-          className={cn("w-3 h-3 transition-transform duration-200", open && "rotate-180")}
+          className={cn(
+            "w-3 h-3 transition-transform duration-200",
+            open && "rotate-180",
+          )}
           aria-hidden="true"
         />
       </button>
@@ -397,7 +387,10 @@ export function Navbar({
               >
                 {label}
                 <ChevronDownIcon
-                  className={cn("w-3 h-3 transition-transform duration-200", activeMenu === id && "rotate-180")}
+                  className={cn(
+                    "w-3 h-3 transition-transform duration-200",
+                    activeMenu === id && "rotate-180",
+                  )}
                   aria-hidden="true"
                 />
               </button>
@@ -458,7 +451,10 @@ export function Navbar({
         {/* Mobile nav */}
         <div
           data-testid="mobile-nav"
-          className={cn(mobileMenu ? "flex" : "hidden", "lg:hidden absolute top-14 left-0 right-0 flex-col gap-0.5 items-stretch p-3 border-b shadow-xl")}
+          className={cn(
+            mobileMenu ? "flex" : "hidden",
+            "lg:hidden absolute top-14 left-0 right-0 flex-col gap-0.5 items-stretch p-3 border-b shadow-xl",
+          )}
           style={{
             background: `${C.surface}f8`,
             backdropFilter: "blur(20px)",
