@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -1084,107 +1084,108 @@ function DeviceOrganization() {
         {/* Tags card */}
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
-            <Card hover className="p-8 h-full">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <TagIcon
-                    className="w-5 h-5 text-primary"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold">Device Tags</h3>
-                  <p className="text-2xs text-text-muted">
-                    Flexible grouping & filtering
-                  </p>
-                </div>
-              </div>
-
-              {/* Tag mockup */}
-              <div className="space-y-2.5 mb-6">
-                {[
-                  {
-                    name: "rpi-gateway-01",
-                    tags: [
-                      { label: "production", color: C.green },
-                      { label: "gateway", color: C.primary },
-                      { label: "eu-west", color: C.blue },
-                    ],
-                  },
-                  {
-                    name: "sensor-node-04",
-                    tags: [
-                      { label: "staging", color: C.yellow },
-                      { label: "sensor", color: C.cyan },
-                    ],
-                  },
-                  {
-                    name: "edge-server-12",
-                    tags: [
-                      { label: "production", color: C.green },
-                      { label: "compute", color: C.primary },
-                      { label: "us-east", color: C.blue },
-                    ],
-                  },
-                ].map((device) => (
-                  <div
-                    key={device.name}
-                    className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
-                      <span className="text-xs font-mono font-medium">
-                        {device.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {device.tags.map((tag) => (
-                        <span
-                          key={tag.label}
-                          className="px-2 py-0.5 text-2xs font-mono rounded-full border"
-                          style={{
-                            background: `${tag.color}12`,
-                            color: tag.color,
-                            borderColor: `${tag.color}25`,
-                          }}
-                        >
-                          {tag.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <ul className="space-y-2">
-                {[
-                  "Filter and group devices by custom tags",
-                  "Apply firewall rules based on tags",
-                  "Bulk operations on tagged groups",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2.5 text-xs text-text-secondary"
-                  >
-                    <CheckIcon
-                      strokeWidth={2}
-                      className="w-3.5 h-3.5 text-accent-green shrink-0"
+            <HighlightCard color="primary" className="p-8 h-full">
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <TagIcon
+                      className="w-5 h-5 text-primary"
+                      strokeWidth={1.5}
                       aria-hidden="true"
                     />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold">Device Tags</h3>
+                    <p className="text-2xs text-primary">
+                      Flexible grouping & filtering
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tag mockup */}
+                <div className="space-y-2.5 mb-6">
+                  {[
+                    {
+                      name: "rpi-gateway-01",
+                      tags: [
+                        { label: "production", color: C.green },
+                        { label: "gateway", color: C.primary },
+                        { label: "eu-west", color: C.blue },
+                      ],
+                    },
+                    {
+                      name: "sensor-node-04",
+                      tags: [
+                        { label: "staging", color: C.yellow },
+                        { label: "sensor", color: C.cyan },
+                      ],
+                    },
+                    {
+                      name: "edge-server-12",
+                      tags: [
+                        { label: "production", color: C.green },
+                        { label: "compute", color: C.primary },
+                        { label: "us-east", color: C.blue },
+                      ],
+                    },
+                  ].map((device) => (
+                    <div
+                      key={device.name}
+                      className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+                        <span className="text-xs font-mono font-medium">
+                          {device.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {device.tags.map((tag) => (
+                          <span
+                            key={tag.label}
+                            className="px-2 py-0.5 text-2xs font-mono rounded-full border"
+                            style={{
+                              background: `${tag.color}12`,
+                              color: tag.color,
+                              borderColor: `${tag.color}25`,
+                            }}
+                          >
+                            {tag.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <ul className="space-y-2">
+                  {[
+                    "Filter and group devices by custom tags",
+                    "Apply firewall rules based on tags",
+                    "Bulk operations on tagged groups",
+                  ].map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-center gap-2.5 text-xs text-text-secondary"
+                    >
+                      <CheckIcon
+                        strokeWidth={2}
+                        className="w-3.5 h-3.5 text-accent-green shrink-0"
+                        aria-hidden="true"
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
 
         {/* Namespaces card */}
         <Reveal delay={0.1}>
           <ShimmerCard className="h-full">
-            <div className="relative bg-card border border-accent-cyan/30 rounded-xl p-8 h-full hover:border-accent-cyan/50 transition-all duration-300 shadow-[0_0_40px_rgba(78,154,163,0.08)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/[0.04] via-transparent to-transparent pointer-events-none" />
+            <HighlightCard color="accent-cyan" className="p-8 h-full">
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center">
@@ -1271,7 +1272,7 @@ function DeviceOrganization() {
                   ))}
                 </ul>
               </div>
-            </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
       </div>

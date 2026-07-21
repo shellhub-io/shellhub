@@ -12,6 +12,7 @@ import {
   IconBadge,
   ShellHubCloudIcon,
 } from "@shellhub/design-system/primitives";
+import { HighlightCard } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
 
@@ -27,7 +28,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
         {/* Cloud card */}
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
-            <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.15)] overflow-hidden">
+            <HighlightCard color="primary" className="p-8 flex flex-col h-full">
               <GlowOrbs preset="corner" tone="primary" />
               <div className="relative flex items-center gap-3 mb-4">
                 <IconBadge
@@ -67,7 +68,7 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
               >
                 Sign Up Free
               </Button>
-            </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
 
