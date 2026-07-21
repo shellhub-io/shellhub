@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -9,18 +8,30 @@ import {
   ShieldCheckIcon,
   TagIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button, WindowChrome } from "@shellhub/design-system/primitives";
+import { Badge, WindowChrome } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  InfoCard,
+  Section,
+  SectionHeader,
+  type CTAAction,
+} from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
-/* ------------------------------------------------------------------ */
-/*  Data                                                               */
-/* ------------------------------------------------------------------ */
+const primaryAction: CTAAction = {
+  label: "Get Started Free",
+  to: "/getting-started",
+};
+const secondaryAction: CTAAction = {
+  label: "Read the Docs",
+  href: docsUrl,
+  external: true,
+};
 
 const painPoints = [
   {
@@ -252,28 +263,10 @@ export default function DevopsCiCd() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button
-                as="a"
-                href={docsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="outline"
-                size="xl"
-              >
-                Read the Docs
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </Reveal>
         </div>
       </section>
@@ -520,12 +513,8 @@ export default function DevopsCiCd() {
         eyebrow="Ready to automate?"
         title="Automate your device deployments today"
         subtitle="Connect ShellHub to your CI/CD pipeline and start deploying to remote devices in minutes -- no VPN, no static IPs, no hassle."
-        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
-        secondaryAction={{
-          label: "Read the Docs",
-          href: docsUrl,
-          external: true,
-        }}
+        primaryAction={primaryAction}
+        secondaryAction={secondaryAction}
       />
     </SiteLayout>
   );

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
-import { Button, ShellHubLogo } from "@shellhub/design-system/primitives";
+import { ShellHubLogo } from "@shellhub/design-system/primitives";
+import { ActionButton } from "@/components/marketing";
 import {
   ChevronDownIcon,
   Bars3Icon,
@@ -410,28 +411,22 @@ export function Navbar({
             ))}
           </div>
 
-          {/* CTA */}
           <div className="hidden lg:flex items-center gap-2">
-            <Button
-              as="a"
-              href={loginUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ActionButton
+              action={{ label: "Log In", href: loginUrl, external: true }}
               variant="outline"
               size="md"
-            >
-              Log In
-            </Button>
-            <Button
-              as="a"
-              href={signupUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="primary"
+            />
+            <ActionButton
+              action={{
+                label: "Sign Up Free",
+                href: signupUrl,
+                external: true,
+              }}
               size="md"
-            >
-              Sign Up Free
-            </Button>
+              glow={false}
+              iconRight={null}
+            />
           </div>
         </div>
 
@@ -490,28 +485,23 @@ export function Navbar({
             className="pt-2 mt-1 flex flex-col gap-2"
             style={{ borderTop: `1px solid ${C.border}` }}
           >
-            <Button
-              as="a"
-              href={loginUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ActionButton
+              action={{ label: "Log In", href: loginUrl, external: true }}
               variant="outline"
               size="md"
               fullWidth
-            >
-              Log In
-            </Button>
-            <Button
-              as="a"
-              href={signupUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="primary"
+            />
+            <ActionButton
+              action={{
+                label: "Sign Up Free",
+                href: signupUrl,
+                external: true,
+              }}
               size="md"
+              glow={false}
               fullWidth
-            >
-              Sign Up Free
-            </Button>
+              iconRight={null}
+            />
           </div>
         </div>
       </nav>

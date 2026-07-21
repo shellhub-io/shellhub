@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
-import { Badge, Button } from "@shellhub/design-system/primitives";
+import { Badge } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
+import { ActionButtonGroup } from "@/components/marketing";
 import { Reveal, ConnectionGrid } from "../landing/components";
 
 export function HeroEnterprise() {
@@ -31,21 +30,10 @@ export function HeroEnterprise() {
           </p>
         </Reveal>
         <Reveal>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button
-              as={Link}
-              to="/pricing"
-              variant="primary"
-              size="xl"
-              glow
-              iconRight={<ArrowRight />}
-            >
-              Get a Quote
-            </Button>
-            <Button as={Link} to="/pricing" variant="outline" size="xl">
-              Compare Plans
-            </Button>
-          </div>
+          <ActionButtonGroup
+            primaryAction={{ label: "Get a Quote", to: "/pricing" }}
+            secondaryAction={{ label: "Compare Plans", to: "/pricing" }}
+          />
         </Reveal>
       </div>
     </section>

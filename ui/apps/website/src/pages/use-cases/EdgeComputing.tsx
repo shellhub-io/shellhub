@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   CommandLineIcon,
   ComputerDesktopIcon,
@@ -13,18 +12,29 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Badge,
-  Button,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  HighlightCard,
+  InfoCard,
+  Section,
+  SectionHeader,
+  type CTAAction,
+} from "@/components/marketing";
 import { C } from "../landing/constants";
 
-/* ═══════ Pain-point data ═══════ */
+const primaryAction: CTAAction = {
+  label: "Get Started Free",
+  to: "/getting-started",
+};
+const secondaryAction: CTAAction = { label: "Compare Plans", to: "/pricing" };
+
 const painPoints = [
   {
     color: C.primary,
@@ -193,21 +203,10 @@ export default function EdgeComputing() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as={Link} to="/pricing" variant="outline" size="xl">
-                Compare Plans
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </Reveal>
         </div>
       </section>
@@ -560,10 +559,7 @@ export default function EdgeComputing() {
                   <span style={{ color: C.textMuted }}>:</span>
                   <span style={{ color: C.blue }}>~</span>
                   <span style={{ color: C.textMuted }}>$</span>{" "}
-                  <span
-                    className="animate-pulse"
-                    style={{ color: C.primary }}
-                  >
+                  <span className="animate-pulse" style={{ color: C.primary }}>
                     _
                   </span>
                 </div>
@@ -771,8 +767,8 @@ export default function EdgeComputing() {
         eyebrow="Ready to connect your edge?"
         title="Your edge servers, instantly accessible"
         subtitle="Install the lightweight agent on your edge servers and start managing them remotely in minutes — no infrastructure changes needed."
-        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
-        secondaryAction={{ label: "Compare Plans", to: "/pricing" }}
+        primaryAction={primaryAction}
+        secondaryAction={secondaryAction}
         gradient={{ from: "accent-blue", to: "primary" }}
       />
     </SiteLayout>

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import {
   CheckIcon,
@@ -10,18 +9,25 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import {
-  Badge,
-  Button,
-  Card,
-  WindowChrome,
-} from "@shellhub/design-system/primitives";
+import { Badge, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  InfoCard,
+  Section,
+  SectionHeader,
+  type CTAAction,
+} from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
+
+const primaryAction: CTAAction = {
+  label: "Get Started Free",
+  to: "/getting-started",
+};
+const secondaryAction: CTAAction = { label: "View Pricing", to: "/pricing" };
 
 /* ─── Pain-point cards ─────────────────────────────────────────────── */
 
@@ -185,21 +191,10 @@ export default function RemoteSupport() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as={Link} to="/pricing" variant="outline" size="xl">
-                View Pricing
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </Reveal>
         </div>
       </section>
@@ -607,8 +602,8 @@ export default function RemoteSupport() {
         eyebrow="Ready to get started?"
         title="Secure support starts here"
         subtitle="Enable audited, accountable remote support for your team in minutes. No VPN required, no SSH keys to manage, no audit gaps."
-        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
-        secondaryAction={{ label: "View Pricing", to: "/pricing" }}
+        primaryAction={primaryAction}
+        secondaryAction={secondaryAction}
       />
     </SiteLayout>
   );

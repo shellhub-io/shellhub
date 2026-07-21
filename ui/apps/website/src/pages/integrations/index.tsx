@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import {
   ArrowDownIcon,
@@ -16,18 +15,34 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Badge,
-  Button,
   Card,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  HighlightCard,
+  InfoCard,
+  Section,
+  SectionHeader,
+  type CTAAction,
+} from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
+
+const primaryAction: CTAAction = {
+  label: "Get Started Free",
+  to: "/getting-started",
+};
+const secondaryAction: CTAAction = {
+  label: "Read the Docs",
+  href: docsUrl,
+  external: true,
+};
 
 function Ln({
   color,
@@ -58,9 +73,24 @@ function Cyn({ children }: { children: React.ReactNode }) {
 }
 
 const sshFeatures = [
-  { icon: ArrowsRightLeftIcon, color: C.primary, title: "SSH as transport", desc: "Any tool that uses SSH for remote execution works with ShellHub out of the box. Ansible, rsync, scp, Git over SSH." },
-  { icon: ShieldCheckIcon, color: C.cyan, title: "No agent changes", desc: "The ShellHub agent runs independently on your devices. Install once and use it with every tool in your stack." },
-  { icon: CodeBracketIcon, color: C.green, title: "API-first design", desc: "Programmatic access to devices, sessions, and configurations. Build custom integrations with the REST API." },
+  {
+    icon: ArrowsRightLeftIcon,
+    color: C.primary,
+    title: "SSH as transport",
+    desc: "Any tool that uses SSH for remote execution works with ShellHub out of the box. Ansible, rsync, scp, Git over SSH.",
+  },
+  {
+    icon: ShieldCheckIcon,
+    color: C.cyan,
+    title: "No agent changes",
+    desc: "The ShellHub agent runs independently on your devices. Install once and use it with every tool in your stack.",
+  },
+  {
+    icon: CodeBracketIcon,
+    color: C.green,
+    title: "API-first design",
+    desc: "Programmatic access to devices, sessions, and configurations. Build custom integrations with the REST API.",
+  },
 ];
 
 export default function Integrations() {
@@ -93,28 +123,10 @@ export default function Integrations() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as="a"
-                href={docsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Browse Docs
-              </Button>
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="outline"
-                size="xl"
-              >
-                Get Started Free
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </Reveal>
         </div>
       </section>
@@ -995,12 +1007,8 @@ export default function Integrations() {
         eyebrow="Ready to integrate?"
         title="Start integrating today"
         subtitle="Get ShellHub running and connect it to your existing workflow in minutes. Standard SSH means zero learning curve."
-        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
-        secondaryAction={{
-          label: "Read the Docs",
-          href: docsUrl,
-          external: true,
-        }}
+        primaryAction={primaryAction}
+        secondaryAction={secondaryAction}
         gradient={{ from: "accent-cyan", to: "primary" }}
       />
     </SiteLayout>

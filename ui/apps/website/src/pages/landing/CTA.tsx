@@ -1,7 +1,5 @@
-import { Button } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { Section } from "@/components/marketing";
-import { ArrowRight } from "@/components/ArrowRight";
+import { ActionButton, Section } from "@/components/marketing";
 import { Reveal, ConnectionGrid } from "./components";
 import { signupUrl } from "@/links";
 
@@ -26,18 +24,13 @@ export function CTA() {
           </p>
         </Reveal>
         <Reveal>
-          <Button
-            as="a"
-            href={signupUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="primary"
-            size="xl"
-            glow
-            iconRight={<ArrowRight />}
-          >
-            Get Started Free
-          </Button>
+          <ActionButton
+            action={{
+              label: "Get Started Free",
+              href: signupUrl,
+              external: true,
+            }}
+          />
         </Reveal>
       </div>
     </Section>
