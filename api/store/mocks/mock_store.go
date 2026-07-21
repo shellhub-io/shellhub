@@ -2492,6 +2492,74 @@ func (_c *MockStore_InstallKeyResolveSystem_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// InstallKeyResolveSystemPairing provides a mock function for the type MockStore
+func (_mock *MockStore) InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstallKeyResolveSystemPairing")
+	}
+
+	var r0 *models.InstallKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.InstallKey, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.InstallKey); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.InstallKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_InstallKeyResolveSystemPairing_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstallKeyResolveSystemPairing'
+type MockStore_InstallKeyResolveSystemPairing_Call struct {
+	*mock.Call
+}
+
+// InstallKeyResolveSystemPairing is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockStore_Expecter) InstallKeyResolveSystemPairing(ctx any, tenantID any) *MockStore_InstallKeyResolveSystemPairing_Call {
+	return &MockStore_InstallKeyResolveSystemPairing_Call{Call: _e.mock.On("InstallKeyResolveSystemPairing", ctx, tenantID)}
+}
+
+func (_c *MockStore_InstallKeyResolveSystemPairing_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_InstallKeyResolveSystemPairing_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstallKeyResolveSystemPairing_Call) Return(installKey *models.InstallKey, err error) *MockStore_InstallKeyResolveSystemPairing_Call {
+	_c.Call.Return(installKey, err)
+	return _c
+}
+
+func (_c *MockStore_InstallKeyResolveSystemPairing_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.InstallKey, error)) *MockStore_InstallKeyResolveSystemPairing_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InstallKeyUpdate provides a mock function for the type MockStore
 func (_mock *MockStore) InstallKeyUpdate(ctx context.Context, installKey *models.InstallKey) error {
 	ret := _mock.Called(ctx, installKey)

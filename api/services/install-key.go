@@ -300,11 +300,17 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		}
 	}
 
-	// The legacy/system key governs every keyless enrollment in the namespace. Only two fields are
-	// editable: its mode (the default acceptance policy) and disabled (disabling it turns off keyless
-	// enrollment entirely — devices without a key are rejected). Its other fields (name/lifecycle/
-	// limit/tags) are fixed. Revoke never applies: the legacy key is permanent.
-	if installKey.System {
+	// The pairing key force-accepts (its mode is meaningless, see evaluateEnrollment), so nothing about
+	// it is editable.
+	if installKey.IsPairing() {
+		return NewErrInstallKeyForbidden()
+	}
+
+	// The legacy key governs every keyless enrollment in the namespace. Only two fields are editable:
+	// its mode (the default acceptance policy) and disabled (disabling it turns off keyless enrollment
+	// entirely — devices without a key are rejected). Its other fields (name/lifecycle/limit/tags) are
+	// fixed. Revoke never applies: the legacy key is permanent.
+	if installKey.IsSystem() {
 		if req.Name != "" || req.Revoked != nil || req.UsageLimit != nil || req.ExpiresAt.Present || req.Tags != nil || req.Ephemeral != nil || req.EphemeralTimeout != nil {
 			return NewErrInstallKeyForbidden()
 		}
@@ -436,9 +442,9 @@ func (s *service) RevealInstallKey(ctx context.Context, req *requests.RevealInst
 		}
 	}
 
-	// The system key has no presentable secret, and keys created before at-rest encryption have no
+	// A system key has no presentable secret, and keys created before at-rest encryption have no
 	// ciphertext to reveal.
-	if installKey.System || installKey.KeyEncrypted == "" {
+	if installKey.IsSystem() || installKey.KeyEncrypted == "" {
 		return "", NewErrInstallKeyNotFound(req.Name, nil)
 	}
 

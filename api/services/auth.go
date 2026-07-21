@@ -148,19 +148,31 @@ func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.Install
 }
 
 // enrollmentInstallKey resolves the install key for a fresh enrollment. With a presented key it
-// validates it, rejecting an invalid or system key. With no key it resolves the namespace's legacy
-// (system) key, so a keyless enrollment is governed by the legacy key's (manual) mode. It returns the
-// resolved key (nil only when no legacy key exists), the digest to store on the device, and an error
-// only when a presented key is invalid.
-func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceAuth) (*models.InstallKey, string, error) {
+// validates it, rejecting an invalid or system key. With no key it resolves a system key: the pairing
+// key when the enrollment comes from the pairing-code flow (paired), otherwise the namespace's legacy
+// key, so a tenant-only keyless enrollment is governed by the legacy key's (manual) mode. It returns
+// the resolved key (nil only when no matching system key exists), the digest to store on the device,
+// and an error only when a presented key is invalid or a required legacy key is disabled.
+func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.InstallKey, string, error) {
 	if req.InstallKey != "" {
 		sk, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey), s.store.Options().InNamespace(req.TenantID))
-		// The legacy system key is never presentable by an agent; treat it like any invalid key.
-		if err != nil || sk.System || !sk.IsValid() {
+		// A system key (legacy/pairing) is never presentable by an agent; treat it like any invalid key.
+		if err != nil || sk.IsSystem() || !sk.IsValid() {
 			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, err)
 		}
 
 		return sk, sk.ID, nil
+	}
+
+	// The pairing-code flow attributes to the pairing system key, not the legacy one, so its devices
+	// get their own enrollment source and history. Acceptance is the code itself (automatic mode); the
+	// pairing flow accepts the device explicitly regardless.
+	if paired {
+		if pairing, err := s.store.InstallKeyResolveSystemPairing(ctx, req.TenantID); err == nil {
+			return pairing, pairing.ID, nil
+		}
+
+		return nil, "", nil
 	}
 
 	if legacy, err := s.store.InstallKeyResolveSystem(ctx, req.TenantID); err == nil {
@@ -179,7 +191,16 @@ func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceA
 	return nil, "", nil
 }
 
+// AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
+// attributes to the namespace's legacy key (see enrollmentInstallKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
+	return s.authDevice(ctx, req, false)
+}
+
+// authDevice is the shared enrollment path. paired marks the tenant-less pairing-code flow, so a
+// keyless enrollment attributes to the pairing system key instead of the legacy one. The flag is
+// server-only (never read from the wire) so an agent can't claim it to dodge the legacy key.
+func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.DeviceAuthResponse, error) {
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
@@ -233,7 +254,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 
-		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req)
+		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req, paired)
 		if err != nil {
 			return nil, err
 		}
@@ -304,7 +325,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		// pending, exactly as before.
 		// Reflect the decision on the in-memory device so the response carries the resulting status
 		// (the store was already updated through UpdateDeviceStatus by applyEnrollmentDecision).
-		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, installKey, req, uid, hostname), installKey, req, uid, hostname, false, true)
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired), installKey, req, uid, hostname, false, true)
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
@@ -318,7 +339,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		}
 
 		if device.RemovedAt != nil {
-			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req)
+			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req, paired)
 			if err != nil {
 				return nil, err
 			}
@@ -346,7 +367,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			// A re-registration is a fresh enrollment: the key's mode is re-evaluated (a webhook is
 			// called again, a use is consumed on accept). Keep the in-memory device status consistent
 			// with the decision so the DeviceUpdate below persists it.
-			decision := s.evaluateEnrollment(ctx, installKey, req, uid, hostname)
+			decision := s.evaluateEnrollment(ctx, installKey, req, uid, hostname, paired)
 
 			// An accept/reject runs through UpdateDeviceStatus, which derives the namespace counter delta
 			// from the device's *stored* status. Persist the pending transition first so it reads this

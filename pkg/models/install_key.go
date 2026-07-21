@@ -22,6 +22,22 @@ const (
 	InstallKeyModeAllowlist InstallKeyMode = "allowlist"
 )
 
+// InstallKeyType discriminates a key's origin: a user-created key, or one of the two auto-managed
+// system keys every namespace has. The system types are told apart by this field (not by name), and
+// neither is presentable by an agent nor freely editable by a user.
+type InstallKeyType string
+
+const (
+	// InstallKeyTypeUser is a normal user-created key.
+	InstallKeyTypeUser InstallKeyType = "user"
+	// InstallKeyTypeLegacy is the tenant-only keyless enrollment source (a device presenting only a
+	// tenant ID, no install key). Manual mode: such devices land pending.
+	InstallKeyTypeLegacy InstallKeyType = "legacy"
+	// InstallKeyTypePairing is the code-pairing enrollment source (a tenant-less agent accepted via its
+	// printed code). Devices accepted through the pairing flow attribute here, not to the legacy key.
+	InstallKeyTypePairing InstallKeyType = "pairing"
+)
+
 // Webhook tuning bounds/defaults (seconds). A stored 0 means "use the default".
 const (
 	// InstallKeyWebhookDefaultTimeout / MaxTimeout bound the synchronous webhook request.
@@ -106,10 +122,10 @@ type InstallKey struct {
 	// Disabled reports whether the key is temporarily paused. Unlike Revoked, it is reversible: a
 	// disabled key stops enrolling but can be re-enabled at any time.
 	Disabled bool `json:"disabled"`
-	// System reports whether this is the namespace's auto-managed legacy key: the source attributed
-	// to devices that enroll with only a tenant ID (no install key). It is always valid, never
-	// auto-accepts, and cannot be edited or deleted.
-	System bool `json:"system"`
+	// Type discriminates the key's origin: a user-created key, or one of the namespace's two
+	// auto-managed system keys (legacy, pairing). System keys are always valid and are not presentable
+	// by an agent; see IsSystem.
+	Type InstallKeyType `json:"type"`
 	// KeyEncrypted holds the plaintext key encrypted at rest (AES-GCM), so an admin can reveal it
 	// later. It is internal-only and never serialized to clients (reveal returns the decrypted value
 	// through its own endpoint).
@@ -144,6 +160,19 @@ func (s *InstallKey) WebhookCallbackTTLOrDefault() int {
 // limit), so only those are retried; automatic/manual have no such recoverable pending state.
 func (s *InstallKey) ReconcilableOnAuth() bool {
 	return s.Mode == InstallKeyModeWebhook || s.Mode == InstallKeyModeAllowlist
+}
+
+// IsSystem reports whether this is one of the namespace's auto-managed system keys (legacy or
+// pairing), as opposed to a user-created key. Checked positively (not `!= user`) so a zero-valued
+// Type — an in-memory key built before persistence defaults it to user — reads as a user key.
+func (s *InstallKey) IsSystem() bool {
+	return s.Type == InstallKeyTypeLegacy || s.Type == InstallKeyTypePairing
+}
+
+// IsPairing reports whether this is the namespace's auto-managed pairing key: the source attributed to
+// devices accepted through the tenant-less pairing-code flow.
+func (s *InstallKey) IsPairing() bool {
+	return s.Type == InstallKeyTypePairing
 }
 
 // IsValid reports whether the install key can still enroll a device: it must not be revoked, disabled,

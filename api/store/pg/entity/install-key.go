@@ -28,7 +28,7 @@ type InstallKey struct {
 	Tags               []string   `bun:"tags,array"`
 	Revoked            bool       `bun:"revoked"`
 	Disabled           bool       `bun:"disabled"`
-	System             bool       `bun:"system"`
+	Type               string     `bun:"type"`
 	KeyEncrypted       string     `bun:"key_encrypted,nullzero"`
 	KeyHint            string     `bun:"key_hint,nullzero"`
 	UserID             string     `bun:"user_id"`
@@ -50,6 +50,14 @@ func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 		tags = []string{}
 	}
 
+	// A zero-valued Type (any user-created key, which never sets it) persists as the explicit "user"
+	// discriminator, so the DB never stores an empty string that the partial unique index would treat
+	// as a system row.
+	keyType := model.Type
+	if keyType == "" {
+		keyType = models.InstallKeyTypeUser
+	}
+
 	return &InstallKey{
 		KeyDigest:          model.ID,
 		NamespaceID:        model.TenantID,
@@ -69,7 +77,7 @@ func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 		Tags:               tags,
 		Revoked:            model.Revoked,
 		Disabled:           model.Disabled,
-		System:             model.System,
+		Type:               string(keyType),
 		KeyEncrypted:       model.KeyEncrypted,
 		KeyHint:            model.KeyHint,
 		UserID:             model.CreatedBy,
@@ -99,7 +107,7 @@ func InstallKeyToModel(entity *InstallKey) *models.InstallKey {
 		Tags:               entity.Tags,
 		Revoked:            entity.Revoked,
 		Disabled:           entity.Disabled,
-		System:             entity.System,
+		Type:               models.InstallKeyType(entity.Type),
 		KeyEncrypted:       entity.KeyEncrypted,
 		KeyHint:            entity.KeyHint,
 		CreatedBy:          entity.UserID,

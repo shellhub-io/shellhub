@@ -96,13 +96,20 @@ properties:
       Whether the key is temporarily paused. Unlike `revoked`, this is
       reversible: a disabled key stops registering but can be re-enabled.
     example: false
-  system:
-    type: boolean
+  type:
+    type: string
+    enum:
+      - user
+      - legacy
+      - pairing
     description: |
-      Whether this is the namespace's auto-managed legacy key (the source of
-      devices registered with only a tenant ID). System keys cannot be edited or
-      deleted.
-    example: false
+      The key's origin. `user` is a normal user-created key. `legacy` and
+      `pairing` are the namespace's two auto-managed system keys — the source of
+      devices registered with only a tenant ID, and of devices accepted through
+      the tenant-less pairing-code flow, respectively. System keys are not
+      presentable by an agent; `pairing` is not editable and `legacy` allows only
+      its mode/disabled to change.
+    example: user
   key_hint:
     type: string
     description: |

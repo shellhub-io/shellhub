@@ -51,19 +51,37 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			}
 		}
 
-		// Every namespace gets its system-managed legacy install key, so a tenant-only enrollment (a
-		// device presenting only the tenant ID) always has a source to attribute to. Created here, at
-		// the single namespace-creation chokepoint every path funnels through — the API, setup, the CLI,
-		// and the cloud/enterprise store that delegates here — so no path can skip it. The digest is
-		// derived from the tenant; agents never present it, it is resolved by the system flag.
-		digest := sha256.Sum256([]byte("system:" + namespace.TenantID))
+		// Every namespace gets its two system-managed install keys, so every keyless enrollment has a
+		// source to attribute to. Created here, at the single namespace-creation chokepoint every path
+		// funnels through — the API, setup, the CLI, and the cloud/enterprise store that delegates here —
+		// so no path can skip them. Digests are derived from the tenant; agents never present them, they
+		// are resolved by type.
+		//
+		// legacy: tenant-only keyless enrollment (a device presenting only the tenant ID). Manual mode,
+		// so such devices land pending.
+		legacyDigest := sha256.Sum256([]byte("system:" + namespace.TenantID))
 		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
-			ID:        hex.EncodeToString(digest[:]),
-			Name:      "legacy",
+			ID:        hex.EncodeToString(legacyDigest[:]),
+			Name:      string(models.InstallKeyTypeLegacy),
 			TenantID:  namespace.TenantID,
 			Mode:      models.InstallKeyModeManual,
 			Reusable:  true,
-			System:    true,
+			Type:      models.InstallKeyTypeLegacy,
+			CreatedBy: namespace.Owner,
+		}); err != nil {
+			return err
+		}
+
+		// pairing: code-pairing enrollment (a tenant-less agent accepted via its printed code). Automatic
+		// mode, since acceptance is the code itself; the pairing flow accepts the device explicitly.
+		pairingDigest := sha256.Sum256([]byte("system:pairing:" + namespace.TenantID))
+		if _, err := pg.InstallKeyCreate(ctx, &models.InstallKey{
+			ID:        hex.EncodeToString(pairingDigest[:]),
+			Name:      string(models.InstallKeyTypePairing),
+			TenantID:  namespace.TenantID,
+			Mode:      models.InstallKeyModeAutomatic,
+			Reusable:  true,
+			Type:      models.InstallKeyTypePairing,
 			CreatedBy: namespace.Owner,
 		}); err != nil {
 			return err

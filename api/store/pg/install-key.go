@@ -73,9 +73,12 @@ func (pg *Pg) InstallKeyList(ctx context.Context, opts ...store.QueryOption) ([]
 
 	entities := make([]entity.InstallKey, 0)
 
-	// The legacy/system key is pinned first (it is the keyless-enrollment queue), then the caller's
-	// sort applies within each group.
-	query := db.NewSelect().Model(&entities).OrderExpr("system DESC")
+	// The system keys are pinned first (they are the keyless/pairing enrollment queues), the legacy
+	// one ahead of the pairing one; the caller's sort applies within each group. Both predicates score
+	// the same for every user key, so their relative order is left to the caller's sort.
+	query := db.NewSelect().
+		Model(&entities).
+		OrderExpr("(type = 'user') ASC, (type = 'pairing') ASC")
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {
@@ -118,10 +121,19 @@ func (pg *Pg) InstallKeyResolve(ctx context.Context, resolver store.InstallKeyRe
 }
 
 func (pg *Pg) InstallKeyResolveSystem(ctx context.Context, tenantID string) (*models.InstallKey, error) {
+	return pg.installKeyResolveSystem(ctx, tenantID, models.InstallKeyTypeLegacy)
+}
+
+func (pg *Pg) InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error) {
+	return pg.installKeyResolveSystem(ctx, tenantID, models.InstallKeyTypePairing)
+}
+
+// installKeyResolveSystem fetches one of the namespace's system keys by type (legacy or pairing).
+func (pg *Pg) installKeyResolveSystem(ctx context.Context, tenantID string, keyType models.InstallKeyType) (*models.InstallKey, error) {
 	db := pg.GetConnection(ctx)
 
 	installKey := new(entity.InstallKey)
-	if err := db.NewSelect().Model(installKey).Where("namespace_id = ? AND system = true", tenantID).Scan(ctx); err != nil {
+	if err := db.NewSelect().Model(installKey).Where("namespace_id = ? AND type = ?", tenantID, string(keyType)).Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
