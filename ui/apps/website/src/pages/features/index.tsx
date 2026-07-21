@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -509,90 +509,39 @@ function WebTerminal() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  SECURITY & ACCESS CONTROL GRID                                */
-/* ═══════════════════════════════════════════════════════════════ */
 const securityFeatures = [
   {
-    icon: (
-      <LockClosedIcon
-        width="20"
-        height="20"
-        stroke={C.yellow}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: LockClosedIcon,
     color: C.yellow,
     title: "Multi-Factor Authentication",
     desc: "Add TOTP-based MFA to SSH connections. Works with Google Authenticator, Authy, and any standards-compliant app.",
   },
   {
-    icon: (
-      <ShieldCheckIcon
-        width="20"
-        height="20"
-        stroke={C.red}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: ShieldCheckIcon,
     color: C.red,
     title: "Firewall Rules",
     desc: "Control access with flexible rules. Allow or deny connections based on IP address, hostname, or user identity.",
   },
   {
-    icon: (
-      <UsersIcon
-        width="20"
-        height="20"
-        stroke={C.primary}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: UsersIcon,
     color: C.primary,
     title: "Role-Based Access Control",
     desc: "Assign roles and permissions at namespace and device level. Owners, operators, and viewers with granular control.",
   },
   {
-    icon: (
-      <PencilSquareIcon
-        width="20"
-        height="20"
-        stroke={C.green}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: PencilSquareIcon,
     color: C.green,
     title: "Audit Logging",
     desc: "Complete audit trail of every connection, command, and configuration change. Export logs for compliance reporting.",
   },
   {
-    icon: (
-      <KeyIcon
-        width="20"
-        height="20"
-        stroke={C.cyan}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: KeyIcon,
     color: C.cyan,
     title: "Public Key Authentication",
     desc: "Use SSH public keys alongside or instead of passwords. Manage authorized keys centrally through the dashboard.",
   },
   {
-    icon: (
-      <FolderIcon
-        width="20"
-        height="20"
-        stroke={C.blue}
-        strokeWidth="1.5"
-        aria-hidden="true"
-      />
-    ),
+    icon: FolderIcon,
     color: C.blue,
     title: "Namespaces",
     desc: "Isolate devices and teams into separate namespaces. Each with its own members, devices, and security policies.",
@@ -610,25 +559,14 @@ function SecurityGrid() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {securityFeatures.map((f, i) => (
-          <Reveal key={i} delay={i * 0.04}>
-            <ShimmerCard>
-              <Card hover className="p-6 h-full">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${f.color}15`,
-                    borderColor: `${f.color}25`,
-                  }}
-                >
-                  {f.icon}
-                </div>
-                <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  {f.desc}
-                </p>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
+          <InfoCard
+            key={i}
+            icon={f.icon}
+            color={f.color}
+            title={f.title}
+            description={f.desc}
+            delay={i * 0.04}
+          />
         ))}
       </div>
     </Section>

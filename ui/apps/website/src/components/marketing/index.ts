@@ -8,3 +8,5 @@ export { CommandBlock } from "./CommandBlock";
 export type { CommandBlockProps } from "./CommandBlock";
 export { CTABanner } from "./CTABanner";
 export type { CTABannerProps } from "./CTABanner";
+export { InfoCard } from "./InfoCard";
+export type { InfoCardProps } from "./InfoCard";

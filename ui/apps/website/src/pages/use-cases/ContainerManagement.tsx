@@ -19,7 +19,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
@@ -51,27 +51,25 @@ const painPoints = [
 /* ═══════ Key Features (2x2) ═══════ */
 const smallFeatures = [
   {
-    icon: <PlayCircleIcon className="w-5 h-5" style={{ color: C.red }} />,
+    icon: PlayCircleIcon,
     color: C.red,
     title: "Session Recording",
     desc: "Every container session is captured and replayable for compliance audits, post-incident review, and team training.",
   },
   {
-    icon: (
-      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.green }} />
-    ),
+    icon: ComputerDesktopIcon,
     color: C.green,
     title: "Web Terminal",
     desc: "Access containers directly from the browser. No SSH client, Docker CLI, or VPN required on your workstation.",
   },
   {
-    icon: <DocumentTextIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: DocumentTextIcon,
     color: C.yellow,
     title: "SCP / SFTP into Containers",
     desc: "Transfer files in and out of containers with standard SCP and SFTP. No volume mounts or docker cp gymnastics.",
   },
   {
-    icon: <PencilIcon className="w-5 h-5" style={{ color: C.blue }} />,
+    icon: PencilIcon,
     color: C.blue,
     title: "Audit Logging",
     desc: "Full audit trail of every container session. Who connected, when, from where, and what they executed.",
@@ -691,7 +689,6 @@ export default function ContainerManagement() {
         </Reveal>
       </Section>
 
-      {/* ═══════ Pain Points ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="The Problem"
@@ -701,33 +698,15 @@ export default function ContainerManagement() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {painPoints.map((p, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-6 h-full">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
-                      style={{
-                        background: `${p.color}15`,
-                        borderColor: `${p.color}25`,
-                      }}
-                    >
-                      <ExclamationTriangleIcon
-                        width={18}
-                        height={18}
-                        style={{ color: p.color }}
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={ExclamationTriangleIcon}
+              color={p.color}
+              title={p.title}
+              description={p.desc}
+              layout="horizontal"
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>
@@ -833,28 +812,16 @@ export default function ContainerManagement() {
           </ShimmerCard>
         </Reveal>
 
-        {/* 2x2 smaller feature cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {smallFeatures.map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.04}
+            />
           ))}
         </div>
       </Section>

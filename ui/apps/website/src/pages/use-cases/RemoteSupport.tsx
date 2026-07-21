@@ -19,7 +19,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
@@ -52,39 +52,37 @@ const painPoints = [
 
 const features = [
   {
-    icon: <PlayCircleIcon className="w-5 h-5" style={{ color: C.cyan }} />,
+    icon: PlayCircleIcon,
     color: C.cyan,
     title: "Session Recording",
     desc: "Every support session is recorded and can be replayed for quality assurance, training, and compliance audits.",
   },
   {
-    icon: <PencilIcon className="w-5 h-5" style={{ color: C.green }} />,
+    icon: PencilIcon,
     color: C.green,
     title: "Audit Logging",
     desc: "Complete audit trail with timestamps, user identity, and session details for every connection made to any device.",
   },
   {
-    icon: <UsersIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: UsersIcon,
     color: C.primary,
     title: "Role-Based Access",
     desc: "Assign support engineers access to specific devices or groups — revoke access instantly when the ticket is closed.",
   },
   {
-    icon: (
-      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.green }} />
-    ),
+    icon: ComputerDesktopIcon,
     color: C.green,
     title: "Web Terminal",
     desc: "Support engineers access devices straight from the browser — no SSH client setup required on their workstations.",
   },
   {
-    icon: <LockClosedIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: LockClosedIcon,
     color: C.yellow,
     title: "MFA for SSH",
     desc: "Require multi-factor authentication for support sessions — adding a security layer beyond SSH keys alone.",
   },
   {
-    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: ShieldCheckIcon,
     color: C.primary,
     title: "Firewall Rules",
     desc: "Restrict support access by IP, time window, or device group with granular, time-based firewall policies.",
@@ -490,7 +488,6 @@ export default function RemoteSupport() {
         </div>
       </Section>
 
-      {/* ── Pain Points ──────────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="The Problem"
@@ -500,25 +497,18 @@ export default function RemoteSupport() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {painPoints.map((p, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-2 h-2 rounded-full mb-4"
-                    style={{ background: p.color }}
-                  />
-                  <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {p.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              color={p.color}
+              title={p.title}
+              description={p.desc}
+              layout="dot"
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>
 
-      {/* ── Key Features ─────────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Features"
@@ -528,25 +518,14 @@ export default function RemoteSupport() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.04}
+            />
           ))}
         </div>
       </Section>
