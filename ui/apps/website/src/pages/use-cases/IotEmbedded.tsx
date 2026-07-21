@@ -21,7 +21,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
@@ -348,8 +348,7 @@ export default function IotEmbedded() {
         {/* Big card: NAT Traversal with SVG diagram */}
         <Reveal>
           <ShimmerCard className="mb-4">
-            <div className="relative bg-card border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(102,122,204,0.1)] hover:border-primary/50 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+            <HighlightCard color="primary">
               <div className="relative grid lg:grid-cols-2 gap-8 p-8">
                 {/* Left: text */}
                 <div className="flex flex-col justify-center">
@@ -581,7 +580,7 @@ export default function IotEmbedded() {
                   </div>
                 </div>
               </div>
-            </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
 
@@ -601,8 +600,7 @@ export default function IotEmbedded() {
         {/* Highlighted card: Lightweight Agent */}
         <Reveal>
           <ShimmerCard className="">
-            <div className="relative bg-card border border-accent-green/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(130,165,104,0.08)] hover:border-accent-green/50 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-green/[0.05] via-transparent to-transparent pointer-events-none" />
+            <HighlightCard color="accent-green">
               <div className="relative p-8">
                 <div className="grid lg:grid-cols-[1fr_auto] gap-8 items-center">
                   <div>
@@ -676,7 +674,7 @@ export default function IotEmbedded() {
                   </div>
                 </div>
               </div>
-            </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
       </Section>

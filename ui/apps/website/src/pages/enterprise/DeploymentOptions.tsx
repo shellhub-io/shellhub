@@ -1,6 +1,6 @@
 import { CloudIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
-import { Section, SectionHeader } from "@/components/marketing";
+import { HighlightCard, Section, SectionHeader } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
 
@@ -16,8 +16,7 @@ export function DeploymentOptions() {
       <div className="grid md:grid-cols-2 gap-6">
         <Reveal delay={0}>
           <ShimmerCard className="h-full">
-            <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+            <HighlightCard color="primary" className="p-8 flex flex-col h-full">
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4">
                   <IconBadge color="primary">
@@ -48,7 +47,7 @@ export function DeploymentOptions() {
                   ))}
                 </ul>
               </div>
-            </div>
+            </HighlightCard>
           </ShimmerCard>
         </Reveal>
 

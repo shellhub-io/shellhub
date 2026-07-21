@@ -24,7 +24,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -399,8 +399,7 @@ export default function Integrations() {
           {/* VS Code Remote SSH */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
-              <div className="relative bg-card border border-accent-blue/25 rounded-xl overflow-hidden h-full hover:border-accent-blue/40 transition-all duration-300 shadow-[0_0_40px_rgba(86,162,225,0.06)]">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/[0.04] via-transparent to-transparent pointer-events-none" />
+              <HighlightCard color="accent-blue" className="h-full">
                 <div className="relative">
                   {/* VS Code title bar */}
                   <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-[#1E1E2E]">
@@ -552,15 +551,14 @@ export default function Integrations() {
                     <span className="text-text-muted">Ln 7, Col 12</span>
                   </div>
                 </div>
-              </div>
+              </HighlightCard>
             </ShimmerCard>
           </Reveal>
 
           {/* Embedded Linux */}
           <Reveal delay={0.1}>
             <ShimmerCard className="h-full">
-              <div className="relative bg-card border border-accent-yellow/25 rounded-xl overflow-hidden h-full hover:border-accent-yellow/40 transition-all duration-300 shadow-[0_0_40px_rgba(191,140,93,0.06)]">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent-yellow/[0.04] via-transparent to-transparent pointer-events-none" />
+              <HighlightCard color="accent-yellow" className="h-full">
                 <div className="relative">
                   {/* Header */}
                   <div className="px-6 pt-6 pb-4">
@@ -648,7 +646,7 @@ export default function Integrations() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </HighlightCard>
             </ShimmerCard>
           </Reveal>
         </div>

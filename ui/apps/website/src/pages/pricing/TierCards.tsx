@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { Button } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { Section } from "@/components/marketing";
+import { HighlightCard, Section } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard } from "../landing/components";
 
@@ -74,72 +74,77 @@ export function TierCards() {
   return (
     <Section bordered={false} padding="md">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tiers.map((tier, i) => (
-          <Reveal key={tier.name} delay={i * 0.08}>
-            <ShimmerCard className="h-full">
-              <div
-                className={cn(
-                  "relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden",
-                  tier.highlighted
-                    ? "bg-card border border-primary/30 hover:border-primary/50 shadow-[0_0_40px_rgba(102,122,204,0.15)]"
-                    : "bg-card border border-border hover:border-border-light",
-                )}
-              >
-                {tier.highlighted && (
-                  <GlowOrbs preset="corner" tone="primary" />
-                )}
-
-                <div className="relative">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-bold">{tier.name}</h3>
-                    <span
-                      className={cn("px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full", tier.badgeClass)}
-                    >
-                      {tier.badge}
-                    </span>
-                  </div>
-
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold">{tier.price}</span>
-                  </div>
-                  <p className="text-2xs text-text-muted mb-4">
-                    {tier.priceSuffix}
-                  </p>
-                  <p className="text-sm text-text-secondary leading-relaxed mb-6">
-                    {tier.desc}
-                  </p>
-
-                  <ul className="space-y-2.5 mb-8 flex-1">
-                    {tier.features.map((feature) => (
-                      <FeatureListItem
-                        key={feature}
-                        color={tier.highlighted ? "green" : "muted"}
-                      >
-                        {feature}
-                      </FeatureListItem>
-                    ))}
-                  </ul>
-
-                  <Button
-                    as={Link}
-                    to={tier.ctaHref}
-                    variant={tier.highlighted ? "primary" : "surface"}
-                    size="lg"
-                    glow={tier.highlighted}
-                    fullWidth
-                    className={
-                      tier.highlighted
-                        ? undefined
-                        : "hover:scale-[1.02] active:scale-[0.98]"
-                    }
-                  >
-                    {tier.cta}
-                  </Button>
-                </div>
+        {tiers.map((tier, i) => {
+          const content = (
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <h3 className="text-lg font-bold">{tier.name}</h3>
+                <span
+                  className={cn("px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full", tier.badgeClass)}
+                >
+                  {tier.badge}
+                </span>
               </div>
-            </ShimmerCard>
-          </Reveal>
-        ))}
+
+              <div className="mb-2">
+                <span className="text-3xl font-bold">{tier.price}</span>
+              </div>
+              <p className="text-2xs text-text-muted mb-4">
+                {tier.priceSuffix}
+              </p>
+              <p className="text-sm text-text-secondary leading-relaxed mb-6">
+                {tier.desc}
+              </p>
+
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {tier.features.map((feature) => (
+                  <FeatureListItem
+                    key={feature}
+                    color={tier.highlighted ? "green" : "muted"}
+                  >
+                    {feature}
+                  </FeatureListItem>
+                ))}
+              </ul>
+
+              <Button
+                as={Link}
+                to={tier.ctaHref}
+                variant={tier.highlighted ? "primary" : "surface"}
+                size="lg"
+                glow={tier.highlighted}
+                fullWidth
+                className={
+                  tier.highlighted
+                    ? undefined
+                    : "hover:scale-[1.02] active:scale-[0.98]"
+                }
+              >
+                {tier.cta}
+              </Button>
+            </div>
+          );
+
+          return (
+            <Reveal key={tier.name} delay={i * 0.08}>
+              <ShimmerCard className="h-full">
+                {tier.highlighted ? (
+                  <HighlightCard
+                    color="primary"
+                    className="p-8 flex flex-col h-full"
+                  >
+                    <GlowOrbs preset="corner" tone="primary" />
+                    {content}
+                  </HighlightCard>
+                ) : (
+                  <div className="relative rounded-xl p-8 flex flex-col h-full transition-all duration-300 overflow-hidden bg-card border border-border hover:border-border-light">
+                    {content}
+                  </div>
+                )}
+              </ShimmerCard>
+            </Reveal>
+          );
+        })}
       </div>
     </Section>
   );

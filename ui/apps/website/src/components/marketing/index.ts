@@ -10,3 +10,5 @@ export { CTABanner } from "./CTABanner";
 export type { CTABannerProps } from "./CTABanner";
 export { InfoCard } from "./InfoCard";
 export type { InfoCardProps } from "./InfoCard";
+export { HighlightCard } from "./HighlightCard";
+export type { HighlightCardColor, HighlightCardProps } from "./HighlightCard";

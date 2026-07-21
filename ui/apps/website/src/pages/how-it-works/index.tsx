@@ -20,7 +20,7 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
@@ -1078,8 +1078,7 @@ export default function HowItWorks() {
           {/* ShellHub Side (highlighted) */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
-              <div className="relative bg-card border border-primary/30 rounded-xl p-8 flex flex-col h-full hover:border-primary/50 transition-all duration-300 shadow-[0_0_40px_rgba(102,122,204,0.1)] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+              <HighlightCard color="primary" className="p-8 flex flex-col h-full">
                 <div className="relative">
                   <div className="flex items-center gap-3 mb-6">
                     <IconBadge color="primary">
@@ -1111,7 +1110,7 @@ export default function HowItWorks() {
                     ))}
                   </ul>
                 </div>
-              </div>
+              </HighlightCard>
             </ShimmerCard>
           </Reveal>
 
