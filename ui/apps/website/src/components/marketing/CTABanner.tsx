@@ -1,15 +1,13 @@
-import { Link } from "react-router-dom";
-import { Button } from "@shellhub/design-system/primitives";
 import { Reveal, ConnectionGrid } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
-import { Section, SectionHeader } from "@/components/marketing";
-import type { SectionHeaderProps } from "@/components/marketing";
+import {
+  Section,
+  SectionHeader,
+  ActionButtonGroup,
+  type CTAAction,
+  type SectionHeaderProps,
+} from "@/components/marketing";
 
 type GradientColor = "primary" | "accent-cyan" | "accent-green" | "accent-blue";
-
-type CTAAction =
-  | { label: string; to: string; href?: never; external?: never }
-  | { label: string; href: string; to?: never; external?: boolean };
 
 const GRADIENT_FROM: Record<GradientColor, string> = {
   primary: "from-primary/[0.06]",
@@ -33,39 +31,6 @@ export interface CTABannerProps {
   secondaryAction: CTAAction;
   eyebrowColor?: SectionHeaderProps["eyebrowColor"];
   gradient?: { from: GradientColor; to: GradientColor };
-}
-
-function ActionButton({
-  action,
-  variant,
-}: {
-  action: CTAAction;
-  variant: "primary" | "outline";
-}) {
-  const isPrimary = variant === "primary";
-  const shared = {
-    variant,
-    size: "xl" as const,
-    glow: isPrimary || undefined,
-    iconRight: isPrimary ? <ArrowRight /> : undefined,
-    children: action.label,
-  };
-
-  if (action.to) {
-    return <Button as={Link} to={action.to} {...shared} />;
-  }
-
-  return (
-    <Button
-      as="a"
-      href={action.href}
-      {...shared}
-      {...(action.external && {
-        target: "_blank",
-        rel: "noopener noreferrer",
-      })}
-    />
-  );
 }
 
 export function CTABanner({
@@ -95,10 +60,10 @@ export function CTABanner({
               subtitle={subtitle}
             />
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <ActionButton action={primaryAction} variant="primary" />
-              <ActionButton action={secondaryAction} variant="outline" />
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </div>
         </div>
       </Reveal>

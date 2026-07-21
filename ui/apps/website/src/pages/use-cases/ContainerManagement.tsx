@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   CheckIcon,
   ComputerDesktopIcon,
@@ -11,20 +10,31 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Badge,
-  Button,
   Card,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  HighlightCard,
+  InfoCard,
+  Section,
+  SectionHeader,
+  type CTAAction,
+} from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
 
-/* ═══════ Pain Points ═══════ */
+const primaryAction: CTAAction = {
+  label: "Get Started Free",
+  to: "/getting-started",
+};
+const secondaryAction: CTAAction = { label: "Compare Plans", to: "/pricing" };
+
 const painPoints = [
   {
     title: "docker exec isn't remote",
@@ -492,21 +502,10 @@ export default function ContainerManagement() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as={Link} to="/pricing" variant="outline" size="xl">
-                Compare Plans
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={primaryAction}
+              secondaryAction={secondaryAction}
+            />
           </Reveal>
         </div>
       </section>
@@ -590,7 +589,10 @@ export default function ContainerManagement() {
           {/* With ShellHub */}
           <Reveal delay={0.1}>
             <ShimmerCard className="h-full">
-              <HighlightCard color="primary" className="p-8 flex flex-col h-full">
+              <HighlightCard
+                color="primary"
+                className="p-8 flex flex-col h-full"
+              >
                 <div className="relative flex-1 flex flex-col">
                   <div className="flex items-center gap-3 mb-6">
                     <IconBadge color="primary">
@@ -875,8 +877,8 @@ export default function ContainerManagement() {
         eyebrow="Ready to simplify container access?"
         title="Manage your containers remotely"
         subtitle="Install the ShellHub agent and get instant SSH access to containers on any remote host. Free to start, no credit card required."
-        primaryAction={{ label: "Get Started Free", to: "/getting-started" }}
-        secondaryAction={{ label: "Compare Plans", to: "/pricing" }}
+        primaryAction={primaryAction}
+        secondaryAction={secondaryAction}
         eyebrowColor="cyan"
         gradient={{ from: "accent-cyan", to: "primary" }}
       />

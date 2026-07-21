@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   BoltIcon,
   CheckIcon,
@@ -14,14 +13,19 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Badge,
-  Button,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  HighlightCard,
+  InfoCard,
+  Section,
+  SectionHeader,
+} from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
@@ -160,21 +164,13 @@ export default function IotEmbedded() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as={Link} to="/pricing" variant="outline" size="xl">
-                View Pricing
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={{
+                label: "Get Started Free",
+                to: "/getting-started",
+              }}
+              secondaryAction={{ label: "View Pricing", to: "/pricing" }}
+            />
           </Reveal>
         </div>
       </section>

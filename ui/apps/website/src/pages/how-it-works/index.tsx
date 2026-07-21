@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   ArrowsPointingOutIcon,
   BoltIcon,
@@ -12,15 +11,20 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Badge,
-  Button,
   Card,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, HighlightCard, InfoCard, Section, SectionHeader } from "@/components/marketing";
+import {
+  ActionButtonGroup,
+  CTABanner,
+  HighlightCard,
+  InfoCard,
+  Section,
+  SectionHeader,
+} from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
@@ -120,21 +124,16 @@ export default function HowItWorks() {
             </p>
           </Reveal>
           <Reveal>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                as={Link}
-                to="/getting-started"
-                variant="primary"
-                size="xl"
-                glow
-                iconRight={<ArrowRight />}
-              >
-                Get Started Free
-              </Button>
-              <Button as="a" href="#architecture" variant="outline" size="xl">
-                See the Architecture
-              </Button>
-            </div>
+            <ActionButtonGroup
+              primaryAction={{
+                label: "Get Started Free",
+                to: "/getting-started",
+              }}
+              secondaryAction={{
+                label: "See the Architecture",
+                href: "#architecture",
+              }}
+            />
           </Reveal>
         </div>
       </section>
@@ -1078,7 +1077,10 @@ export default function HowItWorks() {
           {/* ShellHub Side (highlighted) */}
           <Reveal delay={0}>
             <ShimmerCard className="h-full">
-              <HighlightCard color="primary" className="p-8 flex flex-col h-full">
+              <HighlightCard
+                color="primary"
+                className="p-8 flex flex-col h-full"
+              >
                 <div className="relative">
                   <div className="flex items-center gap-3 mb-6">
                     <IconBadge color="primary">

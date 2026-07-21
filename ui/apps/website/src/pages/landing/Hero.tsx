@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
-import { Button, ShellHubCloudIcon } from "@shellhub/design-system/primitives";
+import { ShellHubCloudIcon } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
-import { ArrowRight } from "@/components/ArrowRight";
+import { ActionButton } from "@/components/marketing";
 import { ConnectionGrid } from "./components";
 
 export function Hero() {
@@ -46,16 +45,9 @@ export function Hero() {
           className="flex gap-3 flex-wrap justify-center animate-fade-in"
           style={{ animationDelay: "300ms" }}
         >
-          <Button
-            as={Link}
-            to="/getting-started"
-            variant="primary"
-            size="xl"
-            glow
-            iconRight={<ArrowRight />}
-          >
-            Get Started
-          </Button>
+          <ActionButton
+            action={{ label: "Get Started", to: "/getting-started" }}
+          />
         </div>
       </div>
     </section>
