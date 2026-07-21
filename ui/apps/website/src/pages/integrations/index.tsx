@@ -24,14 +24,11 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
 
-/* ------------------------------------------------------------------ */
-/*  Syntax-highlighted line helpers                                    */
-/* ------------------------------------------------------------------ */
 function Ln({
   color,
   children,
@@ -60,9 +57,12 @@ function Cyn({ children }: { children: React.ReactNode }) {
   return <span style={{ color: C.cyan }}>{children}</span>;
 }
 
-/* ================================================================== */
-/*  Page                                                               */
-/* ================================================================== */
+const sshFeatures = [
+  { icon: ArrowsRightLeftIcon, color: C.primary, title: "SSH as transport", desc: "Any tool that uses SSH for remote execution works with ShellHub out of the box. Ansible, rsync, scp, Git over SSH." },
+  { icon: ShieldCheckIcon, color: C.cyan, title: "No agent changes", desc: "The ShellHub agent runs independently on your devices. Install once and use it with every tool in your stack." },
+  { icon: CodeBracketIcon, color: C.green, title: "API-first design", desc: "Programmatic access to devices, sessions, and configurations. Build custom integrations with the REST API." },
+];
+
 export default function Integrations() {
   return (
     <SiteLayout>
@@ -980,63 +980,15 @@ export default function Integrations() {
         </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {
-              color: C.primary,
-              title: "SSH as transport",
-              desc: "Any tool that uses SSH for remote execution works with ShellHub out of the box. Ansible, rsync, scp, Git over SSH.",
-              icon: (
-                <ArrowsRightLeftIcon
-                  className="w-5 h-5"
-                  style={{ color: C.primary }}
-                  aria-hidden="true"
-                />
-              ),
-            },
-            {
-              color: C.cyan,
-              title: "No agent changes",
-              desc: "The ShellHub agent runs independently on your devices. Install once and use it with every tool in your stack.",
-              icon: (
-                <ShieldCheckIcon
-                  className="w-5 h-5"
-                  style={{ color: C.cyan }}
-                  aria-hidden="true"
-                />
-              ),
-            },
-            {
-              color: C.green,
-              title: "API-first design",
-              desc: "Programmatic access to devices, sessions, and configurations. Build custom integrations with the REST API.",
-              icon: (
-                <CodeBracketIcon
-                  className="w-5 h-5"
-                  style={{ color: C.green }}
-                  aria-hidden="true"
-                />
-              ),
-            },
-          ].map((b, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${b.color}15`,
-                      borderColor: `${b.color}25`,
-                    }}
-                  >
-                    {b.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{b.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {b.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+          {sshFeatures.map((f, i) => (
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>

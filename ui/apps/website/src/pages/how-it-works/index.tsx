@@ -20,50 +20,44 @@ import {
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
 
-/* ------------------------------------------------------------------ */
-/*  Data                                                               */
-/* ------------------------------------------------------------------ */
-
 const techDetails = [
   {
-    icon: <LockClosedIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: LockClosedIcon,
     color: C.primary,
     title: "TLS Encryption",
     desc: "All traffic between agents and the gateway is encrypted with TLS 1.3. No plaintext data ever leaves a device.",
   },
   {
-    icon: <EnvelopeIcon className="w-5 h-5" style={{ color: C.cyan }} />,
+    icon: EnvelopeIcon,
     color: C.cyan,
     title: "WebSocket Tunnels",
     desc: "Persistent WebSocket connections over port 443 ensure reliable communication even through restrictive proxies.",
   },
   {
-    icon: (
-      <ArrowsPointingOutIcon className="w-5 h-5" style={{ color: C.green }} />
-    ),
+    icon: ArrowsPointingOutIcon,
     color: C.green,
     title: "Reverse SSH",
     desc: "The agent initiates the connection outbound, then the gateway multiplexes inbound SSH sessions back through the same tunnel.",
   },
   {
-    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: ShieldCheckIcon,
     color: C.yellow,
     title: "NAT Traversal",
     desc: "Outbound-only connections mean devices behind any NAT, CGNAT, or carrier-grade firewall are reachable without port forwarding.",
   },
   {
-    icon: <GlobeAltIcon className="w-5 h-5" style={{ color: C.blue }} />,
+    icon: GlobeAltIcon,
     color: C.blue,
     title: "Agent Auto-Update",
     desc: "Agents check for updates automatically and apply them without downtime. Always running the latest secure version.",
   },
   {
-    icon: <BoltIcon className="w-5 h-5" style={{ color: C.red }} />,
+    icon: BoltIcon,
     color: C.red,
     title: "Lightweight Footprint",
     desc: "The agent binary is under 10 MB and uses minimal CPU and memory. Designed for constrained embedded devices.",
@@ -1157,7 +1151,6 @@ export default function HowItWorks() {
         </div>
       </Section>
 
-      {/* ── Technical Details ─────────────────────────────────────── */}
       <Section>
         <SectionHeader
           eyebrow="Under the Hood"
@@ -1167,25 +1160,14 @@ export default function HowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {techDetails.map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.04}
+            />
           ))}
         </div>
       </Section>

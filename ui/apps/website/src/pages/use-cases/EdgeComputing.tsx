@@ -14,7 +14,6 @@ import {
 import {
   Badge,
   Button,
-  Card,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
@@ -22,7 +21,7 @@ import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { C } from "../landing/constants";
 
 /* ═══════ Pain-point data ═══════ */
@@ -31,25 +30,25 @@ const painPoints = [
     color: C.primary,
     title: "Distributed locations",
     desc: "Edge servers scattered across retail stores, warehouses, cell towers, and data centers — each with unique network topology.",
-    icon: <GlobeAltIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: GlobeAltIcon,
   },
   {
     color: C.yellow,
     title: "Unreliable connectivity",
     desc: "Intermittent or low-bandwidth links make traditional VPN tunnels unstable and impossible to maintain reliably.",
-    icon: <SignalSlashIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: SignalSlashIcon,
   },
   {
     color: C.red,
     title: "On-site visits are expensive",
     desc: "Dispatching a technician to a remote cell tower or warehouse for a configuration change burns time and budget.",
-    icon: <MapPinIcon className="w-5 h-5" style={{ color: C.red }} />,
+    icon: MapPinIcon,
   },
   {
     color: C.cyan,
     title: "Security at scale",
     desc: "Managing SSH keys, firewall rules, and access policies across hundreds of edge locations is operationally complex.",
-    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.cyan }} />,
+    icon: ShieldCheckIcon,
   },
 ];
 
@@ -405,7 +404,6 @@ export default function EdgeComputing() {
         </Reveal>
       </Section>
 
-      {/* ───── Pain Points ───── */}
       <Section>
         <SectionHeader
           eyebrow="Challenges"
@@ -415,29 +413,15 @@ export default function EdgeComputing() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {painPoints.map((p, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
-                      style={{
-                        background: `${p.color}15`,
-                        borderColor: `${p.color}25`,
-                      }}
-                    >
-                      {p.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={p.icon}
+              color={p.color}
+              title={p.title}
+              description={p.desc}
+              layout="horizontal"
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>
@@ -545,292 +529,218 @@ export default function EdgeComputing() {
 
         {/* 2-column: Web Terminal + SCP/SFTP */}
         <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <Reveal delay={0.05}>
-            <ShimmerCard className="h-full">
-              <Card hover className="p-6 h-full">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${C.green}15`,
-                    borderColor: `${C.green}25`,
-                  }}
-                >
-                  <ComputerDesktopIcon
-                    className="w-5 h-5"
-                    style={{ color: C.green }}
-                  />
+          <InfoCard
+            icon={ComputerDesktopIcon}
+            color={C.green}
+            title="Web Terminal"
+            description="Access edge servers from any browser — no SSH client needed. Perfect for field engineers using tablets or shared workstations."
+            delay={0.05}
+          >
+            <div className="mt-4">
+              <WindowChrome
+                variant="browser"
+                size="sm"
+                path="/terminal/edge-chi-03"
+                bodyClassName="space-y-0.5"
+              >
+                <div>
+                  <span style={{ color: C.green }}>admin@edge-chi-03</span>
+                  <span style={{ color: C.textMuted }}>:</span>
+                  <span style={{ color: C.blue }}>~</span>
+                  <span style={{ color: C.textMuted }}>$</span>{" "}
+                  <span style={{ color: C.text }}>df -h /data</span>
                 </div>
-                <h4 className="text-sm font-semibold mb-2">Web Terminal</h4>
-                <p className="text-xs text-text-secondary leading-relaxed mb-4">
-                  Access edge servers from any browser — no SSH client needed.
-                  Perfect for field engineers using tablets or shared
-                  workstations.
-                </p>
-
-                {/* Browser mockup */}
-                <WindowChrome
-                  variant="browser"
-                  size="sm"
-                  path="/terminal/edge-chi-03"
-                  bodyClassName="space-y-0.5"
-                >
-                  <div>
-                    <span style={{ color: C.green }}>admin@edge-chi-03</span>
-                    <span style={{ color: C.textMuted }}>:</span>
-                    <span style={{ color: C.blue }}>~</span>
-                    <span style={{ color: C.textMuted }}>$</span>{" "}
-                    <span style={{ color: C.text }}>df -h /data</span>
-                  </div>
-                  <div style={{ color: C.textSec }}>
-                    Filesystem&nbsp;&nbsp;Size&nbsp;&nbsp;Used&nbsp;&nbsp;Avail&nbsp;&nbsp;Use%
-                  </div>
-                  <div style={{ color: C.textSec }}>
-                    /dev/sda1&nbsp;&nbsp;&nbsp;500G&nbsp;&nbsp;312G&nbsp;&nbsp;188G&nbsp;&nbsp;&nbsp;62%
-                  </div>
-                  <div>
-                    <span style={{ color: C.green }}>admin@edge-chi-03</span>
-                    <span style={{ color: C.textMuted }}>:</span>
-                    <span style={{ color: C.blue }}>~</span>
-                    <span style={{ color: C.textMuted }}>$</span>{" "}
-                    <span
-                      className="animate-pulse"
-                      style={{ color: C.primary }}
-                    >
-                      _
-                    </span>
-                  </div>
-                </WindowChrome>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <ShimmerCard className="h-full">
-              <Card hover className="p-6 h-full">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${C.cyan}15`,
-                    borderColor: `${C.cyan}25`,
-                  }}
-                >
-                  <DocumentArrowUpIcon
-                    className="w-5 h-5"
-                    style={{ color: C.cyan }}
-                  />
+                <div style={{ color: C.textSec }}>
+                  Filesystem&nbsp;&nbsp;Size&nbsp;&nbsp;Used&nbsp;&nbsp;Avail&nbsp;&nbsp;Use%
                 </div>
-                <h4 className="text-sm font-semibold mb-2">
-                  SCP / SFTP File Transfer
-                </h4>
-                <p className="text-xs text-text-secondary leading-relaxed mb-4">
-                  Transfer configuration files, firmware updates, and logs to
-                  and from edge servers with progress tracking.
-                </p>
-
-                {/* File transfer mockup */}
-                <div className="bg-surface rounded-lg border border-border p-3 font-mono text-2xs space-y-1.5">
-                  <div style={{ color: C.textMuted }}>
-                    $ scp config.yml admin@edge-den-02:/etc/app/
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span style={{ color: C.text }}>config.yml</span>
-                    <div className="flex-1 h-1.5 bg-background rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: "100%", background: C.green }}
-                      />
-                    </div>
-                    <span style={{ color: C.green }}>100%</span>
-                  </div>
-                  <div style={{ color: C.textSec }}>
-                    2.4 KB&nbsp;&nbsp;&nbsp;0:00
-                  </div>
-                  <div
-                    className="pt-1 border-t border-border"
-                    style={{ borderColor: `${C.border}80` }}
+                <div style={{ color: C.textSec }}>
+                  /dev/sda1&nbsp;&nbsp;&nbsp;500G&nbsp;&nbsp;312G&nbsp;&nbsp;188G&nbsp;&nbsp;&nbsp;62%
+                </div>
+                <div>
+                  <span style={{ color: C.green }}>admin@edge-chi-03</span>
+                  <span style={{ color: C.textMuted }}>:</span>
+                  <span style={{ color: C.blue }}>~</span>
+                  <span style={{ color: C.textMuted }}>$</span>{" "}
+                  <span
+                    className="animate-pulse"
+                    style={{ color: C.primary }}
                   >
-                    <div style={{ color: C.textMuted }}>
-                      $ scp admin@edge-den-02:/var/log/app.log ./
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span style={{ color: C.text }}>app.log</span>
-                      <div className="flex-1 h-1.5 bg-background rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: "68%", background: C.yellow }}
-                        />
-                      </div>
-                      <span style={{ color: C.yellow }}>68%</span>
-                    </div>
-                    <div style={{ color: C.textSec }}>
-                      45 MB&nbsp;&nbsp;&nbsp;12.3 MB/s&nbsp;&nbsp;&nbsp;ETA 0:02
-                    </div>
-                  </div>
+                    _
+                  </span>
                 </div>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
+              </WindowChrome>
+            </div>
+          </InfoCard>
+
+          <InfoCard
+            icon={DocumentArrowUpIcon}
+            color={C.cyan}
+            title="SCP / SFTP File Transfer"
+            description="Transfer configuration files, firmware updates, and logs to and from edge servers with progress tracking."
+            delay={0.1}
+          >
+            <div className="mt-4 bg-surface rounded-lg border border-border p-3 font-mono text-2xs space-y-1.5">
+              <div style={{ color: C.textMuted }}>
+                $ scp config.yml admin@edge-den-02:/etc/app/
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ color: C.text }}>config.yml</span>
+                <div className="flex-1 h-1.5 bg-background rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: "100%", background: C.green }}
+                  />
+                </div>
+                <span style={{ color: C.green }}>100%</span>
+              </div>
+              <div style={{ color: C.textSec }}>
+                2.4 KB&nbsp;&nbsp;&nbsp;0:00
+              </div>
+              <div
+                className="pt-1 border-t border-border"
+                style={{ borderColor: `${C.border}80` }}
+              >
+                <div style={{ color: C.textMuted }}>
+                  $ scp admin@edge-den-02:/var/log/app.log ./
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span style={{ color: C.text }}>app.log</span>
+                  <div className="flex-1 h-1.5 bg-background rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: "68%", background: C.yellow }}
+                    />
+                  </div>
+                  <span style={{ color: C.yellow }}>68%</span>
+                </div>
+                <div style={{ color: C.textSec }}>
+                  45 MB&nbsp;&nbsp;&nbsp;12.3 MB/s&nbsp;&nbsp;&nbsp;ETA 0:02
+                </div>
+              </div>
+            </div>
+          </InfoCard>
         </div>
 
         {/* 3 smaller cards: Tags, RBAC, Audit */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Reveal delay={0.05}>
-            <ShimmerCard className="h-full">
-              <Card hover className="p-6 h-full">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
+          <InfoCard
+            icon={TagIcon}
+            color={C.yellow}
+            title="Device Tags"
+            description="Organize edge servers by region, site type, or function for fast filtering and batch operations."
+            delay={0.05}
+          >
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {[
+                { label: "region:northeast", color: C.primary },
+                { label: "type:retail", color: C.green },
+                { label: "env:production", color: C.yellow },
+                { label: "rack:A3", color: C.cyan },
+              ].map((tag) => (
+                <span
+                  key={tag.label}
+                  className="px-2 py-0.5 text-2xs font-mono rounded-full border"
                   style={{
-                    background: `${C.yellow}15`,
-                    borderColor: `${C.yellow}25`,
+                    color: tag.color,
+                    background: `${tag.color}10`,
+                    borderColor: `${tag.color}20`,
                   }}
                 >
-                  <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />
-                </div>
-                <h4 className="text-sm font-semibold mb-2">Device Tags</h4>
-                <p className="text-xs text-text-secondary leading-relaxed mb-3">
-                  Organize edge servers by region, site type, or function for
-                  fast filtering and batch operations.
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { label: "region:northeast", color: C.primary },
-                    { label: "type:retail", color: C.green },
-                    { label: "env:production", color: C.yellow },
-                    { label: "rack:A3", color: C.cyan },
-                  ].map((tag) => (
-                    <span
-                      key={tag.label}
-                      className="px-2 py-0.5 text-2xs font-mono rounded-full border"
-                      style={{
-                        color: tag.color,
-                        background: `${tag.color}10`,
-                        borderColor: `${tag.color}20`,
-                      }}
-                    >
-                      {tag.label}
-                    </span>
-                  ))}
-                </div>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          </InfoCard>
 
-          <Reveal delay={0.1}>
-            <ShimmerCard className="h-full">
-              <Card hover className="p-6 h-full">
+          <InfoCard
+            icon={UsersIcon}
+            color={C.primary}
+            title="RBAC"
+            description="Give regional teams access to only their edge servers with role-based controls and namespace isolation."
+            delay={0.1}
+          >
+            <div className="mt-3 space-y-1.5">
+              {[
+                {
+                  role: "NYC Ops Team",
+                  access: "northeast-*",
+                  color: C.primary,
+                },
+                {
+                  role: "Field Engineers",
+                  access: "tower-*",
+                  color: C.yellow,
+                },
+                {
+                  role: "Warehouse Admins",
+                  access: "warehouse-*",
+                  color: C.green,
+                },
+              ].map((r) => (
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${C.primary}15`,
-                    borderColor: `${C.primary}25`,
-                  }}
+                  key={r.role}
+                  className="flex items-center justify-between text-2xs font-mono"
                 >
-                  <UsersIcon className="w-5 h-5" style={{ color: C.primary }} />
+                  <span style={{ color: C.textSec }}>{r.role}</span>
+                  <span style={{ color: r.color }}>{r.access}</span>
                 </div>
-                <h4 className="text-sm font-semibold mb-2">RBAC</h4>
-                <p className="text-xs text-text-secondary leading-relaxed mb-3">
-                  Give regional teams access to only their edge servers with
-                  role-based controls and namespace isolation.
-                </p>
-                <div className="space-y-1.5">
-                  {[
-                    {
-                      role: "NYC Ops Team",
-                      access: "northeast-*",
-                      color: C.primary,
-                    },
-                    {
-                      role: "Field Engineers",
-                      access: "tower-*",
-                      color: C.yellow,
-                    },
-                    {
-                      role: "Warehouse Admins",
-                      access: "warehouse-*",
-                      color: C.green,
-                    },
-                  ].map((r) => (
-                    <div
-                      key={r.role}
-                      className="flex items-center justify-between text-2xs font-mono"
-                    >
-                      <span style={{ color: C.textSec }}>{r.role}</span>
-                      <span style={{ color: r.color }}>{r.access}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
+              ))}
+            </div>
+          </InfoCard>
 
-          <Reveal delay={0.15}>
-            <ShimmerCard className="h-full">
-              <Card hover className="p-6 h-full">
+          <InfoCard
+            icon={PencilSquareIcon}
+            color={C.green}
+            title="Audit Trail"
+            description="Full session recording and command logging across all edge locations for compliance and forensics."
+            delay={0.15}
+          >
+            <div className="mt-3 space-y-1.5">
+              {[
+                {
+                  time: "14:32",
+                  user: "jane",
+                  device: "edge-nyc-01",
+                  action: "SSH session",
+                  color: C.green,
+                },
+                {
+                  time: "14:28",
+                  user: "mike",
+                  device: "tower-aus-03",
+                  action: "File transfer",
+                  color: C.cyan,
+                },
+                {
+                  time: "14:15",
+                  user: "ana",
+                  device: "wh-chi-07",
+                  action: "SSH session",
+                  color: C.green,
+                },
+              ].map((log, i) => (
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                  style={{
-                    background: `${C.green}15`,
-                    borderColor: `${C.green}25`,
-                  }}
+                  key={i}
+                  className="flex items-center gap-2 text-2xs font-mono"
                 >
-                  <PencilSquareIcon
-                    className="w-5 h-5"
-                    style={{ color: C.green }}
-                  />
+                  <span style={{ color: C.textMuted }}>{log.time}</span>
+                  <span style={{ color: C.primary }}>{log.user}</span>
+                  <span style={{ color: C.textMuted }}>&rarr;</span>
+                  <span style={{ color: C.textSec }}>{log.device}</span>
+                  <span
+                    className="ml-auto px-1.5 py-0.5 rounded border"
+                    style={{
+                      color: log.color,
+                      background: `${log.color}10`,
+                      borderColor: `${log.color}20`,
+                    }}
+                  >
+                    {log.action}
+                  </span>
                 </div>
-                <h4 className="text-sm font-semibold mb-2">Audit Trail</h4>
-                <p className="text-xs text-text-secondary leading-relaxed mb-3">
-                  Full session recording and command logging across all edge
-                  locations for compliance and forensics.
-                </p>
-                <div className="space-y-1.5">
-                  {[
-                    {
-                      time: "14:32",
-                      user: "jane",
-                      device: "edge-nyc-01",
-                      action: "SSH session",
-                      color: C.green,
-                    },
-                    {
-                      time: "14:28",
-                      user: "mike",
-                      device: "tower-aus-03",
-                      action: "File transfer",
-                      color: C.cyan,
-                    },
-                    {
-                      time: "14:15",
-                      user: "ana",
-                      device: "wh-chi-07",
-                      action: "SSH session",
-                      color: C.green,
-                    },
-                  ].map((log, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 text-2xs font-mono"
-                    >
-                      <span style={{ color: C.textMuted }}>{log.time}</span>
-                      <span style={{ color: C.primary }}>{log.user}</span>
-                      <span style={{ color: C.textMuted }}>&rarr;</span>
-                      <span style={{ color: C.textSec }}>{log.device}</span>
-                      <span
-                        className="ml-auto px-1.5 py-0.5 rounded border"
-                        style={{
-                          color: log.color,
-                          background: `${log.color}10`,
-                          borderColor: `${log.color}20`,
-                        }}
-                      >
-                        {log.action}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </ShimmerCard>
-          </Reveal>
+              ))}
+            </div>
+          </InfoCard>
         </div>
       </Section>
 
@@ -844,21 +754,16 @@ export default function EdgeComputing() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {scenarios.map((s, i) => (
-            <Reveal key={i} delay={i * 0.08}>
-              <ShimmerCard className="h-full">
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-2 h-2 rounded-full mb-4"
-                    style={{ background: s.color }}
-                  />
-                  <h4 className="text-sm font-semibold mb-2">{s.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {s.desc}
-                  </p>
-                  {s.mockup}
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              color={s.color}
+              title={s.title}
+              description={s.desc}
+              layout="dot"
+              delay={i * 0.08}
+            >
+              {s.mockup}
+            </InfoCard>
           ))}
         </div>
       </Section>

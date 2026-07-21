@@ -9,16 +9,11 @@ import {
   ShieldCheckIcon,
   TagIcon,
 } from "@heroicons/react/24/outline";
-import {
-  Badge,
-  Button,
-  Card,
-  WindowChrome,
-} from "@shellhub/design-system/primitives";
+import { Badge, Button, WindowChrome } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { docsUrl } from "@/links";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
@@ -52,37 +47,37 @@ const painPoints = [
 
 const features = [
   {
-    icon: <CommandLineIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: CommandLineIcon,
     color: C.primary,
     title: "Standard SSH Transport",
     desc: "Ansible, Terraform, and CI/CD tools connect through ShellHub using standard SSH -- no custom plugins or connectors required.",
   },
   {
-    icon: <DocumentTextIcon className="w-5 h-5" style={{ color: C.cyan }} />,
+    icon: DocumentTextIcon,
     color: C.cyan,
     title: "SCP/SFTP Transfers",
     desc: "Push build artifacts, configuration files, and firmware updates to remote devices as part of your deployment pipeline.",
   },
   {
-    icon: <PencilIcon className="w-5 h-5" style={{ color: C.green }} />,
+    icon: PencilIcon,
     color: C.green,
     title: "Audit Logging",
     desc: "Every automated session is recorded -- see exactly which pipeline ran what command on which device and when.",
   },
   {
-    icon: <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: TagIcon,
     color: C.yellow,
     title: "Device Tags",
     desc: "Target deployments to specific device groups using tags -- deploy to 'staging' or 'production' fleets with a single inventory.",
   },
   {
-    icon: <ShieldCheckIcon className="w-5 h-5" style={{ color: C.primary }} />,
+    icon: ShieldCheckIcon,
     color: C.primary,
     title: "Firewall Rules",
     desc: "Restrict CI runner access to only the devices they need with IP-based and identity-based firewall policies.",
   },
   {
-    icon: <FolderIcon className="w-5 h-5" style={{ color: C.green }} />,
+    icon: FolderIcon,
     color: C.green,
     title: "Namespaces",
     desc: "Isolate staging and production environments in separate namespaces with independent access policies and device groups.",
@@ -487,20 +482,14 @@ export default function DevopsCiCd() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {painPoints.map((p, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-2 h-2 rounded-full mb-4"
-                    style={{ background: p.color }}
-                  />
-                  <h4 className="text-sm font-semibold mb-2">{p.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {p.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              color={p.color}
+              title={p.title}
+              description={p.desc}
+              layout="dot"
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>
@@ -515,25 +504,14 @@ export default function DevopsCiCd() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.04}
+            />
           ))}
         </div>
       </Section>

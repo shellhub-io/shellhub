@@ -15,49 +15,69 @@ import {
 import {
   Badge,
   Button,
-  Card,
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { ArrowRight } from "@/components/ArrowRight";
 import { SiteLayout } from "@/components/SiteLayout";
-import { CTABanner, Section, SectionHeader } from "@/components/marketing";
+import { CTABanner, InfoCard, Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
 import { C } from "../landing/constants";
-
-/* ═══════ Data ═══════ */
 
 const painPoints = [
   {
     color: C.yellow,
     title: "No public IP",
     desc: "IoT devices behind cellular, CGNAT, or private networks are unreachable with traditional SSH.",
-    icon: <SignalIcon className="w-5 h-5" style={{ color: C.yellow }} />,
+    icon: SignalIcon,
   },
   {
     color: C.primary,
     title: "Fleet scale",
     desc: "Managing SSH keys and firewall rules across hundreds or thousands of devices is unsustainable.",
-    icon: (
-      <ComputerDesktopIcon className="w-5 h-5" style={{ color: C.primary }} />
-    ),
+    icon: ComputerDesktopIcon,
   },
   {
     color: C.red,
     title: "Security gaps",
     desc: "Exposing SSH ports on embedded devices creates a massive attack surface you can't easily monitor.",
-    icon: (
-      <ShieldExclamationIcon className="w-5 h-5" style={{ color: C.red }} />
-    ),
+    icon: ShieldExclamationIcon,
   },
   {
     color: C.cyan,
     title: "No visibility",
     desc: "Without centralized logging, you have no idea who accessed which device or what they did.",
-    icon: <EyeIcon className="w-5 h-5" style={{ color: C.cyan }} />,
+    icon: EyeIcon,
+  },
+];
+
+const features = [
+  {
+    icon: ShieldCheckIcon,
+    color: C.green,
+    title: "Firewall Rules",
+    desc: "Define who can access which devices with granular per-device, per-user, or per-tag firewall policies. Block unauthorized connections before they reach the agent.",
+  },
+  {
+    icon: TagIcon,
+    color: C.yellow,
+    title: "Device Tags",
+    desc: "Organize fleets by location, firmware version, hardware type, or customer. Apply firewall rules and access policies to entire groups at once.",
+  },
+  {
+    icon: PlayCircleIcon,
+    color: C.cyan,
+    title: "Session Recording",
+    desc: "Record every SSH session for compliance, debugging, and knowledge sharing. Replay exactly what happened on a remote device during an incident.",
+  },
+  {
+    icon: PencilIcon,
+    color: C.primary,
+    title: "Audit Logging",
+    desc: "Full audit trail of every connection, command, and configuration change. Know who accessed what, when, and from where for regulatory compliance.",
   },
 ];
 
@@ -294,7 +314,6 @@ export default function IotEmbedded() {
         </div>
       </Section>
 
-      {/* ═══════ Pain Points (2x2) ═══════ */}
       <Section>
         <SectionHeader
           eyebrow="The Challenge"
@@ -304,31 +323,15 @@ export default function IotEmbedded() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {painPoints.map((p, i) => (
-            <Reveal key={i} delay={i * 0.06}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border"
-                      style={{
-                        background: `${p.color}15`,
-                        borderColor: `${p.color}25`,
-                      }}
-                    >
-                      {p.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-1.5">
-                        {p.title}
-                      </h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        {p.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+            <InfoCard
+              key={i}
+              icon={p.icon}
+              color={p.color}
+              title={p.title}
+              description={p.desc}
+              layout="horizontal"
+              delay={i * 0.06}
+            />
           ))}
         </div>
       </Section>
@@ -582,62 +585,16 @@ export default function IotEmbedded() {
           </ShimmerCard>
         </Reveal>
 
-        {/* 2x2 grid of feature cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {[
-            {
-              icon: (
-                <ShieldCheckIcon
-                  className="w-5 h-5"
-                  style={{ color: C.green }}
-                />
-              ),
-              color: C.green,
-              title: "Firewall Rules",
-              desc: "Define who can access which devices with granular per-device, per-user, or per-tag firewall policies. Block unauthorized connections before they reach the agent.",
-            },
-            {
-              icon: <TagIcon className="w-5 h-5" style={{ color: C.yellow }} />,
-              color: C.yellow,
-              title: "Device Tags",
-              desc: "Organize fleets by location, firmware version, hardware type, or customer. Apply firewall rules and access policies to entire groups at once.",
-            },
-            {
-              icon: (
-                <PlayCircleIcon className="w-5 h-5" style={{ color: C.cyan }} />
-              ),
-              color: C.cyan,
-              title: "Session Recording",
-              desc: "Record every SSH session for compliance, debugging, and knowledge sharing. Replay exactly what happened on a remote device during an incident.",
-            },
-            {
-              icon: (
-                <PencilIcon className="w-5 h-5" style={{ color: C.primary }} />
-              ),
-              color: C.primary,
-              title: "Audit Logging",
-              desc: "Full audit trail of every connection, command, and configuration change. Know who accessed what, when, and from where for regulatory compliance.",
-            },
-          ].map((f, i) => (
-            <Reveal key={i} delay={i * 0.04}>
-              <ShimmerCard>
-                <Card hover className="p-6 h-full">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 border"
-                    style={{
-                      background: `${f.color}15`,
-                      borderColor: `${f.color}25`,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
-                  <h4 className="text-sm font-semibold mb-2">{f.title}</h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {f.desc}
-                  </p>
-                </Card>
-              </ShimmerCard>
-            </Reveal>
+          {features.map((f, i) => (
+            <InfoCard
+              key={i}
+              icon={f.icon}
+              color={f.color}
+              title={f.title}
+              description={f.desc}
+              delay={i * 0.04}
+            />
           ))}
         </div>
 
