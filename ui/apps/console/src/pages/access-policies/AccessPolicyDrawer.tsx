@@ -1,4 +1,12 @@
-import { useState, useRef, FormEvent, ReactNode } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  FormEvent,
+  ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   UsersIcon,
   UserIcon,
@@ -147,6 +155,123 @@ const TABBTN = (on: boolean) =>
       : "bg-transparent text-text-secondary border-transparent hover:text-text-primary",
   );
 
+/* Re-auth freshness windows offered in the drawer. null = every session. */
+const REAUTH_PERIODS: { value: number | null; label: string }[] = [
+  { value: null, label: "Every session" },
+  { value: 3600, label: "Every hour" },
+  { value: 43200, label: "Every 12 hours" },
+  { value: 86400, label: "Every 24 hours" },
+  { value: 604800, label: "Every 7 days" },
+];
+
+function reauthPeriodLabel(value: number | null): string {
+  return (
+    REAUTH_PERIODS.find((p) => p.value === value)?.label ?? "Every session"
+  );
+}
+
+/* Compact custom dropdown for the re-auth window, matching the picker language.
+   The menu renders in a portal on document.body so it escapes the drawer's
+   vertical scroll clip — otherwise it would be cut off inside the form. */
+function PeriodSelect({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // Right-aligned menu position in viewport coordinates.
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    updatePosition();
+
+    const reposition = () => updatePosition();
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    const onDown = (e: MouseEvent) => {
+      if (
+        !menuRef.current?.contains(e.target as Node) &&
+        !triggerRef.current?.contains(e.target as Node)
+      )
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [open, updatePosition]);
+
+  return (
+    <div className="shrink-0" ref={triggerRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "w-36 flex items-center justify-between h-8 pl-3 pr-2 text-xs font-medium rounded-lg bg-card border text-text-primary transition-colors",
+          open
+            ? "border-primary/60"
+            : "border-border hover:border-border-light",
+        )}
+      >
+        {reauthPeriodLabel(value)}
+        <ChevronDownIcon
+          className="w-3.5 h-3.5 text-text-muted"
+          strokeWidth={2}
+        />
+      </button>
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{ top: pos.top, right: pos.right }}
+            className="fixed z-[80] w-40 bg-card border border-border-light rounded-xl shadow-2xl overflow-hidden p-1 animate-fade-in"
+          >
+            {REAUTH_PERIODS.map((p) => (
+              <button
+                key={String(p.value)}
+                type="button"
+                onClick={() => {
+                  onChange(p.value);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left text-xs transition-colors",
+                  p.value === value
+                    ? "bg-primary/10 text-text-primary"
+                    : "text-text-secondary hover:bg-primary/10",
+                )}
+              >
+                <CheckIcon
+                  className={cn(
+                    "w-3.5 h-3.5 text-primary shrink-0",
+                    p.value === value ? "opacity-100" : "opacity-0",
+                  )}
+                  strokeWidth={2.5}
+                />
+                {p.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
+
 /* Small pill used inside a selector box trigger. */
 function Pill({
   icon,
@@ -205,7 +330,10 @@ function AccessPolicyDrawer({
   const [loginsOption, setLoginsOption] = useState<LoginsOption>("any");
   const [logins, setLogins] = useState<string[]>([]);
   const [sourceIP, setSourceIP] = useState<string[]>([]);
-  const [requireStepUp, setRequireStepUp] = useState(false);
+  const [requireReauth, setRequireReauth] = useState(false);
+  // null = always (re-auth every session); a number is the freshness window in
+  // seconds within which a re-auth is skipped.
+  const [reauthPeriod, setReauthPeriod] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -267,7 +395,8 @@ function AccessPolicyDrawer({
     setLoginsOption(loginsInit);
     setLogins(loginsInit === "specific" ? (editPolicy?.logins ?? []) : []);
     setSourceIP(editPolicy?.source_ip ?? []);
-    setRequireStepUp(editPolicy?.require_step_up ?? false);
+    setRequireReauth(editPolicy?.require_reauth ?? false);
+    setReauthPeriod(editPolicy?.reauth_period ?? null);
     setSubmitting(false);
     setError(null);
   });
@@ -339,7 +468,8 @@ function AccessPolicyDrawer({
       filter: buildFilter(),
       logins: buildLogins(),
       source_ip: sourceIP,
-      require_step_up: requireStepUp,
+      require_reauth: requireReauth,
+      reauth_period: requireReauth ? reauthPeriod : null,
     };
     try {
       if (isEdit && editPolicy) {
@@ -725,48 +855,69 @@ function AccessPolicyDrawer({
           onChange={setSourceIP}
         />
 
-        {/* Require approval — toggle card */}
-        <button
-          type="button"
-          onClick={() => setRequireStepUp((v) => !v)}
+        {/* Require re-authentication — toggle card, with the freshness window
+            nested inside once enabled. */}
+        <div
           className={cn(
-            "w-full flex items-center gap-3 px-3.5 py-3 border rounded-xl text-left transition-colors",
-            requireStepUp
+            "border rounded-xl transition-colors",
+            requireReauth
               ? "border-primary/40 bg-primary/[0.06]"
               : "border-border bg-card",
           )}
         >
-          <span
-            className={cn(
-              "grid place-items-center w-8 h-8 rounded-lg bg-surface shrink-0",
-              requireStepUp ? "text-primary" : "text-text-secondary",
-            )}
-          >
-            <ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold text-text-primary">
-              Require browser approval
-            </span>
-            <span className="block text-xs text-text-muted">
-              Even with an enrolled key, each session must be approved in the
-              browser.
-            </span>
-          </span>
-          <span
-            className={cn(
-              "relative ml-auto inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0",
-              requireStepUp ? "bg-primary" : "bg-border-light",
-            )}
+          <button
+            type="button"
+            onClick={() => setRequireReauth((v) => !v)}
+            className="w-full flex items-center gap-3 px-3.5 py-3 text-left"
           >
             <span
               className={cn(
-                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                requireStepUp ? "translate-x-4" : "translate-x-0.5",
+                "grid place-items-center w-8 h-8 rounded-lg bg-surface shrink-0",
+                requireReauth ? "text-primary" : "text-text-secondary",
               )}
-            />
-          </span>
-        </button>
+            >
+              <ShieldCheckIcon className="w-4 h-4" strokeWidth={2} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-text-primary">
+                Require re-authentication
+              </span>
+              <span className="block text-xs text-text-muted">
+                Even with an enrolled key, the user must re-authenticate before
+                the session starts.
+              </span>
+            </span>
+            <span
+              className={cn(
+                "relative ml-auto inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0",
+                requireReauth ? "bg-primary" : "bg-border-light",
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                  requireReauth ? "translate-x-4" : "translate-x-0.5",
+                )}
+              />
+            </span>
+          </button>
+
+          {requireReauth && (
+            <div className="flex items-center justify-between gap-3 px-3.5 py-3 border-t border-primary/20">
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-text-primary">
+                  Frequency
+                </span>
+                <span className="block text-xs text-text-muted">
+                  {reauthPeriod
+                    ? "One re-authentication covers this window."
+                    : "Re-authenticates every session."}
+                </span>
+              </span>
+              <PeriodSelect value={reauthPeriod} onChange={setReauthPeriod} />
+            </div>
+          )}
+        </div>
 
         {/* Consequence callout */}
         <div className="flex gap-2.5 px-3.5 py-3 rounded-xl border border-border bg-card text-sm leading-relaxed">
@@ -792,8 +943,9 @@ function AccessPolicyDrawer({
                 {loginLabel()}
                 {sourceIP.length > 0 &&
                   `, from ${sourceIP.length} network${sourceIP.length > 1 ? "s" : ""}`}
-                {requireStepUp && ", with browser approval"}.
-                {isBroad && " This is the broadest grant possible."}
+                {requireReauth &&
+                  `, re-authenticating ${reauthPeriodLabel(reauthPeriod).toLowerCase()}`}
+                .{isBroad && " This is the broadest grant possible."}
               </>
             )}
           </p>
