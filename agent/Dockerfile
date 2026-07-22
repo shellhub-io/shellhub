@@ -2,11 +2,11 @@
 # Default build: production multiarch
 # Development: use --target development
 
-ARG GOLANG_VERSION=1.25
-ARG ALPINE_VERSION=3.22
+ARG GOLANG_VERSION=1.25.12
+ARG ALPINE_VERSION=3.24
 
 # Base stage for both development and production
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.25}-alpine${ALPINE_VERSION:-3.22} AS base
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.25}-alpine${ALPINE_VERSION:-3.24} AS base
 
 ARG GOPROXY
 ARG TARGETARCH
@@ -47,7 +47,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
 # Runtime utilities stage - CRITICAL: must use target platform
-FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.22} AS runtime-utils
+FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
 
 # Install runtime binaries for the TARGET architecture
 RUN apk add --no-cache util-linux setpriv ca-certificates

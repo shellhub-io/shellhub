@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/cli
 
-go 1.25.8
+go 1.25.12
 
 require (
 	github.com/shellhub-io/shellhub v0.0.0
