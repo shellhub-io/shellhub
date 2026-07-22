@@ -62,6 +62,7 @@ export function buildEditNamespaceBody(
         namespace.settings?.connection_announcement ?? "",
       session_record: values.sessionRecord,
       ssh_access_mode: namespace.settings?.ssh_access_mode ?? "legacy",
+      ssh_legacy_allowed: namespace.settings?.ssh_legacy_allowed ?? false,
     },
   };
 }

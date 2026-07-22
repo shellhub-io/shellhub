@@ -352,6 +352,9 @@ export default function Settings() {
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
   const sshAccessMode = settings?.ssh_access_mode ?? "legacy";
+  // Only grandfathered namespaces (pre identity-first) may toggle back to
+  // legacy; namespaces born identity have no mode switch at all.
+  const sshLegacyAllowed = settings?.ssh_legacy_allowed ?? false;
   const banner = settings?.connection_announcement ?? "";
 
   const handleToggleRecord = async () => {
@@ -539,32 +542,38 @@ export default function Settings() {
               )
             }
           >
-            <div
-              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateSshAccessMode || switchingAccessMode ? "opacity-40 pointer-events-none" : ""}`}
-            >
-              <button
-                type="button"
-                onClick={() => void handleSetAccessMode("legacy")}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  sshAccessMode === "legacy"
-                    ? "bg-hover-strong text-text-secondary border border-border-light"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
+            {sshLegacyAllowed ? (
+              <div
+                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateSshAccessMode || switchingAccessMode ? "opacity-40 pointer-events-none" : ""}`}
               >
-                Legacy
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleSetAccessMode("identity")}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  sshAccessMode === "identity"
-                    ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
-              >
+                <button
+                  type="button"
+                  onClick={() => void handleSetAccessMode("legacy")}
+                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                    sshAccessMode === "legacy"
+                      ? "bg-hover-strong text-text-secondary border border-border-light"
+                      : "text-text-muted hover:text-text-secondary border border-transparent"
+                  }`}
+                >
+                  Legacy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleSetAccessMode("identity")}
+                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                    sshAccessMode === "identity"
+                      ? "bg-primary/15 text-primary border border-primary/25"
+                      : "text-text-muted hover:text-text-secondary border border-transparent"
+                  }`}
+                >
+                  Identity
+                </button>
+              </div>
+            ) : (
+              <span className="inline-flex items-center h-7 px-2.5 text-2xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
                 Identity
-              </button>
-            </div>
+              </span>
+            )}
           </SettingsRow>
 
           {/* SSH Banner */}
