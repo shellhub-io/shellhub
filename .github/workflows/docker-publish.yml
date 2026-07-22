@@ -165,6 +165,11 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
+      - name: Sign '${{ matrix.project }}' image with cosign
+        run: |
+          cosign sign --yes "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
+          cosign sign --yes "${{ steps.image.outputs.name }}:latest"
+
       - name: Attach SBOM to '${{ matrix.project }}' image
         run: |
           cosign attach sbom \
