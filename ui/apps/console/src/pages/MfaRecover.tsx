@@ -4,7 +4,7 @@ import { KeyIcon } from "@heroicons/react/24/outline";
 import { useForm } from "react-hook-form";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
-import { disableMfa } from "../client";
+import { recoveryDisableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
@@ -26,7 +26,7 @@ export default function MfaRecover() {
   const identifier = user || username;
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
-  const { register, handleSubmit, getValues, resetField, formState } =
+  const { register, handleSubmit, reset, resetField, formState } =
     useForm<MfaRecoverFormValues>({
       resolver: mfaRecoverResolver,
       mode: "onTouched",
@@ -50,6 +50,7 @@ export default function MfaRecover() {
   const onSubmit = async (values: MfaRecoverFormValues) => {
     try {
       await recoverWithCode(values.recoveryCode, identifier);
+      reset();
       setShowTimeoutModal(true);
     } catch {
       resetField("recoveryCode");
@@ -61,10 +62,7 @@ export default function MfaRecover() {
   };
 
   const handleDisableMfa = async () => {
-    await disableMfa({
-      body: { recovery_code: getValues("recoveryCode").trim() },
-      throwOnError: true,
-    });
+    await recoveryDisableMfa({ throwOnError: true });
     updateMfaStatus(false);
     setShowTimeoutModal(false);
     void navigate("/dashboard");
