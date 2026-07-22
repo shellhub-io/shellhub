@@ -1,4 +1,4 @@
-FROM golang:1.25.8-alpine3.22 AS base
+FROM golang:1.25.12-alpine3.24 AS base
 
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
