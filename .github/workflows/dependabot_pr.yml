@@ -7,10 +7,20 @@ on:
       - '**/go.mod'
       - '**/go.sum'
 
+# pull_request_target runs with repository secrets, and the job below checks out
+# and operates on the PR branch. That is only safe because the job is gated to
+# runs authored by dependabot itself (user.login == 'dependabot[bot]', which a
+# fork PR cannot spoof); the private-module `go mod tidy` needs secrets.PAT in
+# the same context as the branch, so the untrusted-context split does not apply.
+# Do not relax the guard below. GITHUB_TOKEN is read-only here — the push
+# authenticates with secrets.PAT, not GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
   go-mod-tidy:
     name: Update Go modules
-    if: contains(github.head_ref, 'dependabot/go_modules/') && github.event.pull_request.user.login == 'dependabot[bot]'
+    if: startsWith(github.head_ref, 'dependabot/go_modules/') && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
