@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ShieldCheckIcon,
   PlusIcon,
+  MagnifyingGlassIcon,
   TagIcon,
   UsersIcon,
   UserIcon,
+  CpuChipIcon,
   GlobeAltIcon,
   ServerIcon,
   CommandLineIcon,
@@ -16,9 +18,11 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useAccessPolicies } from "@/hooks/useAccessPolicies";
 import { useDeleteAccessPolicy } from "@/hooks/useAccessPolicyMutations";
 import { useNamespace } from "@/hooks/useNamespaces";
+import { useServiceAccounts } from "@/hooks/useServiceAccounts";
 import { useAuthStore } from "@/stores/authStore";
 import type { AccessPolicy } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -29,31 +33,100 @@ import RestrictedAction from "@/components/common/RestrictedAction";
 import { formatDate } from "@/utils/date";
 import AccessPolicyDrawer from "./AccessPolicyDrawer";
 
+/* ── cell chip ────────────────────────────────────── */
+
+const CHIP_TONE = {
+  neutral: "bg-card text-text-secondary border border-border",
+  primary: "bg-primary/10 text-primary",
+  cyan: "bg-accent-cyan/10 text-accent-cyan",
+  green: "bg-accent-green/10 text-accent-green",
+  red: "bg-accent-red/10 text-accent-red",
+} as const;
+
+const CHIP_ICON = "w-3 h-3 shrink-0";
+
+function Chip({
+  icon,
+  tone = "neutral",
+  mono,
+  title,
+  children,
+}: {
+  icon?: ReactNode;
+  tone?: keyof typeof CHIP_TONE;
+  mono?: boolean;
+  title?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
+        CHIP_TONE[tone],
+        mono && "font-mono",
+      )}
+    >
+      {icon}
+      {children}
+    </span>
+  );
+}
+
 /* ── subject cell ─────────────────────────────────── */
 
-function SubjectCell({ policy }: { policy: AccessPolicy }) {
+function SubjectCell({
+  policy,
+  memberEmail,
+  serviceAccountName,
+  roleMemberCount,
+}: {
+  policy: AccessPolicy;
+  memberEmail: (id: string) => string | undefined;
+  serviceAccountName: (id: string) => string | undefined;
+  roleMemberCount: (role: string) => number;
+}) {
   const { type, value } = policy.subject;
+
   if (type === "all-members") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary">
-        <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+      <Chip icon={<UsersIcon className={CHIP_ICON} strokeWidth={2} />}>
         All members
-      </span>
+      </Chip>
     );
   }
   if (type === "role") {
+    const n = roleMemberCount(value);
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary">
-        <IdentificationIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-        Role: {value}
-      </span>
+      <Chip icon={<IdentificationIcon className={CHIP_ICON} strokeWidth={2} />}>
+        {value}
+        {n > 0 && (
+          <span className="text-text-muted font-normal ml-0.5">· {n}</span>
+        )}
+      </Chip>
     );
   }
+  // A "user" subject is either a human member or a service account (bound by id).
+  const sa = serviceAccountName(value);
+  if (sa) {
+    return (
+      <Chip
+        tone="primary"
+        icon={<CpuChipIcon className={CHIP_ICON} strokeWidth={2} />}
+      >
+        {sa}
+      </Chip>
+    );
+  }
+  const email = memberEmail(value);
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary">
-      <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-      {value}
-    </span>
+    <Chip
+      icon={<UserIcon className={CHIP_ICON} strokeWidth={2} />}
+      mono={!email}
+      title={email ? undefined : value}
+    >
+      {email ?? `${value.slice(0, 12)}…`}
+    </Chip>
   );
 }
 
@@ -61,33 +134,39 @@ function SubjectCell({ policy }: { policy: AccessPolicy }) {
 
 function DevicesCell({ policy }: { policy: AccessPolicy }) {
   if (policy.filter.tags.length > 0) {
+    // Keep rows compact: show up to two tags inline, collapse the rest into a "+N" chip.
+    const tags = policy.filter.tags;
+    const shown = tags.slice(0, 2);
+    const rest = tags.slice(2);
     return (
       <span className="inline-flex items-center gap-1.5 flex-wrap">
-        {policy.filter.tags.map((tag) => (
-          <span
+        {shown.map((tag) => (
+          <Chip
             key={tag.id}
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary text-2xs font-mono rounded"
+            tone="primary"
+            mono
+            icon={<TagIcon className={CHIP_ICON} strokeWidth={2} />}
           >
-            <TagIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
             {tag.name}
-          </span>
+          </Chip>
         ))}
+        {rest.length > 0 && (
+          <Chip title={rest.map((t) => t.name).join(", ")}>+{rest.length}</Chip>
+        )}
       </span>
     );
   }
   if (policy.filter.hostname && policy.filter.hostname !== ".*") {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-yellow/10 text-accent-yellow text-2xs font-mono rounded">
-        <ServerIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+      <Chip mono icon={<ServerIcon className={CHIP_ICON} strokeWidth={2} />}>
         {policy.filter.hostname}
-      </span>
+      </Chip>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-2xs font-mono text-text-muted">
-      <GlobeAltIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+    <Chip icon={<GlobeAltIcon className={CHIP_ICON} strokeWidth={2} />}>
       All devices
-    </span>
+    </Chip>
   );
 }
 
@@ -97,21 +176,17 @@ function LoginsCell({ policy }: { policy: AccessPolicy }) {
   const isAny = policy.logins.length === 1 && policy.logins[0] === "*";
   if (isAny) {
     return (
-      <span className="inline-flex items-center gap-1 text-2xs font-mono text-text-muted">
-        <CommandLineIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+      <Chip icon={<CommandLineIcon className={CHIP_ICON} strokeWidth={2} />}>
         Any login
-      </span>
+      </Chip>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 flex-wrap">
       {policy.logins.map((login) => (
-        <span
-          key={login}
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-cyan/10 text-accent-cyan text-2xs font-mono rounded"
-        >
+        <Chip key={login} tone="cyan" mono>
           {login}
-        </span>
+        </Chip>
       ))}
     </span>
   );
@@ -122,17 +197,21 @@ function LoginsCell({ policy }: { policy: AccessPolicy }) {
 function EffectCell({ policy }: { policy: AccessPolicy }) {
   if (policy.effect === "deny") {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-red/10 text-accent-red text-2xs font-mono rounded uppercase">
-        <NoSymbolIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+      <Chip
+        tone="red"
+        icon={<NoSymbolIcon className={CHIP_ICON} strokeWidth={2} />}
+      >
         Deny
-      </span>
+      </Chip>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-green/10 text-accent-green text-2xs font-mono rounded uppercase">
-      <CheckCircleIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
+    <Chip
+      tone="green"
+      icon={<CheckCircleIcon className={CHIP_ICON} strokeWidth={2} />}
+    >
       Allow
-    </span>
+    </Chip>
   );
 }
 
@@ -142,12 +221,27 @@ export default function AccessPolicies() {
   const { policies, isLoading } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
+  const { serviceAccounts } = useServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
+
+  // Resolve a policy subject's id to a human label for the list. A "user" subject may be a
+  // member (show email) or a service account (show name); a role shows its member count.
+  const members = ns?.members ?? [];
+  const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
+  const serviceAccountName = (id: string) =>
+    serviceAccounts.find((s) => s.id === id)?.name;
+  const roleMemberCount = (role: string) =>
+    members.filter((m) => String(m.role) === role).length;
   const deletePolicy = useDeleteAccessPolicy();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccessPolicy | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const filtered = policies.filter((p) =>
+    p.name.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   const closeDelete = () => {
     setDeleteError(null);
@@ -196,7 +290,14 @@ export default function AccessPolicies() {
     {
       key: "subject",
       header: "Subject",
-      render: (p) => <SubjectCell policy={p} />,
+      render: (p) => (
+        <SubjectCell
+          policy={p}
+          memberEmail={memberEmail}
+          serviceAccountName={serviceAccountName}
+          roleMemberCount={roleMemberCount}
+        />
+      ),
     },
     {
       key: "devices",
@@ -228,7 +329,10 @@ export default function AccessPolicies() {
               variant="primary"
               title="Edit"
               aria-label={`Edit ${p.name}`}
-              onClick={() => openEdit(p)}
+              onClick={(e) => {
+                e.stopPropagation();
+                openEdit(p);
+              }}
             >
               <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
             </IconButton>
@@ -238,7 +342,10 @@ export default function AccessPolicies() {
               variant="danger"
               title="Delete"
               aria-label={`Delete ${p.name}`}
-              onClick={() => setDeleteTarget(p)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget(p);
+              }}
             >
               <TrashIcon className="w-4 h-4" strokeWidth={2} />
             </IconButton>
@@ -333,13 +440,31 @@ export default function AccessPolicies() {
         </RestrictedAction>
       </PageHeader>
 
+      <div className="relative mb-3 max-w-xs">
+        <MagnifyingGlassIcon
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
+          strokeWidth={2}
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search policies by name…"
+          className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary outline-none focus:border-primary/60"
+        />
+      </div>
+
       <DataTable
         columns={columns}
-        data={policies}
+        data={filtered}
         rowKey={(p) => p.id}
         isLoading={isLoading}
         loadingMessage="Loading access policies..."
-        emptyMessage="No access policies found"
+        emptyMessage={
+          query ? `No policies match "${query}"` : "No access policies found"
+        }
+        onRowClick={openEdit}
+        rowClassName={() => "cursor-pointer"}
       />
 
       <AccessPolicyDrawer
