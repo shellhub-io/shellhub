@@ -5,8 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { LABEL } from "@/utils/styles";
-import FieldHint from "@/components/common/fields/FieldHint";
+import { LABEL, LABEL_BASE } from "@/utils/styles";
 import { parseSourceIp, sourceIpKind } from "@/utils/sourceIp";
 
 const KIND_LABEL: Record<string, string> = {
@@ -69,7 +68,19 @@ export default function SourceIpInput({
 
   return (
     <div>
-      <span className={LABEL}>{label}</span>
+      {hint ? (
+        <span className="block mb-1.5">
+          <span className={LABEL_BASE}>{label}</span>
+          <span
+            id={hintId}
+            className="block mt-1 text-xs font-normal normal-case tracking-normal text-text-muted"
+          >
+            {hint}
+          </span>
+        </span>
+      ) : (
+        <span className={LABEL}>{label}</span>
+      )}
       <div className="flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 bg-card border border-border rounded-lg cursor-text transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
         {values.map((v) => {
           const kind = sourceIpKind(v);
@@ -110,11 +121,7 @@ export default function SourceIpInput({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={commitDraft}
-          placeholder={
-            values.length === 0
-              ? "type an IP or CIDR, e.g. 10.0.0.5 or 10.0.0.0/8"
-              : ""
-          }
+          placeholder={values.length === 0 ? "e.g. 10.0.0.5 or 10.0.0.0/8" : ""}
           aria-describedby={hintId}
           className="flex-1 min-w-[150px] bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
         />
@@ -178,8 +185,6 @@ export default function SourceIpInput({
           ))}
         </div>
       )}
-
-      <FieldHint id={hintId}>{hint}</FieldHint>
     </div>
   );
 }

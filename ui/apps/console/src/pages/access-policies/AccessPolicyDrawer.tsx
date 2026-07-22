@@ -37,16 +37,27 @@ import ChipInput from "@/components/common/fields/ChipInput";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
 import Drawer from "@/components/common/Drawer";
-import { LABEL } from "@/utils/styles";
+import { LABEL, LABEL_BASE } from "@/utils/styles";
 import { Button } from "@shellhub/design-system/primitives";
 
 type SubjectType = "all-members" | "role" | "user" | "service-account";
 type FilterOption = "all" | "hostname" | "tags";
 type LoginsOption = "any" | "specific";
 
-/* A field label above a control. */
-function Label({ children }: { children: ReactNode }) {
-  return <span className={LABEL}>{children}</span>;
+/* A field label above a control, with an optional one-line description. */
+function Label({ children, hint }: { children: ReactNode; hint?: string }) {
+  if (!hint) {
+    return <span className={LABEL}>{children}</span>;
+  }
+
+  return (
+    <span className="block mb-1.5">
+      <span className={LABEL_BASE}>{children}</span>
+      <span className="block mt-1 text-xs font-normal normal-case tracking-normal text-text-muted">
+        {hint}
+      </span>
+    </span>
+  );
 }
 
 /* Selector box that opens an inline dropdown below it, closing on outside click.
@@ -574,7 +585,9 @@ function AccessPolicyDrawer({
 
         {/* Action */}
         <div>
-          <Label>Action</Label>
+          <Label hint="Allow grants the access below; deny blocks it and wins over any allow.">
+            Action
+          </Label>
           <div className="inline-flex bg-card border border-border rounded-lg p-0.5 gap-0.5">
             {(["allow", "deny"] as const).map((e) => (
               <button
@@ -608,9 +621,9 @@ function AccessPolicyDrawer({
           )}
         </div>
 
-        {/* Who */}
+        {/* Subject */}
         <div>
-          <Label>{action === "deny" ? "Block access for" : "Who"}</Label>
+          <Label hint="Who the policy applies to.">Subject</Label>
           <PickerBox
             trigger={whoTrigger}
             empty={subjectType === "user" && !userValue}
@@ -715,18 +728,9 @@ function AccessPolicyDrawer({
           </PickerBox>
         </div>
 
-        {/* connector */}
-        <div className="flex items-center gap-2 -my-1 pl-1 text-xs text-text-muted">
-          <ChevronDownIcon
-            className="w-3.5 h-3.5 text-border-light"
-            strokeWidth={2}
-          />
-          {action === "deny" ? "is blocked from" : "can SSH into"}
-        </div>
-
         {/* Devices */}
         <div>
-          <Label>Devices</Label>
+          <Label hint="Which devices the subject can reach.">Devices</Label>
           <PickerBox
             trigger={devTrigger}
             empty={filterOption === "tags" && !selectedTags.length}
@@ -811,10 +815,10 @@ function AccessPolicyDrawer({
           </PickerBox>
         </div>
 
-        {/* Allowed logins */}
+        {/* Logins */}
         <div>
-          <Label>
-            {action === "deny" ? "Blocked logins" : "Allowed logins"}
+          <Label hint="Which unix logins are allowed on those devices.">
+            Logins
           </Label>
           {loginsOption === "any" ? (
             <div className="flex items-center gap-2 min-h-[44px] px-3 py-2 bg-card border border-border rounded-lg">
@@ -834,8 +838,8 @@ function AccessPolicyDrawer({
               <ChipInput
                 id="access-policy-logins"
                 label=""
+                hint=""
                 placeholder="type a unix login + Enter (e.g. deploy, root)"
-                hint="Empty means any login."
                 values={logins}
                 onChange={(next) => {
                   setLogins(next);
@@ -850,7 +854,7 @@ function AccessPolicyDrawer({
         <SourceIpInput
           id="access-policy-source-ip"
           label="Source IP"
-          hint="Restrict to these CIDRs. A bare IP becomes a /32 host. Empty = any IP."
+          hint="Only connections from these IPs or ranges."
           values={sourceIP}
           onChange={setSourceIP}
         />
