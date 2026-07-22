@@ -49,23 +49,17 @@ wsl --shutdown
 
 ## Installation
 
-Once systemd and mirrored networking are configured, install the agent using the standard Docker method:
+Once systemd and mirrored networking are configured, install the agent:
 
 ```bash
-$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | sh
 ```
 
-> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
-
-This requires Docker installed inside WSL. If you don't have Docker in WSL, install it first:
-
-```bash
-$ curl -fsSL https://get.docker.com | sh
-```
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address. The WSL install method uses a standalone systemd service, even if Docker is available inside WSL.
 
 ## Verifying
 
-After installation, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+After installation, the agent prints a pairing code and an accept link. Open the link in your browser to accept the device into your namespace.
 
 The device hostname in the dashboard matches your WSL distribution's hostname.
 
@@ -73,7 +67,7 @@ The device hostname in the dashboard matches your WSL distribution's hostname.
 
 - **Agent fails to connect** — Confirm mirrored networking is active: run `wsl --version` and check that `networkingMode` is set. If you're on Windows 10 or an older Windows 11 build, mirrored mode is not available.
 - **systemd not working** — After editing `/etc/wsl.conf`, you must fully restart WSL with `wsl --shutdown`. Verify with `systemctl --no-pager` inside WSL — if it errors, systemd is not active.
-- **Docker not starting** — If using Docker CE inside WSL (not Docker Desktop), make sure the Docker daemon is running: `sudo service docker start`. Docker Desktop's WSL integration works differently and may conflict with the agent's `--net host` flag.
+- **Service not starting** — Check the agent service status with `systemctl status shellhub-agent` and logs with `journalctl -u shellhub-agent -f`.
 
 ## Next steps
 
