@@ -14,14 +14,14 @@ import {
 } from "@shellhub/design-system/primitives";
 import { HighlightCard } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+import { signupUrl } from "@/links";
 import { Reveal, ShimmerCard } from "../landing/components";
 
 interface StepPathProps {
-  onSelectCloud: () => void;
   onSelectSelfHosted: () => void;
 }
 
-export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
+export function StepPath({ onSelectSelfHosted }: StepPathProps) {
   return (
     <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
       <div className="grid md:grid-cols-2 gap-6">
@@ -60,11 +60,12 @@ export function StepPath({ onSelectCloud, onSelectSelfHosted }: StepPathProps) {
               </ul>
 
               <Button
+                as="a"
+                href={signupUrl}
                 variant="primary"
                 size="lg"
                 glow
                 fullWidth
-                onClick={onSelectCloud}
               >
                 Sign Up Free
               </Button>
