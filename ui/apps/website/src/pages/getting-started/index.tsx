@@ -4,15 +4,11 @@ import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import { StepPath } from "./StepPath";
 import { StepSetup } from "./StepSetup";
-import { StepSignup } from "./StepSignup";
-
-type Path = "cloud" | "selfhosted";
 
 const steps = [{ label: "Get started" }, { label: "Setup" }];
 
 export default function GettingStarted() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [path, setPath] = useState<Path | null>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -57,40 +53,23 @@ export default function GettingStarted() {
           >
             <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold tracking-[-0.03em] leading-tight mb-3">
               {currentStep === 0 && "Get started with ShellHub"}
-              {currentStep === 1 &&
-                path === "selfhosted" &&
-                "Set up self-hosted"}
-              {currentStep === 1 && path === "cloud" && "Create your account"}
+              {currentStep === 1 && "Set up self-hosted"}
             </h1>
             <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
               {currentStep === 0 && "Choose how you want to run ShellHub."}
               {currentStep === 1 &&
-                path === "selfhosted" &&
                 "Run ShellHub on your own infrastructure with Docker."}
-              {currentStep === 1 &&
-                path === "cloud" &&
-                "Sign up to start using ShellHub Cloud."}
             </p>
           </div>
 
           {/* Steps */}
           {currentStep === 0 && (
             <StepPath
-              onSelectCloud={() => {
-                setPath("cloud");
-                setCurrentStep(1);
-              }}
-              onSelectSelfHosted={() => {
-                setPath("selfhosted");
-                setCurrentStep(1);
-              }}
+              onSelectSelfHosted={() => setCurrentStep(1)}
             />
           )}
-          {currentStep === 1 && path === "selfhosted" && (
+          {currentStep === 1 && (
             <StepSetup onBack={() => setCurrentStep(0)} />
-          )}
-          {currentStep === 1 && path === "cloud" && (
-            <StepSignup onBack={() => setCurrentStep(0)} />
           )}
         </div>
       </main>
