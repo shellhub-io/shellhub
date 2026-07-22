@@ -162,6 +162,7 @@ func (h *Handler) ResolveSSHIdentity(c gateway.Context) error {
 	if found {
 		resolution.UserID = identity.UserID
 		resolution.Name = identity.Name
+		resolution.LastReauthAt = identity.LastReauthAt
 	}
 
 	return c.JSON(http.StatusOK, resolution)

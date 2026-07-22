@@ -20,7 +20,11 @@ type SSHIdentity struct {
 	// Data is the OpenSSH public key the fingerprint is derived from.
 	Data []byte `json:"-"`
 	// Name is a user label for the key, e.g. "laptop".
-	Name       string     `json:"name"`
-	CreatedAt  time.Time  `json:"created_at"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	// LastUsedAt moves on every connect (identity resolution).
 	LastUsedAt *time.Time `json:"last_used_at"`
+	// LastReauthAt moves only on a successful re-authentication, so it can gate
+	// an Access Policy's reauth_period freshness window. Distinct from LastUsedAt.
+	LastReauthAt *time.Time `json:"last_reauth_at"`
 }

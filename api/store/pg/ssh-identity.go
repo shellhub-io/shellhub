@@ -136,6 +136,23 @@ func (pg *Pg) SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprin
 	return nil
 }
 
+func (pg *Pg) SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint string) error {
+	db := pg.GetConnection(ctx)
+
+	now := clock.Now()
+
+	if _, err := db.NewUpdate().
+		Model((*entity.SSHIdentity)(nil)).
+		Set("last_reauth_at = ?", now).
+		Where("namespace_id = ?", tenantID).
+		Where("fingerprint = ?", fingerprint).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 func sshIdentityResolverToString(resolver store.SSHIdentityResolver) (string, error) {
 	switch resolver {
 	case store.SSHIdentityIDResolver:

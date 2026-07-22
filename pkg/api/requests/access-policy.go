@@ -38,7 +38,8 @@ type AccessPolicyCreate struct {
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
 	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
-	RequireStepUp bool                `json:"require_step_up" validate:""`
+	RequireReauth bool                `json:"require_reauth" validate:""`
+	ReauthPeriod  *int                `json:"reauth_period" validate:"omitempty,gte=0"`
 	TenantID      string              `json:"-"`
 }
 
@@ -51,7 +52,8 @@ type AccessPolicyUpdate struct {
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
 	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
-	RequireStepUp bool                `json:"require_step_up" validate:""`
+	RequireReauth bool                `json:"require_reauth" validate:""`
+	ReauthPeriod  *int                `json:"reauth_period" validate:"omitempty,gte=0"`
 	TenantID      string              `json:"-"`
 }
 

@@ -20,7 +20,8 @@ type AccessPolicy struct {
 	FilterHostname string    `bun:"filter_hostname"`
 	Logins         []string  `bun:"logins,array"`
 	SourceIP       []string  `bun:"source_ip,array"`
-	RequireStepUp  bool      `bun:"require_step_up"`
+	RequireReauth  bool      `bun:"require_reauth"`
+	ReauthPeriod   *int      `bun:"reauth_period"`
 	Effect         string    `bun:"effect"`
 
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
@@ -52,7 +53,8 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		FilterHostname: model.Filter.Hostname,
 		Logins:         model.Logins,
 		SourceIP:       model.SourceIP,
-		RequireStepUp:  model.RequireStepUp,
+		RequireReauth:  model.RequireReauth,
+		ReauthPeriod:   model.ReauthPeriod,
 		Effect:         string(model.Effect),
 		Tags:           []*Tag{},
 	}
@@ -93,7 +95,8 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 		},
 		Logins:        entity.Logins,
 		SourceIP:      entity.SourceIP,
-		RequireStepUp: entity.RequireStepUp,
+		RequireReauth: entity.RequireReauth,
+		ReauthPeriod:  entity.ReauthPeriod,
 		Effect:        models.PolicyEffect(entity.Effect),
 	}
 

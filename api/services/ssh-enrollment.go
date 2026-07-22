@@ -229,6 +229,15 @@ func (s *service) decideSSHEnrollment(ctx context.Context, userID, code string, 
 		}
 	}
 
+	// A confirmed re-auth (enroll=false) refreshes the identity's reauth window so
+	// a policy's reauth_period can skip the next browser step. The key is already
+	// enrolled here, so this only stamps the timestamp.
+	if decision == models.SSHEnrollmentConfirmed && !enrollment.Enroll && enrollment.Fingerprint != "" {
+		if err := s.store.SSHIdentityTouchReauth(ctx, enrollment.TenantID, enrollment.Fingerprint); err != nil {
+			return err
+		}
+	}
+
 	enrollment.State = decision
 	enrollment.UserID = userID
 

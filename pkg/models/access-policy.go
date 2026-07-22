@@ -55,10 +55,15 @@ type AccessPolicy struct {
 	// Effect is whether this policy grants (allow) or blocks (deny) the covered
 	// access. Defaults to allow.
 	Effect PolicyEffect `json:"effect"`
-	// RequireStepUp gates access granted by this policy on an extra per-session
-	// browser approval (JIT step-up), even when the connecting key is already
-	// enrolled. Off by default; enrollment alone is the norm.
-	RequireStepUp bool `json:"require_step_up"`
+	// RequireReauth gates access granted by this policy on a fresh per-session
+	// re-authentication (an out-of-band confirmation), even when the connecting
+	// key is already enrolled. Off by default; enrollment alone is the norm.
+	RequireReauth bool `json:"require_reauth"`
+	// ReauthPeriod is the freshness window for RequireReauth, in seconds: a
+	// re-authentication is only demanded when the identity has not re-authed
+	// within it. nil or 0 means "always" (every session). Only meaningful when
+	// RequireReauth is set.
+	ReauthPeriod *int `json:"reauth_period"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -84,9 +89,13 @@ func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
 // Decision is the outcome of an Access Policy authorization check.
 type Decision struct {
 	Allowed bool `json:"allowed"`
-	// RequireStepUp is set when access is allowed by a policy that carries the
-	// step-up flag; the gateway must run a per-session browser approval before
-	// proceeding.
-	RequireStepUp bool   `json:"require_step_up"`
-	Reason        string `json:"reason"`
+	// RequireReauth is set when access is allowed by a policy that carries the
+	// re-auth flag; the gateway must run a fresh per-session re-authentication
+	// before proceeding, subject to ReauthPeriod.
+	RequireReauth bool `json:"require_reauth"`
+	// ReauthPeriod is the matched policy's freshness window in seconds (nil/0 =
+	// always). The gateway skips the re-auth when the identity re-authed within
+	// it. Only meaningful when RequireReauth is set.
+	ReauthPeriod *int   `json:"reauth_period"`
+	Reason       string `json:"reason"`
 }

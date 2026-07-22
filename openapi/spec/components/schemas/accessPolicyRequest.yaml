@@ -30,12 +30,22 @@ properties:
       - deny
     default: allow
     example: allow
-  require_step_up:
+  require_reauth:
     description: |
-      Whether a recognized key must still get a per-session browser approval
-      before the session proceeds under the identity SSH access mode.
+      Whether a recognized key must still complete a fresh per-session
+      re-authentication before the session proceeds under the identity SSH
+      access mode.
     type: boolean
     example: false
+  reauth_period:
+    description: |
+      Freshness window for `require_reauth`, in seconds: a re-authentication is
+      only demanded when the identity has not re-authed within it. Null or 0
+      means "always" (every session). Only meaningful when `require_reauth` is
+      true.
+    type: integer
+    nullable: true
+    example: 43200
 required:
   - name
   - subject

@@ -105,7 +105,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 		}
 
 		if matched {
-			return &models.Decision{Allowed: true, RequireStepUp: policy.RequireStepUp}, nil
+			return &models.Decision{Allowed: true, RequireReauth: policy.RequireReauth, ReauthPeriod: policy.ReauthPeriod}, nil
 		}
 	}
 
@@ -237,6 +237,17 @@ func defaultEffect(effect string) models.PolicyEffect {
 	return models.PolicyEffect(effect)
 }
 
+// normalizeReauthPeriod collapses a zero period to nil so "always" has a single
+// stored representation: both an omitted period and an explicit 0 mean re-auth
+// every session.
+func normalizeReauthPeriod(period *int) *int {
+	if period != nil && *period == 0 {
+		return nil
+	}
+
+	return period
+}
+
 func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error) {
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
@@ -277,7 +288,8 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Logins:        req.Logins,
 		SourceIP:      normalizeSourceIPs(req.SourceIP),
 		Effect:        defaultEffect(req.Effect),
-		RequireStepUp: req.RequireStepUp,
+		RequireReauth: req.RequireReauth,
+		ReauthPeriod:  normalizeReauthPeriod(req.ReauthPeriod),
 	}
 
 	id, err := s.store.AccessPolicyCreate(ctx, policy)
@@ -307,7 +319,8 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Logins:        req.Logins,
 		SourceIP:      normalizeSourceIPs(req.SourceIP),
 		Effect:        defaultEffect(req.Effect),
-		RequireStepUp: req.RequireStepUp,
+		RequireReauth: req.RequireReauth,
+		ReauthPeriod:  normalizeReauthPeriod(req.ReauthPeriod),
 	}
 
 	if err := s.store.AccessPolicyUpdate(ctx, policy); err != nil {

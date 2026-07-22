@@ -13,6 +13,11 @@ CREATE TABLE ssh_identities (
     name character varying NOT NULL DEFAULT '',
     created_at timestamp with time zone NOT NULL,
     last_used_at timestamp with time zone,
+    -- When this identity last completed a re-authentication (Access Policy
+    -- require_reauth). Distinct from last_used_at, which is stamped on every
+    -- connect; this only moves on a successful re-auth, so it can gate the
+    -- reauth_period freshness window.
+    last_reauth_at timestamp with time zone,
     PRIMARY KEY (id),
     -- A fingerprint maps to exactly one identity within a namespace; the same key
     -- may still enroll in other namespaces.

@@ -37,7 +37,7 @@ func TestAuthorize(t *testing.T) {
 		sourceIP        string
 		requireMocks    func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expectedAllowed bool
-		expectedStepUp  bool
+		expectedReauth  bool
 		expectedErr     bool
 	}{
 		{
@@ -261,7 +261,7 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     false,
 		},
 		{
-			description: "grants and flags step-up when the matched policy requires it",
+			description: "grants and flags re-auth when the matched policy requires it",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
@@ -275,12 +275,12 @@ func TestAuthorize(t *testing.T) {
 							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:        models.PublicKeyFilter{},
 							Logins:        []string{"*"},
-							RequireStepUp: true,
+							RequireReauth: true,
 						},
 					}, 1, nil).Once()
 			},
 			expectedAllowed: true,
-			expectedStepUp:  true,
+			expectedReauth:  true,
 			expectedErr:     false,
 		},
 		{
@@ -717,7 +717,7 @@ func TestAuthorize(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tc.expectedAllowed, decision.Allowed)
-				require.Equal(t, tc.expectedStepUp, decision.RequireStepUp)
+				require.Equal(t, tc.expectedReauth, decision.RequireReauth)
 			}
 
 			storeMock.AssertExpectations(t)

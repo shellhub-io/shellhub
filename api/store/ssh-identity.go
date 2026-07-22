@@ -33,4 +33,8 @@ type SSHIdentityStore interface {
 	// SSHIdentityTouchLastUsed stamps the last-used time of the identity matching
 	// the namespace and fingerprint. A miss is not an error.
 	SSHIdentityTouchLastUsed(ctx context.Context, tenantID, fingerprint string) error
+	// SSHIdentityTouchReauth stamps the last-reauth time of the identity matching
+	// the namespace and fingerprint, on a successful re-authentication. A miss is
+	// not an error.
+	SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint string) error
 }

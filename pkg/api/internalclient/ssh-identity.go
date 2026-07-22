@@ -2,6 +2,7 @@ package internalclient
 
 import (
 	"context"
+	"time"
 )
 
 // SSHIdentityResolution is the gateway's view of an identity lookup: whether the
@@ -11,6 +12,10 @@ type SSHIdentityResolution struct {
 	Found  bool   `json:"found"`
 	UserID string `json:"user_id"`
 	Name   string `json:"name"`
+	// LastReauthAt is when the identity last completed a re-authentication, used
+	// by the gateway to honor a policy's reauth_period freshness window. Nil when
+	// it never re-authed.
+	LastReauthAt *time.Time `json:"last_reauth_at"`
 }
 
 // sshIdentityAPI defines the method the SSH gateway uses to resolve a presented
