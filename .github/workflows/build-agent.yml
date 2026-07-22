@@ -38,12 +38,12 @@ jobs:
 
       - name: Set image tag
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "IMAGE_TAG=${{ env.RELEASE_VERSION }},latest" >> $GITHUB_ENV
-            echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "IMAGE_TAG=${RELEASE_VERSION},latest" >> "$GITHUB_ENV"
+            echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${RELEASE_VERSION}" >> "$GITHUB_ENV"
           else
-            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
-            echo "BUILD_ARGS=" >> $GITHUB_ENV
+            echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+            echo "BUILD_ARGS=" >> "$GITHUB_ENV"
           fi
 
       # Build amd64 only and load it into the local Docker daemon so Trivy can
