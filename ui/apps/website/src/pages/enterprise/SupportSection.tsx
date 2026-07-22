@@ -5,7 +5,7 @@ import {
 import { Card, IconBadge } from "@shellhub/design-system/primitives";
 import { HighlightCard, Section, SectionHeader } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
-import { Reveal, ShimmerCard } from "../landing/components";
+import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
 export function SupportSection() {
   return (

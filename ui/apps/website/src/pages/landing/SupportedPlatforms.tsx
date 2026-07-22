@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { DockerIcon } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
-import { Reveal } from "./components";
+import { Reveal } from "@shellhub/design-system/components";
 import { docsUrl } from "@/links";
 
 export function SupportedPlatforms() {

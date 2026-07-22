@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Section, SectionHeader } from "@/components/marketing";
-import { Reveal } from "../landing/components";
+import { Reveal } from "@shellhub/design-system/components";
 
 const faqs = [
   {

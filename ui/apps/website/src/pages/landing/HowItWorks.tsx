@@ -1,8 +1,8 @@
 import { Card } from "@shellhub/design-system/primitives";
 import { Section, SectionHeader } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
-import { Reveal, ShimmerCard } from "./components";
-import { C, FONT_SANS, FONT_MONO } from "./constants";
+import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
+import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
 export function HowItWorks() {
   return (

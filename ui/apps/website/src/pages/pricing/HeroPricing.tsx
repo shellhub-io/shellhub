@@ -1,5 +1,4 @@
-import { GlowOrbs } from "@shellhub/design-system/components";
-import { Reveal } from "../landing/components";
+import { GlowOrbs, Reveal } from "@shellhub/design-system/components";
 
 export function HeroPricing() {
   return (

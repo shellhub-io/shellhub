@@ -1,8 +1,8 @@
 import { StarIcon } from "@heroicons/react/24/solid";
 import { GithubIcon } from "@shellhub/design-system/primitives";
 import { ActionButton, Section, SectionHeader } from "@/components/marketing";
-import { Reveal } from "./components";
-import { C } from "./constants";
+import { Reveal } from "@shellhub/design-system/components";
+import { C } from "@shellhub/design-system/constants";
 import { githubUrl, signupUrl } from "@/links";
 
 export function OpenSource() {

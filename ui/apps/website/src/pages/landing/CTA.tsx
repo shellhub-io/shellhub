@@ -1,6 +1,9 @@
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  ConnectionGrid,
+  GlowOrbs,
+  Reveal,
+} from "@shellhub/design-system/components";
 import { ActionButton, Section } from "@/components/marketing";
-import { Reveal, ConnectionGrid } from "./components";
 import { signupUrl } from "@/links";
 
 export function CTA() {

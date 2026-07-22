@@ -4,7 +4,11 @@ import {
   BuildingOffice2Icon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  GlowOrbs,
+  Reveal,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
 import {
   Badge,
   Button,
@@ -15,7 +19,6 @@ import {
 import { HighlightCard } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
 import { signupUrl } from "@/links";
-import { Reveal, ShimmerCard } from "../landing/components";
 
 interface StepPathProps {
   onSelectSelfHosted: () => void;

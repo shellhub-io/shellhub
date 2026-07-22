@@ -8,7 +8,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { C } from "./constants";
+import { C } from "@shellhub/design-system/constants";
 import { loginUrl, signupUrl } from "@/links";
 import {
   productCols,
