@@ -319,7 +319,7 @@ function AccessPolicyDrawer({
     members.filter((m) => String(m.role) === role).length;
 
   const [name, setName] = useState("");
-  const [effect, setEffect] = useState<"allow" | "deny">("allow");
+  const [action, setAction] = useState<"allow" | "deny">("allow");
   const [subjectType, setSubjectType] = useState<SubjectType>("all-members");
   const [roleValue, setRoleValue] = useState<string>("administrator");
   const [userValue, setUserValue] = useState<string>("");
@@ -366,7 +366,7 @@ function AccessPolicyDrawer({
       : (editPolicy?.subject.type ?? "all-members");
 
     setName(editPolicy?.name ?? "");
-    setEffect(editPolicy?.effect ?? "allow");
+    setAction(editPolicy?.action ?? "allow");
     setSubjectType(subjInit);
     setRoleValue(
       editPolicy?.subject.type === "role"
@@ -451,7 +451,7 @@ function AccessPolicyDrawer({
     loginsOption === "any" ? "any login (incl. root)" : logins.join(", ");
 
   const isBroad =
-    effect === "allow" &&
+    action === "allow" &&
     subjectType === "all-members" &&
     loginsOption === "any" &&
     filterOption === "all";
@@ -463,7 +463,7 @@ function AccessPolicyDrawer({
     setSubmitting(true);
     const body: AccessPolicyRequest = {
       name: name.trim(),
-      effect,
+      action,
       subject: buildSubject(),
       filter: buildFilter(),
       logins: buildLogins(),
@@ -572,18 +572,18 @@ function AccessPolicyDrawer({
           placeholder="e.g. Operators to prod"
         />
 
-        {/* Effect */}
+        {/* Action */}
         <div>
-          <Label>Effect</Label>
+          <Label>Action</Label>
           <div className="inline-flex bg-card border border-border rounded-lg p-0.5 gap-0.5">
             {(["allow", "deny"] as const).map((e) => (
               <button
                 key={e}
                 type="button"
-                onClick={() => setEffect(e)}
+                onClick={() => setAction(e)}
                 className={cn(
                   "flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  effect === e
+                  action === e
                     ? e === "allow"
                       ? "bg-accent-green/15 text-accent-green"
                       : "bg-accent-red/15 text-accent-red"
@@ -593,14 +593,14 @@ function AccessPolicyDrawer({
                 <span
                   className={cn(
                     "w-1.5 h-1.5 rounded-full",
-                    effect === e ? "bg-current" : "bg-text-muted",
+                    action === e ? "bg-current" : "bg-text-muted",
                   )}
                 />
                 {e === "allow" ? "Allow" : "Deny"}
               </button>
             ))}
           </div>
-          {effect === "deny" && (
+          {action === "deny" && (
             <p className="mt-1.5 text-xs text-accent-red flex items-center gap-1.5">
               <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
               Deny wins — evaluated before every allow.
@@ -610,7 +610,7 @@ function AccessPolicyDrawer({
 
         {/* Who */}
         <div>
-          <Label>{effect === "deny" ? "Block access for" : "Who"}</Label>
+          <Label>{action === "deny" ? "Block access for" : "Who"}</Label>
           <PickerBox
             trigger={whoTrigger}
             empty={subjectType === "user" && !userValue}
@@ -721,7 +721,7 @@ function AccessPolicyDrawer({
             className="w-3.5 h-3.5 text-border-light"
             strokeWidth={2}
           />
-          {effect === "deny" ? "is blocked from" : "can SSH into"}
+          {action === "deny" ? "is blocked from" : "can SSH into"}
         </div>
 
         {/* Devices */}
@@ -814,7 +814,7 @@ function AccessPolicyDrawer({
         {/* Allowed logins */}
         <div>
           <Label>
-            {effect === "deny" ? "Blocked logins" : "Allowed logins"}
+            {action === "deny" ? "Blocked logins" : "Allowed logins"}
           </Label>
           {loginsOption === "any" ? (
             <div className="flex items-center gap-2 min-h-[44px] px-3 py-2 bg-card border border-border rounded-lg">
@@ -924,12 +924,12 @@ function AccessPolicyDrawer({
           <CheckIcon
             className={cn(
               "w-4 h-4 shrink-0 mt-0.5",
-              effect === "deny" ? "text-accent-red" : "text-accent-green",
+              action === "deny" ? "text-accent-red" : "text-accent-green",
             )}
             strokeWidth={2.5}
           />
           <p className="text-text-secondary">
-            {effect === "deny" ? (
+            {action === "deny" ? (
               <>
                 <b className="text-text-primary">Denies</b> {subjectLabel()}{" "}
                 from reaching{" "}

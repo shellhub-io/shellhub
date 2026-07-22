@@ -192,10 +192,10 @@ function LoginsCell({ policy }: { policy: AccessPolicy }) {
   );
 }
 
-/* ── effect cell ──────────────────────────────────── */
+/* ── action cell ──────────────────────────────────── */
 
-function EffectCell({ policy }: { policy: AccessPolicy }) {
-  if (policy.effect === "deny") {
+function ActionCell({ policy }: { policy: AccessPolicy }) {
+  if (policy.action === "deny") {
     return (
       <Chip
         tone="red"
@@ -283,9 +283,9 @@ export default function AccessPolicies() {
       ),
     },
     {
-      key: "effect",
-      header: "Effect",
-      render: (p) => <EffectCell policy={p} />,
+      key: "action",
+      header: "Action",
+      render: (p) => <ActionCell policy={p} />,
     },
     {
       key: "subject",
