@@ -10,27 +10,27 @@ The default and recommended way to install the ShellHub agent. Requires Docker (
 
 ## Installation
 
-### From the dashboard
+### From the console
 
-The easiest method. In the ShellHub dashboard, click **Add Device** and copy the install script command:
+The easiest method. On the **Devices** page, click **Add Device** and copy the install command:
 
 ```bash
-$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | sh
 ```
 
 > **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
 
-This downloads and runs the agent as a Docker container with automatic restart on reboot.
+This downloads and runs the agent as a Docker container with automatic restart on reboot. The agent prints a pairing code and a link — open the link in your browser to accept the device into your namespace.
 
-The script accepts optional URL parameters to override agent defaults:
+The script accepts optional environment variables to override agent defaults. Pass them before `sh`:
 
-- `keepalive_interval` — interval, in seconds, between keepalive messages
-- `preferred_hostname` — hostname to report instead of the value derived from the network interface MAC address
+- `PREFERRED_HOSTNAME` — hostname to report instead of the value derived from the network interface MAC address
+- `KEEPALIVE_INTERVAL` — interval, in seconds, between keepalive messages
 
 For example:
 
 ```bash
-$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID&preferred_hostname=my-device" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | PREFERRED_HOSTNAME=my-device sh
 ```
 
 ### Manual Docker run
@@ -84,7 +84,7 @@ Check agent logs:
 $ docker logs shellhub-agent
 ```
 
-The device should appear in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+If you used the codeless install, the agent prints a pairing link — open it to accept the device. If you used the manual Docker run with a `TENANT_ID`, the device is registered under the namespace's legacy install key and needs to be accepted from **Install Keys**.
 
 ## Supported architectures
 

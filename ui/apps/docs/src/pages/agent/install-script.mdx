@@ -11,27 +11,27 @@ The ShellHub server provides an install script at `/install.sh` that auto-detect
 ## Usage
 
 ```bash
-$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | sh
 ```
 
 For self-hosted instances, replace the URL with your server address:
 
 ```bash
-$ curl -sSf "https://your-server.example.com/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://your-server.example.com/install.sh" | sh
 ```
 
-The `TENANT_ID` and `SERVER_ADDRESS` are passed as inline environment variables to `sh`. The server serves the script as a static file — it does not inject values into the script content.
+The server injects `SERVER_ADDRESS` into the script from the request host, so the command is the same for every user on an instance. Optional variables like `TENANT_ID` or `PREFERRED_HOSTNAME` are passed as inline environment variables before `sh`.
 
 ## What happens when you run it
 
 The script follows this sequence:
 
 1. **Checks for FreeBSD** — exits early with a link to the [FreeBSD guide](/agent/freebsd) (not supported by the script)
-2. **Validates** that `TENANT_ID` is set (exits if missing)
-3. **Detects architecture** from `uname -m`
-4. **Queries the server** at `/info` to determine the agent version to install
-5. **Probes for install methods** in priority order (see below)
-6. **Installs and starts** the agent using the selected method
+2. **Detects architecture** from `uname -m`
+3. **Queries the server** at `/info` to determine the agent version to install
+4. **Probes for install methods** in priority order (see below)
+5. **Installs and starts** the agent using the selected method
+6. **Runs the enrollment flow** — for Docker, Podman, and Standalone without a `TENANT_ID`, the agent boots tenant-less and prints a pairing code and link; open the link to accept the device into a namespace. Snap requires `TENANT_ID`.
 
 ## Detection order
 
@@ -51,7 +51,7 @@ If neither Docker nor Podman is found, the script prints a warning recommending 
 You can skip auto-detection by setting `INSTALL_METHOD` explicitly:
 
 ```bash
-$ INSTALL_METHOD=standalone curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | INSTALL_METHOD=standalone sh
 ```
 
 ## What each method does
@@ -143,7 +143,9 @@ Override any of these before running the script:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TENANT_ID` | *(required)* | Namespace tenant ID |
+| `TENANT_ID` | *(none)* | Namespace tenant ID. Required for Snap; optional for Docker, Podman, and Standalone (omit for codeless pairing) |
+| `CODE` | *(none)* | Pre-authorized pairing code (Docker/Podman only). The device is accepted automatically when it connects |
+| `INSTALL_KEY` | *(none)* | Reusable install key for fleet provisioning (Docker/Podman only). The key's mode determines whether the device is auto-accepted or left pending |
 | `SERVER_ADDRESS` | `https://cloud.shellhub.io` | ShellHub server URL |
 | `INSTALL_METHOD` | auto-detected | Force a method: `docker`, `podman`, `snap`, `wsl`, `standalone` |
 | `AGENT_VERSION` | from server `/info` | Pin a specific agent version |
@@ -158,8 +160,8 @@ Override any of these before running the script:
 Example — force standalone install with a custom hostname:
 
 ```bash
-$ INSTALL_METHOD=standalone PREFERRED_HOSTNAME=edge-gateway-01 \
-    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | \
+    INSTALL_METHOD=standalone PREFERRED_HOSTNAME=edge-gateway-01 sh
 ```
 
 ## Supported architectures
@@ -178,7 +180,7 @@ The script auto-detects the CPU architecture from `uname -m`:
 The script can install the agent in connector mode, which registers Docker containers running on the host as individual ShellHub devices:
 
 ```bash
-$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh -s -- connector
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | TENANT_ID=YOUR_TENANT_ID sh -s -- connector
 ```
 
 In connector mode:
@@ -192,8 +194,8 @@ In connector mode:
 You can filter which containers are managed with `CONNECTOR_LABEL`:
 
 ```bash
-$ CONNECTOR_LABEL=shellhub.io/managed \
-    curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh -s -- connector
+$ curl -sSf "https://cloud.shellhub.io/install.sh" | \
+    TENANT_ID=YOUR_TENANT_ID CONNECTOR_LABEL=shellhub.io/managed sh -s -- connector
 ```
 
 Only containers with that Docker label are registered as devices.
@@ -202,11 +204,16 @@ Only containers with that Docker label are registered as devices.
 
 ## After installation
 
-Once the agent starts, the device registers with the server but is **not** connectable yet — it appears in the dashboard with a **Pending** status. You must accept it before it can be used: open the [Devices](/guides/devices) view and accept the pending device. After it is accepted, the device shows as **Online** and is ready for SSH sessions.
+What happens next depends on how the agent was installed:
+
+- **Codeless (no `TENANT_ID`)** — the agent prints a pairing code and an accept link. Open the link in your browser to accept the device into your namespace. Once accepted, the device shows as **Online** and is ready for SSH sessions.
+- **With `CODE`** — the device is accepted automatically when it connects. No manual step needed.
+- **With `INSTALL_KEY`** — the outcome depends on the key's mode (automatic, manual, webhook, or allowlist). See [Install Keys](/guides/devices) for details.
+- **With `TENANT_ID` only** — the device is registered under the namespace's legacy install key with **Pending** status. Go to **Install Keys**, open the key's activity, and accept it there.
 
 ## Next steps
 
 - [Agent Overview](/agent/overview) — How the agent works and full configuration reference
-- [Devices](/guides/devices) — Accept the pending device and manage your fleet
+- [Devices](/guides/devices) — Manage your fleet
 - [Docker](/agent/docker) — Manual Docker installation and advanced options
 - [Connecting](/guides/connecting) — Connect to your device after installation
