@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/ssh/pkg/magickey"
@@ -266,10 +267,10 @@ func (a *identityAuth) Evaluate(session *Session) error {
 		return err
 	}
 
-	if dec.RequireStepUp {
-		// Step-up: the identity is already established by the key; require a
-		// per-session browser confirmation (enroll=false, so the confirm only
-		// grants and does not re-bind) before proceeding.
+	if dec.RequireReauth && needsReauth(session.LastReauthAt, dec.ReauthPeriod) {
+		// Re-auth: the identity is already established by the key; require a fresh
+		// per-session confirmation (enroll=false, so the confirm only grants and
+		// does not re-bind) before proceeding.
 		if err := session.api.AttachSSHEnrollmentKey(a.ctx, session.EnrollmentCode, session.Fingerprint, session.KeyData, false); err != nil {
 			return err
 		}
@@ -282,6 +283,23 @@ func (a *identityAuth) Evaluate(session *Session) error {
 	}
 
 	return nil
+}
+
+// needsReauth reports whether a policy requiring re-authentication must challenge
+// this connection, given when the identity last re-authed and the policy's
+// freshness window in seconds. A nil or zero period means "always" (every
+// session); a never-re-authed identity always challenges; otherwise it is fresh
+// while within the window.
+func needsReauth(lastReauthAt *time.Time, period *int) bool {
+	if period == nil || *period == 0 {
+		return true
+	}
+
+	if lastReauthAt == nil {
+		return true
+	}
+
+	return clock.Now().Sub(*lastReauthAt) >= time.Duration(*period)*time.Second
 }
 
 // preAuthConnCtxKey keys the pre-auth connection stashed on the gliderssh
@@ -356,6 +374,7 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 
 	if resolution.Found {
 		s.UserID = resolution.UserID
+		s.LastReauthAt = resolution.LastReauthAt
 
 		return AuthIdentity(ctx), nil
 	}

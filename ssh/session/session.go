@@ -58,6 +58,10 @@ type Data struct {
 	// KeyData is the presented SSH public key in OpenSSH authorized_keys form,
 	// carried so an enrollment can persist it.
 	KeyData []byte
+	// LastReauthAt is when the resolved identity last re-authenticated, read at
+	// key resolution and compared against a policy's reauth_period to decide
+	// whether a fresh re-auth is still needed. Nil when it never re-authed.
+	LastReauthAt *time.Time
 }
 
 // AgentChannel represents a channel open between agent and server.
