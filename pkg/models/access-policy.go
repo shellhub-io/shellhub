@@ -20,17 +20,17 @@ type PolicySubject struct {
 	Value string            `json:"value"`
 }
 
-// PolicyEffect is whether an Access Policy grants access (allow) or blocks it
+// PolicyAction is whether an Access Policy grants access (allow) or blocks it
 // (deny).
-type PolicyEffect string
+type PolicyAction string
 
 const (
-	// PolicyEffectAllow grants access to the subject; the default.
-	PolicyEffectAllow PolicyEffect = "allow"
-	// PolicyEffectDeny blocks access. Deny is evaluated before allow and wins
+	// PolicyActionAllow grants access to the subject; the default.
+	PolicyActionAllow PolicyAction = "allow"
+	// PolicyActionDeny blocks access. Deny is evaluated before allow and wins
 	// over any allow, however specific: it is a subtractive blocklist carved out
 	// of the broad grants, not a base layer (default-deny already blocks the rest).
-	PolicyEffectDeny PolicyEffect = "deny"
+	PolicyActionDeny PolicyAction = "deny"
 )
 
 // AccessPolicy is a namespace-scoped authorization rule for the identity-based
@@ -52,9 +52,9 @@ type AccessPolicy struct {
 	// in any of them matches). Empty matches any IP. A single host is a /32 (or
 	// /128 for IPv6).
 	SourceIP []string `json:"source_ip"`
-	// Effect is whether this policy grants (allow) or blocks (deny) the covered
+	// Action is whether this policy grants (allow) or blocks (deny) the covered
 	// access. Defaults to allow.
-	Effect PolicyEffect `json:"effect"`
+	Action PolicyAction `json:"action"`
 	// RequireReauth gates access granted by this policy on a fresh per-session
 	// re-authentication (an out-of-band confirmation), even when the connecting
 	// key is already enrolled. Off by default; enrollment alone is the norm.
@@ -82,7 +82,7 @@ func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
 		Filter:   PublicKeyFilter{},
 		Logins:   []string{"*"},
 		SourceIP: []string{},
-		Effect:   PolicyEffectAllow,
+		Action:   PolicyActionAllow,
 	}
 }
 

@@ -71,7 +71,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 	// however specific the allow. It is fail-closed — a deny whose filter cannot
 	// be evaluated denies rather than silently opening access.
 	for _, policy := range policies {
-		if policy.Effect != models.PolicyEffectDeny {
+		if policy.Action != models.PolicyActionDeny {
 			continue
 		}
 
@@ -92,7 +92,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID string, device
 	// hostname regexp is treated as a non-match so one broken policy never blocks
 	// a valid one, and the default stays deny.
 	for _, policy := range policies {
-		if policy.Effect == models.PolicyEffectDeny {
+		if policy.Action == models.PolicyActionDeny {
 			continue
 		}
 
@@ -227,14 +227,14 @@ func loginMatches(logins []string, login string) bool {
 	return false
 }
 
-// defaultEffect resolves a request's effect, defaulting an omitted value to
+// defaultAction resolves a request's action, defaulting an omitted value to
 // allow so clients need not send it for the common grant case.
-func defaultEffect(effect string) models.PolicyEffect {
-	if effect == "" {
-		return models.PolicyEffectAllow
+func defaultAction(action string) models.PolicyAction {
+	if action == "" {
+		return models.PolicyActionAllow
 	}
 
-	return models.PolicyEffect(effect)
+	return models.PolicyAction(action)
 }
 
 // normalizeReauthPeriod collapses a zero period to nil so "always" has a single
@@ -287,7 +287,7 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Filter:        filter,
 		Logins:        req.Logins,
 		SourceIP:      normalizeSourceIPs(req.SourceIP),
-		Effect:        defaultEffect(req.Effect),
+		Action:        defaultAction(req.Action),
 		RequireReauth: req.RequireReauth,
 		ReauthPeriod:  normalizeReauthPeriod(req.ReauthPeriod),
 	}
@@ -318,7 +318,7 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		Filter:        filter,
 		Logins:        req.Logins,
 		SourceIP:      normalizeSourceIPs(req.SourceIP),
-		Effect:        defaultEffect(req.Effect),
+		Action:        defaultAction(req.Action),
 		RequireReauth: req.RequireReauth,
 		ReauthPeriod:  normalizeReauthPeriod(req.ReauthPeriod),
 	}

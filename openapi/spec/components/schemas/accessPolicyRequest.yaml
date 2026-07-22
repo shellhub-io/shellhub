@@ -20,7 +20,7 @@ properties:
     items:
       type: string
       example: 10.0.0.0/8
-  effect:
+  action:
     description: |
       Whether the policy grants (allow) or blocks (deny) the covered access.
       Deny wins over any allow. Defaults to allow when omitted.

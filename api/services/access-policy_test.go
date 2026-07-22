@@ -319,13 +319,13 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"root"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -347,13 +347,13 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"root"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -375,13 +375,13 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -403,13 +403,13 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{Hostname: "["},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -431,7 +431,7 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"root"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 					}, 1, nil).Once()
 			},
@@ -453,13 +453,13 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectDeny,
+							Action:  models.PolicyActionDeny,
 						},
 						{
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"teste"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 					}, 2, nil).Once()
 			},
@@ -483,7 +483,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
-							Effect:   models.PolicyEffectAllow,
+							Action:   models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},
@@ -507,7 +507,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
-							Effect:   models.PolicyEffectAllow,
+							Action:   models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},
@@ -530,7 +530,7 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},
@@ -553,14 +553,14 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.0/24"},
-							Effect:   models.PolicyEffectDeny,
+							Action:   models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -583,14 +583,14 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.0/24"},
-							Effect:   models.PolicyEffectDeny,
+							Action:   models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -614,7 +614,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"203.0.113.9/32"},
-							Effect:   models.PolicyEffectAllow,
+							Action:   models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},
@@ -638,7 +638,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8", "192.168.0.0/16"},
-							Effect:   models.PolicyEffectAllow,
+							Action:   models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},
@@ -661,14 +661,14 @@ func TestAuthorize(t *testing.T) {
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
-							Effect:  models.PolicyEffectAllow,
+							Action:  models.PolicyActionAllow,
 						},
 						{
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"10.0.0.0/8"},
-							Effect:   models.PolicyEffectDeny,
+							Action:   models.PolicyActionDeny,
 						},
 					}, 2, nil).Once()
 			},
@@ -692,7 +692,7 @@ func TestAuthorize(t *testing.T) {
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
 							SourceIP: []string{"garbage"},
-							Effect:   models.PolicyEffectAllow,
+							Action:   models.PolicyActionAllow,
 						},
 					}, 1, nil).Once()
 			},

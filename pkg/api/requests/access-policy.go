@@ -37,7 +37,7 @@ type AccessPolicyCreate struct {
 	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
-	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
+	Action        string              `json:"action" validate:"omitempty,oneof=allow deny"`
 	RequireReauth bool                `json:"require_reauth" validate:""`
 	ReauthPeriod  *int                `json:"reauth_period" validate:"omitempty,gte=0"`
 	TenantID      string              `json:"-"`
@@ -51,7 +51,7 @@ type AccessPolicyUpdate struct {
 	Filter        AccessPolicyFilter  `json:"filter" validate:"required"`
 	Logins        []string            `json:"logins" validate:"required,min=1,dive,required"`
 	SourceIP      []string            `json:"source_ip" validate:"omitempty,dive,cidr|ip"`
-	Effect        string              `json:"effect" validate:"omitempty,oneof=allow deny"`
+	Action        string              `json:"action" validate:"omitempty,oneof=allow deny"`
 	RequireReauth bool                `json:"require_reauth" validate:""`
 	ReauthPeriod  *int                `json:"reauth_period" validate:"omitempty,gte=0"`
 	TenantID      string              `json:"-"`

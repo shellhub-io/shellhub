@@ -337,7 +337,7 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.Equal(t, models.PolicySubjectUser, policies[0].Subject.Type)
 		assert.Equal(t, userID, policies[0].Subject.Value)
 		assert.Equal(t, []string{"*"}, policies[0].Logins)
-		assert.Equal(t, models.PolicyEffectAllow, policies[0].Effect)
+		assert.Equal(t, models.PolicyActionAllow, policies[0].Action)
 	})
 
 	t.Run("explicit legacy mode is preserved and not seeded", func(t *testing.T) {

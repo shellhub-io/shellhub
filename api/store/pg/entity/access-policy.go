@@ -22,7 +22,7 @@ type AccessPolicy struct {
 	SourceIP       []string  `bun:"source_ip,array"`
 	RequireReauth  bool      `bun:"require_reauth"`
 	ReauthPeriod   *int      `bun:"reauth_period"`
-	Effect         string    `bun:"effect"`
+	Action         string    `bun:"action"`
 
 	Tags []*Tag `bun:"m2m:access_policy_tags,join:AccessPolicy=Tag"`
 }
@@ -55,7 +55,7 @@ func AccessPolicyFromModel(model *models.AccessPolicy) *AccessPolicy {
 		SourceIP:       model.SourceIP,
 		RequireReauth:  model.RequireReauth,
 		ReauthPeriod:   model.ReauthPeriod,
-		Effect:         string(model.Effect),
+		Action:         string(model.Action),
 		Tags:           []*Tag{},
 	}
 
@@ -97,7 +97,7 @@ func AccessPolicyToModel(entity *AccessPolicy) *models.AccessPolicy {
 		SourceIP:      entity.SourceIP,
 		RequireReauth: entity.RequireReauth,
 		ReauthPeriod:  entity.ReauthPeriod,
-		Effect:        models.PolicyEffect(entity.Effect),
+		Action:        models.PolicyAction(entity.Action),
 	}
 
 	if len(entity.Tags) > 0 {

@@ -1,5 +1,5 @@
 description: |
-  An access policy either grants (effect allow) or blocks (effect deny) a
+  An access policy either grants (action allow) or blocks (action deny) a
   subject (user, role, or all members) reaching a set of devices as a set of
   unix logins, under the identity SSH access mode. Evaluation is default-deny
   and deny-first: a matching deny wins over any allow.
@@ -28,7 +28,7 @@ properties:
     items:
       type: string
       example: 10.0.0.0/8
-  effect:
+  action:
     description: |
       Whether the policy grants (allow) or blocks (deny) the covered access.
       Deny is evaluated first and wins over any allow.
@@ -71,7 +71,7 @@ required:
   - filter
   - logins
   - source_ip
-  - effect
+  - action
   - require_reauth
   - created_at
   - updated_at
