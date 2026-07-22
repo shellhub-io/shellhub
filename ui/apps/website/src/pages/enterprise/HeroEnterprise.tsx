@@ -1,7 +1,10 @@
 import { Badge } from "@shellhub/design-system/primitives";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  ConnectionGrid,
+  GlowOrbs,
+  Reveal,
+} from "@shellhub/design-system/components";
 import { ActionButtonGroup } from "@/components/marketing";
-import { Reveal, ConnectionGrid } from "../landing/components";
 
 export function HeroEnterprise() {
   return (

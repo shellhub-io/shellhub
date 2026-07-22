@@ -15,7 +15,12 @@ import {
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  ConnectionGrid,
+  GlowOrbs,
+  Reveal,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
@@ -26,8 +31,7 @@ import {
   SectionHeader,
 } from "@/components/marketing";
 import { ArrowMarker } from "@/components/marketing/ArrowMarker";
-import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
-import { C, FONT_SANS, FONT_MONO } from "../landing/constants";
+import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
 const techDetails = [
   {

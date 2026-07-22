@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { CommandBlock, Section, SectionHeader } from "@/components/marketing";
-import { Reveal } from "./components";
+import { Reveal } from "@shellhub/design-system/components";
 import { docsUrl } from "@/links";
 
 const DOCKER_CMD = "docker run -d -p 80:80 shellhubio/shellhub";

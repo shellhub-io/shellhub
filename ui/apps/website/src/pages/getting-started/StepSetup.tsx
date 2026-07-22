@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { CommandBlock } from "@/components/marketing";
 import { docsUrl } from "@/links";
-import { Reveal } from "../landing/components";
+import { Reveal } from "@shellhub/design-system/components";
 
 const DOCKER_CMD = "docker run -d -p 80:80 shellhubio/shellhub";
 

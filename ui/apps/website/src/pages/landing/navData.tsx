@@ -21,7 +21,7 @@ import {
   VideoCameraIcon,
 } from "@heroicons/react/24/outline";
 import { DiscordIcon, GithubIcon } from "@shellhub/design-system/primitives";
-import { C } from "./constants";
+import { C } from "@shellhub/design-system/constants";
 import { docsUrl, githubUrl } from "@/links";
 
 const ICON_CLASS = "w-4 h-4";
@@ -58,7 +58,9 @@ export const productCols: MenuSection[] = [
         label: "MFA & RBAC",
         href: "/features",
         desc: "Multi-factor auth and role-based access control",
-        icon: <ShieldCheckIcon className={ICON_CLASS} style={{ color: C.blue }} />,
+        icon: (
+          <ShieldCheckIcon className={ICON_CLASS} style={{ color: C.blue }} />
+        ),
       },
       {
         label: "Firewall Rules",
@@ -122,7 +124,9 @@ export const productCols: MenuSection[] = [
         label: "Session Replay",
         href: "/features",
         desc: "Watch and replay recorded SSH sessions",
-        icon: <PlayCircleIcon className={ICON_CLASS} style={{ color: C.blue }} />,
+        icon: (
+          <PlayCircleIcon className={ICON_CLASS} style={{ color: C.blue }} />
+        ),
       },
       {
         label: "Getting Started",
@@ -138,7 +142,10 @@ export const productCols: MenuSection[] = [
         href: "#",
         desc: "Release notes and version history",
         icon: (
-          <PencilSquareIcon className={ICON_CLASS} style={{ color: C.primary }} />
+          <PencilSquareIcon
+            className={ICON_CLASS}
+            style={{ color: C.primary }}
+          />
         ),
       },
     ],
@@ -185,7 +192,10 @@ export const solutionsCols: MenuSection[] = [
         href: "/use-cases/devops-ci-cd",
         desc: "Automate with Ansible, Terraform and CI pipelines",
         icon: (
-          <CodeBracketIcon className={ICON_CLASS} style={{ color: C.primary }} />
+          <CodeBracketIcon
+            className={ICON_CLASS}
+            style={{ color: C.primary }}
+          />
         ),
       },
       {
@@ -230,7 +240,10 @@ export const resourcesCols: MenuSection[] = [
         href: "#",
         desc: "See what shipped in every release",
         icon: (
-          <PencilSquareIcon className={ICON_CLASS} style={{ color: C.primary }} />
+          <PencilSquareIcon
+            className={ICON_CLASS}
+            style={{ color: C.primary }}
+          />
         ),
       },
     ],
@@ -242,13 +255,17 @@ export const resourcesCols: MenuSection[] = [
         label: "API Reference",
         href: docsUrl,
         desc: "REST API endpoints and authentication",
-        icon: <CodeBracketIcon className={ICON_CLASS} style={{ color: C.cyan }} />,
+        icon: (
+          <CodeBracketIcon className={ICON_CLASS} style={{ color: C.cyan }} />
+        ),
       },
       {
         label: "GitHub",
         href: githubUrl,
         desc: "Source code, issues and contributions",
-        icon: <GithubIcon className={ICON_CLASS} style={{ color: C.textSec }} />,
+        icon: (
+          <GithubIcon className={ICON_CLASS} style={{ color: C.textSec }} />
+        ),
       },
       {
         label: "Discord",
@@ -285,7 +302,9 @@ export const resourcesCols: MenuSection[] = [
         label: "Security",
         href: "#",
         desc: "CVEs, responsible disclosure and trust",
-        icon: <ShieldCheckIcon className={ICON_CLASS} style={{ color: C.red }} />,
+        icon: (
+          <ShieldCheckIcon className={ICON_CLASS} style={{ color: C.red }} />
+        ),
       },
     ],
   },

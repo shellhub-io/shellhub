@@ -10,7 +10,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { Badge, Card, WindowChrome } from "@shellhub/design-system/primitives";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  ConnectionGrid,
+  GlowOrbs,
+  Reveal,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
@@ -20,8 +25,7 @@ import {
   SectionHeader,
   type CTAAction,
 } from "@/components/marketing";
-import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
-import { C } from "../landing/constants";
+import { C } from "@shellhub/design-system/constants";
 
 const primaryAction: CTAAction = {
   label: "Get Started Free",

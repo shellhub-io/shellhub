@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { Button } from "@shellhub/design-system/primitives";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  GlowOrbs,
+  Reveal,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
 import { HighlightCard, Section } from "@/components/marketing";
 import { FeatureListItem } from "@/components/marketing/FeatureListItem";
-import { Reveal, ShimmerCard } from "../landing/components";
 
 const tiers = [
   {
@@ -80,7 +83,10 @@ export function TierCards() {
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-lg font-bold">{tier.name}</h3>
                 <span
-                  className={cn("px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full", tier.badgeClass)}
+                  className={cn(
+                    "px-2 py-0.5 text-2xs font-mono font-semibold uppercase tracking-[0.1em] border rounded-full",
+                    tier.badgeClass,
+                  )}
                 >
                   {tier.badge}
                 </span>

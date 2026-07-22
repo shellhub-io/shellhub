@@ -19,7 +19,12 @@ import {
   IconBadge,
   WindowChrome,
 } from "@shellhub/design-system/primitives";
-import { GlowOrbs } from "@shellhub/design-system/components";
+import {
+  ConnectionGrid,
+  GlowOrbs,
+  Reveal,
+  ShimmerCard,
+} from "@shellhub/design-system/components";
 import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
@@ -31,8 +36,7 @@ import {
   type CTAAction,
 } from "@/components/marketing";
 import { docsUrl } from "@/links";
-import { Reveal, ShimmerCard, ConnectionGrid } from "../landing/components";
-import { C } from "../landing/constants";
+import { C } from "@shellhub/design-system/constants";
 
 const primaryAction: CTAAction = {
   label: "Get Started Free",
