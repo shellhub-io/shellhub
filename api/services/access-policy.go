@@ -362,11 +362,10 @@ func (s *service) resolveAccessPolicyFilter(ctx context.Context, tenantID string
 	return filter, nil
 }
 
-// seedAccessPolicy creates the permissive starter policy when a namespace
-// switches to identity access mode with no policies yet, so default-deny does
-// not silently lock everyone out. The seed grants every member every login on
-// every device; it is visible in the console as the thing to tighten.
-func (s *service) seedAccessPolicy(ctx context.Context, tenantID string) error {
+// seedAccessPolicy creates the owner starter policy (see NewOwnerAccessPolicy)
+// when a namespace switches to identity access mode with no policies yet, so
+// default-deny does not lock the owner out.
+func (s *service) seedAccessPolicy(ctx context.Context, tenantID, ownerID string) error {
 	policies, count, err := s.store.AccessPolicyList(ctx, s.store.Options().InNamespace(tenantID))
 	if err != nil {
 		return err
@@ -376,16 +375,7 @@ func (s *service) seedAccessPolicy(ctx context.Context, tenantID string) error {
 		return nil
 	}
 
-	seed := &models.AccessPolicy{
-		TenantID: tenantID,
-		Name:     "Default access",
-		Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-		Filter:   models.PublicKeyFilter{},
-		Logins:   []string{"*"},
-		Effect:   models.PolicyEffectAllow,
-	}
-
-	if _, err := s.store.AccessPolicyCreate(ctx, seed); err != nil {
+	if _, err := s.store.AccessPolicyCreate(ctx, models.NewOwnerAccessPolicy(tenantID, ownerID)); err != nil {
 		return err
 	}
 

@@ -64,6 +64,23 @@ type AccessPolicy struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// NewOwnerAccessPolicy is the starter policy for the identity access mode: it
+// grants the namespace owner every login on every device. Seeded when a
+// namespace is born identity (creation) or switches to identity with no
+// policies (legacy toggle), so default-deny never locks the owner out while
+// every other member starts with no access.
+func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
+	return &AccessPolicy{
+		TenantID: tenantID,
+		Name:     "Owner access",
+		Subject:  PolicySubject{Type: PolicySubjectUser, Value: ownerID},
+		Filter:   PublicKeyFilter{},
+		Logins:   []string{"*"},
+		SourceIP: []string{},
+		Effect:   PolicyEffectAllow,
+	}
+}
+
 // Decision is the outcome of an Access Policy authorization check.
 type Decision struct {
 	Allowed bool `json:"allowed"`

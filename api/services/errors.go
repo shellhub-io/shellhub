@@ -101,6 +101,7 @@ var (
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
+	ErrNamespaceLegacyNotAllowed       = errors.New("legacy SSH access mode is not available for this namespace", ErrLayer, ErrCodeForbidden)
 	ErrNamespaceSingle                 = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConflict)
 	ErrMaxTagReached                   = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)

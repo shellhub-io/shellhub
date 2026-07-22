@@ -67,8 +67,13 @@ type NamespaceSettings struct {
 	// "identity" mode every SSH login is gated on an out-of-band browser approval
 	// (no device credential required) and governed by Access Policies; the legacy
 	// key ACL and firewall checks are bypassed. "legacy" keeps the key/firewall
-	// behavior unchanged. Defaults to "legacy".
+	// behavior unchanged. New namespaces are born "identity"; namespaces that
+	// predate identity-first default to "legacy".
 	SSHAccessMode string `json:"ssh_access_mode"`
+	// SSHLegacyAllowed marks a namespace that predates identity-first
+	// (grandfathered): only these may switch the SSH access mode back to legacy.
+	// Namespaces born identity have it false and can never leave identity mode.
+	SSHLegacyAllowed bool `json:"ssh_legacy_allowed"`
 }
 
 // IsIdentityAccess reports whether the namespace uses the identity-based SSH

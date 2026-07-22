@@ -34,6 +34,16 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		namespace.TenantID = uuid.Generate()
 	}
 
+	// Identity-first: a namespace created without an explicit SSH access mode is
+	// born identity, with the owner starter policy seeded below.
+	if namespace.Settings == nil {
+		namespace.Settings = &models.NamespaceSettings{}
+	}
+
+	if namespace.Settings.SSHAccessMode == "" {
+		namespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
+	}
+
 	// Insert the namespace, its memberships, and its legacy install key atomically, so a failure can't
 	// leave a namespace without the legacy key that keyless enrollments attribute to. InstallKeyCreate
 	// resolves its connection from ctx, so it joins this transaction transparently.
@@ -85,6 +95,16 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			CreatedBy: namespace.Owner,
 		}); err != nil {
 			return err
+		}
+
+		// An identity-mode namespace with zero policies denies every SSH login
+		// (default-deny), so a namespace born identity gets the owner starter
+		// policy atomically with its creation (see NewOwnerAccessPolicy).
+		// AccessPolicyCreate joins this transaction via ctx.
+		if namespace.Settings.IsIdentityAccess() && namespace.Owner != "" {
+			if _, err := pg.AccessPolicyCreate(ctx, models.NewOwnerAccessPolicy(namespace.TenantID, namespace.Owner)); err != nil {
+				return err
+			}
 		}
 
 		return nil

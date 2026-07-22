@@ -308,6 +308,61 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		assert.Equal(t, -1, ns.MaxDevices)
 		assert.True(t, ns.Settings.SessionRecord)
 	})
+
+	t.Run("born identity with the owner access policy seeded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		namespace := &models.Namespace{
+			Name:       "identity-first-ns",
+			Owner:      userID,
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SessionRecord: true},
+		}
+
+		tenantID, err := st.NamespaceCreate(ctx, namespace)
+		require.NoError(t, err)
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.Equal(t, models.SSHAccessModeIdentity, ns.Settings.SSHAccessMode)
+		assert.False(t, ns.Settings.SSHLegacyAllowed)
+
+		policies, count, err := st.AccessPolicyList(ctx, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		require.Len(t, policies, 1)
+		assert.Equal(t, "Owner access", policies[0].Name)
+		assert.Equal(t, models.PolicySubjectUser, policies[0].Subject.Type)
+		assert.Equal(t, userID, policies[0].Subject.Value)
+		assert.Equal(t, []string{"*"}, policies[0].Logins)
+		assert.Equal(t, models.PolicyEffectAllow, policies[0].Effect)
+	})
+
+	t.Run("explicit legacy mode is preserved and not seeded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		namespace := &models.Namespace{
+			Name:       "legacy-ns",
+			Owner:      userID,
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy},
+		}
+
+		tenantID, err := st.NamespaceCreate(ctx, namespace)
+		require.NoError(t, err)
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.Equal(t, models.SSHAccessModeLegacy, ns.Settings.SSHAccessMode)
+
+		_, count, err := st.AccessPolicyList(ctx, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+	})
 }
 
 // TestNamespaceCreateDuplicate verifies that NamespaceCreate enforces a

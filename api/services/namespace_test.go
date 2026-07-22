@@ -1384,6 +1384,150 @@ func TestEditSessionRecord(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+func TestEditSSHAccessMode(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+	const ownerID = "owner-1"
+
+	cases := []struct {
+		description string
+		mode        string
+		mocks       func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
+		expected    error
+	}{
+		{
+			description: "fails when namespace not found",
+			mode:        models.SSHAccessModeIdentity,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound(tenantID, store.ErrNoDocuments),
+		},
+		{
+			description: "rejects legacy when the namespace is not grandfathered",
+			mode:        models.SSHAccessModeLegacy,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				namespace := &models.Namespace{
+					TenantID: tenantID,
+					Owner:    ownerID,
+					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeIdentity},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+			},
+			expected: NewErrForbidden(ErrNamespaceLegacyNotAllowed, nil),
+		},
+		{
+			description: "allows legacy when the namespace is grandfathered",
+			mode:        models.SSHAccessModeLegacy,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
+				namespace := &models.Namespace{
+					TenantID: tenantID,
+					Owner:    ownerID,
+					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeIdentity, SSHLegacyAllowed: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.SSHAccessMode = models.SSHAccessModeLegacy
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "switching to identity seeds the owner access policy",
+			mode:        models.SSHAccessModeIdentity,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				namespace := &models.Namespace{
+					TenantID: tenantID,
+					Owner:    ownerID,
+					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.
+					On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{}, 0, nil).
+					Once()
+				storeMock.
+					On("AccessPolicyCreate", ctx, models.NewOwnerAccessPolicy(tenantID, ownerID)).
+					Return("policy-id", nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "switching to identity does not seed when policies exist",
+			mode:        models.SSHAccessModeIdentity,
+			mocks: func(ctx context.Context, storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				namespace := &models.Namespace{
+					TenantID: tenantID,
+					Owner:    ownerID,
+					Settings: &models.NamespaceSettings{SSHAccessMode: models.SSHAccessModeLegacy, SSHLegacyAllowed: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.SSHAccessMode = models.SSHAccessModeIdentity
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
+				storeMock.
+					On("AccessPolicyList", ctx, mock.Anything).
+					Return([]models.AccessPolicy{{ID: "existing"}}, 1, nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			storeMock := new(storemock.MockStore)
+			queryOptionsMock := new(storemock.MockQueryOptions)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+			tc.mocks(ctx, storeMock, queryOptionsMock)
+
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+			err := s.EditSSHAccessMode(ctx, tc.mode, tenantID)
+			assert.Equal(t, tc.expected, err)
+
+			storeMock.AssertExpectations(t)
+		})
+	}
+}
+
 func TestDeleteNamespace(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 

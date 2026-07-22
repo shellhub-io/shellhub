@@ -22,9 +22,19 @@ properties:
     enum:
       - legacy
       - identity
-    default: legacy
-    example: legacy
+    default: identity
+    example: identity
+  ssh_legacy_allowed:
+    description: |
+      Whether the namespace may switch the SSH access mode to `legacy`. Only
+      namespaces that predate identity-first (grandfathered) have it `true`;
+      namespaces born in identity mode can never leave it. Server-controlled.
+    type: boolean
+    readOnly: true
+    default: false
+    example: false
 required:
   - session_record
   - connection_announcement
   - ssh_access_mode
+  - ssh_legacy_allowed
