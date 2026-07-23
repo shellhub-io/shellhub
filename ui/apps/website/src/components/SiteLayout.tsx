@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { cn } from "@shellhub/design-system/cn";
-import { Navbar } from "@/pages/landing/Navbar";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@shellhub/design-system/components";
 
 export function SiteLayout({
@@ -10,27 +9,14 @@ export function SiteLayout({
   children: React.ReactNode;
   className?: string;
 }) {
-  const [navSolid, setNavSolid] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-
-  const handleScroll = () => {
-    setNavSolid(window.scrollY > 50);
-  };
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div
-      className={cn("min-h-screen bg-background text-text-primary font-sans antialiased overflow-x-hidden", className)}
+      className={cn(
+        "min-h-screen overflow-x-hidden bg-background font-sans text-text-primary antialiased",
+        className,
+      )}
     >
-      <Navbar
-        navSolid={navSolid}
-        mobileMenu={mobileMenu}
-        setMobileMenu={setMobileMenu}
-      />
+      <SiteHeader />
       {children}
       <Footer />
     </div>

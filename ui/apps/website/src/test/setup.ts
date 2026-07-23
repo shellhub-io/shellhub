@@ -24,3 +24,13 @@ Object.defineProperty(window, "scrollTo", {
   configurable: true,
   value: () => {},
 });
+
+// jsdom does not implement ResizeObserver; Floating UI's autoUpdate needs it.
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+// jsdom does not implement scrollIntoView.
+Element.prototype.scrollIntoView = function () {};
