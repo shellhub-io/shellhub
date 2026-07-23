@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "18.1"
 
@@ -32,7 +32,7 @@ jobs:
           redocly bundle enterprise-customer@v1 -o ../bundled/enterprise-openapi.yaml
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: bundled
           path: bundled/
@@ -44,19 +44,19 @@ jobs:
       - openapi-bundle
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup uploader
         run: mkdir bundled/
 
       - name: Download artificats
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: bundled
           path: bundled/
 
       - name: Delivery OpenAPI to Space
-        uses: BetaHuhn/do-spaces-action@v2
+        uses: BetaHuhn/do-spaces-action@47f34d70b97cced8e8dbb50e2ecfaaf4381593a7 # v2
         with:
           access_key: ${{ secrets.SPACE_ACCESS_KEY }}
           secret_key: ${{ secrets.SPACE_SECRET_KEY }}

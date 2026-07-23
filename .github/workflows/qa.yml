@@ -44,10 +44,10 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Restore Docker image cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: /tmp/docker-cache
           key: docker-${{ runner.os }}
@@ -60,7 +60,7 @@ jobs:
             done
           fi
 
-      - uses: dorny/paths-filter@v4
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: filter
         with:
           # inline YAML or path to separate file (e.g.: .github/filters.yaml)
@@ -76,7 +76,7 @@ jobs:
 
       - name: Set up Go 1.x [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
         id: go
@@ -102,7 +102,7 @@ jobs:
 
       - name: Code linting [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           working-directory: ${{ matrix.project }}
           version: v2.11.3
