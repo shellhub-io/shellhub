@@ -83,7 +83,7 @@ jobs:
           fi
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+        uses: github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           category: codeql-go-${{ matrix.module == '.' && 'root' || matrix.module }}
           upload: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
