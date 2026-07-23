@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+import { FeatureListItem } from "@/components";
 
 describe("FeatureListItem", () => {
   it("renders an <li> with items-center and children", () => {

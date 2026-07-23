@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { ShellHubLogo } from "@shellhub/design-system/primitives";
-import { ActionButton } from "@/components/marketing";
+import { ActionButton } from "@/components";
 import {
   ChevronDownIcon,
   Bars3Icon,

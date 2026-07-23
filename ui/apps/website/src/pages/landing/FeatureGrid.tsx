@@ -6,7 +6,7 @@ import {
   UsersIcon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
-import { Section, SectionHeader, InfoCard } from "@/components/marketing";
+import { Section, SectionHeader, InfoCard } from "@/components";
 import { C } from "@shellhub/design-system/constants";
 
 export function FeatureGrid() {

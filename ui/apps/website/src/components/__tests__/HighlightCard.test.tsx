@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { HighlightCard } from "@/components/marketing/HighlightCard";
+import { HighlightCard } from "@/components";
 
 describe("HighlightCard", () => {
   it("renders children inside a card with a gradient overlay", () => {

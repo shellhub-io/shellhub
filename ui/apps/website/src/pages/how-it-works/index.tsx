@@ -21,16 +21,16 @@ import {
   Reveal,
   ShimmerCard,
 } from "@shellhub/design-system/components";
-import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
+  ArrowMarker,
   CTABanner,
   HighlightCard,
   InfoCard,
   Section,
   SectionHeader,
-} from "@/components/marketing";
-import { ArrowMarker } from "@/components/marketing/ArrowMarker";
+  SiteLayout,
+} from "@/components";
 import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
 const techDetails = [

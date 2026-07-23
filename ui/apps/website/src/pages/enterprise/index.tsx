@@ -1,4 +1,4 @@
-import { SiteLayout } from "@/components/SiteLayout";
+import { SiteLayout } from "@/components";
 import { HeroEnterprise } from "./HeroEnterprise";
 import { AdminPanel } from "./AdminPanel";
 import { SecurityFeatures } from "./SecurityFeatures";

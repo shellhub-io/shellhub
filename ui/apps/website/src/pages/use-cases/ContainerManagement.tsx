@@ -20,17 +20,17 @@ import {
   Reveal,
   ShimmerCard,
 } from "@shellhub/design-system/components";
-import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
   CTABanner,
+  FeatureListItem,
   HighlightCard,
   InfoCard,
   Section,
   SectionHeader,
+  SiteLayout,
   type CTAAction,
-} from "@/components/marketing";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+} from "@/components";
 import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
 const primaryAction: CTAAction = {

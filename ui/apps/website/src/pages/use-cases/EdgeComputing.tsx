@@ -21,7 +21,6 @@ import {
   Reveal,
   ShimmerCard,
 } from "@shellhub/design-system/components";
-import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
   CTABanner,
@@ -29,8 +28,9 @@ import {
   InfoCard,
   Section,
   SectionHeader,
+  SiteLayout,
   type CTAAction,
-} from "@/components/marketing";
+} from "@/components";
 import { C } from "@shellhub/design-system/constants";
 
 const primaryAction: CTAAction = {

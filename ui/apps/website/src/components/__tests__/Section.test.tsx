@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Section } from "@/components/marketing/Section";
+import { Section } from "@/components";
 
 describe("Section", () => {
   it("spreads id and className onto the outer element only", () => {

@@ -1,6 +1,5 @@
 import { Card } from "@shellhub/design-system/primitives";
-import { Section, SectionHeader } from "@/components/marketing";
-import { ArrowMarker } from "@/components/marketing/ArrowMarker";
+import { ArrowMarker, Section, SectionHeader } from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 

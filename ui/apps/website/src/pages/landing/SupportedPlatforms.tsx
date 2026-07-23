@@ -10,7 +10,7 @@ import {
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { DockerIcon } from "@shellhub/design-system/primitives";
-import { Section, SectionHeader } from "@/components/marketing";
+import { Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
 import { docsUrl } from "@/links";
 

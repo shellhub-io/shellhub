@@ -3,7 +3,7 @@ import {
   GlowOrbs,
   Reveal,
 } from "@shellhub/design-system/components";
-import { ActionButton, Section } from "@/components/marketing";
+import { ActionButton, Section } from "@/components";
 import { signupUrl } from "@/links";
 
 export function CTA() {

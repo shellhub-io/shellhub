@@ -5,7 +5,7 @@ import {
   ActionButtonGroup,
   type CTAAction,
   type SectionHeaderProps,
-} from "@/components/marketing";
+} from "@/components";
 
 type GradientColor = "primary" | "accent-cyan" | "accent-green" | "accent-blue";
 
