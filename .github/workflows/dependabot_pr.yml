@@ -23,6 +23,7 @@ jobs:
     if: startsWith(github.head_ref, 'dependabot/go_modules/') && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
+      # nosemgrep: yaml.github-actions.security.pull-request-target-code-checkout.pull-request-target-code-checkout
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.head_ref }}
