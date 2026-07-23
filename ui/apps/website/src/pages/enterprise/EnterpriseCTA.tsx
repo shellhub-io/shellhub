@@ -1,4 +1,4 @@
-import { CTABanner } from "@/components/marketing";
+import { CTABanner } from "@/components";
 
 export function EnterpriseCTA() {
   return (

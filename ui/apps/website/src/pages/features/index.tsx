@@ -20,7 +20,6 @@ import {
   TagIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
   CTABanner,
@@ -28,8 +27,9 @@ import {
   InfoCard,
   Section,
   SectionHeader,
+  SiteLayout,
   type CTAAction,
-} from "@/components/marketing";
+} from "@/components";
 import { C } from "@shellhub/design-system/constants";
 
 const primaryAction: CTAAction = {

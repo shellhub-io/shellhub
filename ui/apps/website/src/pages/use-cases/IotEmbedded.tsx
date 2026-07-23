@@ -22,17 +22,17 @@ import {
   Reveal,
   ShimmerCard,
 } from "@shellhub/design-system/components";
-import { SiteLayout } from "@/components/SiteLayout";
 import {
   ActionButtonGroup,
+  ArrowMarker,
   CTABanner,
+  FeatureListItem,
   HighlightCard,
   InfoCard,
   Section,
   SectionHeader,
-} from "@/components/marketing";
-import { ArrowMarker } from "@/components/marketing/ArrowMarker";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+  SiteLayout,
+} from "@/components";
 import { C } from "@shellhub/design-system/constants";
 
 const painPoints = [

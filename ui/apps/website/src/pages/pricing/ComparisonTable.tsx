@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Section, SectionHeader } from "@/components/marketing";
+import { Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
 
 type FeatureValue = boolean | string;

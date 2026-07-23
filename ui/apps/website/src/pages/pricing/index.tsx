@@ -1,4 +1,4 @@
-import { SiteLayout } from "@/components/SiteLayout";
+import { SiteLayout } from "@/components";
 import { HeroPricing } from "./HeroPricing";
 import { TierCards } from "./TierCards";
 import { ComparisonTable } from "./ComparisonTable";

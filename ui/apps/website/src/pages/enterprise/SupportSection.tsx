@@ -3,8 +3,7 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { Card, IconBadge } from "@shellhub/design-system/primitives";
-import { HighlightCard, Section, SectionHeader } from "@/components/marketing";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+import { FeatureListItem, HighlightCard, Section, SectionHeader } from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
 export function SupportSection() {

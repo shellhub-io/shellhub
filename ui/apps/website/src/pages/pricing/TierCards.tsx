@@ -6,8 +6,7 @@ import {
   Reveal,
   ShimmerCard,
 } from "@shellhub/design-system/components";
-import { HighlightCard, Section } from "@/components/marketing";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+import { FeatureListItem, HighlightCard, Section } from "@/components";
 
 const tiers = [
   {

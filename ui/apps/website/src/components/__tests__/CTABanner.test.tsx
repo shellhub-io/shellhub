@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { CTABanner } from "@/components/marketing/CTABanner";
+import { CTABanner } from "@/components";
 
 vi.mock("@shellhub/design-system/components", () => ({
   Reveal: ({

@@ -1,4 +1,4 @@
-import { SiteLayout } from "@/components/SiteLayout";
+import { SiteLayout } from "@/components";
 import { Hero } from "./Hero";
 import { TrustedBy } from "./TrustedBy";
 import { QuickStart } from "./QuickStart";

@@ -1,6 +1,6 @@
 import { ShellHubCloudIcon } from "@shellhub/design-system/primitives";
 import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
-import { ActionButton } from "@/components/marketing";
+import { ActionButton } from "@/components";
 
 export function Hero() {
   return (

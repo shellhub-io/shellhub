@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { CommandBlock } from "@/components/marketing/CommandBlock";
+import { CommandBlock } from "@/components";
 
 const COMMAND = "docker run -d -p 80:80 shellhubio/shellhub";
 

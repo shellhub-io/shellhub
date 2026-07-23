@@ -1,6 +1,6 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
-import { CommandBlock } from "@/components/marketing";
+import { CommandBlock } from "@/components";
 import { docsUrl } from "@/links";
 import { Reveal } from "@shellhub/design-system/components";
 

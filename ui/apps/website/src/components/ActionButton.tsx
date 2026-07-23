@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button, type ButtonSize } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { ArrowRight } from "@/components/ArrowRight";
+import { ArrowRight } from "@/components";
 
 export type CTAAction =
   | { label: string; to: string; href?: never; external?: never }

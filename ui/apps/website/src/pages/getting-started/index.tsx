@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
-import { SiteLayout } from "@/components/SiteLayout";
+import { SiteLayout } from "@/components";
 import { StepPath } from "./StepPath";
 import { StepSetup } from "./StepSetup";
 

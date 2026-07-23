@@ -4,7 +4,7 @@ import {
   GlowOrbs,
   Reveal,
 } from "@shellhub/design-system/components";
-import { ActionButtonGroup } from "@/components/marketing";
+import { ActionButtonGroup } from "@/components";
 
 export function HeroEnterprise() {
   return (

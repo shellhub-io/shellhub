@@ -16,8 +16,7 @@ import {
   IconBadge,
   ShellHubCloudIcon,
 } from "@shellhub/design-system/primitives";
-import { HighlightCard } from "@/components/marketing";
-import { FeatureListItem } from "@/components/marketing/FeatureListItem";
+import { FeatureListItem, HighlightCard } from "@/components";
 import { signupUrl } from "@/links";
 
 interface StepPathProps {
