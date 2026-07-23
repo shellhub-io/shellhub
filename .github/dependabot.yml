@@ -5,10 +5,14 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
 - package-ecosystem: docker
   directory: "/cli"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: cli"
   ignore:
@@ -18,6 +22,8 @@ updates:
   directory: "/api"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: api"
   ignore:
@@ -27,6 +33,8 @@ updates:
   directory: "/gateway"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: gateway"
   ignore:
@@ -36,6 +44,8 @@ updates:
   directory: "/ui"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: ui"
   ignore:
@@ -46,6 +56,8 @@ updates:
   directory: "/agent"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: agent"
   ignore:
@@ -55,6 +67,8 @@ updates:
   directory: "/ssh"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "docker: ssh"
   ignore:
@@ -64,6 +78,8 @@ updates:
   directory: "/ui"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "ui"
   versioning-strategy: lockfile-only
@@ -75,6 +91,8 @@ updates:
   directory: "/agent"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "agent"
   ignore:
@@ -83,6 +101,8 @@ updates:
   directory: "/api"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "api"
   ignore:
@@ -91,6 +111,8 @@ updates:
   directory: "/ssh"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "ssh"
   ignore:
@@ -99,6 +121,8 @@ updates:
   directory: "/cli"
   schedule:
     interval: weekly
+  cooldown:
+    default-days: 7
   commit-message:
     prefix: "cli"
   ignore:
