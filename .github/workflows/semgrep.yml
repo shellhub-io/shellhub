@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload SARIF report
         if: ${{ always() && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
-        uses: github/codeql-action/upload-sarif@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: semgrep.sarif
           category: semgrep
