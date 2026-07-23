@@ -302,7 +302,7 @@ func TestConfirmSSHEnrollmentEnrollment(t *testing.T) {
 		Once()
 	storeMock.
 		On("SSHIdentityCreate", mock.Anything, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
-			return identity.UserID == "owner1" && identity.Fingerprint == "SHA256:abc"
+			return identity.PrincipalID == "owner1" && identity.Fingerprint == "SHA256:abc"
 		})).
 		Return("id1", nil).
 		Once()

@@ -27,7 +27,7 @@ func SSHIdentityFromModel(model *models.SSHIdentity) *SSHIdentity {
 	return &SSHIdentity{
 		ID:           model.ID,
 		NamespaceID:  model.TenantID,
-		UserID:       model.UserID,
+		UserID:       model.PrincipalID,
 		Fingerprint:  model.Fingerprint,
 		Data:         model.Data,
 		Name:         model.Name,
@@ -41,7 +41,7 @@ func SSHIdentityToModel(e *SSHIdentity) *models.SSHIdentity {
 	identity := &models.SSHIdentity{
 		ID:           e.ID,
 		TenantID:     e.NamespaceID,
-		UserID:       e.UserID,
+		PrincipalID:  e.UserID,
 		Fingerprint:  e.Fingerprint,
 		Data:         e.Data,
 		Name:         e.Name,
@@ -51,7 +51,9 @@ func SSHIdentityToModel(e *SSHIdentity) *models.SSHIdentity {
 	}
 
 	if e.User != nil {
-		identity.UserName = e.User.Name
+		identity.PrincipalName = e.User.Name
+		identity.PrincipalEmail = e.User.Email
+		identity.PrincipalType = models.UserType(e.User.Type)
 	}
 
 	return identity

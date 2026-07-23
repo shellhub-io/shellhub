@@ -109,7 +109,7 @@ func (s *service) ListServiceAccounts(ctx context.Context, req *requests.Service
 
 	byUser := make(map[string][]models.SSHIdentity, len(accounts))
 	for _, identity := range identities {
-		byUser[identity.UserID] = append(byUser[identity.UserID], identity)
+		byUser[identity.PrincipalID] = append(byUser[identity.PrincipalID], identity)
 	}
 
 	for i := range accounts {

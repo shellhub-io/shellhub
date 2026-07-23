@@ -101,7 +101,7 @@ func (s *service) enrollSSHIdentity(ctx context.Context, userID, tenantID, finge
 	}
 
 	if existing != nil {
-		if existing.UserID == userID {
+		if existing.PrincipalID == userID {
 			return existing, nil
 		}
 
@@ -114,7 +114,7 @@ func (s *service) enrollSSHIdentity(ctx context.Context, userID, tenantID, finge
 
 	identity := &models.SSHIdentity{
 		TenantID:    tenantID,
-		UserID:      userID,
+		PrincipalID: userID,
 		Fingerprint: fingerprint,
 		Data:        data,
 		Name:        name,
@@ -170,7 +170,7 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 
 	// Renaming is own-key only (SSHIdentityEnroll); managing others' keys is
 	// limited to revocation.
-	if identity.UserID != req.UserID {
+	if identity.PrincipalID != req.UserID {
 		return nil, NewErrForbidden(ErrForbidden, nil)
 	}
 
@@ -191,7 +191,7 @@ func (s *service) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 
 	// A member revokes only their own keys; revoking another member's requires
 	// the manage permission (offboarding), signalled by req.Manage.
-	if identity.UserID != req.UserID && !req.Manage {
+	if identity.PrincipalID != req.UserID && !req.Manage {
 		return NewErrForbidden(ErrForbidden, nil)
 	}
 

@@ -160,7 +160,7 @@ func (h *Handler) ResolveSSHIdentity(c gateway.Context) error {
 
 	resolution := internalclient.SSHIdentityResolution{Found: found}
 	if found {
-		resolution.UserID = identity.UserID
+		resolution.UserID = identity.PrincipalID
 		resolution.Name = identity.Name
 		resolution.LastReauthAt = identity.LastReauthAt
 	}

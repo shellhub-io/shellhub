@@ -1,21 +1,34 @@
 description: |
   An SSH key enrolled as an identity within a namespace under the identity SSH
   access mode. The key's fingerprint is what the gateway resolves to the bound
-  user on each connection.
+  principal on each connection.
 type: object
 properties:
   id:
     description: SSH identity's ID.
     type: string
     format: uuid
-  user_id:
-    description: ID of the user the key is bound to.
+  principal_id:
+    description: ID of the principal the key is bound to.
     type: string
     format: uuid
-  user_name:
-    description: Name of the user the key is bound to.
+  principal_name:
+    description: Name of the principal the key is bound to.
     type: string
     example: john.doe
+  principal_email:
+    description: Email of the principal the key is bound to.
+    type: string
+    example: john.doe@example.com
+  principal_type:
+    description: |
+      Whether the bound principal is a human or a service account. Lets the list
+      tell a person's key apart from a service account's.
+    type: string
+    enum:
+      - human
+      - service
+    example: human
   fingerprint:
     description: SSH public key fingerprint.
     type: string
@@ -37,8 +50,10 @@ properties:
     example: 2026-01-02T00:00:00.000Z
 required:
   - id
-  - user_id
-  - user_name
+  - principal_id
+  - principal_name
+  - principal_email
+  - principal_type
   - fingerprint
   - name
   - created_at

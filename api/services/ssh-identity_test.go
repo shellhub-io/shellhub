@@ -61,7 +61,7 @@ func TestResolveSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
-					Return(&models.SSHIdentity{ID: "id1", UserID: "user1", TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
+					Return(&models.SSHIdentity{ID: "id1", PrincipalID: "user1", TenantID: tenantID, Fingerprint: fingerprint}, nil).Once()
 				storeMock.On("SSHIdentityTouchLastUsed", ctx, tenantID, fingerprint).
 					Return(nil).Once()
 			},
@@ -88,7 +88,7 @@ func TestResolveSSHIdentity(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tc.expectedFound, found)
 				if tc.expectedFound {
-					require.Equal(t, tc.expectedUser, identity.UserID)
+					require.Equal(t, tc.expectedUser, identity.PrincipalID)
 				}
 			}
 
@@ -118,7 +118,7 @@ func TestEnrollSSHIdentity(t *testing.T) {
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
-					return identity.UserID == userID && identity.Fingerprint == fingerprint && identity.TenantID == tenantID
+					return identity.PrincipalID == userID && identity.Fingerprint == fingerprint && identity.TenantID == tenantID
 				})).Return("id1", nil).Once()
 			},
 			expectedErr: nil,
@@ -128,7 +128,7 @@ func TestEnrollSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
-					Return(&models.SSHIdentity{ID: "id1", UserID: userID, Fingerprint: fingerprint}, nil).Once()
+					Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedErr: nil,
 		},
@@ -137,7 +137,7 @@ func TestEnrollSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
-					Return(&models.SSHIdentity{ID: "id2", UserID: "other", Fingerprint: fingerprint}, nil).Once()
+					Return(&models.SSHIdentity{ID: "id2", PrincipalID: "other", Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedErr: NewErrSSHIdentityDuplicated(fingerprint, nil),
 		},
@@ -200,7 +200,7 @@ func TestCreateSSHIdentity(t *testing.T) {
 		storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
 			Return(nil, store.ErrNoDocuments).Once()
 		storeMock.On("SSHIdentityCreate", ctx, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
-			return identity.Fingerprint == fingerprint && identity.UserID == userID
+			return identity.Fingerprint == fingerprint && identity.PrincipalID == userID
 		})).Return("id1", nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
@@ -235,7 +235,7 @@ func TestDeleteSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityIDResolver, idOwn, mock.Anything).
-					Return(&models.SSHIdentity{ID: idOwn, UserID: userID, TenantID: tenantID}, nil).Once()
+					Return(&models.SSHIdentity{ID: idOwn, PrincipalID: userID, TenantID: tenantID}, nil).Once()
 				storeMock.On("SSHIdentityDelete", ctx, mock.Anything).Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -246,7 +246,7 @@ func TestDeleteSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityIDResolver, idOther, mock.Anything).
-					Return(&models.SSHIdentity{ID: idOther, UserID: "someone-else", TenantID: tenantID}, nil).Once()
+					Return(&models.SSHIdentity{ID: idOther, PrincipalID: "someone-else", TenantID: tenantID}, nil).Once()
 			},
 			expectedErr: NewErrForbidden(ErrForbidden, nil),
 		},
@@ -256,7 +256,7 @@ func TestDeleteSSHIdentity(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityIDResolver, idOther, mock.Anything).
-					Return(&models.SSHIdentity{ID: idOther, UserID: "someone-else", TenantID: tenantID}, nil).Once()
+					Return(&models.SSHIdentity{ID: idOther, PrincipalID: "someone-else", TenantID: tenantID}, nil).Once()
 				storeMock.On("SSHIdentityDelete", ctx, mock.Anything).Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -296,7 +296,7 @@ func TestListSSHIdentities(t *testing.T) {
 		queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 		queryOptionsMock.On("WithUserID", userID).Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", UserID: userID}}, 1, nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, 1, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
 
@@ -313,7 +313,7 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
 		queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 		storeMock.On("SSHIdentityList", ctx, mock.Anything).
-			Return([]models.SSHIdentity{{ID: "id1", UserID: userID}, {ID: "id2", UserID: "user2"}}, 2, nil).Once()
+			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, 2, nil).Once()
 
 		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
 
