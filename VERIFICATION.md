@@ -31,3 +31,35 @@ A successful verification prints the signature payload and confirms that:
 - The image has not been modified since it was published
 - The image was built by a GitHub Actions workflow in the `shellhub-io/shellhub` repository
 - The signing event is recorded in a public transparency log
+
+## Verifying SBOM attestations
+
+Each image also carries a signed [CycloneDX](https://cyclonedx.org/) SBOM wrapped in an [in-toto](https://in-toto.io/) attestation. The attestation is signed with the same keyless flow as the image itself, so verifying it proves the SBOM has not been tampered with since it was generated during the release build.
+
+```bash
+cosign verify-attestation \
+  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  --type cyclonedx \
+  shellhubio/<image>:<tag>
+```
+
+### Example
+
+```bash
+cosign verify-attestation \
+  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  --type cyclonedx \
+  shellhubio/api:v0.18.0
+```
+
+To extract the SBOM payload from the verified attestation:
+
+```bash
+cosign verify-attestation \
+  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  --type cyclonedx \
+  shellhubio/<image>:<tag> | jq -r '.payload' | base64 -d | jq '.predicate'
+```

@@ -170,10 +170,10 @@ jobs:
           cosign sign --yes "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
           cosign sign --yes "${{ steps.image.outputs.name }}:latest"
 
-      - name: Attach SBOM to '${{ matrix.project }}' image
+      - name: Attest SBOM for '${{ matrix.project }}' image
         run: |
-          cosign attach sbom \
-            --sbom "sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json" \
+          cosign attest --yes \
+            --predicate "sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json" \
             --type cyclonedx \
             "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
 
