@@ -1,0 +1,32 @@
+name: Script Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  is-latest-tag:
+    name: is-latest-tag
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
+        id: filter
+        with:
+          filters: |
+            scripts:
+              - '.github/scripts/is-latest-tag.sh'
+              - '.github/actions/is-latest-tag/**'
+              - 'tests/is-latest-tag_test.sh'
+              - '.github/workflows/script-tests.yml'
+
+      - name: Run is-latest-tag tests
+        if: steps.filter.outputs.scripts == 'true'
+        run: bash tests/is-latest-tag_test.sh

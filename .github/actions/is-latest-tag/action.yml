@@ -1,0 +1,26 @@
+name: Is latest tag
+description: Sets is_latest=true when the tag is the highest stable semver.
+
+inputs:
+  tag:
+    required: true
+
+outputs:
+  is_latest:
+    value: ${{ steps.check.outputs.is_latest }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: bash
+      working-directory: ${{ github.action_path }}/../../..
+      env:
+        TAG: ${{ inputs.tag }}
+      run: |
+        git fetch --tags --quiet
+        if bash .github/scripts/is-latest-tag.sh "$TAG"; then
+          echo "is_latest=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "is_latest=false" >> "$GITHUB_OUTPUT"
+        fi
