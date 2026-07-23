@@ -15,9 +15,9 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dorny/paths-filter@v4
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: filter
         with:
           filters: |
@@ -31,7 +31,7 @@ jobs:
 
       - name: Install bats
         if: steps.filter.outputs.wrapper == 'true'
-        uses: bats-core/bats-action@4.0.0
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
 
       - name: Run wrapper.bats (no-cloud scenarios + guard)
         if: steps.filter.outputs.wrapper == 'true'

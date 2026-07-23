@@ -28,10 +28,10 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Set github reference env
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
@@ -120,7 +120,7 @@ jobs:
 
       - name: Upload rootfs artifacts
         if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: rootfs-artifacts
           path: rootfs/*.tar.gz
@@ -140,13 +140,13 @@ jobs:
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Generate SBOM for agent image
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: shellhubio/agent:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
@@ -154,7 +154,7 @@ jobs:
           upload-artifact: false
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sbom-agent
           path: sbom-agent-*.cdx.json
@@ -216,7 +216,7 @@ jobs:
           gzip "$BINARY_NAME"
 
       - name: upload binary artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: agent-binary-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
           path: agent/shellhub-agent-*.gz
@@ -237,13 +237,13 @@ jobs:
           cd ./agent && go mod vendor && cd .. && tar czf shellhub-agent.tar.gz agent
 
       - name: upload agent tarball artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: shellhub-agent
           path: shellhub-agent.tar.gz
 
       - name: Generate source SBOM from Go modules
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: ./agent
           format: cyclonedx-json
@@ -251,7 +251,7 @@ jobs:
           upload-artifact: false
 
       - name: Upload source SBOM artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sbom-agent-source
           path: sbom-agent-source-*.cdx.json
@@ -264,28 +264,28 @@ jobs:
       contents: write
     steps:
       - name: download rootfs artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: rootfs-artifacts
       - name: download agent binaries
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: agent-binary-*
           merge-multiple: true
       - name: download vendored tarball
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: shellhub-agent
       - name: download agent SBOM
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom-agent
       - name: download agent source SBOM
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom-agent-source
       - name: release draft
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
           draft: true
           generate_release_notes: true
