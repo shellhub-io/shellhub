@@ -167,10 +167,10 @@ jobs:
           cosign sign --yes "shellhubio/agent:${{ env.RELEASE_VERSION }}"
           cosign sign --yes "shellhubio/agent:latest"
 
-      - name: Attach SBOM to agent image
+      - name: Attest SBOM for agent image
         run: |
-          cosign attach sbom \
-            --sbom sbom-agent-${{ env.RELEASE_VERSION }}.cdx.json \
+          cosign attest --yes \
+            --predicate sbom-agent-${{ env.RELEASE_VERSION }}.cdx.json \
             --type cyclonedx \
             shellhubio/agent:${{ env.RELEASE_VERSION }}
 
