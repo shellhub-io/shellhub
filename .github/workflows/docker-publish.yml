@@ -53,6 +53,12 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: echo "RELEASE_VERSION=$REF_NAME" >> "$GITHUB_ENV"
 
+      - name: Check if tag is the latest release
+        id: latest-check
+        uses: ./shellhub/.github/actions/is-latest-tag
+        with:
+          tag: ${{ env.RELEASE_VERSION }}
+
       - name: Set image registry and name
         id: image
         run: |
@@ -123,21 +129,19 @@ jobs:
               --ignorefile /work/shellhub/.trivyignore \
               ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
 
-      # Push the SAME image that was just scanned — `docker push` re-uses the layers in the local Docker
-      # daemon — no rebuild occurs, so the pushed digest is identical to what
-      # Trivy scanned.
-      #
-      # NOTE: cross-registry push is sequential, not transactional. If the
-      # versioned-tag push succeeds but the `latest` push fails (or vice versa),
-      # the registry will hold a partial set of tags. Re-running the workflow is
-      # safe: buildx GHA cache ensures digest-identical layers on the next run.
+      # Push the SAME image that was just scanned — `docker push` re-uses the
+      # layers in the local daemon, so the pushed digest is identical to what
+      # Trivy scanned. The `latest` tag is only applied when this is the
+      # highest stable semver release.
       - name: Push '${{ matrix.project }}' image (same digest as scanned)
         run: |
-          docker tag \
-            "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}" \
-            "${{ steps.image.outputs.name }}:latest"
           docker push "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
-          docker push "${{ steps.image.outputs.name }}:latest"
+          if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
+            docker tag \
+              "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}" \
+              "${{ steps.image.outputs.name }}:latest"
+            docker push "${{ steps.image.outputs.name }}:latest"
+          fi
 
       - name: Generate SBOM for '${{ matrix.project }}' image
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
@@ -168,7 +172,9 @@ jobs:
       - name: Sign '${{ matrix.project }}' image with cosign
         run: |
           cosign sign --yes "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
-          cosign sign --yes "${{ steps.image.outputs.name }}:latest"
+          if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
+            cosign sign --yes "${{ steps.image.outputs.name }}:latest"
+          fi
 
       - name: Attest SBOM for '${{ matrix.project }}' image
         run: |

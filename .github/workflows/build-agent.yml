@@ -36,10 +36,21 @@ jobs:
       - name: Set github reference env
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
 
+      - name: Check if tag is the latest release
+        id: latest-check
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: ./.github/actions/is-latest-tag
+        with:
+          tag: ${{ env.RELEASE_VERSION }}
+
       - name: Set image tag
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "IMAGE_TAG=${RELEASE_VERSION},latest" >> "$GITHUB_ENV"
+            if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
+              echo "IMAGE_TAG=${RELEASE_VERSION},latest" >> "$GITHUB_ENV"
+            else
+              echo "IMAGE_TAG=${RELEASE_VERSION}" >> "$GITHUB_ENV"
+            fi
             echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${RELEASE_VERSION}" >> "$GITHUB_ENV"
           else
             echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
@@ -136,8 +147,17 @@ jobs:
       id-token: write
 
     steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - name: Set release version
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
+      - name: Check if tag is the latest release
+        id: latest-check
+        uses: ./.github/actions/is-latest-tag
+        with:
+          tag: ${{ env.RELEASE_VERSION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
@@ -165,7 +185,9 @@ jobs:
       - name: Sign agent image with cosign
         run: |
           cosign sign --yes "shellhubio/agent:${{ env.RELEASE_VERSION }}"
-          cosign sign --yes "shellhubio/agent:latest"
+          if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
+            cosign sign --yes "shellhubio/agent:latest"
+          fi
 
       - name: Attest SBOM for agent image
         run: |
