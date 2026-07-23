@@ -4,13 +4,14 @@ import {
   FingerPrintIcon,
   PlusIcon,
   KeyIcon,
-  UserIcon,
+  CpuChipIcon,
   ShieldCheckIcon,
   BoltIcon,
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { cn } from "@shellhub/design-system/cn";
 import { useSSHIdentities } from "@/hooks/useSSHIdentities";
 import { useDeleteSSHIdentity } from "@/hooks/useSSHIdentityMutations";
 import { useAuthStore } from "@/stores/authStore";
@@ -21,7 +22,8 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { formatDate } from "@/utils/date";
+import { formatDate, formatDateFull } from "@/utils/date";
+import UserBadge from "@/components/common/UserBadge";
 import IdentityDrawer from "./IdentityDrawer";
 
 export default function SSHIdentities() {
@@ -29,7 +31,7 @@ export default function SSHIdentities() {
 
   // Always request the namespace-wide list; the API returns every member's keys
   // to owners/admins and only the caller's own to everyone else, so the page
-  // behaves the same either way (one User column, your own row marked).
+  // behaves the same either way (one Principal column, your own row marked).
   const { identities, isLoading } = useSSHIdentities(true);
   const deleteIdentity = useDeleteSSHIdentity();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -72,24 +74,57 @@ export default function SSHIdentities() {
     {
       key: "name",
       header: "Name",
-      render: (i) => (
-        <span className="text-sm font-medium text-text-primary">{i.name}</span>
-      ),
+      render: (i) => {
+        const isService = i.principal_type === "service";
+
+        return (
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                "grid place-items-center w-8 h-8 rounded-lg shrink-0",
+                isService
+                  ? "bg-accent-yellow/10 text-accent-yellow"
+                  : "bg-primary/10 text-primary",
+              )}
+            >
+              {isService ? (
+                <CpuChipIcon className="w-4 h-4" strokeWidth={2} />
+              ) : (
+                <KeyIcon className="w-4 h-4" strokeWidth={2} />
+              )}
+            </span>
+            <span className="text-sm font-medium text-text-primary">
+              {i.name}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "user",
-      header: "User",
-      render: (i) => (
-        <span className="inline-flex items-center gap-1.5 text-xs font-mono text-text-secondary">
-          <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-          {i.user_name}
-          {i.user_id === userId && (
-            <span className="px-1.5 py-0.5 rounded text-2xs font-sans font-medium bg-primary/10 text-primary">
-              you
-            </span>
-          )}
-        </span>
-      ),
+      header: "Principal",
+      render: (i) => {
+        const isService = i.principal_type === "service";
+
+        return (
+          <UserBadge
+            name={i.principal_name}
+            // A service account's email is a synthetic svc-…@service.local; hide it.
+            email={isService ? undefined : i.principal_email}
+            trailing={
+              isService ? (
+                <span className="px-1.5 py-0.5 rounded text-2xs font-medium bg-accent-yellow/10 text-accent-yellow">
+                  Service account
+                </span>
+              ) : i.principal_id === userId ? (
+                <span className="px-1.5 py-0.5 rounded text-2xs font-medium bg-primary/10 text-primary">
+                  you
+                </span>
+              ) : undefined
+            }
+          />
+        );
+      },
     },
     {
       key: "fingerprint",
@@ -97,7 +132,7 @@ export default function SSHIdentities() {
       render: (i) => (
         <div className="flex items-center gap-1">
           <code
-            className="text-2xs font-mono text-text-muted truncate max-w-[240px]"
+            className="px-2 py-1 rounded-md bg-card border border-border text-2xs font-mono text-text-muted truncate max-w-[240px]"
             title={i.fingerprint}
           >
             {i.fingerprint}
@@ -110,7 +145,10 @@ export default function SSHIdentities() {
       key: "added",
       header: "Added",
       render: (i) => (
-        <span className="text-xs font-mono text-text-muted">
+        <span
+          className="text-xs text-text-muted"
+          title={formatDateFull(i.created_at)}
+        >
           {formatDate(i.created_at)}
         </span>
       ),
@@ -118,18 +156,24 @@ export default function SSHIdentities() {
     {
       key: "last-used",
       header: "Last used",
-      render: (i) => (
-        <span className="text-xs font-mono text-text-muted">
-          {i.last_used_at ? formatDate(i.last_used_at) : "Never"}
-        </span>
-      ),
+      render: (i) =>
+        i.last_used_at ? (
+          <span
+            className="text-xs text-text-muted"
+            title={formatDateFull(i.last_used_at)}
+          >
+            {formatDate(i.last_used_at)}
+          </span>
+        ) : (
+          <span className="text-xs text-text-muted/60 italic">Never</span>
+        ),
     },
     {
       key: "actions",
       header: "",
       headerClassName: "w-16",
       render: (i) => {
-        const mine = i.user_id === userId;
+        const mine = i.principal_id === userId;
 
         return (
           <div className="flex items-center justify-end gap-0.5">
