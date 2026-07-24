@@ -105,7 +105,7 @@ export default function Integrations() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="cyan" className="mb-6 tracking-label">
               Integrations

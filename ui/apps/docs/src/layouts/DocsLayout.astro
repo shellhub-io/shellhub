@@ -47,8 +47,7 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="bg-background text-text-primary font-sans antialiased">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10">
+    <header class="sticky top-0 z-appbar h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10">
       <div class="flex items-center justify-between h-full max-w-7xl mx-auto px-8">
         <div class="flex items-center gap-3">
           <a href={websiteUrl} class="flex items-center shrink-0">
@@ -91,8 +90,7 @@ const sidebarForScript = sidebar.map(({ icon: _icon, ...rest }) => rest);
     <div class="relative max-w-7xl mx-auto grid grid-cols-12 gap-8 px-8">
       <div class="grid-bg grid-bg-fade absolute inset-0 pointer-events-none"></div>
 
-      <!-- Left Sidebar (off-canvas drawer on mobile, static column on md+) -->
-      <aside id="docs-sidebar" class="fixed top-14 left-0 h-[calc(100vh-56px)] w-72 z-40 bg-background overflow-y-auto pt-8 pb-12 border-r border-border -translate-x-full md:translate-x-0 md:static md:col-span-3 md:w-auto md:h-[calc(100vh-56px)] md:z-auto md:bg-transparent md:border-r-0 md:sticky md:top-14">
+      <aside id="docs-sidebar" class="fixed top-14 left-0 h-[calc(100vh-56px)] w-72 z-drawer bg-background overflow-y-auto pt-8 pb-12 border-r border-border -translate-x-full md:translate-x-0 md:static md:col-span-3 md:w-auto md:h-[calc(100vh-56px)] md:z-auto md:bg-transparent md:border-r-0 md:sticky md:top-14">
         <nav class="flex flex-col gap-4">
           {sidebar.map((section) => {
             const sectionId = section.label.toLowerCase().replace(/\s+/g, "-");

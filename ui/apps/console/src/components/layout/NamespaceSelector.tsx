@@ -106,7 +106,7 @@ export default function NamespaceSelector({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down">
+        <div className="absolute top-full left-0 mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-dropdown overflow-hidden animate-slide-down">
           {/* Active namespace header (non-admin only) */}
           {!isAdminContext && currentNamespace && (
             <div className="p-4 border-b border-border">

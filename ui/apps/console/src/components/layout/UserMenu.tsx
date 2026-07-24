@@ -58,7 +58,7 @@ export default function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 w-56 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down">
+        <div className="absolute top-full right-0 mt-1.5 w-56 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-dropdown overflow-hidden animate-slide-down">
           {/* User info */}
           <div className="p-3.5 border-b border-border">
             <div className="flex items-center gap-3">

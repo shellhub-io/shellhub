@@ -185,7 +185,7 @@ export default function EdgeComputing() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="blue" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="blue" className="mb-6 tracking-label">
               Use Case

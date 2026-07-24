@@ -106,7 +106,7 @@ export default function HowItWorks() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="primary" className="mb-6 tracking-label">
               How It Works
@@ -643,7 +643,7 @@ export default function HowItWorks() {
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8 mb-16">
               {/* Timeline dot */}
-              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-primary border-2 border-background z-10 hidden md:block" />
+              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-primary border-2 border-background z-raised hidden md:block" />
 
               <div className="md:pr-12 md:text-right">
                 <div className="flex items-center gap-3 mb-4 md:justify-end">
@@ -718,7 +718,7 @@ export default function HowItWorks() {
           {/* Step 2: Agent Connects */}
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8 mb-16">
-              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-cyan border-2 border-background z-10 hidden md:block" />
+              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-cyan border-2 border-background z-raised hidden md:block" />
 
               <div className="md:order-last md:text-left md:pl-12">
                 <div className="flex items-center gap-3 mb-4">
@@ -983,7 +983,7 @@ export default function HowItWorks() {
           {/* Step 3: SSH from Anywhere */}
           <Reveal>
             <div className="relative grid md:grid-cols-2 gap-8">
-              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-green border-2 border-background z-10 hidden md:block" />
+              <div className="absolute left-8 lg:left-1/2 top-8 w-3 h-3 -ml-1.5 rounded-full bg-accent-green border-2 border-background z-raised hidden md:block" />
 
               <div className="md:pr-12 md:text-right">
                 <div className="flex items-center gap-3 mb-4 md:justify-end">

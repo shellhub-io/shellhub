@@ -16,12 +16,12 @@ export default function SessionPlayerDialog({
   if (!open) return null;
 
   return (
-    <div className="absolute inset-0 z-[80] flex flex-col bg-[#121314]">
+    <div className="absolute inset-0 z-overlay flex flex-col bg-[#121314]">
       {/* Close button overlay */}
       <IconButton
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-2 right-2 z-10 bg-black/40 hover:bg-black/60"
+        className="absolute top-2 right-2 z-raised bg-black/40 hover:bg-black/60"
       >
         <XMarkIcon className="w-4 h-4" strokeWidth={2} />
       </IconButton>

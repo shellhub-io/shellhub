@@ -5,7 +5,7 @@ export default function LoginLayout() {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
       <AmbientBackground />
-      <div className="relative z-10 w-full">
+      <div className="relative z-raised w-full">
         <Outlet />
       </div>
     </div>

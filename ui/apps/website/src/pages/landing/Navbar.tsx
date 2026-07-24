@@ -136,7 +136,7 @@ function FullWidthMenu({
   return (
     <div
       className={cn(
-        "absolute top-full left-0 right-0 transition-all duration-[170ms] ease-out z-50",
+        "absolute top-full left-0 right-0 transition-all duration-[170ms] ease-out z-dropdown",
         isOpen
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 -translate-y-1 pointer-events-none",
@@ -323,7 +323,7 @@ export function Navbar({
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 top-14 z-40 transition-all duration-200",
+          "fixed inset-0 top-14 z-drawer-backdrop transition-all duration-200",
           activeMenu
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none",
@@ -335,7 +335,7 @@ export function Navbar({
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- nav onClick delegates to child links only */}
       <nav
         id="shellhub-nav"
-        className="fixed top-0 left-0 right-0 z-50 h-14 transition-all duration-300"
+        className="fixed top-0 left-0 right-0 z-appbar h-14 transition-all duration-300"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest("a")) closeMenus();
         }}
