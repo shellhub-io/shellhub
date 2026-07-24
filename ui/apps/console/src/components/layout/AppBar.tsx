@@ -116,7 +116,10 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
 
   return (
     <header
-      className={cn("theme-dark relative z-50 h-14 border-b px-3 sm:px-5 flex items-center justify-between shrink-0 transition-colors duration-300", displayed ? "border-transparent" : "bg-surface border-border")}
+      className={cn(
+        "theme-dark relative z-appbar h-14 border-b px-3 sm:px-5 flex items-center justify-between shrink-0 transition-colors duration-300",
+        displayed ? "border-transparent" : "bg-surface border-border",
+      )}
       style={displayed ? { backgroundColor: themeBg } : undefined}
     >
       {/* Left: menu toggle + crossfade with vertical slide */}
@@ -132,7 +135,10 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
         )}
         <div
           onTransitionEnd={handleTransitionEnd}
-          className={cn("min-w-0 transition-all duration-150 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2")}
+          className={cn(
+            "min-w-0 transition-all duration-150 ease-out",
+            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
+          )}
         >
           {displayed ? (
             <TerminalInfo session={displayed} />
@@ -145,7 +151,12 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
       <div className="flex items-center gap-1">
         {/* Right: terminal actions fade + slide */}
         <div
-          className={cn("flex items-center transition-all duration-150 ease-out", displayed && visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none")}
+          className={cn(
+            "flex items-center transition-all duration-150 ease-out",
+            displayed && visible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-2 pointer-events-none",
+          )}
         >
           {displayed && <TerminalActions session={displayed} />}
         </div>

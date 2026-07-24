@@ -18,7 +18,7 @@ export function SupportedPlatforms() {
   return (
     <Section className="relative overflow-hidden" container={false}>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/[0.03] rounded-full blur-3xl pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-8 relative z-raised">
         <SectionHeader
           eyebrow="Supported Platforms"
           title={

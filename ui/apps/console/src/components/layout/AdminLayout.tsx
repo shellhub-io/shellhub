@@ -47,7 +47,7 @@ export default function AdminLayout() {
             onMenuToggle={isDesktop ? undefined : handlers.toggleDrawer}
           />
           <div className="relative size-full">
-            <div className="grid-bg scanline absolute inset-0 -z-10" />
+            <div className="grid-bg scanline absolute inset-0 z-bg" />
             <main
               id="main-content"
               tabIndex={-1}

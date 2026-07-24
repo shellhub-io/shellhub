@@ -30,7 +30,7 @@ const PRESETS = [
 const CALENDAR_CLASSNAMES = {
   months: "relative flex flex-col",
   month: "flex flex-col",
-  nav: "absolute top-0 inset-x-0 flex items-center justify-between h-9 z-10",
+  nav: "absolute top-0 inset-x-0 flex items-center justify-between h-9 z-raised",
   button_previous:
     "inline-flex items-center justify-center w-7 h-7 rounded-md text-text-secondary hover:bg-hover-subtle hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none",
   button_next:
@@ -110,7 +110,7 @@ export default function ExpirationField({
           <div
             role="dialog"
             aria-label="Choose an expiration date"
-            className="absolute left-0 top-full mt-1 z-50 w-[19rem] p-3 bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
+            className="absolute left-0 top-full mt-1 z-dropdown w-[19rem] p-3 bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
           >
             <div className="flex flex-wrap gap-1.5 mb-3">
               {PRESETS.map((preset) => {

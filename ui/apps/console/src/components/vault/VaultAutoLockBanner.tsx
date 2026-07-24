@@ -52,7 +52,7 @@ export default function VaultAutoLockBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[75] w-80">
+    <div className="fixed bottom-4 right-4 z-toast w-80">
       <Callout
         variant="warning"
         onDismiss={() => {

@@ -43,7 +43,7 @@ export default function Drawer({
       <div
         role="presentation"
         className={cn(
-          "fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300",
+          "fixed inset-0 z-drawer-backdrop bg-black/40 backdrop-blur-[2px] transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={onClose}
@@ -56,7 +56,7 @@ export default function Drawer({
         aria-hidden={!open}
         {...(!open ? { inert: true } : {})}
         className={cn(
-          "fixed inset-y-0 right-0 z-[70] w-full",
+          "fixed inset-y-0 right-0 z-drawer w-full",
           WIDTH_MAP[width],
           "bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",

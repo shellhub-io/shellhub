@@ -23,7 +23,7 @@ export default function RecordingSnackbar() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-16 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] bg-card border border-accent-green/30 rounded-lg shadow-lg shadow-black/30 px-4 py-3 flex items-start gap-3 animate-slide-up"
+      className="fixed bottom-16 right-4 z-toast w-80 max-w-[calc(100vw-2rem)] bg-card border border-accent-green/30 rounded-lg shadow-lg shadow-black/30 px-4 py-3 flex items-start gap-3 animate-slide-up"
     >
       <CheckCircleIcon
         className="w-4 h-4 text-accent-green shrink-0 mt-0.5"

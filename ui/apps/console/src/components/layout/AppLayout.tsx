@@ -84,7 +84,7 @@ export default function AppLayout() {
               }
             />
             <div className="relative size-full">
-              <div className="grid-bg scanline absolute inset-0 -z-10" />
+              <div className="grid-bg scanline absolute inset-0 z-bg" />
               <main
                 id="main-content"
                 tabIndex={-1}
@@ -93,7 +93,7 @@ export default function AppLayout() {
               >
                 <Outlet />
               </main>
-              <div className="content-seam pointer-events-none absolute inset-0 z-10" />
+              <div className="content-seam pointer-events-none absolute inset-0 z-raised" />
             </div>
           </div>
         </div>
