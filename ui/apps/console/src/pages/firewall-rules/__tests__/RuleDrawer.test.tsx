@@ -175,13 +175,13 @@ describe("RuleDrawer — create mode", () => {
 
     const tagInput = screen.getByPlaceholderText("Search tags...");
     await user.click(tagInput);
-    await user.click(screen.getByRole("button", { name: "a" }));
-    await user.click(screen.getByRole("button", { name: "b" }));
-    await user.click(screen.getByRole("button", { name: "c" }));
+    await user.click(screen.getByRole("option", { name: "a" }));
+    await user.click(screen.getByRole("option", { name: "b" }));
+    await user.click(screen.getByRole("option", { name: "c" }));
     // The selector hard-caps selection at 3, so this 4th click is ignored —
     // the drawer can never submit more than 3 tags (the schema's >3 rule is a
     // defensive backstop that the UI cannot reach).
-    await user.click(screen.getByRole("button", { name: "d" }));
+    await user.click(screen.getByRole("option", { name: "d" }));
 
     expect(screen.getAllByRole("button", { name: /remove tag/i })).toHaveLength(
       3,

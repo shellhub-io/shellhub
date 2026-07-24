@@ -14,14 +14,6 @@ vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: vi.fn(),
 }));
 
-vi.mock("@/hooks/useClickOutside", () => ({
-  useClickOutside: vi.fn(),
-}));
-
-vi.mock("@/hooks/useEscapeKey", () => ({
-  useEscapeKey: vi.fn(),
-}));
-
 import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
 import { useHasPermission } from "@/hooks/useHasPermission";

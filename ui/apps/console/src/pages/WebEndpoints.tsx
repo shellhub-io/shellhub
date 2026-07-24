@@ -1,4 +1,4 @@
-import { useState, useRef, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -22,7 +22,6 @@ import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
 import { formatDate } from "@/utils/date";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
-import { useClickOutside } from "@/hooks/useClickOutside";
 import {
   XMarkIcon,
   ServerStackIcon,
@@ -41,6 +40,7 @@ import Pagination from "@/components/common/Pagination";
 import {
   Badge,
   Button,
+  Dropdown,
   IconButton,
   Toggle,
 } from "@shellhub/design-system/primitives";
@@ -120,11 +120,7 @@ function DeviceSelector({
     perPage: 20,
     status: "accepted",
   });
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(wrapperRef, () => setOpen(false));
 
   const filtered = search
     ? devices.filter(
@@ -135,81 +131,80 @@ function DeviceSelector({
     : devices;
 
   return (
-    <div ref={wrapperRef} className="relative">
-      <div
-        className={cn(
-          "flex items-center min-h-[42px] px-3.5 py-2 bg-card border rounded-lg cursor-text transition-all",
-          open ? "border-primary/50 ring-1 ring-primary/20" : "border-border",
-          error && "border-accent-red/50",
-        )}
-      >
-        {selected ? (
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span
-              className={cn("w-2 h-2 rounded-full shrink-0", selected.online ? "bg-accent-green" : "bg-text-muted/40")}
-            />
-            <span className="text-sm text-text-primary truncate">
-              {selected.name}
-            </span>
-            <IconButton
-              size="sm"
-              aria-label="Clear selected device"
-              className="ml-auto"
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-                setSearch("");
-              }}
-            >
-              <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-            </IconButton>
-          </div>
-        ) : (
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => setOpen(true)}
-            placeholder="Search devices..."
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
-          />
-        )}
-      </div>
-      {error && <p className="mt-1 text-2xs text-accent-red">{error}</p>}
-      {open && !selected && (
-        <div className="absolute z-raised mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
-          {loading ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              Loading devices...
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              No devices found
-            </div>
-          ) : (
-            filtered.map((dev) => (
-              <button
-                key={dev.uid}
-                type="button"
-                onClick={() => {
-                  onChange(dev);
-                  setOpen(false);
+    <div>
+      <Dropdown mode="combobox" placement="bottom">
+        <Dropdown.Anchor
+          className={cn(
+            "flex items-center min-h-[42px] px-3.5 py-2 bg-card border rounded-lg cursor-text transition-all",
+            "border-border",
+            error && "border-accent-red/50",
+          )}
+        >
+          {selected ? (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span
+                className={cn("w-2 h-2 rounded-full shrink-0", selected.online ? "bg-accent-green" : "bg-text-muted/40")}
+              />
+              <span className="text-sm text-text-primary truncate">
+                {selected.name}
+              </span>
+              <IconButton
+                size="sm"
+                aria-label="Clear selected device"
+                className="ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange(null);
                   setSearch("");
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors flex items-center gap-2"
               >
-                <span
-                  className={cn("w-2 h-2 rounded-full shrink-0", dev.online ? "bg-accent-green" : "bg-text-muted/40")}
-                />
-                <span className="truncate">{dev.name}</span>
-                <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
-                  {dev.uid.slice(0, 8)}
-                </span>
-              </button>
-            ))
+                <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              </IconButton>
+            </div>
+          ) : (
+            <Dropdown.Input
+              value={search}
+              onChange={(val) => setSearch(val)}
+              placeholder="Search devices..."
+              className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
+            />
           )}
-        </div>
-      )}
+        </Dropdown.Anchor>
+        {!selected && (
+          <Dropdown.Panel className="max-h-48">
+            {loading ? (
+              <div className="px-3 py-2 text-xs text-text-muted">
+                Loading devices...
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-text-muted">
+                No devices found
+              </div>
+            ) : (
+              filtered.map((dev) => (
+                <Dropdown.Item
+                  key={dev.uid}
+                  label={dev.name}
+                  onSelect={() => {
+                    onChange(dev);
+                    setSearch("");
+                  }}
+                  className="px-3 py-2 text-sm gap-2"
+                >
+                  <span
+                    className={cn("w-2 h-2 rounded-full shrink-0", dev.online ? "bg-accent-green" : "bg-text-muted/40")}
+                  />
+                  <span className="truncate">{dev.name}</span>
+                  <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
+                    {dev.uid.slice(0, 8)}
+                  </span>
+                </Dropdown.Item>
+              ))
+            )}
+          </Dropdown.Panel>
+        )}
+      </Dropdown>
+      {error && <p className="mt-1 text-2xs text-accent-red">{error}</p>}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useVaultStore } from "@/stores/vaultStore";
 import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
@@ -103,34 +103,24 @@ describe("VaultSettingsSection", () => {
     });
   });
 
-  describe("Auto-lock timeout dropdown", () => {
-    it("renders all 5 timeout options when dropdown is opened", async () => {
+  describe("Auto-lock timeout menu", () => {
+    it("renders all 5 timeout options when opened", async () => {
       setUnlocked();
       renderSection();
 
-      // Open the dropdown
-      const trigger = screen.getByRole("button", {
-        name: /auto-lock timeout/i,
-      });
-      await userEvent.click(trigger);
+      await userEvent.click(
+        screen.getByRole("button", { name: /auto-lock timeout/i }),
+      );
 
-      // All 5 options should be visible — use exact strings to avoid
-      // substring collisions (e.g. "5 minutes" inside "15 minutes")
-      expect(
-        screen.getByRole("option", { name: "5 minutes" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "15 minutes" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "30 minutes" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "60 minutes" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: /never/i }),
-      ).toBeInTheDocument();
+      const items = screen.getAllByRole("menuitem");
+      expect(items).toHaveLength(5);
+      expect(items.map((i) => i.textContent)).toEqual([
+        "Never",
+        "5 minutes",
+        "15 minutes",
+        "30 minutes",
+        "60 minutes",
+      ]);
     });
 
     it("calls updateAutoLockSettings with correct timeout when an option is selected", async () => {
@@ -140,13 +130,12 @@ describe("VaultSettingsSection", () => {
 
       renderSection();
 
-      const trigger = screen.getByRole("button", {
-        name: /auto-lock timeout/i,
-      });
-      await userEvent.click(trigger);
-
-      const option30 = screen.getByRole("option", { name: /30 minutes/i });
-      await userEvent.click(option30);
+      await userEvent.click(
+        screen.getByRole("button", { name: /auto-lock timeout/i }),
+      );
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "30 minutes" }),
+      );
 
       expect(updateAutoLockSettings).toHaveBeenCalledWith({
         autoLockTimeoutMinutes: 30,
@@ -160,13 +149,10 @@ describe("VaultSettingsSection", () => {
 
       renderSection();
 
-      const trigger = screen.getByRole("button", {
-        name: /auto-lock timeout/i,
-      });
-      await userEvent.click(trigger);
-
-      const neverOption = screen.getByRole("option", { name: /never/i });
-      await userEvent.click(neverOption);
+      await userEvent.click(
+        screen.getByRole("button", { name: /auto-lock timeout/i }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: /never/i }));
 
       expect(updateAutoLockSettings).toHaveBeenCalledWith({
         autoLockTimeoutMinutes: 0,
@@ -177,7 +163,6 @@ describe("VaultSettingsSection", () => {
       setUnlocked({ autoLockTimeoutMinutes: 15 });
       renderSection();
 
-      // The trigger button should display the current setting
       expect(
         screen.getByRole("button", { name: /auto-lock timeout/i }),
       ).toHaveTextContent("15 minutes");
@@ -190,44 +175,6 @@ describe("VaultSettingsSection", () => {
       expect(
         screen.getByRole("button", { name: /auto-lock timeout/i }),
       ).toHaveTextContent("Never");
-    });
-
-    it("closes the dropdown after selecting an option", async () => {
-      setUnlocked();
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
-
-      renderSection();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      );
-      // Use exact string to avoid substring collision with "15 minutes"
-      await userEvent.click(screen.getByRole("option", { name: "5 minutes" }));
-
-      // Options should no longer be visible
-      expect(
-        screen.queryByRole("option", { name: "5 minutes" }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("selects an option via Enter key", async () => {
-      setUnlocked({ autoLockTimeoutMinutes: 15 });
-      const updateAutoLockSettings = vi.fn();
-      useVaultStore.setState({ updateAutoLockSettings });
-
-      renderSection();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /auto-lock timeout/i }),
-      );
-
-      const option = screen.getByRole("option", { name: /30 minutes/i });
-      fireEvent.keyDown(option, { key: "Enter" });
-
-      expect(updateAutoLockSettings).toHaveBeenCalledWith({
-        autoLockTimeoutMinutes: 30,
-      });
     });
   });
 

@@ -1,16 +1,14 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import {
   TagIcon,
   XMarkIcon,
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
+import { Dropdown } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
-import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 
 interface TagsPopoverProps {
   uid: string;
@@ -34,62 +32,11 @@ export default function TagsPopover({
   const { tags: tagObjects } = useTags();
   const allTags = tagObjects.map((t) => t.name);
 
-  const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
   const canEditTags = useHasPermission("tag:edit");
   const tags = entityTags || [];
-
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const popW = 300;
-    let left = rect.left;
-    if (left + popW > window.innerWidth - 12)
-      left = window.innerWidth - popW - 12;
-    if (left < 12) left = 12;
-    setPos({ top: rect.bottom + 6, left });
-  }, []);
-
-  useResetOnOpen(open, () => {
-    setInput("");
-    setError(null);
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    updatePosition();
-    const onScroll = () => updatePosition();
-    const onResize = () => updatePosition();
-    window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onResize);
-    return () => {
-      window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [open, updatePosition]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node) &&
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  useEscapeKey(() => setOpen(false), open);
 
   const handleAdd = async (tag: string) => {
     if (
@@ -166,144 +113,151 @@ export default function TagsPopover({
           </span>
         )}
         {canEditTags && (
-          <button
-            type="button"
-            ref={triggerRef}
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(!open);
-            }}
-            className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:!text-primary hover:bg-primary/10 transition-all shrink-0"
-            title={editLabel}
-            aria-label={editLabel}
-          >
-            <PencilIcon className="w-3 h-3" strokeWidth={2} />
-          </button>
-        )}
-      </div>
-
-      {open &&
-        createPortal(
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- event containment, not user interaction
-          <div
-            ref={popoverRef}
-            role="dialog"
-            aria-label="Manage tags"
-            className="fixed z-dropdown w-[300px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
-            style={{ top: pos.top, left: pos.left }}
+          <span
+            role="presentation"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
-            <div className="p-3 space-y-3">
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-2xs rounded-md font-medium"
-                    >
-                      <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => void handleRemove(tag)}
-                        disabled={loading}
-                        aria-label={`Remove tag ${tag}`}
-                        className="hover:text-white transition-colors disabled:opacity-dim ml-0.5"
-                      >
-                        <XMarkIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
+            <Dropdown
+              mode="content"
+              portal
+              onOpenChange={(open) => {
+                if (open) {
+                  setInput("");
+                  setError(null);
+                }
+              }}
+            >
+              <Dropdown.Trigger>
+                <button
+                  type="button"
+                  className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                  title={editLabel}
+                  aria-label={editLabel}
+                >
+                  <PencilIcon className="w-3 h-3" strokeWidth={2} />
+                </button>
+              </Dropdown.Trigger>
 
-              {tags.length < 3 ? (
-                <div>
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        input.trim().length >= 3 &&
-                        inputValid
-                      ) {
-                        e.preventDefault();
-                        void handleAdd(input.trim());
-                      }
-                    }}
-                    placeholder="Search or create tag..."
-                    aria-label="Search or create tag"
-                    className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-                  />
-                  {input.trim() && input.trim().length < 3 && (
-                    <p className="text-2xs text-text-muted mt-1">
-                      Min 3 characters
-                    </p>
-                  )}
-                  {input.trim().length >= 3 && !inputValid && (
-                    <p className="text-2xs text-accent-red mt-1">
-                      {input.trim().length > 255
-                        ? "At most 255 characters"
-                        : "Only letters and numbers"}
-                    </p>
-                  )}
+              <Dropdown.Panel aria-label="Manage tags" className="w-[300px]">
+                <div className="p-3 space-y-3">
+                  {tags.length < 3 ? (
+                    <div>
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === "Enter" &&
+                            input.trim().length >= 3 &&
+                            inputValid
+                          ) {
+                            e.preventDefault();
+                            void handleAdd(input.trim());
+                          }
+                        }}
+                        placeholder="Search or create tag..."
+                        aria-label="Search or create tag"
+                        className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                      />
+                      {input.trim() && input.trim().length < 3 && (
+                        <p className="text-2xs text-text-muted mt-1">
+                          Min 3 characters
+                        </p>
+                      )}
+                      {input.trim().length >= 3 && !inputValid && (
+                        <p className="text-2xs text-accent-red mt-1">
+                          {input.trim().length > 255
+                            ? "At most 255 characters"
+                            : "Only letters and numbers"}
+                        </p>
+                      )}
 
-                  {(suggestions.length > 0 || isNew) &&
-                    input.trim() &&
-                    inputValid && (
-                      <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
-                        {suggestions.map((tag) => (
-                          <button
-                            type="button"
-                            key={tag}
-                            onClick={() => void handleAdd(tag)}
-                            disabled={loading}
-                            className="w-full text-left px-2.5 py-1.5 text-2xs text-text-primary hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
-                          >
-                            <TagIcon
-                              className="w-2.5 h-2.5 text-primary shrink-0"
-                              strokeWidth={2}
-                            />
-                            {tag}
-                          </button>
-                        ))}
-                        {isNew && (
-                          <button
-                            type="button"
-                            onClick={() => void handleAdd(input.trim())}
-                            disabled={loading}
-                            className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
-                          >
-                            <PlusIcon
-                              className="w-2.5 h-2.5 shrink-0"
-                              strokeWidth={2}
-                            />
-                            Create &ldquo;
-                            {input.trim()}
-                            &rdquo;
-                          </button>
+                      {(suggestions.length > 0 || isNew) &&
+                        input.trim() &&
+                        inputValid && (
+                          <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
+                            {suggestions.map((tag) => (
+                              <button
+                                type="button"
+                                key={tag}
+                                onClick={() => void handleAdd(tag)}
+                                disabled={loading}
+                                className="w-full text-left px-2.5 py-1.5 text-2xs text-text-primary hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
+                              >
+                                <TagIcon
+                                  className="w-2.5 h-2.5 text-primary shrink-0"
+                                  strokeWidth={2}
+                                />
+                                {tag}
+                              </button>
+                            ))}
+                            {isNew && (
+                              <button
+                                type="button"
+                                onClick={() => void handleAdd(input.trim())}
+                                disabled={loading}
+                                className="w-full text-left px-2.5 py-1.5 text-2xs text-accent-green hover:bg-hover-medium transition-colors disabled:opacity-dim flex items-center gap-1.5"
+                              >
+                                <PlusIcon
+                                  className="w-2.5 h-2.5 shrink-0"
+                                  strokeWidth={2}
+                                />
+                                Create &ldquo;
+                                {input.trim()}
+                                &rdquo;
+                              </button>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    )}
-                </div>
-              ) : (
-                <p className="text-2xs text-text-muted">
-                  Max 3 tags. Remove one to add another.
-                </p>
-              )}
+                    </div>
+                  ) : (
+                    <p className="text-2xs text-text-muted">
+                      Max 3 tags. Remove one to add another.
+                    </p>
+                  )}
 
-              {error && (
-                <p role="alert" className="text-2xs font-mono text-accent-red">
-                  {error}
-                </p>
-              )}
-            </div>
-          </div>,
-          document.body,
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-2xs rounded-md font-medium"
+                        >
+                          <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => void handleRemove(tag)}
+                            disabled={loading}
+                            aria-label={`Remove tag ${tag}`}
+                            className="hover:text-white transition-colors disabled:opacity-dim ml-0.5"
+                          >
+                            <XMarkIcon
+                              className="w-2.5 h-2.5"
+                              strokeWidth={2}
+                            />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {error && (
+                    <p
+                      role="alert"
+                      className="text-2xs font-mono text-accent-red"
+                    >
+                      {error}
+                    </p>
+                  )}
+                </div>
+              </Dropdown.Panel>
+            </Dropdown>
+          </span>
         )}
+      </div>
     </>
   );
 }

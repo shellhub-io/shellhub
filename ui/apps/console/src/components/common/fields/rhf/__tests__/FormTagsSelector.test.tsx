@@ -64,7 +64,7 @@ describe("FormTagsSelector (RHF adapter contract)", () => {
     render(<TagsForm />);
 
     await user.click(screen.getByPlaceholderText("Search tags..."));
-    await user.click(screen.getByRole("button", { name: "production" }));
+    await user.click(screen.getByRole("option", { name: "production" }));
 
     expect(screen.getByText("production")).toBeInTheDocument();
   });
@@ -74,8 +74,8 @@ describe("FormTagsSelector (RHF adapter contract)", () => {
     render(<TagsForm />);
 
     await user.click(screen.getByPlaceholderText("Search tags..."));
-    await user.click(screen.getByRole("button", { name: "production" }));
-    await user.click(screen.getByRole("button", { name: "staging" }));
+    await user.click(screen.getByRole("option", { name: "production" }));
+    await user.click(screen.getByRole("option", { name: "staging" }));
 
     expect(screen.getByText("production")).toBeInTheDocument();
     expect(screen.getByText("staging")).toBeInTheDocument();

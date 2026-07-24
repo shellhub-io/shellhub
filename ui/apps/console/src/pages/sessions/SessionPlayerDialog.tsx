@@ -17,7 +17,6 @@ export default function SessionPlayerDialog({
 
   return (
     <div className="absolute inset-0 z-overlay flex flex-col bg-[#121314]">
-      {/* Close button overlay */}
       <IconButton
         onClick={onClose}
         aria-label="Close"

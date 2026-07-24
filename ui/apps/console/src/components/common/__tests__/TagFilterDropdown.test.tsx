@@ -9,12 +9,6 @@ vi.mock("@/hooks/useTags", () => ({
   useTags: vi.fn(),
 }));
 
-// useEscapeKey attaches a keydown listener to document; keep the real impl.
-// The popover uses createPortal — RTL queries document.body, so portal
-// content is reachable without any mock.
-
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
 import { useTags } from "@/hooks/useTags";
 import TagFilterDropdown from "../TagFilterDropdown";
 
