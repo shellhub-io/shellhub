@@ -17,3 +17,10 @@ HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
 // jsdom does not implement scrollIntoView; components that scroll active items
 // into view (e.g. the command palette) call it inside effects.
 Element.prototype.scrollIntoView = function () {};
+
+// jsdom does not implement ResizeObserver; Floating UI's autoUpdate needs it.
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

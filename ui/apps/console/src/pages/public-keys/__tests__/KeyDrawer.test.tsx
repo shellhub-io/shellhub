@@ -316,7 +316,7 @@ describe("KeyDrawer", () => {
 
       const tagInput = screen.getByPlaceholderText("Search tags...");
       await user.click(tagInput);
-      await user.click(screen.getByRole("button", { name: "production" }));
+      await user.click(screen.getByRole("option", { name: "production" }));
 
       await user.click(getSubmitButton());
 

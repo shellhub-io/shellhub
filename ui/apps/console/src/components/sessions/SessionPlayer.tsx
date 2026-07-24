@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { create, type Player } from "asciinema-player";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
-import { Card, IconButton } from "@shellhub/design-system/primitives";
+import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 
 type Speed = 0.5 | 1 | 1.5 | 2;
 
@@ -297,23 +297,28 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
           <option value={2}>2x</option>
         </select>
 
-        <IconButton
-          variant={showShortcuts ? "primary" : "ghost"}
-          className={
-            showShortcuts
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "border border-transparent"
-          }
-          aria-label="Keyboard shortcuts"
-          title="Keyboard shortcuts"
-          onClick={() => setShowShortcuts((v) => !v)}
+        <Dropdown
+          mode="content"
+          placement="top-end"
+          open={showShortcuts}
+          onOpenChange={setShowShortcuts}
         >
-          <KeyboardIcon className="w-4 h-4" />
-        </IconButton>
+          <Dropdown.Trigger>
+            <IconButton
+              variant={showShortcuts ? "primary" : "ghost"}
+              className={
+                showShortcuts
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "border border-transparent"
+              }
+              aria-label="Keyboard shortcuts"
+              title="Keyboard shortcuts"
+            >
+              <KeyboardIcon className="w-4 h-4" />
+            </IconButton>
+          </Dropdown.Trigger>
 
-        {/* Shortcuts popover */}
-        {showShortcuts && (
-          <Card className="absolute bottom-full right-4 mb-2 rounded-lg shadow-lg p-3 w-80">
+          <Dropdown.Panel aria-label="Keyboard shortcuts" className="p-3 w-80">
             <p className="text-2xs font-mono font-semibold uppercase tracking-widest text-text-muted/60 mb-2.5">
               Keyboard Shortcuts
             </p>
@@ -339,8 +344,8 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
                 </div>
               ))}
             </div>
-          </Card>
-        )}
+          </Dropdown.Panel>
+        </Dropdown>
       </div>
     </div>
   );

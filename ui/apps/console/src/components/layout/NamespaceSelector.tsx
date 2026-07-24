@@ -1,21 +1,21 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   ChevronDownIcon,
   PlusIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useNamespaces, useNamespace } from "@/hooks/useNamespaces";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useAuthStore } from "@/stores/authStore";
-import { useClickOutside } from "@/hooks/useClickOutside";
 import { getInitials } from "@/utils/string";
 import { isEnterpriseOrCloud } from "@/env";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 import NamespaceUpsellDialog from "../common/NamespaceUpsellDialog";
 import { useNavigate } from "react-router-dom";
 
-const ADMIN_SUBTITLE = "Super Admin \u00B7 Instance";
+const ADMIN_SUBTITLE = "Super Admin · Instance";
 
 interface NamespaceSelectorProps {
   isAdminContext?: boolean;
@@ -34,9 +34,6 @@ export default function NamespaceSelector({
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(containerRef, () => setOpen(false));
 
   const showAdminLink = !isAdminContext && isEnterpriseOrCloud() && isAdmin;
 
@@ -54,60 +51,56 @@ export default function NamespaceSelector({
 
   const handleCreate = () => {
     setOpen(false);
-    // Community is single-namespace: creating another is a premium feature, so pitch the
-    // upgrade instead of the (CLI-only) create dialog.
-    if (isEnterpriseOrCloud()) {
-      setCreateOpen(true);
-    } else {
-      setUpsellOpen(true);
-    }
+    if (isEnterpriseOrCloud()) setCreateOpen(true);
+    else setUpsellOpen(true);
   };
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-label={
-          isAdminContext
-            ? "Admin Console"
-            : (currentNamespace?.name ?? "Select Namespace")
-        }
-        aria-haspopup="true"
-        aria-expanded={open}
-        className="flex items-center gap-2.5 h-9 px-3 rounded-md border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
-      >
-        {isAdminContext ? (
-          <>
-            <ShieldCheckIcon className="w-5 h-5 text-accent-red" />
-            <span className="hidden md:inline text-sm font-medium text-text-primary">
-              Admin Console
-            </span>
-          </>
-        ) : currentNamespace ? (
-          <>
-            <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-              {getInitials(currentNamespace.name)}
-            </span>
-            <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
-              {currentNamespace.name}
-            </span>
-          </>
-        ) : (
-          <span className="text-sm text-text-muted italic">No namespace</span>
-        )}
-        <ChevronDownIcon
-          className={cn(
-            "w-3 h-3 text-text-muted transition-transform duration-200",
-            open && "rotate-180",
-          )}
-          strokeWidth={2.5}
-        />
-      </button>
+    <>
+      <Dropdown mode="content" open={open} onOpenChange={setOpen}>
+        <Dropdown.Trigger>
+          <button
+            type="button"
+            aria-label={
+              isAdminContext
+                ? "Admin Console"
+                : (currentNamespace?.name ?? "Select Namespace")
+            }
+            className="flex items-center gap-2.5 h-9 px-3 rounded-md border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
+          >
+            {isAdminContext ? (
+              <>
+                <ShieldCheckIcon className="w-5 h-5 text-accent-red" />
+                <span className="hidden md:inline text-sm font-medium text-text-primary">
+                  Admin Console
+                </span>
+              </>
+            ) : currentNamespace ? (
+              <>
+                <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
+                  {getInitials(currentNamespace.name)}
+                </span>
+                <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
+                  {currentNamespace.name}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-text-muted italic">No namespace</span>
+            )}
+            <ChevronDownIcon
+              className={cn(
+                "w-3 h-3 text-text-muted transition-transform",
+                open && "rotate-180",
+              )}
+              strokeWidth={2.5}
+            />
+          </button>
+        </Dropdown.Trigger>
 
-      {open && (
-        <div className="absolute top-full left-0 mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-dropdown overflow-hidden animate-slide-down">
-          {/* Active namespace header (non-admin only) */}
+        <Dropdown.Panel
+          aria-label={isAdminContext ? "Admin Console" : "Namespace selector"}
+          className="w-80 max-w-[calc(100vw-2rem)]"
+        >
           {!isAdminContext && currentNamespace && (
             <div className="p-4 border-b border-border">
               <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3">
@@ -132,7 +125,6 @@ export default function NamespaceSelector({
             </div>
           )}
 
-          {/* Admin console header (admin context only) */}
           {isAdminContext && (
             <div className="p-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -151,7 +143,6 @@ export default function NamespaceSelector({
             </div>
           )}
 
-          {/* Namespace list */}
           {availableNamespaces.length > 0 && (
             <div className="p-2 overflow-y-auto max-h-72">
               <p className="px-2 py-1.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
@@ -191,15 +182,11 @@ export default function NamespaceSelector({
               </div>
             )}
 
-          {/* Admin Console link (non-admin context, enterprise or cloud admins) */}
           {showAdminLink && (
             <div className="p-2 border-t border-border">
               <button
                 type="button"
-                onClick={() => {
-                  setOpen(false);
-                  void navigate("/admin");
-                }}
+                onClick={() => { setOpen(false); void navigate("/admin"); }}
                 className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
               >
                 <span className="w-7 h-7 rounded bg-accent-red/10 border border-accent-red/20 flex items-center justify-center text-accent-red group-hover:bg-accent-red/15 transition-colors shrink-0">
@@ -217,7 +204,6 @@ export default function NamespaceSelector({
             </div>
           )}
 
-          {/* Create namespace (non-admin context only) */}
           {!isAdminContext && (
             <div className="p-2 border-t border-border">
               <button
@@ -234,8 +220,8 @@ export default function NamespaceSelector({
               </button>
             </div>
           )}
-        </div>
-      )}
+        </Dropdown.Panel>
+      </Dropdown>
 
       <CreateNamespaceDialog
         open={createOpen}
@@ -246,6 +232,6 @@ export default function NamespaceSelector({
         open={upsellOpen}
         onClose={() => setUpsellOpen(false)}
       />
-    </div>
+    </>
   );
 }

@@ -32,6 +32,7 @@ export type {
 } from "./WindowChrome";
 export { Callout } from "./Callout";
 export type { CalloutVariant, CalloutProps } from "./Callout";
+export { Dropdown } from "./Dropdown";
 export {
   GithubIcon,
   TwitterXIcon,

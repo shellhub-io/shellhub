@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, FormEvent } from "react";
-import { Button } from "@shellhub/design-system/primitives";
+import { useState, useEffect, FormEvent } from "react";
+import { Button, Dropdown } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
@@ -14,7 +14,6 @@ import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
 import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
 import { ALLOWED_TIMEOUT_MINUTES } from "@/types/vault";
 import type { AllowedTimeoutMinutes } from "@/types/vault";
-import { useClickOutside } from "@/hooks/useClickOutside";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
@@ -150,68 +149,44 @@ function AutoLockTimeoutSelect({
   onChange: (minutes: AllowedTimeoutMinutes) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  useClickOutside(containerRef, () => setOpen(false));
-
   const currentLabel =
     TIMEOUT_LABELS[value as AllowedTimeoutMinutes] ?? `${value} minutes`;
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        aria-label="Auto-lock timeout"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-text-primary bg-card border border-border rounded-md hover:border-border-light transition-colors"
-      >
-        {currentLabel}
-        <ChevronDownIcon
-          className={cn(
-            "w-3.5 h-3.5 text-text-muted transition-transform duration-150",
-            open && "rotate-180",
-          )}
-          strokeWidth={2.5}
-        />
-      </button>
-
-      {open && (
-        <ul
-          role="listbox"
-          aria-label="Auto-lock timeout options"
-          className="absolute right-0 top-full mt-1 w-36 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-dropdown overflow-hidden animate-slide-down"
+    <Dropdown placement="bottom-end" open={open} onOpenChange={setOpen}>
+      <Dropdown.Trigger>
+        <button
+          type="button"
+          aria-label="Auto-lock timeout"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-text-primary bg-card border border-border rounded-md hover:border-border-light transition-colors"
         >
-          {ALLOWED_TIMEOUT_MINUTES.map((minutes) => (
-            <li
-              key={minutes}
-              role="option"
-              tabIndex={-1}
-              aria-selected={value === minutes}
-              onClick={() => {
-                onChange(minutes);
-                setOpen(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onChange(minutes);
-                  setOpen(false);
-                }
-              }}
-              className={cn(
-                "px-3 py-2 text-sm cursor-pointer transition-colors",
-                value === minutes
-                  ? "text-primary bg-primary/10"
-                  : "text-text-secondary hover:text-text-primary hover:bg-hover-medium",
-              )}
-            >
-              {TIMEOUT_LABELS[minutes]}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+          {currentLabel}
+          <ChevronDownIcon
+            className={cn(
+              "w-3.5 h-3.5 text-text-muted transition-transform",
+              open && "rotate-180",
+            )}
+            strokeWidth={2.5}
+          />
+        </button>
+      </Dropdown.Trigger>
+
+      <Dropdown.Panel aria-label="Auto-lock timeout options" className="w-36">
+        {ALLOWED_TIMEOUT_MINUTES.map((minutes) => (
+          <Dropdown.Item
+            key={minutes}
+            label={TIMEOUT_LABELS[minutes]}
+            onSelect={() => onChange(minutes)}
+            className={cn(
+              "px-3 py-2 text-sm",
+              value === minutes && "text-primary bg-primary/10",
+            )}
+          >
+            {TIMEOUT_LABELS[minutes]}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Panel>
+    </Dropdown>
   );
 }
 

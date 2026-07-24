@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { TagIcon, XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { IconButton } from "@shellhub/design-system/primitives";
+import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
-import { useClickOutside } from "@/hooks/useClickOutside";
-import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { LABEL_BASE } from "@/utils/styles";
 
@@ -30,16 +28,6 @@ export default function TagsSection({
   const [adding, setAdding] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const closeDropdown = () => {
-    setOpen(false);
-    setActiveIndex(-1);
-  };
-
-  useClickOutside(containerRef, closeDropdown);
-  useEscapeKey(closeDropdown, open);
 
   const validate = (tag: string): string | null => {
     if (tags.includes(tag)) return "This tag is already added.";
@@ -66,7 +54,7 @@ export default function TagsSection({
     try {
       await addTag({ path: { uid, name: tag } });
       setInput("");
-      closeDropdown();
+      setOpen(false);
     } catch (e) {
       const status = isSdkError(e) ? e.status : undefined;
       if (status === 403) setError("You don't have permission to add tags.");
@@ -94,26 +82,10 @@ export default function TagsSection({
   const isNew = validate(trimmed) === null && !allTags.includes(trimmed);
 
   const options = [
-    ...suggestions.map((name) => ({
-      id: `tag-opt-${name}`,
-      value: name,
-      isCreate: false,
-    })),
-    ...(isNew
-      ? [{ id: "tag-opt-create", value: trimmed, isCreate: true }]
-      : []),
+    ...suggestions.map((name) => ({ value: name, isCreate: false })),
+    ...(isNew ? [{ value: trimmed, isCreate: true }] : []),
   ];
-  const showDropdown = open && trimmed && options.length > 0;
-  const activeId =
-    activeIndex >= 0 && activeIndex < options.length
-      ? options[activeIndex].id
-      : undefined;
-
-  useEffect(() => {
-    if (activeId) {
-      document.getElementById(activeId)?.scrollIntoView({ block: "nearest" });
-    }
-  }, [activeId]);
+  const showDropdown = open && trimmed.length > 0 && options.length > 0;
 
   return (
     <div>
@@ -139,78 +111,39 @@ export default function TagsSection({
           </span>
         ))}
         {canEditTags && tags.length < 3 && (
-          <div
-            ref={containerRef}
-            className="relative flex items-center gap-1.5"
-          >
-            <input
-              type="text"
-              role="combobox"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setError(null);
-                setOpen(true);
-                setActiveIndex(-1);
-              }}
-              onFocus={() => setOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowDown" && showDropdown) {
-                  e.preventDefault();
-                  setActiveIndex((i) => (i < options.length - 1 ? i + 1 : 0));
-                } else if (e.key === "ArrowUp" && showDropdown) {
-                  e.preventDefault();
-                  setActiveIndex((i) => (i > 0 ? i - 1 : options.length - 1));
-                } else if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (activeIndex >= 0 && activeIndex < options.length) {
-                    void handleAdd(options[activeIndex].value);
-                    setActiveIndex(-1);
-                  } else {
+          <div className="flex items-center gap-1.5">
+            <Dropdown
+              mode="combobox"
+              open={showDropdown}
+              onOpenChange={(v) => setOpen(v)}
+            >
+              <Dropdown.Input
+                value={input}
+                onChange={(val) => {
+                  setInput(val);
+                  setError(null);
+                  setOpen(true);
+                }}
+                onFocus={() => setOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.defaultPrevented) {
+                    e.preventDefault();
                     void handleAdd(input);
                   }
-                }
-              }}
-              placeholder="Search or create tag..."
-              aria-label="New tag"
-              aria-expanded={!!showDropdown}
-              aria-controls={showDropdown ? "tag-suggestions" : undefined}
-              aria-activedescendant={activeId}
-              aria-autocomplete="list"
-              className="w-44 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-            />
-            <IconButton
-              variant="primary"
-              size="sm"
-              disabled={adding || !trimmed}
-              aria-label="Add tag"
-              onClick={() => void handleAdd(input)}
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            </IconButton>
-
-            {showDropdown && (
-              <ul
-                id="tag-suggestions"
-                role="listbox"
-                className="absolute top-full left-0 mt-1.5 z-raised w-44 max-h-[140px] overflow-y-auto bg-surface border border-border rounded-lg shadow-2xl divide-y divide-border/60"
-              >
-                {options.map((opt, i) => (
-                  <li
-                    key={opt.id}
-                    id={opt.id}
-                    role="option"
-                    aria-selected={i === activeIndex}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      void handleAdd(opt.value);
-                      setActiveIndex(-1);
-                    }}
-                    className={`w-full text-left px-2.5 py-1.5 text-2xs ${
-                      opt.isCreate ? "text-accent-green" : "text-text-primary"
-                    } ${
-                      i === activeIndex ? "bg-hover-medium" : ""
-                    } hover:bg-hover-medium transition-colors flex items-center gap-1.5 cursor-pointer`}
+                }}
+                placeholder="Search or create tag..."
+                aria-label="New tag"
+                className="w-44 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
+              />
+              <Dropdown.Panel className="w-44 max-h-[140px] divide-y divide-border/60">
+                {options.map((opt) => (
+                  <Dropdown.Item
+                    key={opt.isCreate ? "__create__" : opt.value}
+                    label={opt.value}
+                    onSelect={() => void handleAdd(opt.value)}
+                    closeOnSelect={false}
+                    variant={opt.isCreate ? "create" : "default"}
+                    className="px-2.5 py-1.5 text-2xs gap-1.5"
                   >
                     {opt.isCreate ? (
                       <PlusIcon
@@ -228,10 +161,19 @@ export default function TagsSection({
                     ) : (
                       opt.value
                     )}
-                  </li>
+                  </Dropdown.Item>
                 ))}
-              </ul>
-            )}
+              </Dropdown.Panel>
+            </Dropdown>
+            <IconButton
+              variant="primary"
+              size="sm"
+              disabled={adding || !trimmed}
+              aria-label="Add tag"
+              onClick={() => void handleAdd(input)}
+            >
+              <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            </IconButton>
           </div>
         )}
       </div>

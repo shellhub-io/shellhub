@@ -246,7 +246,11 @@ export default function InstallKeysTable({
       header: "",
       headerClassName: "w-12",
       render: (key) => (
-        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex justify-end"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <InstallKeyActionsMenu
             installKey={key}
             onEdit={onEdit}
