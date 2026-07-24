@@ -180,7 +180,7 @@ function AutoLockTimeoutSelect({
         <ul
           role="listbox"
           aria-label="Auto-lock timeout options"
-          className="absolute right-0 top-full mt-1 w-36 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-50 overflow-hidden animate-slide-down"
+          className="absolute right-0 top-full mt-1 w-36 bg-surface border border-border rounded-lg shadow-2xl shadow-black/40 z-dropdown overflow-hidden animate-slide-down"
         >
           {ALLOWED_TIMEOUT_MINUTES.map((minutes) => (
             <li

@@ -113,7 +113,7 @@ function TagFilterDropdown({
         createPortal(
           <div
             ref={popoverRef}
-            className="fixed z-50 w-[240px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
+            className="fixed z-dropdown w-[240px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
             style={{ top: pos.top, left: pos.left }}
           >
             {/* Search */}

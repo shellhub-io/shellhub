@@ -355,7 +355,7 @@ export default function TerminalInstance({
         <TerminalErrorBanner error={error} sessionId={session.id} />
       )}
       {session.record && session.connectionStatus === "connected" && (
-        <div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm pointer-events-none select-none">
+        <div className="absolute top-2 right-3 z-raised flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm pointer-events-none select-none">
           <span className="w-1.5 h-1.5 rounded-full bg-accent-red animate-pulse shadow-[0_0_4px_rgba(220,80,80,0.7)]" />
           <span className="text-2xs font-semibold tracking-wide text-accent-red">
             REC
@@ -364,7 +364,10 @@ export default function TerminalInstance({
       )}
       <div
         ref={containerRef}
-        className={cn("flex-1", error !== null && "opacity-30 pointer-events-none")}
+        className={cn(
+          "flex-1",
+          error !== null && "opacity-30 pointer-events-none",
+        )}
       />
     </div>
   );

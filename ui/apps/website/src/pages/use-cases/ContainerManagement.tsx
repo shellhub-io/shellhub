@@ -480,7 +480,7 @@ export default function ContainerManagement() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="cyan" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="cyan" className="mb-6 tracking-label">
               Use Case
@@ -840,7 +840,7 @@ export default function ContainerManagement() {
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Connecting line (visible on md+) */}
-          <div className="hidden md:block absolute top-[52px] left-[16.66%] right-[16.66%] h-[1px] z-0">
+          <div className="hidden md:block absolute top-[52px] left-[16.66%] right-[16.66%] h-[1px] z-base">
             <div
               className="w-full h-full"
               style={{
@@ -854,7 +854,7 @@ export default function ContainerManagement() {
               <div className="relative text-center">
                 {/* Step number circle */}
                 <div
-                  className="relative z-10 w-[60px] h-[60px] rounded-full mx-auto mb-6 flex items-center justify-center border text-lg font-bold font-mono"
+                  className="relative z-raised w-[60px] h-[60px] rounded-full mx-auto mb-6 flex items-center justify-center border text-lg font-bold font-mono"
                   style={{
                     background: `${s.color}12`,
                     borderColor: `${s.color}30`,

@@ -16,7 +16,7 @@ export default function TerminalTaskbar({
   return (
     <div
       style={{ left: sidebarOffset }}
-      className="fixed bottom-0 right-0 z-30 h-11 flex items-center gap-1.5 px-3 bg-surface border-t border-border animate-slide-up transition-[left] duration-200 ease-out"
+      className="fixed bottom-0 right-0 z-terminal-bar h-11 flex items-center gap-1.5 px-3 bg-surface border-t border-border animate-slide-up transition-[left] duration-200 ease-out"
     >
       {minimized.map((s) => {
         const isConnected = s.connectionStatus === "connected";

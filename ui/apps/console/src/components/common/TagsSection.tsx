@@ -193,7 +193,7 @@ export default function TagsSection({
               <ul
                 id="tag-suggestions"
                 role="listbox"
-                className="absolute top-full left-0 mt-1.5 z-10 w-44 max-h-[140px] overflow-y-auto bg-surface border border-border rounded-lg shadow-2xl divide-y divide-border/60"
+                className="absolute top-full left-0 mt-1.5 z-raised w-44 max-h-[140px] overflow-y-auto bg-surface border border-border rounded-lg shadow-2xl divide-y divide-border/60"
               >
                 {options.map((opt, i) => (
                   <li

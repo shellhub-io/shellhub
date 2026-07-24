@@ -51,7 +51,7 @@ export function CTABanner({
             className={`absolute inset-0 bg-gradient-to-br ${GRADIENT_FROM[gradient.from]} via-transparent ${GRADIENT_TO[gradient.to]} pointer-events-none`}
           />
 
-          <div className="relative z-10">
+          <div className="relative z-raised">
             <SectionHeader
               variant="cta"
               eyebrow={eyebrow}

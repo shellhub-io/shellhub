@@ -173,7 +173,7 @@ export default function RemoteSupport() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="yellow" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="yellow" className="mb-6">
               Use Case
@@ -539,7 +539,7 @@ export default function RemoteSupport() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* Connecting arrows (desktop only) */}
-          <div className="hidden md:block absolute top-1/2 left-[calc(33.33%-12px)] w-[calc(33.33%+24px)] -translate-y-1/2 pointer-events-none z-0">
+          <div className="hidden md:block absolute top-1/2 left-[calc(33.33%-12px)] w-[calc(33.33%+24px)] -translate-y-1/2 pointer-events-none z-base">
             <svg
               className="w-full h-8"
               viewBox="0 0 400 32"

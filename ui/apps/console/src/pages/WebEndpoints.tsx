@@ -177,7 +177,7 @@ function DeviceSelector({
       </div>
       {error && <p className="mt-1 text-2xs text-accent-red">{error}</p>}
       {open && !selected && (
-        <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
+        <div className="absolute z-raised mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
           {loading ? (
             <div className="px-3 py-2 text-xs text-text-muted">
               Loading devices...

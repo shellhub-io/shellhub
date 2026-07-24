@@ -74,7 +74,7 @@ export default function TerminalManager({
             key={s.id}
             style={{ left: isFullscreen ? 0 : sidebarOffset }}
             className={cn(
-              "fixed top-14 bottom-0 right-0 z-40 flex flex-col bg-background",
+              "fixed top-14 bottom-0 right-0 z-terminal flex flex-col bg-background",
               "transition-[opacity,transform,left] duration-200 ease-out",
               isVisible
                 ? "opacity-100 translate-y-0"

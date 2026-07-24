@@ -1,6 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   theme: {
+    zIndex: {
+      base: "0",
+      auto: "auto",
+      bg: "-10",
+      raised: "10",
+      "terminal-bar": "30",
+      terminal: "40",
+      appbar: "50",
+      dropdown: "55",
+      "drawer-backdrop": "60",
+      drawer: "70",
+      toast: "75",
+      overlay: "80",
+      banner: "90",
+      "skip-link": "200",
+    },
     extend: {
       colors: {
         primary: {

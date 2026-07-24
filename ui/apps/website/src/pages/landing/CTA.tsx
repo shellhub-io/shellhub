@@ -15,7 +15,7 @@ export function CTA() {
     >
       <ConnectionGrid />
       <GlowOrbs preset="duo" tone="primary" />
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-8 relative z-raised">
         <Reveal>
           <h2 className="text-[clamp(1.75rem,4vw,3rem)] font-bold tracking-[-0.03em] leading-tight mb-4">
             Ready to connect to your devices?

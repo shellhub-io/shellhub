@@ -177,7 +177,7 @@ export default function InstallKeyActionsMenu({
             tabIndex={-1}
             onKeyDown={onMenuKeyDown}
             style={{ top: pos.top, right: pos.right }}
-            className="fixed z-50 w-40 py-1 bg-surface border border-border rounded-lg shadow-2xl animate-fade-in"
+            className="fixed z-dropdown w-40 py-1 bg-surface border border-border rounded-lg shadow-2xl animate-fade-in"
           >
             <MenuItem
               action="installKey:edit"

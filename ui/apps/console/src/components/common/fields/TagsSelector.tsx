@@ -90,7 +90,7 @@ export default function TagsSelector({
           />
         </div>
         {open && (
-          <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
+          <div className="absolute z-raised mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
             {loading ? (
               <div className="px-3 py-2 text-xs text-text-muted">
                 Loading tags...

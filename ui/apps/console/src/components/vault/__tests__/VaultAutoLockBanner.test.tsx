@@ -236,10 +236,10 @@ describe("VaultAutoLockBanner", () => {
       });
 
       const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper.className).toContain("fixed");
-      expect(wrapper.className).toContain("bottom-4");
-      expect(wrapper.className).toContain("right-4");
-      expect(wrapper.className).toContain("z-[75]");
+      expect(wrapper).toHaveClass("fixed");
+      expect(wrapper).toHaveClass("bottom-4");
+      expect(wrapper).toHaveClass("right-4");
+      expect(wrapper).toHaveClass("z-toast");
     });
   });
 });

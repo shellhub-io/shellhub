@@ -20,7 +20,7 @@ export default function GettingStarted() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="primary" />
 
-        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
+        <div className="relative z-raised w-full max-w-4xl flex flex-col items-center">
           {/* Progress indicator */}
           <div className="flex items-center gap-3 mb-12 animate-fade-in">
             {steps.map((step, i) => (

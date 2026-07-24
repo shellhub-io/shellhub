@@ -146,7 +146,7 @@ export default function IotEmbedded() {
         <ConnectionGrid />
         <GlowOrbs preset="section" tone="green" />
 
-        <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+        <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
           <Reveal>
             <Badge shape="pill" color="green" className="mb-6 tracking-label">
               Use Case

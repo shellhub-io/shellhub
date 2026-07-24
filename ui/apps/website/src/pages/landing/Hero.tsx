@@ -8,7 +8,7 @@ export function Hero() {
       <ConnectionGrid />
       <GlowOrbs preset="hero" />
 
-      <div className="relative z-10 max-w-4xl flex flex-col items-center">
+      <div className="relative z-raised max-w-4xl flex flex-col items-center">
         {/* Floating ShellHub cloud */}
         <div className="animate-float mb-8 inline-block">
           <ShellHubCloudIcon className="h-16 drop-shadow-[0_0_24px_rgba(102,122,204,0.35)]" />

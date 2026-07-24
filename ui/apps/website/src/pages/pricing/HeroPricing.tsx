@@ -5,7 +5,7 @@ export function HeroPricing() {
     <section className="relative pt-32 pb-16 overflow-hidden">
       <GlowOrbs preset="section" tone="primary" />
 
-      <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+      <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
         <Reveal>
           <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.03em] leading-[1.1] mb-4">
             Simple, transparent pricing

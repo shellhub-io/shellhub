@@ -12,7 +12,7 @@ export function HeroEnterprise() {
       <ConnectionGrid />
       <GlowOrbs preset="section" tone="primary" />
 
-      <div className="max-w-7xl mx-auto px-8 relative z-10 text-center">
+      <div className="max-w-7xl mx-auto px-8 relative z-raised text-center">
         <Reveal>
           <Badge shape="pill" color="yellow" className="mb-6">
             Enterprise

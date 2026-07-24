@@ -52,7 +52,7 @@ export default function VaultSyncPromoDialog({ open, onClose, onSync }: Props) {
       <div className="p-6">
         <div className="flex flex-col items-center text-center mb-5">
           <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl -z-10" />
+            <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl z-bg" />
             <ServerStackIcon className="w-7 h-7 text-primary" />
           </div>
           <h2
