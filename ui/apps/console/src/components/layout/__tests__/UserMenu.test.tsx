@@ -5,7 +5,14 @@ import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import UserMenu from "../UserMenu";
 
-const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+const mockUseNamespaces = vi.fn<
+  () => {
+    namespaces: Array<{ tenant_id: string; name: string }>;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  }
+>();
 
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
@@ -53,13 +60,29 @@ describe("UserMenu", () => {
   describe("trigger button", () => {
     it("displays the username", () => {
       renderMenu();
-      expect(screen.getByRole("button", { name: /alice/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /alice/i }),
+      ).toBeInTheDocument();
     });
 
     it("returns nothing when there is no logged-in user", () => {
-      useAuthStore.setState({ user: null });
+      useAuthStore.setState({ user: null, name: null, email: null });
       const { container } = renderMenu();
       expect(container).toBeEmptyDOMElement();
+    });
+
+    it("falls back to the name, not the email, when an SSO user has no username", () => {
+      useAuthStore.setState({
+        user: null,
+        name: "Alice",
+        email: "alice@corp.example",
+      });
+      renderMenu();
+      // Exact accessible name proves precedence: the email fallback would read
+      // "Account menu for alice@corp.example".
+      expect(
+        screen.getByRole("button", { name: "Account menu for Alice" }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -67,19 +90,25 @@ describe("UserMenu", () => {
     it("shows Profile", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.getByRole("button", { name: /profile/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /profile/i }),
+      ).toBeInTheDocument();
     });
 
     it("shows Settings", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.getByRole("button", { name: /settings/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /settings/i }),
+      ).toBeInTheDocument();
     });
 
     it("shows Logout", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /logout/i }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -96,19 +125,25 @@ describe("UserMenu", () => {
     it("still shows Profile", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.getByRole("button", { name: /profile/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /profile/i }),
+      ).toBeInTheDocument();
     });
 
     it("hides Settings", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.queryByRole("button", { name: /settings/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /settings/i }),
+      ).not.toBeInTheDocument();
     });
 
     it("still shows Logout", async () => {
       renderMenu();
       await openDropdown();
-      expect(screen.getByRole("button", { name: /logout/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /logout/i }),
+      ).toBeInTheDocument();
     });
   });
 });

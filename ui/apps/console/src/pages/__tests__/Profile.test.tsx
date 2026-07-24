@@ -45,6 +45,7 @@ function seedAuthStore(
     email: string;
     recoveryEmail: string;
     mfaEnabled: boolean;
+    origin: "local" | "saml";
   }> = {},
 ) {
   useAuthStore.setState({
@@ -54,6 +55,7 @@ function seedAuthStore(
     email: "test@example.com",
     recoveryEmail: "recovery@example.com",
     mfaEnabled: false,
+    origin: "local",
     loading: false,
     token: "tok",
     userId: "uid-1",
@@ -131,6 +133,32 @@ describe("Profile", () => {
       seedAuthStore({ recoveryEmail: "" });
       renderProfile();
       expect(screen.getByText(/not set/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("SSO users", () => {
+    it("hides password and MFA controls, showing the managed-by-IdP notice", () => {
+      seedAuthStore({ origin: "saml" });
+      renderProfile();
+
+      expect(
+        screen.getByText(/managed by your identity provider/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /^change password$/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the password control for local users", () => {
+      seedAuthStore({ origin: "local" });
+      renderProfile();
+
+      expect(
+        screen.getByRole("button", { name: /^change password$/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/managed by your identity provider/i),
+      ).not.toBeInTheDocument();
     });
   });
 

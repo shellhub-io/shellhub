@@ -8,6 +8,7 @@ import {
   deleteUser as deleteUserSdk,
   authMfa,
   mfaRecover,
+  type UserOrigin,
 } from "../client";
 import { queryClient } from "../api/queryClient";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
@@ -21,6 +22,9 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   username: string | null;
+  // How the user authenticates: "local" (username + password) or "saml" (SSO).
+  // SSO users have no local password/MFA — those live at the identity provider.
+  origin: UserOrigin | null;
   recoveryEmail: string | null;
   tenant: string | null;
   role: Role | null;
@@ -59,6 +63,7 @@ const initialState = {
   userId: null,
   email: null,
   username: null,
+  origin: null,
   recoveryEmail: null,
   tenant: null,
   role: null,
@@ -132,6 +137,7 @@ export const useAuthStore = create<AuthState>()(
             user: data.user,
             userId: data.id,
             email: data.email,
+            origin: data.origin ?? null,
             tenant: data.tenant,
             name: data.name,
             isAdmin: data.admin ?? false,
@@ -177,6 +183,7 @@ export const useAuthStore = create<AuthState>()(
             username: user.user,
             userId: user.id,
             email: user.email,
+            origin: user.origin ?? null,
             recoveryEmail: user.recovery_email,
             name: user.name,
             tenant: user.tenant,
@@ -301,6 +308,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         userId: state.userId,
         email: state.email,
+        origin: state.origin,
         tenant: state.tenant,
         role: state.role,
         isAdmin: state.isAdmin,
