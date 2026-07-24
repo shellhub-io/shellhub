@@ -147,6 +147,13 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestNewAgent(t *testing.T) {
+	agent, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostMode))
+
+	assert.NoError(t, err)
+	assert.Equal(t, TransportV2, agent.config.TransportVersion)
+}
+
 func TestNewAgentWithConfig(t *testing.T) {
 	type expected struct {
 		agent *Agent
@@ -155,9 +162,10 @@ func TestNewAgentWithConfig(t *testing.T) {
 
 	// NOTICE: configuration structure used by the successfully test.
 	config := &Config{
-		ServerAddress: "http://localhost",
-		TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
-		PrivateKey:    "/tmp/shellhub.key",
+		ServerAddress:    "http://localhost",
+		TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+		PrivateKey:       "/tmp/shellhub.key",
+		TransportVersion: TransportV2,
 	}
 
 	tests := []struct {
@@ -207,14 +215,54 @@ func TestNewAgentWithConfig(t *testing.T) {
 		{
 			description: "fail when mode is nil",
 			config: &Config{
-				ServerAddress: "http://localhost",
-				TenantID:      "1c462afa-e4b6-41a5-ba54-7236a1770466",
-				PrivateKey:    "/tmp/shellhub.key",
+				ServerAddress:    "http://localhost",
+				TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				PrivateKey:       "/tmp/shellhub.key",
+				TransportVersion: TransportV2,
 			},
 			mode: nil,
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigNilMode,
+			},
+		},
+		{
+			// NOTE: A hand-built Config that bypasses env parsing leaves
+			// TransportVersion at its zero value, which is not a supported
+			// version and would otherwise fail late in Agent.Listen.
+			description: "fail when transport version is unsupported",
+			config: &Config{
+				ServerAddress:    "http://localhost",
+				TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				PrivateKey:       "/tmp/shellhub.key",
+				TransportVersion: 0,
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrNewAgentWithConfigUnsupportedTransportVersion,
+			},
+		},
+		{
+			description: "success to create agent with transport version 1",
+			config: &Config{
+				ServerAddress:    "http://localhost",
+				TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+				PrivateKey:       "/tmp/shellhub.key",
+				TransportVersion: TransportV1,
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: &Agent{
+					config: &Config{
+						ServerAddress:    "http://localhost",
+						TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+						PrivateKey:       "/tmp/shellhub.key",
+						TransportVersion: TransportV1,
+					},
+					mode: new(HostMode),
+				},
+				err: nil,
 			},
 		},
 		{

@@ -233,9 +233,10 @@ type Agent struct {
 // [NewAgentWithConfig] with a fully populated [Config].
 func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*Agent, error) {
 	return NewAgentWithConfig(&Config{
-		ServerAddress: address,
-		TenantID:      tenantID,
-		PrivateKey:    privateKey,
+		ServerAddress:    address,
+		TenantID:         tenantID,
+		PrivateKey:       privateKey,
+		TransportVersion: TransportV2,
 	}, mode)
 }
 
@@ -245,6 +246,8 @@ var (
 	ErrNewAgentWithConfigEmptyTenant          = errors.New("tenant is empty")
 	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
 	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
+
+	ErrNewAgentWithConfigUnsupportedTransportVersion = errors.New("transport version is unsupported")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
@@ -268,6 +271,12 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 
 	if mode == nil {
 		return nil, ErrNewAgentWithConfigNilMode
+	}
+
+	switch config.TransportVersion {
+	case TransportV1, TransportV2:
+	default:
+		return nil, ErrNewAgentWithConfigUnsupportedTransportVersion
 	}
 
 	return &Agent{
