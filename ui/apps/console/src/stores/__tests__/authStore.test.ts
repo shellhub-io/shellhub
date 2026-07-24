@@ -60,6 +60,7 @@ beforeEach(() => {
     userId: null,
     email: null,
     username: null,
+    origin: null,
     recoveryEmail: null,
     tenant: null,
     role: null,
@@ -293,11 +294,33 @@ describe("authStore", () => {
       expect(state.name).toBe("Admin User");
     });
 
+    it("maps the SSO origin into the store", async () => {
+      mockedGetUserInfo.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ origin: "saml" })),
+      );
+
+      await useAuthStore.getState().fetchUser();
+
+      expect(useAuthStore.getState().origin).toBe("saml");
+    });
+
     it("silently ignores errors (interceptor handles redirect)", async () => {
       mockedGetUserInfo.mockRejectedValue(new Error("401"));
 
       // Should not throw
       await useAuthStore.getState().fetchUser();
+    });
+  });
+
+  describe("loginWithToken", () => {
+    it("maps the SSO origin into the store", async () => {
+      mockedGetUserInfo.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ origin: "saml" })),
+      );
+
+      await useAuthStore.getState().loginWithToken("jwt-token");
+
+      expect(useAuthStore.getState().origin).toBe("saml");
     });
   });
 
@@ -313,6 +336,7 @@ describe("authStore", () => {
         user: "admin",
         userId: "123",
         email: "a@b.com",
+        origin: "saml",
         tenant: "t",
         role: "owner",
         name: "Admin",
@@ -332,6 +356,7 @@ describe("authStore", () => {
         user: "admin",
         userId: "123",
         email: "a@b.com",
+        origin: "saml", // SSO-awareness must survive a reload
         tenant: "t",
         role: "owner",
         name: "Admin",

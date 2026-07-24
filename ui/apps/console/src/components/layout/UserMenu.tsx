@@ -16,7 +16,7 @@ import { useThemeStore } from "@/stores/themeStore";
 import { getInitials } from "@/utils/string";
 
 export default function UserMenu() {
-  const { user, logout } = useAuthStore();
+  const { user, name, email, logout } = useAuthStore();
   const navigate = useNavigate();
   const { namespaces } = useNamespaces();
   const theme = useThemeStore((s) => s.theme);
@@ -33,26 +33,33 @@ export default function UserMenu() {
     void navigate("/login");
   };
 
-  if (!user) return null;
+  // SAML users have no username, so fall back to name/email — the account menu
+  // (its only way to log out) must always render in the authenticated layout.
+  const display = user || name || email || "Account";
+
+  if (!user && !name && !email) return null;
 
   return (
     <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={`Account menu for ${user}`}
+        aria-label={`Account menu for ${display}`}
         aria-haspopup="true"
         aria-expanded={open}
         className="flex items-center gap-2 h-8 pl-1 pr-2.5 rounded-lg border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
         <span className="w-6 h-6 rounded-md bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-          {getInitials(user)}
+          {getInitials(display)}
         </span>
         <span className="hidden sm:inline text-xs font-medium text-text-secondary max-w-[120px] truncate">
-          {user}
+          {display}
         </span>
         <ChevronDownIcon
-          className={cn("w-3 h-3 text-text-muted transition-transform duration-200", open && "rotate-180")}
+          className={cn(
+            "w-3 h-3 text-text-muted transition-transform duration-200",
+            open && "rotate-180",
+          )}
           strokeWidth={2.5}
         />
       </button>
@@ -63,11 +70,11 @@ export default function UserMenu() {
           <div className="p-3.5 border-b border-border">
             <div className="flex items-center gap-3">
               <span className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold font-mono shrink-0">
-                {getInitials(user)}
+                {getInitials(display)}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-text-primary truncate">
-                  {user}
+                  {display}
                 </p>
                 <p className="text-2xs text-text-muted mt-0.5">Logged in</p>
               </div>

@@ -450,8 +450,19 @@ function ChangePasswordDrawer({
 /* ─── Page ─── */
 
 export default function Profile() {
-  const { name, username, email, recoveryEmail, mfaEnabled, fetchUser } =
-    useAuthStore();
+  const {
+    name,
+    username,
+    email,
+    recoveryEmail,
+    origin,
+    mfaEnabled,
+    fetchUser,
+  } = useAuthStore();
+
+  // SSO users authenticate at their identity provider, so their password and MFA
+  // live there, not in ShellHub — don't offer local password/MFA controls to them.
+  const isSsoUser = origin === "saml";
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [pwDrawerOpen, setPwDrawerOpen] = useState(false);
@@ -544,67 +555,84 @@ export default function Profile() {
 
         {/* ── Security ── */}
         <SettingsCard title="Security">
-          <SettingsRow
-            icon={<LockClosedIcon className="w-4 h-4" />}
-            title="Password"
-            description="Credentials used to authenticate into your account"
-          >
-            <Button variant="secondary" onClick={() => setPwDrawerOpen(true)}>
-              Change Password
-            </Button>
-          </SettingsRow>
-
-          {isEnterpriseOrCloud() ? (
+          {isSsoUser ? (
             <SettingsRow
               icon={<ShieldCheckIcon className="w-4 h-4" />}
-              title="Multi-Factor Authentication"
-              description="Add an extra layer of security with TOTP-based 2FA. Recovery codes are shown once during setup."
-              badge={
-                mfaEnabled ? (
-                  <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
-                    Enabled
-                  </span>
-                ) : null
-              }
+              title="Managed by your identity provider"
+              description="You sign in through SSO, so your password and multi-factor authentication are configured with your identity provider, not in ShellHub."
             >
-              {mfaEnabled ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => setMfaDisableOpen(true)}
-                >
-                  Disable
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  onClick={() => setMfaEnableOpen(true)}
-                >
-                  Enable MFA
-                </Button>
-              )}
+              <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-primary/10 text-primary border border-primary/20">
+                SSO
+              </span>
             </SettingsRow>
           ) : (
-            <SettingsRow
-              icon={<ShieldCheckIcon className="w-4 h-4" />}
-              title="Multi-Factor Authentication"
-              description="Enhance your account security with TOTP-based 2FA"
-              badge={
-                <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-                  Pro
-                </span>
-              }
-            >
-              <Button
-                as="a"
-                size="sm"
-                variant="secondary"
-                href="https://www.shellhub.io/pricing"
-                target="_blank"
-                rel="noopener noreferrer"
+            <>
+              <SettingsRow
+                icon={<LockClosedIcon className="w-4 h-4" />}
+                title="Password"
+                description="Credentials used to authenticate into your account"
               >
-                Upgrade
-              </Button>
-            </SettingsRow>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPwDrawerOpen(true)}
+                >
+                  Change Password
+                </Button>
+              </SettingsRow>
+
+              {isEnterpriseOrCloud() ? (
+                <SettingsRow
+                  icon={<ShieldCheckIcon className="w-4 h-4" />}
+                  title="Multi-Factor Authentication"
+                  description="Add an extra layer of security with TOTP-based 2FA. Recovery codes are shown once during setup."
+                  badge={
+                    mfaEnabled ? (
+                      <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
+                        Enabled
+                      </span>
+                    ) : null
+                  }
+                >
+                  {mfaEnabled ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setMfaDisableOpen(true)}
+                    >
+                      Disable
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setMfaEnableOpen(true)}
+                    >
+                      Enable MFA
+                    </Button>
+                  )}
+                </SettingsRow>
+              ) : (
+                <SettingsRow
+                  icon={<ShieldCheckIcon className="w-4 h-4" />}
+                  title="Multi-Factor Authentication"
+                  description="Enhance your account security with TOTP-based 2FA"
+                  badge={
+                    <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+                      Pro
+                    </span>
+                  }
+                >
+                  <Button
+                    as="a"
+                    size="sm"
+                    variant="secondary"
+                    href="https://www.shellhub.io/pricing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Upgrade
+                  </Button>
+                </SettingsRow>
+              )}
+            </>
           )}
         </SettingsCard>
 
