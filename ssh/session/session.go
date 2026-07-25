@@ -238,6 +238,20 @@ func (s *Seats) SetPty(seat int, status bool) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
+// splitWebData parses the "<device>:<ip>" payload cached by the web terminal
+// bridge under "web-ip/<sshid>". On a cache miss the value is the empty string,
+// so both fields are required; the IP may be IPv6, hence only the first colon
+// separates the two fields. It returns ErrWebData rather than panicking on a
+// malformed value, which an unauthenticated peer could otherwise trigger.
+func splitWebData(data string) (device, ip string, err error) {
+	parts := strings.SplitN(data, ":", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", ErrWebData
+	}
+
+	return parts[0], parts[1], nil
+}
+
 func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
@@ -288,9 +302,16 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 				return nil, err
 			}
 
-			parts := strings.Split(data, ":")
-			target.Data = parts[0]
-			hos.Host = parts[1]
+			webDevice, webIP, err := splitWebData(data)
+			if err != nil {
+				log.WithField("sshid", sshid).
+					Error("web session data is malformed")
+
+				return nil, err
+			}
+
+			target.Data = webDevice
+			hos.Host = webIP
 		}
 
 		device, err := api.GetDevice(ctx, target.Data)

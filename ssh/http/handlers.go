@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -62,6 +63,14 @@ func (h *Handlers) HandleSSHClose(c echo.Context) error {
 
 	if err := c.Bind(&data); err != nil {
 		return err
+	}
+
+	// The gateway only authenticates this route; closing a session is an
+	// administrative action, so enforce the permission here from the role it
+	// forwards. Without this, any observer, operator, API key or device token in
+	// the namespace could terminate any session.
+	if role := authorizer.RoleFromString(c.Request().Header.Get("X-Role")); !role.HasPermission(authorizer.SessionClose) {
+		return c.NoContent(http.StatusForbidden)
 	}
 
 	ctx := c.Request().Context()

@@ -147,6 +147,20 @@ func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
 	return nil
 }
 
+func (pg *Pg) APIKeyDeleteAllByCreator(ctx context.Context, tenantID, creatorID string) error {
+	db := pg.GetConnection(ctx)
+
+	if _, err := db.NewDelete().
+		Model((*entity.APIKey)(nil)).
+		Where("namespace_id = ?", tenantID).
+		Where("user_id = ?", creatorID).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 func APIKeyResolverToString(resolver store.APIKeyResolver) (string, error) {
 	switch resolver {
 	case store.APIKeyIDResolver:

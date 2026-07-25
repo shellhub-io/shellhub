@@ -60,12 +60,23 @@ func newBannerHandler(d *dialer.Dialer, c cache.Cache) gliderssh.BannerHandler {
 // newBannerHandlerWithDeps is the testable core of newBannerHandler. Callers
 // supply a bannerDeps to stub out network-dependent operations.
 func newBannerHandlerWithDeps(d *dialer.Dialer, c cache.Cache, deps bannerDeps) gliderssh.BannerHandler {
-	return func(ctx gliderssh.Context) string {
+	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
 				"uid":   ctx.SessionID(),
 				"sshid": ctx.User(),
 			})
+
+		// gliderlabs/ssh runs this handler in the per-connection goroutine with
+		// no recover of its own, so an unhandled panic here crashes the whole
+		// service. Contain it and fail just this connection.
+		defer func() {
+			if r := recover(); r != nil {
+				logger.WithField("panic", r).Error("recovered from panic while establishing the session")
+
+				message = banner.Message(banner.KindConnectionFailed)
+			}
+		}()
 
 		logger.Info("new connection established")
 
@@ -148,12 +159,17 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 	return server
 }
 
+// loopbackProxyPolicy honours a PROXY protocol header only when the real TCP
+// peer is loopback. The sole legitimate producer is the web terminal bridge,
+// which dials localhost; accepting the header from any other peer lets a client
+// forge the source address that feeds the firewall ip_address rule, the audit
+// trail and the geoip record, so every non-loopback peer is rejected.
+var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
+
 func newProxyListener(lis net.Listener) *proxyproto.Listener {
 	return &proxyproto.Listener{ // nolint: exhaustruct
-		Listener: lis,
-		ConnPolicy: func(_ proxyproto.ConnPolicyOptions) (proxyproto.Policy, error) {
-			return proxyproto.USE, nil
-		},
+		Listener:   lis,
+		ConnPolicy: loopbackProxyPolicy,
 	}
 }
 

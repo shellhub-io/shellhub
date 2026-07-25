@@ -86,6 +86,56 @@ func newTestSession(apiClient internalclient.Client) *Session {
 	}
 }
 
+func TestSplitWebData(t *testing.T) {
+	tests := []struct {
+		description    string
+		data           string
+		expectedDevice string
+		expectedIP     string
+		expectedErr    error
+	}{
+		{
+			description:    "valid device and ipv4",
+			data:           "device-uid:192.168.0.10",
+			expectedDevice: "device-uid",
+			expectedIP:     "192.168.0.10",
+			expectedErr:    nil,
+		},
+		{
+			description:    "valid device and ipv6 (colons preserved)",
+			data:           "device-uid:2001:db8::1",
+			expectedDevice: "device-uid",
+			expectedIP:     "2001:db8::1",
+			expectedErr:    nil,
+		},
+		{
+			description: "empty data (cache miss) does not panic",
+			data:        "",
+			expectedErr: ErrWebData,
+		},
+		{
+			description: "missing separator",
+			data:        "device-uid",
+			expectedErr: ErrWebData,
+		},
+		{
+			description: "empty ip",
+			data:        "device-uid:",
+			expectedErr: ErrWebData,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			device, ip, err := splitWebData(tt.data)
+
+			assert.ErrorIs(t, err, tt.expectedErr)
+			assert.Equal(t, tt.expectedDevice, device)
+			assert.Equal(t, tt.expectedIP, ip)
+		})
+	}
+}
+
 func TestEvaluate(t *testing.T) {
 	tests := []struct {
 		description          string

@@ -304,3 +304,55 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
+
+func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("succeeds and is a no-op when the creator has no keys", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+
+		err := st.APIKeyDeleteAllByCreator(ctx, tenantID, s.CreateUser(t))
+		require.NoError(t, err)
+	})
+
+	t.Run("deletes only the creator's keys within the tenant", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		otherTenantID := s.CreateNamespace(t)
+		creator := s.CreateUser(t)
+		other := s.CreateUser(t)
+
+		s.CreateAPIKey(t, WithAPIKeyName("creator-1"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
+		s.CreateAPIKey(t, WithAPIKeyName("creator-2"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(creator))
+		s.CreateAPIKey(t, WithAPIKeyName("other-user"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(other))
+		s.CreateAPIKey(t, WithAPIKeyName("other-tenant"), WithAPIKeyTenant(otherTenantID), WithAPIKeyCreatedBy(creator))
+
+		err := st.APIKeyDeleteAllByCreator(ctx, tenantID, creator)
+		require.NoError(t, err)
+
+		remaining, count, err := st.APIKeyList(ctx,
+			st.Options().InNamespace(tenantID),
+			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		require.Len(t, remaining, 1)
+		assert.Equal(t, "other-user", remaining[0].Name)
+
+		// The same creator's key in another tenant must be untouched.
+		otherRemaining, otherCount, err := st.APIKeyList(ctx,
+			st.Options().InNamespace(otherTenantID),
+			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 1, otherCount)
+		require.Len(t, otherRemaining, 1)
+		assert.Equal(t, "other-tenant", otherRemaining[0].Name)
+	})
+}

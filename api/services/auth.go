@@ -717,6 +717,20 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		log.WithError(err).Info("Unable to set the api-key in cache")
 	}
 
+	// The role is frozen on the key at creation, so re-derive the creator's
+	// current role on every request (as the JWT path does). A key must not
+	// outlive its creator's access: reject it if they left the namespace, and
+	// cap it at their current role so a demotion is honoured while the
+	// least-privilege role chosen at creation is preserved.
+	role, err := s.GetUserRole(ctx, apiKey.TenantID, apiKey.CreatedBy)
+	if err != nil {
+		return nil, NewErrAPIKeyInvalid(apiKey.Name)
+	}
+
+	if creatorRole := authorizer.RoleFromString(role); !creatorRole.HasAuthority(apiKey.Role) {
+		apiKey.Role = creatorRole
+	}
+
 	return apiKey, nil
 }
 

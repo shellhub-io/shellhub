@@ -11,7 +11,9 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/session"
@@ -122,6 +124,47 @@ func TestBannerHandlerSuccess(t *testing.T) {
 		"BannerHandler must return an empty string on the success path")
 }
 
+func TestBannerHandlerRecoversFromPanic(t *testing.T) {
+	deps := stubDeps()
+	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ cache.Cache) (*session.Session, error) {
+		panic("boom")
+	}
+
+	h := newBannerHandlerWithDeps(nil, nil, deps)
+
+	var result string
+	require.NotPanics(t, func() {
+		result = h(newStubCtx(validSSHID))
+	})
+
+	assert.Equal(t, banner.KindConnectionFailed, banner.Classify(result),
+		"BannerHandler must recover from a panic and fail only the connection")
+}
+
+func TestLoopbackProxyPolicy(t *testing.T) {
+	cases := []struct {
+		name     string
+		upstream net.Addr
+		want     proxyproto.Policy
+	}{
+		{"ipv4 loopback", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4444, Zone: ""}, proxyproto.USE},
+		{"ipv6 loopback", &net.TCPAddr{IP: net.IPv6loopback, Port: 4444, Zone: ""}, proxyproto.USE},
+		{"public peer", &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}, proxyproto.REJECT},
+		// A published Docker port makes external clients appear to originate from
+		// the private bridge gateway, so a private (non-loopback) peer must still
+		// be rejected or the spoof re-opens.
+		{"docker bridge peer", &net.TCPAddr{IP: net.IPv4(172, 18, 0, 1), Port: 4444, Zone: ""}, proxyproto.REJECT},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := loopbackProxyPolicy(proxyproto.ConnPolicyOptions{Upstream: tc.upstream}) //nolint:exhaustruct
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	raw, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
@@ -129,7 +172,7 @@ func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	proxy := newProxyListener(raw)
 	defer proxy.Close() //nolint:errcheck
 
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := clock.Now().Add(5 * time.Second)
 
 	done := make(chan error, 1)
 	go func() {

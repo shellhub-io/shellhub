@@ -2583,7 +2583,7 @@ func TestAuthAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds",
+			description: "fails when the creator is no longer a namespace member",
 			key:         "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
@@ -2597,19 +2597,115 @@ func TestAuthAPIKey(t *testing.T) {
 					Return(
 						&models.APIKey{
 							Name:      "dev",
+							TenantID:  "00000000-0000-4000-0000-000000000000",
+							CreatedBy: "creator-id",
+							Role:      authorizer.RoleAdministrator,
 							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
 						nil,
 					).
 					Once()
 				cacheMock.
-					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", &models.APIKey{Name: "dev", ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix()}, 2*time.Minute).
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
 					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+					Once()
+			},
+			expected: Expected{
+				apiKey: nil,
+				err:    NewErrAPIKeyInvalid("dev"),
+			},
+		},
+		{
+			description: "caps the role to the creator's current role when the creator was demoted",
+			key:         "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.
+					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					Return(nil).
+					Once()
+				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
+				hashedKey := hex.EncodeToString(keySum[:])
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					Return(
+						&models.APIKey{
+							Name:      "dev",
+							TenantID:  "00000000-0000-4000-0000-000000000000",
+							CreatedBy: "creator-id",
+							Role:      authorizer.RoleAdministrator,
+							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+						},
+						nil,
+					).
+					Once()
+				cacheMock.
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleObserver}},
+					}, nil).
 					Once()
 			},
 			expected: Expected{
 				apiKey: &models.APIKey{
 					Name:      "dev",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					CreatedBy: "creator-id",
+					Role:      authorizer.RoleObserver,
+					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "succeeds and keeps the key role when the creator still outranks it",
+			key:         "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func(ctx context.Context) {
+				cacheMock.
+					On("Get", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything).
+					Return(nil).
+					Once()
+				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
+				hashedKey := hex.EncodeToString(keySum[:])
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					Return(
+						&models.APIKey{
+							Name:      "dev",
+							TenantID:  "00000000-0000-4000-0000-000000000000",
+							CreatedBy: "creator-id",
+							Role:      authorizer.RoleObserver,
+							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+						},
+						nil,
+					).
+					Once()
+				cacheMock.
+					On("Set", ctx, "api-key={00000000-0000-4000-0000-000000000000}", testifymock.Anything, 2*time.Minute).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				apiKey: &models.APIKey{
+					Name:      "dev",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					CreatedBy: "creator-id",
+					Role:      authorizer.RoleObserver,
 					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 				},
 				err: nil,

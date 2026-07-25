@@ -408,6 +408,17 @@ func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member
 		return err
 	}
 
+	// Revoke the keys the member created here. AuthAPIKey already re-derives the role
+	// from live membership, so their keys stop authenticating on removal; this stops
+	// non-expiring keys lingering in storage. Best-effort: a failure must not leave the
+	// membership half-removed.
+	if err := s.store.APIKeyDeleteAllByCreator(ctx, ns.TenantID, member.ID); err != nil {
+		log.WithError(err).
+			WithField("tenant_id", ns.TenantID).
+			WithField("user_id", member.ID).
+			Error("failed to revoke the removed member's API keys")
+	}
+
 	return nil
 }
 

@@ -758,6 +758,10 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
+				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					Return(nil).
+					Once()
 				// Instance bound to this namespace: single-tenant Community.
 				storeMock.
 					On("SystemGet", ctx).
@@ -821,6 +825,10 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
 					Return(nil).
 					Once()
 				storeMock.
@@ -1060,6 +1068,10 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					Return(nil).
+					Once()
+				storeMock.
 					On("SystemGet", ctx).
 					Return(&models.System{}, nil).
 					Once()
@@ -1168,6 +1180,10 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleInvalid}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
 					Return(nil).
 					Once()
 				storeMock.
@@ -1362,6 +1378,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
+				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					Return(nil).
+					Once()
 			},
 			expected: Expected{
 				res: nil,
@@ -1450,6 +1470,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
 					Return(nil).
 					Once()
 				storeMock.
