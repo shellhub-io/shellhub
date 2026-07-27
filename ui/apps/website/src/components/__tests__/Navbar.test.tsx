@@ -18,7 +18,7 @@ function nav() {
 }
 
 describe("Navbar", () => {
-  it.each(["Features", "Enterprise", "Pricing"])(
+  it.each(["Enterprise", "Pricing"])(
     "renders %s as a top-level link",
     (label) => {
       renderNavbar();
@@ -28,7 +28,7 @@ describe("Navbar", () => {
     },
   );
 
-  it.each(["Solutions", "Resources"])(
+  it.each(["Product", "Solutions", "Resources"])(
     "renders %s as a dropdown trigger",
     (label) => {
       renderNavbar();
@@ -39,6 +39,10 @@ describe("Navbar", () => {
   );
 
   it.each([
+    {
+      dropdown: "Product",
+      items: ["Features", "How It Works", "Integrations", "Getting Started"],
+    },
     {
       dropdown: "Solutions",
       items: [
@@ -69,7 +73,7 @@ describe("Navbar", () => {
     const routePaths = new Set(routes.map((r) => r.path));
     const hrefs = new Set<string>();
 
-    for (const dropdown of ["Solutions", "Resources"] as const) {
+    for (const dropdown of ["Product", "Solutions", "Resources"] as const) {
       renderNavbar();
 
       await userEvent.click(

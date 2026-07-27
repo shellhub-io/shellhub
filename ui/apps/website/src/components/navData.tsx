@@ -1,10 +1,14 @@
 import {
   BookOpenIcon,
   CodeBracketIcon,
+  Cog6ToothIcon,
   CpuChipIcon,
   CubeIcon,
   PencilSquareIcon,
+  PuzzlePieceIcon,
+  RocketLaunchIcon,
   SignalIcon,
+  SparklesIcon,
   UsersIcon,
   VideoCameraIcon,
 } from "@heroicons/react/24/outline";
@@ -26,7 +30,38 @@ export type NavEntry =
   | { kind: "dropdown"; label: string; items: DropdownItem[] };
 
 export const navEntries: NavEntry[] = [
-  { kind: "link", label: "Features", href: "/features" },
+  {
+    kind: "dropdown",
+    label: "Product",
+    items: [
+      {
+        label: "Features",
+        href: "/features",
+        desc: "Core capabilities and platform overview",
+        icon: <SparklesIcon className={cn(ICON_SIZE, "text-accent-green")} />,
+      },
+      {
+        label: "How It Works",
+        href: "/how-it-works",
+        desc: "Architecture, tunneling and NAT traversal",
+        icon: <Cog6ToothIcon className={cn(ICON_SIZE, "text-accent-blue")} />,
+      },
+      {
+        label: "Integrations",
+        href: "/integrations",
+        desc: "Ansible, Terraform, CI/CD and VS Code",
+        icon: <PuzzlePieceIcon className={cn(ICON_SIZE, "text-accent-cyan")} />,
+      },
+      {
+        label: "Getting Started",
+        href: "/getting-started",
+        desc: "Quickstart guide to your first connection",
+        icon: (
+          <RocketLaunchIcon className={cn(ICON_SIZE, "text-accent-yellow")} />
+        ),
+      },
+    ],
+  },
   {
     kind: "dropdown",
     label: "Solutions",
@@ -79,17 +114,13 @@ export const navEntries: NavEntry[] = [
         label: "GitHub",
         href: githubUrl,
         desc: "Source code, issues and contributions",
-        icon: (
-          <GithubIcon className={cn(ICON_SIZE, "text-text-secondary")} />
-        ),
+        icon: <GithubIcon className={cn(ICON_SIZE, "text-text-secondary")} />,
       },
       {
         label: "Changelog",
         href: `${githubUrl}/releases`,
         desc: "Release notes and version history",
-        icon: (
-          <PencilSquareIcon className={cn(ICON_SIZE, "text-primary")} />
-        ),
+        icon: <PencilSquareIcon className={cn(ICON_SIZE, "text-primary")} />,
       },
       {
         label: "Forum",
