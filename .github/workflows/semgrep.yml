@@ -37,6 +37,10 @@ jobs:
       - name: Mark workspace safe for git (semgrep container runs as different user)
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      # --error is deliberately absent: under --sarif, semgrep counts
+      # nosemgrep-suppressed findings as blocking, so --error would ignore every
+      # inline suppression. The "Evaluate findings" step below is the gate and
+      # reads the suppressions back out of the SARIF.
       - name: Run Semgrep (PR — baseline diff)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -45,7 +49,6 @@ jobs:
             --config p/dockerfile \
             --config p/ci \
             --baseline-commit ${{ github.event.pull_request.base.sha }} \
-            --error \
             --sarif \
             --output semgrep.sarif \
             .
@@ -57,7 +60,6 @@ jobs:
             --config p/golang \
             --config p/dockerfile \
             --config p/ci \
-            --error \
             --sarif \
             --output semgrep.sarif \
             .
@@ -68,6 +70,44 @@ jobs:
         with:
           sarif_file: semgrep.sarif
           category: semgrep
+
+      # Pull requests block on findings they introduce (the scan above is
+      # already limited to the baseline diff). The full scan on master and the
+      # weekly cron report only: they re-report a pre-existing backlog that no
+      # single change is accountable for, and failing on it just keeps master
+      # permanently red. The backlog stays visible as code scanning alerts.
+      - name: Evaluate findings
+        if: ${{ always() }}
+        env:
+          ENFORCE: ${{ github.event_name == 'pull_request' }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+
+          with open("semgrep.sarif") as fd:
+              sarif = json.load(fd)
+
+          results = [r for run in sarif.get("runs", []) for r in run.get("results", [])]
+          blocking = [r for r in results if not r.get("suppressions")]
+
+          for r in blocking:
+              loc = r["locations"][0]["physicalLocation"]
+              path = loc["artifactLocation"]["uri"]
+              line = loc["region"]["startLine"]
+              print(f"{path}:{line}  {r['ruleId']}")
+
+          suppressed = len(results) - len(blocking)
+          print(f"\n{len(blocking)} blocking, {suppressed} suppressed via nosemgrep")
+
+          if not blocking:
+              sys.exit(0)
+
+          if os.environ["ENFORCE"] != "true":
+              print("Report-only for this event; not failing the build.")
+              sys.exit(0)
+
+          sys.exit(1)
+          PY
 
   # security-gate is the frozen required-check name referenced in branch protection.
   # It aggregates all scan jobs: success or skipped = pass, failure or cancelled = fail.
