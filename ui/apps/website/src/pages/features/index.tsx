@@ -136,7 +136,7 @@ function NativeSSH() {
               },
               {
                 label: "SSHID addressing",
-                desc: "Connect via user@device.namespace format for clear device targeting",
+                desc: "Connect via user@namespace.device@server format for clear device targeting",
               },
               {
                 label: "No agent installation",
@@ -176,19 +176,19 @@ function NativeSSH() {
               title="Terminal — ssh"
               accent="green"
             >
-              <Line cmd="ssh admin@rpi-gateway.production.shellhub" />
+              <Line cmd="ssh admin@production.rpi-gateway@cloud.shellhub.io" />
               <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
                 <span className="text-accent-green">Connected to</span>{" "}
                 <span className="text-primary">rpi-gateway</span>
                 <span className="text-text-muted"> (production)</span>
               </div>
-              <Line cmd="ssh deploy@sensor-node-04.staging.shellhub" />
+              <Line cmd="ssh deploy@staging.sensor-node-04@cloud.shellhub.io" />
               <div className="my-3 px-3 py-2 bg-surface rounded border border-border">
                 <span className="text-accent-green">Connected to</span>{" "}
                 <span className="text-primary">sensor-node-04</span>
                 <span className="text-text-muted"> (staging)</span>
               </div>
-              <Line cmd="ssh root@edge-server.iot-fleet.shellhub" />
+              <Line cmd="ssh root@iot-fleet.edge-server@cloud.shellhub.io" />
               <div className="mt-2 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
                 <span className="text-text-muted text-2xs">
@@ -594,7 +594,7 @@ function FileTransfer() {
                 </p>
                 <Line
                   prompt="$"
-                  cmd="scp firmware-v2.4.bin admin@rpi-gateway.production.shellhub:/opt/firmware/"
+                  cmd="scp firmware-v2.4.bin admin@production.rpi-gateway@cloud.shellhub.io:/opt/firmware/"
                 />
                 <div className="mt-1 flex items-center gap-3">
                   <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden border border-border">
@@ -1019,7 +1019,7 @@ function DockerAccess() {
                   </p>
                   <Line
                     prompt="$"
-                    cmd="ssh admin@nginx-proxy.production.shellhub"
+                    cmd="ssh admin@production.nginx-proxy@cloud.shellhub.io"
                   />
                   <div className="my-2 px-2 py-1.5 bg-surface/50 rounded border border-border/50">
                     <span className="text-accent-green text-2xs">

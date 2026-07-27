@@ -3,7 +3,8 @@ import { CommandBlock, Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
 import { docsUrl } from "@/links";
 
-const DOCKER_CMD = "docker run -d -p 80:80 shellhubio/shellhub";
+const SETUP_CMD =
+  "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
 
 export function QuickStart() {
   return (
@@ -12,12 +13,12 @@ export function QuickStart() {
         className="mb-10"
         eyebrow="Quick Start"
         title="Try ShellHub in seconds."
-        subtitle="Get up and running with a single command."
+        subtitle="Get up and running in minutes."
         subtitleClassName="mt-3 max-w-md"
       />
 
       <Reveal>
-        <CommandBlock command={DOCKER_CMD} className="max-w-xl mx-auto" />
+        <CommandBlock command={SETUP_CMD} className="max-w-xl mx-auto" />
       </Reveal>
 
       <Reveal className="text-center mt-5">

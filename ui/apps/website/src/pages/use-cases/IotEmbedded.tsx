@@ -209,7 +209,7 @@ export default function IotEmbedded() {
                 },
                 {
                   label: "Search & filter",
-                  desc: "Find any device instantly by hostname, IP, tag, or SUID",
+                  desc: "Find any device instantly by hostname, IP, tag, or UID",
                 },
               ].map((cap, i) => (
                 <Reveal key={i} delay={i * 0.04}>

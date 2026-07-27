@@ -228,7 +228,7 @@ function ArchitectureDiagram() {
         fontSize="9"
         fontFamily={FONT_MONO}
       >
-        ssh user@ctr
+        ssh user@ns.ctr@server
       </text>
 
       {/* Arrow 1 */}
@@ -500,7 +500,7 @@ export default function ContainerManagement() {
               No exposed ports, no sshd inside containers, no multi-step
               workflows. Just{" "}
               <span className="font-mono text-accent-cyan">
-                ssh user@container.namespace
+                ssh user@namespace.container@server
               </span>
               .
             </p>
@@ -627,7 +627,7 @@ export default function ContainerManagement() {
                       <p>
                         <span className="text-accent-green">$</span>{" "}
                         <span className="text-text-primary">
-                          ssh user@api-server.production
+                          ssh user@production.api-server@cloud.shellhub.io
                         </span>
                       </p>
                       <p className="text-accent-green text-2xs mt-1">
