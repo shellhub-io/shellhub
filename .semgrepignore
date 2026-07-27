@@ -19,3 +19,9 @@
 
 # Generated mock files — not maintained by hand; findings are false positives.
 **/mocks/
+
+# Go test files — never shipped in a runtime image. Test harnesses legitimately
+# dial local fixtures with relaxed settings (e.g. InsecureIgnoreHostKey against
+# the test gateway), which the security rules cannot distinguish from the real
+# thing. Production code under the same rules is NOT excluded.
+**/*_test.go
