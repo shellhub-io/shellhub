@@ -48,13 +48,13 @@ const categories: Category[] = [
     features: [
       {
         name: "Multi-factor authentication",
-        community: true,
+        community: false,
         cloud: true,
         enterprise: true,
       },
       {
         name: "Firewall rules",
-        community: true,
+        community: false,
         cloud: true,
         enterprise: true,
       },
@@ -83,7 +83,7 @@ const categories: Category[] = [
   {
     label: "Management",
     features: [
-      { name: "Namespaces", community: true, cloud: true, enterprise: true },
+      { name: "Namespaces", community: "1", cloud: true, enterprise: true },
       {
         name: "Role-based access control",
         community: true,
@@ -95,8 +95,8 @@ const categories: Category[] = [
       {
         name: "Billing management",
         community: false,
-        cloud: false,
-        enterprise: true,
+        cloud: true,
+        enterprise: false,
       },
     ],
   },
@@ -116,7 +116,7 @@ const categories: Category[] = [
         cloud: true,
         enterprise: true,
       },
-      { name: "On-premises", community: false, cloud: false, enterprise: true },
+      { name: "On-premises", community: true, cloud: false, enterprise: true },
       {
         name: "Kubernetes / Helm",
         community: false,
