@@ -4,7 +4,8 @@ import { CommandBlock } from "@/components";
 import { docsUrl } from "@/links";
 import { Reveal } from "@shellhub/design-system/components";
 
-const DOCKER_CMD = "docker run -d -p 80:80 shellhubio/shellhub";
+const SETUP_CMD =
+  "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
 
 interface StepSetupProps {
   onBack: () => void;
@@ -14,17 +15,18 @@ export function StepSetup({ onBack }: StepSetupProps) {
   return (
     <div className="max-w-xl mx-auto w-full">
       <Reveal>
-        <CommandBlock command={DOCKER_CMD} className="mb-6" />
+        <CommandBlock command={SETUP_CMD} className="mb-6" />
       </Reveal>
 
       <Reveal delay={0.1}>
         <div className="space-y-3 mb-8">
           <p className="text-sm text-text-secondary leading-relaxed">
-            This starts ShellHub on port 80. Open{" "}
+            This clones the repository and starts all ShellHub services via
+            Docker Compose. Run{" "}
             <code className="font-mono text-xs bg-surface px-1.5 py-0.5 rounded border border-border">
-              http://localhost
+              ./bin/setup
             </code>{" "}
-            in your browser and create your account.
+            to get a URL where you can create your admin account.
           </p>
           <p className="text-sm text-text-secondary leading-relaxed">
             Then install the ShellHub agent on each device you want to manage.

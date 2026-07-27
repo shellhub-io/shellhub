@@ -473,7 +473,7 @@ export default function EdgeComputing() {
                     <span style={{ color: C.blue }}>~</span>
                     <span style={{ color: C.textMuted }}>$</span>{" "}
                     <span style={{ color: C.text }}>
-                      ssh admin@edge-nyc-01.production
+                      ssh admin@production.edge-nyc-01@cloud.shellhub.io
                     </span>
                   </div>
                   <div style={{ color: C.textMuted }}>

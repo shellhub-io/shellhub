@@ -787,7 +787,7 @@ export function HowItWorks() {
                   fill={C.textSec}
                   textAnchor="middle"
                 >
-                  Allow port 22
+                  Allow dev-*
                 </text>
                 <line
                   x1="327"

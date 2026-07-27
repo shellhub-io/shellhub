@@ -690,7 +690,7 @@ export default function HowItWorks() {
                       <p>
                         <span className="text-accent-green">$</span>{" "}
                         <span className="text-text-secondary">
-                          curl -sSf https://cloud.shellhub.io/install.sh | sh
+                          curl -sSf &lt;server&gt;/install.sh | sh
                         </span>
                       </p>
                       <p className="text-text-muted">
@@ -1030,7 +1030,7 @@ export default function HowItWorks() {
                       <p>
                         <span className="text-accent-green">$</span>{" "}
                         <span className="text-text-secondary">
-                          ssh pi@a1b2c3d4-e5f6-7890.mycompany.shellhub.io
+                          ssh pi@mycompany.raspberrypi@shellhub.io
                         </span>
                       </p>
                       <p className="text-text-muted">

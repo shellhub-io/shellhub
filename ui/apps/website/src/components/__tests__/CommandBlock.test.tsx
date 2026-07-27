@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { CommandBlock } from "@/components";
 
-const COMMAND = "docker run -d -p 80:80 shellhubio/shellhub";
+const COMMAND =
+  "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
 
 const writeText = vi.fn();
 

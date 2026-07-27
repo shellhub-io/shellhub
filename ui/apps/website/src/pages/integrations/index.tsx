@@ -160,8 +160,8 @@ export default function Integrations() {
                   desc: "Reach devices behind CGNAT, firewalls, and private networks",
                 },
                 {
-                  label: "Ansible connection plugin",
-                  desc: "Native Ansible connection plugin for seamless integration",
+                  label: "Ansible inventory plugin",
+                  desc: "Dynamic inventory plugin discovers devices and maps tags to Ansible groups",
                 },
                 {
                   label: "Terraform provisioner",
@@ -209,46 +209,39 @@ export default function Integrations() {
                   TASK [Gathering Facts] ********************************
                 </Ln>
                 <Ln>
-                  <Str>ok</Str>: [gateway-east-01.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Str>ok</Str>: [gateway-east-01]
                 </Ln>
                 <Ln>
-                  <Str>ok</Str>: [sensor-rack-07.d0a1c2.<Cyn>shellhub.io</Cyn>]
+                  <Str>ok</Str>: [sensor-rack-07]
                 </Ln>
                 <Ln>
-                  <Str>ok</Str>: [plc-floor-03.d0a1c2.<Cyn>shellhub.io</Cyn>]
+                  <Str>ok</Str>: [plc-floor-03]
                 </Ln>
                 <div className="mt-2" />
                 <Ln color={C.textSec}>
                   TASK [Copy firmware binary] ****************************
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [gateway-east-01.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [gateway-east-01]
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [sensor-rack-07.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [sensor-rack-07]
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [plc-floor-03.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [plc-floor-03]
                 </Ln>
                 <div className="mt-2" />
                 <Ln color={C.textSec}>
                   TASK [Apply update &amp; restart] **************************
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [gateway-east-01.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [gateway-east-01]
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [sensor-rack-07.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [sensor-rack-07]
                 </Ln>
                 <Ln>
-                  <Val>changed</Val>: [plc-floor-03.d0a1c2.
-                  <Cyn>shellhub.io</Cyn>]
+                  <Val>changed</Val>: [plc-floor-03]
                 </Ln>
                 <div className="mt-3" />
                 <Ln color={C.textSec}>
@@ -363,7 +356,7 @@ export default function Integrations() {
               <Ln>
                 {" "}
                 <Dim>
-                  ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
+                  ssh <Cyn>admin@namespace.device@shellhub.io</Cyn> \
                 </Dim>
               </Ln>
               <Ln>
@@ -388,7 +381,7 @@ export default function Integrations() {
               <Ln>
                 {" "}
                 <Dim>
-                  ssh <Cyn>admin@device.namespace.shellhub.io</Cyn> \
+                  ssh <Cyn>admin@namespace.device@shellhub.io</Cyn> \
                 </Dim>
               </Ln>
               <Ln>
@@ -792,8 +785,7 @@ export default function Integrations() {
                 >
                   <Comment># Connect to a specific container</Comment>
                   <Ln>
-                    <Val>$</Val> ssh{" "}
-                    <Cyn>root@web-app.host01.ns.shellhub.io</Cyn>
+                    <Val>$</Val> ssh <Cyn>root@ns.web-app@shellhub.io</Cyn>
                   </Ln>
                   <Ln color={C.textSec}>
                     Connected to web-app (container: a1b2c3d4)
