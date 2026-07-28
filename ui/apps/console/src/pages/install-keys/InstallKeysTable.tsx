@@ -14,13 +14,12 @@ import { type InstallKey } from "@/client";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import InstallKeyActionsMenu from "./InstallKeyActionsMenu";
-import StatusChip from "./StatusChip";
-import UsageMeter, { usageLabel } from "./UsageMeter";
-import { DeprecatedBadge, modeInfo } from "./constants";
+import StatusChip, { DeprecatedBadge } from "./StatusChip";
+import UsageMeter from "./UsageMeter";
+import { modeInfo } from "./constants";
 import {
   getExpiryInfo,
   getKeyBlockers,
-  getUsageInfo,
   installKeyDisplayName,
   isPairingKey,
   isSystemKey,
@@ -187,19 +186,7 @@ export default function InstallKeysTable({
     {
       key: "usage",
       header: "Usage limit",
-      render: (key) => {
-        const usage = getUsageInfo(key);
-        const { inert, overused, revoked, disabled } = getKeyBlockers(key);
-        const reached = overused && !revoked && !disabled;
-        return (
-          <div title={reached ? "Limit reached" : undefined}>
-            <div className="mb-1.5 text-2xs font-mono text-text-secondary">
-              {usageLabel(usage)}
-            </div>
-            <UsageMeter usage={usage} dimmed={inert} reached={reached} />
-          </div>
-        );
-      },
+      render: (key) => <UsageMeter installKey={key} muted />,
     },
     {
       key: "expiry",
@@ -247,6 +234,7 @@ export default function InstallKeysTable({
       headerClassName: "w-12",
       render: (key) => (
         <div
+          role="presentation"
           className="flex justify-end"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}

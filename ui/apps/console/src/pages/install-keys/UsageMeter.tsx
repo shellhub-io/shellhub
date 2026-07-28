@@ -1,11 +1,13 @@
-import { type UsageInfo } from "./helpers";
+import { cn } from "@shellhub/design-system/cn";
+import { type InstallKey } from "@/client";
+import { getKeyBlockers, getUsageInfo, type UsageInfo } from "./helpers";
 
-/**
- * The usage bar: how much of a key's allowance is spent. The bar itself carries the state — it turns
- * amber once the key reaches its limit (so "limit reached" reads off the bar, no separate chip); a key
- * that is inert for another reason greys out. Unlimited keys render an infinity track.
- */
-export default function UsageMeter({
+function formatLabel(usage: UsageInfo): string {
+  const cap = usage.kind === "unlimited" ? "∞" : usage.limit;
+  return `${usage.used} / ${cap}`;
+}
+
+function Bar({
   usage,
   dimmed,
   reached,
@@ -15,8 +17,6 @@ export default function UsageMeter({
   reached: boolean;
 }) {
   if (usage.kind === "unlimited") {
-    // The KeyValueChip shell (soft fill + hairline border) with an animated barber-pole hatch, so an
-    // unlimited key reads as a defined, "always-on" bar rather than floating stripes.
     return (
       <div className="h-1.5 overflow-hidden rounded-full border border-border bg-text-muted/[0.08]">
         <div className="usage-infinity h-full" />
@@ -30,22 +30,40 @@ export default function UsageMeter({
       ? "bg-text-muted/40"
       : "bg-primary";
 
+  const width = Math.max(usage.ratio * 100, usage.used > 0 ? 6 : 0) + "%";
+
   return (
     <div className="h-1.5 rounded-full bg-border/60 overflow-hidden">
       <div
-        className={`h-full rounded-full transition-all duration-500 ${fill}`}
-        style={{
-          width: `${Math.max(usage.ratio * 100, usage.used > 0 ? 6 : 0)}%`,
-        }}
+        className={cn("h-full rounded-full transition-all duration-500", fill)}
+        style={{ width }}
       />
     </div>
   );
 }
 
-// Uniform `used / cap`, cap being a number or ∞ for unlimited. State (spent, over limit) is carried by
-// the meter's colour, not a text suffix, so the label stays even.
-export function usageLabel(usage: UsageInfo): string {
-  const cap = usage.kind === "unlimited" ? "∞" : usage.limit;
+export default function UsageMeter({
+  installKey,
+  muted,
+}: {
+  installKey: InstallKey;
+  muted?: boolean;
+}) {
+  const usage = getUsageInfo(installKey);
+  const { inert, overused, revoked, disabled } = getKeyBlockers(installKey);
+  const reached = overused && !revoked && !disabled;
 
-  return `${usage.used} / ${cap}`;
+  return (
+    <div title={reached ? "Limit reached" : undefined}>
+      <div
+        className={cn(
+          "mb-1.5 text-2xs font-mono",
+          muted && "text-text-secondary",
+        )}
+      >
+        {formatLabel(usage)}
+      </div>
+      <Bar usage={usage} dimmed={inert} reached={reached} />
+    </div>
+  );
 }

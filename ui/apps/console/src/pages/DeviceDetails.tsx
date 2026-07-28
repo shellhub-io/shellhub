@@ -18,7 +18,7 @@ import {
 import { useNamespace } from "../hooks/useNamespaces";
 import { useInstallKeys } from "../hooks/useInstallKeys";
 import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
-import { DeprecatedBadge } from "@/pages/install-keys/constants";
+import { DeprecatedBadge } from "@/pages/install-keys/StatusChip";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import DeviceActionsPortal from "./devices/DeviceActionsPortal";
