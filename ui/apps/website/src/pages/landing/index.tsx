@@ -1,6 +1,5 @@
 import { SiteLayout } from "@/components";
 import { Hero } from "./Hero";
-import { TrustedBy } from "./TrustedBy";
 import { QuickStart } from "./QuickStart";
 import { SupportedPlatforms } from "./SupportedPlatforms";
 import { HowItWorks } from "./HowItWorks";
@@ -13,7 +12,6 @@ export default function Landing() {
   return (
     <SiteLayout>
       <Hero />
-      <TrustedBy />
       <QuickStart />
       <SupportedPlatforms />
       <HowItWorks />

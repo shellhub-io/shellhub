@@ -913,7 +913,7 @@ export default function Integrations() {
                     </Ln>
                     <Ln>
                       {"      "}
-                      <Kw>"version"</Kw>: <Str>"0.15.1"</Str>,
+                      <Kw>"version"</Kw>: <Str>"0.24.0"</Str>,
                     </Ln>
                     <Ln>
                       {"      "}
