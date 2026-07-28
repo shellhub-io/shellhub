@@ -95,7 +95,7 @@ const permRows = [
   {
     container: "api-server",
     user: "jane@co.com",
-    role: "Admin",
+    role: "Administrator",
     level: "Full",
     accent: C.green,
   },
