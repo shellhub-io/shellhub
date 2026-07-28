@@ -3,7 +3,12 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { Card, IconBadge } from "@shellhub/design-system/primitives";
-import { FeatureListItem, HighlightCard, Section, SectionHeader } from "@/components";
+import {
+  FeatureListItem,
+  HighlightCard,
+  Section,
+  SectionHeader,
+} from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
 export function SupportSection() {
@@ -32,7 +37,6 @@ export function SupportSection() {
               <ul className="space-y-3">
                 {[
                   "GitHub Issues & Discussions",
-                  "Community Discord server",
                   "Public documentation",
                   "Community-driven bug fixes",
                 ].map((item) => (
