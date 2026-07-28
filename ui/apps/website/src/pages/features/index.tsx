@@ -124,7 +124,7 @@ function NativeSSH() {
             size="sub"
             className="mb-8"
             eyebrow="Core Feature"
-            title="Native SSH access, no agents required"
+            title="Native SSH access with your existing tools"
             subtitle="Connect to any device using your existing SSH client. ShellHub works transparently with OpenSSH, PuTTY, and any SSH-compatible client. No proprietary plugins, no VPNs, no port forwarding."
           />
 
@@ -139,8 +139,8 @@ function NativeSSH() {
                 desc: "Connect via user@namespace.device@server format for clear device targeting",
               },
               {
-                label: "No agent installation",
-                desc: "Devices run a lightweight ShellHub agent — nothing on your workstation",
+                label: "Use your existing SSH client",
+                desc: "Connect from OpenSSH, PuTTY, or any SSH client — the ShellHub agent runs on the device side",
               },
               {
                 label: "Works behind NAT",
@@ -526,7 +526,7 @@ const securityFeatures = [
     icon: UsersIcon,
     color: C.primary,
     title: "Role-Based Access Control",
-    desc: "Assign roles and permissions at namespace and device level. Owners, operators, and viewers with granular control.",
+    desc: "Assign roles and permissions at namespace level. Owner, administrator, operator, and observer roles with granular control.",
   },
   {
     icon: PencilSquareIcon,
