@@ -12,7 +12,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@shellhub/design-system": "*",
-    "react-router-dom": "^6.28.0"
+    "@shellhub/design-system": "*"
   }
 }
