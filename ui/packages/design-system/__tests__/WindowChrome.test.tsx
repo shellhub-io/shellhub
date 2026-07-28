@@ -38,7 +38,10 @@ describe("WindowChrome — browser variant", () => {
 describe("WindowChrome — titleBarSlot", () => {
   it("renders titleBarSlot content", () => {
     render(
-      <WindowChrome variant="terminal" titleBarSlot={<button>Copy</button>} />,
+      <WindowChrome
+        variant="terminal"
+        titleBarSlot={<button type="button">Copy</button>}
+      />,
     );
     expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
   });

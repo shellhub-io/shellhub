@@ -10,6 +10,7 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "dev:console": "npm run dev -w @shellhub/console",
+    "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
@@ -27,7 +28,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.22.0",
     "globals": "^17.4.0",
-    "eslint-plugin-react-hooks": "7.1.0-canary-e0cc7202-20260227",
+    "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "^0.5.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",

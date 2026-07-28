@@ -187,6 +187,7 @@ function Trigger({ children }: { children: ReactElement }) {
   const childRef = isValidElement(children)
     ? (children as ReactElement & { ref?: React.Ref<HTMLElement> }).ref
     : undefined;
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- Floating UI callback ref setter, does not use `this`
   const mergedRef = useMergeRefs([refs.setReference, childRef].filter(Boolean));
 
   if (!isValidElement(children)) return null;
@@ -206,7 +207,8 @@ function Anchor({
 
   return (
     <div
-      ref={refs.setPositionReference as React.Ref<HTMLDivElement>}
+      // eslint-disable-next-line react-hooks/refs, @typescript-eslint/unbound-method -- Floating UI callback ref setter
+      ref={refs.setPositionReference}
       className={className}
       {...props}
     >
@@ -233,42 +235,40 @@ function Input({ onChange, ...props }: InputProps) {
 
   useEffect(() => () => clearTimeout(blurTimeout.current), []);
 
-  return (
-    <input
-      aria-autocomplete="list"
-      {...getReferenceProps({
-        ref: refs.setReference,
-        ...props,
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-          onChange?.(e.target.value);
-          if (!open) setOpen(true);
-          setActiveIndex(0);
-        },
-        onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
-          clearTimeout(blurTimeout.current);
-          if (!open) setOpen(true);
-          props.onFocus?.(e);
-        },
-        onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-          const floatingEl = refs.floating.current;
-          if (floatingEl?.contains(e.relatedTarget as Node)) return;
-          blurTimeout.current = setTimeout(() => setOpen(false), 150);
-          props.onBlur?.(e);
-        },
-        onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === "Enter" && activeIndex !== null) {
-            const entry = selectCallbacksRef.current.get(activeIndex);
-            if (entry) {
-              e.preventDefault();
-              entry.onSelect();
-              if (entry.closeOnSelect !== false) setOpen(false);
-            }
-          }
-          props.onKeyDown?.(e);
-        },
-      })}
-    />
-  );
+  // eslint-disable-next-line react-hooks/refs -- Floating UI callback ref setter
+  const inputProps = getReferenceProps({
+    ref: refs.setReference, // eslint-disable-line @typescript-eslint/unbound-method
+    ...props,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e.target.value);
+      if (!open) setOpen(true);
+      setActiveIndex(0);
+    },
+    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+      clearTimeout(blurTimeout.current);
+      if (!open) setOpen(true);
+      props.onFocus?.(e);
+    },
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+      const floatingEl = refs.floating.current;
+      if (floatingEl?.contains(e.relatedTarget)) return;
+      blurTimeout.current = setTimeout(() => setOpen(false), 150);
+      props.onBlur?.(e);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && activeIndex !== null) {
+        const entry = selectCallbacksRef.current.get(activeIndex);
+        if (entry) {
+          e.preventDefault();
+          entry.onSelect();
+          if (entry.closeOnSelect !== false) setOpen(false);
+        }
+      }
+      props.onKeyDown?.(e);
+    },
+  });
+
+  return <input aria-autocomplete="list" {...inputProps} />;
 }
 
 interface PanelProps extends ComponentPropsWithoutRef<"div"> {
@@ -294,6 +294,7 @@ function Panel({ children, className, ...props }: PanelProps) {
 
   const panel = (
     <div
+      // eslint-disable-next-line react-hooks/refs, @typescript-eslint/unbound-method -- Floating UI callback ref setter
       ref={refs.setFloating}
       style={floatingStyles}
       className={cn(
@@ -350,11 +351,12 @@ function Item({
   const itemRole = mode === "combobox" ? "option" : "menuitem";
 
   useEffect(() => {
+    const map = selectCallbacksRef.current;
     if (onSelect && !disabled) {
-      selectCallbacksRef.current.set(index, { onSelect, closeOnSelect });
+      map.set(index, { onSelect, closeOnSelect });
     }
     return () => {
-      selectCallbacksRef.current.delete(index);
+      map.delete(index);
     };
   }, [index, onSelect, disabled, closeOnSelect, selectCallbacksRef]);
 

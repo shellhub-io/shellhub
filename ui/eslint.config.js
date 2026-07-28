@@ -11,7 +11,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import reactPlugin from "eslint-plugin-react";
 
 export default defineConfig([
-  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "packages/design-system/**", "**/src/client"]),
+  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "**/src/client"]),
   js.configs.recommended,
   {
     extends: [...tseslint.configs.recommendedTypeChecked],
@@ -111,6 +111,15 @@ export default defineConfig([
       "@stylistic/operator-linebreak": "off",
       "@stylistic/jsx-wrap-multilines": "off",
       "@stylistic/jsx-curly-newline": "off",
+    },
+  },
+
+  // Design-system is a library — fast refresh doesn't apply, and compound
+  // components intentionally export multiple functions from one file.
+  {
+    files: ["packages/design-system/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
     },
   },
 

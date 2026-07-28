@@ -103,7 +103,7 @@ export function Button<T extends ElementType = "button">({
   children,
   ...rest
 }: ButtonProps<T>) {
-  const Component = (as ?? "button") as ElementType;
+  const Component: ElementType = as ?? "button";
   const isNativeButton = !as || as === "button";
 
   // Strip `disabled` and `type` from rest before computing interaction props so
