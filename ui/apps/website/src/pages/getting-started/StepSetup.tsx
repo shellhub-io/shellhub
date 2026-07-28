@@ -51,7 +51,7 @@ export function StepSetup({ onBack }: StepSetupProps) {
           </Button>
 
           <a
-            href={`${docsUrl}/getting-started`}
+            href={`${docsUrl}/getting-started/introduction`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
