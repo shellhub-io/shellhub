@@ -694,7 +694,7 @@ export default function HowItWorks() {
                         </span>
                       </p>
                       <p className="text-text-muted">
-                        # Downloading ShellHub agent v0.17.2...
+                        # Downloading ShellHub agent...
                       </p>
                       <p className="text-text-muted">
                         # Installing to /usr/local/bin/shellhub-agent
