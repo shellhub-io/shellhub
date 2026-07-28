@@ -14,12 +14,11 @@ import InstallKeyActions from "./InstallKeyActions";
 import RevealInstallKeyDialog from "./RevealInstallKeyDialog";
 import StatusChip from "./StatusChip";
 import KeyValueChip from "./KeyValueChip";
-import UsageMeter, { usageLabel } from "./UsageMeter";
+import UsageMeter from "./UsageMeter";
 import { modeInfo } from "./constants";
 import {
   getExpiryInfo,
   getKeyBlockers,
-  getUsageInfo,
   installKeyDisplayName,
   isPairingKey,
 } from "./helpers";
@@ -97,24 +96,9 @@ export default function InstallKeyHistoryPage() {
                 </Fact>
               )}
               <Fact label="Usage">
-                {(() => {
-                  const usage = getUsageInfo(key);
-                  const { inert, overused, revoked, disabled } =
-                    getKeyBlockers(key);
-                  const reached = overused && !revoked && !disabled;
-                  return (
-                    <div className="space-y-1.5">
-                      <span className="font-mono">{usageLabel(usage)}</span>
-                      <div className="w-32">
-                        <UsageMeter
-                          usage={usage}
-                          dimmed={inert}
-                          reached={reached}
-                        />
-                      </div>
-                    </div>
-                  );
-                })()}
+                <div className="w-32">
+                  <UsageMeter installKey={key} />
+                </div>
               </Fact>
               <Fact label="Expires">
                 {(() => {
