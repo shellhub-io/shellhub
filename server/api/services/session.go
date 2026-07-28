@@ -6,9 +6,9 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,8 +34,12 @@ var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
 )
 
 type SessionService interface {
-	ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error)
-	GetSession(ctx context.Context, uid models.UID) (*models.Session, error)
+	ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error)
+
+	// GetSession fetches a session within the given namespace scope. The scope is an explicit
+	// parameter rather than something recovered from the request context, so a caller cannot
+	// receive a cross-namespace read by omission.
+	GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error)
 	CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error)
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
@@ -43,26 +47,17 @@ type SessionService interface {
 	EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error
 }
 
-func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error) {
+func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
 	opts := make([]store.QueryOption, 0)
-	if req.TenantID != "" {
-		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
-	}
-
 	opts = append(opts, s.store.Options().Match(&req.Filters))
 	opts = append(opts, s.store.Options().Sort(&query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}))
 	opts = append(opts, s.store.Options().Paginate(&req.Paginator))
 
-	return s.store.SessionList(ctx, opts...)
+	return s.store.SessionList(ctx, sc, opts...)
 }
 
-func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	opts := []store.QueryOption{}
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		opts = append(opts, s.store.Options().InNamespace(tenant.ID))
-	}
-
-	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid), opts...)
+func (s *service) GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error) {
+	session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
 	}
@@ -91,11 +86,13 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		return nil, err
 	}
 
-	return s.store.SessionResolve(ctx, store.SessionUIDResolver, uid)
+	// Reading back the row just written under a UID this call generated; there is no namespace to
+	// bound by until the store has resolved it from the device.
+	return s.store.SessionResolve(ctx, scope.NewUnbounded("reading back the session this call just created, by its generated UID"), store.SessionUIDResolver, uid)
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	sess, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	sess, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
@@ -104,7 +101,7 @@ func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
-	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	session, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
@@ -115,7 +112,7 @@ func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 }
 
 func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	session, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
@@ -144,7 +141,7 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 }
 
 func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	if _, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid)); err != nil {
+	if _, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid)); err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 

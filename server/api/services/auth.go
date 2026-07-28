@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -87,9 +88,11 @@ func deviceHostname(hostname, mac string) string {
 // applyInstallKeyTags resolves each of the install key's tag names within the namespace, creating any
 // that don't exist yet, and associates them with the device. Failures are logged but never block
 // enrollment — tags are metadata, not a gate.
-func (s *service) applyInstallKeyTags(ctx context.Context, tenantID, deviceUID string, tags []string) {
+func (s *service) applyInstallKeyTags(ctx context.Context, sc scope.Scope, deviceUID string, tags []string) {
+	tenantID := sc.TenantID()
+
 	for _, name := range tags {
-		tag, err := s.store.TagResolve(ctx, store.TagNameResolver, name, s.store.Options().InNamespace(tenantID))
+		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, name)
 		if err != nil {
 			if !errors.Is(err, store.ErrNoDocuments) {
 				log.WithError(err).WithField("tag", name).Warn("failed to resolve install key tag")
@@ -153,9 +156,9 @@ func (s *service) appendInstallKeyEvent(ctx context.Context, key *models.Install
 // key, so a tenant-only keyless enrollment is governed by the legacy key's (manual) mode. It returns
 // the resolved key (nil only when no matching system key exists), the digest to store on the device,
 // and an error only when a presented key is invalid or a required legacy key is disabled.
-func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.InstallKey, string, error) {
+func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.InstallKey, string, error) {
 	if req.InstallKey != "" {
-		sk, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey), s.store.Options().InNamespace(req.TenantID))
+		sk, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey))
 		// A system key (legacy/pairing) is never presentable by an agent; treat it like any invalid key.
 		if err != nil || sk.IsSystem() || !sk.IsValid() {
 			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, err)
@@ -168,14 +171,14 @@ func (s *service) enrollmentInstallKey(ctx context.Context, req requests.DeviceA
 	// get their own enrollment source and history. Acceptance is the code itself (automatic mode); the
 	// pairing flow accepts the device explicitly regardless.
 	if paired {
-		if pairing, err := s.store.InstallKeyResolveSystemPairing(ctx, req.TenantID); err == nil {
+		if pairing, err := s.store.InstallKeyResolveSystemPairing(ctx, sc); err == nil {
 			return pairing, pairing.ID, nil
 		}
 
 		return nil, "", nil
 	}
 
-	if legacy, err := s.store.InstallKeyResolveSystem(ctx, req.TenantID); err == nil {
+	if legacy, err := s.store.InstallKeyResolveSystem(ctx, sc); err == nil {
 		// A disabled legacy key means the namespace opted out of keyless enrollment: it requires an
 		// install key, so a device that shows up without one is hard-rejected here (no device row, no
 		// pending queue) rather than enrolled. Enabled is the default, so this is backward-compatible.
@@ -205,6 +208,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
+
+	sc := scope.MustBounded(namespace.TenantID)
 
 	if req.Identity == nil {
 		return nil, NewErrAuthDeviceNoIdentity()
@@ -248,13 +253,13 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		return resp, nil
 	}
 
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, uid)
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
 	if err != nil {
 		if err != store.ErrNoDocuments {
 			return nil, err
 		}
 
-		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req, paired)
+		installKey, installKeyID, err = s.enrollmentInstallKey(ctx, sc, req, paired)
 		if err != nil {
 			return nil, err
 		}
@@ -312,12 +317,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			return nil, NewErrDeviceCreate(models.Device{}, err)
 		}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, device.Status, 1); err != nil {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
 			return nil, err
 		}
 
 		if installKey != nil && len(installKey.Tags) > 0 {
-			s.applyInstallKeyTags(ctx, req.TenantID, uid, installKey.Tags)
+			s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
 		}
 
 		// The install key's mode is the enrollment policy: it decides whether this device is accepted,
@@ -339,7 +344,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 
 		if device.RemovedAt != nil {
-			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, req, paired)
+			installKey, installKeyID, err = s.enrollmentInstallKey(ctx, sc, req, paired)
 			if err != nil {
 				return nil, err
 			}
@@ -353,15 +358,15 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 				device.EphemeralTimeout = installKey.EphemeralTimeout
 			}
 			device.InstallKeyID = installKeyID
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusRemoved, -1); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
 				return nil, err
 			}
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
 				return nil, err
 			}
 
 			if installKey != nil && len(installKey.Tags) > 0 {
-				s.applyInstallKeyTags(ctx, req.TenantID, uid, installKey.Tags)
+				s.applyInstallKeyTags(ctx, sc, uid, installKey.Tags)
 			}
 
 			// A re-registration is a fresh enrollment: the key's mode is re-evaluated (a webhook is
@@ -416,8 +421,11 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		}
 	}
 
+	// The agent hands us the session UIDs it believes it is serving. Bounding the resolve to the
+	// agent's own namespace is what stops it reporting on — or probing for — another tenant's
+	// sessions.
 	for _, sessionUID := range req.Sessions {
-		session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, sessionUID)
+		session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, sessionUID)
 		if err != nil {
 			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot resolve session")
 
@@ -711,7 +719,10 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		hashedKey := hex.EncodeToString(keySum[:])
 
 		var err error
-		if apiKey, err = s.store.APIKeyResolve(ctx, store.APIKeyIDResolver, hashedKey); err != nil {
+		// The digest is the credential being authenticated: it is what identifies the namespace, so
+		// there is no namespace to bound by until it resolves.
+		sc := scope.NewUnbounded("authenticating an API key by its digest, which is itself the capability identifying the namespace")
+		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey); err != nil {
 			return nil, NewErrAPIKeyNotFound("", err)
 		}
 	}

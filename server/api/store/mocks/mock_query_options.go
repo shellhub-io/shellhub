@@ -5,9 +5,9 @@
 package mocks
 
 import (
-	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -16,7 +16,8 @@ import (
 func NewMockQueryOptions(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockQueryOptions {
+},
+) *MockQueryOptions {
 	mock := &MockQueryOptions{}
 	mock.Mock.Test(t)
 
@@ -36,59 +37,6 @@ type MockQueryOptions_Expecter struct {
 
 func (_m *MockQueryOptions) EXPECT() *MockQueryOptions_Expecter {
 	return &MockQueryOptions_Expecter{mock: &_m.Mock}
-}
-
-// InNamespace provides a mock function for the type MockQueryOptions
-func (_mock *MockQueryOptions) InNamespace(tenantID string) store.QueryOption {
-	ret := _mock.Called(tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for InNamespace")
-	}
-
-	var r0 store.QueryOption
-	if returnFunc, ok := ret.Get(0).(func(string) store.QueryOption); ok {
-		r0 = returnFunc(tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.QueryOption)
-		}
-	}
-	return r0
-}
-
-// MockQueryOptions_InNamespace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InNamespace'
-type MockQueryOptions_InNamespace_Call struct {
-	*mock.Call
-}
-
-// InNamespace is a helper method to define mock.On call
-//   - tenantID string
-func (_e *MockQueryOptions_Expecter) InNamespace(tenantID any) *MockQueryOptions_InNamespace_Call {
-	return &MockQueryOptions_InNamespace_Call{Call: _e.mock.On("InNamespace", tenantID)}
-}
-
-func (_c *MockQueryOptions_InNamespace_Call) Run(run func(tenantID string)) *MockQueryOptions_InNamespace_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockQueryOptions_InNamespace_Call) Return(queryOption store.QueryOption) *MockQueryOptions_InNamespace_Call {
-	_c.Call.Return(queryOption)
-	return _c
-}
-
-func (_c *MockQueryOptions_InNamespace_Call) RunAndReturn(run func(tenantID string) store.QueryOption) *MockQueryOptions_InNamespace_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Match provides a mock function for the type MockQueryOptions

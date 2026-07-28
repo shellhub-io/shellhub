@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -15,10 +16,10 @@ const (
 type SessionStore interface {
 	// SessionList retrieves a list of sessions based on the provided filters and pagination settings.
 	// It returns the list of sessions, the total count of matching documents, and an error if any.
-	SessionList(ctx context.Context, opts ...QueryOption) ([]models.Session, int, error)
-	// SessionResolve fetches a session using a specific resolver.
+	SessionList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.Session, int, error)
+	// SessionResolve fetches a session using a specific resolver within the given namespace scope.
 	// It returns the resolved session if found and an error, if any.
-	SessionResolve(ctx context.Context, resolver SessionResolver, value string, opts ...QueryOption) (*models.Session, error)
+	SessionResolve(ctx context.Context, sc scope.Scope, resolver SessionResolver, value string, opts ...QueryOption) (*models.Session, error)
 	// SessionCreate creates a new session. It returns the inserted UID and an error if any.
 	SessionCreate(ctx context.Context, session models.Session) (string, error)
 	// SessionUpdate updates a session. It returns an error if any.

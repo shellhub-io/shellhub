@@ -51,7 +51,12 @@ func (h *Handler) GetSessionList(c gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	sessions, count, err := h.service.ListSessions(c.Ctx(), req)
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	sessions, count, err := h.service.ListSessions(c.Ctx(), sc, req)
 	if err != nil {
 		return err
 	}
@@ -71,7 +76,12 @@ func (h *Handler) GetSession(c gateway.Context) error {
 		return err
 	}
 
-	session, err := h.service.GetSession(c.Ctx(), models.UID(req.UID))
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	session, err := h.service.GetSession(c.Ctx(), sc, models.UID(req.UID))
 	if err != nil {
 		return err
 	}

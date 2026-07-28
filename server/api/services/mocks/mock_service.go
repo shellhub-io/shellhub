@@ -8,11 +8,12 @@ import (
 	"context"
 	"crypto/rsa"
 
-	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
-	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -21,7 +22,8 @@ import (
 func NewMockService(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockService {
+},
+) *MockService {
 	mock := &MockService{}
 	mock.Mock.Test(t)
 
@@ -3102,8 +3104,8 @@ func (_c *MockService_GetAccessPolicy_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // GetDevice provides a mock function for the type MockService
-func (_mock *MockService) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	ret := _mock.Called(ctx, uid)
+func (_mock *MockService) GetDevice(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Device, error) {
+	ret := _mock.Called(ctx, sc, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDevice")
@@ -3111,18 +3113,18 @@ func (_mock *MockService) GetDevice(ctx context.Context, uid models.UID) (*model
 
 	var r0 *models.Device
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) (*models.Device, error)); ok {
-		return returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) (*models.Device, error)); ok {
+		return returnFunc(ctx, sc, uid)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) *models.Device); ok {
-		r0 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) *models.Device); ok {
+		r0 = returnFunc(ctx, sc, uid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, models.UID) error); ok {
+		r1 = returnFunc(ctx, sc, uid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3136,24 +3138,30 @@ type MockService_GetDevice_Call struct {
 
 // GetDevice is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid models.UID
-func (_e *MockService_Expecter) GetDevice(ctx any, uid any) *MockService_GetDevice_Call {
-	return &MockService_GetDevice_Call{Call: _e.mock.On("GetDevice", ctx, uid)}
+func (_e *MockService_Expecter) GetDevice(ctx any, sc any, uid any) *MockService_GetDevice_Call {
+	return &MockService_GetDevice_Call{Call: _e.mock.On("GetDevice", ctx, sc, uid)}
 }
 
-func (_c *MockService_GetDevice_Call) Run(run func(ctx context.Context, uid models.UID)) *MockService_GetDevice_Call {
+func (_c *MockService_GetDevice_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID)) *MockService_GetDevice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -3164,7 +3172,7 @@ func (_c *MockService_GetDevice_Call) Return(device *models.Device, err error) *
 	return _c
 }
 
-func (_c *MockService_GetDevice_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) (*models.Device, error)) *MockService_GetDevice_Call {
+func (_c *MockService_GetDevice_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Device, error)) *MockService_GetDevice_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3522,8 +3530,8 @@ func (_c *MockService_GetSSHApprovalStatus_Call) RunAndReturn(run func(ctx conte
 }
 
 // GetSession provides a mock function for the type MockService
-func (_mock *MockService) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	ret := _mock.Called(ctx, uid)
+func (_mock *MockService) GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error) {
+	ret := _mock.Called(ctx, sc, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSession")
@@ -3531,18 +3539,18 @@ func (_mock *MockService) GetSession(ctx context.Context, uid models.UID) (*mode
 
 	var r0 *models.Session
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) (*models.Session, error)); ok {
-		return returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) (*models.Session, error)); ok {
+		return returnFunc(ctx, sc, uid)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) *models.Session); ok {
-		r0 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) *models.Session); ok {
+		r0 = returnFunc(ctx, sc, uid)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, models.UID) error); ok {
+		r1 = returnFunc(ctx, sc, uid)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3556,24 +3564,30 @@ type MockService_GetSession_Call struct {
 
 // GetSession is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid models.UID
-func (_e *MockService_Expecter) GetSession(ctx any, uid any) *MockService_GetSession_Call {
-	return &MockService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, uid)}
+func (_e *MockService_Expecter) GetSession(ctx any, sc any, uid any) *MockService_GetSession_Call {
+	return &MockService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, sc, uid)}
 }
 
-func (_c *MockService_GetSession_Call) Run(run func(ctx context.Context, uid models.UID)) *MockService_GetSession_Call {
+func (_c *MockService_GetSession_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID)) *MockService_GetSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -3584,7 +3598,7 @@ func (_c *MockService_GetSession_Call) Return(session *models.Session, err error
 	return _c
 }
 
-func (_c *MockService_GetSession_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) (*models.Session, error)) *MockService_GetSession_Call {
+func (_c *MockService_GetSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error)) *MockService_GetSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4065,8 +4079,8 @@ func (_c *MockService_ListAccessPolicies_Call) RunAndReturn(run func(ctx context
 }
 
 // ListDevices provides a mock function for the type MockService
-func (_mock *MockService) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListDevices")
@@ -4075,23 +4089,23 @@ func (_mock *MockService) ListDevices(ctx context.Context, req *requests.DeviceL
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) ([]models.Device, int, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList) ([]models.Device, int, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.DeviceList) []models.Device); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList) []models.Device); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.DeviceList) int); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.DeviceList) int); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.DeviceList) error); ok {
-		r2 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.DeviceList) error); ok {
+		r2 = returnFunc(ctx, sc, req)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -4105,24 +4119,30 @@ type MockService_ListDevices_Call struct {
 
 // ListDevices is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.DeviceList
-func (_e *MockService_Expecter) ListDevices(ctx any, req any) *MockService_ListDevices_Call {
-	return &MockService_ListDevices_Call{Call: _e.mock.On("ListDevices", ctx, req)}
+func (_e *MockService_Expecter) ListDevices(ctx any, sc any, req any) *MockService_ListDevices_Call {
+	return &MockService_ListDevices_Call{Call: _e.mock.On("ListDevices", ctx, sc, req)}
 }
 
-func (_c *MockService_ListDevices_Call) Run(run func(ctx context.Context, req *requests.DeviceList)) *MockService_ListDevices_Call {
+func (_c *MockService_ListDevices_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList)) *MockService_ListDevices_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.DeviceList
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.DeviceList)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.DeviceList
+		if args[2] != nil {
+			arg2 = args[2].(*requests.DeviceList)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -4133,7 +4153,7 @@ func (_c *MockService_ListDevices_Call) Return(devices []models.Device, n int, e
 	return _c
 }
 
-func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)) *MockService_ListDevices_Call {
+func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error)) *MockService_ListDevices_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4645,8 +4665,8 @@ func (_c *MockService_ListServiceAccounts_Call) RunAndReturn(run func(ctx contex
 }
 
 // ListSessions provides a mock function for the type MockService
-func (_mock *MockService) ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListSessions")
@@ -4655,23 +4675,23 @@ func (_mock *MockService) ListSessions(ctx context.Context, req *requests.ListSe
 	var r0 []models.Session
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListSessions) ([]models.Session, int, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.ListSessions) ([]models.Session, int, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListSessions) []models.Session); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.ListSessions) []models.Session); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListSessions) int); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.ListSessions) int); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListSessions) error); ok {
-		r2 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.ListSessions) error); ok {
+		r2 = returnFunc(ctx, sc, req)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -4685,24 +4705,30 @@ type MockService_ListSessions_Call struct {
 
 // ListSessions is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.ListSessions
-func (_e *MockService_Expecter) ListSessions(ctx any, req any) *MockService_ListSessions_Call {
-	return &MockService_ListSessions_Call{Call: _e.mock.On("ListSessions", ctx, req)}
+func (_e *MockService_Expecter) ListSessions(ctx any, sc any, req any) *MockService_ListSessions_Call {
+	return &MockService_ListSessions_Call{Call: _e.mock.On("ListSessions", ctx, sc, req)}
 }
 
-func (_c *MockService_ListSessions_Call) Run(run func(ctx context.Context, req *requests.ListSessions)) *MockService_ListSessions_Call {
+func (_c *MockService_ListSessions_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.ListSessions)) *MockService_ListSessions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.ListSessions
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.ListSessions)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.ListSessions
+		if args[2] != nil {
+			arg2 = args[2].(*requests.ListSessions)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -4713,7 +4739,7 @@ func (_c *MockService_ListSessions_Call) Return(sessions []models.Session, n int
 	return _c
 }
 
-func (_c *MockService_ListSessions_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error)) *MockService_ListSessions_Call {
+func (_c *MockService_ListSessions_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error)) *MockService_ListSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }

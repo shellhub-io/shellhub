@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -11,19 +12,16 @@ type SSHIdentityResolver int
 const (
 	// SSHIdentityIDResolver resolves an identity by its id.
 	SSHIdentityIDResolver SSHIdentityResolver = iota
-	// SSHIdentityFingerprintResolver resolves an identity by its fingerprint;
-	// scope it to a namespace with InNamespace since fingerprints are unique only
-	// within a namespace.
+	// SSHIdentityFingerprintResolver resolves an identity by its fingerprint.
+	// Fingerprints are unique only within a namespace, so the scope must be bounded.
 	SSHIdentityFingerprintResolver
 )
 
 type SSHIdentityStore interface {
-	// SSHIdentityList retrieves enrolled SSH identities with optional filtering
-	// (InNamespace, WithUserID).
-	SSHIdentityList(ctx context.Context, opts ...QueryOption) ([]models.SSHIdentity, int, error)
-	// SSHIdentityResolve retrieves an SSH identity by the given resolver type and
-	// value.
-	SSHIdentityResolve(ctx context.Context, resolver SSHIdentityResolver, value string, opts ...QueryOption) (*models.SSHIdentity, error)
+	// SSHIdentityList retrieves enrolled SSH identities scoped to a namespace.
+	SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.SSHIdentity, int, error)
+	// SSHIdentityResolve retrieves an SSH identity by the given resolver type and value, scoped to a namespace.
+	SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver SSHIdentityResolver, value string, opts ...QueryOption) (*models.SSHIdentity, error)
 	// SSHIdentityCreate creates a new SSH identity and returns its id.
 	SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentity) (string, error)
 	// SSHIdentityUpdate renames an existing SSH identity scoped to its namespace.

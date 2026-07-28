@@ -5,6 +5,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +43,7 @@ func (s *Suite) TestTagConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		conflicts, has, err := st.TagConflicts(ctx, tenantID, &models.TagConflicts{})
+		conflicts, has, err := st.TagConflicts(ctx, scope.MustBounded(tenantID), &models.TagConflicts{})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -54,7 +55,7 @@ func (s *Suite) TestTagConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		conflicts, has, err := st.TagConflicts(ctx, tenantID, &models.TagConflicts{Name: "nonexistent"})
+		conflicts, has, err := st.TagConflicts(ctx, scope.MustBounded(tenantID), &models.TagConflicts{Name: "nonexistent"})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -67,7 +68,7 @@ func (s *Suite) TestTagConflicts(t *testing.T) {
 		tenantID2 := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID1))
 
-		conflicts, has, err := st.TagConflicts(ctx, tenantID2, &models.TagConflicts{Name: "production"})
+		conflicts, has, err := st.TagConflicts(ctx, scope.MustBounded(tenantID2), &models.TagConflicts{Name: "production"})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -79,7 +80,7 @@ func (s *Suite) TestTagConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		conflicts, has, err := st.TagConflicts(ctx, tenantID, &models.TagConflicts{Name: "production"})
+		conflicts, has, err := st.TagConflicts(ctx, scope.MustBounded(tenantID), &models.TagConflicts{Name: "production"})
 		require.NoError(t, err)
 		assert.True(t, has)
 		assert.Equal(t, []string{"name"}, conflicts)
@@ -96,7 +97,10 @@ func (s *Suite) TestTagList(t *testing.T) {
 		})
 	}
 
-	t.Run("succeeds when no filters applied", func(t *testing.T) {
+	// This subtest used to pin the old default: a tag listing with no namespace option returned every
+	// namespace's tags. That default is gone — an unbounded listing is now a positive, written act,
+	// so the test asks for it explicitly rather than getting it by omission.
+	t.Run("succeeds spanning namespaces under an explicit unbounded scope", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		// Create tags in different namespaces
@@ -106,7 +110,7 @@ func (s *Suite) TestTagList(t *testing.T) {
 		s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenant1))
 		s.CreateTag(t, WithTagName("development"), WithTagTenant(tenant2))
 
-		tags, count, err := st.TagList(ctx)
+		tags, count, err := st.TagList(ctx, scope.NewUnbounded("test: asserting that an unbounded scope really does span namespaces"))
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, tags, 3)
@@ -127,7 +131,7 @@ func (s *Suite) TestTagList(t *testing.T) {
 		s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenant1))
 		s.CreateTag(t, WithTagName("development"), WithTagTenant(tenant2))
 
-		tags, count, err := st.TagList(ctx, st.Options().InNamespace(tenant1))
+		tags, count, err := st.TagList(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 		assert.Len(t, tags, 2)
@@ -155,7 +159,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		require.NoError(t, err)
 
 		// Try to resolve the deleted tag
-		tag, err := st.TagResolve(ctx, store.TagIDResolver, tagID)
+		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, tag)
 	})
@@ -166,7 +170,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		tag, err := st.TagResolve(ctx, store.TagIDResolver, tagID)
+		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		require.NoError(t, err)
 		require.NotNil(t, tag)
 		assert.Equal(t, tagID, tag.ID)
@@ -180,7 +184,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		tag, err := st.TagResolve(ctx, store.TagNameResolver, "nonexistent")
+		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagNameResolver, "nonexistent")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, tag)
 	})
@@ -191,7 +195,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		tag, err := st.TagResolve(ctx, store.TagNameResolver, "production", st.Options().InNamespace(tenantID))
+		tag, err := st.TagResolve(ctx, scope.MustBounded(tenantID), store.TagNameResolver, "production")
 		require.NoError(t, err)
 		require.NotNil(t, tag)
 		assert.Equal(t, tagID, tag.ID)
@@ -241,7 +245,7 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update
-		updatedTag, err := st.TagResolve(ctx, store.TagIDResolver, tagID)
+		updatedTag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		require.NoError(t, err)
 		assert.Equal(t, "edited-tag", updatedTag.Name)
 	})
@@ -275,7 +279,7 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 
 		// Create and delete a device to get a valid but non-existent UID
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		err = st.DeviceDelete(ctx, device)
 		require.NoError(t, err)
@@ -346,7 +350,7 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 
 		// Create and delete a device to get a valid but non-existent UID
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		err = st.DeviceDelete(ctx, device)
 		require.NoError(t, err)
@@ -466,7 +470,7 @@ func (s *Suite) TestTagDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = st.TagResolve(ctx, store.TagIDResolver, tagID)
+		_, err = st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -61,7 +62,7 @@ func TestService_CreateTag(t *testing.T) {
 					Return(&models.Namespace{}, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "production"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "production"}).
 					Return([]string{"name"}, true, nil).
 					Once()
 			},
@@ -83,7 +84,7 @@ func TestService_CreateTag(t *testing.T) {
 					Return(&models.Namespace{}, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "production"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "production"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -109,7 +110,7 @@ func TestService_CreateTag(t *testing.T) {
 					Return(&models.Namespace{}, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "production"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "production"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -142,7 +143,7 @@ func TestService_CreateTag(t *testing.T) {
 func TestService_PushTagTo(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -182,12 +183,8 @@ func TestService_PushTagTo(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -206,12 +203,8 @@ func TestService_PushTagTo(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -234,12 +227,8 @@ func TestService_PushTagTo(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -268,7 +257,7 @@ func TestService_PushTagTo(t *testing.T) {
 func TestService_PullTagFrom(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -308,12 +297,8 @@ func TestService_PullTagFrom(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -332,12 +317,8 @@ func TestService_PullTagFrom(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -360,12 +341,8 @@ func TestService_PullTagFrom(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
 					Once()
 				storeMock.
@@ -394,7 +371,7 @@ func TestService_PullTagFrom(t *testing.T) {
 func TestService_ListTags(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -443,10 +420,6 @@ func TestService_ListTags(t *testing.T) {
 					Return(&models.Namespace{}, nil).
 					Once()
 				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
@@ -459,7 +432,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("TagList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -484,10 +457,6 @@ func TestService_ListTags(t *testing.T) {
 					Return(&models.Namespace{}, nil).
 					Once()
 				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
@@ -500,7 +469,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("TagList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.Tag{{Name: "production", TenantID: "tenant1"}}, 1, nil).
 					Once()
 			},
@@ -529,7 +498,7 @@ func TestService_ListTags(t *testing.T) {
 func TestService_UpdateTag(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -574,12 +543,8 @@ func TestService_UpdateTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -600,16 +565,12 @@ func TestService_UpdateTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
 					Return([]string{"name"}, true, nil).
 					Once()
 			},
@@ -633,16 +594,12 @@ func TestService_UpdateTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(tag, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -669,16 +626,12 @@ func TestService_UpdateTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(tag, nil).
 					Once()
 				storeMock.
-					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
 					Return([]string{}, false, nil).
 					Once()
 
@@ -714,7 +667,7 @@ func TestService_UpdateTag(t *testing.T) {
 func TestService_DeleteTag(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -749,12 +702,8 @@ func TestService_DeleteTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(nil, errors.New("error")).
 					Once()
 			},
@@ -773,12 +722,8 @@ func TestService_DeleteTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(tag, nil).
 					Once()
 
@@ -806,12 +751,8 @@ func TestService_DeleteTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(tag, nil).
 					Once()
 
@@ -842,12 +783,8 @@ func TestService_DeleteTag(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
 				storeMock.
-					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("[]store.QueryOption")).
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
 					Return(tag, nil).
 					Once()
 

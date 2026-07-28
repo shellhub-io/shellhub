@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +31,7 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 
 		// Get global stats (no tenantID filter)
-		stats, err := st.GetStats(ctx, "")
+		stats, err := st.GetStats(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
@@ -58,7 +60,7 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 
 		// Get stats for tenant1 only
-		stats, err := st.GetStats(ctx, tenant1)
+		stats, err := st.GetStats(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
@@ -79,7 +81,7 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
 		// Query with non-existent tenant ID
-		stats, err := st.GetStats(ctx, "99999999-9999-4999-9999-999999999999")
+		stats, err := st.GetStats(ctx, scope.MustBounded("99999999-9999-4999-9999-999999999999"))
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 

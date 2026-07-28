@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -34,14 +35,14 @@ func (s *Suite) TestNamespaceUpdateDoesNotClobberDeviceCounts(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	tenantID := s.CreateNamespace(t, WithNamespaceName("counters"))
-	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusAccepted, 5))
+	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 5))
 
 	snapshot, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	require.NoError(t, err)
 	require.Equal(t, int64(5), snapshot.DevicesAcceptedCount)
 
 	// Concurrent increment lands between the resolve and the save.
-	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusAccepted, 1))
+	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 1))
 
 	snapshot.Name = "counters-renamed"
 	require.NoError(t, st.NamespaceUpdate(ctx, snapshot))
@@ -63,7 +64,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberCustomFields(t *testing.T) {
 	uid := s.CreateDevice(t)
 	require.NoError(t, st.DeviceSetCustomField(ctx, string(uid), "first", "1"))
 
-	snapshot, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	snapshot, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{"first": "1"}, snapshot.CustomFields)
 
@@ -73,7 +74,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberCustomFields(t *testing.T) {
 	snapshot.Name = "device-renamed"
 	require.NoError(t, st.DeviceUpdate(ctx, snapshot))
 
-	updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 	assert.Equal(t, "device-renamed", updated.Name, "the intended field must still be written")
 	assert.Equal(t, map[string]string{"first": "1", "second": "2"}, updated.CustomFields,
@@ -91,7 +92,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 
 	uid := s.CreateDevice(t)
 
-	snapshot, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	snapshot, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 
 	// Concurrent heartbeat bumps last_seen and clears disconnected_at after the snapshot.
@@ -103,7 +104,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	snapshot.Name = "device-renamed"
 	require.NoError(t, st.DeviceUpdate(ctx, snapshot))
 
-	updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 	assert.Equal(t, "device-renamed", updated.Name, "the intended field must still be written")
 	assert.WithinDuration(t, heartbeat, updated.LastSeen, time.Second,
@@ -122,14 +123,14 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 
 		uid := s.CreateDevice(t)
 
-		before, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+		before, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
 		require.Nil(t, before.DisconnectedAt)
 
 		disconnectedAt := clock.Now().UTC().Add(-time.Minute).Truncate(time.Second)
 		require.NoError(t, st.DeviceOffline(ctx, string(uid), disconnectedAt))
 
-		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
 		require.NotNil(t, updated.DisconnectedAt)
 		assert.WithinDuration(t, disconnectedAt, *updated.DisconnectedAt, time.Second)

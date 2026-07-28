@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -165,7 +166,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		// them. admitMember consumes the invitation, atomic with the user + membership write.
 		if membership != nil {
 			member := &models.Member{ID: user.ID, AddedAt: clock.Now(), Role: membership.Role}
-			if err := s.admitMember(ctx, membership.TenantID, member, membership); err != nil {
+			if err := s.admitMember(ctx, scope.MustBounded(membership.TenantID), member, membership); err != nil {
 				return err
 			}
 		}

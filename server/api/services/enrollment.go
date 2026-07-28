@@ -18,6 +18,7 @@ import (
 	"code.dny.dev/ssrf"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -234,7 +235,7 @@ func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device
 		return
 	}
 
-	key, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, device.InstallKeyID, s.store.Options().InNamespace(req.TenantID))
+	key, err := s.store.InstallKeyResolve(ctx, scope.MustBounded(device.TenantID), store.InstallKeyIDResolver, device.InstallKeyID)
 	// IsValid gates the same as a fresh enrollment: a key revoked, disabled, expired, or exhausted after
 	// the device landed pending must not accept it on a later phone-home.
 	if err != nil || key == nil || !key.IsValid() || !key.ReconcilableOnAuth() {

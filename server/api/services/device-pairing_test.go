@@ -31,7 +31,7 @@ func TestCreateDevicePairing(t *testing.T) {
 		storeMock.On("Options").Return(queryOptionsMock).Maybe()
 		queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Maybe()
 		storeMock.
-			On("DeviceResolve", mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
+			On("DeviceResolve", mock.Anything, mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
 			Return(nil, store.ErrNoDocuments).
 			Once()
 	}
@@ -92,7 +92,7 @@ func TestCreateDevicePairing(t *testing.T) {
 				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Maybe()
 				storeMock.
-					On("DeviceResolve", mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
+					On("DeviceResolve", mock.Anything, mock.Anything, store.DevicePublicKeyResolver, "public-key", mock.Anything).
 					Return(&models.Device{UID: "uid1", TenantID: "tenant1", Status: models.DeviceStatusAccepted}, nil).
 					Once()
 			},

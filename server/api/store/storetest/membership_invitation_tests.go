@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -52,7 +53,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 
-		invitation, err := st.MembershipInvitationResolve(ctx, tenantID, userID)
+		invitation, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), userID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, invitation)
 	})
@@ -77,7 +78,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		err := st.MembershipInvitationCreate(ctx, createdInvitation)
 		require.NoError(t, err)
 
-		invitation, err := st.MembershipInvitationResolve(ctx, tenantID, invitedUser)
+		invitation, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
 		require.NoError(t, err)
 		require.NotNil(t, invitation)
 		assert.Equal(t, tenantID, invitation.TenantID)
@@ -125,7 +126,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		}
 		require.NoError(t, st.MembershipInvitationCreate(ctx, pending))
 
-		invitation, err := st.MembershipInvitationResolve(ctx, tenantID, invitedUser)
+		invitation, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
 		require.NoError(t, err)
 		require.NotNil(t, invitation)
 		assert.Equal(t, pending.ID, invitation.ID)
@@ -314,7 +315,7 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 		err := st.MembershipInvitationDelete(ctx, invitation)
 		assert.NoError(t, err)
 
-		resolved, err := st.MembershipInvitationResolve(ctx, tenantID, invitedUser)
+		resolved, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, resolved)
 	})
@@ -367,7 +368,7 @@ func (s *Suite) TestNamespaceMembershipInvitationList(t *testing.T) {
 		require.NoError(t, st.MembershipInvitationCreate(ctx, invite))
 	}
 
-	invitations, count, err := st.NamespaceMembershipInvitationList(ctx, tenantID)
+	invitations, count, err := st.NamespaceMembershipInvitationList(ctx, scope.MustBounded(tenantID))
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), count)
 	assert.Len(t, invitations, 2)
@@ -425,11 +426,10 @@ func (s *Suite) TestNamespaceMembershipInvitationListWithStatusFilter(t *testing
 		t.Run("filter by "+string(tc.status)+" status", func(t *testing.T) {
 			result, count, err := st.NamespaceMembershipInvitationList(
 				ctx,
-				tenantID,
+				scope.MustBounded(tenantID),
 				st.Options().Match(&query.Filters{Data: []query.Filter{
 					{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(tc.status)}},
-				}}),
-			)
+				}}))
 			require.NoError(t, err)
 			assert.Equal(t, int64(1), count)
 			require.Len(t, result, 1)

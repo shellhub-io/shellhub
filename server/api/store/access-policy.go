@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -13,10 +14,10 @@ const (
 )
 
 type AccessPolicyStore interface {
-	// AccessPolicyList retrieves a list of access policies with optional filtering and pagination.
-	AccessPolicyList(ctx context.Context, opts ...QueryOption) ([]models.AccessPolicy, int, error)
-	// AccessPolicyResolve retrieves an access policy by the given resolver type and value.
-	AccessPolicyResolve(ctx context.Context, resolver AccessPolicyResolver, value string, opts ...QueryOption) (*models.AccessPolicy, error)
+	// AccessPolicyList retrieves a list of access policies scoped to a namespace.
+	AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.AccessPolicy, int, error)
+	// AccessPolicyResolve retrieves an access policy by the given resolver type and value, scoped to a namespace.
+	AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver AccessPolicyResolver, value string, opts ...QueryOption) (*models.AccessPolicy, error)
 	// AccessPolicyCreate creates a new access policy and returns its ID.
 	AccessPolicyCreate(ctx context.Context, accessPolicy *models.AccessPolicy) (string, error)
 	// AccessPolicyUpdate updates an existing access policy.

@@ -492,9 +492,8 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return(true, nil).
 		Once()
 
-	queryOptionsMock.On("InNamespace", namespace.TenantID).Return(nil).Once()
 	storeMock.
-		On("SSHIdentityResolve", mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc", mock.Anything).
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
 		Return(nil, store.ErrNoDocuments).
 		Once()
 	storeMock.

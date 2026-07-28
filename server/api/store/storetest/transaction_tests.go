@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -47,7 +48,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 		assert.ErrorIs(t, err, errIntentional)
 
 		// Verify the device was NOT persisted (rolled back)
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted)
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, devices)
@@ -78,7 +79,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the device WAS persisted
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted)
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		assert.Len(t, devices, 1)

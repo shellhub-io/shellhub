@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -11,7 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
+func (pg *Pg) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error) {
 	db := pg.GetConnection(ctx)
 
 	// Sessions and devices both have namespace_id; qualify the column to
@@ -23,7 +24,7 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 		Model(&entities)
 
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -35,7 +36,7 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 
 	query = SessionSelectQuery(db.NewSelect().Model(&entities))
 
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -56,12 +57,12 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 	return sessions, count, nil
 }
 
-func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
+func (pg *Pg) SessionResolve(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	db := pg.GetConnection(ctx)
 
-	// Sessions and devices both have namespace_id; qualify the column so
-	// InNamespace filters don't hit an ambiguous column when
-	// SessionSelectQuery JOINs the devices table.
+	// Sessions and devices both have namespace_id; qualify the column so the
+	// scope predicate doesn't hit an ambiguous column when SessionSelectQuery
+	// JOINs the devices table.
 	ctx = context.WithValue(ctx, CtxTableAlias, "session")
 
 	var sessionID string
@@ -77,7 +78,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 		Where("session.id = ?", sessionID)
 
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +105,12 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 		session.UID = uuid.Generate()
 	}
 
-	device, err := pg.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
+	// The device is what establishes the session's namespace, so this lookup cannot be bounded by
+	// the namespace it is about to discover. The device UID is a hash the SSH server has already
+	// authenticated the connection against.
+	sc := scope.NewUnbounded("resolving the device that determines the new session's namespace")
+
+	device, err := pg.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
 		return "", fromSQLError(err)
 	}

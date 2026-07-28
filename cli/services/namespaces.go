@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -91,7 +92,7 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		return nil, ErrNamespaceNotFound
 	}
 
-	if err = s.store.NamespaceCreateMembership(ctx, ns.TenantID, &models.Member{
+	if err = s.store.NamespaceCreateMembership(ctx, scope.MustBounded(ns.TenantID), &models.Member{
 		ID:      user.ID,
 		Role:    input.Role,
 		AddedAt: clock.Now(),
@@ -119,7 +120,7 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrFailedNamespaceRemoveMember
 	}
 
-	if err = s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
+	if err = s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
 		return nil, ErrFailedNamespaceRemoveMember
 	}
 
@@ -176,5 +177,10 @@ func (s *service) NamespaceResolve(ctx context.Context, resolver NamespaceResolv
 
 // NamespaceDeviceCounts returns the actual device counts for a namespace.
 func (s *service) NamespaceDeviceCounts(ctx context.Context, tenantID string) (*models.Stats, error) {
-	return s.store.GetStats(ctx, tenantID)
+	sc, err := scope.NewBounded(tenantID)
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	return s.store.GetStats(ctx, sc)
 }

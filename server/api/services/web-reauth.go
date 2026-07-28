@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
@@ -44,7 +45,12 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 // approval routes check. So no separate permission gate is needed here — and a
 // login can only be released by the person whose key it is.
 func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauthVerify) error {
-	identity, err := st.SSHIdentityResolve(ctx, store.SSHIdentityFingerprintResolver, req.Fingerprint, st.Options().InNamespace(req.TenantID))
+	sc, err := scope.NewBounded(req.TenantID)
+	if err != nil {
+		return NewErrForbidden(ErrForbidden, err)
+	}
+
+	identity, err := st.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, req.Fingerprint)
 	if err != nil || identity.PrincipalID != req.UserID {
 		return NewErrForbidden(ErrForbidden, nil)
 	}

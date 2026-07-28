@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -159,7 +160,7 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
 					Return([]string{"id", "name"}, true, nil).
 					Once()
 			},
@@ -201,7 +202,7 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -255,7 +256,7 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -270,7 +271,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Return(hashedKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(&models.APIKey{
 						ID:        hashedKey,
 						Name:      "dev",
@@ -333,7 +334,7 @@ func TestCreateAPIKey(t *testing.T) {
 				hashedKey := hex.EncodeToString(keySum[:])
 
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{ID: hashedKey, Name: "dev"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -348,7 +349,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Return(hashedKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(&models.APIKey{
 						ID:        hashedKey,
 						Name:      "dev",
@@ -400,7 +401,7 @@ func TestListAPIKey(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	cases := []struct {
 		description   string
@@ -418,10 +419,6 @@ func TestListAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
 					Return(nil).
 					Once()
@@ -430,7 +427,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -449,10 +446,6 @@ func TestListAPIKey(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
 					Return(nil).
 					Once()
@@ -461,7 +454,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("APIKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return(
 						[]models.APIKey{
 							{
@@ -508,7 +501,7 @@ func TestListAPIKey(t *testing.T) {
 func TestUpdateAPIKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	cases := []struct {
 		description   string
@@ -581,12 +574,8 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "nonexistent").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -613,16 +602,12 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{"name"}, true, nil).
 					Once()
 			},
@@ -656,16 +641,12 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -703,16 +684,12 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -750,12 +727,8 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -810,16 +783,12 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
 					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
@@ -852,7 +821,7 @@ func TestUpdateAPIKey(t *testing.T) {
 func TestDeleteAPIKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	cases := []struct {
 		description   string
@@ -867,12 +836,8 @@ func TestDeleteAPIKey(t *testing.T) {
 				Name:     "nonexistent",
 			},
 			requiredMocks: func(ctx context.Context) {
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "nonexistent").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -892,12 +857,8 @@ func TestDeleteAPIKey(t *testing.T) {
 					Role:     "operator",
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
@@ -921,12 +882,8 @@ func TestDeleteAPIKey(t *testing.T) {
 					Role:     "operator",
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("[]store.QueryOption")).
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(existingAPIKey, nil).
 					Once()
 				storeMock.

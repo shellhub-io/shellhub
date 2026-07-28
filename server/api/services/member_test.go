@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -177,7 +178,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 					Return("placeholder-id", nil).
 					Once()
 				storeMock.
-					On("MembershipInvitationResolve", ctx, "00000000-0000-4000-0000-000000000000", "placeholder-id").
+					On("MembershipInvitationResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "placeholder-id").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -388,7 +389,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -422,7 +423,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -503,7 +504,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -614,7 +615,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -755,7 +756,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -824,7 +825,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1028,7 +1029,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1064,7 +1065,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1139,7 +1140,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				// TOCTOU: member disappeared after the FindMember precheck). The service
 				// must propagate it unchanged — the default branch must not remap it.
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(store.ErrInternal).
 					Once()
 			},
@@ -1179,7 +1180,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleInvalid}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleInvalid}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1343,7 +1344,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1375,7 +1376,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1415,7 +1416,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(store.ErrInternal).
 					Once()
 			},
@@ -1469,7 +1470,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
+					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1564,7 +1565,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "jane@test.com").
 		Return(nil, store.ErrNoDocuments).Once()
 	storeMock.On("UserInvitationsUpsert", ctx, "jane@test.com").Return("placeholder", nil).Once()
-	storeMock.On("MembershipInvitationResolve", ctx, ns.TenantID, "placeholder").Return(nil, store.ErrNoDocuments).Once()
+	storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded(ns.TenantID), "placeholder").Return(nil, store.ErrNoDocuments).Once()
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).Return(nil).Once()
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
@@ -1604,7 +1605,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 		Return(&models.User{ID: "invitee", UserData: models.UserData{Name: "Invitee Person", Email: "invitee@test.com"}}, nil).Once()
-	storeMock.On("MembershipInvitationResolve", ctx, ns.TenantID, "invitee").Return(nil, store.ErrNoDocuments).Once()
+	storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded(ns.TenantID), "invitee").Return(nil, store.ErrNoDocuments).Once()
 
 	var created *models.MembershipInvitation
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
@@ -1667,7 +1668,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 	storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 		Return(&models.User{ID: "invitee"}, nil).Once()
-	storeMock.On("NamespaceCreateMembership", ctx, ns.TenantID, &models.Member{
+	storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded(ns.TenantID), &models.Member{
 		ID: "invitee", AddedAt: now, Role: authorizer.RoleObserver,
 	}).Return(nil).Once()
 

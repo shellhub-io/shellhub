@@ -7,10 +7,10 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,8 +50,12 @@ var DeviceSortFields = query.NewFieldSet(
 )
 
 type DeviceService interface {
-	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
-	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
+	ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error)
+
+	// GetDevice fetches a device within the given namespace scope. The scope is an explicit
+	// parameter rather than something recovered from the request context, so a caller cannot
+	// receive a cross-namespace read by omission.
+	GetDevice(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Device, error)
 
 	// ResolveDevice attempts to resolve a device by searching for either its UID or hostname. When both are provided,
 	// UID takes precedence over hostname. The search is scoped to the namespace's tenant ID to limit results.
@@ -98,15 +102,11 @@ type DeviceService interface {
 	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
 }
 
-func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
 	opts := []store.QueryOption{}
 
 	if req.DeviceStatus != "" {
 		opts = append(opts, s.store.Options().WithDeviceStatus(req.DeviceStatus))
-	}
-
-	if req.TenantID != "" {
-		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
 	}
 
 	if req.Sorter.By == "" {
@@ -118,31 +118,27 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
 
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		return s.store.DeviceList(ctx, store.DeviceAcceptableFromRemoved, opts...)
+		return s.store.DeviceList(ctx, sc, store.DeviceAcceptableFromRemoved, opts...)
 	}
 
-	if req.TenantID != "" {
+	acceptable := store.DeviceAcceptableIfNotAccepted
+
+	if sc.IsBounded() {
 		ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		// Unified logic: if limit reached, prevent accepting new devices
 		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
-			return s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
+			acceptable = store.DeviceAcceptableAsFalse
 		}
 	}
 
-	return s.store.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted, opts...)
+	return s.store.DeviceList(ctx, sc, acceptable, opts...)
 }
 
-func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	opts := []store.QueryOption{}
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		opts = append(opts, s.store.Options().InNamespace(tenant.ID))
-	}
-
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), opts...)
+func (s *service) GetDevice(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Device, error) {
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 	if err != nil {
 		return nil, NewErrDeviceNotFound(uid, err)
 	}
@@ -156,12 +152,14 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
+	sc := scope.MustBounded(n.TenantID)
+
 	var device *models.Device
 	switch {
 	case req.UID != "":
-		device, err = s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(n.TenantID))
+		device, err = s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
 	case req.Hostname != "":
-		device, err = s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, req.Hostname, s.store.Options().InNamespace(n.TenantID))
+		device, err = s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, req.Hostname)
 	}
 
 	if err != nil {
@@ -181,7 +179,12 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 // NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
 // delete the device fails.
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return err
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -198,7 +201,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusRemoved, 1); err != nil {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, 1); err != nil {
 			return err
 		}
 	} else {
@@ -208,7 +211,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		}
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, device.Status, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil { //nolint:revive
 		return err
 	}
 
@@ -216,7 +219,12 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return err
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 	if err != nil {
 		return NewErrDeviceNotFound(uid, err)
 	}
@@ -243,12 +251,8 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 		return nil, NewErrNamespaceNotFound(namespace, err)
 	}
 
-	opts := []store.QueryOption{
-		s.store.Options().InNamespace(n.TenantID),
-		s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted),
-	}
-
-	device, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, name, opts...)
+	device, err := s.store.DeviceResolve(ctx, scope.MustBounded(n.TenantID), store.DeviceHostnameResolver, name,
+		s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
 	if err != nil || device == nil {
 		return nil, NewErrDeviceNotFound(models.UID(name), err)
 	}
@@ -278,7 +282,12 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 	// accept/reject that already committed. This is the single chokepoint every accept/reject reaches.
 	status := models.DeviceStatus(req.Status)
 	if status == models.DeviceStatusAccepted || status == models.DeviceStatusRejected {
-		if err := s.store.InstallKeyEventStampDecision(ctx, req.TenantID, req.UID, status, clock.Now()); err != nil {
+		sc, err := BoundTo(req.TenantID)
+		if err != nil {
+			return err
+		}
+
+		if err := s.store.InstallKeyEventStampDecision(ctx, sc, req.UID, status, clock.Now()); err != nil {
 			log.WithError(err).WithFields(log.Fields{"device_uid": req.UID, "status": req.Status}).
 				Warn("failed to stamp the enrollment decision on the history event")
 		}
@@ -294,7 +303,9 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			return NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(namespace.TenantID))
+		sc := scope.MustBounded(namespace.TenantID)
+
+		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
 		if err != nil {
 			return NewErrDeviceNotFound(models.UID(req.UID), err)
 		}
@@ -314,8 +325,8 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 		}
 
 		if newStatus == models.DeviceStatusAccepted {
-			opts := []store.QueryOption{s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(namespace.TenantID)}
-			existingMacDevice, err := s.store.DeviceResolve(ctx, store.DeviceMACResolver, device.Identity.MAC, opts...)
+			opts := []store.QueryOption{s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)}
+			existingMacDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceMACResolver, device.Identity.MAC, opts...)
 			if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 				log.WithError(err).
 					WithFields(log.Fields{"mac": device.Identity.MAC}).
@@ -325,7 +336,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			}
 
 			if existingMacDevice != nil && existingMacDevice.UID != device.UID {
-				existingNameDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+				existingNameDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, device.Name, opts...)
 				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 					log.WithError(err).
 						WithFields(log.Fields{"name": device.Name}).
@@ -349,7 +360,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return err
 				}
 			} else {
-				existingDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+				existingDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, device.Name, opts...)
 				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 					log.WithError(err).
 						WithFields(log.Fields{"name": device.Name}).
@@ -385,7 +396,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 		}
 
 		for status, count := range map[models.DeviceStatus]int64{oldStatus: -1, newStatus: 1} {
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, namespace.TenantID, status, count); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, status, count); err != nil {
 				return err
 			}
 		}
@@ -395,7 +406,12 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 }
 
 func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
 	if err != nil {
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
@@ -404,11 +420,11 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return nil
 	}
 
-	// Device names are stored lower-cased, so match on the lower-cased value. Scope the lookup
-	// to the device's namespace: a name used in another namespace is not a conflict.
+	// Device names are stored lower-cased, so match on the lower-cased value. The scope bounds the
+	// lookup to the device's namespace: a name used in another namespace is not a conflict.
 	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(req.Name)}
 	conflictsTarget.Distinct(device)
-	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget, s.store.Options().InNamespace(req.TenantID)); err != nil || has {
+	if _, has, err := s.store.DeviceConflicts(ctx, sc, conflictsTarget); err != nil || has {
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
@@ -426,7 +442,12 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 const maxCustomFieldsPerDevice = 20
 
 func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
 	if err != nil {
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
@@ -443,7 +464,12 @@ func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.Device
 }
 
 func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error {
-	if _, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID)); err != nil {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID); err != nil {
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
@@ -488,7 +514,7 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 		return err
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil {
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), oldDevice.Status, -1); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
 
 		return err

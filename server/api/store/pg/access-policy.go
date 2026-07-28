@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -43,14 +44,14 @@ func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.Acces
 	return e.ID, nil
 }
 
-func (pg *Pg) AccessPolicyList(ctx context.Context, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
+func (pg *Pg) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.AccessPolicy, 0)
 
 	query := db.NewSelect().Model(&entities).Relation("Tags")
 
-	query, err := applyOptions(ctx, query, opts...)
+	query, err := applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -68,7 +69,7 @@ func (pg *Pg) AccessPolicyList(ctx context.Context, opts ...store.QueryOption) (
 	return accessPolicies, count, nil
 }
 
-func (pg *Pg) AccessPolicyResolve(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
+func (pg *Pg) AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := AccessPolicyResolverToString(resolver)
@@ -81,7 +82,7 @@ func (pg *Pg) AccessPolicyResolve(ctx context.Context, resolver store.AccessPoli
 		Relation("Tags").
 		Where("? = ?", bun.Ident(column), value)
 
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

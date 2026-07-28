@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -27,7 +28,7 @@ const (
 	DeviceMACResolver
 	// DevicePublicKeyResolver resolves a device by its public key. The key is the
 	// same across namespaces, so callers typically pair it with a status filter
-	// and no namespace scope (e.g. to find where a key was already accepted).
+	// and an unbounded scope (e.g. to find where a key was already accepted).
 	DevicePublicKeyResolver
 )
 
@@ -35,12 +36,12 @@ type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
 
-	DeviceList(ctx context.Context, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int, error)
+	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int, error)
 
-	// DeviceResolve fetches a device using a specific resolver within a given tenant ID.
+	// DeviceResolve fetches a device using a specific resolver within the given namespace scope.
 	//
 	// It returns the resolved device if found and an error, if any.
-	DeviceResolve(ctx context.Context, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
+	DeviceResolve(ctx context.Context, sc scope.Scope, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)
 
 	// DeviceConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on. For example, the following call checks for conflicts based on email only:
@@ -50,9 +51,8 @@ type DeviceStore interface {
 	//
 	// It returns an array of conflicting attribute fields and an error, if any.
 	//
-	// Only accepted devices are considered conflicting. Scope the lookup to a namespace by
-	// passing the InNamespace query option; without it the check spans every namespace.
-	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...QueryOption) (conflicts []string, has bool, err error)
+	// Only accepted devices are considered conflicting, within the given namespace scope.
+	DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...QueryOption) (conflicts []string, has bool, err error)
 
 	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
 	DeviceUpdate(ctx context.Context, device *models.Device) error

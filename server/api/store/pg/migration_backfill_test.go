@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -62,7 +64,7 @@ func TestInstallKeyEventBackfillMigration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	legacy, err := st.InstallKeyResolveSystem(ctx, tenant)
+	legacy, err := st.InstallKeyResolveSystem(ctx, scope.MustBounded(tenant))
 	require.NoError(t, err)
 
 	now := clock.Now()

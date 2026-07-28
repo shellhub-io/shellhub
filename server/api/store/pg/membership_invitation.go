@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -28,22 +29,29 @@ func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models
 	return nil
 }
 
-func (pg *Pg) MembershipInvitationResolve(ctx context.Context, tenantID, userID string) (*models.MembershipInvitation, error) {
+func (pg *Pg) MembershipInvitationResolve(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error) {
 	db := pg.GetConnection(ctx)
 
 	inv := new(entity.MembershipInvitation)
 
-	err := db.NewSelect().
+	query := db.NewSelect().
 		Model(inv).
 		Relation("Namespace").
 		Relation("User").
 		Relation("UserInvitation").
-		Where("membership_invitation.tenant_id = ?", tenantID).
 		Where("membership_invitation.user_id = ?", userID).
 		Order("membership_invitation.created_at DESC").
-		Limit(1).
-		Scan(ctx)
+		Limit(1)
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "membership_invitation")
+	ctx = context.WithValue(ctx, CtxNamespaceColumn, "tenant_id")
+
+	query, err := applyScopedOptions(ctx, query, sc)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -143,7 +151,7 @@ func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, o
 	return invitations, int64(count), nil
 }
 
-func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
+func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.MembershipInvitation, 0)
@@ -153,13 +161,11 @@ func (pg *Pg) NamespaceMembershipInvitationList(ctx context.Context, tenantID st
 		Relation("User").
 		Relation("UserInvitation")
 
-	if tenantID != "" {
-		q = q.Where("membership_invitation.tenant_id = ?", tenantID)
-	}
-
 	var err error
 	ctx = context.WithValue(ctx, CtxTableAlias, "membership_invitation")
-	q, err = ApplyOptions(ctx, q, opts...)
+	ctx = context.WithValue(ctx, CtxNamespaceColumn, "tenant_id")
+
+	q, err = applyScopedOptions(ctx, q, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}

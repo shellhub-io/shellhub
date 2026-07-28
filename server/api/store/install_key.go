@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -18,30 +19,32 @@ type InstallKeyStore interface {
 	// InstallKeyCreate creates a install key with the provided data. Returns the inserted ID and an error if any.
 	InstallKeyCreate(ctx context.Context, installKey *models.InstallKey) (insertedID string, err error)
 
-	// InstallKeyResolve fetches a install key using a specific resolver within a given tenant ID.
+	// InstallKeyResolve fetches a install key using a specific resolver within the given namespace
+	// scope. The digest is only unique per namespace, so resolving one unbounded can return a key
+	// from another namespace.
 	//
 	// It returns the resolved install key if found and an error, if any.
-	InstallKeyResolve(ctx context.Context, resolver InstallKeyResolver, value string, opts ...QueryOption) (*models.InstallKey, error)
+	InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver InstallKeyResolver, value string, opts ...QueryOption) (*models.InstallKey, error)
 
 	// InstallKeyResolveSystem fetches the namespace's system-managed legacy key. It returns the key if
 	// found and an error, if any.
-	InstallKeyResolveSystem(ctx context.Context, tenantID string) (*models.InstallKey, error)
+	InstallKeyResolveSystem(ctx context.Context, sc scope.Scope) (*models.InstallKey, error)
 
 	// InstallKeyResolveSystemPairing fetches the namespace's system-managed pairing key: the source
 	// attributed to devices accepted through the tenant-less pairing-code flow. It returns the key if
 	// found and an error, if any.
-	InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error)
+	InstallKeyResolveSystemPairing(ctx context.Context, sc scope.Scope) (*models.InstallKey, error)
 
 	// InstallKeyConflicts reports whether the target contains conflicting attributes with the database. Pass zero
 	// values for attributes you do not wish to match on. It returns an array of conflicting attribute fields and
 	// an error, if any.
 	//
 	// Install key attributes can be duplicated at document level when the tenant ID is different.
-	InstallKeyConflicts(ctx context.Context, tenantID string, target *models.InstallKeyConflicts) (conflicts []string, has bool, err error)
+	InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts) (conflicts []string, has bool, err error)
 
-	// InstallKeyList retrieves a list of install keys.
+	// InstallKeyList retrieves a list of install keys within the given namespace scope.
 	// Returns the list of install keys, the total count of matched documents, and an error if any.
-	InstallKeyList(ctx context.Context, opts ...QueryOption) (installKeys []models.InstallKey, count int, err error)
+	InstallKeyList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (installKeys []models.InstallKey, count int, err error)
 
 	// InstallKeyUpdate updates a install key. It returns an error if any.
 	InstallKeyUpdate(ctx context.Context, installKey *models.InstallKey) (err error)
@@ -64,11 +67,12 @@ type InstallKeyStore interface {
 	// InstallKeyEventStampDecision freezes the enrollment outcome (accepted/rejected + when) on the
 	// device's newest history event, so the audit survives the device being removed. Best-effort: a
 	// device with no event stamps nothing.
-	InstallKeyEventStampDecision(ctx context.Context, tenantID, deviceUID string, status models.DeviceStatus, at time.Time) (err error)
+	InstallKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) (err error)
 
 	// InstallKeyEventList retrieves the enrollment history of the install key identified by its digest
-	// within a tenant ID, newest first. It returns the events, the total count, and an error, if any.
-	InstallKeyEventList(ctx context.Context, tenantID, keyDigest string, opts ...QueryOption) (events []models.InstallKeyEvent, count int, err error)
+	// within the given namespace scope, newest first. It returns the events, the total count, and an
+	// error, if any.
+	InstallKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...QueryOption) (events []models.InstallKeyEvent, count int, err error)
 
 	// EnrollmentCallbackRedeem atomically claims a deferred-decision callback token by its JWT id,
 	// making it single-use. It returns true when the token was claimed for the first time and false

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -108,7 +109,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 	clockMock.On("Now").Return(now).Maybe()
 
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	thirtyDaysAgo := now.AddDate(0, 0, -30)
 	sorter := query.Sorter{By: "removed_at", Order: query.OrderAsc, Tiebreak: "id"}
@@ -171,7 +172,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 0, errors.New("database error")).
 					Once()
 			},
@@ -185,7 +186,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -199,7 +200,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 1000, nil).
 					Once()
 				queryOptionsMock.
@@ -215,7 +216,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return([]models.Device{}, 0, errors.New("page error")).
 					Once()
 			},
@@ -229,7 +230,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 2, nil).
 					Once()
 				queryOptionsMock.
@@ -245,7 +246,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -270,7 +271,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 3, nil).
 					Once()
 				queryOptionsMock.
@@ -286,7 +287,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -302,11 +303,11 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(int64(3), nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-1", models.DeviceStatusRemoved, int64(-2)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-2)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-2", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusRemoved, int64(-1)).
 					Return(errors.New("update error")).
 					Once()
 			},
@@ -320,7 +321,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 3, nil).
 					Once()
 				queryOptionsMock.
@@ -336,7 +337,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -352,11 +353,11 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(int64(3), nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-1", models.DeviceStatusRemoved, int64(-2)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-2)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-2", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 			},
@@ -370,7 +371,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, countOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, countOpts).
 					Return([]models.Device{}, 2001, nil).
 					Once()
 				queryOptionsMock.
@@ -386,7 +387,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
@@ -412,7 +413,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return(
 						[]models.Device{
 							{UID: "device-2", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
@@ -438,15 +439,15 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, pageOpts).
+					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, pageOpts).
 					Return([]models.Device{}, 2001, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-1", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "tenant-2", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-2"), models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 			},

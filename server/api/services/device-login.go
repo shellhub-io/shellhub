@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -96,7 +97,7 @@ func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code strin
 		return nil, NewErrDeviceLoginCodeNotFound(code, nil)
 	}
 
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, data.UID, s.store.Options().InNamespace(data.TenantID))
+	device, err := s.store.DeviceResolve(ctx, scope.MustBounded(namespace.TenantID), store.DeviceUIDResolver, data.UID)
 	if err != nil {
 		return nil, NewErrDeviceLoginCodeNotFound(code, err)
 	}

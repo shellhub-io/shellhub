@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -52,21 +53,21 @@ type TagsStore interface {
 	// Only non-zero values in the target are checked for conflicts.
 	//
 	// Example:
-	//     conflicts, _, _ := store.TagConflicts(context.Background(), "tenant123", &models.TagConflicts{Name: "development"})
+	//     conflicts, _, _ := store.TagConflicts(ctx, sc, &models.TagConflicts{Name: "development"})
 	//     println(conflicts) // => []string{"name"}
 	//
 	// It returns an array of conflicting attribute fields and an error, if any.
-	TagConflicts(ctx context.Context, tenantID string, target *models.TagConflicts) (conflicts []string, has bool, err error)
+	TagConflicts(ctx context.Context, sc scope.Scope, target *models.TagConflicts) (conflicts []string, has bool, err error)
 
-	// TagList retrieves a list of tags based on the provided options.
+	// TagList retrieves a list of tags within the given namespace scope.
 	//
 	// It returns the list of tags, the total count of matching documents (ignoring pagination), and an error if any.
-	TagList(ctx context.Context, opts ...QueryOption) (tags []models.Tag, totalCount int, err error)
+	TagList(ctx context.Context, sc scope.Scope, opts ...QueryOption) (tags []models.Tag, totalCount int, err error)
 
-	// TagResolve fetches a tag using a specific resolver.
+	// TagResolve fetches a tag using a specific resolver within the given namespace scope.
 	//
 	// It returns the resolved tag if found and an error, if any.
-	TagResolve(ctx context.Context, resolver TagResolver, value string, opts ...QueryOption) (tag *models.Tag, err error)
+	TagResolve(ctx context.Context, sc scope.Scope, resolver TagResolver, value string, opts ...QueryOption) (tag *models.Tag, err error)
 
 	// TagUpdate updates a tag.
 	//

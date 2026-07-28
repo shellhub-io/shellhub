@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -10,9 +11,9 @@ type MembershipInvitationStore interface {
 	// MembershipInvitationCreate creates a new membership invitation.
 	MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error
 
-	// MembershipInvitationResolve retrieves the most recent membership invitation for the specified tenant and user.
-	// It returns the invitation or an error, if any.
-	MembershipInvitationResolve(ctx context.Context, tenantID, userID string) (*models.MembershipInvitation, error)
+	// MembershipInvitationResolve retrieves the most recent membership invitation for the specified user
+	// within the given namespace scope. It returns the invitation or an error, if any.
+	MembershipInvitationResolve(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error)
 
 	// MembershipInvitationResolveBySig retrieves the invitation whose one-time signature matches sig and
 	// that is still pending and unexpired. It replaces the former Redis "invite={sig}" lookup. The pending
@@ -33,7 +34,7 @@ type MembershipInvitationStore interface {
 	// The user email is resolved from both "users" and "user_invitations" tables.
 	UserMembershipInvitationList(ctx context.Context, userID string, opts ...QueryOption) ([]models.MembershipInvitation, int64, error)
 
-	// NamespaceMembershipInvitationList returns all membership invitations for a given namespace.
-	// The user email is resolved from both "users" and "user_invitations" tables.
-	NamespaceMembershipInvitationList(ctx context.Context, tenantID string, opts ...QueryOption) ([]models.MembershipInvitation, int64, error)
+	// NamespaceMembershipInvitationList returns all membership invitations within the given namespace
+	// scope. The user email is resolved from both "users" and "user_invitations" tables.
+	NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.MembershipInvitation, int64, error)
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, tenantID, &models.APIKeyConflicts{})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -42,7 +43,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, tenantID, &models.APIKeyConflicts{Name: "nonexistent"})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{Name: "nonexistent"})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -55,7 +56,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenant1))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, tenant2, &models.APIKeyConflicts{Name: "dev"})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenant2), &models.APIKeyConflicts{Name: "dev"})
 		require.NoError(t, err)
 		assert.False(t, has)
 		assert.Empty(t, conflicts)
@@ -67,7 +68,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, tenantID, &models.APIKeyConflicts{Name: "dev"})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{Name: "dev"})
 		require.NoError(t, err)
 		assert.True(t, has)
 		assert.Equal(t, []string{"name"}, conflicts)
@@ -79,7 +80,7 @@ func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		conflicts, has, err := st.APIKeyConflicts(ctx, tenantID, &models.APIKeyConflicts{ID: keyID})
+		conflicts, has, err := st.APIKeyConflicts(ctx, scope.MustBounded(tenantID), &models.APIKeyConflicts{ID: keyID})
 		require.NoError(t, err)
 		assert.True(t, has)
 		assert.Equal(t, []string{"id"}, conflicts)
@@ -95,7 +96,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, "nonexistent-id", st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, "nonexistent-id")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -108,7 +109,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		// 'l' in position 13 makes this an invalid UUID (not a hex digit).
 		malformedTenantID := "83176492-e6cl-43d7-922e-ee01c3693e26"
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, "any-key-id", st.Options().InNamespace(malformedTenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(malformedTenantID), store.APIKeyIDResolver, "any-key-id")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -119,7 +120,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 		require.NotNil(t, apiKey)
 		assert.Equal(t, keyID, apiKey.ID)
@@ -133,7 +134,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyNameResolver, "nonexistent", st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyNameResolver, "nonexistent")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -144,7 +145,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyNameResolver, "dev", st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyNameResolver, "dev")
 		require.NoError(t, err)
 		require.NotNil(t, apiKey)
 		assert.Equal(t, keyID, apiKey.ID)
@@ -160,7 +161,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenant1))
 
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyNameResolver, "dev", st.Options().InNamespace(tenant2))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenant2), store.APIKeyNameResolver, "dev")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
@@ -175,11 +176,9 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		apiKeys, count, err := st.APIKeyList(ctx,
-			st.Options().InNamespace(tenantID),
+		apiKeys, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, apiKeys)
@@ -192,11 +191,9 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 		s.CreateAPIKey(t, WithAPIKeyName("key1"), WithAPIKeyTenant(tenantID))
 		s.CreateAPIKey(t, WithAPIKeyName("key2"), WithAPIKeyTenant(tenantID))
 
-		apiKeys, count, err := st.APIKeyList(ctx,
-			st.Options().InNamespace(tenantID),
+		apiKeys, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 		assert.Len(t, apiKeys, 2)
@@ -209,11 +206,9 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 		s.CreateAPIKey(t, WithAPIKeyName("key1"), WithAPIKeyTenant(tenantID))
 		s.CreateAPIKey(t, WithAPIKeyName("key2"), WithAPIKeyTenant(tenantID))
 
-		apiKeys, count, err := st.APIKeyList(ctx,
-			st.Options().InNamespace(tenantID),
+		apiKeys, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 1}))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count) // Total count
 		assert.Len(t, apiKeys, 1) // Page 1 with perPage=1 returns 1 item
@@ -231,7 +226,7 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 
 		// Create and delete an API key to get a valid but non-existent ID
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
@@ -249,7 +244,7 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
 		// Get the full API key
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
 		// Update name
@@ -258,7 +253,7 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update
-		updatedKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		updatedKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 		assert.Equal(t, "updated-dev", updatedKey.Name)
 	})
@@ -275,7 +270,7 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 
 		// Create and delete an API key to get a valid but non-existent ID
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("temp"), WithAPIKeyTenant(tenantID))
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
@@ -292,7 +287,7 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
 		// Get the full API key
-		apiKey, err := st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
 		// Delete
@@ -300,7 +295,7 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = st.APIKeyResolve(ctx, store.APIKeyIDResolver, keyID, st.Options().InNamespace(tenantID))
+		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
@@ -334,22 +329,18 @@ func (s *Suite) TestAPIKeyDeleteAllByCreator(t *testing.T) {
 		err := st.APIKeyDeleteAllByCreator(ctx, tenantID, creator)
 		require.NoError(t, err)
 
-		remaining, count, err := st.APIKeyList(ctx,
-			st.Options().InNamespace(tenantID),
+		remaining, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		require.Len(t, remaining, 1)
 		assert.Equal(t, "other-user", remaining[0].Name)
 
 		// The same creator's key in another tenant must be untouched.
-		otherRemaining, otherCount, err := st.APIKeyList(ctx,
-			st.Options().InNamespace(otherTenantID),
+		otherRemaining, otherCount, err := st.APIKeyList(ctx, scope.MustBounded(otherTenantID),
 			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, otherCount)
 		require.Len(t, otherRemaining, 1)

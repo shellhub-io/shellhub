@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -34,7 +35,7 @@ func TestGetStats(t *testing.T) {
 			expectedError: errors.New("store error"),
 			requiredMocks: func() {
 				storeMock.
-					On("GetStats", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					On("GetStats", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000")).
 					Return(nil, errors.New("store error")).
 					Once()
 			},
@@ -53,7 +54,7 @@ func TestGetStats(t *testing.T) {
 			},
 			expectedError: nil,
 			requiredMocks: func() {
-				storeMock.On("GetStats", gomock.Anything, "").
+				storeMock.On("GetStats", gomock.Anything, scope.NewUnbounded("instance-wide statistics deliberately aggregate every namespace")).
 					Return(
 						&models.Stats{
 							RegisteredDevices: 10,
@@ -82,7 +83,7 @@ func TestGetStats(t *testing.T) {
 			expectedError: nil,
 			requiredMocks: func() {
 				storeMock.
-					On("GetStats", gomock.Anything, "00000000-0000-4000-0000-000000000000").
+					On("GetStats", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000")).
 					Return(
 						&models.Stats{
 							RegisteredDevices: 3,

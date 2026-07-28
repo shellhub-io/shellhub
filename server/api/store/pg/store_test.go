@@ -149,6 +149,42 @@ func TestPgStore(t *testing.T) {
 	runSubSuite(t, "TransactionStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestWithTransaction(t)
 	})
+
+	// Cross-namespace isolation for every operation that takes a namespace scope. These are the
+	// tests that fail when a converted query stops applying its bound.
+	runSubSuite(t, "ScopeIsolation", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestScopeIsolationDeviceResolve(t)
+		suite.TestScopeIsolationDeviceList(t)
+		suite.TestScopeIsolationDeviceConflicts(t)
+		suite.TestScopeIsolationSessionResolve(t)
+		suite.TestScopeIsolationSessionList(t)
+		suite.TestScopeIsolationTagResolve(t)
+		suite.TestScopeIsolationTagList(t)
+		suite.TestScopeIsolationTagConflicts(t)
+		suite.TestScopeIsolationInstallKeyResolve(t)
+		suite.TestScopeIsolationInstallKeyList(t)
+		suite.TestScopeIsolationInstallKeyConflicts(t)
+		suite.TestScopeIsolationInstallKeyResolveSystem(t)
+		suite.TestScopeIsolationInstallKeyResolveSystemPairing(t)
+		suite.TestScopeIsolationInstallKeyEventList(t)
+		suite.TestScopeIsolationInstallKeyEventStampDecision(t)
+		suite.TestScopeIsolationAPIKeyResolve(t)
+		suite.TestScopeIsolationAPIKeyList(t)
+		suite.TestScopeIsolationAPIKeyConflicts(t)
+		suite.TestScopeIsolationPublicKeyResolve(t)
+		suite.TestScopeIsolationPublicKeyList(t)
+		suite.TestScopeIsolationNamespaceGetMembers(t)
+		suite.TestScopeIsolationNamespaceIncrementDeviceCount(t)
+		suite.TestScopeIsolationMembershipWrites(t)
+		suite.TestScopeIsolationMembershipInvitationResolve(t)
+		suite.TestScopeIsolationNamespaceMembershipInvitationList(t)
+		suite.TestScopeIsolationGetStats(t)
+		suite.TestScopeIsolationAccessPolicyList(t)
+		suite.TestScopeIsolationAccessPolicyResolve(t)
+		suite.TestScopeIsolationSSHIdentityList(t)
+		suite.TestScopeIsolationSSHIdentityResolve(t)
+		suite.TestScopeRejectsUnconstructedScope(t)
+	})
 }
 
 // runSubSuite creates a fresh PostgreSQL database for each sub-suite

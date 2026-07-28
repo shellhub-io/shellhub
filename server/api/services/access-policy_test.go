@@ -44,7 +44,7 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when the device cannot be resolved",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(nil, store.ErrNoDocuments).Once()
 			},
 			expectedAllowed: false,
@@ -54,7 +54,7 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when the user is not a member of the namespace",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(&models.Namespace{TenantID: tenantID}, nil).Once()
@@ -66,11 +66,10 @@ func TestAuthorize(t *testing.T) {
 			description: "fails closed when the policy store errors",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return(nil, 0, errors.New("boom", "store", 0)).Once()
 			},
@@ -81,11 +80,10 @@ func TestAuthorize(t *testing.T) {
 			description: "denies by default when there are no policies",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{}, 0, nil).Once()
 			},
@@ -96,11 +94,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants when an all-members policy grants the login",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleObserver), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -117,11 +114,10 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when the login is outside the policy's login list",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -138,11 +134,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants when the login is explicitly listed",
 			login:       "deploy",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -159,11 +154,10 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when the role subject does not match the user's role",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleObserver), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -180,11 +174,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants when the role subject matches the user's role",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleAdministrator), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -201,11 +194,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants when the user subject matches the user id",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -222,11 +214,10 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when the filter selects a different device by tag",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -243,11 +234,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants when the tag filter selects the device",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -264,11 +254,10 @@ func TestAuthorize(t *testing.T) {
 			description: "grants and flags re-auth when the matched policy requires it",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -287,11 +276,10 @@ func TestAuthorize(t *testing.T) {
 			description: "requires re-auth when a narrower allow adds it despite a broad no-reauth allow",
 			login:       "deploy",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -317,11 +305,10 @@ func TestAuthorize(t *testing.T) {
 			description: "requires re-auth regardless of the allow order",
 			login:       "deploy",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -347,11 +334,10 @@ func TestAuthorize(t *testing.T) {
 			description: "does not require re-auth for a login the reauth allow does not cover",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -377,14 +363,13 @@ func TestAuthorize(t *testing.T) {
 			description: "does not flag re-auth for a service account even when the policy requires it",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(&models.Namespace{
 						TenantID: tenantID,
 						Members:  []models.Member{{ID: userID, Role: authorizer.RoleObserver, Type: models.UserTypeService}},
 					}, nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -403,11 +388,10 @@ func TestAuthorize(t *testing.T) {
 			description: "skips a policy with a broken hostname regexp and stays default-deny",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -424,11 +408,10 @@ func TestAuthorize(t *testing.T) {
 			description: "deny wins over a matching allow",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -452,11 +435,10 @@ func TestAuthorize(t *testing.T) {
 			description: "deny does not fire for a login outside its list; allow still grants",
 			login:       "teste",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -480,11 +462,10 @@ func TestAuthorize(t *testing.T) {
 			description: "deny with a wildcard login blocks every login",
 			login:       "anything",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -508,11 +489,10 @@ func TestAuthorize(t *testing.T) {
 			description: "deny with a broken hostname regexp fails closed",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -536,11 +516,10 @@ func TestAuthorize(t *testing.T) {
 			description: "denies when only a matching deny policy exists",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -558,11 +537,10 @@ func TestAuthorize(t *testing.T) {
 			description: "a deny-all blocks even a specific allow for the same subject",
 			login:       "teste",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -587,11 +565,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "10.1.2.3",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -611,11 +588,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "192.168.1.1",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -635,11 +611,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "203.0.113.9",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -658,11 +633,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "203.0.113.9",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -688,11 +662,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "10.0.0.5",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -718,11 +691,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "203.0.113.9",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -742,11 +714,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "192.168.5.5",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -766,11 +737,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "not-an-ip",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
@@ -796,11 +766,10 @@ func TestAuthorize(t *testing.T) {
 			login:       "root",
 			sourceIP:    "10.0.0.1",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, deviceID).
+				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
 					Return(device, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
 					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{

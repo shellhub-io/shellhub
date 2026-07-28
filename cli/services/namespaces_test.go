@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -475,7 +476,7 @@ func TestNamespaceAddMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceCreateMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{
+				mock.On("NamespaceCreateMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{
 					ID:      "507f191e810c19729de860ea",
 					Role:    authorizer.RoleObserver,
 					AddedAt: now,
@@ -577,7 +578,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(errors.New("error")).Once()
+				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
 		},
@@ -606,7 +607,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDeleteMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(nil).Once()
+				mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
