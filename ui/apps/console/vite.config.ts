@@ -18,7 +18,11 @@ function healthcheck(): Plugin {
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
     nodePolyfills({
       // buffer, crypto, stream are needed by node-rsa and sshpk for SSH key parsing/signing.
       // Note: vault-crypto.ts uses browser-native crypto.subtle (Web Crypto API),
