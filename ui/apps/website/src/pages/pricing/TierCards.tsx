@@ -43,6 +43,7 @@ const tiers = [
       "Firewall rules",
       "Session recording",
       "Audit logs",
+      "SSO / SAML",
       "Email support",
     ],
     cta: "Start Free",
@@ -60,8 +61,6 @@ const tiers = [
     features: [
       "Everything in Cloud",
       "Admin panel",
-      "SSO / SAML / LDAP",
-      "MFA enforcement",
       "Dedicated support & SLA",
       "On-premises deployment",
       "Custom integrations",

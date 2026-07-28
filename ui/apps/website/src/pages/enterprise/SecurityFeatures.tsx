@@ -1,6 +1,5 @@
 import {
   ArrowRightEndOnRectangleIcon,
-  UsersIcon,
   LockClosedIcon,
   PencilIcon,
   ShieldCheckIcon,
@@ -17,16 +16,10 @@ const features = [
     desc: "Single sign-on with your identity provider. Support for SAML 2.0 and OpenID Connect.",
   },
   {
-    icon: UsersIcon,
-    color: C.cyan,
-    title: "LDAP / Active Directory",
-    desc: "Integrate with your existing directory service for centralized user management.",
-  },
-  {
     icon: LockClosedIcon,
     color: C.yellow,
-    title: "MFA Enforcement",
-    desc: "Require multi-factor authentication for all users or specific roles across the organization.",
+    title: "Multi-Factor Authentication",
+    desc: "Users can enable TOTP-based multi-factor authentication for web console login.",
   },
   {
     icon: PencilIcon,
@@ -44,7 +37,7 @@ const features = [
     icon: ShieldCheckIcon,
     color: C.blue,
     title: "Firewall Rules",
-    desc: "Define granular connection policies per device, namespace, or user group.",
+    desc: "Define granular connection policies per hostname or username pattern.",
   },
 ];
 

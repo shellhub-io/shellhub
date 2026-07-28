@@ -554,7 +554,7 @@ export function HowItWorks() {
                   fill={C.textSec}
                   textAnchor="middle"
                 >
-                  Live View
+                  Web Terminal
                 </text>
               </svg>
             </Card>

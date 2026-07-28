@@ -79,8 +79,8 @@ const smallFeatures = [
   {
     icon: DocumentTextIcon,
     color: C.yellow,
-    title: "SCP / SFTP into Containers",
-    desc: "Transfer files in and out of containers with standard SCP and SFTP. No volume mounts or docker cp gymnastics.",
+    title: "Shell Access to Containers",
+    desc: "Open interactive shell sessions inside running containers over SSH. No docker exec or host access needed.",
   },
   {
     icon: PencilIcon,
@@ -738,19 +738,18 @@ export default function ContainerManagement() {
                     />
                   </IconBadge>
                   <h3 className="text-lg font-bold mb-2">
-                    Per-Container Access Control
+                    Namespace-Level Access Control
                   </h3>
                   <p className="text-sm text-text-secondary leading-relaxed mb-6">
-                    Define who can access which containers with role-based
-                    policies. Assign roles at the container level, not just the
-                    host. Restrict shell access, enforce MFA, and audit every
-                    connection attempt.
+                    Control who can access containers through namespace-level
+                    role-based policies. Assign roles, restrict shell access,
+                    and audit every connection attempt.
                   </p>
                   <ul className="space-y-2.5">
                     {[
-                      "Container-level permissions, not host-level",
-                      "Role-based policies per user or group",
-                      "MFA enforcement per container",
+                      "Role-based access at the namespace level",
+                      "Owner, administrator, operator, and observer roles",
+                      "Firewall rules by hostname or username pattern",
                       "Deny-by-default access model",
                     ].map((item) => (
                       <FeatureListItem key={item} color="green">

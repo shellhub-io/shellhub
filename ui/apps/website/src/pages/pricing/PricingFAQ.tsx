@@ -7,7 +7,7 @@ import { Reveal } from "@shellhub/design-system/components";
 const faqs = [
   {
     q: "Can I switch plans later?",
-    a: "Yes. You can upgrade from Community to Cloud or Enterprise at any time. Your devices and configuration carry over seamlessly.",
+    a: "Yes. You can upgrade from Community to Cloud or Enterprise at any time. Migration requires reconfiguring your agents to point to the new server.",
   },
   {
     q: "What counts as a device?",
