@@ -37,14 +37,14 @@ export function FeatureGrid() {
             icon: LockClosedIcon,
             color: C.yellow,
             title: "Multi-Factor Auth",
-            desc: "Require TOTP-based MFA for SSH connections. Works with any authenticator app.",
+            desc: "Require TOTP-based MFA for web console login. Works with any authenticator app.",
             delay: 0.12,
           },
           {
             icon: PencilSquareIcon,
             color: C.green,
             title: "Audit Logging",
-            desc: "Full audit trail of every connection, command, and session. Export logs for compliance.",
+            desc: "Full audit trail of every connection, command, and session.",
             delay: 0,
           },
           {

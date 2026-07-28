@@ -68,7 +68,7 @@ const techDetails = [
     icon: BoltIcon,
     color: C.red,
     title: "Lightweight Footprint",
-    desc: "The agent binary is under 10 MB and uses minimal CPU and memory. Designed for constrained embedded devices.",
+    desc: "A single static binary with minimal CPU and memory usage. Designed for constrained embedded devices.",
   },
 ];
 
@@ -665,7 +665,7 @@ export default function HowItWorks() {
                 <ul className="space-y-2 md:ml-auto md:mr-0">
                   {[
                     "Single-line install script",
-                    "Under 10 MB footprint",
+                    "Small disk and memory footprint",
                     "Runs as a system service",
                     "Auto-starts on boot",
                   ].map((d) => (

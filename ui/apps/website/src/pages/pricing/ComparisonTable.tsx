@@ -65,19 +65,7 @@ const categories: Category[] = [
         enterprise: true,
       },
       { name: "Audit logs", community: false, cloud: true, enterprise: true },
-      {
-        name: "MFA enforcement",
-        community: false,
-        cloud: false,
-        enterprise: true,
-      },
-      { name: "SSO / SAML", community: false, cloud: false, enterprise: true },
-      {
-        name: "LDAP / Active Directory",
-        community: false,
-        cloud: false,
-        enterprise: true,
-      },
+      { name: "SSO / SAML", community: false, cloud: true, enterprise: true },
     ],
   },
   {
@@ -117,12 +105,6 @@ const categories: Category[] = [
         enterprise: true,
       },
       { name: "On-premises", community: true, cloud: false, enterprise: true },
-      {
-        name: "Kubernetes / Helm",
-        community: false,
-        cloud: false,
-        enterprise: true,
-      },
     ],
   },
   {

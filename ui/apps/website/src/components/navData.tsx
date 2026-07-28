@@ -69,7 +69,7 @@ export const navEntries: NavEntry[] = [
       {
         label: "IoT & Embedded",
         href: "/use-cases/iot-embedded",
-        desc: "Manage fleets of IoT and embedded Linux devices",
+        desc: "Manage fleets of IoT and embedded devices",
         icon: <CpuChipIcon className={cn(ICON_SIZE, "text-accent-green")} />,
       },
       {

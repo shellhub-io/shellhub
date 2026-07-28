@@ -1,6 +1,11 @@
 import { CloudIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { Badge, Card, IconBadge } from "@shellhub/design-system/primitives";
-import { FeatureListItem, HighlightCard, Section, SectionHeader } from "@/components";
+import {
+  FeatureListItem,
+  HighlightCard,
+  Section,
+  SectionHeader,
+} from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
 export function DeploymentOptions() {
@@ -28,17 +33,15 @@ export function DeploymentOptions() {
 
                 <h3 className="text-lg font-bold mb-2">Managed Cloud</h3>
                 <p className="text-sm text-text-secondary leading-relaxed mb-6">
-                  We handle the infrastructure. Dedicated servers, automatic
-                  updates, and guaranteed uptime.
+                  We handle the infrastructure. Automatic updates, backups, and
+                  monitoring included.
                 </p>
 
                 <ul className="space-y-2.5">
                   {[
-                    "Dedicated servers for your organization",
+                    "Managed infrastructure",
                     "Automatic updates and patches",
-                    "99.9% uptime SLA",
                     "Daily backups with point-in-time recovery",
-                    "Global edge network for low latency",
                   ].map((item) => (
                     <FeatureListItem key={item} color="green">
                       {item}
@@ -68,9 +71,7 @@ export function DeploymentOptions() {
               <ul className="space-y-2.5">
                 {[
                   "Complete data sovereignty",
-                  "Deploy on Kubernetes with Helm charts",
-                  "Docker Compose for simpler setups",
-                  "Air-gapped environment support",
+                  "Docker Compose deployment",
                   "Custom integration with your toolchain",
                 ].map((item) => (
                   <FeatureListItem key={item} color="muted">

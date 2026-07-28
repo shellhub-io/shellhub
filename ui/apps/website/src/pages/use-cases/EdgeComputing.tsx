@@ -107,7 +107,7 @@ const scenarios = [
   {
     color: C.yellow,
     title: "Cell tower firmware update",
-    desc: "Push firmware updates to radio controllers on cell towers over limited-bandwidth connections with resumable transfers.",
+    desc: "Push firmware updates to radio controllers on cell towers over limited-bandwidth connections via SCP.",
     mockup: (
       <div className="mt-4 bg-surface rounded-lg border border-border p-3 font-mono text-2xs">
         <div className="flex items-center gap-2 mb-2">

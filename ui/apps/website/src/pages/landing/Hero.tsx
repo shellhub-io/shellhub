@@ -36,8 +36,8 @@ export function Hero() {
           className="text-base sm:text-lg text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed animate-fade-in"
           style={{ animationDelay: "200ms" }}
         >
-          ShellHub is a centralized SSH gateway for remote access to Linux
-          devices. No public IPs, no VPNs, no firewall changes.
+          ShellHub is a centralized SSH gateway for remote access to Linux and
+          FreeBSD devices. No public IPs, no VPNs, no firewall changes.
         </p>
 
         <div

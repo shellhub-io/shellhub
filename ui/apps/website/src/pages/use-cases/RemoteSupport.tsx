@@ -95,7 +95,7 @@ const features = [
     icon: ShieldCheckIcon,
     color: C.primary,
     title: "Firewall Rules",
-    desc: "Restrict support access by IP, time window, or device group with granular, time-based firewall policies.",
+    desc: "Restrict support access by hostname or username pattern with granular firewall policies.",
   },
 ];
 
@@ -224,12 +224,12 @@ export default function RemoteSupport() {
                   desc: "Watch sessions frame by frame, exactly as they happened",
                 },
                 {
-                  label: "Searchable archive",
-                  desc: "Find sessions by user, device, date range, or keyword",
+                  label: "Session archive",
+                  desc: "Filter sessions by device, status, or date",
                 },
                 {
-                  label: "Compliance-ready exports",
-                  desc: "Export session recordings for external audits and compliance reports",
+                  label: "Session recording download",
+                  desc: "Download individual session recordings for review or audits",
                 },
                 {
                   label: "Incident investigation",
@@ -449,8 +449,8 @@ export default function RemoteSupport() {
             <div className="space-y-3">
               {[
                 {
-                  label: "Immutable log entries",
-                  desc: "Audit records cannot be altered or deleted by users",
+                  label: "Persistent audit trail",
+                  desc: "Every connection and action is logged for review",
                 },
                 {
                   label: "Filter and search",

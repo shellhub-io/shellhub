@@ -630,8 +630,8 @@ export default function IotEmbedded() {
                   <div className="flex flex-row lg:flex-col gap-3 flex-wrap">
                     {[
                       {
-                        label: "Binary size",
-                        value: "< 10 MB",
+                        label: "Footprint",
+                        value: "Small",
                         color: C.green,
                       },
                       {
@@ -646,7 +646,7 @@ export default function IotEmbedded() {
                       },
                       {
                         label: "Dependencies",
-                        value: "None",
+                        value: "Minimal",
                         color: C.yellow,
                       },
                     ].map((spec, i) => (

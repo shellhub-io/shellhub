@@ -347,19 +347,19 @@ function SessionRecording() {
             {[
               {
                 label: "Real-time capture",
-                desc: "Sessions are recorded as they happen with zero performance impact",
+                desc: "Sessions are recorded as they happen with minimal overhead",
               },
               {
                 label: "Full-fidelity playback",
                 desc: "Replay sessions exactly as they occurred, including timing and output",
               },
               {
-                label: "Searchable history",
-                desc: "Find sessions by user, device, date, or namespace",
+                label: "Session history",
+                desc: "Filter sessions by device, status, or date",
               },
               {
                 label: "Compliance ready",
-                desc: "Meet SOC 2, HIPAA, and PCI DSS audit requirements",
+                desc: "Recorded sessions support audit and compliance workflows",
               },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 0.04}>
@@ -417,7 +417,7 @@ function WebTerminal() {
               },
               {
                 label: "Secure WebSocket connection",
-                desc: "End-to-end encrypted channel between browser and device",
+                desc: "Encrypted connection between browser and server",
               },
               {
                 label: "Copy and paste support",
@@ -532,7 +532,7 @@ const securityFeatures = [
     icon: PencilSquareIcon,
     color: C.green,
     title: "Audit Logging",
-    desc: "Complete audit trail of every connection, command, and configuration change. Export logs for compliance reporting.",
+    desc: "Complete audit trail of every connection, command, and configuration change.",
   },
   {
     icon: KeyIcon,
@@ -1043,8 +1043,7 @@ function DockerAccess() {
                   {[
                     "Same SSH workflow — no docker exec needed",
                     "Access containers behind NAT and firewalls",
-                    "Full SCP/SFTP support for containers",
-                    "Works with Docker, Podman, and containerd",
+                    "Works with Docker containers",
                   ].map((item, i) => (
                     <div
                       key={i}
@@ -1162,7 +1161,7 @@ function DeviceOrganization() {
                   {[
                     "Filter and group devices by custom tags",
                     "Apply firewall rules based on tags",
-                    "Bulk operations on tagged groups",
+                    "Organize devices with custom tags",
                   ].map((item) => (
                     <li
                       key={item}
