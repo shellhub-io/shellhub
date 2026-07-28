@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/uptrace/bun"
 )
@@ -79,8 +80,12 @@ func fromSQLError(err error) error {
 type ctxKey string
 
 // CtxTableAlias is the context key used to pass a table alias to query options
-// like InNamespace, avoiding column ambiguity in queries with JOINs.
+// like the scope predicate, avoiding column ambiguity in queries with JOINs.
 const CtxTableAlias ctxKey = "table_alias"
+
+// CtxNamespaceColumn overrides the column the scope predicate bounds on. Almost every table names it
+// namespace_id; membership_invitations is the exception, calling it tenant_id.
+const CtxNamespaceColumn ctxKey = "namespace_column"
 
 // queryWrapper wraps a SelectQuery pointer to allow mutations
 type queryWrapper struct {
@@ -100,8 +105,30 @@ func applyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.Que
 	return wrapper.query, nil
 }
 
+// requireBounded returns the namespace an operation must target. It rejects an unbounded scope,
+// which the operations using it cannot express — there is no writing a membership, or counting a
+// namespace's devices, across every namespace at once.
+func requireBounded(sc scope.Scope) (string, error) {
+	if !sc.IsBounded() {
+		return "", store.ErrInvalidScope
+	}
+
+	return sc.TenantID(), nil
+}
+
+// applyScopedOptions applies the namespace scope ahead of the caller's options, so the bound is part
+// of the query before anything else can shape it.
+func applyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Scope, opts ...store.QueryOption) (*bun.SelectQuery, error) {
+	return applyOptions(ctx, query, append([]store.QueryOption{ScopeOption(sc)}, opts...)...)
+}
+
 // ApplyOptions is the exported version of applyOptions, allowing external packages
 // (e.g. cloud store) to reuse the same query-option mechanism.
 func ApplyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) (*bun.SelectQuery, error) {
 	return applyOptions(ctx, query, opts...)
+}
+
+// ApplyScopedOptions is the exported version of applyScopedOptions, for the cloud store.
+func ApplyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Scope, opts ...store.QueryOption) (*bun.SelectQuery, error) {
+	return applyScopedOptions(ctx, query, sc, opts...)
 }

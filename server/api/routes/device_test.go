@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -33,12 +34,15 @@ func TestGetDevice(t *testing.T) {
 	cases := []struct {
 		title         string
 		uid           string
+		tenant        string
+		admin         bool
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			title:         "fails when bind fails to validate uid",
 			uid:           "",
+			tenant:        "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
@@ -46,10 +50,34 @@ func TestGetDevice(t *testing.T) {
 			},
 		},
 		{
-			title: "fails when try to get a non-existing device",
-			uid:   "1234",
+			title:         "refuses the request when the caller carries no tenant",
+			uid:           "1234",
+			tenant:        "",
+			requiredMocks: func() {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusForbidden,
+			},
+		},
+		{
+			title:  "admin user on the regular path stays bounded to their namespace",
+			uid:    "123",
+			tenant: "00000000-0000-4000-0000-000000000000",
+			admin:  true,
 			requiredMocks: func() {
-				mock.On("GetDevice", gomock.Anything, models.UID("1234")).Return(nil, svc.ErrDeviceNotFound)
+				mock.On("GetDevice", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(&models.Device{}, nil)
+			},
+			expected: Expected{
+				expectedSession: &models.Device{},
+				expectedStatus:  http.StatusOK,
+			},
+		},
+		{
+			title:  "fails when try to get a non-existing device",
+			uid:    "1234",
+			tenant: "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func() {
+				mock.On("GetDevice", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("1234")).Return(nil, svc.ErrDeviceNotFound)
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -57,10 +85,11 @@ func TestGetDevice(t *testing.T) {
 			},
 		},
 		{
-			title: "success when try to get a existing device",
-			uid:   "123",
+			title:  "success when try to get a existing device",
+			uid:    "123",
+			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetDevice", gomock.Anything, models.UID("123")).Return(&models.Device{}, nil)
+				mock.On("GetDevice", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(&models.Device{}, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Device{},
@@ -76,6 +105,12 @@ func TestGetDevice(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/devices/%s", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			if tc.tenant != "" {
+				req.Header.Set("X-Tenant-ID", tc.tenant)
+			}
+			if tc.admin {
+				req.Header.Set("X-Admin", "true")
+			}
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -319,7 +354,7 @@ func TestGetDeviceList(t *testing.T) {
 			},
 			requiredMocks: func() {
 				mock.
-					On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+					On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
 					Return(nil, 0, svc.ErrDeviceNotFound).
 					Once()
 			},
@@ -339,7 +374,7 @@ func TestGetDeviceList(t *testing.T) {
 			},
 			requiredMocks: func() {
 				mock.
-					On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+					On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -492,9 +527,9 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 
 			var captured *requests.DeviceList
 			mock.
-				On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
 				Run(func(args gomock.Arguments) {
-					captured = args.Get(1).(*requests.DeviceList)
+					captured = args.Get(2).(*requests.DeviceList)
 				}).
 				Return([]models.Device{}, 0, nil).
 				Once()

@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
@@ -90,7 +91,7 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 		return NewErrNamespaceMemberDuplicated(req.UserID, nil)
 	}
 
-	invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, req.UserID)
+	invitation, err := s.store.MembershipInvitationResolve(ctx, scope.MustBounded(n.TenantID), req.UserID)
 	if err != nil || !invitation.IsPending() || invitation.IsExpired() {
 		return NewErrNamespaceMemberNotFound(req.UserID, err)
 	}
@@ -98,7 +99,7 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 	err = s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		member := &models.Member{ID: req.UserID, AddedAt: clock.Now(), Role: invitation.Role}
 
-		return s.admitMember(ctx, req.TenantID, member, invitation)
+		return s.admitMember(ctx, scope.MustBounded(n.TenantID), member, invitation)
 	})
 	if err != nil {
 		log.WithError(err).WithField("tenant-id", req.TenantID).WithField("user-id", req.UserID).
@@ -171,9 +172,14 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *re
 		return nil, 0, err
 	}
 
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	invitations, count, err := s.store.NamespaceMembershipInvitationList(
 		ctx,
-		req.TenantID,
+		sc,
 		s.store.Options().Match(&req.Filters),
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
@@ -199,7 +205,12 @@ func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.
 		return err
 	}
 
-	invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, req.InvitedUserID)
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	invitation, err := s.store.MembershipInvitationResolve(ctx, sc, req.InvitedUserID)
 	if err != nil {
 		return NewErrNamespaceMemberNotFound(req.InvitedUserID, err)
 	}

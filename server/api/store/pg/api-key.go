@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -22,7 +23,7 @@ func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, 
 	return apiKey.ID, nil
 }
 
-func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error) {
+func (pg *Pg) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
 	if target.ID == "" && target.Name == "" {
@@ -32,8 +33,12 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *mode
 	apiKeys := make([]entity.APIKey, 0)
 	query := db.NewSelect().
 		Model(&apiKeys).
-		Column("key_digest", "name").
-		Where("namespace_id = ?", tenantID)
+		Column("key_digest", "name")
+
+	query, err := applyScopedOptions(ctx, query, sc)
+	if err != nil {
+		return nil, false, err
+	}
 
 	// Add OR conditions for ID and Name within the same tenant
 	if target.ID != "" && target.Name != "" {
@@ -67,14 +72,14 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *mode
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+func (pg *Pg) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.APIKey, 0)
 
 	query := db.NewSelect().Model(&entities)
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -92,7 +97,7 @@ func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]mode
 	return apiKeys, count, nil
 }
 
-func (pg *Pg) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, val string, opts ...store.QueryOption) (*models.APIKey, error) {
+func (pg *Pg) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, val string, opts ...store.QueryOption) (*models.APIKey, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := APIKeyResolverToString(resolver)
@@ -102,7 +107,7 @@ func (pg *Pg) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, 
 
 	apKey := new(entity.APIKey)
 	query := db.NewSelect().Model(apKey).Where("? = ?", bun.Ident(column), val)
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

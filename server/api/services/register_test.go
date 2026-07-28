@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -106,7 +107,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return("invitee", nil).Once()
 				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
 					Return(nil).Once()
-				storeMock.On("NamespaceCreateMembership", ctx, "tenant", mock.AnythingOfType("*models.Member")).
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
 				// CreateUserToken (post-commit): resolves the user, then finds no preferred namespace.
@@ -144,7 +145,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return("invitee", nil).Once()
 				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
 					Return(nil).Once()
-				storeMock.On("NamespaceCreateMembership", ctx, "tenant", mock.AnythingOfType("*models.Member")).
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
 			},

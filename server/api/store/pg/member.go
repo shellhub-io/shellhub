@@ -3,14 +3,20 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 )
 
-func (pg *Pg) NamespaceCreateMembership(ctx context.Context, tenantID string, membership *models.Member) error {
+func (pg *Pg) NamespaceCreateMembership(ctx context.Context, sc scope.Scope, membership *models.Member) error {
 	db := pg.GetConnection(ctx)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
 
 	membership.AddedAt = clock.Now()
 	entity := entity.MembershipFromModel(tenantID, membership)
@@ -21,8 +27,13 @@ func (pg *Pg) NamespaceCreateMembership(ctx context.Context, tenantID string, me
 	return nil
 }
 
-func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, tenantID string, member *models.Member) error {
+func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
 	db := pg.GetConnection(ctx)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
 
 	e := entity.MembershipFromModel(tenantID, member)
 	e.UpdatedAt = clock.Now()
@@ -38,8 +49,13 @@ func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, tenantID string, me
 	return nil
 }
 
-func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
+func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
 	db := pg.GetConnection(ctx)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
 
 	e := entity.MembershipFromModel(tenantID, member)
 	r, err := db.NewDelete().Model(e).WherePK().Exec(ctx)

@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	websocketmocks "github.com/shellhub-io/shellhub/pkg/websocket/mocks"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
@@ -50,7 +51,7 @@ func TestGetSessionList(t *testing.T) {
 			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
-					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
 					Return(nil, 0, svc.ErrNotFound).
 					Once()
 			},
@@ -69,7 +70,7 @@ func TestGetSessionList(t *testing.T) {
 			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
-					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
 					Return([]models.Session{}, 1, nil).
 					Once()
 			},
@@ -139,7 +140,7 @@ func TestGetSessionList(t *testing.T) {
 				// if filter binding or Unmarshal regressed, the MatchedBy
 				// predicate would not match and the test would fail.
 				mock.
-					On("ListSessions", gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
+					On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
 						if len(req.Filters.Data) != 1 {
 							return false
 						}
@@ -215,12 +216,15 @@ func TestGetSession(t *testing.T) {
 	cases := []struct {
 		title         string
 		uid           string
+		tenant        string
+		admin         bool
 		requiredMocks func(session *models.Session)
 		expected      Expected
 	}{
 		{
 			title:         "fails when try to get session don't existing",
 			uid:           "",
+			tenant:        "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(*models.Session) {},
 			expected: Expected{
 				expectedSession: nil,
@@ -228,10 +232,34 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			title: "fails when try to get session don't existing",
-			uid:   "1234",
+			title:         "refuses the request when the caller carries no tenant",
+			uid:           "1234",
+			tenant:        "",
+			requiredMocks: func(*models.Session) {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusForbidden,
+			},
+		},
+		{
+			title:  "admin user on the regular path stays bounded to their namespace",
+			uid:    "123",
+			tenant: "00000000-0000-4000-0000-000000000000",
+			admin:  true,
+			requiredMocks: func(session *models.Session) {
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
+			},
+			expected: Expected{
+				expectedSession: &models.Session{UID: "123"},
+				expectedStatus:  http.StatusOK,
+			},
+		},
+		{
+			title:  "fails when try to get session don't existing",
+			uid:    "1234",
+			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(*models.Session) {
-				mock.On("GetSession", gomock.Anything, models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -239,10 +267,11 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			title: "success when try to get a session exists",
-			uid:   "123",
+			title:  "success when try to get a session exists",
+			uid:    "123",
+			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(session *models.Session) {
-				mock.On("GetSession", gomock.Anything, models.UID("123")).Return(session, nil)
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Session{UID: "123"},
@@ -258,6 +287,12 @@ func TestGetSession(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/sessions/%s", tc.uid), nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			if tc.tenant != "" {
+				req.Header.Set("X-Tenant-ID", tc.tenant)
+			}
+			if tc.admin {
+				req.Header.Set("X-Admin", "true")
+			}
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

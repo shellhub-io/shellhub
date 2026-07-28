@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -153,7 +154,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, errors.New("error", "store", 0)).
 					Once()
 			},
@@ -191,7 +192,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 
@@ -240,7 +241,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 
@@ -283,7 +284,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 
@@ -341,7 +342,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -353,11 +354,11 @@ func TestAuthDevice(t *testing.T) {
 					Return(int64(1), nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
 					Return(&models.Session{UID: "session_1", Closed: true}, nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
 					Return(&models.Session{UID: "session_2", Closed: true}, nil).
 					Once()
 				cacheMock.
@@ -401,7 +402,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -413,7 +414,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(int64(1), nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
 					Return(&models.Session{UID: "session_1", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -429,7 +430,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
 					Return(&models.Session{UID: "session_2", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -489,7 +490,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 
@@ -552,15 +553,15 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusRemoved, int64(-1)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
 
@@ -625,7 +626,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -692,7 +693,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -725,7 +726,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(uid, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(errors.New("increment error", "store", 0)).
 					Once()
 			},
@@ -763,7 +764,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -796,11 +797,11 @@ func TestAuthDevice(t *testing.T) {
 					Return(uid, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
 					Return(&models.Session{UID: "session_1", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -816,7 +817,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
 					Return(&models.Session{UID: "session_2", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -876,7 +877,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -909,7 +910,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(uid, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -957,7 +958,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -990,7 +991,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(uid, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -1032,7 +1033,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
@@ -1059,11 +1060,11 @@ func TestAuthDevice(t *testing.T) {
 					Return(uid, nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
 					Return(&models.Session{UID: "session_1", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -1079,7 +1080,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_2").
 					Return(&models.Session{UID: "session_2", Closed: false}, nil).
 					Once()
 				storeMock.
@@ -2547,7 +2548,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2567,7 +2568,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2593,7 +2594,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2630,7 +2631,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2676,7 +2677,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
+					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2790,12 +2791,12 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 		storeMock.
-			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(nil, store.ErrNoDocuments).
 			Once()
 		// A tenant-only enrollment resolves the namespace's legacy key; none here.
 		storeMock.
-			On("InstallKeyResolveSystem", ctx, tenantID).
+			On("InstallKeyResolveSystem", ctx, scope.MustBounded(tenantID)).
 			Return(nil, store.ErrNoDocuments).
 			Once()
 		storeMock.
@@ -2821,7 +2822,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(uid, nil).
 			Once()
 		storeMock.
-			On("NamespaceIncrementDeviceCount", ctx, tenantID, models.DeviceStatusPending, int64(1)).
+			On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(1)).
 			Return(nil).
 			Once()
 		cacheMock.
@@ -2868,7 +2869,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 		storeMock.
-			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(device, nil).
 			Once()
 
@@ -2923,7 +2924,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 		storeMock.
-			On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+			On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 			Return(device, nil).
 			Once()
 

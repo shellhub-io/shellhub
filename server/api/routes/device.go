@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -15,6 +16,7 @@ import (
 const (
 	GetDeviceListURL           = "/devices"
 	GetDeviceURL               = "/devices/:uid"
+	GetDeviceInternalURL       = "/devices/:uid"
 	ResolveDeviceURL           = "/devices/resolve"
 	DeleteDeviceURL            = "/devices/:uid"
 	RenameDeviceURL            = "/devices/:uid"
@@ -100,7 +102,12 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 		return err
 	}
 
-	res, count, err := h.service.ListDevices(c.Ctx(), req)
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	res, count, err := h.service.ListDevices(c.Ctx(), sc, req)
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	if err != nil {
@@ -120,7 +127,39 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 		return err
 	}
 
-	device, err := h.service.GetDevice(c.Ctx(), models.UID(req.UID))
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	device, err := h.service.GetDevice(c.Ctx(), sc, models.UID(req.UID))
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, device)
+}
+
+// GetDeviceInternal resolves a device by UID across every namespace. It is the counterpart to
+// [Handler.GetDevice], which is bounded to the caller's namespace: the SSH server has to resolve a
+// device before it knows which namespace the connection belongs to, so it cannot supply a tenant.
+//
+// The two contracts are deliberately two routes rather than one route that widens when the tenant
+// header is missing. This one is registered only on the internal group, which the gateway does not
+// expose, so it is reachable only from within the container network.
+func (h *Handler) GetDeviceInternal(c gateway.Context) error {
+	var req requests.DeviceGet
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	sc := scope.NewUnbounded("the SSH server resolves a device before it knows which namespace the connection belongs to; reachable only on the unexposed internal route group")
+
+	device, err := h.service.GetDevice(c.Ctx(), sc, models.UID(req.UID))
 	if err != nil {
 		return err
 	}

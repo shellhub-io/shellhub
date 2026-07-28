@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -45,9 +46,12 @@ type AccessPolicyService interface {
 }
 
 func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, login, sourceIP string) (*models.Decision, error) {
-	// Resolve the device from the store so the filter matches against the
-	// authoritative name and tag ids, not whatever the caller supplied.
-	dev, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, deviceUID)
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	dev, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, deviceUID)
 	if err != nil {
 		return nil, NewErrDeviceNotFound(models.UID(deviceUID), err)
 	}
@@ -62,7 +66,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: "user is not a member of the namespace"}, nil
 	}
 
-	policies, _, err := s.store.AccessPolicyList(ctx, s.store.Options().InNamespace(tenantID))
+	policies, _, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +223,12 @@ func sourceIPMatches(cidrs []string, clientIP string) (bool, error) {
 }
 
 func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID string) (bool, error) {
-	_, count, err := s.store.AccessPolicyList(ctx, s.store.Options().InNamespace(tenantID))
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return false, err
+	}
+
+	_, count, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return false, err
 	}
@@ -294,11 +303,16 @@ func stricterReauthPeriod(a, b *int) *int {
 }
 
 func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]models.AccessPolicy, error) {
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	policies, _, err := s.store.AccessPolicyList(ctx, s.store.Options().InNamespace(tenantID))
+	policies, _, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +321,12 @@ func (s *service) ListAccessPolicies(ctx context.Context, tenantID string) ([]mo
 }
 
 func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolicyGet) (*models.AccessPolicy, error) {
-	policy, err := s.store.AccessPolicyResolve(ctx, store.AccessPolicyIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID)
 	if err != nil {
 		return nil, NewErrAccessPolicyNotFound(req.ID, err)
 	}
@@ -316,11 +335,16 @@ func (s *service) GetAccessPolicy(ctx context.Context, req *requests.AccessPolic
 }
 
 func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	filter, err := s.resolveAccessPolicyFilter(ctx, req.TenantID, req.Filter)
+	filter, err := s.resolveAccessPolicyFilter(ctx, sc, req.Filter)
 	if err != nil {
 		return nil, err
 	}
@@ -342,15 +366,20 @@ func (s *service) CreateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	return s.store.AccessPolicyResolve(ctx, store.AccessPolicyIDResolver, id, s.store.Options().InNamespace(req.TenantID))
+	return s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
 }
 
 func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error) {
-	if _, err := s.store.AccessPolicyResolve(ctx, store.AccessPolicyIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID)); err != nil {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID); err != nil {
 		return nil, NewErrAccessPolicyNotFound(req.ID, err)
 	}
 
-	filter, err := s.resolveAccessPolicyFilter(ctx, req.TenantID, req.Filter)
+	filter, err := s.resolveAccessPolicyFilter(ctx, sc, req.Filter)
 	if err != nil {
 		return nil, err
 	}
@@ -372,11 +401,16 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return nil, err
 	}
 
-	return s.store.AccessPolicyResolve(ctx, store.AccessPolicyIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID))
+	return s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID)
 }
 
 func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error {
-	if _, err := s.store.AccessPolicyResolve(ctx, store.AccessPolicyIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID)); err != nil {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID); err != nil {
 		return NewErrAccessPolicyNotFound(req.ID, err)
 	}
 
@@ -386,16 +420,16 @@ func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPo
 // resolveAccessPolicyFilter translates the request's device selector into a
 // stored filter, resolving tag names to their ids (mirroring the public-key
 // create path).
-func (s *service) resolveAccessPolicyFilter(ctx context.Context, tenantID string, reqFilter requests.AccessPolicyFilter) (models.PublicKeyFilter, error) {
+func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.PublicKeyFilter, error) {
 	filter := models.PublicKeyFilter{Hostname: reqFilter.Hostname}
 
 	if len(reqFilter.Tags) == 0 {
 		return filter, nil
 	}
 
-	tags, _, err := s.store.TagList(ctx, s.store.Options().InNamespace(tenantID))
+	tags, _, err := s.store.TagList(ctx, sc)
 	if err != nil {
-		return filter, NewErrTagEmpty(tenantID, err)
+		return filter, NewErrTagEmpty(sc.TenantID(), err)
 	}
 
 	tagIDs := make([]string, 0, len(reqFilter.Tags))
@@ -424,7 +458,12 @@ func (s *service) resolveAccessPolicyFilter(ctx context.Context, tenantID string
 // when a namespace switches to identity access mode with no policies yet, so
 // default-deny does not lock the owner out.
 func (s *service) seedAccessPolicy(ctx context.Context, tenantID, ownerID string) error {
-	_, count, err := s.store.AccessPolicyList(ctx, s.store.Options().InNamespace(tenantID))
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return err
+	}
+
+	_, count, err := s.store.AccessPolicyList(ctx, sc)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -165,7 +166,24 @@ func (*queryOptions) WithUserID(userID string) store.QueryOption {
 	}
 }
 
-func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
+// ScopeOption turns a namespace scope into the query predicate that enforces it. A bounded scope
+// becomes a namespace_id predicate; an unbounded scope adds nothing, which is the whole point of it
+// having to carry a reason. A scope that was never constructed is rejected.
+//
+// Exported so the cloud store, which builds queries against the driver directly, enforces a scope
+// the same way rather than reimplementing the predicate.
+func ScopeOption(sc scope.Scope) store.QueryOption {
+	switch sc.Kind() {
+	case scope.KindBounded:
+		return inNamespace(sc.TenantID())
+	case scope.KindUnbounded:
+		return func(context.Context) error { return nil }
+	default:
+		return func(context.Context) error { return store.ErrInvalidScope }
+	}
+}
+
+func inNamespace(namespaceID string) store.QueryOption {
 	return func(ctx context.Context) error {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
@@ -180,9 +198,14 @@ func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 			return store.ErrNoDocuments
 		}
 
-		col := "namespace_id"
+		name := "namespace_id"
+		if override, ok := ctx.Value(CtxNamespaceColumn).(string); ok && override != "" {
+			name = override
+		}
+
+		col := name
 		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
-			col = alias + ".namespace_id"
+			col = alias + "." + name
 		}
 
 		wrapper.query = wrapper.query.Where(col+" = ?", namespaceID)

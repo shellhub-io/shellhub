@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -21,11 +22,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 	t.Run("succeeds when no devices are found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Empty(t, devices)
@@ -42,11 +42,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-4"))
 
 		// List all devices
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 4, count)
@@ -63,11 +62,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-4"))
 
 		// Get page 2 with 2 items per page
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 2, PerPage: 2}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: 2, PerPage: 2}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 4, count, "total count should be 4")
@@ -84,11 +82,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-3"))
 
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
@@ -105,11 +102,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		s.CreateDevice(t, WithDeviceName("device-3"))
 
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderDesc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
@@ -144,41 +140,35 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-4"), WithTenantID(tenantID))
 
 		// Filter by ["production"] — should match device-1, device-2, device-3
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production"}}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, devices, 3)
 
 		// Filter by ["production", "backend"] — AND semantics, should match only device-1
-		devices, count, err = st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err = st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production", "backend"}}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		assert.Len(t, devices, 1)
 		assert.Equal(t, "device-1", devices[0].Name)
 
 		// Filter by ["nonexistent"] — should match nothing
-		devices, count, err = st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err = st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"nonexistent"}}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, devices)
@@ -202,14 +192,12 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		require.NoError(t, st.TagPushToTarget(ctx, tagStaging, store.TagTargetDevice, string(dev2)))
 
 		// Filter by substring "prod" — should match device-1
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: "prod"}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		assert.Len(t, devices, 1)
@@ -224,11 +212,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		removedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 		s.CreateDevice(t, WithDeviceName("dev-removed"), WithDeviceStatus(models.DeviceStatusRemoved), WithDeviceRemovedAt(&removedAt))
 
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableFromRemoved,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableFromRemoved,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
@@ -248,11 +235,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("dev-accepted"), WithDeviceStatus(models.DeviceStatusAccepted))
 		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
 
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableAsFalse,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableAsFalse,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
@@ -269,11 +255,10 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
 
 		// Use a value outside the known constants to trigger the default branch
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptable(0),
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptable(0),
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
@@ -293,16 +278,14 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 
 		// AND: status = "accepted" AND status != "pending" (effectively filters to accepted)
 		// We use "status" which is unambiguous in the device query
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
 				{Type: query.FilterTypeOperator, Params: &query.FilterOperator{Name: "and"}},
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "ne", Value: string(models.DeviceStatusPending)}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
@@ -318,16 +301,14 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("gamma"), WithDeviceStatus(models.DeviceStatusRejected), WithTenantID(tenantID))
 
 		// OR: status = "accepted" OR status = "rejected"
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
-			st.Options().InNamespace(tenantID),
+		devices, count, err := st.DeviceList(ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted,
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
 				{Type: query.FilterTypeOperator, Params: &query.FilterOperator{Name: "or"}},
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusRejected)}},
 			}}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
@@ -343,12 +324,11 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("device-accepted-2"), WithDeviceStatus(models.DeviceStatusAccepted))
 
 		// Filter by pending status
-		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
 			st.Options().WithDeviceStatus(models.DeviceStatusPending),
 			st.Options().Match(&query.Filters{}),
 			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
@@ -365,7 +345,7 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 	t.Run("fails when device not found by UID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, "nonexistent")
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, "nonexistent")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, device)
 	})
@@ -382,7 +362,7 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 		)
 
 		// Resolve by UID
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		require.NotNil(t, device)
 		assert.Equal(t, string(deviceUID), device.UID)
@@ -402,7 +382,7 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 		)
 
 		// Resolve by hostname
-		device, err := st.DeviceResolve(ctx, store.DeviceHostnameResolver, "my-hostname")
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceHostnameResolver, "my-hostname")
 		require.NoError(t, err)
 		require.NotNil(t, device)
 		assert.Equal(t, string(deviceUID), device.UID)
@@ -416,13 +396,13 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithDeviceName("mac-test-device"))
 
 		// Get the device to find its MAC
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		require.NotNil(t, device)
 		mac := device.Identity.MAC
 
 		// Resolve by MAC
-		deviceByMAC, err := st.DeviceResolve(ctx, store.DeviceMACResolver, mac)
+		deviceByMAC, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceMACResolver, mac)
 		require.NoError(t, err)
 		require.NotNil(t, deviceByMAC)
 		assert.Equal(t, string(deviceUID), deviceByMAC.UID)
@@ -438,7 +418,7 @@ func (s *Suite) TestDeviceResolve(t *testing.T) {
 			WithDeviceStatus(models.DeviceStatusAccepted),
 		)
 
-		device, err := st.DeviceResolve(ctx, store.DevicePublicKeyResolver, "resolve-by-pubkey",
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DevicePublicKeyResolver, "resolve-by-pubkey",
 			s.provider.Store().Options().WithDeviceStatus(models.DeviceStatusAccepted))
 		require.NoError(t, err)
 		require.NotNil(t, device)
@@ -474,7 +454,7 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 		assert.Equal(t, "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", insertedUID)
 
 		// Verify it was created
-		created, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, insertedUID)
+		created, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, insertedUID)
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, created.TenantID)
 	})
@@ -489,7 +469,7 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 			WithDeviceStatusUpdatedAt(statusUpdatedAt),
 		)
 
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.True(t, statusUpdatedAt.Equal(device.StatusUpdatedAt), "StatusUpdatedAt should match: expected %v, got %v", statusUpdatedAt, device.StatusUpdatedAt)
 	})
@@ -503,7 +483,7 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 			WithDeviceRemoteAddr("203.0.113.7"),
 		)
 
-		created, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		created, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.Equal(t, "203.0.113.7", created.RemoteAddr)
 	})
@@ -521,7 +501,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("existing-device"))
 
 		// Check with empty target
-		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{})
+		conflicts, ok, err := st.DeviceConflicts(ctx, scope.NewUnbounded(reasonTestQueryMechanics), &models.DeviceConflicts{})
 		require.NoError(t, err)
 		assert.Empty(t, conflicts)
 		assert.False(t, ok)
@@ -534,7 +514,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("existing-device"))
 
 		// Check with different name
-		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "nonexistent"})
+		conflicts, ok, err := st.DeviceConflicts(ctx, scope.NewUnbounded(reasonTestQueryMechanics), &models.DeviceConflicts{Name: "nonexistent"})
 		require.NoError(t, err)
 		assert.Empty(t, conflicts)
 		assert.False(t, ok)
@@ -547,7 +527,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("conflicting-device"))
 
 		// Check for conflict with same name
-		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{
+		conflicts, ok, err := st.DeviceConflicts(ctx, scope.NewUnbounded(reasonTestQueryMechanics), &models.DeviceConflicts{
 			Name: "conflicting-device",
 		})
 		require.NoError(t, err)
@@ -563,7 +543,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		s.CreateDevice(t, WithDeviceName("shared"), WithTenantID(nsA))
 
 		// Scoped to namespace B, an accepted "shared" in namespace A must not conflict.
-		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "shared"}, st.Options().InNamespace(nsB))
+		conflicts, ok, err := st.DeviceConflicts(ctx, scope.MustBounded(nsB), &models.DeviceConflicts{Name: "shared"})
 		require.NoError(t, err)
 		assert.Empty(t, conflicts)
 		assert.False(t, ok)
@@ -575,7 +555,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 		nsA := s.CreateNamespace(t)
 		s.CreateDevice(t, WithDeviceName("shared"), WithTenantID(nsA))
 
-		conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "shared"}, st.Options().InNamespace(nsA))
+		conflicts, ok, err := st.DeviceConflicts(ctx, scope.MustBounded(nsA), &models.DeviceConflicts{Name: "shared"})
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"name"}, conflicts)
 		assert.True(t, ok)
@@ -588,7 +568,7 @@ func (s *Suite) TestDeviceConflicts(t *testing.T) {
 			nsA := s.CreateNamespace(t)
 			s.CreateDevice(t, WithDeviceName("not-accepted"), WithTenantID(nsA), WithDeviceStatus(status))
 
-			conflicts, ok, err := st.DeviceConflicts(ctx, &models.DeviceConflicts{Name: "not-accepted"}, st.Options().InNamespace(nsA))
+			conflicts, ok, err := st.DeviceConflicts(ctx, scope.MustBounded(nsA), &models.DeviceConflicts{Name: "not-accepted"})
 			require.NoError(t, err, status)
 			assert.Empty(t, conflicts, status)
 			assert.False(t, ok, status)
@@ -648,7 +628,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.Equal(t, "updated-name", device.Name)
 	})
@@ -667,7 +647,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		)
 
 		// Verify it was created with removed_at set
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		require.NotNil(t, device.RemovedAt, "RemovedAt should be set after creation")
 		assert.Equal(t, models.DeviceStatusRemoved, device.Status)
@@ -679,7 +659,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the update persisted
-		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.Nil(t, updated.RemovedAt, "RemovedAt should be nil after update")
 		assert.Equal(t, models.DeviceStatusPending, updated.Status)
@@ -697,7 +677,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		)
 
 		// Verify initial value persisted
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.True(t, initialStatusUpdatedAt.Equal(device.StatusUpdatedAt), "initial StatusUpdatedAt should match: expected %v, got %v", initialStatusUpdatedAt, device.StatusUpdatedAt)
 		assert.Equal(t, models.DeviceStatusPending, device.Status)
@@ -710,7 +690,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the update persisted
-		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.True(t, newStatusUpdatedAt.Equal(updated.StatusUpdatedAt), "updated StatusUpdatedAt should match: expected %v, got %v", newStatusUpdatedAt, updated.StatusUpdatedAt)
 		assert.Equal(t, models.DeviceStatusAccepted, updated.Status)
@@ -725,7 +705,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 			WithDeviceRemoteAddr("203.0.113.7"),
 		)
 
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.Equal(t, "203.0.113.7", device.RemoteAddr)
 
@@ -733,7 +713,7 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		err = st.DeviceUpdate(ctx, device)
 		require.NoError(t, err)
 
-		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		assert.Equal(t, "198.51.100.9", updated.RemoteAddr)
 	})
@@ -805,7 +785,7 @@ func (s *Suite) TestDeviceDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
@@ -844,12 +824,12 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 
 		// Verify deletions
 		for _, uid := range uids {
-			_, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, uid)
+			_, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, uid)
 			assert.ErrorIs(t, err, store.ErrNoDocuments)
 		}
 
 		// Verify remaining device
-		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid3))
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid3))
 		require.NoError(t, err)
 		assert.Equal(t, string(uid3), device.UID)
 	})
@@ -874,13 +854,13 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.Equal(t, int64(2), deletedCount)
 
 		// Verify sessions of deleted devices are gone
-		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session1UID))
+		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session1UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session2UID))
+		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session2UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 
 		// Verify session of remaining device still exists
-		session3, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(session3UID))
+		session3, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session3UID))
 		require.NoError(t, err)
 		assert.Equal(t, string(session3UID), session3.UID)
 	})
@@ -902,9 +882,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.Equal(t, int64(2), deletedCount)
 
 		// Verify deletions
-		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid1))
+		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid2))
+		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid2))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -929,9 +909,9 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.Equal(t, int64(2), deletedCount)
 
 		// Verify devices are deleted
-		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid1))
+		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid2))
+		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid2))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -952,11 +932,11 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.Equal(t, int64(1), deletedCount)
 
 		// Verify all sessions are deleted
-		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session1UID))
+		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session1UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session2UID))
+		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session2UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session3UID))
+		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session3UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

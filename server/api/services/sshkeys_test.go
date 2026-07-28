@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -30,6 +31,10 @@ func TestEvaluateKeyFilter(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
 	ctx := context.TODO()
+
+	// The device re-read is bounded to the key's namespace: the tag identifiers being compared
+	// belong to the key, so a device in another namespace must not be able to satisfy the filter.
+	const keyTenant = "00000000-0000-4000-0000-000000000000"
 
 	type Expected struct {
 		bool
@@ -78,6 +83,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		{
 			description: "fail to evaluate filter tags when DeviceResolve fails",
 			key: &models.PublicKey{
+				TenantID: keyTenant,
 				PublicKeyFields: models.PublicKeyFields{
 					Filter: models.PublicKeyFilter{
 						Taggable: models.Taggable{TagIDs: []string{"tag1_id", "tag2_id"}},
@@ -87,7 +93,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 			device: models.Device{UID: "uid"},
 			requiredMocks: func() {
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, scope.MustBounded(keyTenant), store.DeviceUIDResolver, "uid").
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -96,6 +102,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		{
 			description: "fail to evaluate filter tags when tag does not exist in device",
 			key: &models.PublicKey{
+				TenantID: keyTenant,
 				PublicKeyFields: models.PublicKeyFields{
 					Filter: models.PublicKeyFilter{
 						Taggable: models.Taggable{TagIDs: []string{"tag1_id", "tag2_id"}},
@@ -105,7 +112,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 			device: models.Device{UID: "uid"},
 			requiredMocks: func() {
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, scope.MustBounded(keyTenant), store.DeviceUIDResolver, "uid").
 					Return(&models.Device{UID: "uid", Taggable: models.Taggable{TagIDs: []string{"nonexistent_id"}}}, nil).
 					Once()
 			},
@@ -114,6 +121,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		{
 			description: "success to evaluate filter tags",
 			key: &models.PublicKey{
+				TenantID: keyTenant,
 				PublicKeyFields: models.PublicKeyFields{
 					Filter: models.PublicKeyFilter{
 						Taggable: models.Taggable{TagIDs: []string{"tag1_id", "tag2_id"}},
@@ -123,11 +131,24 @@ func TestEvaluateKeyFilter(t *testing.T) {
 			device: models.Device{UID: "uid"},
 			requiredMocks: func() {
 				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, scope.MustBounded(keyTenant), store.DeviceUIDResolver, "uid").
 					Return(&models.Device{UID: "uid", Taggable: models.Taggable{TagIDs: []string{"tag1_id"}}}, nil).
 					Once()
 			},
 			expected: Expected{true, nil},
+		},
+		{
+			description: "refuses a tag filter on a key carrying no namespace",
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Taggable: models.Taggable{TagIDs: []string{"tag1_id"}},
+					},
+				},
+			},
+			device:        models.Device{UID: "uid"},
+			requiredMocks: func() {},
+			expected:      Expected{false, NewErrForbidden(ErrForbidden, scope.ErrEmptyTenantID)},
 		},
 		{
 			description: "success to evaluate when key has no filter",
@@ -159,7 +180,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 func TestListPublicKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	clockMock.On("Now").Return(now).Twice()
 
@@ -193,10 +214,6 @@ func TestListPublicKeys(t *testing.T) {
 			},
 			requiredMocks: func() {
 				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
@@ -205,7 +222,7 @@ func TestListPublicKeys(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("PublicKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -220,10 +237,6 @@ func TestListPublicKeys(t *testing.T) {
 			},
 			requiredMocks: func() {
 				queryOptionsMock.
-					On("InNamespace", "00000000-0000-4000-0000-000000000000").
-					Return(nil).
-					Once()
-				queryOptionsMock.
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
@@ -232,7 +245,7 @@ func TestListPublicKeys(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("PublicKeyList", ctx, mock.AnythingOfType("[]store.QueryOption")).
+					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 					Return(keys, len(keys), nil).
 					Once()
 			},
@@ -254,7 +267,7 @@ func TestListPublicKeys(t *testing.T) {
 func TestGetPublicKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	clockMock.On("Now").Return(now).Twice()
 
@@ -294,11 +307,7 @@ func TestGetPublicKeys(t *testing.T) {
 				namespace := models.Namespace{TenantID: "tenant1"}
 
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(&namespace, nil).Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, InvalidFingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, InvalidFingerprint).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
 		},
@@ -313,11 +322,7 @@ func TestGetPublicKeys(t *testing.T) {
 					Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
 				}
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(&namespace, nil).Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(&key, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(&key, nil).Once()
 			},
 			expected: Expected{&models.PublicKey{
 				Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clock.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"},
@@ -339,7 +344,7 @@ func TestGetPublicKeys(t *testing.T) {
 func TestUpdatePublicKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -368,11 +373,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 				},
 			},
 			requiredMocks: func() {
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: Expected{nil, NewErrPublicKeyNotFound("fingerprint", store.ErrNoDocuments)},
 		},
@@ -390,12 +391,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
 				}
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(nil, 0, errors.New("error", "", 0)).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
@@ -417,12 +414,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 					{ID: "tag1_id", Name: "tag1", TenantID: "tenant"},
 					{ID: "tag4_id", Name: "tag4", TenantID: "tenant"},
 				}
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
 			},
 			expected: Expected{nil, NewErrTagNotFound("tag2", nil)},
 		},
@@ -452,12 +445,8 @@ func TestUpdatePublicKeys(t *testing.T) {
 				expectedKey.Filter.TagIDs = []string{"tag1_id", "tag2_id"}
 				expectedKey.Filter.Tags = nil
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
 				storeMock.On("PublicKeyUpdate", ctx, &expectedKey).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
@@ -498,14 +487,10 @@ func TestUpdatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Times(3)
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(existingKey, nil).Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
 				storeMock.On("PublicKeyUpdate", ctx, &expectedKey).Return(nil).Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(updatedKey, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(updatedKey, nil).Once()
 			},
 			expected: Expected{&models.PublicKey{
 				Fingerprint: "fingerprint",
@@ -550,13 +535,9 @@ func TestUpdatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(existingKey, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
 				storeMock.On("PublicKeyUpdate", ctx, &expectedKey).Return(nil).Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).Return(updatedKey, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(updatedKey, nil).Once()
 			},
 			expected: Expected{&models.PublicKey{
 				Fingerprint: "fingerprint",
@@ -585,7 +566,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 func TestDeletePublicKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -624,11 +605,7 @@ func TestDeletePublicKeys(t *testing.T) {
 				namespace := &models.Namespace{TenantID: "tenant1"}
 
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, InvalidFingerprint, mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, InvalidFingerprint).
 					Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{NewErrPublicKeyNotFound(InvalidFingerprint, errors.New("error", "", 0))},
@@ -649,11 +626,7 @@ func TestDeletePublicKeys(t *testing.T) {
 				}
 
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").
 					Return(publicKey, nil).Once()
 				storeMock.On("PublicKeyDelete", ctx, publicKey).
 					Return(errors.New("error", "", 0)).Once()
@@ -676,11 +649,7 @@ func TestDeletePublicKeys(t *testing.T) {
 				}
 
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
-				queryOptionsMock.
-					On("InNamespace", "tenant1").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, "fingerprint", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").
 					Return(publicKey, nil).Once()
 				storeMock.On("PublicKeyDelete", ctx, publicKey).Return(nil).Once()
 			},
@@ -703,7 +672,7 @@ func TestDeletePublicKeys(t *testing.T) {
 func TestCreatePublicKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -737,11 +706,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				},
 			},
 			requiredMocks: func() {
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(nil, 0, errors.New("error", "", 0)).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(nil, 0, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrTagEmpty("tenant", errors.New("error", "", 0))},
 		},
@@ -761,11 +726,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					{ID: "tag1_id", Name: "tag1", TenantID: "tenant"},
 					{ID: "tag4_id", Name: "tag4", TenantID: "tenant"},
 				}
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
 			},
 			expected: Expected{nil, NewErrTagNotFound("tag2", nil)},
 		},
@@ -812,11 +773,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, errors.New("error", "", 0)).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint).Return(nil, errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, NewErrPublicKeyNotFound(requests.PublicKeyCreate{
 				Data:        ssh.MarshalAuthorizedKey(pubKey),
@@ -860,11 +817,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(&keyWithHostnameModel, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint).Return(&keyWithHostnameModel, nil).Once()
 			},
 			expected: Expected{nil, NewErrPublicKeyDuplicated([]string{ssh.FingerprintLegacyMD5(pubKey)}, nil)},
 		},
@@ -902,11 +855,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return("", errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
@@ -945,11 +894,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithHostname.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(ssh.FingerprintLegacyMD5(pubKey), nil).Once()
 			},
 			expected: Expected{&responses.PublicKeyCreate{
@@ -1002,12 +947,8 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return("", errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
@@ -1050,12 +991,8 @@ func TestCreatePublicKeys(t *testing.T) {
 					},
 				}
 
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Twice()
-				storeMock.On("TagList", ctx, mock.AnythingOfType("[]store.QueryOption")).Return(tags, len(tags), nil).Once()
-				storeMock.On("PublicKeyResolve", ctx, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint, mock.AnythingOfType("[]store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagList", ctx, mock.Anything).Return(tags, len(tags), nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(ssh.FingerprintLegacyMD5(pubKey), nil).Once()
 			},
 			expected: Expected{&responses.PublicKeyCreate{

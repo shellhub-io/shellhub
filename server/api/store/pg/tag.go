@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -33,7 +34,7 @@ func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
 	return result.ID, nil
 }
 
-func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.TagConflicts) ([]string, bool, error) {
+func (pg *Pg) TagConflicts(ctx context.Context, sc scope.Scope, target *models.TagConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
@@ -43,8 +44,12 @@ func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.
 	tags := make([]entity.Tag, 0)
 	query := db.NewSelect().
 		Model(&tags).
-		Column("name", "namespace_id").
-		Where("namespace_id = ?", tenantID)
+		Column("name", "namespace_id")
+
+	query, err := applyScopedOptions(ctx, query, sc)
+	if err != nil {
+		return nil, false, err
+	}
 
 	if target.Name != "" {
 		query = query.Where("name = ?", target.Name)
@@ -69,13 +74,13 @@ func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *Pg) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.Tag, int, error) {
+func (pg *Pg) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Tag, 0)
 	query := db.NewSelect().Model(&entities).Column("tag.*")
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -93,7 +98,7 @@ func (pg *Pg) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.
 	return tags, count, nil
 }
 
-func (pg *Pg) TagResolve(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
+func (pg *Pg) TagResolve(ctx context.Context, sc scope.Scope, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := TagResolverToString(resolver)
@@ -104,7 +109,7 @@ func (pg *Pg) TagResolve(ctx context.Context, resolver store.TagResolver, value 
 	tag := new(entity.Tag)
 	query := db.NewSelect().Model(tag).Column("tag.*").Relation("Namespace").Where("tag.? = ?", bun.Ident(column), value)
 
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

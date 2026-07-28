@@ -201,9 +201,14 @@ func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.Member
 		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	opts := []store.QueryOption{s.store.Options().Paginate(&req.Paginator)}
 
-	return s.store.NamespaceGetMembers(ctx, req.TenantID, opts...)
+	return s.store.NamespaceGetMembers(ctx, sc, opts...)
 }
 
 // DeleteNamespace deletes a namespace.

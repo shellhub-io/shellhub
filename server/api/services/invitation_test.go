@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -183,7 +184,7 @@ func TestService_AcceptInvite(t *testing.T) {
 					Return(&models.User{ID: "user"}, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "user").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
 					Return(&models.MembershipInvitation{
 						Status:    models.MembershipInvitationStatusCancelled,
 						ExpiresAt: &future,
@@ -198,7 +199,7 @@ func TestService_AcceptInvite(t *testing.T) {
 					Return(&models.User{ID: "user"}, nil).Once()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "user").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
 					Return(&models.MembershipInvitation{
 						Status:    models.MembershipInvitationStatusPending,
 						ExpiresAt: &past,
@@ -220,11 +221,11 @@ func TestService_AcceptInvite(t *testing.T) {
 					Role:      authorizer.RoleOperator,
 					ExpiresAt: &future,
 				}
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "user").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
 					Return(invitation, nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
-				storeMock.On("NamespaceCreateMembership", ctx, "tenant", &models.Member{
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{
 					ID:      "user",
 					AddedAt: now,
 					Role:    authorizer.RoleOperator,
@@ -329,7 +330,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
 					Return(nil).Once()
@@ -347,7 +348,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("UserInvitationsUpsert", ctx, "invitee@test.com").
 					Return("placeholder", nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "placeholder").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "placeholder").
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
 					Return(nil).Once()
@@ -364,7 +365,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{
 						TenantID:  "tenant",
 						UserID:    "invitee",
@@ -386,7 +387,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserResolve", ctx, store.UserEmailResolver, "invitee@test.com").
 					Return(&models.User{ID: "invitee"}, nil).Once()
-				storeMock.On("NamespaceCreateMembership", ctx, "tenant", &models.Member{
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{
 					ID: "invitee", AddedAt: now, Role: authorizer.RoleOperator,
 				}).Return(nil).Once()
 			},
@@ -420,7 +421,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 func TestService_UserMembershipInvitationList(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	ctx := context.TODO()
 
 	req := &requests.UserMembershipInvitationList{
@@ -548,13 +549,13 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(adminNamespace, nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Match", &req.Filters).Return(nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Sort", &req.Sorter).Return(nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Paginate", &req.Paginator).Return(nil).Once()
-				storeMock.On("NamespaceMembershipInvitationList", ctx, "tenant", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("NamespaceMembershipInvitationList", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, int64(0), errors.New("error")).Once()
 			},
 			expected: Expected{nil, 0, errors.New("error")},
@@ -564,13 +565,13 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(adminNamespace, nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Match", &req.Filters).Return(nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Sort", &req.Sorter).Return(nil).Once()
-				storeMock.On("Options").Return(queryOptionsMock).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
 				queryOptionsMock.On("Paginate", &req.Paginator).Return(nil).Once()
-				storeMock.On("NamespaceMembershipInvitationList", ctx, "tenant", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("NamespaceMembershipInvitationList", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("[]store.QueryOption")).
 					Return([]models.MembershipInvitation{
 						{TenantID: "tenant", UserID: "invitee", Role: authorizer.RoleOperator},
 					}, int64(1), nil).Once()
@@ -646,7 +647,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(adminNamespace, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: NewErrNamespaceMemberNotFound("invitee", store.ErrNoDocuments),
@@ -656,7 +657,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(adminNamespace, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{Status: models.MembershipInvitationStatusCancelled}, nil).Once()
 			},
 			expected: NewErrNamespaceMemberNotFound("invitee", nil),
@@ -669,7 +670,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 						TenantID: "tenant",
 						Members:  []models.Member{{ID: "owner", Role: authorizer.RoleOperator}},
 					}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{
 						Status: models.MembershipInvitationStatusPending,
 						Role:   authorizer.RoleAdministrator,
@@ -682,7 +683,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(adminNamespace, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, "tenant", "invitee").
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{
 						Status: models.MembershipInvitationStatusPending,
 						Role:   authorizer.RoleOperator,

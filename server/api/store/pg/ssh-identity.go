@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -31,14 +32,14 @@ func (pg *Pg) SSHIdentityCreate(ctx context.Context, identity *models.SSHIdentit
 	return e.ID, nil
 }
 
-func (pg *Pg) SSHIdentityList(ctx context.Context, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
+func (pg *Pg) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.SSHIdentity, 0)
 
 	query := db.NewSelect().Model(&entities).Relation("User").Order("created_at ASC")
 
-	query, err := applyOptions(ctx, query, opts...)
+	query, err := applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -56,7 +57,7 @@ func (pg *Pg) SSHIdentityList(ctx context.Context, opts ...store.QueryOption) ([
 	return identities, count, nil
 }
 
-func (pg *Pg) SSHIdentityResolve(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
+func (pg *Pg) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := sshIdentityResolverToString(resolver)
@@ -68,7 +69,7 @@ func (pg *Pg) SSHIdentityResolve(ctx context.Context, resolver store.SSHIdentity
 	query := db.NewSelect().Model(e).
 		Where("? = ?", bun.Ident(column), value)
 
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

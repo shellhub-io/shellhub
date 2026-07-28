@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -348,7 +349,7 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		tenantID := s.CreateNamespace(t, WithNamespaceName("shared-ns"))
 
 		// Add member to namespace
-		err := st.NamespaceCreateMembership(ctx, tenantID, &models.Member{
+		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), &models.Member{
 			ID:   memberID,
 			Role: "observer",
 		})
@@ -375,7 +376,7 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		ns2ID := s.CreateNamespace(t, WithNamespaceName("ns2"))
 
 		// Add user1 as member to ns2
-		err := st.NamespaceCreateMembership(ctx, ns2ID, &models.Member{
+		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(ns2ID), &models.Member{
 			ID:   user1ID,
 			Role: "observer",
 		})

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -54,7 +55,7 @@ func (s *Suite) TestInstallKeyEventCreate(t *testing.T) {
 		}
 		require.NoError(t, st.InstallKeyEventCreate(ctx, event))
 
-		events, count, err := st.InstallKeyEventList(ctx, tenantID, digest)
+		events, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		require.Len(t, events, 1)
@@ -121,9 +122,8 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 		appendEvent(t, tenantID, digest, "b")
 		appendEvent(t, tenantID, digest, "c")
 
-		events, count, err := st.InstallKeyEventList(ctx, tenantID, digest,
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}),
-		)
+		events, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(tenantID), digest,
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}))
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, events, 2)
@@ -137,14 +137,14 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 
 		appendEvent(t, tenantID, digest, "first")
 
-		before, count, err := st.InstallKeyEventList(ctx, tenantID, digest)
+		before, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
 		original := before[0]
 
 		appendEvent(t, tenantID, digest, "second")
 
-		after, count, err := st.InstallKeyEventList(ctx, tenantID, digest)
+		after, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
@@ -165,7 +165,7 @@ func (s *Suite) TestInstallKeyEventList(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		digest := s.createInstallKey(t, tenantID)
 
-		events, count, err := st.InstallKeyEventList(ctx, tenantID, digest)
+		events, count, err := st.InstallKeyEventList(ctx, scope.MustBounded(tenantID), digest)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, events)

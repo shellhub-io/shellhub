@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/hash"
@@ -457,7 +458,7 @@ func TestUserDelete(t *testing.T) {
 
 				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000", "20000000-0000-0000-0000-000000000000"}).Return(int64(2), nil).Once()
 				for _, v := range namespaceMember {
-					mock.On("NamespaceDeleteMembership", ctx, v.TenantID, &models.Member{ID: "507f191e810c19729de860ea"}).Return(nil).Once()
+					mock.On("NamespaceDeleteMembership", ctx, scope.MustBounded(v.TenantID), &models.Member{ID: "507f191e810c19729de860ea"}).Return(nil).Once()
 				}
 
 				mock.On("UserDelete", ctx, user).Return(nil).Once()

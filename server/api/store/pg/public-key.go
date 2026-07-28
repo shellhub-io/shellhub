@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -40,14 +41,14 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 	return e.Fingerprint, nil
 }
 
-func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
+func (pg *Pg) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.PublicKey, 0)
 
 	query := db.NewSelect().Model(&entities).Relation("Tags")
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -112,7 +113,7 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 	})
 }
 
-func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
+func (pg *Pg) PublicKeyResolve(ctx context.Context, sc scope.Scope, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := PublicKeyResolverToString(resolver)
@@ -124,7 +125,7 @@ func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyReso
 	query := db.NewSelect().Model(a).
 		Relation("Tags").
 		Where("? = ?", bun.Ident(column), value)
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

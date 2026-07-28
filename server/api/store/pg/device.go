@@ -4,6 +4,7 @@ import (
 	"context" //nolint:gosec
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -25,7 +26,7 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	return e.ID, nil
 }
 
-func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
+func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
@@ -33,9 +34,9 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 	}
 
 	// A name only conflicts with an accepted device; pending/rejected/removed don't hold a name.
-	// Namespace scoping comes from opts (InNamespace), so a name used in another namespace is not
-	// a conflict. Keep the predicates ANDed: chaining with WhereGroup(" OR ", ...) would let the
-	// name match satisfy the query on its own and silently disable the status filter.
+	// Namespace bounding comes from sc, so a name used in another namespace is not a conflict. Keep
+	// the predicates ANDed: chaining with WhereGroup(" OR ", ...) would let the name match satisfy
+	// the query on its own and silently disable the status filter.
 	devices := make([]entity.Device, 0)
 	query := db.NewSelect().
 		Model(&devices).
@@ -44,7 +45,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 		Where("name = ?", target.Name)
 
 	var err error
-	if query, err = applyOptions(ctx, query, opts...); err != nil {
+	if query, err = applyScopedOptions(ctx, query, sc, opts...); err != nil {
 		return nil, false, err
 	}
 
@@ -67,7 +68,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
+func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Device, 0)
@@ -85,7 +86,7 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 	ctx = context.WithValue(ctx, CtxTableAlias, "device")
 
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -128,7 +129,7 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	return devices, nil
 }
 
-func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, val string, opts ...store.QueryOption) (*models.Device, error) {
+func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, val string, opts ...store.QueryOption) (*models.Device, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := DeviceResolverToString(resolver)
@@ -150,7 +151,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "device")
 
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}

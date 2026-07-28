@@ -105,6 +105,11 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
 	internalAPI.GET(LookupDeviceURL, gateway.Handler(handler.LookupDevice))
 
+	// Internal device resolve used by the SSH server, which has to identify the device before it
+	// knows the namespace. Its public counterpart on /api/devices/:uid is bounded to the caller's
+	// tenant; the two guarantees are two routes so neither caller can silently get the other's.
+	internalAPI.GET(GetDeviceInternalURL, gateway.Handler(handler.GetDeviceInternal))
+
 	internalAPI.POST(CreateSessionURL, gateway.Handler(handler.CreateSession))
 	internalAPI.POST(FinishSessionURL, gateway.Handler(handler.FinishSession))
 	internalAPI.POST(KeepAliveSessionURL, gateway.Handler(handler.KeepAliveSession))

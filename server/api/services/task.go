@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -138,7 +139,11 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Tiebreak: "id",
 		}
 
-		_, totalCount, err := s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
+		// The cleanup cron sweeps every namespace and buckets its deletions per namespace afterwards,
+		// so it deliberately reads across all of them.
+		sc := scope.NewUnbounded("device-cleanup cron sweeps every namespace, bucketing its deletions per namespace afterwards")
+
+		_, totalCount, err := s.store.DeviceList(ctx, sc, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
 		if err != nil {
 			log.WithError(err).Error("Failed to get total count of removed devices")
 
@@ -166,7 +171,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 				s.store.Options().Paginate(&query.Paginator{Page: page + 1, PerPage: pageSize}),
 			}
 
-			devices, _, err := s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
+			devices, _, err := s.store.DeviceList(ctx, sc, store.DeviceAcceptableAsFalse, opts...)
 			if err != nil {
 				log.WithFields(log.Fields{"page": page, "error": err}).Error("Failed to list removed devices for page")
 
@@ -207,7 +212,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 		// deterministic (map iteration order is randomized in Go).
 		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
 			deletedCount := deletedPerTenant[tenantID]
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusRemoved, -deletedCount); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusRemoved, -deletedCount); err != nil {
 				log.WithFields(log.Fields{"tenant_id": tenantID, "deleted_count": deletedCount, "error": err}).
 					Error("Failed to decrement removed device count for namespace")
 
@@ -265,7 +270,7 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 		for _, tenantID := range slices.Sorted(maps.Keys(deletedPerTenant)) {
 			for _, status := range slices.Sorted(maps.Keys(deletedPerTenant[tenantID])) {
 				count := deletedPerTenant[tenantID][status]
-				if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, status, -count); err != nil {
+				if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), status, -count); err != nil {
 					log.WithFields(log.Fields{"tenant_id": tenantID, "status": status, "deleted_count": count, "error": err}).
 						Error("Failed to decrement ephemeral device count for namespace")
 

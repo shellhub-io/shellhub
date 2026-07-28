@@ -38,8 +38,7 @@ func TestWebReauthVerify(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
 				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
-				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
 				storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
@@ -72,8 +71,7 @@ func TestWebReauthVerify(t *testing.T) {
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
 				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
-				storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{PrincipalID: otherUserID, Fingerprint: fingerprint}, nil).Once()
 			},
 			expectedErr: true,
@@ -175,9 +173,8 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
-			queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 
-			storeMock.On("SSHIdentityResolve", ctx, store.SSHIdentityFingerprintResolver, fingerprint, mock.Anything).
+			storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 				Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
 			storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -92,7 +93,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 
 	for _, ns := range userInfo.AssociatedNamespaces {
 		member := &models.Member{ID: user.ID}
-		if err := s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
+		if err := s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
 			return err
 		}
 	}

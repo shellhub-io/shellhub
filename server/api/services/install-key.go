@@ -181,6 +181,11 @@ type InstallKeyService interface {
 }
 
 func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInstallKey) (*responses.CreateInstallKey, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -225,7 +230,7 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, err
 	}
 
-	conflicts, has, err := s.store.InstallKeyConflicts(ctx, req.TenantID, &models.InstallKeyConflicts{ID: hashedKey, Name: req.Name})
+	conflicts, has, err := s.store.InstallKeyConflicts(ctx, sc, &models.InstallKeyConflicts{ID: hashedKey, Name: req.Name})
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +264,9 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, err
 	}
 
-	installKey, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, hashedKey)
+	// Bounded: the digest is only unique per namespace, so an unbounded read-back here could return
+	// another namespace's key that happens to share the digest.
+	installKey, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashedKey)
 	if err != nil {
 		return nil, err
 	}
@@ -277,20 +284,30 @@ func (s *service) ListInstallKeys(ctx context.Context, req *requests.ListInstall
 
 	req.Sorter.Tiebreak = "key_digest"
 
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return s.store.InstallKeyList(
 		ctx,
-		s.store.Options().InNamespace(req.TenantID),
+		sc,
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
 	)
 }
 
 func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInstallKey) error {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	installKey, err := s.store.InstallKeyResolve(ctx, store.InstallKeyNameResolver, req.CurrentName, s.store.Options().InNamespace(req.TenantID))
+	installKey, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyNameResolver, req.CurrentName)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -320,7 +337,7 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 	}
 
 	if req.Name != "" && req.Name != installKey.Name {
-		conflicts, has, err := s.store.InstallKeyConflicts(ctx, req.TenantID, &models.InstallKeyConflicts{Name: req.Name})
+		conflicts, has, err := s.store.InstallKeyConflicts(ctx, sc, &models.InstallKeyConflicts{Name: req.Name})
 		if err != nil {
 			return err
 		}
@@ -432,7 +449,12 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 }
 
 func (s *service) RevealInstallKey(ctx context.Context, req *requests.RevealInstallKey) (string, error) {
-	installKey, err := s.store.InstallKeyResolve(ctx, store.InstallKeyNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return "", err
+	}
+
+	installKey, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyNameResolver, req.Name)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -452,7 +474,12 @@ func (s *service) RevealInstallKey(ctx context.Context, req *requests.RevealInst
 }
 
 func (s *service) ListInstallKeyEvents(ctx context.Context, req *requests.ListInstallKeyEvents) ([]models.InstallKeyEvent, int, error) {
-	installKey, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	installKey, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, req.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -470,7 +497,7 @@ func (s *service) ListInstallKeyEvents(ctx context.Context, req *requests.ListIn
 
 	return s.store.InstallKeyEventList(
 		ctx,
-		req.TenantID,
+		sc,
 		installKey.ID,
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
@@ -510,7 +537,14 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 	// disabled, expired, or exhausted after the token was minted must not still accept — and reserve a
 	// use against the atomic usage-limit guard before flipping the device, so a deferred accept honors
 	// the same limit and revocation guarantees as the synchronous path.
-	key, err := s.store.InstallKeyResolve(ctx, store.InstallKeyIDResolver, claims.InstallKeyID, s.store.Options().InNamespace(claims.TenantID))
+	// The tenant comes out of a signed token, which does not itself require it to be non-empty, so
+	// bound it through the error-returning constructor rather than assuming it.
+	sc, err := BoundTo(claims.TenantID)
+	if err != nil {
+		return NewErrInstallKeyForbidden()
+	}
+
+	key, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, claims.InstallKeyID)
 	if err != nil || !key.IsValid() {
 		return NewErrInstallKeyForbidden()
 	}

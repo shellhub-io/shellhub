@@ -62,11 +62,16 @@ type TagsService interface {
 }
 
 func (s *service) CreateTag(ctx context.Context, req *requests.CreateTag) (string, []string, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return "", []string{}, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return "", []string{}, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if conflicts, has, err := s.store.TagConflicts(ctx, req.TenantID, &models.TagConflicts{Name: req.Name}); has || err != nil {
+	if conflicts, has, err := s.store.TagConflicts(ctx, sc, &models.TagConflicts{Name: req.Name}); has || err != nil {
 		return "", conflicts, err
 	}
 
@@ -79,11 +84,16 @@ func (s *service) CreateTag(ctx context.Context, req *requests.CreateTag) (strin
 }
 
 func (s *service) PushTagTo(ctx context.Context, target store.TagTarget, req *requests.PushTag) (err error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	tag, err := s.store.TagResolve(ctx, store.TagNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 	if err != nil {
 		return NewErrTagNotFound(req.Name, err)
 	}
@@ -92,11 +102,16 @@ func (s *service) PushTagTo(ctx context.Context, target store.TagTarget, req *re
 }
 
 func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *requests.PullTag) (err error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	tag, err := s.store.TagResolve(ctx, store.TagNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 	if err != nil {
 		return NewErrTagNotFound(req.Name, err)
 	}
@@ -105,6 +120,11 @@ func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *
 }
 
 func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return []models.Tag{}, 0, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return []models.Tag{}, 0, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -120,13 +140,12 @@ func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]model
 	req.Sorter.Tiebreak = "id"
 
 	opts := []store.QueryOption{
-		s.store.Options().InNamespace(req.TenantID),
 		s.store.Options().Match(&req.Filters),
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
 	}
 
-	tags, totalCount, err := s.store.TagList(ctx, opts...)
+	tags, totalCount, err := s.store.TagList(ctx, sc, opts...)
 	if err != nil {
 		return []models.Tag{}, 0, err
 	}
@@ -135,11 +154,16 @@ func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]model
 }
 
 func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]string, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return []string{}, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return []string{}, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	tag, err := s.store.TagResolve(ctx, store.TagNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 	if err != nil {
 		return []string{}, NewErrTagNotFound(req.Name, err)
 	}
@@ -149,7 +173,7 @@ func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]str
 		conflictsAttrs.Name = req.NewName
 	}
 
-	if conflicts, has, err := s.store.TagConflicts(ctx, req.TenantID, conflictsAttrs); has || err != nil {
+	if conflicts, has, err := s.store.TagConflicts(ctx, sc, conflictsAttrs); has || err != nil {
 		return conflicts, NewErrTagDuplicated(req.NewName, err)
 	}
 
@@ -170,11 +194,16 @@ func (s *service) DeleteTag(ctx context.Context, req *requests.DeleteTag) error 
 
 func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb {
 	return func(ctx context.Context) error {
+		sc, err := BoundTo(req.TenantID)
+		if err != nil {
+			return err
+		}
+
 		if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 			return NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		tag, err := s.store.TagResolve(ctx, store.TagNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+		tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 		if err != nil {
 			return NewErrTagNotFound(req.Name, err)
 		}

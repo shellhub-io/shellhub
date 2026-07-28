@@ -43,7 +43,11 @@ func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, 
 	// Tag filters need the device's tag ids, which the agent-sent payload omits;
 	// resolve the stored device so the shared matcher can intersect them.
 	if len(key.Filter.TagIDs) > 0 {
-		d, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, dev.UID)
+		sc, err := BoundTo(key.TenantID)
+		if err != nil {
+			return false, err
+		}
+		d, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, dev.UID)
 		if err != nil {
 			return false, NewErrDeviceNotFound(models.UID(dev.UID), err)
 		}
@@ -68,19 +72,29 @@ func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, 
 }
 
 func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant); err != nil {
 		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
-	return s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
+	return s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return nil, err
+	}
+
 	// Checks if public key filter type is Tags.
 	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
 	tagIDs := []string{}
 	if req.Filter.Tags != nil {
-		tags, _, err := s.store.TagList(ctx, s.store.Options().InNamespace(tenant))
+		tags, _, err := s.store.TagList(ctx, sc)
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
 		}
@@ -109,7 +123,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 
 	req.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, req.Fingerprint, s.store.Options().InNamespace(tenant))
+	returnedKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, req.Fingerprint)
 	if err != nil && err != store.ErrNoDocuments {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
@@ -148,16 +162,26 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return s.store.PublicKeyList(
 		ctx,
-		s.store.Options().InNamespace(req.TenantID),
+		sc,
 		s.store.Options().Match(&req.Filters),
 		s.store.Options().Paginate(&req.Paginator),
 	)
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
-	publicKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 	if err != nil {
 		return nil, NewErrPublicKeyNotFound(fingerprint, err)
 	}
@@ -166,7 +190,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 	// filter and if the all tags exist on database.
 	tagIDs := []string{}
 	if key.Filter.Tags != nil {
-		tags, _, err := s.store.TagList(ctx, s.store.Options().InNamespace(tenant))
+		tags, _, err := s.store.TagList(ctx, sc)
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
 		}
@@ -199,15 +223,20 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		return nil, err
 	}
 
-	return s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
+	return s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant); err != nil {
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	publicKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
+	publicKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 	if err != nil {
 		return NewErrPublicKeyNotFound(fingerprint, err)
 	}

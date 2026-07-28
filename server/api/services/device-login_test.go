@@ -216,7 +216,7 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 					Return(namespace, nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "uid1", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
+					On("DeviceResolve", mock.Anything, mock.Anything, store.DeviceUIDResolver, "uid1").
 					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
@@ -236,7 +236,7 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 					Return(namespace, nil).
 					Once()
 				storeMock.
-					On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "uid1", mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 1 })).
+					On("DeviceResolve", mock.Anything, mock.Anything, store.DeviceUIDResolver, "uid1").
 					Return(device, nil).
 					Once()
 			},
@@ -294,8 +294,6 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			queryOptionsMock := new(storemock.MockQueryOptions)
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
-			queryOptionsMock.On("InNamespace", "tenant1").Return(nil).Maybe()
-
 			tc.requiredMocks(cacheMock, storeMock)
 
 			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)

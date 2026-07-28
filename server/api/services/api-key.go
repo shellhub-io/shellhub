@@ -32,6 +32,11 @@ type APIKeyService interface {
 }
 
 func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -68,7 +73,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	keySum := sha256.Sum256([]byte(req.Key))
 	hashedKey := hex.EncodeToString(keySum[:])
 
-	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{ID: hashedKey, Name: req.Name}); has {
+	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{ID: hashedKey, Name: req.Name}); has {
 		return nil, NewErrAPIKeyDuplicated(conflicts)
 	}
 
@@ -87,7 +92,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 
 	// As we need to return the plain key in the create service, we temporarily set
 	// the apiKey.ID to the plain key here.
-	apiKey, _ := s.store.APIKeyResolve(ctx, store.APIKeyIDResolver, hashedKey)
+	apiKey, _ := s.store.APIKeyResolve(ctx, sc, store.APIKeyIDResolver, hashedKey)
 	apiKey.ID = req.Key
 
 	return responses.CreateAPIKeyFromModel(apiKey), nil
@@ -100,22 +105,32 @@ func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]
 
 	req.Sorter.Tiebreak = "key_digest"
 
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return s.store.APIKeyList(
 		ctx,
-		s.store.Options().InNamespace(req.TenantID),
+		sc,
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
 	)
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
 	// The acting member must outrank the role being assigned. A RoleInvalid (empty) req.Role means
 	// no role change, so the seam resolves membership without an authority assertion.
 	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
 		return err
 	}
 
-	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.CurrentName, s.store.Options().InNamespace(req.TenantID))
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.CurrentName)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -126,7 +141,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 	}
 
 	if apiKey.Name != req.Name {
-		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
+		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{Name: req.Name}); has {
 			return NewErrAPIKeyDuplicated(conflicts)
 		}
 	}
@@ -146,7 +161,12 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 }
 
 func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
-	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.Name)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):

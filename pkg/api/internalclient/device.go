@@ -12,7 +12,9 @@ type deviceAPI interface {
 	// ListDevices returns a list of devices.
 	ListDevices(ctx context.Context) ([]models.Device, error)
 
-	// GetDevice retrieves device information for the specified UID.
+	// GetDevice retrieves device information for the specified UID, across every namespace. It hits
+	// the internal route deliberately: the caller has no tenant to bound by yet. The public
+	// /api/devices/:uid route is bounded to the caller's namespace and refuses a request without one.
 	GetDevice(ctx context.Context, uid string) (*models.Device, error)
 
 	// DevicesOffline updates a device's status to offline.
@@ -102,7 +104,7 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		SetResult(&device).
-		Get(apiBaseURL + "/api/devices/{uid}")
+		Get(apiBaseURL + "/internal/devices/{uid}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}

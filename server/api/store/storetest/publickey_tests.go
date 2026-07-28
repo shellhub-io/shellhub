@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, "nonexistent-fingerprint", st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, "nonexistent-fingerprint")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, pubKey)
 	})
@@ -31,7 +32,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenant2))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant2), store.PublicKeyFingerprintResolver, fingerprint)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, pubKey)
 	})
@@ -46,7 +47,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 			WithPublicKeyHostname(".*"),
 		)
 
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		require.NotNil(t, pubKey)
 		assert.Equal(t, fingerprint, pubKey.Fingerprint)
@@ -63,7 +64,7 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 	t.Run("succeeds when public key list is empty", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		pubKeys, count, err := st.PublicKeyList(ctx, st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
+		pubKeys, count, err := st.PublicKeyList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, pubKeys)
@@ -74,7 +75,7 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 
 		s.CreatePublicKey(t, WithPublicKeyName("key1"))
 
-		pubKeys, count, err := st.PublicKeyList(ctx, st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
+		pubKeys, count, err := st.PublicKeyList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		assert.Len(t, pubKeys, 1)
@@ -109,7 +110,7 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		assert.NotEmpty(t, fingerprint)
 
 		// Verify the key was created with tags
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Len(t, pubKey.Filter.TagIDs, 2)
 	})
@@ -141,7 +142,7 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		assert.NotEmpty(t, fingerprint)
 
 		// Verify the key was created
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Len(t, pubKey.Filter.TagIDs, 1)
 		assert.Contains(t, pubKey.Filter.TagIDs, tagID)
@@ -159,7 +160,7 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 
 		// Create and delete a public key to get a valid but non-existent fingerprint
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("temp"), WithPublicKeyTenant(tenantID))
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
@@ -178,7 +179,7 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
 		// Get the public key from tenant1
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenant1))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
 		// Try to update it with tenant2 ID (should fail)
@@ -197,7 +198,7 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenantID))
 
 		// Get the full public key
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
 		// Update name and tags
@@ -207,7 +208,7 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update
-		updatedKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		updatedKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Equal(t, "edited_key", updatedKey.Name)
 	})
@@ -224,7 +225,7 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 
 		// Create and delete a public key to get a valid but non-existent fingerprint
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("temp"), WithPublicKeyTenant(tenantID))
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
@@ -242,7 +243,7 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
 		// Get the public key from tenant1
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenant1))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
 		// Try to delete with wrong tenant ID
@@ -258,7 +259,7 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenantID))
 
 		// Get the full public key
-		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
 		// Delete
@@ -266,7 +267,7 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		_, err = st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

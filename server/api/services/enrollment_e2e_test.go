@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -148,7 +149,7 @@ func (e *enrollmentE2E) enroll(t *testing.T, mac, installKey string) string {
 
 func (e *enrollmentE2E) status(t *testing.T, uid string) models.DeviceStatus {
 	t.Helper()
-	device, err := e.st.DeviceResolve(context.Background(), store.DeviceUIDResolver, uid)
+	device, err := e.st.DeviceResolve(context.Background(), scope.NewUnbounded("test: exercising the query itself, not its namespace bound"), store.DeviceUIDResolver, uid)
 	require.NoError(t, err)
 
 	return device.Status
@@ -156,7 +157,7 @@ func (e *enrollmentE2E) status(t *testing.T, uid string) models.DeviceStatus {
 
 func (e *enrollmentE2E) usedTimes(t *testing.T, keyDigest string) int {
 	t.Helper()
-	key, err := e.st.InstallKeyResolve(context.Background(), store.InstallKeyIDResolver, keyDigest, e.st.Options().InNamespace(e.tenantID))
+	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, keyDigest)
 	require.NoError(t, err)
 
 	return key.UsedTimes
@@ -168,7 +169,7 @@ func clearSecret(k *models.InstallKey) { k.KeyEncrypted, k.KeyHint = "", "" }
 func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.InstallKeyEvent {
 	t.Helper()
 	// History is keyed by the key's id (digest); resolve the seeded key's name to its id first.
-	key, err := e.st.InstallKeyResolve(context.Background(), store.InstallKeyNameResolver, keyName, e.st.Options().InNamespace(e.tenantID))
+	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyNameResolver, keyName)
 	require.NoError(t, err)
 
 	events, _, err := e.svc.ListInstallKeyEvents(context.Background(), &requests.ListInstallKeyEvents{
@@ -183,7 +184,7 @@ func (e *enrollmentE2E) events(t *testing.T, keyName string) []models.InstallKey
 
 func (e *enrollmentE2E) pendingCount(t *testing.T) int {
 	t.Helper()
-	_, count, err := e.svc.ListDevices(context.Background(), &requests.DeviceList{
+	_, count, err := e.svc.ListDevices(context.Background(), scope.MustBounded(e.tenantID), &requests.DeviceList{
 		TenantID:     e.tenantID,
 		DeviceStatus: models.DeviceStatusPending,
 		Paginator:    query.Paginator{Page: 1, PerPage: 100},
@@ -484,7 +485,7 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 	t.Run("a key revoked after the token is minted can't accept via callback", func(t *testing.T) {
 		uid, token := enrollDeferred(0x63, "webhook-revoked", "aa:bb:cc:dd:ee:63")
 
-		key, err := e.st.InstallKeyResolve(context.Background(), store.InstallKeyIDResolver, digest(0x63), e.st.Options().InNamespace(e.tenantID))
+		key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, digest(0x63))
 		require.NoError(t, err)
 		key.Revoked = true
 		require.NoError(t, e.st.InstallKeyUpdate(context.Background(), key))
@@ -591,7 +592,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
 
 	// Revoke the key while the device sits pending.
-	key, err := e.st.InstallKeyResolve(context.Background(), store.InstallKeyIDResolver, digest(0x61), e.st.Options().InNamespace(e.tenantID))
+	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, digest(0x61))
 	require.NoError(t, err)
 	key.Revoked = true
 	require.NoError(t, e.st.InstallKeyUpdate(context.Background(), key))

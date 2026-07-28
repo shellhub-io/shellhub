@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -49,7 +50,7 @@ func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("persists webhook mode config", func(t *testing.T) {
-		got, err := st.InstallKeyResolve(ctx, store.InstallKeyNameResolver, "hook", st.Options().InNamespace(tenantID))
+		got, err := st.InstallKeyResolve(ctx, scope.MustBounded(tenantID), store.InstallKeyNameResolver, "hook")
 		require.NoError(t, err)
 		assert.Equal(t, models.InstallKeyModeWebhook, got.Mode)
 		assert.Equal(t, "https://hook.example/enroll", got.WebhookURL)
@@ -58,7 +59,7 @@ func (s *Suite) TestInstallKeyModeRoundTrip(t *testing.T) {
 	})
 
 	t.Run("persists allowlist mode config", func(t *testing.T) {
-		got, err := st.InstallKeyResolve(ctx, store.InstallKeyNameResolver, "allow", st.Options().InNamespace(tenantID))
+		got, err := st.InstallKeyResolve(ctx, scope.MustBounded(tenantID), store.InstallKeyNameResolver, "allow")
 		require.NoError(t, err)
 		assert.Equal(t, models.InstallKeyModeAllowlist, got.Mode)
 		assert.Equal(t, []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"}, got.AllowedMACs)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -22,10 +23,9 @@ func (s *Suite) TestSessionList(t *testing.T) {
 	t.Run("succeeds when no sessions are found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Empty(t, sessions)
@@ -42,10 +42,9 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionUser("user4"))
 
 		// List all sessions
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 
 		require.NoError(t, err)
 		assert.Equal(t, 4, count)
@@ -65,7 +64,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionUser("user3"))
 
-		sessions, count, err := st.SessionList(ctx)
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, sessions, 3)
@@ -84,7 +83,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionUser("user3"))
 
-		sessions, count, err := st.SessionList(ctx, st.Options().InNamespace(tenant1))
+		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 		assert.Len(t, sessions, 2)
@@ -104,7 +103,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user1"))
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
 
-		sessions, count, err := st.SessionList(ctx, st.Options().InNamespace(tenant2))
+		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant2))
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 		assert.Empty(t, sessions)
@@ -121,18 +120,14 @@ func (s *Suite) TestSessionList(t *testing.T) {
 				WithSessionUser(fmt.Sprintf("user%d", i)))
 		}
 
-		sessions, count, err := st.SessionList(ctx,
-			st.Options().InNamespace(tenant),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}),
-		)
+		sessions, count, err := st.SessionList(ctx, scope.MustBounded(tenant),
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}))
 		require.NoError(t, err)
 		assert.Equal(t, 5, count)
 		assert.Len(t, sessions, 2)
 
-		sessions, count, err = st.SessionList(ctx,
-			st.Options().InNamespace(tenant),
-			st.Options().Paginate(&query.Paginator{Page: 3, PerPage: 2}),
-		)
+		sessions, count, err = st.SessionList(ctx, scope.MustBounded(tenant),
+			st.Options().Paginate(&query.Paginator{Page: 3, PerPage: 2}))
 		require.NoError(t, err)
 		assert.Equal(t, 5, count)
 		assert.Len(t, sessions, 1)
@@ -167,7 +162,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		_ = sessA
 
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "device_uid",
@@ -175,8 +170,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    string(device1),
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 		assert.Len(t, sessions, 2)
@@ -200,7 +194,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
 		// "ne device1" should return only device2 sessions.
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "device_uid",
@@ -208,8 +202,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    string(device1),
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 		assert.Len(t, sessions, 2)
@@ -234,7 +227,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "closed",
@@ -242,8 +235,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    true,
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 		assert.Len(t, sessions, 1)
@@ -267,7 +259,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "closed",
@@ -275,8 +267,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    false,
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, sessions, 3)
@@ -300,7 +291,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "active",
@@ -308,8 +299,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    true,
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Greater(t, count, 0)
 		assert.NotEmpty(t, sessions)
@@ -337,7 +327,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 
 		// The NOT EXISTS correlated subquery on active_sessions.session_id must
 		// match only sessions without an active_sessions row (sess_b and sess_d).
-		sessions, count, err := st.SessionList(ctx,
+		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{
 					Name:     "active",
@@ -345,8 +335,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 					Value:    false,
 				}},
 			}}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
-		)
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
 		assert.Greater(t, count, 0)
 		assert.NotEmpty(t, sessions)
@@ -366,7 +355,7 @@ func (s *Suite) TestSessionResolve(t *testing.T) {
 	t.Run("fails when session not found by UID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		session, err := st.SessionResolve(ctx, store.SessionUIDResolver, "nonexistent")
+		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, "nonexistent")
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, session)
 	})
@@ -383,7 +372,7 @@ func (s *Suite) TestSessionResolve(t *testing.T) {
 		)
 
 		// Resolve by UID
-		session, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
+		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 		require.NoError(t, err)
 		require.NotNil(t, session)
 		assert.Equal(t, string(sessionUID), session.UID)
@@ -418,7 +407,7 @@ func (s *Suite) TestSessionCreate(t *testing.T) {
 		assert.NotEmpty(t, uid)
 
 		// Verify it was created
-		created, err := st.SessionResolve(ctx, store.SessionUIDResolver, uid)
+		created, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, uid)
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, created.TenantID)
 	})
@@ -473,7 +462,7 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify update
-		session, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
+		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 		require.NoError(t, err)
 		assert.True(t, session.Authenticated)
 	})

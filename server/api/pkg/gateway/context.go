@@ -2,15 +2,34 @@ package gateway
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
+
+type ctxKey string
+
+const ctxAdminRoute ctxKey = "admin-route"
 
 type Context struct {
 	service interface{}
 	echo.Context
+}
+
+// MarkAdminRoute tags the request as originating from the admin route group. Only the admin
+// middleware should call this — it is what lets [AdminOrScope] distinguish an admin-console
+// request (no tenant by design) from a regular request by a user who happens to be an admin.
+func (c *Context) MarkAdminRoute() {
+	c.SetRequest(c.Request().WithContext(context.WithValue(c.Request().Context(), ctxAdminRoute, true)))
+}
+
+func (c *Context) isAdminRoute() bool {
+	v, _ := c.Request().Context().Value(ctxAdminRoute).(bool)
+
+	return v
 }
 
 func NewContext(service interface{}, c echo.Context) *Context {
@@ -35,6 +54,35 @@ func (c *Context) Tenant() *models.Tenant {
 	}
 
 	return nil
+}
+
+// Scope bounds the request to the namespace its tenant header carries. A route that serves
+// namespace-bound data calls this and returns the error rather than widening the read: an absent
+// header refuses the request, matching the tenant guard's fail-closed behaviour.
+func (c *Context) Scope() (scope.Scope, error) {
+	tenant := c.Tenant()
+	if tenant == nil {
+		return scope.Scope{}, echo.NewHTTPError(http.StatusForbidden, scope.ErrEmptyTenantID.Error())
+	}
+
+	sc, err := scope.NewBounded(tenant.ID)
+	if err != nil {
+		return scope.Scope{}, echo.NewHTTPError(http.StatusForbidden, err.Error())
+	}
+
+	return sc, nil
+}
+
+// AdminOrScope returns an unbounded scope when the request was routed through the admin route group
+// (marked by [MarkAdminRoute]), or a namespace-bounded scope otherwise. This distinction is
+// deliberate: an admin user browsing the regular UI must stay bounded to their selected namespace,
+// while the same user in the admin console sees every namespace.
+func (c *Context) AdminOrScope() (scope.Scope, error) {
+	if c.isAdminRoute() {
+		return scope.NewUnbounded("admin console: cross-namespace read for system administration"), nil
+	}
+
+	return c.Scope()
 }
 
 // DeviceUID returns the device's UID got from the device JWT through gateway.

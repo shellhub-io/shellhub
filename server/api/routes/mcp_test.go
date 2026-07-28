@@ -9,6 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -135,7 +136,7 @@ func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
 func TestMCPListDevices(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("ListDevices", gomock.Anything, gomock.MatchedBy(func(r *requests.DeviceList) bool {
+		On("ListDevices", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(r *requests.DeviceList) bool {
 			return r.TenantID == mcpCallerTenant &&
 				r.DeviceStatus == models.DeviceStatus("accepted") &&
 				r.Paginator.Page == 2 && r.Paginator.PerPage == 50
@@ -157,7 +158,7 @@ func TestMCPListDevices(t *testing.T) {
 func TestMCPGetDevice(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("GetDevice", gomock.Anything, models.UID("uid1")).
+		On("GetDevice", gomock.Anything, scope.MustBounded(mcpCallerTenant), models.UID("uid1")).
 		Return(&models.Device{UID: "uid1", Name: "dev1"}, nil).
 		Once()
 
@@ -267,7 +268,7 @@ func TestMCPGetStats(t *testing.T) {
 func TestMCPListSessions(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("ListSessions", gomock.Anything, gomock.MatchedBy(func(r *requests.ListSessions) bool {
+		On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(r *requests.ListSessions) bool {
 			return r.TenantID == mcpCallerTenant && r.Paginator.Page == 1 && r.Paginator.PerPage == 20
 		})).
 		Return([]models.Session{{UID: "sess1"}}, 1, nil).
@@ -287,7 +288,7 @@ func TestMCPListSessions(t *testing.T) {
 func TestMCPGetSession(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("GetSession", gomock.Anything, models.UID("sess1")).
+		On("GetSession", gomock.Anything, scope.MustBounded(mcpCallerTenant), models.UID("sess1")).
 		Return(&models.Session{UID: "sess1"}, nil).
 		Once()
 

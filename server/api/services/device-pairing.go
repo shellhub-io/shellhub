@@ -10,6 +10,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -86,7 +87,8 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 	// again. The public key is not exposed by any read API, so disclosing the
 	// tenant to whoever holds it is acceptable; possession of the matching
 	// private key is still required to actually operate as the device.
-	if device, err := s.store.DeviceResolve(ctx, store.DevicePublicKeyResolver, req.PublicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); err == nil && device != nil {
+	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
+	if device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, req.PublicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted)); err == nil && device != nil {
 		return &models.DevicePairing{Status: models.DeviceStatusAccepted, TenantID: device.TenantID}, nil
 	}
 

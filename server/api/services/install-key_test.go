@@ -13,6 +13,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
@@ -136,7 +137,7 @@ func TestCreateInstallKey(t *testing.T) {
 				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.On("Generate").Return(generated).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{"name"}, true, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyDuplicated([]string{"name"}),
@@ -150,13 +151,13 @@ func TestCreateInstallKey(t *testing.T) {
 				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.On("Generate").Return(generated).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("InstallKeyCreate", ctx, matchCreate(&models.InstallKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
 					CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, hashedKey).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, hashedKey).
 					Return(nil, errors.New("resolve error")).Once()
 			},
 			expectedErr: errors.New("resolve error"),
@@ -170,13 +171,13 @@ func TestCreateInstallKey(t *testing.T) {
 				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.On("Generate").Return(generated).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("InstallKeyCreate", ctx, matchCreate(&models.InstallKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true, UsageLimit: 10,
 					Tags: []string{"prod"}, CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, hashedKey).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, hashedKey).
 					Return(&models.InstallKey{
 						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true, UsageLimit: 10,
 						Tags: []string{"prod"}, CreatedBy: "000000000000000000000000",
@@ -193,13 +194,13 @@ func TestCreateInstallKey(t *testing.T) {
 				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.On("Generate").Return(generated).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("InstallKeyCreate", ctx, matchCreate(&models.InstallKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: false, UsageLimit: 1,
 					CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, hashedKey).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, hashedKey).
 					Return(&models.InstallKey{
 						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: false, UsageLimit: 1,
 						CreatedBy: "000000000000000000000000",
@@ -216,13 +217,13 @@ func TestCreateInstallKey(t *testing.T) {
 				uuidMock := uuidmock.NewMockUUID(t)
 				uuid.DefaultBackend = uuidMock
 				uuidMock.On("Generate").Return(generated).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("InstallKeyCreate", ctx, matchCreate(&models.InstallKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
 					ExpiresAt: &future, CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, hashedKey).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, hashedKey).
 					Return(&models.InstallKey{ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()
 			},
 			expectedKey: plain,
@@ -254,7 +255,7 @@ func TestCreateInstallKey(t *testing.T) {
 func TestListInstallKeys(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
@@ -264,10 +265,9 @@ func TestListInstallKeys(t *testing.T) {
 		Sorter:    query.Sorter{By: "created_at", Order: query.OrderDesc},
 	}
 
-	queryOptionsMock.On("InNamespace", tenant).Return(nil).Once()
 	queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "key_digest"}).Return(nil).Once()
 	queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
-	storeMock.On("InstallKeyList", mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
+	storeMock.On("InstallKeyList", mock.Anything, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
 		Return([]models.InstallKey{{Name: "ci", TenantID: tenant}}, 1, nil).Once()
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -286,9 +286,7 @@ func TestListInstallKeys(t *testing.T) {
 func TestUpdateInstallKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
-	queryOptionsMock.On("InNamespace", mock.Anything).Return(nil)
-
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	const tenant = "00000000-0000-4000-0000-000000000000"
 	namespace := &models.Namespace{Name: "namespace", TenantID: tenant}
 	truePtr := true
@@ -319,7 +317,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
 			expectedErr: NewErrInstallKeyNotFound("ci", store.ErrNoDocuments),
@@ -330,9 +328,9 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{Name: "runners"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{Name: "runners"}).
 					Return([]string{"name"}, true, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyDuplicated([]string{"name"}),
@@ -343,7 +341,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Reusable: true, Revoked: true}).
 					Return(nil).Once()
@@ -356,7 +354,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "legacy").
 					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeAutomatic}).
 					Return(nil).Once()
@@ -369,7 +367,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "legacy").
 					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual, Disabled: true}).
 					Return(nil).Once()
@@ -382,7 +380,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "legacy").
 					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyForbidden(),
@@ -393,7 +391,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyInvalidField(map[string]string{
@@ -406,7 +404,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 0, UsedTimes: 3, Reusable: true}).
 					Return(nil).Once()
@@ -419,9 +417,9 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
-				storeMock.On("InstallKeyConflicts", ctx, tenant, &models.InstallKeyConflicts{Name: "runners"}).
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{Name: "runners"}).
 					Return([]string{}, false, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "runners", TenantID: tenant, Tags: []string{"prod"}}).
 					Return(nil).Once()
@@ -434,7 +432,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 5}).
 					Return(nil).Once()
@@ -447,7 +445,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				// EphemeralTimeout must land at the max (10), never 0 — a 0 timeout would delete devices the
 				// moment they disconnect.
@@ -462,7 +460,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "ci", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
 					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 10}, nil).Once()
 				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: false, EphemeralTimeout: 0}).
 					Return(nil).Once()
@@ -475,7 +473,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyNameResolver, "legacy", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "legacy").
 					Return(&models.InstallKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true, Mode: models.InstallKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrInstallKeyForbidden(),
@@ -544,9 +542,7 @@ func TestAppendInstallKeyEvent(t *testing.T) {
 func TestListInstallKeyEvents(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
-	queryOptionsMock.On("InNamespace", mock.Anything).Return(nil)
-
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
 	events := []models.InstallKeyEvent{{ID: "e1", InstallKeyID: "hash", TenantID: tenant, Hostname: "web-01"}}
@@ -563,7 +559,7 @@ func TestListInstallKeyEvents(t *testing.T) {
 			description: "fails when the key does not exist",
 			req:         &requests.ListInstallKeyEvents{TenantID: tenant, ID: "hash", Paginator: query.Paginator{Page: 1, PerPage: 10}, Sorter: query.Sorter{By: "created_at", Order: query.OrderDesc}},
 			requiredMocks: func(ctx context.Context) {
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, "hash", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, "hash").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
 			expectedEvents: nil,
@@ -575,11 +571,11 @@ func TestListInstallKeyEvents(t *testing.T) {
 			req:         &requests.ListInstallKeyEvents{TenantID: tenant, ID: "hash", Paginator: query.Paginator{Page: 1, PerPage: 10}, Sorter: query.Sorter{By: "created_at", Order: query.OrderDesc}},
 			requiredMocks: func(ctx context.Context) {
 				key := &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}
-				storeMock.On("InstallKeyResolve", ctx, store.InstallKeyIDResolver, "hash", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, "hash").
 					Return(key, nil).Once()
 				queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "id"}).Return(nil).Once()
 				queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
-				storeMock.On("InstallKeyEventList", ctx, tenant, "hash", mock.AnythingOfType("[]store.QueryOption")).
+				storeMock.On("InstallKeyEventList", ctx, scope.MustBounded(tenant), "hash", mock.AnythingOfType("[]store.QueryOption")).
 					Return(events, 1, nil).Once()
 			},
 			expectedEvents: events,

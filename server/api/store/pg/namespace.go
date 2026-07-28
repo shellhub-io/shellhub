@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -204,20 +205,21 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	return entity.NamespaceToModel(ns), nil
 }
 
-func (pg *Pg) NamespaceGetMembers(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error) {
+func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Membership, 0)
 	query := db.NewSelect().
 		Model(&entities).
 		Relation("User").
-		Where("membership.namespace_id = ?", tenantID).
 		// Service accounts are not human members; keep them out of the members list.
 		Where("membership.user_id IN (SELECT id FROM users WHERE type != ?)", string(models.UserTypeService)).
 		OrderExpr("membership.created_at ASC")
 
+	ctx = context.WithValue(ctx, CtxTableAlias, "membership")
+
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -280,8 +282,13 @@ func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) 
 	return nil
 }
 
-func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
+func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error {
 	db := pg.GetConnection(ctx)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
 
 	column := "devices_" + string(status) + "_count"
 	result, err := db.NewUpdate().

@@ -11,10 +11,10 @@ type NamespaceQueryOption func(ctx context.Context, ns *models.Namespace) error
 
 type QueryOption func(ctx context.Context) error
 
+// QueryOptions carries the optional shaping of a query — filtering, pagination, sorting. The
+// namespace an operation is bounded to is deliberately not here: it is a required scope.Scope
+// parameter of every namespace-bound operation, rather than something a caller may forget to pass.
 type QueryOptions interface {
-	// InNamespace matches a document that belongs to the provided namespace
-	InNamespace(tenantID string) QueryOption
-
 	// WithDeviceStatus matches a device with the provided status
 	WithDeviceStatus(models.DeviceStatus) QueryOption
 

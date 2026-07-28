@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -24,7 +25,7 @@ func (pg *Pg) InstallKeyCreate(ctx context.Context, installKey *models.InstallKe
 	return installKey.ID, nil
 }
 
-func (pg *Pg) InstallKeyConflicts(ctx context.Context, tenantID string, target *models.InstallKeyConflicts) ([]string, bool, error) {
+func (pg *Pg) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
 
 	if target.ID == "" && target.Name == "" {
@@ -34,8 +35,12 @@ func (pg *Pg) InstallKeyConflicts(ctx context.Context, tenantID string, target *
 	installKeys := make([]entity.InstallKey, 0)
 	query := db.NewSelect().
 		Model(&installKeys).
-		Column("key_digest", "name").
-		Where("namespace_id = ?", tenantID)
+		Column("key_digest", "name")
+
+	query, err := applyScopedOptions(ctx, query, sc)
+	if err != nil {
+		return nil, false, err
+	}
 
 	if target.ID != "" && target.Name != "" {
 		query = query.Where("key_digest = ? OR name = ?", target.ID, target.Name)
@@ -68,7 +73,7 @@ func (pg *Pg) InstallKeyConflicts(ctx context.Context, tenantID string, target *
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (pg *Pg) InstallKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
+func (pg *Pg) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.InstallKey, 0)
@@ -80,7 +85,7 @@ func (pg *Pg) InstallKeyList(ctx context.Context, opts ...store.QueryOption) ([]
 		Model(&entities).
 		OrderExpr("(type = 'user') ASC, (type = 'pairing') ASC")
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -98,7 +103,7 @@ func (pg *Pg) InstallKeyList(ctx context.Context, opts ...store.QueryOption) ([]
 	return installKeys, count, nil
 }
 
-func (pg *Pg) InstallKeyResolve(ctx context.Context, resolver store.InstallKeyResolver, val string, opts ...store.QueryOption) (*models.InstallKey, error) {
+func (pg *Pg) InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, val string, opts ...store.QueryOption) (*models.InstallKey, error) {
 	db := pg.GetConnection(ctx)
 
 	column, err := InstallKeyResolverToString(resolver)
@@ -108,7 +113,7 @@ func (pg *Pg) InstallKeyResolve(ctx context.Context, resolver store.InstallKeyRe
 
 	installKey := new(entity.InstallKey)
 	query := db.NewSelect().Model(installKey).Where("? = ?", bun.Ident(column), val)
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,20 +125,32 @@ func (pg *Pg) InstallKeyResolve(ctx context.Context, resolver store.InstallKeyRe
 	return entity.InstallKeyToModel(installKey), nil
 }
 
-func (pg *Pg) InstallKeyResolveSystem(ctx context.Context, tenantID string) (*models.InstallKey, error) {
-	return pg.installKeyResolveSystem(ctx, tenantID, models.InstallKeyTypeLegacy)
+func (pg *Pg) InstallKeyResolveSystem(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
+	return pg.installKeyResolveSystem(ctx, sc, models.InstallKeyTypeLegacy)
 }
 
-func (pg *Pg) InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error) {
-	return pg.installKeyResolveSystem(ctx, tenantID, models.InstallKeyTypePairing)
+func (pg *Pg) InstallKeyResolveSystemPairing(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
+	return pg.installKeyResolveSystem(ctx, sc, models.InstallKeyTypePairing)
 }
 
 // installKeyResolveSystem fetches one of the namespace's system keys by type (legacy or pairing).
-func (pg *Pg) installKeyResolveSystem(ctx context.Context, tenantID string, keyType models.InstallKeyType) (*models.InstallKey, error) {
+func (pg *Pg) installKeyResolveSystem(ctx context.Context, sc scope.Scope, keyType models.InstallKeyType) (*models.InstallKey, error) {
 	db := pg.GetConnection(ctx)
 
+	// "The namespace's system key" is not expressible without a namespace: an unbounded scope here
+	// would drop the predicate and return whichever namespace's system key sorted first.
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return nil, err
+	}
+
 	installKey := new(entity.InstallKey)
-	if err := db.NewSelect().Model(installKey).Where("namespace_id = ? AND type = ?", tenantID, string(keyType)).Scan(ctx); err != nil {
+	query := db.NewSelect().
+		Model(installKey).
+		Where("type = ?", string(keyType)).
+		Where("namespace_id = ?", tenantID)
+
+	if err := query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -222,7 +239,7 @@ func (pg *Pg) InstallKeyEventCreate(ctx context.Context, event *models.InstallKe
 	return nil
 }
 
-func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, tenantID, deviceUID string, status models.DeviceStatus, at time.Time) error {
+func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error {
 	db := pg.GetConnection(ctx)
 
 	// Stamp the device's newest event, so a re-registered device keeps each event's own decision. A
@@ -230,10 +247,16 @@ func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, tenantID, device
 	newest := db.NewSelect().
 		Model((*entity.InstallKeyEvent)(nil)).
 		Column("id").
-		Where("namespace_id = ?", tenantID).
 		Where("device_uid = ?", deviceUID).
 		Order("created_at DESC").
 		Limit(1)
+
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	newest = newest.Where("namespace_id = ?", tenantID)
 
 	if _, err := db.NewUpdate().
 		Model((*entity.InstallKeyEvent)(nil)).
@@ -247,8 +270,11 @@ func (pg *Pg) InstallKeyEventStampDecision(ctx context.Context, tenantID, device
 	return nil
 }
 
-func (pg *Pg) InstallKeyEventList(ctx context.Context, tenantID, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error) {
+func (pg *Pg) InstallKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error) {
 	db := pg.GetConnection(ctx)
+
+	// The model is aliased to "e", so the scope predicate has to qualify namespace_id the same way.
+	ctx = context.WithValue(ctx, CtxTableAlias, "e")
 
 	entities := make([]entity.InstallKeyEvent, 0)
 	// Join the device's current status and when it was last set live via correlated subqueries, so the
@@ -263,11 +289,10 @@ func (pg *Pg) InstallKeyEventList(ctx context.Context, tenantID, keyDigest strin
 		// only the newest event per device_uid as current; the live status + accept/reject action apply
 		// there alone. (The decision itself is frozen per-event in decided_status/decided_at.)
 		ColumnExpr("(e.created_at = MAX(e.created_at) OVER (PARTITION BY e.device_uid)) AS is_current").
-		Where("e.namespace_id = ?", tenantID).
 		Where("e.install_key_id = ?", keyDigest)
 
 	var err error
-	query, err = applyOptions(ctx, query, opts...)
+	query, err = applyScopedOptions(ctx, query, sc, opts...)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -34,7 +35,7 @@ type NamespaceStore interface {
 	// passed for sorting and pagination.
 	//
 	// It returns the members, the total count (ignoring pagination), and an error if any.
-	NamespaceGetMembers(ctx context.Context, tenantID string, opts ...QueryOption) ([]models.MemberView, int, error)
+	NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.MemberView, int, error)
 
 	// NamespaceGetPreferred retrieves the user's preferred namespace. If the user has no preferred namespace it returns
 	// the first namespace where the user is a member (typically the first one the user was added to). A list of options
@@ -53,7 +54,7 @@ type NamespaceStore interface {
 
 	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
 	// Returns [ErrNoDocuments] if the namespace is not found.
-	NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error
+	NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error
 
 	NamespaceDelete(ctx context.Context, namespace *models.Namespace) error
 	NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error)

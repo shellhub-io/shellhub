@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -311,7 +312,7 @@ func (s *Suite) CreateActiveSession(t *testing.T, sessionUID models.UID, lastSee
 	st := s.provider.Store()
 
 	// Get the session first
-	session, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
+	session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 	require.NoError(t, err)
 
 	// Create active session
@@ -374,7 +375,7 @@ func (s *Suite) CreateMembership(t *testing.T, tenantID, userID, role string) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	err := st.NamespaceCreateMembership(ctx, tenantID, &models.Member{
+	err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), &models.Member{
 		ID:   userID,
 		Role: authorizer.Role(role),
 	})

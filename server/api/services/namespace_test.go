@@ -26,7 +26,7 @@ import (
 func TestListNamespaces(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
 	ctx := context.TODO()
 
@@ -1475,7 +1475,6 @@ func TestEditSSHAccessMode(t *testing.T) {
 					Return(nil).
 					Once()
 
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{}, 0, nil).
@@ -1506,7 +1505,6 @@ func TestEditSSHAccessMode(t *testing.T) {
 					Return(nil).
 					Once()
 
-				queryOptionsMock.On("InNamespace", tenantID).Return(nil).Once()
 				storeMock.
 					On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{{ID: "existing"}}, 1, nil).

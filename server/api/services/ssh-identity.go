@@ -80,7 +80,12 @@ type SSHIdentityService interface {
 }
 
 func (s *service) ResolveSSHIdentity(ctx context.Context, tenantID, fingerprint string) (*models.SSHIdentity, bool, error) {
-	identity, err := s.store.SSHIdentityResolve(ctx, store.SSHIdentityFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenantID))
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return nil, false, err
+	}
+
+	identity, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, fingerprint)
 	if err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return nil, false, nil
@@ -108,7 +113,12 @@ func (s *service) ConsumeSSHIdentity(ctx context.Context, tenantID, fingerprint 
 // when the fingerprint is taken by another identity in the namespace. A zero
 // ExpiresAt and SingleUse give the durable, reusable key most callers want.
 func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
-	existing, err := s.store.SSHIdentityResolve(ctx, store.SSHIdentityFingerprintResolver, identity.Fingerprint, s.store.Options().InNamespace(identity.TenantID))
+	sc, err := BoundTo(identity.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, identity.Fingerprint)
 	if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 		return nil, err
 	}
@@ -144,12 +154,17 @@ func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIde
 }
 
 func (s *service) ListSSHIdentities(ctx context.Context, req *requests.SSHIdentityList) ([]models.SSHIdentity, error) {
-	opts := []store.QueryOption{s.store.Options().InNamespace(req.TenantID)}
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []store.QueryOption
 	if !req.All {
 		opts = append(opts, s.store.Options().WithUserID(req.UserID))
 	}
 
-	identities, _, err := s.store.SSHIdentityList(ctx, opts...)
+	identities, _, err := s.store.SSHIdentityList(ctx, sc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +196,12 @@ func (s *service) CreateSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 }
 
 func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error) {
-	identity, err := s.store.SSHIdentityResolve(ctx, store.SSHIdentityIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	identity, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityIDResolver, req.ID)
 	if err != nil {
 		return nil, NewErrSSHIdentityNotFound(req.ID, err)
 	}
@@ -202,7 +222,12 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 }
 
 func (s *service) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdentityDelete) error {
-	identity, err := s.store.SSHIdentityResolve(ctx, store.SSHIdentityIDResolver, req.ID, s.store.Options().InNamespace(req.TenantID))
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return err
+	}
+
+	identity, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityIDResolver, req.ID)
 	if err != nil {
 		return NewErrSSHIdentityNotFound(req.ID, err)
 	}

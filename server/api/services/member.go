@@ -9,6 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
@@ -88,8 +89,8 @@ func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID str
 // It opens no transaction of its own: the store's WithTransaction is not reentrant, so a caller that
 // needs the create and the delete to be atomic must wrap the call in its own transaction. admitMember
 // then joins that ambient transaction through the context.
-func (s *service) admitMember(ctx context.Context, tenantID string, member *models.Member, invitation *models.MembershipInvitation) error {
-	if err := s.store.NamespaceCreateMembership(ctx, tenantID, member); err != nil {
+func (s *service) admitMember(ctx context.Context, sc scope.Scope, member *models.Member, invitation *models.MembershipInvitation) error {
+	if err := s.store.NamespaceCreateMembership(ctx, sc, member); err != nil {
 		return err
 	}
 
@@ -156,10 +157,10 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 		if userExists && directMembershipAllowed() {
 			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: role}
 
-			return s.admitMember(ctx, namespace.TenantID, member, nil)
+			return s.admitMember(ctx, scope.MustBounded(namespace.TenantID), member, nil)
 		}
 
-		existing, err := s.store.MembershipInvitationResolve(ctx, namespace.TenantID, passiveUser.ID)
+		existing, err := s.store.MembershipInvitationResolve(ctx, scope.MustBounded(namespace.TenantID), passiveUser.ID)
 		if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 			return err
 		}
@@ -303,7 +304,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		member.Role = req.MemberRole
 	}
 
-	if err := s.store.NamespaceUpdateMembership(ctx, req.TenantID, member); err != nil {
+	if err := s.store.NamespaceUpdateMembership(ctx, scope.MustBounded(namespace.TenantID), member); err != nil {
 		return err
 	}
 
@@ -400,7 +401,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 }
 
 func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member *models.Member) error {
-	if err := s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
+	if err := s.store.NamespaceDeleteMembership(ctx, scope.MustBounded(ns.TenantID), member); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrNamespaceNotFound(ns.TenantID, err)
 		}

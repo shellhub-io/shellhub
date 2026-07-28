@@ -32,6 +32,10 @@ var (
 	// bound to one (systems.instance_tenant_id set — Community). Enterprise/Cloud never bind, so
 	// this is Community-specific and distinct from a plain duplicate-name conflict.
 	ErrNamespaceSingle = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConstraint)
+	// ErrInvalidScope is returned when a namespace-bound operation is given a scope that was never
+	// constructed. It catches a zero-value [scope.Scope] reaching the store, which would otherwise
+	// read as neither bounded nor deliberately unbounded.
+	ErrInvalidScope = errors.New("namespace scope is invalid", ErrLayer, ErrCodeInvalid)
 )
 
 // DuplicateFieldError carries the name of the field that caused a duplicate-key violation.

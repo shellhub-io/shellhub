@@ -27,6 +27,11 @@ type ServiceAccountService interface {
 }
 
 func (s *service) CreateServiceAccount(ctx context.Context, req *requests.ServiceAccountCreate) (*models.ServiceAccount, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -73,7 +78,7 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 		}
 
 		member := &models.Member{ID: id, AddedAt: clock.Now(), Role: authorizer.RoleService}
-		if err := s.admitMember(ctx, req.TenantID, member, nil); err != nil {
+		if err := s.admitMember(ctx, sc, member, nil); err != nil {
 			return err
 		}
 
@@ -108,6 +113,11 @@ func (s *service) CreateServiceAccount(ctx context.Context, req *requests.Servic
 }
 
 func (s *service) ListServiceAccounts(ctx context.Context, req *requests.ServiceAccountList) ([]models.ServiceAccount, error) {
+	sc, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
@@ -117,7 +127,7 @@ func (s *service) ListServiceAccounts(ctx context.Context, req *requests.Service
 		return nil, err
 	}
 
-	identities, _, err := s.store.SSHIdentityList(ctx, s.store.Options().InNamespace(req.TenantID))
+	identities, _, err := s.store.SSHIdentityList(ctx, sc)
 	if err != nil {
 		return nil, err
 	}
