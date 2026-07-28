@@ -18,9 +18,7 @@ vi.mock("@shellhub/design-system/components", () => ({
   ConnectionGrid: () => <div data-testid="connection-grid" />,
 }));
 
-function renderBanner(
-  props?: Partial<React.ComponentProps<typeof CTABanner>>,
-) {
+function renderBanner(props?: Partial<React.ComponentProps<typeof CTABanner>>) {
   const defaults: React.ComponentProps<typeof CTABanner> = {
     eyebrow: "Ready?",
     title: "Get started today",
@@ -52,12 +50,15 @@ describe("CTABanner", () => {
   it.each([
     { slot: "primaryAction", label: "Go", to: "/go" },
     { slot: "secondaryAction", label: "Alt", to: "/alt" },
-  ] as const)("$slot with `to` renders an internal link", ({ slot, label, to }) => {
-    renderBanner({ [slot]: { label, to } });
-    const link = screen.getByRole("link", { name: label });
-    expect(link).toHaveAttribute("href", to);
-    expect(link).not.toHaveAttribute("target");
-  });
+  ] as const)(
+    "$slot with `to` renders an internal link",
+    ({ slot, label, to }) => {
+      renderBanner({ [slot]: { label, to } });
+      const link = screen.getByRole("link", { name: label });
+      expect(link).toHaveAttribute("href", to);
+      expect(link).not.toHaveAttribute("target");
+    },
+  );
 
   it("href without external omits target and rel", () => {
     renderBanner({
