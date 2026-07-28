@@ -237,7 +237,7 @@ describe("IconButton — as={Link} (React Router Link-like)", () => {
       children?: React.ReactNode;
       [key: string]: unknown;
     }) => (
-      <a href={to as string} {...rest}>
+      <a href={to} {...rest}>
         {children}
       </a>
     );

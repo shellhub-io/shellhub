@@ -16,14 +16,11 @@ export type IconButtonSize = "sm" | "md" | "lg";
 // Icon-button variants intentionally rest at text-text-muted and accent on hover,
 // so `primary` and `danger` here differ from the always-filled Button variants of the same name.
 const VARIANT: Record<IconButtonVariant, string> = {
-  ghost:
-    "hover:text-text-primary hover:bg-hover-subtle",
-  primary:
-    "hover:text-primary hover:bg-primary/10",
+  ghost: "hover:text-text-primary hover:bg-hover-subtle",
+  primary: "hover:text-primary hover:bg-primary/10",
   danger:
     "hover:text-accent-red hover:bg-accent-red/10 focus-visible:ring-accent-red",
-  filled:
-    "bg-primary text-white hover:bg-primary/90",
+  filled: "bg-primary text-white hover:bg-primary/90",
 };
 
 const SIZE: Record<IconButtonSize, string> = {
@@ -67,7 +64,7 @@ export function IconButton<T extends ElementType = "button">({
   children,
   ...rest
 }: IconButtonProps<T>) {
-  const Component = (as ?? "button") as ElementType;
+  const Component: ElementType = (as ?? "button");
   const isNativeButton = !as || as === "button";
 
   // Strip `disabled` and `type` from rest before computing interaction props so

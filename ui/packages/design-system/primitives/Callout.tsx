@@ -16,11 +16,7 @@ import { cn } from "./cn";
 // ---------------------------------------------------------------------------
 
 export type CalloutVariant =
-  | "error"
-  | "success"
-  | "warning"
-  | "info"
-  | "feature";
+  "error" | "success" | "warning" | "info" | "feature";
 
 /** The semantic (non-feature) variants, which render through the SEMANTIC map. */
 type SemanticVariant = Exclude<CalloutVariant, "feature">;
@@ -124,8 +120,7 @@ export function Callout({
     );
   }
 
-  const { bg, border, text, Icon, role, ariaLive } =
-    SEMANTIC[variant as SemanticVariant];
+  const { bg, border, text, Icon, role, ariaLive } = SEMANTIC[variant];
 
   return (
     <div

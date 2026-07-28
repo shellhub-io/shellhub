@@ -14,7 +14,7 @@ function MenuDropdown({
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <button>Actions</button>
+        <button type="button">Actions</button>
       </Dropdown.Trigger>
       <Dropdown.Panel>
         <Dropdown.Item onSelect={onEdit} label="Edit">
@@ -32,7 +32,7 @@ function MenuWithDisabled() {
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <button>Actions</button>
+        <button type="button">Actions</button>
       </Dropdown.Trigger>
       <Dropdown.Panel>
         <Dropdown.Item label="Edit">Edit</Dropdown.Item>
@@ -137,7 +137,7 @@ function ContentDropdown() {
   return (
     <Dropdown mode="content">
       <Dropdown.Trigger>
-        <button>Open panel</button>
+        <button type="button">Open panel</button>
       </Dropdown.Trigger>
       <Dropdown.Panel aria-label="Info panel">
         <p>Custom content here</p>
@@ -464,7 +464,7 @@ describe("Dropdown", () => {
       render(
         <Dropdown open={true} onOpenChange={onOpenChange} mode="content">
           <Dropdown.Trigger>
-            <button>Trigger</button>
+            <button type="button">Trigger</button>
           </Dropdown.Trigger>
           <Dropdown.Panel aria-label="Controlled">
             <p>Content</p>

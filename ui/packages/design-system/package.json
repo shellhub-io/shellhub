@@ -12,6 +12,7 @@
     "./cn": "./primitives/cn.ts"
   },
   "scripts": {
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },

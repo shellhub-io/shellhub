@@ -15,7 +15,7 @@ export function Card<T extends ElementType = "div">({
   children,
   ...rest
 }: CardProps<T>) {
-  const Component = (as ?? "div") as ElementType;
+  const Component: ElementType = as ?? "div";
 
   return (
     <Component
