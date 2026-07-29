@@ -8,6 +8,10 @@ type Store interface {
 	NamespaceStore
 	MemberStore
 	PublicKeyStore
+	AccessPolicyStore
+	SSHIdentityStore
+	SSHApprovalStore
+	ServiceAccountStore
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore
