@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -194,6 +195,21 @@ func WithDeviceRemoteAddr(addr string) DeviceOption {
 	}
 }
 
+// deviceSeq backs the default device identifiers. A counter rather than the clock because
+// devices are unique on (namespace_id, mac) while accepted, and clock-derived values collide
+// often enough to fail the suite.
+var deviceSeq atomic.Uint64
+
+func nextDeviceUID() string {
+	return fmt.Sprintf("%064x", deviceSeq.Add(1))
+}
+
+func nextDeviceMAC() string {
+	n := deviceSeq.Add(1)
+
+	return fmt.Sprintf("00:00:%02x:%02x:%02x:%02x", (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF)
+}
+
 // CreateDevice creates a device with default or customized values
 // Returns the generated device UID
 // If tenant is not provided via WithTenantID(), a default namespace will be created
@@ -202,15 +218,11 @@ func (s *Suite) CreateDevice(t *testing.T, opts ...DeviceOption) models.UID {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	// Generate unique UID (sha256-like format)
-	uid := fmt.Sprintf("%064x", time.Now().UnixNano())
-
-	// Default device
 	device := &models.Device{
-		UID:       uid,
+		UID:       nextDeviceUID(),
 		Name:      fmt.Sprintf("device_%d", time.Now().UnixNano()),
 		TenantID:  "", // Will be set below if not provided via options
-		Identity:  &models.DeviceIdentity{MAC: fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", time.Now().UnixNano()%256, time.Now().UnixNano()%256, time.Now().UnixNano()%256, time.Now().UnixNano()%256, time.Now().UnixNano()%256, time.Now().UnixNano()%256)},
+		Identity:  &models.DeviceIdentity{MAC: nextDeviceMAC()},
 		Info:      &models.DeviceInfo{},
 		PublicKey: "-",
 		Status:    models.DeviceStatusAccepted,
