@@ -101,6 +101,7 @@ var (
 	ErrNamespaceMemberDuplicated       = errors.New("member duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrNamespaceCreateStore            = errors.New("namespace create store", ErrLayer, ErrCodeStore)
 	ErrNamespaceInstanceProtected      = errors.New("namespace is bound to the instance and cannot be deleted", ErrLayer, ErrCodeConflict)
+	ErrNamespaceLegacyNotAllowed       = errors.New("legacy SSH access mode is not available for this namespace", ErrLayer, ErrCodeForbidden)
 	ErrNamespaceSingle                 = errors.New("instance does not support multi-tenancy", ErrLayer, ErrCodeConflict)
 	ErrMaxTagReached                   = errors.New("tag limit reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicateTagName                = errors.New("tag duplicated", ErrLayer, ErrCodeDuplicated)
@@ -112,6 +113,7 @@ var (
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
 	ErrDevicePairingCodeNotFound       = errors.New("device pairing code not found", ErrLayer, ErrCodeNotFound)
+	ErrSSHApprovalCodeNotFound         = errors.New("ssh approval code not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceInvalid                   = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceDuplicated                = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrDeviceLimit                     = errors.New("device limit reached", ErrLayer, ErrCodePayment)
@@ -129,6 +131,11 @@ var (
 	ErrPublicKeyNoTags                 = errors.New("public key has no tags", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyDataInvalid            = errors.New("public key data invalid", ErrLayer, ErrCodeInvalid)
 	ErrPublicKeyFilter                 = errors.New("public key cannot have more than one filter at same time", ErrLayer, ErrCodeInvalid)
+	ErrAccessPolicyNotFound            = errors.New("access policy not found", ErrLayer, ErrCodeNotFound)
+	ErrSSHIdentityNotFound             = errors.New("ssh identity not found", ErrLayer, ErrCodeNotFound)
+	ErrSSHIdentityDuplicated           = errors.New("ssh identity duplicated", ErrLayer, ErrCodeDuplicated)
+	ErrSSHIdentityInvalid              = errors.New("ssh identity public key invalid", ErrLayer, ErrCodeInvalid)
+	ErrServiceAccountNotFound          = errors.New("service account not found", ErrLayer, ErrCodeNotFound)
 	ErrTokenSigned                     = errors.New("token signed", ErrLayer, ErrCodeInvalid)
 	ErrTypeAssertion                   = errors.New("type assertion failed", ErrLayer, ErrCodeInvalid)
 	ErrSessionNotFound                 = errors.New("session not found", ErrLayer, ErrCodeNotFound)
@@ -333,6 +340,34 @@ func NewErrPublicKeyNotFound(id string, next error) error {
 	return NewErrNotFound(ErrPublicKeyNotFound, id, next)
 }
 
+// NewErrAccessPolicyNotFound returns an error when the access policy is not found.
+func NewErrAccessPolicyNotFound(id string, next error) error {
+	return NewErrNotFound(ErrAccessPolicyNotFound, id, next)
+}
+
+// NewErrSSHIdentityNotFound returns an error when the SSH identity is not found.
+func NewErrSSHIdentityNotFound(id string, next error) error {
+	return NewErrNotFound(ErrSSHIdentityNotFound, id, next)
+}
+
+// NewErrSSHIdentityDuplicated returns an error when the fingerprint is already
+// enrolled to another identity in the namespace.
+func NewErrSSHIdentityDuplicated(fingerprint string, next error) error {
+	return NewErrDuplicated(ErrSSHIdentityDuplicated, []string{fingerprint}, next)
+}
+
+// NewErrSSHIdentityInvalid returns an error when the provided public key cannot
+// be parsed.
+func NewErrSSHIdentityInvalid(data string, next error) error {
+	return NewErrInvalid(ErrSSHIdentityInvalid, map[string]interface{}{"data": data}, next)
+}
+
+// NewErrServiceAccountNotFound returns an error when the service account is not found
+// in the namespace.
+func NewErrServiceAccountNotFound(id string, next error) error {
+	return NewErrNotFound(ErrServiceAccountNotFound, id, next)
+}
+
 // NewErrPublicKeyInvalid returns an error when the public key is invalid.
 func NewErrPublicKeyInvalid(data map[string]interface{}, next error) error {
 	return NewErrInvalid(ErrPublicKeyInvalid, data, next)
@@ -391,6 +426,13 @@ func NewErrDeviceLoginCodeNotFound(code string, next error) error {
 // leaking the existence of a code.
 func NewErrDevicePairingCodeNotFound(code string, next error) error {
 	return NewErrNotFound(ErrDevicePairingCodeNotFound, code, next)
+}
+
+// NewErrSSHApprovalCodeNotFound returns an error when an SSH approval code is not
+// found, expired, or no longer pending. All cases collapse into the same error
+// to avoid leaking the existence of a code.
+func NewErrSSHApprovalCodeNotFound(code string, next error) error {
+	return NewErrNotFound(ErrSSHApprovalCodeNotFound, code, next)
 }
 
 // NewErrSessionNotFound returns an error when the session is not found.

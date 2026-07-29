@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"regexp"
-	"slices"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -41,33 +40,18 @@ type Request struct {
 }
 
 func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	switch {
-	case key.Filter.Hostname != "":
-		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
-		if err != nil {
-			return false, err
-		}
-
-		return ok, nil
-	case len(key.Filter.TagIDs) > 0:
-		// NOTE: We need to resolve the device from the store because the "dev" parameter
-		// is constructed from the JSON request body, which doesn't include tag_ids since
-		// the agent doesn't send this information.
+	// Tag filters need the device's tag ids, which the agent-sent payload omits;
+	// resolve the stored device so the shared matcher can intersect them.
+	if len(key.Filter.TagIDs) > 0 {
 		d, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, dev.UID)
 		if err != nil {
 			return false, NewErrDeviceNotFound(models.UID(dev.UID), err)
 		}
 
-		for _, tagID := range d.TagIDs {
-			if slices.Contains(key.Filter.TagIDs, tagID) {
-				return true, nil
-			}
-		}
-
-		return false, nil
-	default:
-		return true, nil
+		dev.TagIDs = d.TagIDs
 	}
+
+	return key.Filter.Matches(&dev)
 }
 
 func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, username string) (bool, error) {

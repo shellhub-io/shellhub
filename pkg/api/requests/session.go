@@ -38,6 +38,9 @@ type SessionCreate struct {
 	Type      string `json:"type" validate:"required"`
 	Term      string `json:"term" validate:""`
 	Web       bool   `json:"web" validate:""`
+	// UserID is the ShellHub account that authorized the session via browser
+	// approval. Empty for password/public-key and web-terminal sessions.
+	UserID string `json:"user_id" validate:""`
 }
 
 // SessionFinish is the structure to represent the request data for finish session endpoint.

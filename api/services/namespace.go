@@ -38,6 +38,7 @@ type NamespaceService interface {
 	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int, error)
 	DeleteNamespace(ctx context.Context, tenantID string) error
 	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
+	EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error
 }
 
 // CreateNamespace creates a new namespace.
@@ -296,6 +297,42 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 	n.Settings.SessionRecord = sessionRecord
 	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
 		return err
+	}
+
+	return nil
+}
+
+// EditSSHAccessMode sets the namespace's SSH authorization mode ("legacy" or
+// "identity"). Legacy is only reachable by grandfathered namespaces
+// (SSHLegacyAllowed); namespaces born identity are refused. Switching to
+// "identity" gates SSH logins on browser approval and governs access through
+// Access Policies; to avoid a silent lockout on a namespace with no policies,
+// the owner-scoped starter policy is seeded on the first switch (see
+// seedAccessPolicy).
+func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID string) error {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrNamespaceNotFound(tenantID, err)
+		default:
+			return err
+		}
+	}
+
+	if sshAccessMode == models.SSHAccessModeLegacy && !n.Settings.SSHLegacyAllowed {
+		return NewErrForbidden(ErrNamespaceLegacyNotAllowed, nil)
+	}
+
+	n.Settings.SSHAccessMode = sshAccessMode
+	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
+		return err
+	}
+
+	if sshAccessMode == models.SSHAccessModeIdentity {
+		if err := s.seedAccessPolicy(ctx, tenantID, n.Owner); err != nil {
+			return err
+		}
 	}
 
 	return nil
