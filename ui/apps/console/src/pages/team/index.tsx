@@ -2,19 +2,25 @@ import { useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useAuthStore } from "@/stores/authStore";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import PageHeader from "@/components/common/PageHeader";
 import MembersTab from "./MembersTab";
 import ApiKeysTab from "./ApiKeysTab";
+import ServiceAccountsTab from "./ServiceAccountsTab";
 
 /* --- Page --- */
 
 export default function Team() {
   const [tab, setTab] = useState("members");
   const tenant = useAuthStore((s) => s.tenant);
+  const canViewServiceAccounts = useHasPermission("serviceAccount:view");
 
   const tabs = [
     { label: "Members", value: "members" },
     { label: "API Keys", value: "api-keys" },
+    ...(canViewServiceAccounts
+      ? [{ label: "Service Accounts", value: "service-accounts" }]
+      : []),
   ];
 
   return (
@@ -33,7 +39,12 @@ export default function Team() {
             type="button"
             key={t.value}
             onClick={() => setTab(t.value)}
-            className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150", tab === t.value ? "bg-primary/15 text-primary border border-primary/25" : "text-text-muted hover:text-text-secondary border border-transparent")}
+            className={cn(
+              "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+              tab === t.value
+                ? "bg-primary/15 text-primary border border-primary/25"
+                : "text-text-muted hover:text-text-secondary border border-transparent",
+            )}
           >
             {t.label}
           </button>
@@ -43,6 +54,9 @@ export default function Team() {
       {/* Tab content */}
       {tab === "members" && tenant && <MembersTab tenantId={tenant} />}
       {tab === "api-keys" && <ApiKeysTab />}
+      {tab === "service-accounts" && canViewServiceAccounts && (
+        <ServiceAccountsTab />
+      )}
     </div>
   );
 }

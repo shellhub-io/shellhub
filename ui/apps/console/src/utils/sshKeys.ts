@@ -2,10 +2,10 @@ import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
 import { Buffer } from "buffer";
 
-export type KeyValidationResult
-  = | { valid: true; encrypted: false }
-    | { valid: true; encrypted: true }
-    | { valid: false; error: string };
+export type KeyValidationResult =
+  | { valid: true; encrypted: false }
+  | { valid: true; encrypted: true }
+  | { valid: false; error: string };
 
 export function validatePrivateKey(pem: string): KeyValidationResult {
   try {
@@ -92,6 +92,46 @@ export function generateSignature(
 
   // ed25519: toBuffer() returns raw 64-byte signature — correct for ssh.Signature.Blob
   return sig.toBuffer().toString("base64");
+}
+
+// ed25519Blob encodes an Ed25519 public key in the SSH wire format (RFC 8709):
+// a length-prefixed "ssh-ed25519" string followed by the length-prefixed 32-byte
+// key. It is the basis for both the authorized_keys line and the SHA256
+// fingerprint, so the browser key resolves to the same identity as OpenSSH would.
+function ed25519Blob(raw32: Uint8Array): Uint8Array {
+  const type = new TextEncoder().encode("ssh-ed25519");
+  const blob = new Uint8Array(4 + type.length + 4 + raw32.length);
+  const view = new DataView(blob.buffer);
+  let offset = 0;
+  view.setUint32(offset, type.length);
+  offset += 4;
+  blob.set(type, offset);
+  offset += type.length;
+  view.setUint32(offset, raw32.length);
+  offset += 4;
+  blob.set(raw32, offset);
+
+  return blob;
+}
+
+/** Build an OpenSSH `authorized_keys` line ("ssh-ed25519 <base64>") from a raw
+ * 32-byte Ed25519 public key. */
+export function ed25519PublicKeyLine(raw32: Uint8Array): string {
+  return `ssh-ed25519 ${Buffer.from(ed25519Blob(raw32)).toString("base64")}`;
+}
+
+/** Compute the OpenSSH SHA256 fingerprint ("SHA256:<base64 unpadded>") of a raw
+ * 32-byte Ed25519 public key, matching the gateway's identity resolution. */
+export async function sha256Fingerprint(raw32: Uint8Array): Promise<string> {
+  const blob = ed25519Blob(raw32);
+  // blob is freshly allocated (byteOffset 0), so its buffer is a plain
+  // ArrayBuffer — cast to satisfy digest's BufferSource (not SharedArrayBuffer).
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    blob.buffer as ArrayBuffer,
+  );
+
+  return `SHA256:${Buffer.from(digest).toString("base64").replace(/=+$/, "")}`;
 }
 
 const SSH_KEY_PREFIXES = [
