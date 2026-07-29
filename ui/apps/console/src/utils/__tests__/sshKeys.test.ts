@@ -1,9 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { Buffer } from "buffer";
+import * as sshpk from "sshpk";
 import {
   validatePrivateKey,
   getFingerprint,
   generateSignature,
+  ed25519PublicKeyLine,
+  sha256Fingerprint,
 } from "../sshKeys";
 
 // Real keys generated with ssh-keygen for test purposes.
@@ -122,33 +125,48 @@ describe("validatePrivateKey", () => {
   describe("invalid input", () => {
     it("rejects an empty string", () => {
       const result = validatePrivateKey("");
-      expect(result).toEqual({ valid: false, error: "Invalid private key format." });
+      expect(result).toEqual({
+        valid: false,
+        error: "Invalid private key format.",
+      });
     });
 
     it("rejects arbitrary text", () => {
       const result = validatePrivateKey("not a key at all");
-      expect(result).toEqual({ valid: false, error: "Invalid private key format." });
+      expect(result).toEqual({
+        valid: false,
+        error: "Invalid private key format.",
+      });
     });
 
     it("rejects a truncated PEM block", () => {
       const truncated = RSA_PRIVATE_KEY.slice(0, 100);
       const result = validatePrivateKey(truncated);
-      expect(result).toEqual({ valid: false, error: "Invalid private key format." });
+      expect(result).toEqual({
+        valid: false,
+        error: "Invalid private key format.",
+      });
     });
 
     it("rejects a public key presented as a private key", () => {
       // A minimal OpenSSH public key line — not a private key PEM block.
-      const publicKey
-        = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI fake+public+key test@host";
+      const publicKey =
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI fake+public+key test@host";
       const result = validatePrivateKey(publicKey);
-      expect(result).toEqual({ valid: false, error: "Invalid private key format." });
+      expect(result).toEqual({
+        valid: false,
+        error: "Invalid private key format.",
+      });
     });
 
     it("rejects a PEM header without a body", () => {
-      const bare
-        = "-----BEGIN OPENSSH PRIVATE KEY-----\n-----END OPENSSH PRIVATE KEY-----";
+      const bare =
+        "-----BEGIN OPENSSH PRIVATE KEY-----\n-----END OPENSSH PRIVATE KEY-----";
       const result = validatePrivateKey(bare);
-      expect(result).toEqual({ valid: false, error: "Invalid private key format." });
+      expect(result).toEqual({
+        valid: false,
+        error: "Invalid private key format.",
+      });
     });
   });
 });
@@ -193,7 +211,9 @@ describe("getFingerprint", () => {
   });
 
   it("throws when an encrypted key is provided with the wrong passphrase", () => {
-    expect(() => getFingerprint(RSA_ENCRYPTED_KEY, "wrongpassphrase")).toThrow();
+    expect(() =>
+      getFingerprint(RSA_ENCRYPTED_KEY, "wrongpassphrase"),
+    ).toThrow();
   });
 });
 
@@ -217,8 +237,14 @@ describe("generateSignature", () => {
     });
 
     it("produces different signatures for different challenges", () => {
-      const sig1 = generateSignature(RSA_PRIVATE_KEY, Buffer.from("challenge-one"));
-      const sig2 = generateSignature(RSA_PRIVATE_KEY, Buffer.from("challenge-two"));
+      const sig1 = generateSignature(
+        RSA_PRIVATE_KEY,
+        Buffer.from("challenge-one"),
+      );
+      const sig2 = generateSignature(
+        RSA_PRIVATE_KEY,
+        Buffer.from("challenge-two"),
+      );
       expect(sig1).not.toBe(sig2);
     });
 
@@ -237,7 +263,11 @@ describe("generateSignature", () => {
     });
 
     it("signs with an encrypted ED25519 key given the correct passphrase", () => {
-      const sig = generateSignature(ED25519_ENCRYPTED_KEY, CHALLENGE, "secret123");
+      const sig = generateSignature(
+        ED25519_ENCRYPTED_KEY,
+        CHALLENGE,
+        "secret123",
+      );
       expect(typeof sig).toBe("string");
       expect(sig.length).toBeGreaterThan(0);
     });
@@ -268,8 +298,14 @@ describe("generateSignature", () => {
     });
 
     it("produces different signatures for different challenges", () => {
-      const sig1 = generateSignature(ECDSA_P256_PRIVATE_KEY, Buffer.from("challenge-one"));
-      const sig2 = generateSignature(ECDSA_P256_PRIVATE_KEY, Buffer.from("challenge-two"));
+      const sig1 = generateSignature(
+        ECDSA_P256_PRIVATE_KEY,
+        Buffer.from("challenge-one"),
+      );
+      const sig2 = generateSignature(
+        ECDSA_P256_PRIVATE_KEY,
+        Buffer.from("challenge-two"),
+      );
       expect(sig1).not.toBe(sig2);
     });
   });
@@ -288,5 +324,25 @@ describe("generateSignature", () => {
     it("throws when passed an invalid key string", () => {
       expect(() => generateSignature("not-a-key", CHALLENGE)).toThrow();
     });
+  });
+});
+
+// Cross-check the browser-key encoders against sshpk (the OpenSSH-compatible
+// oracle): a wrong wire encoding would derive a fingerprint the gateway can't
+// resolve to the enrolled identity, silently breaking web-terminal auth.
+describe("browser Ed25519 key encoding", () => {
+  const raw = new Uint8Array(32);
+  for (let i = 0; i < raw.length; i++) raw[i] = i * 7 + 1;
+
+  it("builds an OpenSSH line sshpk parses as an ed25519 key", () => {
+    const line = ed25519PublicKeyLine(raw);
+    const key = sshpk.parseKey(line, "ssh");
+    expect(key.type).toBe("ed25519");
+  });
+
+  it("derives the same SHA256 fingerprint sshpk does", async () => {
+    const line = ed25519PublicKeyLine(raw);
+    const expected = sshpk.parseKey(line, "ssh").fingerprint("sha256").toString();
+    expect(await sha256Fingerprint(raw)).toBe(expected);
   });
 });

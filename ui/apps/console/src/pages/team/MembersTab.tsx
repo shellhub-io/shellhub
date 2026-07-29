@@ -28,7 +28,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { RoleBadge } from "./constants";
-import { initials } from "./helpers";
+import UserBadge from "@/components/common/UserBadge";
 import EditMemberDrawer from "./EditMemberDrawer";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
@@ -58,7 +58,10 @@ function Badge({
   }[tone];
   return (
     <span
-      className={cn("inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border", styles)}
+      className={cn(
+        "inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border",
+        styles,
+      )}
     >
       {children}
     </span>
@@ -171,29 +174,19 @@ function MembersTab({ tenantId }: { tenantId: string }) {
         const email = isInvite
           ? row.invite.user.email
           : (row.member.email ?? "");
-        const primary = name || email;
         const isSelf = !isInvite && row.member.email === currentUserEmail;
         return (
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono shrink-0 bg-card border border-border text-text-muted">
-              {initials(primary)}
-            </span>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-text-primary">
-                {primary || "—"}
-                {isSelf && (
-                  <span className="ml-2 text-2xs text-text-muted font-mono">
-                    (you)
-                  </span>
-                )}
-              </span>
-              {name && email && (
+          <UserBadge
+            name={name}
+            email={email}
+            trailing={
+              isSelf ? (
                 <span className="text-2xs text-text-muted font-mono">
-                  {email}
+                  (you)
                 </span>
-              )}
-            </div>
-          </div>
+              ) : undefined
+            }
+          />
         );
       },
     },
@@ -221,7 +214,10 @@ function MembersTab({ tenantId }: { tenantId: string }) {
               <Badge tone="yellow">Pending invite</Badge>
               {row.invite.expires_at && (
                 <span
-                  className={cn("text-2xs", expired ? "text-accent-red" : "text-text-muted")}
+                  className={cn(
+                    "text-2xs",
+                    expired ? "text-accent-red" : "text-text-muted",
+                  )}
                 >
                   {expired
                     ? "expired"

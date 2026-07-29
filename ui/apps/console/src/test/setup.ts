@@ -2,6 +2,12 @@ import "@testing-library/jest-dom/vitest";
 import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
+// Anything that formats a date renders it in the machine's timezone, so a test
+// asserting on a rendered date passes or fails depending on where it runs. Pin
+// it here rather than in the npm script, so running vitest directly gets the
+// same answer CI does.
+process.env.TZ = "UTC";
+
 vi.mock("@/env");
 
 afterEach(cleanup);

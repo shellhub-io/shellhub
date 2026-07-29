@@ -25,12 +25,3 @@ export function isExpired(expiresIn: number): boolean {
   if (expiresIn <= 0) return false;
   return Date.now() > expiresIn * 1000;
 }
-
-export function initials(name: string | undefined) {
-  if (!name) return "?";
-  return name
-    .split(/[\s\-_@.]+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
