@@ -16,9 +16,11 @@ import {
   HTTP_CONNECT_ERROR,
   WS_CLOSE_ERROR,
   WS_NETWORK_ERROR,
+  WS_REAUTH_CANCELLED,
   parseMessage,
   resolveError,
 } from "./terminalErrors";
+import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
 import { OpfsCastRecorder } from "@/utils/recordings";
 import { useRecordingsStore } from "@/stores/recordingsStore";
@@ -41,6 +43,9 @@ export default function TerminalInstance({
   const resizeRegisteredRef = useRef(false);
   const recorderRef = useRef<OpfsCastRecorder | null>(null);
   const [error, setError] = useState<TerminalError | null>(null);
+  // Set when a policy demands a re-auth: the gateway holds the login open and
+  // sends the approval code, which this screen decides on. No reconnect.
+  const [approvalCode, setApprovalCode] = useState<string | null>(null);
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
 
@@ -83,13 +88,21 @@ export default function TerminalInstance({
       };
       if (session.fingerprint) {
         body.fingerprint = session.fingerprint;
+        // Browser-held identity: also send the public key so the gateway resolves
+        // the presented key to the enrolled ssh_identity (native identity path).
+        if (session.publicKeyLine) {
+          body.public_key = session.publicKeyLine;
+        }
       } else {
         body.password = session.password;
       }
 
       let token: string;
       try {
-        const res = await apiClient.post<{ token: string }>("/ws/ssh", body);
+        const res = await apiClient.post<{ token: string }>(
+          "/ws/ssh/session",
+          body,
+        );
         token = res.data.token;
       } catch {
         if (cancelled) return;
@@ -136,6 +149,9 @@ export default function TerminalInstance({
       // the original session object (which would keep keys reachable in memory).
       let keyMaterial: string | undefined = session.privateKey;
       let keyPassphrase: string | undefined = session.passphrase;
+      // The browser's non-extractable identity key (identity mode). Kept across
+      // reconnects since it cannot be exported, so it is never cleared.
+      const browserKey = session.browserKey;
 
       const registerResizeHandler = () => {
         if (resizeRegisteredRef.current) return;
@@ -194,14 +210,26 @@ export default function TerminalInstance({
 
           switch (msg.kind) {
             case WS_KIND.SIGNATURE: {
-              if (!keyMaterial) return;
+              if (!browserKey && !keyMaterial) return;
               const challengeBuffer = Buffer.from(msg.data, "base64");
               try {
-                const signature = generateSignature(
-                  keyMaterial,
-                  challengeBuffer,
-                  keyPassphrase,
-                );
+                let signature: string;
+                if (browserKey) {
+                  // Ed25519 sign returns the raw 64-byte blob — exactly what
+                  // ssh.Signature.Blob expects; no SSH wire wrapping.
+                  const sig = await crypto.subtle.sign(
+                    { name: "Ed25519" },
+                    browserKey,
+                    challengeBuffer,
+                  );
+                  signature = Buffer.from(sig).toString("base64");
+                } else {
+                  signature = generateSignature(
+                    keyMaterial as string,
+                    challengeBuffer,
+                    keyPassphrase,
+                  );
+                }
                 ws.send(
                   JSON.stringify({ kind: WS_KIND.SIGNATURE, data: signature }),
                 );
@@ -230,6 +258,13 @@ export default function TerminalInstance({
             }
             case WS_KIND.SESSION: {
               recorderRef.current?.setSessionUid(msg.data);
+              break;
+            }
+            case WS_KIND.REAUTH: {
+              // A policy needs a fresh re-auth. The gateway is holding this login
+              // open, so the connection stays up: open the approval screen on the
+              // code it sent, and the terminal continues once the decision lands.
+              setApprovalCode(msg.data);
               break;
             }
             default:
@@ -355,7 +390,7 @@ export default function TerminalInstance({
         <TerminalErrorBanner error={error} sessionId={session.id} />
       )}
       {session.record && session.connectionStatus === "connected" && (
-        <div className="absolute top-2 right-3 z-raised flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm pointer-events-none select-none">
+        <div className="absolute top-2 right-3 z-10 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm pointer-events-none select-none">
           <span className="w-1.5 h-1.5 rounded-full bg-accent-red animate-pulse shadow-[0_0_4px_rgba(220,80,80,0.7)]" />
           <span className="text-2xs font-semibold tracking-wide text-accent-red">
             REC
@@ -369,6 +404,19 @@ export default function TerminalInstance({
           error !== null && "opacity-30 pointer-events-none",
         )}
       />
+      {approvalCode && (
+        <SSHApproval
+          flow="confirm"
+          code={approvalCode}
+          onClose={() => {
+            // Closing without deciding abandons the login the gateway is holding;
+            // it releases on its own when the window lapses.
+            setApprovalCode(null);
+            setError(WS_REAUTH_CANCELLED);
+          }}
+          onDecided={() => setApprovalCode(null)}
+        />
+      )}
     </div>
   );
 }
