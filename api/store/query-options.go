@@ -21,6 +21,9 @@ type QueryOptions interface {
 	// WithMember filters namespaces where the given user is a member.
 	WithMember(userID string) QueryOption
 
+	// WithUserID matches records whose user_id column equals the given user.
+	WithUserID(userID string) QueryOption
+
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
 
