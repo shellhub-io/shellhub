@@ -14,6 +14,15 @@ export interface TerminalSession {
   fingerprint?: string;
   privateKey?: string;
   passphrase?: string;
+  /**
+   * The browser's own non-extractable SSH identity key (identity access mode).
+   * When set, the terminal signs the SSH challenge with WebCrypto instead of a
+   * PEM key. It is safe to keep across reconnects (it cannot be exported), so
+   * clearSensitiveData leaves it in place. publicKeyLine is its enrolled public
+   * half, sent so the gateway resolves the presented key to the identity.
+   */
+  browserKey?: CryptoKey;
+  publicKeyLine?: string;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
   /** Opt-in: record this session client-side (to OPFS). */

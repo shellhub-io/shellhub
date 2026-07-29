@@ -1,0 +1,273 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import SSHApproval from "../SSHApproval";
+import {
+  getSshApproval,
+  confirmSshApproval,
+  rejectSshApproval,
+  webTerminalReauth,
+} from "@/client";
+
+vi.mock("@/client", () => ({
+  getSshApproval: vi.fn(),
+  confirmSshApproval: vi.fn(),
+  rejectSshApproval: vi.fn(),
+  webTerminalReauth: vi.fn(),
+}));
+
+vi.mock("@/hooks/useNamespaces", () => ({
+  useNamespaces: () => ({
+    namespaces: [{ name: "dev", tenant_id: "tenant1" }],
+  }),
+}));
+
+vi.mock("@/hooks/useNamespaceMutations", () => ({
+  useSwitchNamespace: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+
+vi.mock("@/stores/authStore", () => ({
+  useAuthStore: Object.assign(
+    (selector?: (s: unknown) => unknown) => {
+      const state = {
+        tenant: "tenant1",
+        name: "Gustavo",
+        email: "gustavo@example.com",
+        user: "gustavo",
+        logout: vi.fn(),
+      };
+      return selector ? selector(state) : state;
+    },
+    { getState: () => ({}) },
+  ),
+}));
+
+const approval = (overrides: Record<string, unknown> = {}) => ({
+  data: {
+    code: "WXYZ2K7Q",
+    kind: "identity",
+    fingerprint: "SHA256:abc",
+    sshid: "root@dev.device",
+    device_name: "device",
+    username: "root",
+    ip_address: "10.0.0.1",
+    requested_at: "2026-07-27T12:00:00Z",
+    expires_in_seconds: 90,
+    namespace: "dev",
+    state: "pending",
+    ...overrides,
+  },
+});
+
+/** Renders both routes so a canonicalizing redirect lands somewhere observable. */
+function renderAt(path: string) {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route
+          path="/ssh-identities/new/:code"
+          element={<SSHApproval flow="new" />}
+        />
+        <Route
+          path="/ssh-identities/confirm/:code"
+          element={<SSHApproval flow="confirm" />}
+        />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+describe("SSHApproval", () => {
+  beforeEach(() => {
+    vi.mocked(getSshApproval).mockReset();
+    vi.mocked(confirmSshApproval).mockReset();
+    vi.mocked(rejectSshApproval).mockReset();
+    vi.mocked(webTerminalReauth).mockReset();
+  });
+
+  it("asks to add the key, and names the account and namespace it lands in", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    expect(
+      await screen.findByText(/add this ssh key to your identities/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Gustavo")).toBeInTheDocument();
+    expect(screen.getByText("dev")).toBeInTheDocument();
+    expect(screen.getByText("SHA256:abc")).toBeInTheDocument();
+  });
+
+  it("asks to re-authenticate, and says the window covers more than this login", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth", reauth_period: 43200 }) as never,
+    );
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+
+    expect(
+      await screen.findByText(/re-authenticate to continue/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/won't ask for the next 12 hours/i),
+    ).toBeInTheDocument();
+    // Nothing is being bound, so the key-to-account card must not appear.
+    expect(screen.queryByText(/added to/i)).not.toBeInTheDocument();
+  });
+
+  it("says nothing about a window when the policy asks every time", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth", reauth_period: 0 }) as never,
+    );
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+
+    expect(
+      await screen.findByText(/re-authenticate to continue/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/won't ask for the next/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("redirects a reauth code opened on the add route", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth" }) as never,
+    );
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    expect(
+      await screen.findByText(/re-authenticate to continue/i),
+    ).toBeInTheDocument();
+  });
+
+  it("redirects an identity code opened on the reauth route", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+
+    expect(
+      await screen.findByText(/add this ssh key to your identities/i),
+    ).toBeInTheDocument();
+  });
+
+  it("confirms the request and reports the outcome", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+    vi.mocked(confirmSshApproval).mockResolvedValue({} as never);
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: /add key/i }),
+    );
+
+    await waitFor(() =>
+      expect(confirmSshApproval).toHaveBeenCalledWith(
+        expect.objectContaining({ path: { code: "WXYZ2K7Q" } }),
+      ),
+    );
+    expect(await screen.findByText("Key added")).toBeInTheDocument();
+  });
+
+  it("rejects the request and reports the outcome", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+    vi.mocked(rejectSshApproval).mockResolvedValue({} as never);
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: /reject/i }),
+    );
+
+    await waitFor(() => expect(rejectSshApproval).toHaveBeenCalled());
+    expect(await screen.findByText("Rejected")).toBeInTheDocument();
+  });
+
+  it("reads a 404 as an expired request", async () => {
+    vi.mocked(getSshApproval).mockRejectedValue({ status: 404 });
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+
+    expect(await screen.findByText("Request expired")).toBeInTheDocument();
+  });
+
+  // The details exist so somebody checks them. A secret field beside them
+  // invites typing past the check, so it only appears once the check is done.
+  it("keeps the factor out of sight until the login has been reviewed", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+    await screen.findByText(/re-authenticate to continue/i);
+
+    expect(screen.queryByLabelText(/account password/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+    expect(await screen.findByLabelText(/account password/i)).toBeInTheDocument();
+  });
+
+  it("goes back to the details without deciding anything", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+    await screen.findByText(/re-authenticate to continue/i);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+
+    await user.click(screen.getByRole("button", { name: /back/i }));
+
+    expect(
+      await screen.findByText(/re-authenticate to continue/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/account password/i)).not.toBeInTheDocument();
+    expect(webTerminalReauth).not.toHaveBeenCalled();
+  });
+
+  // Proving the factor is what releases the held login, so the call has to carry
+  // the code and the key it was asked for.
+  it("proves the password and reports the login released", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
+    vi.mocked(webTerminalReauth).mockResolvedValue({ data: undefined } as never);
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+    await screen.findByText(/re-authenticate to continue/i);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+
+    await user.type(
+      await screen.findByLabelText(/account password/i),
+      "hunter2",
+    );
+    await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
+
+    await waitFor(() =>
+      expect(webTerminalReauth).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            password: "hunter2",
+            approval_code: "WXYZ2K7Q",
+            fingerprint: "SHA256:abc",
+          }),
+        }),
+      ),
+    );
+    expect(await screen.findByText(/re-authenticated/i)).toBeInTheDocument();
+  });
+
+  // Adding a key asks for no factor, so it must not have grown a step.
+  it("leaves the add-key flow at a single step", async () => {
+    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+
+    renderAt("/ssh-identities/new/WXYZ2K7Q");
+    await screen.findByText(/add this ssh key/i);
+
+    expect(
+      screen.getByRole("button", { name: /add key/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /continue/i }),
+    ).not.toBeInTheDocument();
+  });
+});

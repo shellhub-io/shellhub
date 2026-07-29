@@ -117,6 +117,7 @@ export const WS_KIND = {
   SIGNATURE: 3,
   ERROR: 4,
   SESSION: 5,
+  REAUTH: 6,
 } as const;
 
 export const HTTP_CONNECT_ERROR: TerminalError = {
@@ -144,6 +145,14 @@ export const WS_NETWORK_ERROR: TerminalError = {
   hints: [
     "Check your network connection and make sure the ShellHub server is running.",
   ],
+  links: [],
+};
+
+export const WS_REAUTH_CANCELLED: TerminalError = {
+  title: "Re-authentication needed",
+  message: "This device requires a fresh re-authentication to connect.",
+  reconnect: true,
+  hints: [],
   links: [],
 };
 
