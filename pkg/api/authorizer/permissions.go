@@ -20,6 +20,7 @@ const (
 	SessionClose
 	SessionRemove
 	SessionDetails
+	SessionApprove
 
 	FirewallCreate
 	FirewallEdit
@@ -61,7 +62,20 @@ const (
 
 	TunnelsCreate
 	TunnelsDelete
+
+	AccessPolicyManage
+
+	// SSHIdentityAdd allows adding and managing one's own SSH identities.
+	// Owner/admin/operator.
+	SSHIdentityAdd
+	// SSHIdentityManage allows viewing and revoking any member's SSH identities
+	// in the namespace (offboarding). Owner/admin only.
+	SSHIdentityManage
 )
+
+// servicePermissions is intentionally empty: a service account has no management
+// permissions (see [RoleService]).
+var servicePermissions = []Permission{}
 
 var observerPermissions = []Permission{
 	DeviceConnect,
@@ -84,6 +98,9 @@ var operatorPermissions = []Permission{
 	TagDelete,
 
 	SessionDetails,
+	SessionApprove,
+
+	SSHIdentityAdd,
 }
 
 var adminPermissions = []Permission{
@@ -104,6 +121,7 @@ var adminPermissions = []Permission{
 	SessionClose,
 	SessionRemove,
 	SessionDetails,
+	SessionApprove,
 
 	FirewallCreate,
 	FirewallEdit,
@@ -134,6 +152,11 @@ var adminPermissions = []Permission{
 
 	TunnelsCreate,
 	TunnelsDelete,
+
+	AccessPolicyManage,
+
+	SSHIdentityAdd,
+	SSHIdentityManage,
 }
 
 var ownerPermissions = []Permission{
@@ -154,6 +177,7 @@ var ownerPermissions = []Permission{
 	SessionClose,
 	SessionRemove,
 	SessionDetails,
+	SessionApprove,
 
 	FirewallCreate,
 	FirewallEdit,
@@ -194,4 +218,9 @@ var ownerPermissions = []Permission{
 
 	TunnelsCreate,
 	TunnelsDelete,
+
+	AccessPolicyManage,
+
+	SSHIdentityAdd,
+	SSHIdentityManage,
 }

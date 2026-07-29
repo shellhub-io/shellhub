@@ -40,6 +40,11 @@ type Member struct {
 	AddedAt time.Time       `json:"added_at"`
 	Email   string          `json:"email" validate:"email"`
 	Role    authorizer.Role `json:"role" validate:"required,oneof=administrator operator observer"`
+	// Type mirrors the member's user account type (human or service). It is denormalized from
+	// the joined users row so authorization can exclude service accounts from human-oriented
+	// policy subjects (e.g. all-members) without a second query. Empty for legacy rows loaded
+	// without the users join; treat empty as human.
+	Type UserType `json:"type,omitempty"`
 	// AccountStatus is the member's underlying user account status (confirmed or
 	// not-confirmed). A not-confirmed member still has to finish setting up their account. It
 	// is the account status, not the membership-invitation status (accepted/pending), which is

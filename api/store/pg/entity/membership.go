@@ -64,6 +64,22 @@ func MembershipToMemberView(entity *Membership) *models.MemberView {
 	return view
 }
 
+// ServiceAccountFromMembership maps a joined membership (with its User relation) to a
+// ServiceAccount. The caller must have already filtered to service-typed users; Identities
+// is left empty for the service layer to populate.
+func ServiceAccountFromMembership(entity *Membership) *models.ServiceAccount {
+	account := &models.ServiceAccount{
+		ID:        entity.UserID,
+		CreatedAt: entity.CreatedAt,
+	}
+
+	if entity.User != nil {
+		account.Name = entity.User.Name
+	}
+
+	return account
+}
+
 func MembershipToModel(entity *Membership) *models.Member {
 	member := &models.Member{
 		ID:      entity.UserID,
@@ -75,6 +91,7 @@ func MembershipToModel(entity *Membership) *models.Member {
 		member.Email = entity.User.Email
 		member.AccountStatus = models.UserStatus(entity.User.Status)
 		member.AwaitingApproval = entity.User.AwaitingApproval
+		member.Type = models.UserType(entity.User.Type)
 	}
 
 	return member
