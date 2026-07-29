@@ -33,6 +33,11 @@ type Service interface {
 	DeviceService
 	DeviceLoginCodeService
 	DevicePairingService
+	SSHApprovalService
+	AccessPolicyService
+	SSHIdentityService
+	ServiceAccountService
+	WebReauthService
 	UserService
 	SSHKeysService
 	SessionService

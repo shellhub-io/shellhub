@@ -22,6 +22,7 @@ const (
 	CronNamespaceDeviceCountSync  = worker.CronSpec("0 3 * * *")
 	CronEphemeralCleanup          = worker.CronSpec("*/5 * * * *")
 	CronEnrollmentCallbackCleanup = worker.CronSpec("0 4 * * *")
+	CronSSHApprovalCleanup        = worker.CronSpec("*/10 * * * *")
 )
 
 // DevicesHeartbeat creates a task handler for processing device heartbeat signals. The payload format is a
@@ -76,6 +77,25 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 func (s *service) EphemeralCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
 		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+	}
+}
+
+// SSHApprovalCleanup prunes SSH login approvals once expired. An expired row is
+// already unreadable and undecidable, so this only keeps the table from growing;
+// it runs often because the rows are short-lived and one is written per login
+// that actually needs a browser step.
+func (s *service) SSHApprovalCleanup() worker.CronHandler {
+	return func(ctx context.Context) error {
+		deleted, err := s.store.SSHApprovalCleanup(ctx, clock.Now())
+		if err != nil {
+			return err
+		}
+
+		if deleted > 0 {
+			log.WithField("deleted", deleted).Info("pruned expired ssh approvals")
+		}
+
+		return nil
 	}
 }
 
