@@ -1,0 +1,29 @@
+post:
+  operationId: rejectSshApproval
+  summary: Reject an SSH login approval
+  description: |
+    Reject a pending SSH login approval. The gateway refuses the held login once
+    the approval is rejected, and nothing is written to the identity. Unknown,
+    expired or already-decided codes return 404.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH login approval code.
+        type: string
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to reject the SSH login approval.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

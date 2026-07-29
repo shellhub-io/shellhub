@@ -1,0 +1,7 @@
+name: id
+in: path
+required: true
+description: Access policy's ID.
+schema:
+  type: string
+  format: uuid

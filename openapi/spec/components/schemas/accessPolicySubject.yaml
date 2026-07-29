@@ -1,0 +1,25 @@
+description: |
+  The subject a policy grants access to.
+
+  - `user` — a single member, identified by `value` (user ID).
+  - `role` — every member with the role named in `value`.
+  - `all-members` — every member of the namespace; `value` is empty.
+type: object
+properties:
+  type:
+    description: Subject kind.
+    type: string
+    enum:
+      - user
+      - role
+      - all-members
+    example: all-members
+  value:
+    description: |
+      The subject's value: a user ID (`user`), a role name (`role`), or an empty
+      string (`all-members`).
+    type: string
+    example: ''
+required:
+  - type
+  - value

@@ -1,0 +1,118 @@
+get:
+  operationId: getSshApproval
+  summary: Get an SSH login approval
+  description: |
+    Return the details of a pending SSH login approval so the user can review it
+    before deciding. The gateway holds a pure-OpenSSH login open while it waits
+    for the decision, and prints the code and this URL in the terminal banner.
+
+    An approval is one of two kinds. An `identity` approval binds the presented
+    key as a new identity. A `reauth` approval creates nothing: an access policy
+    demands a fresh re-authentication, and confirming refreshes the window of an
+    identity that already exists.
+
+    Only a member of the namespace the login targeted can read the request.
+    Unknown, expired or already-decided codes return 404, as does a non-member,
+    so a code alone never discloses the request.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH login approval code.
+        type: string
+        example: WXYZ-2K7Q
+  responses:
+    '200':
+      description: Success to get the SSH login approval.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                description: |
+                  The correlation code, echoed back so the page can visually
+                  match it against the code shown in the terminal banner.
+                type: string
+                example: WXYZ-2K7Q
+              kind:
+                description: |
+                  What confirming does. `identity` binds the presented key as a
+                  new identity; `reauth` refreshes the re-auth window of an
+                  identity that already exists, creating nothing.
+                type: string
+                enum:
+                  - identity
+                  - reauth
+                example: identity
+              fingerprint:
+                description: |
+                  Fingerprint of the SSH public key presented by the login. On an
+                  `identity` approval this is the key being bound to the account;
+                  lead with it so the user can confirm it is theirs.
+                type: string
+                example: SHA256:hHmU2OTPQjhAKm3ecpf4iw3lqWNCWaFbG1kBje0kn0
+              reauth_period:
+                description: |
+                  The policy's re-auth window in seconds, present only on a
+                  `reauth` approval. Absent or zero means the policy asks every
+                  time. The window belongs to the identity, not to this login:
+                  other logins with the same key skip the browser step until it
+                  lapses.
+                type: integer
+                example: 43200
+              sshid:
+                description: The SSHID of the login being decided.
+                type: string
+                example: root@dev.agent
+              device_name:
+                description: Name of the device the login targets.
+                type: string
+                example: dev-agent
+              username:
+                description: Username requested for the login.
+                type: string
+                example: root
+              ip_address:
+                description: Source IP address the login originates from.
+                type: string
+                example: 203.0.113.10
+              requested_at:
+                description: When the login was requested.
+                type: string
+                format: date-time
+                example: 2024-09-03T23:17:50.51Z
+              expires_in_seconds:
+                description: |
+                  How much of the approval window is left. Attaching the key
+                  refreshes it, so a countdown derived from `requested_at` would
+                  expire while the code is still live.
+                type: integer
+                example: 90
+              namespace:
+                description: |
+                  Name of the namespace the key lands in. It comes from the SSHID
+                  the login used, so it is not necessarily the namespace the
+                  console is currently showing.
+                type: string
+                example: dev
+              state:
+                description: Current state of the approval.
+                type: string
+                enum:
+                  - pending
+                  - confirmed
+                  - rejected
+                example: pending
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

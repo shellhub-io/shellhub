@@ -1,0 +1,77 @@
+parameters:
+  - $ref: ../components/parameters/path/accessPolicyIDPath.yaml
+get:
+  operationId: getAccessPolicy
+  summary: Get an access policy
+  description: Get a single SSH access policy by ID.
+  tags:
+    - community
+    - access-policies
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to get an access policy.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/accessPolicy.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: updateAccessPolicy
+  summary: Update an access policy
+  description: Update an SSH access policy.
+  tags:
+    - community
+    - access-policies
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/accessPolicyRequest.yaml
+  responses:
+    '200':
+      description: Success to update an access policy.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/accessPolicy.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteAccessPolicy
+  summary: Delete an access policy
+  description: Delete an SSH access policy.
+  tags:
+    - community
+    - access-policies
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to delete an access policy.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
