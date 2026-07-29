@@ -60,7 +60,9 @@ func TestClassifyRoundTrip(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.Equal(t, tc.kind, Classify(Message(tc.kind)))
+			kind, code := Classify(Message(tc.kind))
+			assert.Equal(t, tc.kind, kind)
+			assert.Empty(t, code)
 		})
 	}
 }
@@ -88,7 +90,8 @@ func TestClassifyLFOnlyInput(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			// Replace all CRLF with LF to simulate LF-only input.
 			lfOnly := strings.ReplaceAll(Message(tc.kind), "\r\n", "\n")
-			assert.Equal(t, tc.kind, Classify(lfOnly))
+			kind, _ := Classify(lfOnly)
+			assert.Equal(t, tc.kind, kind)
 		})
 	}
 }
@@ -115,7 +118,8 @@ func TestClassifyStrippedTrailingNewline(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			stripped := strings.TrimRight(Message(tc.kind), "\r\n")
-			assert.Equal(t, tc.kind, Classify(stripped))
+			kind, _ := Classify(stripped)
+			assert.Equal(t, tc.kind, kind)
 		})
 	}
 }
@@ -137,7 +141,22 @@ func TestClassifyUnknownInputsReturnKindNone(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			assert.Equal(t, KindNone, Classify(tc.input))
+			kind, _ := Classify(tc.input)
+			assert.Equal(t, KindNone, kind)
 		})
 	}
+}
+
+// A banner carrying an approval code still classifies as its Kind, and hands the
+// code back: it is how the web bridge learns which held login to open a screen
+// for.
+func TestClassifyRecoversTheApprovalCode(t *testing.T) {
+	kind, code := Classify(MessageWithCode(KindReauthRequired, "WXYZ2K7Q"))
+
+	assert.Equal(t, KindReauthRequired, kind)
+	assert.Equal(t, "WXYZ2K7Q", code)
+}
+
+func TestMessageWithCodeIsEmptyForKindNone(t *testing.T) {
+	assert.Empty(t, MessageWithCode(KindNone, "WXYZ2K7Q"))
 }

@@ -32,7 +32,26 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 		return false
 	}
 
-	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
+	// In identity mode the presented key IS the identity: resolve its fingerprint
+	// to an account (connect straight through) or hold the login open for a
+	// browser approval that turns the key into one. The ephemeral mint to the
+	// agent is unchanged; the user's key is never forwarded.
+	auth := session.AuthPublicKey(publicKey)
+	if sess.IsIdentityMode() {
+		// Native and web alike. The web terminal holds its own registered key, so
+		// it is a first-class identity resolved here like any other public key;
+		// password authentication is disabled entirely in identity mode.
+		resolved, err := sess.ResolveKeyAuth(ctx, publicKey)
+		if err != nil {
+			logger.WithError(err).Warn("failed to resolve the identity for the public key")
+
+			return false
+		}
+
+		auth = resolved
+	}
+
+	if err := sess.Auth(ctx, auth); err != nil {
 		logger.Warn("failed to authenticate on device using public key")
 
 		return false

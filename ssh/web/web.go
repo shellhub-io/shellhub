@@ -40,12 +40,17 @@ func exitLogLevel(err error) log.Level {
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
 func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
+	// The WebSocket upgrade; token-gated (browsers can't send auth headers on a
+	// WebSocket), so it stays unauthenticated at the gateway.
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
+	// The credential/token POST. The gateway authenticates it and injects X-ID,
+	// so the bridge learns the logged-in ShellHub account (used in identity mode).
+	const WebSessionRoute = "/ws/ssh/session"
 
 	manager := newManager(30 * time.Second)
 
 	// NOTICE: this is the route that users send your credentials securely.
-	router.Add(http.MethodPost, WebsocketSSHBridgeRoute, echo.WrapHandler(
+	router.Add(http.MethodPost, WebSessionRoute, echo.WrapHandler(
 		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			type Success struct {
 				Token string `json:"token"`
@@ -71,6 +76,10 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 
 				return
 			}
+
+			// Identity comes from the gateway-injected X-ID, never the body (the
+			// UserID field is json:"-"). Empty for legacy web sessions.
+			request.UserID = req.Header.Get("X-ID")
 
 			key := magickey.GetReference()
 

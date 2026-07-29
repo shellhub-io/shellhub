@@ -1,0 +1,5 @@
+Re-authentication Required
+==========================
+
+A policy on this device requires a fresh re-authentication before the
+session can proceed. Complete the step-up in your browser and reconnect.
