@@ -19,6 +19,9 @@ type Client interface {
 	sessionAPI
 	sshkeyAPI
 	firewallAPI
+	sshApprovalAPI
+	accessPolicyAPI
+	sshIdentityAPI
 }
 
 type client struct {
