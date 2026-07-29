@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
@@ -43,6 +44,29 @@ type Data struct {
 	Web bool
 	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
 	Handled bool
+	// UserID is the ShellHub account bound to this session: resolved from the
+	// presented key in identity mode, or set by the enrollment/step-up approval.
+	// Empty in legacy mode.
+	UserID string
+	// ApprovalCode is the JIT code minted in identity mode; the gateway polls
+	// its decision for enrollment or step-up. Empty otherwise. The enrollment URL
+	// derived from it is sent as a mid-handshake banner only once the presented
+	// key turns out to be unenrolled, so an enrolled key never sees it.
+	ApprovalCode string
+	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
+	// identity mode; it is the identity lookup key.
+	Fingerprint string
+	// KeyData is the presented SSH public key in OpenSSH authorized_keys form,
+	// carried so an enrollment can persist it.
+	KeyData []byte
+	// LastReauthAt is when the resolved identity last re-authenticated, read at
+	// key resolution and compared against a policy's reauth_period to decide
+	// whether a fresh re-auth is still needed. Nil when it never re-authed.
+	LastReauthAt *time.Time
+	// SingleUse marks a single-use identity (service accounts only), read at key
+	// resolution. When set, the key is burned once this session establishes, so a
+	// second connection with it is rejected.
+	SingleUse bool
 }
 
 // AgentChannel represents a channel open between agent and server.
@@ -276,6 +300,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 	}
 
 	var namespaceName, deviceName string
+	var webUserID string
 	web := false
 	if target.IsSSHID() {
 		namespaceName, deviceName, err = target.SplitSSHID()
@@ -312,6 +337,13 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 
 			target.Data = webDevice
 			hos.Host = webIP
+
+			// The logged-in account driving the web terminal, when the bridge
+			// authenticated the request (identity mode). Best-effort: it is absent
+			// for legacy web sessions, which authenticate with a device credential.
+			if err := cache.Get(ctx, "web-user/"+sshid, &webUserID); err == nil {
+				cache.Delete(ctx, "web-user/"+sshid) //nolint:errcheck
+			}
 		}
 
 		device, err := api.GetDevice(ctx, target.Data)
@@ -354,6 +386,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 			Device:    lookupDevice,
 			Namespace: namespace,
 			Web:       web,
+			UserID:    webUserID,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
@@ -478,6 +511,7 @@ func (s *Session) register(ctx context.Context) error {
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
+		UserID:    s.UserID,
 		IPAddress: s.IPAddress,
 		Type:      "none",
 		Term:      "none",
@@ -636,7 +670,9 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
-	if envs.IsEnterpriseOrCloud() {
+	// In identity access mode the firewall (a legacy, key/username blocklist) is
+	// bypassed: Access Policies are the authorization model instead.
+	if envs.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
 		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
 			return err
 		}
@@ -648,9 +684,134 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
+	// In identity access mode every login is authorized by Access Policies
+	// (default-deny), for both native and web sessions. Short-circuit here when
+	// the namespace has no policy: refuse now instead of proceeding to a login
+	// that could never be authorized.
+	if s.Namespace.Settings.IsIdentityAccess() {
+		has, err := s.api.NamespaceHasAccessPolicies(ctx, s.Namespace.TenantID)
+		if err != nil {
+			return err
+		}
+
+		if !has {
+			return ErrAccessDenied
+		}
+	}
+
 	snap.save(s, StateEvaluated)
 
 	return nil
+}
+
+// openApproval parks a decision for this login and returns the code the terminal
+// banner shows. It is called only once the gateway knows a browser step is
+// actually needed — an unknown key, or a policy demanding a re-auth — so a login
+// that sails through leaves nothing behind.
+func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind, reauthPeriod *int) error {
+	approval, err := s.api.CreateSSHApproval(ctx, requests.SSHApprovalCreate{
+		SessionUID:   s.UID,
+		SSHID:        s.SSHID,
+		TenantID:     s.Namespace.TenantID,
+		DeviceUID:    s.Device.UID,
+		DeviceName:   s.Device.Name,
+		Username:     s.Target.Username,
+		IPAddress:    s.IPAddress,
+		Kind:         kind,
+		Fingerprint:  s.Fingerprint,
+		Data:         s.KeyData,
+		ReauthPeriod: reauthPeriod,
+	})
+	if err != nil {
+		return err
+	}
+
+	s.ApprovalCode = approval.Code
+
+	return nil
+}
+
+// IsIdentityMode reports whether the session's namespace uses the identity-based
+// SSH access mode, where the presented key is the identity.
+func (s *Session) IsIdentityMode() bool {
+	return s.Namespace.Settings.IsIdentityAccess()
+}
+
+// consoleURL builds an absolute console URL from a path. Every path here avoids
+// /ssh/*, which the gateway routes to the ssh service instead of the console SPA.
+func consoleURL(domain string, autoSSL bool, path string) string {
+	scheme := "http"
+	if autoSSL {
+		scheme = "https"
+	}
+
+	return fmt.Sprintf("%s://%s%s", scheme, domain, path)
+}
+
+// groupCode splits the correlation code in half so it reads as two short chunks
+// instead of one run of characters, making the visual match against the page
+// easier. Codes that are not the expected length pass through untouched.
+func groupCode(code string) string {
+	if len(code) != pairingcode.DeviceCodeLength {
+		return code
+	}
+
+	half := len(code) / 2
+
+	return code[:half] + " " + code[half:]
+}
+
+// buildAddKeyBanner renders the terminal message shown when the presented key is
+// not an identity yet. It is sent as a mid-handshake banner only in that case,
+// so it can speak directly. Lines use CRLF as the SSH banner requires.
+//
+// The code and the fingerprint are printed on their own lines because the page
+// asks the user to match both: the code proves the page belongs to this login
+// (a phishing link carries a different one), and the fingerprint is how the
+// user tells their own key from someone else's. Printing only the URL, which
+// carries the code inside it, made that check circular.
+func buildAddKeyBanner(domain string, autoSSL bool, code, fingerprint string) string {
+	lines := []string{
+		"",
+		"  ShellHub doesn't know this SSH key yet.",
+		"",
+		"  Open the link to add it to your identities. This login",
+		"  continues once you do:",
+		"",
+		"    " + consoleURL(domain, autoSSL, "/ssh-identities/new/"+code),
+		"",
+		"  Security code:  " + groupCode(code),
+		"  Key:            " + fingerprint,
+		"",
+		"  Waiting...",
+		"",
+	}
+
+	return strings.Join(lines, "\r\n")
+}
+
+// buildReauthBanner renders the terminal message shown when a key that already
+// is an identity hits a policy requiring a fresh re-authentication. It omits the
+// fingerprint: the key is already the user's, so only the code is worth
+// matching. It names the policy as the cause, since nothing else in the terminal
+// explains why a key that worked before is suddenly asking.
+func buildReauthBanner(domain string, autoSSL bool, code string) string {
+	lines := []string{
+		"",
+		"  An access policy asks you to re-authenticate.",
+		"",
+		"  Open the link to do it in the console. This login",
+		"  continues once you do:",
+		"",
+		"    " + consoleURL(domain, autoSSL, "/ssh-identities/confirm/"+code),
+		"",
+		"  Security code:  " + groupCode(code),
+		"",
+		"  Waiting...",
+		"",
+	}
+
+	return strings.Join(lines, "\r\n")
 }
 
 // Auth authenticate a [Session] based on the provided context.
@@ -691,6 +852,21 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	case StateRegistered:
 		if err := sess.connect(ctx, auth.Auth()); err != nil {
 			return err
+		}
+
+		// Burn a single-use identity now that its session is established, before
+		// marking it authenticated. The burn is atomic server-side, so if a
+		// concurrent session already consumed the key this one loses the race and
+		// is denied without ever counting as authenticated.
+		if sess.SingleUse {
+			won, err := sess.api.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
+			if err != nil {
+				return err
+			}
+
+			if !won {
+				return ErrAccessDenied
+			}
 		}
 
 		if err := sess.authenticate(ctx); err != nil {

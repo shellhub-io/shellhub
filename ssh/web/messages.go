@@ -17,6 +17,10 @@ const (
 	// messageKindSession carries the server session UID to the web client, so a client-side recording can be tied
 	// to its session. This kind of message contains the session UID as a string.
 	messageKindSession
+	// messageKindReauth signals that a policy's require_reauth window lapsed: the browser must prove a factor
+	// before this login goes through. It is distinct from messageKindError because the login is not over — the
+	// gateway is holding it open on the other side. It carries the approval code the step-up screen opens on.
+	messageKindReauth
 )
 
 // MessageMinSize is the minimum size of a message in bytes. This is used to validate if the message is valid.

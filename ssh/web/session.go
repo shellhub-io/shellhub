@@ -27,9 +27,11 @@ type BannerError struct {
 // once at construction time. Use this constructor — never build a BannerError
 // literal — so that Message and kind always agree.
 func NewBannerError(message string) *BannerError {
+	kind, _ := banner.Classify(message)
+
 	return &BannerError{
 		Message: message,
-		kind:    banner.Classify(message),
+		kind:    kind,
 	}
 }
 
@@ -61,8 +63,52 @@ func mapBannerError(e *BannerError) error {
 	}
 }
 
+// bannerCallback handles the banners the gateway sends mid-handshake.
+//
+// A re-auth banner is not a failure: the gateway is holding this login open
+// while it waits for the browser, so the code rides out to the console as a
+// frame and the dial stays blocked until the decision lands. Every other banner
+// is terminal, and becomes an error the caller maps for the client.
+func bannerCallback(conn *Conn) func(string) error {
+	return func(message string) error {
+		if message == "" {
+			return nil
+		}
+
+		if kind, code := banner.Classify(message); kind == banner.KindReauthRequired && code != "" {
+			if _, err := conn.WriteMessage(&Message{Kind: messageKindReauth, Data: code}); err != nil {
+				log.WithError(err).Error("failed to forward the re-auth code to the browser")
+
+				return NewBannerError(message)
+			}
+
+			return nil
+		}
+
+		return NewBannerError(message)
+	}
+}
+
 // getAuth gets the authentication methods from credentials.
 func getAuth(ctx context.Context, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
+	// Identity mode: the browser presents its own enrolled key. Sign the SSH
+	// challenge over the WebSocket with it (the private half never leaves the
+	// browser); the gateway resolves the key to the identity via ssh_identities.
+	// This bypasses the legacy public-key ACL below entirely.
+	if creds.PublicKey != "" {
+		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
+		if err != nil {
+			return nil, ErrDataPublicKey
+		}
+
+		signer := &Signer{
+			conn:      conn,
+			publicKey: &pubKey,
+		}
+
+		return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+	}
+
 	if creds.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
@@ -174,17 +220,24 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 
 	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
 
+	// In identity mode there is no device credential; the logged-in account is
+	// the identity. Carry its id across the localhost dial so the gateway can
+	// bind it to the session and authorize via Access Policies. Absent in legacy.
+	if creds.UserID != "" {
+		if err := cache.Set(ctx, "web-user/"+user, creds.UserID, 1*time.Minute); err != nil {
+			logger.WithError(err).Debug("failed to set the session user on the cache")
+
+			return err
+		}
+
+		defer cache.Delete(ctx, "web-user/"+user) //nolint:errcheck
+	}
+
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-		BannerCallback: func(message string) error {
-			if message != "" {
-				return NewBannerError(message)
-			}
-
-			return nil
-		},
+		BannerCallback:  bannerCallback(conn),
 	})
 	if err != nil {
 		var e *BannerError

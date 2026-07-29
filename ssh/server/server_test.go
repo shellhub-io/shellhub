@@ -69,11 +69,19 @@ func stubDeps() bannerDeps {
 	}
 }
 
+// bannerKind is the kind alone. Classify also reports the correlation code,
+// which only the approval banners carry and none of these cases produce.
+func bannerKind(message string) banner.Kind {
+	kind, _ := banner.Classify(message)
+
+	return kind
+}
+
 func TestBannerHandlerInvalidSSHID(t *testing.T) {
 	h := newBannerHandler(nil, nil)
 	result := h(newStubCtx("not-a-valid-sshid"))
 
-	assert.Equal(t, banner.KindInvalidSSHID, banner.Classify(result),
+	assert.Equal(t, banner.KindInvalidSSHID, bannerKind(result),
 		"BannerHandler must return the KindInvalidSSHID banner for a malformed SSHID")
 }
 
@@ -86,7 +94,7 @@ func TestBannerHandlerNewSessionFailure(t *testing.T) {
 	h := newBannerHandlerWithDeps(nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
-	assert.Equal(t, banner.KindConnectionFailed, banner.Classify(result),
+	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
 		"BannerHandler must return KindConnectionFailed when NewSession fails")
 }
 
@@ -99,7 +107,7 @@ func TestBannerHandlerDialFailure(t *testing.T) {
 	h := newBannerHandlerWithDeps(nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
-	assert.Equal(t, banner.KindConnectionFailed, banner.Classify(result),
+	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
 		"BannerHandler must return KindConnectionFailed when Dial fails")
 }
 
@@ -112,7 +120,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 	h := newBannerHandlerWithDeps(nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
-	assert.Equal(t, banner.KindAccessDenied, banner.Classify(result),
+	assert.Equal(t, banner.KindAccessDenied, bannerKind(result),
 		"BannerHandler must return KindAccessDenied when Evaluate fails")
 }
 
@@ -137,7 +145,7 @@ func TestBannerHandlerRecoversFromPanic(t *testing.T) {
 		result = h(newStubCtx(validSSHID))
 	})
 
-	assert.Equal(t, banner.KindConnectionFailed, banner.Classify(result),
+	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
 		"BannerHandler must recover from a panic and fail only the connection")
 }
 
