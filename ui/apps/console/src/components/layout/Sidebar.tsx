@@ -1,6 +1,8 @@
 import { useCallback, type ReactNode } from "react";
 import { getConfig, isEnterpriseOrCloud } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useNamespace } from "@/hooks/useNamespaces";
 import {
   HomeIcon,
   KeyIcon,
@@ -13,6 +15,8 @@ import {
   GlobeAltIcon,
   ShieldExclamationIcon,
   TicketIcon,
+  ShieldCheckIcon,
+  FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
@@ -31,7 +35,7 @@ interface NavSection {
   items: NavItem[];
 }
 
-function buildSections(): NavSection[] {
+function buildSections(isIdentityMode: boolean): NavSection[] {
   const config = getConfig();
 
   const resources: NavItem[] = [
@@ -45,12 +49,16 @@ function buildSections(): NavSection[] {
       label: "Containers",
       icon: <CubeIcon className={navIcon} />,
     },
-    {
+  ];
+
+  // In identity mode sessions move under the SSH section; keep them in Resources otherwise.
+  if (!isIdentityMode) {
+    resources.push({
       to: "/sessions",
       label: "Sessions",
       icon: <CommandLineIcon className={navIcon} />,
-    },
-  ];
+    });
+  }
 
   if (config.webEndpoints && isEnterpriseOrCloud()) {
     resources.push({
@@ -59,6 +67,56 @@ function buildSections(): NavSection[] {
       icon: <GlobeAltIcon className={navIcon} />,
       beta: true,
     });
+  }
+
+  // Identity access mode authorizes SSH via Access Policies and SSH Identities; the
+  // legacy key ACL, firewall, and key vault are bypassed, so hide them. The section is
+  // titled "SSH" there and leads with sessions.
+  const security: NavItem[] = [];
+
+  if (isIdentityMode) {
+    security.push({
+      to: "/sessions",
+      label: "Sessions",
+      icon: <CommandLineIcon className={navIcon} />,
+    });
+  }
+
+  if (!isIdentityMode) {
+    security.push({
+      to: "/sshkeys/public-keys",
+      label: "Public Keys",
+      icon: <KeyIcon className={navIcon} />,
+    });
+  }
+
+  security.push(
+    {
+      to: "/access-policies",
+      label: "Access Policies",
+      icon: <ShieldCheckIcon className={navIcon} />,
+    },
+    {
+      to: "/ssh-identities",
+      label: "SSH Identities",
+      icon: <FingerPrintIcon className={navIcon} />,
+    },
+  );
+
+  if (!isIdentityMode) {
+    security.push(
+      {
+        to: "/firewall-rules",
+        label: "Firewall Rules",
+        icon: <ShieldExclamationIcon className={navIcon} />,
+        premium: true,
+      },
+      {
+        to: "/secure-vault",
+        label: "Secure Vault",
+        icon: <LockClosedIcon className={navIcon} />,
+      },
+    );
   }
 
   return [
@@ -77,25 +135,8 @@ function buildSections(): NavSection[] {
       items: resources,
     },
     {
-      title: "Security",
-      items: [
-        {
-          to: "/sshkeys/public-keys",
-          label: "Public Keys",
-          icon: <KeyIcon className={navIcon} />,
-        },
-        {
-          to: "/firewall-rules",
-          label: "Firewall Rules",
-          icon: <ShieldExclamationIcon className={navIcon} />,
-          premium: true,
-        },
-        {
-          to: "/secure-vault",
-          label: "Secure Vault",
-          icon: <LockClosedIcon className={navIcon} />,
-        },
-      ],
+      title: isIdentityMode ? "SSH" : "Security",
+      items: security,
     },
     {
       title: "Management",
@@ -160,7 +201,11 @@ export default function Sidebar({
     state.sessions.some((session) => session.state === "fullscreen"),
   );
 
-  const sections = buildSections();
+  const { tenant } = useAuthStore();
+  const { namespace } = useNamespace(tenant ?? "");
+  const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
+
+  const sections = buildSections(isIdentityMode);
 
   const handleNavClick = useCallback(() => {
     minimizeAll();

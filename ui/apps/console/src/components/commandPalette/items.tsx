@@ -211,8 +211,12 @@ export function buildConnectionItems(deps: {
 export function buildCommandItems(deps: {
   go: (path: string) => void;
   onLogout: () => void;
+  isIdentityMode?: boolean;
 }): CommandItem[] {
-  const { go, onLogout } = deps;
+  const { go, onLogout, isIdentityMode } = deps;
+  // The key vault and legacy public-key ACL are bypassed in identity access
+  // mode, so drop them here to match the hidden sidebar links and route guard.
+  const legacyPaths = ["/sshkeys/public-keys", "/secure-vault"];
   const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
     { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
     { label: "Devices", path: "/devices", icon: icons.devices },
@@ -223,7 +227,7 @@ export function buildCommandItems(deps: {
     { label: "Settings", path: "/settings", icon: icons.settings },
     { label: "Add Device", path: "/devices/add", icon: icons.add },
     { label: "Claim a Device", path: "/accept-device", icon: icons.add },
-  ];
+  ].filter((n) => !isIdentityMode || !legacyPaths.includes(n.path));
 
   const list: CommandItem[] = nav.map((n) => ({
     id: `nav-${n.path}`,

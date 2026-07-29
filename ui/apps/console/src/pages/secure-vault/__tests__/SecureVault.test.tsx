@@ -2,6 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
 import ConnectDrawer from "@/components/ConnectDrawer";
@@ -53,6 +54,12 @@ vi.mock("@/utils/sshKeys", () => ({
 // so the drawer renders without a QueryClient in these isolated tests.
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespace: () => ({ namespace: undefined }),
+}));
+
+// The identity-mode connect enrolls the browser key via this mutation hook, which
+// needs a QueryClient; stub it so the drawer renders in isolation.
+vi.mock("@/hooks/useSSHIdentityMutations", () => ({
+  useCreateSSHIdentity: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock("@/components/common/Drawer", () => ({
@@ -783,6 +790,15 @@ describe("SecureVault", () => {
     }
 
     function renderConnectDrawer() {
+      // ConnectDrawer calls useQueryClient (identity-mode reconciliation); these
+      // isolated tests aren't in identity mode, so no query actually runs — the
+      // provider only satisfies the hook. A `wrapper` persists across rerender().
+      const queryClient = new QueryClient();
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
       return render(
         <ConnectDrawer
           open
@@ -791,6 +807,7 @@ describe("SecureVault", () => {
           deviceName="my-device"
           sshid="my-device.ns@localhost"
         />,
+        { wrapper },
       );
     }
 

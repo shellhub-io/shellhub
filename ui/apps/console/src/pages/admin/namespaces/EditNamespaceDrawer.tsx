@@ -109,7 +109,6 @@ export default function EditNamespaceDrawer({
         id="edit-namespace-session-record"
         label="Session Recording"
       />
-
     </FormDrawer>
   );
 }

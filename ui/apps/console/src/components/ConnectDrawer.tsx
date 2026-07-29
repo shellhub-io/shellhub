@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState, FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   LockClosedIcon,
   KeyIcon,
@@ -13,8 +14,18 @@ import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespace } from "../hooks/useNamespaces";
+import { useCreateSSHIdentity } from "../hooks/useSSHIdentityMutations";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
+import {
+  ensureBrowserKey,
+  persistBrowserKey,
+  browserLabel,
+  type BrowserKey,
+} from "../utils/browserKey";
+import { BROWSER_KEY_QUERY_KEY } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
+import { listSshIdentitiesOptions } from "../client/@tanstack/react-query.gen";
+import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
@@ -27,7 +38,7 @@ import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioSegment from "@/components/common/fields/RadioSegment";
 import { INPUT, LABEL } from "../utils/styles";
 import { cn } from "@shellhub/design-system/cn";
-import { Card, Button } from "@shellhub/design-system/primitives";
+import { Card, Button, Callout } from "@shellhub/design-system/primitives";
 import type { VaultKeyEntry } from "../types/vault";
 
 interface Props {
@@ -37,6 +48,8 @@ interface Props {
   deviceName: string;
   sshid: string;
 }
+
+type ConnectParams = Omit<TerminalSession, "id" | "state" | "connectionStatus">;
 
 interface FormState {
   username: string;
@@ -50,6 +63,9 @@ interface FormState {
   passphrase: string;
   keyError: string | null;
   recordSession: boolean;
+  // Why this browser cannot open the web terminal in identity mode, where the
+  // key IS the identity and there is nothing lesser to fall back to.
+  keyUnavailable: string | null;
 }
 
 type FormAction =
@@ -62,6 +78,7 @@ type FormAction =
   | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
   | { type: "setPassphrase"; value: string }
   | { type: "setKeyError"; value: string | null }
+  | { type: "setKeyUnavailable"; value: string | null }
   | { type: "setRecordSession"; value: boolean };
 
 const initialState: FormState = {
@@ -76,6 +93,7 @@ const initialState: FormState = {
   passphrase: "",
   keyError: null,
   recordSession: true,
+  keyUnavailable: null,
 };
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -104,6 +122,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, passphrase: action.value };
     case "setKeyError":
       return { ...state, keyError: action.value };
+    case "setKeyUnavailable":
+      return { ...state, keyUnavailable: action.value };
     case "setRecordSession":
       return { ...state, recordSession: action.value };
   }
@@ -123,11 +143,26 @@ export default function ConnectDrawer({
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  // First-run browser-key consent: set when a fresh key was generated and awaits
+  // the user's OK to register it. Null once granted, declined, or not needed.
+  const [pendingEnroll, setPendingEnroll] = useState<{
+    key: BrowserKey;
+    scope: string;
+    params: ConnectParams;
+  } | null>(null);
   const recordingSupported = isRecordingSupported();
 
   const tenant = useAuthStore((s) => s.tenant);
+  const userId = useAuthStore((s) => s.userId);
+  const createIdentity = useCreateSSHIdentity();
+  const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords = namespace?.settings?.session_record ?? false;
+
+  // In identity access mode you are already authenticated in the console — your
+  // account is the identity, and Access Policies authorize the login. No device
+  // password or key is needed; the form collapses to just the unix login.
+  const identityMode = namespace?.settings?.ssh_access_mode === "identity";
 
   useEffect(() => {
     if (!open) return;
@@ -144,14 +179,15 @@ export default function ConnectDrawer({
 
   const canConnect =
     state.username.trim().length > 0 &&
-    (state.authMethod === "password"
-      ? state.password.trim().length > 0
-      : effectiveKeySource === "vault"
-        ? !!selectedVaultKey &&
-          (!selectedVaultKey.hasPassphrase ||
-            state.passphrase.trim().length > 0)
-        : state.manualKeyValid &&
-          (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
+    (identityMode ||
+      (state.authMethod === "password"
+        ? state.password.trim().length > 0
+        : effectiveKeySource === "vault"
+          ? !!selectedVaultKey &&
+            (!selectedVaultKey.hasPassphrase ||
+              state.passphrase.trim().length > 0)
+          : state.manualKeyValid &&
+            (!state.manualKeyEncrypted || state.passphrase.trim().length > 0)));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
@@ -172,11 +208,106 @@ export default function ConnectDrawer({
     });
   };
 
-  const handleConnect = (e: FormEvent) => {
+  // Apply the opt-in recording flag (OPFS, no upload; skipped when the namespace
+  // already records server-side), then open the terminal and close the drawer.
+  const finalizeConnect = (params: ConnectParams) => {
+    const withRecord =
+      !namespaceRecords && state.recordSession && isRecordingSupported()
+        ? { ...params, record: true }
+        : params;
+    openTerminal(withRecord);
+    onClose();
+  };
+
+  const attachKey = (
+    params: ConnectParams,
+    key: BrowserKey,
+  ): ConnectParams => ({
+    ...params,
+    fingerprint: key.fingerprint,
+    publicKeyLine: key.publicKeyLine,
+    browserKey: key.privateKey,
+  });
+
+  // Register the browser's public key under the given name, persist it for reuse,
+  // and connect. Throws on enrollment failure so the consent dialog can surface
+  // an error.
+  const enrollAndConnect = async (
+    key: BrowserKey,
+    scope: string,
+    params: ConnectParams,
+    name: string,
+  ) => {
+    await createIdentity.mutateAsync({
+      body: { name, data: key.publicKeyLine, source: "browser" },
+    });
+    await persistBrowserKey(scope, key);
+    // This browser now holds a key it did not a moment ago, and the identities
+    // list reads that to mark its own row.
+    await queryClient.invalidateQueries({ queryKey: BROWSER_KEY_QUERY_KEY });
+    finalizeConnect(attachKey(params, key));
+  };
+
+  const handleConnect = async (e: FormEvent) => {
     e.preventDefault();
     if (!canConnect) return;
 
-    let params: Omit<TerminalSession, "id" | "state" | "connectionStatus">;
+    if (identityMode) {
+      // Browser-held identity: the browser signs the SSH challenge with its own
+      // non-extractable key, so the web terminal is a first-class SSH identity
+      // (revocable, its own last_reauth_at).
+      const params: ConnectParams = {
+        deviceUid,
+        deviceName,
+        username: state.username.trim(),
+        password: "",
+      };
+
+      const scope = userId && tenant ? `${userId}:${tenant}` : null;
+      const key = scope ? await ensureBrowserKey(scope) : null;
+
+      // In identity mode the key IS the identity, so there is nothing to degrade
+      // to: a browser that cannot hold one cannot open the web terminal.
+      if (!key || !scope) {
+        dispatch({
+          type: "setKeyUnavailable",
+          value:
+            "This browser can't hold an SSH key, so it can't open the web terminal. It needs Ed25519 in WebCrypto and IndexedDB, which private windows and older browsers often block. Connecting over SSH from your terminal still works.",
+        });
+        return;
+      }
+
+      // The server is the source of truth: consent+enroll is driven by whether
+      // this key is registered there, not by local presence — so revoking it in
+      // the console re-triggers consent here even though the key stays in the
+      // browser. Fetch fresh (not the cache) to see a just-made revocation.
+      let registered: boolean;
+      try {
+        const identities = await queryClient.fetchQuery(
+          listSshIdentitiesOptions({}),
+        );
+        registered = identities.some((i) => i.fingerprint === key.fingerprint);
+      } catch {
+        dispatch({
+          type: "setKeyUnavailable",
+          value:
+            "Couldn't check your SSH identities, so we can't tell whether this browser's key is still valid. Try again in a moment.",
+        });
+        return;
+      }
+
+      if (registered) {
+        // Already enrolled: connect straight with the key — no POST, no consent.
+        finalizeConnect(attachKey(params, key));
+        return;
+      }
+
+      // New, revoked, or orphaned: get consent before registering the identity.
+      setPendingEnroll({ key, scope, params });
+      return;
+    }
+
+    let params: ConnectParams;
     if (state.authMethod === "password") {
       params = {
         deviceUid,
@@ -233,14 +364,7 @@ export default function ConnectDrawer({
       };
     }
 
-    // Opt-in recording. Captured client-side to OPFS — no picker, no upload.
-    // Skip when the namespace already records server-side.
-    if (!namespaceRecords && state.recordSession && isRecordingSupported()) {
-      params = { ...params, record: true };
-    }
-
-    openTerminal(params);
-    onClose();
+    finalizeConnect(params);
   };
 
   return (
@@ -248,6 +372,21 @@ export default function ConnectDrawer({
       <VaultUnlockDialog
         open={unlockOpen}
         onClose={() => setUnlockOpen(false)}
+      />
+      <BrowserEnrollDialog
+        open={pendingEnroll !== null}
+        defaultName={browserLabel()}
+        onClose={() => setPendingEnroll(null)}
+        onConfirm={async (name) => {
+          if (!pendingEnroll) return;
+          await enrollAndConnect(
+            pendingEnroll.key,
+            pendingEnroll.scope,
+            pendingEnroll.params,
+            name,
+          );
+          setPendingEnroll(null);
+        }}
       />
       <Drawer
         open={open}
@@ -275,7 +414,7 @@ export default function ConnectDrawer({
       >
         <form
           id={`connect-form-${deviceUid}`}
-          onSubmit={handleConnect}
+          onSubmit={(e) => void handleConnect(e)}
           className="space-y-5"
         >
           {/* SSHID helper */}
@@ -332,147 +471,178 @@ export default function ConnectDrawer({
             placeholder="e.g. root"
           />
 
-          {/* Auth Method */}
-          <RadioGroupField
-            label="Authentication"
-            value={state.authMethod}
-            onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
-          >
-            <RadioCard
-              value="password"
-              icon={<LockClosedIcon className="w-4 h-4" />}
-              label="Password"
-              description="Authenticate with your device password."
-            />
-            <RadioCard
-              value="key"
-              icon={<KeyIcon className="w-4 h-4" />}
-              label="Private Key"
-              description="Authenticate using your SSH private key."
-            />
-          </RadioGroupField>
-
-          {/* Password field */}
-          {state.authMethod === "password" && (
-            <PasswordField
-              id="connect-password"
-              label="Password"
-              autoComplete="current-password"
-              value={state.password}
-              onChange={(v) => dispatch({ type: "setPassword", value: v })}
-              placeholder="Enter device password"
-            />
-          )}
-
-          {/* Private Key fields */}
-          {state.authMethod === "key" && (
+          {identityMode ? (
+            state.keyUnavailable ? (
+              <Callout variant="error">{state.keyUnavailable}</Callout>
+            ) : (
+              <Card className="rounded-lg p-3.5">
+                <div className="flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 shrink-0 text-primary"
+                  >
+                    <ShieldCheckIcon className="w-5 h-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-text-primary">
+                      You connect as your identity
+                    </span>
+                    <span className="block text-2xs text-text-muted mt-0.5">
+                      This namespace uses key-based identity. Access is granted
+                      by policy — no device password or key needed.
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            )
+          ) : (
             <>
-              {/* Vault locked warning */}
-              {vaultStatus === "locked" && (
-                <VaultLockedBanner onUnlock={() => setUnlockOpen(true)} />
+              {/* Auth Method */}
+              <RadioGroupField
+                label="Authentication"
+                value={state.authMethod}
+                onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
+              >
+                <RadioCard
+                  value="password"
+                  icon={<LockClosedIcon className="w-4 h-4" />}
+                  label="Password"
+                  description="Authenticate with your device password."
+                />
+                <RadioCard
+                  value="key"
+                  icon={<KeyIcon className="w-4 h-4" />}
+                  label="Private Key"
+                  description="Authenticate using your SSH private key."
+                />
+              </RadioGroupField>
+
+              {/* Password field */}
+              {state.authMethod === "password" && (
+                <PasswordField
+                  id="connect-password"
+                  label="Password"
+                  autoComplete="current-password"
+                  value={state.password}
+                  onChange={(v) => dispatch({ type: "setPassword", value: v })}
+                  placeholder="Enter device password"
+                />
               )}
 
-              {/* Key source toggle (only if vault has keys) */}
-              {hasVaultKeys && (
-                <RadioGroupField
-                  label="Key Source"
-                  value={state.keySource}
-                  onChange={(value) =>
-                    dispatch({ type: "setKeySource", value })
-                  }
-                  containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
-                >
-                  <RadioSegment
-                    value="vault"
-                    label="Vault"
-                    icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
-                  />
-                  <RadioSegment
-                    value="manual"
-                    label="Manual"
-                    icon={<KeyIcon className="w-3.5 h-3.5" />}
-                  />
-                </RadioGroupField>
-              )}
-
-              {/* Vault key selector */}
-              {effectiveKeySource === "vault" ? (
+              {/* Private Key fields */}
+              {state.authMethod === "key" && (
                 <>
-                  <div>
-                    <FieldLabel htmlFor="connect-vault-key">
-                      Select Key
-                    </FieldLabel>
-                    <select
-                      id="connect-vault-key"
-                      value={state.selectedKeyId}
-                      onChange={(e) =>
-                        dispatch({
-                          type: "setSelectedKeyId",
-                          value: e.target.value,
-                        })
+                  {/* Vault locked warning */}
+                  {vaultStatus === "locked" && (
+                    <VaultLockedBanner onUnlock={() => setUnlockOpen(true)} />
+                  )}
+
+                  {/* Key source toggle (only if vault has keys) */}
+                  {hasVaultKeys && (
+                    <RadioGroupField
+                      label="Key Source"
+                      value={state.keySource}
+                      onChange={(value) =>
+                        dispatch({ type: "setKeySource", value })
                       }
-                      className={INPUT}
+                      containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
                     >
-                      <option value="">Choose a key...</option>
-                      {vaultKeys.map((k) => (
-                        <option key={k.id} value={k.id}>
-                          {k.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {selectedVaultKey?.hasPassphrase && (
-                    <PasswordField
-                      id="connect-vault-passphrase"
-                      label="Passphrase"
-                      value={state.passphrase}
-                      onChange={(v) =>
-                        dispatch({ type: "setPassphrase", value: v })
-                      }
-                      placeholder="Key passphrase"
-                      suppressPasswordManager
-                    />
+                      <RadioSegment
+                        value="vault"
+                        label="Vault"
+                        icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
+                      />
+                      <RadioSegment
+                        value="manual"
+                        label="Manual"
+                        icon={<KeyIcon className="w-3.5 h-3.5" />}
+                      />
+                    </RadioGroupField>
+                  )}
+                  {/* Vault key selector */}
+                  {effectiveKeySource === "vault" ? (
+                    <>
+                      <div>
+                        <FieldLabel htmlFor="connect-vault-key">
+                          Select Key
+                        </FieldLabel>
+                        <select
+                          id="connect-vault-key"
+                          value={state.selectedKeyId}
+                          onChange={(e) =>
+                            dispatch({
+                              type: "setSelectedKeyId",
+                              value: e.target.value,
+                            })
+                          }
+                          className={INPUT}
+                        >
+                          <option value="">Choose a key...</option>
+                          {vaultKeys.map((k) => (
+                            <option key={k.id} value={k.id}>
+                              {k.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {selectedVaultKey?.hasPassphrase && (
+                        <PasswordField
+                          id="connect-vault-passphrase"
+                          label="Passphrase"
+                          value={state.passphrase}
+                          onChange={(v) =>
+                            dispatch({ type: "setPassphrase", value: v })
+                          }
+                          placeholder="Key passphrase"
+                          suppressPasswordManager
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Manual key input */}
+                      <div>
+                        <FieldLabel htmlFor="connect-manual-private-key">
+                          Private Key
+                        </FieldLabel>
+                        <textarea
+                          id="connect-manual-private-key"
+                          value={state.privateKey}
+                          onChange={(e) =>
+                            handleManualKeyChange(e.target.value)
+                          }
+                          placeholder={
+                            "-----BEGIN OPENSSH PRIVATE KEY-----\n..."
+                          }
+                          rows={5}
+                          className={cn(INPUT, "font-mono text-xs resize-none")}
+                        />
+                      </div>
+                      {state.manualKeyEncrypted && (
+                        <PasswordField
+                          id="connect-manual-passphrase"
+                          label="Passphrase"
+                          value={state.passphrase}
+                          onChange={(v) =>
+                            dispatch({ type: "setPassphrase", value: v })
+                          }
+                          placeholder="Enter passphrase for encrypted key"
+                          suppressPasswordManager
+                          hint="This key is encrypted and requires a passphrase."
+                        />
+                      )}
+                    </>
                   )}
                 </>
-              ) : (
-                <>
-                  {/* Manual key input */}
-                  <div>
-                    <FieldLabel htmlFor="connect-manual-private-key">
-                      Private Key
-                    </FieldLabel>
-                    <textarea
-                      id="connect-manual-private-key"
-                      value={state.privateKey}
-                      onChange={(e) => handleManualKeyChange(e.target.value)}
-                      placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
-                      rows={5}
-                      className={cn(INPUT, "font-mono text-xs resize-none")}
-                    />
-                  </div>
-                  {state.manualKeyEncrypted && (
-                    <PasswordField
-                      id="connect-manual-passphrase"
-                      label="Passphrase"
-                      value={state.passphrase}
-                      onChange={(v) =>
-                        dispatch({ type: "setPassphrase", value: v })
-                      }
-                      placeholder="Enter passphrase for encrypted key"
-                      suppressPasswordManager
-                      hint="This key is encrypted and requires a passphrase."
-                    />
-                  )}
-                </>
+              )}
+
+              {state.keyError && (
+                <p className="text-2xs text-accent-red flex items-center gap-1">
+                  <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                  {state.keyError}
+                </p>
               )}
             </>
-          )}
-
-          {state.keyError && (
-            <p className="text-2xs text-accent-red flex items-center gap-1">
-              <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
-              {state.keyError}
-            </p>
           )}
 
           {namespaceRecords && (
@@ -504,7 +674,12 @@ export default function ConnectDrawer({
 
           {!namespaceRecords && recordingSupported && (
             <label
-              className={cn("flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40", state.recordSession ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10" : "bg-card border-border hover:border-border-light hover:bg-hover-subtle")}
+              className={cn(
+                "flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40",
+                state.recordSession
+                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
+                  : "bg-card border-border hover:border-border-light hover:bg-hover-subtle",
+              )}
             >
               <input
                 type="checkbox"
@@ -519,7 +694,10 @@ export default function ConnectDrawer({
               />
               <span
                 aria-hidden="true"
-                className={cn("mt-0.5 shrink-0 transition-colors", state.recordSession ? "text-primary" : "text-text-muted")}
+                className={cn(
+                  "mt-0.5 shrink-0 transition-colors",
+                  state.recordSession ? "text-primary" : "text-text-muted",
+                )}
               >
                 <VideoCameraIcon className="w-4 h-4" />
               </span>
@@ -533,7 +711,12 @@ export default function ConnectDrawer({
               </div>
               <span
                 aria-hidden="true"
-                className={cn("mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all", state.recordSession ? "bg-primary border-primary text-white" : "border-text-muted/40")}
+                className={cn(
+                  "mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all",
+                  state.recordSession
+                    ? "bg-primary border-primary text-white"
+                    : "border-text-muted/40",
+                )}
               >
                 {state.recordSession && (
                   <CheckIcon className="w-3 h-3" strokeWidth={3} />

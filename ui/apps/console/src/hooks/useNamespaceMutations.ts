@@ -1,5 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { editNamespaceMutation } from "../client/@tanstack/react-query.gen";
+import {
+  editNamespaceMutation,
+  setSshAccessModeMutation,
+} from "../client/@tanstack/react-query.gen";
 import {
   getNamespaceToken,
   createNamespace as createNamespaceSdk,
@@ -13,6 +16,14 @@ export function useEditNamespace() {
   const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
     ...editNamespaceMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+export function useSetSshAccessMode() {
+  const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
+  return useMutation({
+    ...setSshAccessModeMutation(),
     onSuccess: invalidate,
   });
 }
