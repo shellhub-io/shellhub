@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -18,10 +18,16 @@ vi.mock("@/hooks/useNamespaces", () => ({
       type: "personal",
       settings: {
         session_record: false,
+        ssh_access_mode: "legacy",
+        ssh_legacy_allowed: true,
         connection_announcement: "",
       },
     },
   })),
+}));
+
+vi.mock("@/hooks/useAccessPolicies", () => ({
+  useAccessPolicies: vi.fn(() => ({ policies: [] })),
 }));
 
 const mockEditNsMutate = vi.fn();
@@ -30,6 +36,7 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
   useEditNamespace: vi.fn(() => ({ mutateAsync: mockEditNsMutate })),
   useDeleteNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
   useLeaveNamespace: vi.fn(() => ({ mutateAsync: vi.fn() })),
+  useSetSshAccessMode: vi.fn(() => ({ mutateAsync: vi.fn() })),
 }));
 
 vi.mock("@/components/billing/BillingSection", () => ({
@@ -43,6 +50,7 @@ vi.mock("@/components/common/CopyButton", () => ({
 import Settings from "../Settings";
 import * as SettingsCardModule from "@/components/common/SettingsCard";
 import * as SettingsRowModule from "@/components/common/SettingsRow";
+import { useNamespace } from "@/hooks/useNamespaces";
 import { getConfig, defaultConfig } from "@/env";
 
 const mockedGetConfig = vi.mocked(getConfig);
@@ -135,6 +143,61 @@ describe("Settings", () => {
       expect(
         screen.getByRole("button", { name: /delete/i }),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("SSH access mode", () => {
+    function mockNamespaceWithSettings(
+      settings: Partial<{
+        ssh_access_mode: "legacy" | "identity";
+        ssh_legacy_allowed: boolean;
+      }>,
+    ) {
+      vi.mocked(useNamespace).mockReturnValue({
+        namespace: {
+          name: "my-ns",
+          tenant_id: "00000000-0000-4000-0000-000000000000",
+          type: "personal",
+          settings: {
+            session_record: false,
+            connection_announcement: "",
+            ssh_access_mode: "legacy",
+            ssh_legacy_allowed: true,
+            ...settings,
+          },
+        },
+      } as unknown as ReturnType<typeof useNamespace>);
+    }
+
+    afterEach(() => {
+      // Restore the default namespace so later tests see the factory mock shape.
+      mockNamespaceWithSettings({});
+    });
+
+    it("shows the Legacy/Identity toggle for grandfathered namespaces", () => {
+      mockNamespaceWithSettings({ ssh_legacy_allowed: true });
+      renderSettings();
+      expect(
+        screen.getByRole("button", { name: "Legacy" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Identity" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows no toggle for namespaces born in identity mode", () => {
+      mockNamespaceWithSettings({
+        ssh_access_mode: "identity",
+        ssh_legacy_allowed: false,
+      });
+      renderSettings();
+      expect(
+        screen.queryByRole("button", { name: "Legacy" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Identity" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText("Identity")).toBeInTheDocument();
     });
   });
 

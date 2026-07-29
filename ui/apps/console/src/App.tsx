@@ -14,6 +14,7 @@ import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
+import LegacyAccessGuard from "./components/common/LegacyAccessGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
@@ -22,6 +23,7 @@ import LicenseGuard from "./components/common/LicenseGuard";
 import FeatureGate from "./components/common/FeatureGate";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
+const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -32,8 +34,11 @@ const Sessions = lazy(() => import("./pages/sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PublicKeys = lazy(() => import("./pages/public-keys"));
+const AccessPolicies = lazy(() => import("./pages/access-policies"));
+const SSHIdentities = lazy(() => import("./pages/ssh-identities"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
+const SSHApproval = lazy(() => import("./pages/SSHApproval"));
 const Team = lazy(() => import("./pages/team"));
 const InstallKeys = lazy(() => import("./pages/install-keys"));
 const InstallKeyHistory = lazy(
@@ -87,6 +92,9 @@ export default function App() {
   return (
     <Suspense>
       <Routes>
+        {/* Bare popup landing for the SSO re-auth step-up: no layout, just relays
+            the outcome to its opener and closes. */}
+        <Route path="/sso-reauth" element={<SsoReauthComplete />} />
         <Route element={<ConnectivityGuard />}>
           <Route element={<SetupGuard />}>
             <Route element={<LoginLayout />}>
@@ -219,19 +227,40 @@ export default function App() {
                   />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
-                  <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
-                  <Route path="/secure-vault" element={<SecureVault />} />
-                  <Route
-                    path="/firewall-rules"
-                    element={
-                      <FeatureGate
-                        feature="Firewall Rules"
-                        description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
-                      >
-                        <FirewallRules />
-                      </FeatureGate>
-                    }
-                  />
+                  <Route path="/access-policies" element={<AccessPolicies />} />
+                  {/* The two approvals a native login can wait on. Both write to
+                      the identity — one creates it, the other refreshes its
+                      re-auth window — so both open over the identity list. */}
+                  <Route path="/ssh-identities" element={<SSHIdentities />}>
+                    <Route
+                      path="new/:code"
+                      element={<SSHApproval flow="new" />}
+                    />
+                    <Route
+                      path="confirm/:code"
+                      element={<SSHApproval flow="confirm" />}
+                    />
+                  </Route>
+                  {/* Legacy key ACL, vault, and firewall are bypassed in
+                      identity mode; redirect them to Access Policies there. */}
+                  <Route element={<LegacyAccessGuard />}>
+                    <Route
+                      path="/sshkeys/public-keys"
+                      element={<PublicKeys />}
+                    />
+                    <Route path="/secure-vault" element={<SecureVault />} />
+                    <Route
+                      path="/firewall-rules"
+                      element={
+                        <FeatureGate
+                          feature="Firewall Rules"
+                          description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+                        >
+                          <FirewallRules />
+                        </FeatureGate>
+                      }
+                    />
+                  </Route>
                   {getConfig().webEndpoints && (
                     <Route
                       path="/web-endpoints"
