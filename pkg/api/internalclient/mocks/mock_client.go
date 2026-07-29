@@ -41,6 +41,98 @@ func (_m *MockClient) EXPECT() *MockClient_Expecter {
 	return &MockClient_Expecter{mock: &_m.Mock}
 }
 
+// AuthorizeSSHAccess provides a mock function for the type MockClient
+func (_mock *MockClient) AuthorizeSSHAccess(ctx context.Context, tenant string, userID string, deviceUID string, login string, sourceIP string) (*models.Decision, error) {
+	ret := _mock.Called(ctx, tenant, userID, deviceUID, login, sourceIP)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthorizeSSHAccess")
+	}
+
+	var r0 *models.Decision
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) (*models.Decision, error)); ok {
+		return returnFunc(ctx, tenant, userID, deviceUID, login, sourceIP)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) *models.Decision); ok {
+		r0 = returnFunc(ctx, tenant, userID, deviceUID, login, sourceIP)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Decision)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string, string) error); ok {
+		r1 = returnFunc(ctx, tenant, userID, deviceUID, login, sourceIP)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_AuthorizeSSHAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthorizeSSHAccess'
+type MockClient_AuthorizeSSHAccess_Call struct {
+	*mock.Call
+}
+
+// AuthorizeSSHAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+//   - userID string
+//   - deviceUID string
+//   - login string
+//   - sourceIP string
+func (_e *MockClient_Expecter) AuthorizeSSHAccess(ctx any, tenant any, userID any, deviceUID any, login any, sourceIP any) *MockClient_AuthorizeSSHAccess_Call {
+	return &MockClient_AuthorizeSSHAccess_Call{Call: _e.mock.On("AuthorizeSSHAccess", ctx, tenant, userID, deviceUID, login, sourceIP)}
+}
+
+func (_c *MockClient_AuthorizeSSHAccess_Call) Run(run func(ctx context.Context, tenant string, userID string, deviceUID string, login string, sourceIP string)) *MockClient_AuthorizeSSHAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		var arg5 string
+		if args[5] != nil {
+			arg5 = args[5].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_AuthorizeSSHAccess_Call) Return(decision *models.Decision, err error) *MockClient_AuthorizeSSHAccess_Call {
+	_c.Call.Return(decision, err)
+	return _c
+}
+
+func (_c *MockClient_AuthorizeSSHAccess_Call) RunAndReturn(run func(ctx context.Context, tenant string, userID string, deviceUID string, login string, sourceIP string) (*models.Decision, error)) *MockClient_AuthorizeSSHAccess_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BillingEvaluate provides a mock function for the type MockClient
 func (_mock *MockClient) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error) {
 	ret := _mock.Called(ctx, tenantID)
@@ -172,6 +264,78 @@ func (_c *MockClient_BillingReport_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// ConsumeSSHIdentity provides a mock function for the type MockClient
+func (_mock *MockClient) ConsumeSSHIdentity(ctx context.Context, tenant string, fingerprint string) (bool, error) {
+	ret := _mock.Called(ctx, tenant, fingerprint)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConsumeSSHIdentity")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, tenant, fingerprint)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, tenant, fingerprint)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, tenant, fingerprint)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_ConsumeSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ConsumeSSHIdentity'
+type MockClient_ConsumeSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// ConsumeSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+//   - fingerprint string
+func (_e *MockClient_Expecter) ConsumeSSHIdentity(ctx any, tenant any, fingerprint any) *MockClient_ConsumeSSHIdentity_Call {
+	return &MockClient_ConsumeSSHIdentity_Call{Call: _e.mock.On("ConsumeSSHIdentity", ctx, tenant, fingerprint)}
+}
+
+func (_c *MockClient_ConsumeSSHIdentity_Call) Run(run func(ctx context.Context, tenant string, fingerprint string)) *MockClient_ConsumeSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_ConsumeSSHIdentity_Call) Return(b bool, err error) *MockClient_ConsumeSSHIdentity_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockClient_ConsumeSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, tenant string, fingerprint string) (bool, error)) *MockClient_ConsumeSSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreatePrivateKey provides a mock function for the type MockClient
 func (_mock *MockClient) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
 	ret := _mock.Called(ctx)
@@ -230,6 +394,74 @@ func (_c *MockClient_CreatePrivateKey_Call) Return(privateKey *models.PrivateKey
 }
 
 func (_c *MockClient_CreatePrivateKey_Call) RunAndReturn(run func(ctx context.Context) (*models.PrivateKey, error)) *MockClient_CreatePrivateKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateSSHApproval provides a mock function for the type MockClient
+func (_mock *MockClient) CreateSSHApproval(ctx context.Context, req requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSSHApproval")
+	}
+
+	var r0 *models.SSHApprovalCreated
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.SSHApprovalCreate) *models.SSHApprovalCreated); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHApprovalCreated)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.SSHApprovalCreate) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_CreateSSHApproval_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSSHApproval'
+type MockClient_CreateSSHApproval_Call struct {
+	*mock.Call
+}
+
+// CreateSSHApproval is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req requests.SSHApprovalCreate
+func (_e *MockClient_Expecter) CreateSSHApproval(ctx any, req any) *MockClient_CreateSSHApproval_Call {
+	return &MockClient_CreateSSHApproval_Call{Call: _e.mock.On("CreateSSHApproval", ctx, req)}
+}
+
+func (_c *MockClient_CreateSSHApproval_Call) Run(run func(ctx context.Context, req requests.SSHApprovalCreate)) *MockClient_CreateSSHApproval_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 requests.SSHApprovalCreate
+		if args[1] != nil {
+			arg1 = args[1].(requests.SSHApprovalCreate)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_CreateSSHApproval_Call) Return(sSHApprovalCreated *models.SSHApprovalCreated, err error) *MockClient_CreateSSHApproval_Call {
+	_c.Call.Return(sSHApprovalCreated, err)
+	return _c
+}
+
+func (_c *MockClient_CreateSSHApproval_Call) RunAndReturn(run func(ctx context.Context, req requests.SSHApprovalCreate) (*models.SSHApprovalCreated, error)) *MockClient_CreateSSHApproval_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -824,6 +1056,74 @@ func (_c *MockClient_GetPublicKey_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// GetSSHApprovalStatus provides a mock function for the type MockClient
+func (_mock *MockClient) GetSSHApprovalStatus(ctx context.Context, code string) (*models.SSHApprovalStatus, error) {
+	ret := _mock.Called(ctx, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSSHApprovalStatus")
+	}
+
+	var r0 *models.SSHApprovalStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.SSHApprovalStatus, error)); ok {
+		return returnFunc(ctx, code)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.SSHApprovalStatus); ok {
+		r0 = returnFunc(ctx, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHApprovalStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_GetSSHApprovalStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSSHApprovalStatus'
+type MockClient_GetSSHApprovalStatus_Call struct {
+	*mock.Call
+}
+
+// GetSSHApprovalStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - code string
+func (_e *MockClient_Expecter) GetSSHApprovalStatus(ctx any, code any) *MockClient_GetSSHApprovalStatus_Call {
+	return &MockClient_GetSSHApprovalStatus_Call{Call: _e.mock.On("GetSSHApprovalStatus", ctx, code)}
+}
+
+func (_c *MockClient_GetSSHApprovalStatus_Call) Run(run func(ctx context.Context, code string)) *MockClient_GetSSHApprovalStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_GetSSHApprovalStatus_Call) Return(sSHApprovalStatus *models.SSHApprovalStatus, err error) *MockClient_GetSSHApprovalStatus_Call {
+	_c.Call.Return(sSHApprovalStatus, err)
+	return _c
+}
+
+func (_c *MockClient_GetSSHApprovalStatus_Call) RunAndReturn(run func(ctx context.Context, code string) (*models.SSHApprovalStatus, error)) *MockClient_GetSSHApprovalStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InviteMember provides a mock function for the type MockClient
 func (_mock *MockClient) InviteMember(ctx context.Context, notification *models.MembershipInvitationNotification) error {
 	ret := _mock.Called(ctx, notification)
@@ -1196,6 +1496,72 @@ func (_c *MockClient_LookupWebEndpoints_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// NamespaceHasAccessPolicies provides a mock function for the type MockClient
+func (_mock *MockClient) NamespaceHasAccessPolicies(ctx context.Context, tenant string) (bool, error) {
+	ret := _mock.Called(ctx, tenant)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceHasAccessPolicies")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return returnFunc(ctx, tenant)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = returnFunc(ctx, tenant)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenant)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_NamespaceHasAccessPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceHasAccessPolicies'
+type MockClient_NamespaceHasAccessPolicies_Call struct {
+	*mock.Call
+}
+
+// NamespaceHasAccessPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+func (_e *MockClient_Expecter) NamespaceHasAccessPolicies(ctx any, tenant any) *MockClient_NamespaceHasAccessPolicies_Call {
+	return &MockClient_NamespaceHasAccessPolicies_Call{Call: _e.mock.On("NamespaceHasAccessPolicies", ctx, tenant)}
+}
+
+func (_c *MockClient_NamespaceHasAccessPolicies_Call) Run(run func(ctx context.Context, tenant string)) *MockClient_NamespaceHasAccessPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_NamespaceHasAccessPolicies_Call) Return(b bool, err error) *MockClient_NamespaceHasAccessPolicies_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockClient_NamespaceHasAccessPolicies_Call) RunAndReturn(run func(ctx context.Context, tenant string) (bool, error)) *MockClient_NamespaceHasAccessPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceLookup provides a mock function for the type MockClient
 func (_mock *MockClient) NamespaceLookup(ctx context.Context, tenant string) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, tenant)
@@ -1260,6 +1626,80 @@ func (_c *MockClient_NamespaceLookup_Call) Return(namespace *models.Namespace, e
 }
 
 func (_c *MockClient_NamespaceLookup_Call) RunAndReturn(run func(ctx context.Context, tenant string) (*models.Namespace, error)) *MockClient_NamespaceLookup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResolveSSHIdentity provides a mock function for the type MockClient
+func (_mock *MockClient) ResolveSSHIdentity(ctx context.Context, tenant string, fingerprint string) (*internalclient.SSHIdentityResolution, error) {
+	ret := _mock.Called(ctx, tenant, fingerprint)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveSSHIdentity")
+	}
+
+	var r0 *internalclient.SSHIdentityResolution
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*internalclient.SSHIdentityResolution, error)); ok {
+		return returnFunc(ctx, tenant, fingerprint)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *internalclient.SSHIdentityResolution); ok {
+		r0 = returnFunc(ctx, tenant, fingerprint)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*internalclient.SSHIdentityResolution)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, tenant, fingerprint)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_ResolveSSHIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveSSHIdentity'
+type MockClient_ResolveSSHIdentity_Call struct {
+	*mock.Call
+}
+
+// ResolveSSHIdentity is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+//   - fingerprint string
+func (_e *MockClient_Expecter) ResolveSSHIdentity(ctx any, tenant any, fingerprint any) *MockClient_ResolveSSHIdentity_Call {
+	return &MockClient_ResolveSSHIdentity_Call{Call: _e.mock.On("ResolveSSHIdentity", ctx, tenant, fingerprint)}
+}
+
+func (_c *MockClient_ResolveSSHIdentity_Call) Run(run func(ctx context.Context, tenant string, fingerprint string)) *MockClient_ResolveSSHIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_ResolveSSHIdentity_Call) Return(sSHIdentityResolution *internalclient.SSHIdentityResolution, err error) *MockClient_ResolveSSHIdentity_Call {
+	_c.Call.Return(sSHIdentityResolution, err)
+	return _c
+}
+
+func (_c *MockClient_ResolveSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, tenant string, fingerprint string) (*internalclient.SSHIdentityResolution, error)) *MockClient_ResolveSSHIdentity_Call {
 	_c.Call.Return(run)
 	return _c
 }
