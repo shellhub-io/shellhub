@@ -38,6 +38,24 @@ func (o UserOrigin) String() string {
 	return string(o)
 }
 
+type UserType string
+
+const (
+	// UserTypeHuman is a regular person: signs in to the console, may hold API keys, and is
+	// authorized by their membership role.
+	UserTypeHuman UserType = "human"
+
+	// UserTypeService is a service account: a non-human principal that only holds an SSH
+	// identity for automated systems. It never signs in to the console and is not an API
+	// principal. This type is the human/service discriminator, not the membership role, so it
+	// stays valid if roles ever become groups.
+	UserTypeService UserType = "service"
+)
+
+func (t UserType) String() string {
+	return string(t)
+}
+
 type UserAuthMethod string
 
 const (
@@ -54,6 +72,9 @@ func (a UserAuthMethod) String() string {
 
 type User struct {
 	ID string `json:"id,omitempty"`
+	// Type distinguishes a human user from a service account. It defaults to
+	// [UserTypeHuman]; service accounts are created only through the service-account flow.
+	Type UserType `json:"type"`
 	// Origin specifies the the user's signup method.
 	Origin UserOrigin `json:"-"`
 

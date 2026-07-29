@@ -30,6 +30,8 @@ type NamespaceSettings struct {
 	MaxDevices             int    `bun:"max_devices"`
 	SessionRecord          bool   `bun:"record_sessions"`
 	ConnectionAnnouncement string `bun:"connection_announcement,type:text"`
+	SSHAccessMode          string `bun:"ssh_access_mode"`
+	SSHLegacyAllowed       bool   `bun:"ssh_legacy_allowed"`
 }
 
 func NamespaceFromModel(model *models.Namespace) *Namespace {
@@ -57,6 +59,8 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 	if model.Settings != nil {
 		namespace.Settings.SessionRecord = model.Settings.SessionRecord
 		namespace.Settings.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
+		namespace.Settings.SSHAccessMode = model.Settings.SSHAccessMode
+		namespace.Settings.SSHLegacyAllowed = model.Settings.SSHLegacyAllowed
 	}
 
 	namespace.Memberships = make([]Membership, len(model.Members))
@@ -87,6 +91,8 @@ func NamespaceToModel(entity *Namespace) *models.Namespace {
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          entity.Settings.SessionRecord,
 			ConnectionAnnouncement: entity.Settings.ConnectionAnnouncement,
+			SSHAccessMode:          entity.Settings.SSHAccessMode,
+			SSHLegacyAllowed:       entity.Settings.SSHLegacyAllowed,
 		},
 	}
 
