@@ -1,0 +1,55 @@
+get:
+  operationId: listAccessPolicies
+  summary: List access policies
+  description: List the namespace's SSH access policies.
+  tags:
+    - community
+    - access-policies
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to list access policies.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/accessPolicy.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createAccessPolicy
+  summary: Create an access policy
+  description: Create an SSH access policy in the namespace.
+  tags:
+    - community
+    - access-policies
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/accessPolicyRequest.yaml
+  responses:
+    '200':
+      description: Success to create an access policy.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/accessPolicy.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

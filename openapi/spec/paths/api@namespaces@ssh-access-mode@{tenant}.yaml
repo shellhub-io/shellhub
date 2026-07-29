@@ -1,0 +1,41 @@
+put:
+  operationId: setSshAccessMode
+  summary: Set SSH access mode
+  description: |
+    Set the namespace's SSH access mode. When set to `identity`, SSH logins go
+    through browser approval and are authorized by Access Policies. When set to
+    `legacy`, the public-key ACL (and firewall rules, on Cloud/Enterprise) govern
+    access as before.
+  tags:
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            ssh_access_mode:
+              description: SSH access mode.
+              type: string
+              enum:
+                - legacy
+                - identity
+              default: legacy
+          required:
+            - ssh_access_mode
+  responses:
+    '200':
+      description: Success to set SSH access mode.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

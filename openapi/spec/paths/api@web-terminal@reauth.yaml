@@ -1,0 +1,61 @@
+post:
+  operationId: webTerminalReauth
+  summary: Re-authenticate an SSH login (step-up)
+  description: |
+    Complete a re-authentication step-up for an SSH login. When a device's Access
+    Policy sets `require_reauth` and the freshness window has lapsed, the gateway
+    holds the login open until the logged-in user proves a fresh factor here.
+    Community verifies the account password; with MFA enabled the code (TOTP) is
+    used instead.
+
+    On success the identity's re-auth window is refreshed and, when
+    `approval_code` is given, the login waiting on it is released — the same call
+    proves the factor and lets the login through, so the two cannot drift apart.
+
+    The key must belong to the caller: owning the identity is the authorization
+    for releasing its login.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - fingerprint
+          properties:
+            password:
+              description: Account password (community factor).
+              type: string
+              format: password
+            code:
+              description: TOTP code (used instead of the password when MFA is enabled).
+              type: string
+              example: '123456'
+            fingerprint:
+              description: |
+                Fingerprint of the SSH identity being re-authenticated. Its
+                `last_reauth_at` is what gets refreshed, and it must belong to the
+                caller.
+              type: string
+              example: 'SHA256:abc123...'
+            approval_code:
+              description: |
+                The held login to release. Distinct from `code`, which is the TOTP.
+                A native client reads it from its terminal banner; the web terminal
+                receives it in-band and never shows it.
+              type: string
+              example: WXYZ2K7Q
+  responses:
+    '200':
+      description: Step-up accepted; the window is refreshed and any held login released.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

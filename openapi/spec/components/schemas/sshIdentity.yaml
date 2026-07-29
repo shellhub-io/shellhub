@@ -1,0 +1,103 @@
+description: |
+  An SSH key enrolled as an identity within a namespace under the identity SSH
+  access mode. The key's fingerprint is what the gateway resolves to the bound
+  principal on each connection.
+type: object
+properties:
+  id:
+    description: SSH identity's ID.
+    type: string
+    format: uuid
+  principal_id:
+    description: ID of the principal the key is bound to.
+    type: string
+    format: uuid
+  principal_name:
+    description: Name of the principal the key is bound to.
+    type: string
+    example: john.doe
+  principal_email:
+    description: Email of the principal the key is bound to.
+    type: string
+    example: john.doe@example.com
+  principal_type:
+    description: |
+      Whether the bound principal is a human or a service account. Lets the list
+      tell a person's key apart from a service account's.
+    type: string
+    enum:
+      - human
+      - service
+    example: human
+  fingerprint:
+    description: SSH public key fingerprint.
+    type: string
+    example: SHA256:hHmU2OTPQjhAKm3ecpf4iw3lqWNCWaFbG1kBje0kn0
+  name:
+    description: User-supplied label for the key.
+    type: string
+    example: laptop
+  source:
+    description: |
+      How the identity came to exist.
+
+      - `manual` — pasted or uploaded on the SSH Identities page.
+      - `browser` — the web terminal's own key. A browser generates it and
+        holds it non-extractably, so it can only be presented from there.
+      - `approval` — approved at login, after an SSH client offered a key the
+        namespace had not seen before.
+
+      The server sets `approval` itself. The other two are the caller's claim,
+      so treat this as a label and never as an authorization input.
+    type: string
+    enum:
+      - manual
+      - browser
+      - approval
+    example: browser
+  created_at:
+    description: When the key was enrolled.
+    type: string
+    format: date-time
+    example: 2026-01-01T00:00:00.000Z
+  last_used_at:
+    description: When the key was last used to connect, or null if never used.
+    type: string
+    format: date-time
+    nullable: true
+    example: 2026-01-02T00:00:00.000Z
+  expires_at:
+    description: |
+      When the key stops working (service-account key lifecycle), or null if it
+      never expires. Human identities are always null.
+    type: string
+    format: date-time
+    nullable: true
+    readOnly: true
+    example: 2026-02-01T00:00:00.000Z
+  single_use:
+    description: |
+      Whether the key authorizes exactly one established SSH session, then is
+      consumed (service-account key lifecycle). Human identities are false.
+    type: boolean
+    readOnly: true
+    example: false
+  consumed_at:
+    description: |
+      When a single-use key was burned by its one session, or null if it has not
+      been consumed.
+    type: string
+    format: date-time
+    nullable: true
+    readOnly: true
+    example: 2026-01-03T00:00:00.000Z
+required:
+  - id
+  - principal_id
+  - principal_name
+  - principal_email
+  - principal_type
+  - fingerprint
+  - name
+  - source
+  - created_at

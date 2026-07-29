@@ -1,0 +1,48 @@
+post:
+  operationId: confirmSshApproval
+  summary: Confirm an SSH login approval
+  description: |
+    Confirm a pending `identity` approval: bind the presented key to your account
+    and release the login the gateway is holding open.
+
+    A `reauth` approval is not confirmable here. Releasing one means proving a
+    factor, which happens on the web terminal re-auth endpoint, so accepting a
+    bare confirm would be a way to skip the factor. Unknown, expired,
+    already-decided and `reauth` codes all return 404.
+  tags:
+    - community
+    - ssh-identities
+  security:
+    - jwt: []
+  parameters:
+    - name: code
+      in: path
+      required: true
+      schema:
+        description: SSH login approval code.
+        type: string
+        example: WXYZ-2K7Q
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            expires_in:
+              description: |
+                How many days the key being bound should keep working. Omit it
+                for a key that never expires. The gateway refuses a login whose
+                key has expired.
+              type: integer
+              minimum: 1
+              example: 30
+  responses:
+    '200':
+      description: Success to confirm the SSH login approval.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,10 @@
+description: |
+  Unix logins the policy allows. Either an explicit list of login names, or the
+  single element `*` to allow any login.
+type: array
+items:
+  type: string
+minItems: 1
+example:
+  - deploy
+  - ubuntu

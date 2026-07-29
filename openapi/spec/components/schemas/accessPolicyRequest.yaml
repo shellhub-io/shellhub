@@ -1,0 +1,53 @@
+description: Access policy create/update payload.
+type: object
+properties:
+  name:
+    description: Access policy's name.
+    type: string
+    example: Default access
+  subject:
+    $ref: accessPolicySubject.yaml
+  filter:
+    $ref: publicKeyFilterRequest.yaml
+  logins:
+    $ref: accessPolicyLogins.yaml
+  source_ip:
+    description: |
+      CIDRs the connection's client IP must fall within for the policy to apply
+      (a client IP in any of them matches). Empty (or omitted) matches any IP; a
+      single host is a /32 (or /128 for IPv6).
+    type: array
+    items:
+      type: string
+      example: 10.0.0.0/8
+  action:
+    description: |
+      Whether the policy grants (allow) or blocks (deny) the covered access.
+      Deny wins over any allow. Defaults to allow when omitted.
+    type: string
+    enum:
+      - allow
+      - deny
+    default: allow
+    example: allow
+  require_reauth:
+    description: |
+      Whether a recognized key must still complete a fresh per-session
+      re-authentication before the session proceeds under the identity SSH
+      access mode.
+    type: boolean
+    example: false
+  reauth_period:
+    description: |
+      Freshness window for `require_reauth`, in seconds: a re-authentication is
+      only demanded when the identity has not re-authed within it. Null or 0
+      means "always" (every session). Only meaningful when `require_reauth` is
+      true.
+    type: integer
+    nullable: true
+    example: 43200
+required:
+  - name
+  - subject
+  - filter
+  - logins
