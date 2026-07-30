@@ -99,7 +99,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	})
 	require.NoError(t, err)
 
-	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache())
 
 	return &enrollmentE2E{svc: svc, st: st, tenantID: tenantID}
 }

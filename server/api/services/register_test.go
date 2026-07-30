@@ -193,7 +193,7 @@ func TestService_RegisterUser(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			res, conflicts, err := s.RegisterUser(ctx, tc.req, "shellhub.test")
 			assert.Equal(t, tc.expected.conflicts, conflicts)

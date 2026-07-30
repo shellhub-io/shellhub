@@ -86,7 +86,7 @@ func TestWebReauthVerify(t *testing.T) {
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache))
 
 			err := service.WebReauthVerify(ctx, tc.req)
 			if tc.expectedErr {

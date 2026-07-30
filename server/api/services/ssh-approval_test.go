@@ -48,7 +48,7 @@ func TestCreateSSHApproval(t *testing.T) {
 		Return(nil).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+	service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 	approval, err := service.CreateSSHApproval(context.TODO(), req)
 	require.NoError(t, err)
@@ -134,7 +134,7 @@ func TestGetSSHApprovalStatus(t *testing.T) {
 			clockMock.On("Now").Return(now)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 			status, err := service.GetSSHApprovalStatus(context.TODO(), tc.req)
 			require.Equal(tt, tc.expected.err, err)
@@ -258,7 +258,7 @@ func TestGetSSHApproval(t *testing.T) {
 			clockMock.On("Now").Return(now)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 			request, err := service.GetSSHApproval(context.TODO(), tc.userID, tc.code)
 			require.Equal(tt, tc.expected.err, err)
@@ -408,7 +408,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 			clockMock.On("Now").Return(now)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 			err := service.RejectSSHApproval(context.TODO(), tc.userID, &requests.SSHApprovalReject{Code: tc.code})
 			require.Equal(tt, tc.expectedErr, err)
@@ -444,7 +444,7 @@ func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
 		Return(namespace, nil).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 	err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
 	require.Error(t, err)
@@ -509,7 +509,7 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return(nil).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 	err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
 	require.NoError(t, err)
@@ -551,7 +551,7 @@ func TestRejectSSHApproval(t *testing.T) {
 		Return(true, nil).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache))
 
 	err := service.RejectSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalReject{Code: "WXYZ2K7Q"})
 	require.NoError(t, err)

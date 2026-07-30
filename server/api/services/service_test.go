@@ -22,7 +22,7 @@ func TestWithLicenseEvaluator(t *testing.T) {
 		store := storemock.NewMockStore(t)
 		cache := cachemock.NewMockCache(t)
 
-		svc := NewService(store, privateKey, publicKey, cache, clientMock)
+		svc := NewService(store, privateKey, publicKey, cache)
 		require.NotNil(t, svc)
 
 		assert.Nil(t, svc.licenseEvaluator)
@@ -33,7 +33,7 @@ func TestWithLicenseEvaluator(t *testing.T) {
 		cache := cachemock.NewMockCache(t)
 
 		evaluator := &mockLicenseEvaluator{}
-		svc := NewService(store, privateKey, publicKey, cache, clientMock,
+		svc := NewService(store, privateKey, publicKey, cache,
 			WithLicenseEvaluator(evaluator),
 		)
 		require.NotNil(t, svc)

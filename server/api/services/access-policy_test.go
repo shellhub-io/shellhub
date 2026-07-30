@@ -794,7 +794,7 @@ func TestAuthorize(t *testing.T) {
 
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, nil)
 
 			decision, err := service.Authorize(ctx, tenantID, userID, deviceID, tc.login, tc.sourceIP)
 			if tc.expectedErr {

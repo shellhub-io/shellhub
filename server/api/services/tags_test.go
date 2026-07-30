@@ -126,7 +126,7 @@ func TestService_CreateTag(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -240,7 +240,7 @@ func TestService_PushTagTo(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -354,7 +354,7 @@ func TestService_PullTagFrom(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -481,7 +481,7 @@ func TestService_ListTags(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -650,7 +650,7 @@ func TestService_UpdateTag(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -804,7 +804,7 @@ func TestService_DeleteTag(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, nil, nil)
+	service := NewService(storeMock, privateKey, publicKey, nil)
 
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).

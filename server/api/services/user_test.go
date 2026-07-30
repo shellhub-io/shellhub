@@ -490,7 +490,7 @@ func TestUpdateUser(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -667,7 +667,7 @@ func TestUpdatePasswordUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			services := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 			err := services.UpdatePasswordUser(ctx, tc.id, tc.currentPassword, tc.newPassword)
 			assert.Equal(t, tc.expected, err)
 		})

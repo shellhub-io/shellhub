@@ -18,10 +18,6 @@ type sessionAPI interface {
 	// It returns an error if the session creation fails.
 	SessionCreate(ctx context.Context, session requests.SessionCreate) error
 
-	// SessionAsAuthenticated marks a session with the specified uid as authenticated.
-	// It returns a slice of errors encountered during the operation.
-	SessionAsAuthenticated(ctx context.Context, uid string) error
-
 	// FinishSession finishes the session with the specified uid.
 	// It returns a slice of errors encountered during the operation.
 	FinishSession(ctx context.Context, uid string) error
@@ -47,19 +43,6 @@ func (c *client) SessionCreate(ctx context.Context, session requests.SessionCrea
 		SetContext(ctx).
 		SetBody(session).
 		Post(apiBaseURL + "/internal/sessions")
-
-	return HasError(resp, err)
-}
-
-func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
-	resp, err := c.http.
-		R().
-		SetContext(ctx).
-		SetPathParam("uid", uid).
-		SetBody(&models.Status{
-			Authenticated: true,
-		}).
-		Patch(apiBaseURL + "/internal/sessions/{uid}")
 
 	return HasError(resp, err)
 }

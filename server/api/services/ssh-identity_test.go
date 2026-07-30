@@ -78,7 +78,7 @@ func TestResolveSSHIdentity(t *testing.T) {
 
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, nil)
 
 			identity, found, err := service.ResolveSSHIdentity(ctx, tenantID, fingerprint)
 			if tc.expectedErr {
@@ -157,7 +157,7 @@ func TestEnrollSSHIdentity(t *testing.T) {
 
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, nil)
 
 			_, err := service.enrollSSHIdentity(ctx, &models.SSHIdentity{
 				TenantID:    tenantID,
@@ -185,7 +185,7 @@ func TestCreateSSHIdentity(t *testing.T) {
 
 	t.Run("rejects an unparseable public key", func(t *testing.T) {
 		storeMock := new(storemock.MockStore)
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{TenantID: tenantID, UserID: userID, Data: "not-a-key"})
 		require.ErrorContains(t, err, "ssh identity public key invalid")
@@ -203,7 +203,7 @@ func TestCreateSSHIdentity(t *testing.T) {
 			return identity.Fingerprint == fingerprint && identity.PrincipalID == userID
 		})).Return("id1", nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		identity, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{TenantID: tenantID, UserID: userID, Name: "laptop", Data: authorized})
 		require.NoError(t, err)
@@ -242,7 +242,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 			return true
 		})).Return("id1", nil).Once()
 
-		require.NoError(t, run(NewService(storeMock, privateKey, publicKey, nil, clientMock)))
+		require.NoError(t, run(NewService(storeMock, privateKey, publicKey, nil)))
 		storeMock.AssertExpectations(t)
 
 		return got
@@ -293,7 +293,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 		})).Return("id1", nil).Once()
 
 		clockMock.On("Now").Return(now)
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		days := 30
 		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{
@@ -320,7 +320,7 @@ func TestSSHIdentitySourceIsRecordedPerPath(t *testing.T) {
 			return true
 		})).Return("id1", nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{
 			TenantID: tenantID, UserID: userID, Name: "laptop", Data: authorized,
@@ -398,7 +398,7 @@ func TestDeleteSSHIdentity(t *testing.T) {
 
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, nil)
 
 			err := service.DeleteSSHIdentity(ctx, tc.req)
 			require.Equal(t, tc.expectedErr, err)
@@ -424,7 +424,7 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock.On("SSHIdentityList", ctx, mock.Anything, mock.Anything).
 			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}}, 1, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, All: false})
 		require.NoError(t, err)
@@ -440,7 +440,7 @@ func TestListSSHIdentities(t *testing.T) {
 		storeMock.On("SSHIdentityList", ctx, mock.Anything).
 			Return([]models.SSHIdentity{{ID: "id1", PrincipalID: userID}, {ID: "id2", PrincipalID: "user2"}}, 2, nil).Once()
 
-		service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+		service := NewService(storeMock, privateKey, publicKey, nil)
 
 		list, err := service.ListSSHIdentities(ctx, &requests.SSHIdentityList{TenantID: tenantID, UserID: userID, All: true})
 		require.NoError(t, err)

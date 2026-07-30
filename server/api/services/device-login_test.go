@@ -98,7 +98,7 @@ func TestCreateDeviceLoginCode(t *testing.T) {
 			cacheMock := new(cachemock.MockCache)
 			tc.requiredMocks(cacheMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			code, err := service.CreateDeviceLoginCode(context.TODO(), tc.uid, tc.tenantID)
 			require.Equal(tt, tc.expectedErr, err)
@@ -296,7 +296,7 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			preview, err := service.ResolveDeviceLoginCode(context.TODO(), tc.userID, tc.code)
 			require.Equal(tt, tc.expected, Expected{preview, err})

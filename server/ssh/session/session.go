@@ -478,17 +478,7 @@ func (s *Session) checkFirewall(ctx context.Context) (bool, error) {
 }
 
 func (s *Session) checkBilling(ctx context.Context) (bool, error) {
-	device, err := s.api.GetDevice(ctx, s.Device.UID)
-	if err != nil {
-		defer log.WithError(err).WithFields(log.Fields{
-			"uid":   s.UID,
-			"sshid": s.SSHID,
-		}).Info("failed to get the device on billing evaluation")
-
-		return false, ErrFindDevice
-	}
-
-	evaluation, err := s.api.BillingEvaluate(context.TODO(), device.TenantID)
+	evaluation, err := s.api.BillingEvaluate(ctx, s.Device.TenantID)
 	if err != nil {
 		var billingErr *internalclient.Error
 		if errors.As(err, &billingErr) && billingErr.Code == 402 {

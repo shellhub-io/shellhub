@@ -116,7 +116,7 @@ func TestService_ResolveInvitation(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestService_AcceptInvite(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -403,7 +403,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			mockClockNow(t, now)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			link, err := s.GenerateInvitationLink(ctx, req)
 			assert.Equal(t, tc.expected.err, err)
@@ -474,7 +474,7 @@ func TestService_UserMembershipInvitationList(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -588,7 +588,7 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -701,7 +701,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 			mockClockNow(t, now)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			err := s.CancelMembershipInvitation(ctx, req)
 			assert.Equal(t, tc.expected, err)

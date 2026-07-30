@@ -345,7 +345,7 @@ func TestListNamespaces(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -473,7 +473,7 @@ func TestGetNamespace(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1079,7 +1079,7 @@ func TestCreateNamespace(t *testing.T) {
 
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 			returnedNamespace, err := service.CreateNamespace(ctx, tc.req)
 
 			assert.Equal(t, tc.expected, Expected{returnedNamespace, err})
@@ -1262,7 +1262,7 @@ func TestEditNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			req := &requests.NamespaceEdit{
 				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
@@ -1370,7 +1370,7 @@ func TestEditSessionRecord(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1524,7 +1524,7 @@ func TestEditSSHAccessMode(t *testing.T) {
 
 			tc.mocks(ctx, storeMock, queryOptionsMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			err := s.EditSSHAccessMode(ctx, tc.mode, tenantID)
 			assert.Equal(t, tc.expected, err)
@@ -1594,7 +1594,7 @@ func TestDeleteNamespace(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

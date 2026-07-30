@@ -84,7 +84,7 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -455,7 +455,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
 
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -500,7 +500,7 @@ func TestService_NamespaceDeviceCountSync(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {

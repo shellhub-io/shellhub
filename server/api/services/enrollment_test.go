@@ -21,7 +21,7 @@ import (
 
 func TestEvaluateEnrollment(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
-	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	// The request MAC is upper-cased; the key's allowlist is stored normalized (lower), so a match
 	// must be case-insensitive.
@@ -66,7 +66,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 	clockMock.On("Now").Return(now).Maybe()
 
 	storeMock := storemock.NewMockStore(t)
-	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	req := requests.DeviceAuth{
 		TenantID: "00000000-0000-4000-0000-000000000000",
