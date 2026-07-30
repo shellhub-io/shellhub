@@ -2,12 +2,9 @@ package internalclient
 
 import (
 	"context"
-	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/sirupsen/logrus"
 )
 
 // sessionAPI defines methods for interacting with session-related functionality.
@@ -26,10 +23,6 @@ type sessionAPI interface {
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error
-
-	// SaveSession saves a session as a Asciinema file into the Object Storage and delete
-	// [models.SessionEventTypePtyOutput] events.
-	SaveSession(ctx context.Context, uid string, seat int) error
 }
 
 func (c *client) SessionCreate(ctx context.Context, session requests.SessionCreate) error {
@@ -73,31 +66,4 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 		Patch(apiBaseURL + "/internal/sessions/{tenant}")
 
 	return HasError(res, err)
-}
-
-func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
-	resp, err := c.http.
-		R().
-		SetContext(ctx).
-		SetPathParams(map[string]string{
-			"uid":  uid,
-			"seat": strconv.Itoa(seat),
-		}).
-		Post(apiBaseURL + "/internal/sessions/{uid}/records/{seat}")
-	if err := HasError(resp, err); err != nil {
-		return err
-	}
-
-	if resp.StatusCode() == http.StatusNotAcceptable {
-		// NOTE: [http.StatusNotAcceptable] indicates that session's seat shouldn't be save, but also shouldn't
-		// represent an error.
-		logrus.WithFields(logrus.Fields{
-			"uid":  uid,
-			"seat": strconv.Itoa(seat),
-		}).Debug("save session not acceptable")
-
-		return nil
-	}
-
-	return HasError(resp, err)
 }
