@@ -4,22 +4,30 @@ import (
 	"context"
 	"errors"
 	"os"
+	"runtime"
 	"strings"
+	"time"
+
+	"github.com/labstack/echo-contrib/pprof"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/server/api/routes"
-	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	"github.com/shellhub-io/shellhub/server/api/store"
-	"github.com/shellhub-io/shellhub/server/api/store/pg"
-	pgoptions "github.com/shellhub-io/shellhub/server/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
+	"github.com/shellhub-io/shellhub/server/api/routes"
+	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/server/api/services"
+	"github.com/shellhub-io/shellhub/server/api/store"
+	"github.com/shellhub-io/shellhub/server/api/store/pg"
+	pgoptions "github.com/shellhub-io/shellhub/server/api/store/pg/options"
+	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	sshserver "github.com/shellhub-io/shellhub/server/ssh/server"
+	"github.com/shellhub-io/shellhub/server/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -63,11 +71,41 @@ type Env struct {
 	Metrics bool `env:"METRICS,default=false"`
 }
 
+// sshEnv is parsed with the SSH_ prefix, keeping the names the ssh service used.
+type sshEnv struct {
+	ConnectTimeout time.Duration `env:"CONNECT_TIMEOUT,default=30s"`
+	// HostKeyFile is read as SSH_HOST_KEY_FILE rather than PRIVATE_KEY, which the
+	// API already uses for its JWT signing key. envs.ParseWithPrefix falls back to
+	// the unprefixed name, so PRIVATE_KEY here would silently adopt that key as
+	// the SSH host key and change every installation's fingerprint.
+	HostKeyFile string `env:"HOST_KEY_FILE"`
+	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
+	// Agents 0.5.x or earlier do not validate the public key request and may panic.
+	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
+	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	WebEndpoints                 bool `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
+	// RequireAcceptedTunnel refuses the agent's reverse tunnel unless the device is accepted, so a
+	// pending or rejected device holds no connection. Off by default: not every fleet can adopt it
+	// (some rely on seeing pending devices online), so it is opt-in per instance.
+	RequireAcceptedTunnel bool `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
+	// WebEndpointsDomain is the dedicated subdomain for web endpoints. When
+	// empty, Domain is used as the fallback. The env key must stay
+	// SHELLHUB_WEB_ENDPOINTS_DOMAIN (not SSH_SHELLHUB_WEB_ENDPOINTS_DOMAIN)
+	// because the prefix "SSH_" is stripped by envs.ParseWithPrefix.
+	WebEndpointsDomain string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN,default=$SHELLHUB_DOMAIN"`
+	// Domain is the base domain for this ShellHub instance. The env key must
+	// stay SHELLHUB_DOMAIN (not SSH_SHELLHUB_DOMAIN) for the same reason.
+	Domain string `env:"SHELLHUB_DOMAIN"`
+}
+
 type Server struct {
 	env    *Env
 	router *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
 	worker worker.Server
+	ssh    *sshserver.Server
 }
+
+const httpAddress = ":8080"
 
 // Setup initializes all server components including database connections, cache, services, API routes, and background workers.
 // It prepares the server for starting but does not actually begin serving requests.
@@ -169,6 +207,10 @@ func (s *Server) Setup(ctx context.Context) error {
 	// Apply any worker extensions registered by cloud/enterprise packages.
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
 
+	if err := s.setupSSH(cache, apiClient); err != nil {
+		return errors.Join(errors.New("failed to setup the ssh server"), err)
+	}
+
 	log.Info("Server setup completed successfully")
 
 	return nil
@@ -209,6 +251,41 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 	return st.SystemSet(ctx, system)
 }
 
+// setupSSH wires the SSH server and its HTTP routes onto the API's router. The
+// cache and the internal client are the ones the API already built: both halves
+// now live in the same process, so a second Redis connection and a second client
+// would buy nothing.
+func (s *Server) setupSSH(c cache.Cache, apiClient internalclient.Client) error {
+	env, err := envs.ParseWithPrefix[sshEnv]("SSH_")
+	if err != nil {
+		return err
+	}
+
+	d := dialer.NewDialer(apiClient)
+
+	sshhttp.Register(s.router, d, apiClient, &sshhttp.Config{
+		WebEndpoints:          env.WebEndpoints,
+		WebEndpointsDomain:    env.WebEndpointsDomain,
+		Domain:                env.Domain,
+		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
+	})
+
+	web.NewSSHServerBridge(s.router, c)
+
+	if envs.IsDevelopment() {
+		runtime.SetBlockProfileRate(1)
+		pprof.Register(s.router)
+	}
+
+	s.ssh, err = sshserver.NewServer(d, c, &sshserver.Options{
+		ConnectTimeout:               env.ConnectTimeout,
+		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
+		HostKeyFile:                  env.HostKeyFile,
+	})
+
+	return err
+}
+
 // Start begins serving API requests and processing background tasks. It blocks the current goroutine until the server stops
 // or encounters an error.
 func (s *Server) Start() error {
@@ -218,11 +295,24 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	if err := s.router.Start(":8080"); err != nil {
-		return err
+	errs := make(chan error, 2)
+
+	go func() { errs <- s.router.Start(httpAddress) }()
+
+	// The SSH side reaches the API over loopback on its first connection, and an
+	// unbound port refuses it rather than queueing it, so hold it back until the
+	// HTTP listener is up.
+	for s.router.ListenerAddr() == nil {
+		select {
+		case err := <-errs:
+			return err
+		case <-time.After(10 * time.Millisecond):
+		}
 	}
 
-	return nil
+	go func() { errs <- s.ssh.ListenAndServe() }()
+
+	return <-errs
 }
 
 // Shutdown gracefully terminates all server components.
@@ -231,6 +321,7 @@ func (s *Server) Shutdown() {
 
 	s.worker.Shutdown()
 	s.router.Close() // nolint: errcheck
+	s.ssh.Close()    // nolint: errcheck
 
 	log.Info("Server shutdown complete")
 }

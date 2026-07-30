@@ -9,6 +9,9 @@ services:
       - DATABASE=${SHELLHUB_DATABASE}
       - PRIVATE_KEY=/run/secrets/api_private_key
       - PUBLIC_KEY=/run/secrets/api_public_key
+      - SSH_HOST_KEY_FILE=/run/secrets/ssh_private_key
+      - SHELLHUB_AUTO_SSL=${SHELLHUB_AUTO_SSL}
+      - ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0=${SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0}
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_CHATWOOT_IDENTITY_KEY=${SHELLHUB_CHATWOOT_IDENTITY_KEY-}
       - POSTGRES_HOST=${SHELLHUB_POSTGRES_HOST}
@@ -40,11 +43,19 @@ services:
       - redis
     links:
       - redis
+    ports:
+      - "${SHELLHUB_SSH_PORT}:2222"
     secrets:
       - api_private_key
       - api_public_key
+      - ssh_private_key
     networks:
-      - shellhub
+      # api and ssh are kept resolvable so anything still addressing the old
+      # service names on this network keeps working across the upgrade.
+      shellhub:
+        aliases:
+          - api
+          - ssh
     healthcheck:
       test: "curl -f http://server:8080/api/healthcheck || exit 1"
       interval: 30s

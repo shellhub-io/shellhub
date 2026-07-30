@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"os"
+	"runtime/debug"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -21,6 +22,11 @@ import (
 
 type Options struct {
 	ConnectTimeout time.Duration
+	// HostKeyFile is the path to the SSH host key. It is deliberately not read
+	// from PRIVATE_KEY: the API signs its JWTs with a key under that name, and
+	// silently adopting it would change the host key fingerprint of every
+	// existing installation.
+	HostKeyFile string
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
@@ -168,7 +174,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	}
 }
 
-func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server {
+func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) (*Server, error) {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		dialer: dialer,
@@ -190,8 +196,8 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,
 		// and securely forwarding network services.
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			channels.SessionChannel:     channels.DefaultSessionHandler(),
-			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
+			channels.SessionChannel:     recoverChannel(channels.SessionChannel, channels.DefaultSessionHandler()),
+			channels.DirectTCPIPChannel: recoverChannel(channels.DirectTCPIPChannel, channels.DefaultDirectTCPIPHandler),
 		},
 		// Answers the web terminal bridge with this connection's session UID, so a
 		// client-side recording can be tied to its server session.
@@ -208,15 +214,40 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 		},
 	}
 
-	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) { //nolint:gosec // G703: path comes from trusted env var
-		log.WithError(err).Fatal("private key not found!")
+	if opts.HostKeyFile == "" {
+		return nil, errors.New("no ssh host key configured")
 	}
 
-	if err := server.sshd.SetOption(gliderssh.HostKeyFile(os.Getenv("PRIVATE_KEY"))); err != nil {
-		log.WithError(err).Fatal("host key not found!")
+	if _, err := os.Stat(opts.HostKeyFile); err != nil {
+		return nil, errors.Join(errors.New("failed to read the ssh host key"), err)
 	}
 
-	return server
+	if err := server.sshd.SetOption(gliderssh.HostKeyFile(opts.HostKeyFile)); err != nil {
+		return nil, errors.Join(errors.New("failed to load the ssh host key"), err)
+	}
+
+	return server, nil
+}
+
+// recoverChannel keeps a panic in one channel from reaching the runtime. The
+// upstream server runs these in a per-connection goroutine with no recover of
+// its own, and since the HTTP server shares this process a single bad session
+// would take the API down with it.
+func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.ChannelHandler {
+	return func(srv *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.WithFields(log.Fields{
+					"channel": name,
+					"session": ctx.SessionID(),
+					"panic":   r,
+					"stack":   string(debug.Stack()),
+				}).Error("recovered from a panic on an ssh channel")
+			}
+		}()
+
+		next(srv, conn, newChan, ctx)
+	}
 }
 
 // loopbackProxyPolicy honours a PROXY protocol header only when the real TCP
@@ -231,6 +262,11 @@ func newProxyListener(lis net.Listener) *proxyproto.Listener {
 		Listener:   lis,
 		ConnPolicy: loopbackProxyPolicy,
 	}
+}
+
+// Close stops the SSH server and drops every connection it is holding.
+func (s *Server) Close() error {
+	return s.sshd.Close()
 }
 
 func (s *Server) ListenAndServe() error {
