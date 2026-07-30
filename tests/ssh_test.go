@@ -95,6 +95,72 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 	return c, nil
 }
 
+// TestSSHIdentityMode covers the identity authorization model, which namespaces are born
+// into: the presented key IS the identity, so password authentication is not offered at all
+// and only a key enrolled as an SSH identity gets through. The legacy model — passwords and
+// firewall-filtered public keys — is covered by [TestSSH].
+//
+// The access mode is orthogonal to the transport, so this runs on the default version only.
+func TestSSHIdentityMode(t *testing.T) {
+	ctx := context.Background()
+
+	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeIdentity)
+	_, device := startAcceptedAgent(t, ctx, compose)
+
+	sshid := fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name)
+	addr := fmt.Sprintf("localhost:%s", compose.Env("SHELLHUB_SSH_PORT"))
+
+	t.Run("password authentication is not offered", func(t *testing.T) {
+		config := &ssh.ClientConfig{
+			User:            sshid,
+			Auth:            []ssh.AuthMethod{ssh.Password(ShellHubAgentPassword)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		}
+
+		_, err := ssh.Dial("tcp", addr, config)
+		require.Error(t, err)
+		// The client never gets to try a password: the server advertises publickey only.
+		require.Contains(t, err.Error(), "attempted methods []")
+	})
+
+	t.Run("authenticate with an enrolled identity", func(t *testing.T) {
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
+		require.NoError(t, err)
+
+		resp, err := compose.R(ctx).
+			SetBody(&requests.SSHIdentityCreate{
+				Name: "integration",
+				Data: string(ssh.MarshalAuthorizedKey(publicKey)),
+			}).
+			Post("/api/ssh-identities")
+		require.NoError(t, err)
+		require.Equal(t, 200, resp.StatusCode())
+
+		signer, err := ssh.NewSignerFromKey(privateKey)
+		require.NoError(t, err)
+
+		config := &ssh.ClientConfig{
+			User:            sshid,
+			Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		}
+
+		var conn *ssh.Client
+
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			var err error
+
+			conn, err = ssh.Dial("tcp", addr, config)
+			assert.NoError(tt, err)
+		}, 30*time.Second, 1*time.Second)
+
+		conn.Close()
+	})
+}
+
 func TestSSH(t *testing.T) {
 	// Run all tests with both v1 and v2
 	for _, version := range []int{1, 2} {
@@ -1365,12 +1431,41 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 	ctx := context.Background()
 
-	// Database backend (mongo/postgres) is configured via SHELLHUB_DATABASE in .env
-	// The CI runs this test suite twice in parallel - once for each backend
+	// The table below authenticates with a password and with ad-hoc public keys, which is
+	// the legacy authorization model. Namespaces are born identity-first, so the mode has to
+	// be asked for explicitly. Identity mode is covered by [TestSSHIdentityMode].
+	compose := newSSHEnvironment(t, ctx, models.SSHAccessModeLegacy)
+
+	for _, tc := range tests {
+		test := tc
+		t.Run(test.name, func(tt *testing.T) {
+			opts := append([]NewAgentContainerOption{
+				NewAgentContainerWithConnectionVersion(connectionVersion),
+			}, test.options...)
+
+			agent, device := startAcceptedAgent(tt, ctx, compose, opts...)
+
+			test.run(tt, &Environment{
+				services: compose,
+				agent:    agent,
+			}, device)
+		})
+	}
+}
+
+// newSSHEnvironment brings up a ShellHub stack with a single user and namespace in the given
+// SSH access mode, and authenticates the compose client as that user.
+//
+// The database backend (mongo/postgres) is configured via SHELLHUB_DATABASE in .env; CI runs
+// this suite once per backend.
+func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
+	t.Helper()
+
 	compose := environment.New(t).Up(ctx)
-	defer compose.Down()
+	t.Cleanup(compose.Down)
+
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace, sshAccessMode)
 
 	auth := models.UserAuthResponse{}
 
@@ -1388,67 +1483,54 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 	compose.JWT(auth.Token)
 
-	for _, tc := range tests {
-		test := tc
-		t.Run(test.name, func(tt *testing.T) {
-			opts := append([]NewAgentContainerOption{
-				NewAgentContainerWithConnectionVersion(connectionVersion),
-			}, test.options...)
+	return compose
+}
 
-			agent, err := NewAgentContainer(
-				ctx,
-				compose.Env("SHELLHUB_HTTP_PORT"),
-				opts...,
-			)
-			require.NoError(tt, err)
+// startAcceptedAgent starts an agent container, accepts the device it registers, and waits for
+// it to come online, returning the container and the accepted device.
+func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.DockerCompose, opts ...NewAgentContainerOption) (testcontainers.Container, *models.Device) {
+	t.Helper()
 
-			agent.Stop(ctx, nil)
+	agent, err := NewAgentContainer(ctx, compose.Env("SHELLHUB_HTTP_PORT"), opts...)
+	require.NoError(t, err)
 
-			err = agent.Start(ctx)
-			require.NoError(tt, err)
+	agent.Stop(ctx, nil)
 
-			tt.Cleanup(func() {
-				agent.Stop(context.Background(), nil)
-			})
+	err = agent.Start(ctx)
+	require.NoError(t, err)
 
-			t.Cleanup(func() {
-				agent.Terminate(context.Background())
-			})
+	t.Cleanup(func() {
+		agent.Stop(context.Background(), nil)
+		agent.Terminate(context.Background())
+	})
 
-			devices := []models.Device{}
+	devices := []models.Device{}
 
-			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
-				resp, err := compose.R(ctx).SetResult(&devices).
-					Get("/api/devices?status=pending")
-				assert.Equal(tt, 200, resp.StatusCode())
-				assert.NoError(tt, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := compose.R(ctx).SetResult(&devices).
+			Get("/api/devices?status=pending")
+		assert.Equal(tt, 200, resp.StatusCode())
+		assert.NoError(tt, err)
 
-				assert.Len(tt, devices, 1)
-			}, 30*time.Second, 1*time.Second)
+		assert.Len(tt, devices, 1)
+	}, 30*time.Second, 1*time.Second)
 
-			resp, err := compose.R(ctx).
-				Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
-			require.Equal(tt, 200, resp.StatusCode())
-			require.NoError(tt, err)
+	resp, err := compose.R(ctx).
+		Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
+	require.Equal(t, 200, resp.StatusCode())
+	require.NoError(t, err)
 
-			device := models.Device{}
+	device := models.Device{}
 
-			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
-				resp, err := compose.R(ctx).
-					SetResult(&device).
-					Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
-				assert.Equal(tt, 200, resp.StatusCode())
-				assert.NoError(tt, err)
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		resp, err := compose.R(ctx).
+			SetResult(&device).
+			Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
+		assert.Equal(tt, 200, resp.StatusCode())
+		assert.NoError(tt, err)
 
-				assert.True(tt, device.Online)
-			}, 30*time.Second, 1*time.Second)
+		assert.True(tt, device.Online)
+	}, 30*time.Second, 1*time.Second)
 
-			// --
-
-			test.run(tt, &Environment{
-				services: compose,
-				agent:    agent,
-			}, &device)
-		})
-	}
+	return agent, &device
 }
