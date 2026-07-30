@@ -283,20 +283,8 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		return err
 	}
 
-	if err := agent.RequestPty("xterm", int(dim.Rows), int(dim.Cols), ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
-	}); err != nil {
-		logger.WithError(err).Debug("failed to request the pty on session")
-
-		return ErrPty
-	}
-
-	if err := agent.Shell(); err != nil {
-		logger.WithError(err).Debug("failed to request the shell on session")
-
-		return ErrShell
+	if err := prepareShell(logger, agent, dim); err != nil {
+		return err
 	}
 
 	go func() {
