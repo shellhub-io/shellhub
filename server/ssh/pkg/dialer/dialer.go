@@ -16,12 +16,19 @@ func NewKey(tenant, uid string) string {
 	return strings.Join([]string{tenant, uid}, ":")
 }
 
+// Heartbeater records that a device's tunnel is still alive. Beats are frequent
+// and individually worthless, so implementations are expected to batch them and
+// to never block the caller.
+type Heartbeater interface {
+	Submit(uid string)
+}
+
 type Dialer struct {
 	Manager *Manager
 	client  internalclient.Client
 }
 
-func NewDialer(client internalclient.Client) *Dialer {
+func NewDialer(client internalclient.Client, heartbeater Heartbeater) *Dialer {
 	m := NewManager()
 
 	m.DialerDoneCallback = func(key string) {
@@ -55,17 +62,7 @@ func NewDialer(client internalclient.Client) *Dialer {
 			return
 		}
 
-		tenant := parts[0]
-		uid := parts[1]
-
-		if err := client.DevicesHeartbeat(context.TODO(), uid); err != nil {
-			log.WithError(err).
-				WithFields(log.Fields{
-					"uid":       uid,
-					"tenant_id": tenant,
-				}).
-				Error("failed to send heartbeat signal")
-		}
+		heartbeater.Submit(parts[1])
 	}
 
 	return &Dialer{

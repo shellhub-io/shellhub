@@ -11,12 +11,6 @@ type Client interface {
 	//
 	// It returns an error if the pattern is invalid or if there is an issue submitting the task.
 	Submit(ctx context.Context, pattern TaskPattern, payload []byte) error
-	// SubmitToBatch sends a payload to be added to a batch for processing. The task handler registered with
-	// the specified pattern will process the batch either when a series of payloads have been enqueued
-	// or when the specified time delay is reached.
-	//
-	// It returns an error if the pattern is invalid or if there is an issue submitting the task to the batch.
-	SubmitToBatch(ctx context.Context, pattern TaskPattern, payload []byte) error
 	// Close closes the client's connection.
 	Close() error
 }
