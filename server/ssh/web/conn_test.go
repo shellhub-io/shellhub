@@ -8,7 +8,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/ssh/web/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -180,6 +182,12 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 
 	output := bytes.Repeat([]byte{'o'}, 128)
 
+	// The client auto-replies a pong to every ping and the handler never reads
+	// them, so closing with that data unread would RST the connection and
+	// truncate what the client has yet to receive. Hold the handler open until
+	// the client has read everything.
+	read := make(chan struct{})
+
 	server := httptest.NewServer(websocket.Handler(func(socket *websocket.Conn) {
 		conn := NewConn(socket)
 
@@ -217,6 +225,7 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 		}()
 
 		wg.Wait()
+		<-read
 	}))
 
 	defer server.Close()
@@ -226,14 +235,19 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 
 	defer client.Close() //nolint:errcheck
 
-	binary := 0
+	// Without serialization the frames interleave and the parser desyncs, which
+	// would otherwise block this read until the whole suite times out.
+	require.NoError(t, client.SetDeadline(clock.Now().Add(30*time.Second)))
 
+	binary := 0
+	control := 0
+
+	// Pings are answered and consumed by the client's frame handler, so only the
+	// binary and text frames surface here.
 	for range rounds * 2 {
 		var frame capturedFrame
 
-		if err := frameCapture.Receive(client, &frame); err != nil {
-			break
-		}
+		require.NoError(t, frameCapture.Receive(client, &frame))
 
 		if frame.payloadType == websocket.BinaryFrame {
 			binary++
@@ -241,8 +255,15 @@ func TestConnConcurrentWritesDoNotRace(t *testing.T) {
 			// A frame carrying anything other than the whole payload means two
 			// writers interleaved on the shared frame writer.
 			assert.Equal(t, output, frame.data)
+
+			continue
 		}
+
+		control++
 	}
 
+	close(read)
+
 	assert.Equal(t, rounds, binary)
+	assert.Equal(t, rounds, control)
 }
