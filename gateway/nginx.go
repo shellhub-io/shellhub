@@ -69,9 +69,6 @@ func (nc *NginxController) generateConfig(src, dst string) {
 	tmpl := template.New(filepath.Base(src))
 	tmpl, err = tmpl.Funcs(template.FuncMap{
 		"args": templateArgs,
-		"set_upstream": func(host string, port int) (string, error) {
-			return buildUpstreamConfig(tmpl, host, port)
-		},
 	}).ParseFiles(src)
 	if err != nil {
 		log.Fatalf("Failed to parse template file %s: %v", src, err)
@@ -207,20 +204,4 @@ func templateArgs(pairs ...any) (map[string]any, error) {
 	}
 
 	return argsMap, nil
-}
-
-func buildUpstreamConfig(tmpl *template.Template, host string, port int) (string, error) {
-	output := &bytes.Buffer{}
-	err := tmpl.Lookup("UPSTREAM_CONFIG").Execute(
-		output,
-		map[string]interface{}{
-			"Host": host,
-			"Port": port,
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-
-	return output.String(), nil
 }
