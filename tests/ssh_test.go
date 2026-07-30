@@ -79,7 +79,7 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 				Context:       "..",
 				Dockerfile:    "agent/Dockerfile.test",
 				PrintBuildLog: false,
-				KeepImage:     false,
+				KeepImage:     true,
 				BuildArgs: map[string]*string{
 					"USERNAME": &ShellHubAgentUsername,
 					"PASSWORD": &ShellHubAgentPassword,
@@ -1456,8 +1456,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 // newSSHEnvironment brings up a ShellHub stack with a single user and namespace in the given
 // SSH access mode, and authenticates the compose client as that user.
 //
-// The database backend (mongo/postgres) is configured via SHELLHUB_DATABASE in .env; CI runs
-// this suite once per backend.
+// The database backend is configured via SHELLHUB_DATABASE in .env; postgres is the only one
+// supported.
 func newSSHEnvironment(t *testing.T, ctx context.Context, sshAccessMode string) *environment.DockerCompose {
 	t.Helper()
 
