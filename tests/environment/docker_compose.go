@@ -83,7 +83,7 @@ func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc
 				Context:       "..",
 				Dockerfile:    "cli/Dockerfile.test",
 				PrintBuildLog: false,
-				KeepImage:     false,
+				KeepImage:     true,
 			},
 		},
 		Logger: log.New(io.Discard, "", log.LstdFlags),
