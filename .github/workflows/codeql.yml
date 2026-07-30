@@ -30,12 +30,10 @@ jobs:
         include:
           - module: .
             build_tags: ""
-          - module: api
+          - module: server
             build_tags: ""
           - module: agent
             build_tags: "docker"
-          - module: ssh
-            build_tags: "internal_api"
           - module: cli
             build_tags: ""
           - module: gateway

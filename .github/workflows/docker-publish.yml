@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, ssh, gateway, ui, cli, api-enterprise]
+        project: [server, gateway, ui, cli, server-enterprise]
 
     runs-on: ubuntu-24.04
 
@@ -29,9 +29,9 @@ jobs:
         with:
           path: shellhub
 
-      - name: Generate cloud repo token (api-enterprise only)
+      - name: Generate cloud repo token (server-enterprise only)
         id: cloud-token
-        if: matrix.project == 'api-enterprise'
+        if: matrix.project == 'server-enterprise'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
@@ -39,8 +39,8 @@ jobs:
           owner: shellhub-io
           repositories: cloud
 
-      - name: Checkout cloud source (api-enterprise only)
-        if: matrix.project == 'api-enterprise'
+      - name: Checkout cloud source (server-enterprise only)
+        if: matrix.project == 'server-enterprise'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/cloud
@@ -62,8 +62,8 @@ jobs:
       - name: Set image registry and name
         id: image
         run: |
-          if [[ "${{ matrix.project }}" == "api-enterprise" ]]; then
-            echo "name=registry.infra.ossystems.io/shellhub/api-enterprise" >> "$GITHUB_OUTPUT"
+          if [[ "${{ matrix.project }}" == "server-enterprise" ]]; then
+            echo "name=registry.infra.ossystems.io/shellhub/server-enterprise" >> "$GITHUB_OUTPUT"
           else
             echo "name=shellhubio/${{ matrix.project }}" >> "$GITHUB_OUTPUT"
           fi
@@ -72,14 +72,14 @@ jobs:
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Login to Docker Hub (community images)
-        if: matrix.project != 'api-enterprise'
+        if: matrix.project != 'server-enterprise'
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Login to private Docker Registry (api-enterprise)
-        if: matrix.project == 'api-enterprise'
+      - name: Login to private Docker Registry (server-enterprise)
+        if: matrix.project == 'server-enterprise'
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
         with:
           registry: registry.infra.ossystems.io
@@ -88,7 +88,7 @@ jobs:
 
       # The image is tagged but NOT pushed yet so Trivy can scan it first.
       - name: Build '${{ matrix.project }}' image (load only, no push)
-        if: matrix.project != 'api-enterprise'
+        if: matrix.project != 'server-enterprise'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           push: false
@@ -99,14 +99,14 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.project }}
           cache-to: type=gha,scope=${{ matrix.project }},mode=max
 
-      - name: Build 'api-enterprise' image (load only, no push)
-        if: matrix.project == 'api-enterprise'
+      - name: Build 'server-enterprise' image (load only, no push)
+        if: matrix.project == 'server-enterprise'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           push: false
           load: true
           tags: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
-          file: shellhub/api/Dockerfile
+          file: shellhub/server/Dockerfile
           context: shellhub
           build-args: EDITION=enterprise
           build-contexts: cloud-src=./cloud
@@ -152,7 +152,7 @@ jobs:
           upload-artifact: false
 
       - name: Generate SBOM for '${{ matrix.project }}' source
-        if: matrix.project != 'api-enterprise'
+        if: matrix.project != 'server-enterprise'
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: shellhub/${{ matrix.project }}

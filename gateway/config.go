@@ -85,5 +85,5 @@ func (gc *GatewayConfig) applyDefaults() {
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")
 
-	gc.APIBackend = "api:8080"
+	gc.APIBackend = "server:8080"
 }

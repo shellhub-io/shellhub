@@ -21,9 +21,8 @@ version=$1
 
 directories=(
     "" # Parent path
-    "api"
+    "server"
     "cli"
-    "ssh"
     "agent"
     "tests"
 )

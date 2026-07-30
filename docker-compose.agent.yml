@@ -32,6 +32,5 @@ services:
       - ./.golangci.yaml:/.golangci.yaml
       - /tmp:/tmp
     depends_on:
-      - api
-      - ssh
+      - server
       - gateway

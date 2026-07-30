@@ -16,10 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [api, agent, pkg, ssh, cli]
+        project: [server, agent, pkg, cli]
         database: ['']  # Empty by default
         include:
-          - project: api
+          - project: server
             extra_args: ""
             lint_args: ""
           - project: agent
@@ -28,9 +28,6 @@ jobs:
           - project: pkg
             extra_args: ""
             lint_args: ""
-          - project: ssh
-            extra_args: "-tags internal_api"
-            lint_args: "--build-tags internal_api"
           - project: cli
             extra_args: ""
             lint_args: ""
@@ -66,10 +63,9 @@ jobs:
           # inline YAML or path to separate file (e.g.: .github/filters.yaml)
           filters: |
             go:
-              - 'api/**'
+              - 'server/**'
               - 'agent/**'
               - 'pkg/**'
-              - 'ssh/**'
               - 'cli/**'
               - 'gateway/**'
               - 'tests/**'

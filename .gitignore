@@ -2,7 +2,7 @@
 docker-compose.override.yml
 
 *~
-*/tmp
+**/tmp
 *.orig
 
 # UI build and dependencies artifacts
@@ -30,10 +30,9 @@ ui/apps/console/src/client/
 
 # Docker binaries
 agent/agent
-api/api
+server/server
 cli/cli
 gateway/gateway
-ssh/ssh
 
 agent/shellhub.key
 

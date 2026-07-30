@@ -7,11 +7,10 @@ Usage: $0 PROJECT [ARG...]
 Run unit tests of a project under development machine.
 
 Projects:
- * api
- * ssh
+ * server
  * agent
 
-Use comma separated for multiple projects, e.g. 'api,ssh'
+Use comma separated for multiple projects, e.g. 'server,agent'
 EOF
     exit 1
 }
@@ -33,7 +32,7 @@ projects=($(echo $1 | tr "," "\n"))
 
 for project in "${projects[@]}"; do
     case "$project" in
-	"api"|"ssh"|"agent")
+	"server"|"agent")
             go_test $project ${@:2}
             ;;
 	*)

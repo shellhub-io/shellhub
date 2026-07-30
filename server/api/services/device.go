@@ -1,0 +1,560 @@
+package services
+
+import (
+	"context"
+	"errors"
+	"strings"
+
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/store"
+	log "github.com/sirupsen/logrus"
+)
+
+const StatusAccepted = "accepted"
+
+// DeviceFilterFields maps each filter field the device list endpoint accepts
+// to the set of operators valid for it. Operators that the database rejects
+// on a given column type (e.g. ILIKE on the status enum) are omitted so the
+// handler returns HTTP 400 instead of letting the store produce a 500.
+var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
+	"name":          {"contains", "eq", "ne"},
+	"status":        {"eq", "ne"},
+	"mac":           {"contains", "eq", "ne"},
+	"platform":      {"contains", "eq", "ne"},
+	"tags.name":     {"contains", "eq"},
+	"online":        {"bool", "eq"},
+	"custom_fields": {"contains"},
+
+	// Deprecated: legacy Mongo-style aliases for "platform" and "mac", kept for
+	// backward compatibility and slated for removal in the next major API version.
+	"info.platform": {"contains", "eq", "ne"},
+	"identity.mac":  {"contains", "eq", "ne"},
+},
+	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
+	// SQL column binding — safe to accept bool-convertible values with eq/ne.
+	"online",
+)
+
+// DeviceSortFields is the set of field names accepted in the sort_by query
+// parameter when listing devices.
+var DeviceSortFields = query.NewFieldSet(
+	"name",
+	"status",
+	"last_seen",
+	"created_at",
+)
+
+type DeviceService interface {
+	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
+	GetDevice(ctx context.Context, uid models.UID) (*models.Device, error)
+
+	// ResolveDevice attempts to resolve a device by searching for either its UID or hostname. When both are provided,
+	// UID takes precedence over hostname. The search is scoped to the namespace's tenant ID to limit results.
+	//
+	// It returns the resolved device and any error encountered.
+	ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error)
+
+	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
+
+	// RenameDevice renames the specified device.
+	// This method is deprecated, use [DeviceService#UpdateDevice] instead.
+	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
+
+	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
+	OfflineDevice(ctx context.Context, uid models.UID) error
+
+	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
+	// UpdateDeviceStatus updates a device's status. Devices that are already accepted cannot change their status.
+	//
+	// When accepting, if a device with the same MAC address is already accepted within the same namespace, it
+	// merges these devices unless a third device with the same hostname already exists and has a different MAC
+	// address. The merge transfers all sessions from the old device to the new one, renames the new device to
+	// preserve the old device's identity, and deletes the old device. Also, if another accepted device already
+	// uses the same hostname but has a different MAC address, the operation fails.
+	//
+	// Environment-specific Acceptance Rules:
+	//   - Community/Enterprise: Only checks the namespace's device limit
+	//   - Cloud (billing active): Reports device acceptance to billing service for quota/payment validation
+	//   - Cloud (billing inactive): Checks if the device is removed and evaluates namespace capabilities:
+	//     * If device was previously removed: removes from removed list, then evaluates billing
+	//     * If device was not removed: counts total removed devices and checks against limits, then evaluates billing
+	//     * Billing evaluation determines if the namespace can accept more devices based on subscription status
+	//
+	// All operations are performed within a database transaction to ensure consistency during device merging
+	// and counter updates.
+	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
+
+	// SetDeviceCustomField sets or updates a single custom_fields entry on the device.
+	// It enforces the per-device entry cap defined by [maxCustomFieldsPerDevice] when
+	// adding a new key.
+	SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error
+	// DeleteDeviceCustomField removes a single custom_fields entry from the device.
+	// It is idempotent: removing a non-existent key is not an error.
+	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
+}
+
+func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
+	opts := []store.QueryOption{}
+
+	if req.DeviceStatus != "" {
+		opts = append(opts, s.store.Options().WithDeviceStatus(req.DeviceStatus))
+	}
+
+	if req.TenantID != "" {
+		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
+	}
+
+	if req.Sorter.By == "" {
+		req.Sorter.By = "last_seen"
+	}
+
+	req.Sorter.Tiebreak = "id"
+
+	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
+
+	if req.DeviceStatus == models.DeviceStatusRemoved {
+		return s.store.DeviceList(ctx, store.DeviceAcceptableFromRemoved, opts...)
+	}
+
+	if req.TenantID != "" {
+		ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+		if err != nil {
+			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
+		}
+
+		// Unified logic: if limit reached, prevent accepting new devices
+		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
+			return s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
+		}
+	}
+
+	return s.store.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted, opts...)
+}
+
+func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
+	opts := []store.QueryOption{}
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+		opts = append(opts, s.store.Options().InNamespace(tenant.ID))
+	}
+
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), opts...)
+	if err != nil {
+		return nil, NewErrDeviceNotFound(uid, err)
+	}
+
+	return device, nil
+}
+
+func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error) {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	var device *models.Device
+	switch {
+	case req.UID != "":
+		device, err = s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(n.TenantID))
+	case req.Hostname != "":
+		device, err = s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, req.Hostname, s.store.Options().InNamespace(n.TenantID))
+	}
+
+	if err != nil {
+		// TODO: refactor this error to accept a string instead of models.UID
+		return nil, NewErrDeviceNotFound(models.UID(""), err)
+	}
+
+	return device, nil
+}
+
+// DeleteDevice deletes a device from a namespace.
+//
+// It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
+// from models.Namespace.
+//
+// It can return an error if the device is not found, NewErrDeviceNotFound(uid, err), if the namespace is not found,
+// NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
+// delete the device fails.
+func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
+	if err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	// NOTE: Always soft-delete accepted devices for audit purposes.
+	// Pending/Rejected devices can be hard-deleted as they don't need audit trail.
+	if device.Status == models.DeviceStatusAccepted {
+		now := clock.Now()
+
+		deviceCopy := *device
+		deviceCopy.Status = models.DeviceStatusRemoved
+		deviceCopy.RemovedAt = &now
+		if err := s.store.DeviceUpdate(ctx, &deviceCopy); err != nil {
+			return err
+		}
+
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, models.DeviceStatusRemoved, 1); err != nil {
+			return err
+		}
+	} else {
+		// Hard-delete pending/rejected devices (no audit needed)
+		if err := s.store.DeviceDelete(ctx, device); err != nil {
+			return err
+		}
+	}
+
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenant, device.Status, -1); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), s.store.Options().InNamespace(tenant))
+	if err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	if strings.EqualFold(device.Name, name) {
+		return nil
+	}
+
+	device.Name = strings.ToLower(name)
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+// LookupDevice looks for a device in a namespace.
+//
+// It receives a context, used to "control" the request flow and, the namespace name from a models.Namespace and a
+// device name from models.Device.
+func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error) {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(namespace))
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(namespace, err)
+	}
+
+	opts := []store.QueryOption{
+		s.store.Options().InNamespace(n.TenantID),
+		s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted),
+	}
+
+	device, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, name, opts...)
+	if err != nil || device == nil {
+		return nil, NewErrDeviceNotFound(models.UID(name), err)
+	}
+
+	return device, nil
+}
+
+func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
+	if err := s.store.DeviceOffline(ctx, string(uid), clock.Now()); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrDeviceNotFound(uid, err)
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error {
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req)); err != nil {
+		return err
+	}
+
+	// Freeze the decision on the device's enrollment history event so the audit keeps it after the
+	// device is removed. Best-effort and outside the transaction: a stamp failure must not roll back the
+	// accept/reject that already committed. This is the single chokepoint every accept/reject reaches.
+	status := models.DeviceStatus(req.Status)
+	if status == models.DeviceStatusAccepted || status == models.DeviceStatusRejected {
+		if err := s.store.InstallKeyEventStampDecision(ctx, req.TenantID, req.UID, status, clock.Now()); err != nil {
+			log.WithError(err).WithFields(log.Fields{"device_uid": req.UID, "status": req.Status}).
+				Warn("failed to stamp the enrollment decision on the history event")
+		}
+	}
+
+	return nil
+}
+
+func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.TransactionCb {
+	return func(ctx context.Context) error {
+		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+		if err != nil {
+			return NewErrNamespaceNotFound(req.TenantID, err)
+		}
+
+		device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(namespace.TenantID))
+		if err != nil {
+			return NewErrDeviceNotFound(models.UID(req.UID), err)
+		}
+
+		if device.Status == models.DeviceStatusAccepted {
+			log.WithFields(log.Fields{"device_uid": device.UID}).
+				Warn("cannot change status - device already accepted")
+
+			return NewErrDeviceStatusAccepted(nil)
+		}
+
+		oldStatus := device.Status
+		newStatus := models.DeviceStatus(req.Status)
+
+		if newStatus == device.Status {
+			return nil
+		}
+
+		if newStatus == models.DeviceStatusAccepted {
+			opts := []store.QueryOption{s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(namespace.TenantID)}
+			existingMacDevice, err := s.store.DeviceResolve(ctx, store.DeviceMACResolver, device.Identity.MAC, opts...)
+			if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+				log.WithError(err).
+					WithFields(log.Fields{"mac": device.Identity.MAC}).
+					Error("failed to retrieve device using MAC")
+
+				return err
+			}
+
+			if existingMacDevice != nil && existingMacDevice.UID != device.UID {
+				existingNameDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+					log.WithError(err).
+						WithFields(log.Fields{"name": device.Name}).
+						Error("failed to retrieve device using name")
+
+					return err
+				}
+
+				if existingNameDevice != nil && existingNameDevice.Identity.MAC != device.Identity.MAC {
+					log.WithFields(log.Fields{"device_uid": device.UID, "device_mac": device.Identity.MAC, "conflicting_device_name": device.Name}).
+						Error("device merge blocked - hostname already used by device with different MAC address")
+
+					return NewErrDeviceDuplicated(device.Name, nil)
+				}
+
+				if err := s.mergeDevice(ctx, namespace.TenantID, existingMacDevice, device); err != nil {
+					log.WithError(err).
+						WithFields(log.Fields{"device_uid": device.UID, "existing_device_uid": existingMacDevice.UID, "device_mac": device.Identity.MAC}).
+						Error("device merge operation failed")
+
+					return err
+				}
+			} else {
+				existingDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, device.Name, opts...)
+				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+					log.WithError(err).
+						WithFields(log.Fields{"name": device.Name}).
+						Error("failed to retrieve device using name")
+
+					return err
+				}
+
+				if existingDevice != nil {
+					log.WithFields(log.Fields{"device_uid": device.UID, "conflicting_device_name": device.Name}).
+						Error("device acceptance blocked - hostname already used by another device")
+
+					return NewErrDeviceDuplicated(device.Name, nil)
+				}
+
+				// Validate namespace can accept another device
+				if err := s.validateDeviceAcceptance(ctx, namespace); err != nil {
+					return err
+				}
+			}
+		}
+
+		device.Status = newStatus
+		device.StatusUpdatedAt = clock.Now()
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
+			// The devices_accepted_mac_unique index can reject a concurrent accept of
+			// a same-MAC device; surface that as a duplicate (409), not a bare 500.
+			if newStatus == models.DeviceStatusAccepted && errors.Is(err, store.ErrDuplicate) {
+				return NewErrDeviceDuplicated(device.Name, err)
+			}
+
+			return err
+		}
+
+		for status, count := range map[models.DeviceStatus]int64{oldStatus: -1, newStatus: 1} {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, namespace.TenantID, status, count); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if req.Name == "" || strings.EqualFold(req.Name, device.Name) {
+		return nil
+	}
+
+	// Device names are stored lower-cased, so match on the lower-cased value. Scope the lookup
+	// to the device's namespace: a name used in another namespace is not a conflict.
+	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(req.Name)}
+	conflictsTarget.Distinct(device)
+	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget, s.store.Options().InNamespace(req.TenantID)); err != nil || has {
+		return NewErrDeviceDuplicated(req.Name, err)
+	}
+
+	device.Name = strings.ToLower(req.Name)
+
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+// maxCustomFieldsPerDevice is the upper bound on the number of custom_fields entries
+// per device. Enforced server-side to prevent storage abuse.
+const maxCustomFieldsPerDevice = 20
+
+func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if _, exists := device.CustomFields[req.Key]; !exists && len(device.CustomFields) >= maxCustomFieldsPerDevice {
+		return NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil)
+	}
+
+	if err := s.store.DeviceSetCustomField(ctx, req.UID, req.Key, req.Value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error {
+	if _, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID)); err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if err := s.store.DeviceDeleteCustomField(ctx, req.UID, req.Key); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
+// renames the new device to preserve the old device's identity. The old device is then deleted and the namespace's device count is decremented.
+func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
+	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
+
+	log.WithFields(logFields).Debug("firing device merge hooks")
+	if err := fireDeviceMerge(ctx, tenantID, oldDevice, newDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("device merge hook failed")
+
+		return err
+	}
+
+	log.WithFields(logFields).Debug("transferring sessions from old device to new device")
+	if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), models.UID(newDevice.UID)); err != nil && !errors.Is(err, store.ErrNoDocuments) {
+		log.WithError(err).WithFields(logFields).Error("failed to transfer sessions")
+
+		return err
+	}
+
+	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
+	newDevice.Name = oldDevice.Name
+	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to update new device name")
+
+		return err
+	}
+
+	log.WithFields(logFields).Debug("mergeDevice: deleting old device")
+	if err := s.store.DeviceDelete(ctx, oldDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to delete old device")
+
+		return err
+	}
+
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
+
+		return err
+	}
+
+	log.WithFields(logFields).Info("device merge operation completed successfully")
+
+	return nil
+}
+
+// validateDeviceAcceptance checks if a namespace can accept another device.
+// For cloud environments, this includes billing validation.
+// For community/enterprise, this checks configured device limits.
+//
+// NOTE: this function is only called on the non-merge path (line 354). The same-MAC
+// merge path returns before reaching that call site, so merges are never limit-checked.
+func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
+	// Check hard limit first (applies to all editions)
+	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+		// For cloud with inactive billing, this is a billing issue
+		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
+			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
+				Error("namespace's limit reached - cannot accept another device")
+
+			return NewErrDeviceLimit(namespace.MaxDevices, nil)
+		}
+
+		// For CE/Enterprise, this is a license/config limit
+		return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
+	}
+
+	// Additional billing validation for cloud
+	if envs.IsCloud() && s.billing != nil {
+		if err := s.validateBillingForDeviceAcceptance(ctx, namespace); err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"tenant":         namespace.TenantID,
+				"billing_active": namespace.Billing.IsActive(),
+			}).Error("billing validation failed")
+
+			return err
+		}
+	}
+
+	// Check license-based device limit (enterprise/cloud licensing).
+	// NOTE: enforcement is best-effort and not atomic. CanAcceptDevice reads the
+	// global device count, but that read is not serialized with the device status
+	// update performed by the surrounding transaction, so concurrent acceptances
+	// can race and overshoot the licensed limit by a small margin. This is an
+	// accepted trade-off: the same limit is independently enforced at SSH
+	// connection time, so an overshoot cannot be exploited to gain SSH access
+	// beyond the license.
+	// Fail-open: if the evaluator returns an error, log a warning and allow
+	// the device to be accepted so that a transient license-service outage
+	// does not block operators from managing their fleet.
+	if s.licenseEvaluator != nil {
+		ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
+		if err != nil {
+			log.WithError(err).Warn("license evaluator returned an error; failing open and allowing device acceptance")
+
+			return nil
+		}
+
+		if !ok {
+			return ErrDeviceLicenseLimit
+		}
+	}
+
+	return nil
+}

@@ -1,6 +1,6 @@
 services:
-  api:
-    image: registry.infra.ossystems.io/shellhub/api-enterprise:${SHELLHUB_VERSION}
+  server:
+    image: registry.infra.ossystems.io/shellhub/server-enterprise:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
       # Database and Cache connections
@@ -56,13 +56,6 @@ services:
 
   redis:
     image: registry.infra.ossystems.io/cache/valkey/valkey:9.1-alpine
-
-  ssh:
-    image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
-    environment:
-      - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
-      - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
-      - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}
 
   minio:
     image: minio/minio:RELEASE.2025-05-24T17-08-30Z
