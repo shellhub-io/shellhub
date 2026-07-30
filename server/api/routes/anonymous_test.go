@@ -10,12 +10,14 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authenticator) {
+func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authenticator, *serviceMocks.MockService) {
 	t.Helper()
 
 	envstest.SetEdition(t, envs.Community)
@@ -28,7 +30,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 
 	authn := routesmiddleware.NewAuthenticator(service)
 
-	return NewRouter(service, WithAuthentication(authn)), authn
+	return NewRouter(service, WithAuthentication(authn)), authn, service
 }
 
 // TestAnonymousAllowlistMatchesRegisteredRoutes catches a typo or a stale entry
@@ -36,7 +38,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 // to open stays authenticated, which fails safe but breaks a public endpoint in a
 // way no other test would notice.
 func TestAnonymousAllowlistMatchesRegisteredRoutes(t *testing.T) {
-	router, authn := authenticatedRouter(t)
+	router, authn, _ := authenticatedRouter(t)
 
 	registered := make(map[string]struct{})
 	paths := make(map[string]struct{})
@@ -66,11 +68,10 @@ func TestAnonymousAllowlistMatchesRegisteredRoutes(t *testing.T) {
 // option on NewRouter, so a production entrypoint that forgot to pass it would
 // leave every route open.
 func TestRouterRejectsUncredentialedRequests(t *testing.T) {
-	router, _ := authenticatedRouter(t)
-
 	tests := []struct {
 		description string
 		headers     map[string]string
+		mock        func(*serviceMocks.MockService)
 	}{
 		{
 			description: "no credential at all",
@@ -87,10 +88,39 @@ func TestRouterRejectsUncredentialedRequests(t *testing.T) {
 				"X-Tenant-ID": "forged-tenant",
 			},
 		},
+		{
+			// A key the store cannot resolve is a rejected credential, not a
+			// missing resource: the edge proxy turned every non-2xx from the
+			// authentication subrequest into a 401, and a client holding a
+			// revoked key needs to be told to reauthenticate.
+			description: "an api key the store does not know",
+			headers:     map[string]string{"X-API-Key": "not-a-key"},
+			mock: func(service *serviceMocks.MockService) {
+				service.
+					On("AuthAPIKey", mock.Anything, "not-a-key").
+					Return(nil, services.NewErrAPIKeyNotFound("", nil)).
+					Once()
+			},
+		},
+		{
+			description: "an api key that is no longer valid",
+			headers:     map[string]string{"X-API-Key": "expired"},
+			mock: func(service *serviceMocks.MockService) {
+				service.
+					On("AuthAPIKey", mock.Anything, "expired").
+					Return(nil, services.NewErrAPIKeyInvalid("expired")).
+					Once()
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
+			router, _, service := authenticatedRouter(t)
+			if tc.mock != nil {
+				tc.mock(service)
+			}
+
 			req := httptest.NewRequest(http.MethodGet, "/api/devices", nil)
 			for key, value := range tc.headers {
 				req.Header.Set(key, value)
@@ -109,7 +139,7 @@ func TestRouterRejectsUncredentialedRequests(t *testing.T) {
 // per route: a client cannot reach even an anonymous handler carrying an identity
 // it never authenticated as.
 func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
-	router, authn := authenticatedRouter(t)
+	router, authn, service := authenticatedRouter(t)
 
 	const probe = "/api/anonymous-probe"
 
@@ -122,11 +152,27 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 	})
 	authn.AllowAnonymous(http.MethodGet, probe)
 
+	service.
+		On("AuthAPIKey", mock.Anything, "forged-key").
+		Return(nil, services.NewErrAPIKeyNotFound("", nil)).
+		Once()
+
+	// Every header gateway.Identity writes, so a new one cannot be added to that
+	// set without being scrubbed here too.
+	forged := map[string]string{
+		"X-ID":         "forged-user",
+		"X-Username":   "forged-username",
+		"X-Tenant-ID":  "forged-tenant",
+		"X-Device-UID": "forged-device",
+		"X-API-Key":    "forged-key",
+		"X-Role":       "owner",
+		"X-Admin":      "true",
+	}
+
 	req := httptest.NewRequest(http.MethodGet, probe, nil)
-	req.Header.Set("X-ID", "forged-user")
-	req.Header.Set("X-Role", "owner")
-	req.Header.Set("X-Tenant-ID", "forged-tenant")
-	req.Header.Set("X-Admin", "true")
+	for key, value := range forged {
+		req.Header.Set(key, value)
+	}
 
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -134,8 +180,7 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	require.NotNil(t, seen)
-	assert.Empty(t, seen.Get("X-ID"))
-	assert.Empty(t, seen.Get("X-Role"))
-	assert.Empty(t, seen.Get("X-Tenant-ID"))
-	assert.Empty(t, seen.Get("X-Admin"))
+	for key := range forged {
+		assert.Empty(t, seen.Get(key), "%s reached the handler", key)
+	}
 }

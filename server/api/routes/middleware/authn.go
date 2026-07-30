@@ -147,7 +147,13 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
 		if err != nil {
-			return nil, err
+			// Same rule as the bearer token below: a key that does not resolve
+			// yields no identity rather than an error. Propagating it would
+			// surface the store's own status -- 404 for an unknown key, 400 for
+			// an expired one -- when the caller's problem is the credential.
+			// The edge proxy turned every non-2xx from the authentication
+			// subrequest into a 401, including when its store was down.
+			return nil, nil //nolint:nilerr
 		}
 
 		return &gateway.Identity{
