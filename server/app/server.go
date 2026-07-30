@@ -261,9 +261,9 @@ func (s *Server) setupSSH(service services.Service, apiClient internalclient.Cli
 		return err
 	}
 
-	d := dialer.NewDialer(apiClient, s.heartbeater)
+	d := dialer.NewDialer(service, s.heartbeater)
 
-	sshhttp.Register(s.router, d, apiClient, &sshhttp.Config{
+	sshhttp.Register(s.router, d, service, apiClient, &sshhttp.Config{
 		WebEndpoints:          env.WebEndpoints,
 		WebEndpointsDomain:    env.WebEndpointsDomain,
 		Domain:                env.Domain,
