@@ -14,41 +14,7 @@ const (
 	CreateAccessPolicyURL = "/access-policies"
 	UpdateAccessPolicyURL = "/access-policies/:id"
 	DeleteAccessPolicyURL = "/access-policies/:id"
-
-	AuthorizeSSHAccessURL = "/access-policies/authorize"
-	HasAccessPoliciesURL  = "/access-policies/exists"
 )
-
-// HasAccessPolicies is the internal endpoint the SSH gateway calls before minting
-// an approval, to short-circuit an identity-mode login when the namespace has no
-// policies at all (every login would be default-denied, so there is no point
-// asking the user to approve).
-func (h *Handler) HasAccessPolicies(c gateway.Context) error {
-	exists, err := h.service.NamespaceHasAccessPolicies(c.Ctx(), c.QueryParam("tenant"))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, map[string]bool{"exists": exists})
-}
-
-// AuthorizeSSHAccess is the internal endpoint the SSH gateway calls at the
-// ephemeral-key mint point to decide whether an approved identity may reach a
-// device as a given login under the namespace's Access Policies.
-func (h *Handler) AuthorizeSSHAccess(c gateway.Context) error {
-	tenant := c.QueryParam("tenant")
-	userID := c.QueryParam("user_id")
-	device := c.QueryParam("device")
-	login := c.QueryParam("login")
-	sourceIP := c.QueryParam("source_ip")
-
-	decision, err := h.service.Authorize(c.Ctx(), tenant, userID, device, login, sourceIP)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, decision)
-}
 
 func (h *Handler) ListAccessPolicies(c gateway.Context) error {
 	var tenant string

@@ -127,10 +127,6 @@ paths:
     $ref: paths/api@ssh-approvals@{code}@confirm.yaml
   /api/ssh-approvals/{code}/reject:
     $ref: paths/api@ssh-approvals@{code}@reject.yaml
-  /internal/devices/{uid}/offline:
-    $ref: paths/api@devices@{uid}@offline.yaml
-  /internal/sessions/{uid}:
-    $ref: paths/internal@sessions@{uid}.yaml
   /api/sessions:
     $ref: paths/api@sessions.yaml
   /api/sessions/{uid}:

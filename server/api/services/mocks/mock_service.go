@@ -23,8 +23,7 @@ import (
 func NewMockService(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockService {
+}) *MockService {
 	mock := &MockService{}
 	mock.Mock.Test(t)
 

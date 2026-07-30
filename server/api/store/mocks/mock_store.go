@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	mock "github.com/stretchr/testify/mock"
@@ -41,8 +42,8 @@ func (_m *MockStore) EXPECT() *MockStore_Expecter {
 }
 
 // APIKeyConflicts provides a mock function for the type MockStore
-func (_mock *MockStore) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error) {
-	ret := _mock.Called(ctx, tenantID, target)
+func (_mock *MockStore) APIKeyConflicts(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts) ([]string, bool, error) {
+	ret := _mock.Called(ctx, sc, target)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyConflicts")
@@ -51,23 +52,23 @@ func (_mock *MockStore) APIKeyConflicts(ctx context.Context, tenantID string, ta
 	var r0 []string
 	var r1 bool
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.APIKeyConflicts) ([]string, bool, error)); ok {
-		return returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.APIKeyConflicts) ([]string, bool, error)); ok {
+		return returnFunc(ctx, sc, target)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.APIKeyConflicts) []string); ok {
-		r0 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.APIKeyConflicts) []string); ok {
+		r0 = returnFunc(ctx, sc, target)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *models.APIKeyConflicts) bool); ok {
-		r1 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *models.APIKeyConflicts) bool); ok {
+		r1 = returnFunc(ctx, sc, target)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, *models.APIKeyConflicts) error); ok {
-		r2 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *models.APIKeyConflicts) error); ok {
+		r2 = returnFunc(ctx, sc, target)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -81,21 +82,21 @@ type MockStore_APIKeyConflicts_Call struct {
 
 // APIKeyConflicts is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - target *models.APIKeyConflicts
-func (_e *MockStore_Expecter) APIKeyConflicts(ctx any, tenantID any, target any) *MockStore_APIKeyConflicts_Call {
-	return &MockStore_APIKeyConflicts_Call{Call: _e.mock.On("APIKeyConflicts", ctx, tenantID, target)}
+func (_e *MockStore_Expecter) APIKeyConflicts(ctx any, sc any, target any) *MockStore_APIKeyConflicts_Call {
+	return &MockStore_APIKeyConflicts_Call{Call: _e.mock.On("APIKeyConflicts", ctx, sc, target)}
 }
 
-func (_c *MockStore_APIKeyConflicts_Call) Run(run func(ctx context.Context, tenantID string, target *models.APIKeyConflicts)) *MockStore_APIKeyConflicts_Call {
+func (_c *MockStore_APIKeyConflicts_Call) Run(run func(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts)) *MockStore_APIKeyConflicts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.APIKeyConflicts
 		if args[2] != nil {
@@ -115,7 +116,7 @@ func (_c *MockStore_APIKeyConflicts_Call) Return(conflicts []string, has bool, e
 	return _c
 }
 
-func (_c *MockStore_APIKeyConflicts_Call) RunAndReturn(run func(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error)) *MockStore_APIKeyConflicts_Call {
+func (_c *MockStore_APIKeyConflicts_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, target *models.APIKeyConflicts) ([]string, bool, error)) *MockStore_APIKeyConflicts_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -307,12 +308,12 @@ func (_c *MockStore_APIKeyDeleteAllByCreator_Call) RunAndReturn(run func(ctx con
 }
 
 // APIKeyList provides a mock function for the type MockStore
-func (_mock *MockStore) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+func (_mock *MockStore) APIKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -323,23 +324,23 @@ func (_mock *MockStore) APIKeyList(ctx context.Context, opts ...store.QueryOptio
 	var r0 []models.APIKey
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.APIKey, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.APIKey, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.APIKey); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.APIKey); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.APIKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -353,27 +354,33 @@ type MockStore_APIKeyList_Call struct {
 
 // APIKeyList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) APIKeyList(ctx any, opts ...any) *MockStore_APIKeyList_Call {
+func (_e *MockStore_Expecter) APIKeyList(ctx any, sc any, opts ...any) *MockStore_APIKeyList_Call {
 	return &MockStore_APIKeyList_Call{Call: _e.mock.On("APIKeyList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_APIKeyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_APIKeyList_Call {
+func (_c *MockStore_APIKeyList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_APIKeyList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -384,18 +391,18 @@ func (_c *MockStore_APIKeyList_Call) Return(apiKeys []models.APIKey, count int, 
 	return _c
 }
 
-func (_c *MockStore_APIKeyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error)) *MockStore_APIKeyList_Call {
+func (_c *MockStore_APIKeyList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.APIKey, int, error)) *MockStore_APIKeyList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // APIKeyResolve provides a mock function for the type MockStore
-func (_mock *MockStore) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error) {
+func (_mock *MockStore) APIKeyResolve(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -405,18 +412,18 @@ func (_mock *MockStore) APIKeyResolve(ctx context.Context, resolver store.APIKey
 
 	var r0 *models.APIKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) (*models.APIKey, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.APIKeyResolver, string, ...store.QueryOption) (*models.APIKey, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) *models.APIKey); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.APIKeyResolver, string, ...store.QueryOption) *models.APIKey); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.APIKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.APIKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -430,39 +437,45 @@ type MockStore_APIKeyResolve_Call struct {
 
 // APIKeyResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.APIKeyResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) APIKeyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_APIKeyResolve_Call {
+func (_e *MockStore_Expecter) APIKeyResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_APIKeyResolve_Call {
 	return &MockStore_APIKeyResolve_Call{Call: _e.mock.On("APIKeyResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_APIKeyResolve_Call) Run(run func(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption)) *MockStore_APIKeyResolve_Call {
+func (_c *MockStore_APIKeyResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, value string, opts ...store.QueryOption)) *MockStore_APIKeyResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.APIKeyResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.APIKeyResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.APIKeyResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.APIKeyResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -473,7 +486,7 @@ func (_c *MockStore_APIKeyResolve_Call) Return(aPIKey *models.APIKey, err error)
 	return _c
 }
 
-func (_c *MockStore_APIKeyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error)) *MockStore_APIKeyResolve_Call {
+func (_c *MockStore_APIKeyResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error)) *MockStore_APIKeyResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -659,12 +672,12 @@ func (_c *MockStore_AccessPolicyDelete_Call) RunAndReturn(run func(ctx context.C
 }
 
 // AccessPolicyList provides a mock function for the type MockStore
-func (_mock *MockStore) AccessPolicyList(ctx context.Context, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
+func (_mock *MockStore) AccessPolicyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -675,23 +688,23 @@ func (_mock *MockStore) AccessPolicyList(ctx context.Context, opts ...store.Quer
 	var r0 []models.AccessPolicy
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.AccessPolicy, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.AccessPolicy, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.AccessPolicy); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.AccessPolicy)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -705,27 +718,33 @@ type MockStore_AccessPolicyList_Call struct {
 
 // AccessPolicyList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) AccessPolicyList(ctx any, opts ...any) *MockStore_AccessPolicyList_Call {
+func (_e *MockStore_Expecter) AccessPolicyList(ctx any, sc any, opts ...any) *MockStore_AccessPolicyList_Call {
 	return &MockStore_AccessPolicyList_Call{Call: _e.mock.On("AccessPolicyList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_AccessPolicyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_AccessPolicyList_Call {
+func (_c *MockStore_AccessPolicyList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_AccessPolicyList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -736,18 +755,18 @@ func (_c *MockStore_AccessPolicyList_Call) Return(accessPolicys []models.AccessP
 	return _c
 }
 
-func (_c *MockStore_AccessPolicyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.AccessPolicy, int, error)) *MockStore_AccessPolicyList_Call {
+func (_c *MockStore_AccessPolicyList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.AccessPolicy, int, error)) *MockStore_AccessPolicyList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // AccessPolicyResolve provides a mock function for the type MockStore
-func (_mock *MockStore) AccessPolicyResolve(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
+func (_mock *MockStore) AccessPolicyResolve(ctx context.Context, sc scope.Scope, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -757,18 +776,18 @@ func (_mock *MockStore) AccessPolicyResolve(ctx context.Context, resolver store.
 
 	var r0 *models.AccessPolicy
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) (*models.AccessPolicy, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.AccessPolicyResolver, string, ...store.QueryOption) (*models.AccessPolicy, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) *models.AccessPolicy); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.AccessPolicyResolver, string, ...store.QueryOption) *models.AccessPolicy); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.AccessPolicy)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.AccessPolicyResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.AccessPolicyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -782,39 +801,45 @@ type MockStore_AccessPolicyResolve_Call struct {
 
 // AccessPolicyResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.AccessPolicyResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) AccessPolicyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_AccessPolicyResolve_Call {
+func (_e *MockStore_Expecter) AccessPolicyResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_AccessPolicyResolve_Call {
 	return &MockStore_AccessPolicyResolve_Call{Call: _e.mock.On("AccessPolicyResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_AccessPolicyResolve_Call) Run(run func(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption)) *MockStore_AccessPolicyResolve_Call {
+func (_c *MockStore_AccessPolicyResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption)) *MockStore_AccessPolicyResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.AccessPolicyResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.AccessPolicyResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.AccessPolicyResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.AccessPolicyResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -825,7 +850,7 @@ func (_c *MockStore_AccessPolicyResolve_Call) Return(accessPolicy *models.Access
 	return _c
 }
 
-func (_c *MockStore_AccessPolicyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error)) *MockStore_AccessPolicyResolve_Call {
+func (_c *MockStore_AccessPolicyResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.AccessPolicyResolver, value string, opts ...store.QueryOption) (*models.AccessPolicy, error)) *MockStore_AccessPolicyResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1133,12 +1158,12 @@ func (_c *MockStore_ActiveSessionUpdate_Call) RunAndReturn(run func(ctx context.
 }
 
 // DeviceConflicts provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
+func (_mock *MockStore) DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, target, opts)
+		tmpRet = _mock.Called(ctx, sc, target, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, target)
+		tmpRet = _mock.Called(ctx, sc, target)
 	}
 	ret := tmpRet
 
@@ -1149,23 +1174,23 @@ func (_mock *MockStore) DeviceConflicts(ctx context.Context, target *models.Devi
 	var r0 []string
 	var r1 bool
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) ([]string, bool, error)); ok {
-		return returnFunc(ctx, target, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.DeviceConflicts, ...store.QueryOption) ([]string, bool, error)); ok {
+		return returnFunc(ctx, sc, target, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) []string); ok {
-		r0 = returnFunc(ctx, target, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.DeviceConflicts, ...store.QueryOption) []string); ok {
+		r0 = returnFunc(ctx, sc, target, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) bool); ok {
-		r1 = returnFunc(ctx, target, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *models.DeviceConflicts, ...store.QueryOption) bool); ok {
+		r1 = returnFunc(ctx, sc, target, opts...)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *models.DeviceConflicts, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, target, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *models.DeviceConflicts, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, target, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1179,33 +1204,39 @@ type MockStore_DeviceConflicts_Call struct {
 
 // DeviceConflicts is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - target *models.DeviceConflicts
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) DeviceConflicts(ctx any, target any, opts ...any) *MockStore_DeviceConflicts_Call {
+func (_e *MockStore_Expecter) DeviceConflicts(ctx any, sc any, target any, opts ...any) *MockStore_DeviceConflicts_Call {
 	return &MockStore_DeviceConflicts_Call{Call: _e.mock.On("DeviceConflicts",
-		append([]any{ctx, target}, opts...)...)}
+		append([]any{ctx, sc, target}, opts...)...)}
 }
 
-func (_c *MockStore_DeviceConflicts_Call) Run(run func(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption)) *MockStore_DeviceConflicts_Call {
+func (_c *MockStore_DeviceConflicts_Call) Run(run func(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption)) *MockStore_DeviceConflicts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.DeviceConflicts
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.DeviceConflicts)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 []store.QueryOption
+		var arg2 *models.DeviceConflicts
+		if args[2] != nil {
+			arg2 = args[2].(*models.DeviceConflicts)
+		}
+		var arg3 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]store.QueryOption)
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
 		}
-		arg2 = variadicArgs
+		arg3 = variadicArgs
 		run(
 			arg0,
 			arg1,
-			arg2...,
+			arg2,
+			arg3...,
 		)
 	})
 	return _c
@@ -1216,7 +1247,7 @@ func (_c *MockStore_DeviceConflicts_Call) Return(conflicts []string, has bool, e
 	return _c
 }
 
-func (_c *MockStore_DeviceConflicts_Call) RunAndReturn(run func(ctx context.Context, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error)) *MockStore_DeviceConflicts_Call {
+func (_c *MockStore_DeviceConflicts_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error)) *MockStore_DeviceConflicts_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1546,12 +1577,12 @@ func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // DeviceList provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
+func (_mock *MockStore) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, acceptable, opts)
+		tmpRet = _mock.Called(ctx, sc, acceptable, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, acceptable)
+		tmpRet = _mock.Called(ctx, sc, acceptable)
 	}
 	ret := tmpRet
 
@@ -1562,23 +1593,23 @@ func (_mock *MockStore) DeviceList(ctx context.Context, acceptable store.DeviceA
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) ([]models.Device, int, error)); ok {
-		return returnFunc(ctx, acceptable, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceAcceptable, ...store.QueryOption) ([]models.Device, int, error)); ok {
+		return returnFunc(ctx, sc, acceptable, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) []models.Device); ok {
-		r0 = returnFunc(ctx, acceptable, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceAcceptable, ...store.QueryOption) []models.Device); ok {
+		r0 = returnFunc(ctx, sc, acceptable, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, acceptable, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.DeviceAcceptable, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, acceptable, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, acceptable, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, store.DeviceAcceptable, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, acceptable, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1592,33 +1623,39 @@ type MockStore_DeviceList_Call struct {
 
 // DeviceList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - acceptable store.DeviceAcceptable
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) DeviceList(ctx any, acceptable any, opts ...any) *MockStore_DeviceList_Call {
+func (_e *MockStore_Expecter) DeviceList(ctx any, sc any, acceptable any, opts ...any) *MockStore_DeviceList_Call {
 	return &MockStore_DeviceList_Call{Call: _e.mock.On("DeviceList",
-		append([]any{ctx, acceptable}, opts...)...)}
+		append([]any{ctx, sc, acceptable}, opts...)...)}
 }
 
-func (_c *MockStore_DeviceList_Call) Run(run func(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption)) *MockStore_DeviceList_Call {
+func (_c *MockStore_DeviceList_Call) Run(run func(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption)) *MockStore_DeviceList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.DeviceAcceptable
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.DeviceAcceptable)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 []store.QueryOption
+		var arg2 store.DeviceAcceptable
+		if args[2] != nil {
+			arg2 = args[2].(store.DeviceAcceptable)
+		}
+		var arg3 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]store.QueryOption)
+		if len(args) > 3 {
+			variadicArgs = args[3].([]store.QueryOption)
 		}
-		arg2 = variadicArgs
+		arg3 = variadicArgs
 		run(
 			arg0,
 			arg1,
-			arg2...,
+			arg2,
+			arg3...,
 		)
 	})
 	return _c
@@ -1629,7 +1666,7 @@ func (_c *MockStore_DeviceList_Call) Return(devices []models.Device, n int, err 
 	return _c
 }
 
-func (_c *MockStore_DeviceList_Call) RunAndReturn(run func(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error)) *MockStore_DeviceList_Call {
+func (_c *MockStore_DeviceList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error)) *MockStore_DeviceList_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1760,12 +1797,12 @@ func (_c *MockStore_DeviceOffline_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // DeviceResolve provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
+func (_mock *MockStore) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -1775,18 +1812,18 @@ func (_mock *MockStore) DeviceResolve(ctx context.Context, resolver store.Device
 
 	var r0 *models.Device
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) (*models.Device, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceResolver, string, ...store.QueryOption) (*models.Device, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) *models.Device); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceResolver, string, ...store.QueryOption) *models.Device); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.DeviceResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.DeviceResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1800,39 +1837,45 @@ type MockStore_DeviceResolve_Call struct {
 
 // DeviceResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.DeviceResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) DeviceResolve(ctx any, resolver any, value any, opts ...any) *MockStore_DeviceResolve_Call {
+func (_e *MockStore_Expecter) DeviceResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_DeviceResolve_Call {
 	return &MockStore_DeviceResolve_Call{Call: _e.mock.On("DeviceResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_DeviceResolve_Call) Run(run func(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption)) *MockStore_DeviceResolve_Call {
+func (_c *MockStore_DeviceResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, value string, opts ...store.QueryOption)) *MockStore_DeviceResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.DeviceResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.DeviceResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.DeviceResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.DeviceResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -1843,7 +1886,7 @@ func (_c *MockStore_DeviceResolve_Call) Return(device *models.Device, err error)
 	return _c
 }
 
-func (_c *MockStore_DeviceResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error)) *MockStore_DeviceResolve_Call {
+func (_c *MockStore_DeviceResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error)) *MockStore_DeviceResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2113,8 +2156,8 @@ func (_c *MockStore_EnrollmentCallbackRedeem_Call) RunAndReturn(run func(ctx con
 }
 
 // GetStats provides a mock function for the type MockStore
-func (_mock *MockStore) GetStats(ctx context.Context, tenantID string) (*models.Stats, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockStore) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, error) {
+	ret := _mock.Called(ctx, sc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetStats")
@@ -2122,18 +2165,18 @@ func (_mock *MockStore) GetStats(ctx context.Context, tenantID string) (*models.
 
 	var r0 *models.Stats
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.Stats, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) (*models.Stats, error)); ok {
+		return returnFunc(ctx, sc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.Stats); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) *models.Stats); ok {
+		r0 = returnFunc(ctx, sc)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Stats)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2147,20 +2190,20 @@ type MockStore_GetStats_Call struct {
 
 // GetStats is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
-func (_e *MockStore_Expecter) GetStats(ctx any, tenantID any) *MockStore_GetStats_Call {
-	return &MockStore_GetStats_Call{Call: _e.mock.On("GetStats", ctx, tenantID)}
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) GetStats(ctx any, sc any) *MockStore_GetStats_Call {
+	return &MockStore_GetStats_Call{Call: _e.mock.On("GetStats", ctx, sc)}
 }
 
-func (_c *MockStore_GetStats_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_GetStats_Call {
+func (_c *MockStore_GetStats_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_GetStats_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		run(
 			arg0,
@@ -2175,14 +2218,14 @@ func (_c *MockStore_GetStats_Call) Return(stats *models.Stats, err error) *MockS
 	return _c
 }
 
-func (_c *MockStore_GetStats_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.Stats, error)) *MockStore_GetStats_Call {
+func (_c *MockStore_GetStats_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) (*models.Stats, error)) *MockStore_GetStats_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // InstallKeyConflicts provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyConflicts(ctx context.Context, tenantID string, target *models.InstallKeyConflicts) ([]string, bool, error) {
-	ret := _mock.Called(ctx, tenantID, target)
+func (_mock *MockStore) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts) ([]string, bool, error) {
+	ret := _mock.Called(ctx, sc, target)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InstallKeyConflicts")
@@ -2191,23 +2234,23 @@ func (_mock *MockStore) InstallKeyConflicts(ctx context.Context, tenantID string
 	var r0 []string
 	var r1 bool
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.InstallKeyConflicts) ([]string, bool, error)); ok {
-		return returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.InstallKeyConflicts) ([]string, bool, error)); ok {
+		return returnFunc(ctx, sc, target)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.InstallKeyConflicts) []string); ok {
-		r0 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.InstallKeyConflicts) []string); ok {
+		r0 = returnFunc(ctx, sc, target)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *models.InstallKeyConflicts) bool); ok {
-		r1 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *models.InstallKeyConflicts) bool); ok {
+		r1 = returnFunc(ctx, sc, target)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, *models.InstallKeyConflicts) error); ok {
-		r2 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *models.InstallKeyConflicts) error); ok {
+		r2 = returnFunc(ctx, sc, target)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2221,21 +2264,21 @@ type MockStore_InstallKeyConflicts_Call struct {
 
 // InstallKeyConflicts is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - target *models.InstallKeyConflicts
-func (_e *MockStore_Expecter) InstallKeyConflicts(ctx any, tenantID any, target any) *MockStore_InstallKeyConflicts_Call {
-	return &MockStore_InstallKeyConflicts_Call{Call: _e.mock.On("InstallKeyConflicts", ctx, tenantID, target)}
+func (_e *MockStore_Expecter) InstallKeyConflicts(ctx any, sc any, target any) *MockStore_InstallKeyConflicts_Call {
+	return &MockStore_InstallKeyConflicts_Call{Call: _e.mock.On("InstallKeyConflicts", ctx, sc, target)}
 }
 
-func (_c *MockStore_InstallKeyConflicts_Call) Run(run func(ctx context.Context, tenantID string, target *models.InstallKeyConflicts)) *MockStore_InstallKeyConflicts_Call {
+func (_c *MockStore_InstallKeyConflicts_Call) Run(run func(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts)) *MockStore_InstallKeyConflicts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.InstallKeyConflicts
 		if args[2] != nil {
@@ -2255,7 +2298,7 @@ func (_c *MockStore_InstallKeyConflicts_Call) Return(conflicts []string, has boo
 	return _c
 }
 
-func (_c *MockStore_InstallKeyConflicts_Call) RunAndReturn(run func(ctx context.Context, tenantID string, target *models.InstallKeyConflicts) ([]string, bool, error)) *MockStore_InstallKeyConflicts_Call {
+func (_c *MockStore_InstallKeyConflicts_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, target *models.InstallKeyConflicts) ([]string, bool, error)) *MockStore_InstallKeyConflicts_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2441,12 +2484,12 @@ func (_c *MockStore_InstallKeyEventCreate_Call) RunAndReturn(run func(ctx contex
 }
 
 // InstallKeyEventList provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyEventList(ctx context.Context, tenantID string, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error) {
+func (_mock *MockStore) InstallKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, tenantID, keyDigest, opts)
+		tmpRet = _mock.Called(ctx, sc, keyDigest, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, tenantID, keyDigest)
+		tmpRet = _mock.Called(ctx, sc, keyDigest)
 	}
 	ret := tmpRet
 
@@ -2457,23 +2500,23 @@ func (_mock *MockStore) InstallKeyEventList(ctx context.Context, tenantID string
 	var r0 []models.InstallKeyEvent
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...store.QueryOption) ([]models.InstallKeyEvent, int, error)); ok {
-		return returnFunc(ctx, tenantID, keyDigest, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, ...store.QueryOption) ([]models.InstallKeyEvent, int, error)); ok {
+		return returnFunc(ctx, sc, keyDigest, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...store.QueryOption) []models.InstallKeyEvent); ok {
-		r0 = returnFunc(ctx, tenantID, keyDigest, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, ...store.QueryOption) []models.InstallKeyEvent); ok {
+		r0 = returnFunc(ctx, sc, keyDigest, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.InstallKeyEvent)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, tenantID, keyDigest, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, string, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, keyDigest, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, tenantID, keyDigest, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, string, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, keyDigest, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2487,23 +2530,23 @@ type MockStore_InstallKeyEventList_Call struct {
 
 // InstallKeyEventList is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - keyDigest string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) InstallKeyEventList(ctx any, tenantID any, keyDigest any, opts ...any) *MockStore_InstallKeyEventList_Call {
+func (_e *MockStore_Expecter) InstallKeyEventList(ctx any, sc any, keyDigest any, opts ...any) *MockStore_InstallKeyEventList_Call {
 	return &MockStore_InstallKeyEventList_Call{Call: _e.mock.On("InstallKeyEventList",
-		append([]any{ctx, tenantID, keyDigest}, opts...)...)}
+		append([]any{ctx, sc, keyDigest}, opts...)...)}
 }
 
-func (_c *MockStore_InstallKeyEventList_Call) Run(run func(ctx context.Context, tenantID string, keyDigest string, opts ...store.QueryOption)) *MockStore_InstallKeyEventList_Call {
+func (_c *MockStore_InstallKeyEventList_Call) Run(run func(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption)) *MockStore_InstallKeyEventList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -2530,22 +2573,22 @@ func (_c *MockStore_InstallKeyEventList_Call) Return(events []models.InstallKeyE
 	return _c
 }
 
-func (_c *MockStore_InstallKeyEventList_Call) RunAndReturn(run func(ctx context.Context, tenantID string, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error)) *MockStore_InstallKeyEventList_Call {
+func (_c *MockStore_InstallKeyEventList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, keyDigest string, opts ...store.QueryOption) ([]models.InstallKeyEvent, int, error)) *MockStore_InstallKeyEventList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // InstallKeyEventStampDecision provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyEventStampDecision(ctx context.Context, tenantID string, deviceUID string, status models.DeviceStatus, at time.Time) error {
-	ret := _mock.Called(ctx, tenantID, deviceUID, status, at)
+func (_mock *MockStore) InstallKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error {
+	ret := _mock.Called(ctx, sc, deviceUID, status, at)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InstallKeyEventStampDecision")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, models.DeviceStatus, time.Time) error); ok {
-		r0 = returnFunc(ctx, tenantID, deviceUID, status, at)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, models.DeviceStatus, time.Time) error); ok {
+		r0 = returnFunc(ctx, sc, deviceUID, status, at)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2559,23 +2602,23 @@ type MockStore_InstallKeyEventStampDecision_Call struct {
 
 // InstallKeyEventStampDecision is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - deviceUID string
 //   - status models.DeviceStatus
 //   - at time.Time
-func (_e *MockStore_Expecter) InstallKeyEventStampDecision(ctx any, tenantID any, deviceUID any, status any, at any) *MockStore_InstallKeyEventStampDecision_Call {
-	return &MockStore_InstallKeyEventStampDecision_Call{Call: _e.mock.On("InstallKeyEventStampDecision", ctx, tenantID, deviceUID, status, at)}
+func (_e *MockStore_Expecter) InstallKeyEventStampDecision(ctx any, sc any, deviceUID any, status any, at any) *MockStore_InstallKeyEventStampDecision_Call {
+	return &MockStore_InstallKeyEventStampDecision_Call{Call: _e.mock.On("InstallKeyEventStampDecision", ctx, sc, deviceUID, status, at)}
 }
 
-func (_c *MockStore_InstallKeyEventStampDecision_Call) Run(run func(ctx context.Context, tenantID string, deviceUID string, status models.DeviceStatus, at time.Time)) *MockStore_InstallKeyEventStampDecision_Call {
+func (_c *MockStore_InstallKeyEventStampDecision_Call) Run(run func(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time)) *MockStore_InstallKeyEventStampDecision_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -2605,7 +2648,7 @@ func (_c *MockStore_InstallKeyEventStampDecision_Call) Return(err error) *MockSt
 	return _c
 }
 
-func (_c *MockStore_InstallKeyEventStampDecision_Call) RunAndReturn(run func(ctx context.Context, tenantID string, deviceUID string, status models.DeviceStatus, at time.Time) error) *MockStore_InstallKeyEventStampDecision_Call {
+func (_c *MockStore_InstallKeyEventStampDecision_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error) *MockStore_InstallKeyEventStampDecision_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2668,12 +2711,12 @@ func (_c *MockStore_InstallKeyIncrementUsage_Call) RunAndReturn(run func(ctx con
 }
 
 // InstallKeyList provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
+func (_mock *MockStore) InstallKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.InstallKey, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -2684,23 +2727,23 @@ func (_mock *MockStore) InstallKeyList(ctx context.Context, opts ...store.QueryO
 	var r0 []models.InstallKey
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.InstallKey, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.InstallKey, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.InstallKey); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.InstallKey); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.InstallKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2714,27 +2757,33 @@ type MockStore_InstallKeyList_Call struct {
 
 // InstallKeyList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) InstallKeyList(ctx any, opts ...any) *MockStore_InstallKeyList_Call {
+func (_e *MockStore_Expecter) InstallKeyList(ctx any, sc any, opts ...any) *MockStore_InstallKeyList_Call {
 	return &MockStore_InstallKeyList_Call{Call: _e.mock.On("InstallKeyList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_InstallKeyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_InstallKeyList_Call {
+func (_c *MockStore_InstallKeyList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_InstallKeyList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -2745,18 +2794,18 @@ func (_c *MockStore_InstallKeyList_Call) Return(installKeys []models.InstallKey,
 	return _c
 }
 
-func (_c *MockStore_InstallKeyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.InstallKey, int, error)) *MockStore_InstallKeyList_Call {
+func (_c *MockStore_InstallKeyList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.InstallKey, int, error)) *MockStore_InstallKeyList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // InstallKeyResolve provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyResolve(ctx context.Context, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption) (*models.InstallKey, error) {
+func (_mock *MockStore) InstallKeyResolve(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption) (*models.InstallKey, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -2766,18 +2815,18 @@ func (_mock *MockStore) InstallKeyResolve(ctx context.Context, resolver store.In
 
 	var r0 *models.InstallKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.InstallKeyResolver, string, ...store.QueryOption) (*models.InstallKey, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.InstallKeyResolver, string, ...store.QueryOption) (*models.InstallKey, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.InstallKeyResolver, string, ...store.QueryOption) *models.InstallKey); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.InstallKeyResolver, string, ...store.QueryOption) *models.InstallKey); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.InstallKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.InstallKeyResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.InstallKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2791,39 +2840,45 @@ type MockStore_InstallKeyResolve_Call struct {
 
 // InstallKeyResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.InstallKeyResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) InstallKeyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_InstallKeyResolve_Call {
+func (_e *MockStore_Expecter) InstallKeyResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_InstallKeyResolve_Call {
 	return &MockStore_InstallKeyResolve_Call{Call: _e.mock.On("InstallKeyResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_InstallKeyResolve_Call) Run(run func(ctx context.Context, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption)) *MockStore_InstallKeyResolve_Call {
+func (_c *MockStore_InstallKeyResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption)) *MockStore_InstallKeyResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.InstallKeyResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.InstallKeyResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.InstallKeyResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.InstallKeyResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -2834,14 +2889,14 @@ func (_c *MockStore_InstallKeyResolve_Call) Return(installKey *models.InstallKey
 	return _c
 }
 
-func (_c *MockStore_InstallKeyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption) (*models.InstallKey, error)) *MockStore_InstallKeyResolve_Call {
+func (_c *MockStore_InstallKeyResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.InstallKeyResolver, value string, opts ...store.QueryOption) (*models.InstallKey, error)) *MockStore_InstallKeyResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // InstallKeyResolveSystem provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyResolveSystem(ctx context.Context, tenantID string) (*models.InstallKey, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockStore) InstallKeyResolveSystem(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
+	ret := _mock.Called(ctx, sc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InstallKeyResolveSystem")
@@ -2849,18 +2904,18 @@ func (_mock *MockStore) InstallKeyResolveSystem(ctx context.Context, tenantID st
 
 	var r0 *models.InstallKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.InstallKey, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) (*models.InstallKey, error)); ok {
+		return returnFunc(ctx, sc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.InstallKey); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) *models.InstallKey); ok {
+		r0 = returnFunc(ctx, sc)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.InstallKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2874,20 +2929,20 @@ type MockStore_InstallKeyResolveSystem_Call struct {
 
 // InstallKeyResolveSystem is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
-func (_e *MockStore_Expecter) InstallKeyResolveSystem(ctx any, tenantID any) *MockStore_InstallKeyResolveSystem_Call {
-	return &MockStore_InstallKeyResolveSystem_Call{Call: _e.mock.On("InstallKeyResolveSystem", ctx, tenantID)}
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) InstallKeyResolveSystem(ctx any, sc any) *MockStore_InstallKeyResolveSystem_Call {
+	return &MockStore_InstallKeyResolveSystem_Call{Call: _e.mock.On("InstallKeyResolveSystem", ctx, sc)}
 }
 
-func (_c *MockStore_InstallKeyResolveSystem_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_InstallKeyResolveSystem_Call {
+func (_c *MockStore_InstallKeyResolveSystem_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_InstallKeyResolveSystem_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		run(
 			arg0,
@@ -2902,14 +2957,14 @@ func (_c *MockStore_InstallKeyResolveSystem_Call) Return(installKey *models.Inst
 	return _c
 }
 
-func (_c *MockStore_InstallKeyResolveSystem_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.InstallKey, error)) *MockStore_InstallKeyResolveSystem_Call {
+func (_c *MockStore_InstallKeyResolveSystem_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) (*models.InstallKey, error)) *MockStore_InstallKeyResolveSystem_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // InstallKeyResolveSystemPairing provides a mock function for the type MockStore
-func (_mock *MockStore) InstallKeyResolveSystemPairing(ctx context.Context, tenantID string) (*models.InstallKey, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockStore) InstallKeyResolveSystemPairing(ctx context.Context, sc scope.Scope) (*models.InstallKey, error) {
+	ret := _mock.Called(ctx, sc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InstallKeyResolveSystemPairing")
@@ -2917,18 +2972,18 @@ func (_mock *MockStore) InstallKeyResolveSystemPairing(ctx context.Context, tena
 
 	var r0 *models.InstallKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.InstallKey, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) (*models.InstallKey, error)); ok {
+		return returnFunc(ctx, sc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.InstallKey); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) *models.InstallKey); ok {
+		r0 = returnFunc(ctx, sc)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.InstallKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2942,20 +2997,20 @@ type MockStore_InstallKeyResolveSystemPairing_Call struct {
 
 // InstallKeyResolveSystemPairing is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
-func (_e *MockStore_Expecter) InstallKeyResolveSystemPairing(ctx any, tenantID any) *MockStore_InstallKeyResolveSystemPairing_Call {
-	return &MockStore_InstallKeyResolveSystemPairing_Call{Call: _e.mock.On("InstallKeyResolveSystemPairing", ctx, tenantID)}
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) InstallKeyResolveSystemPairing(ctx any, sc any) *MockStore_InstallKeyResolveSystemPairing_Call {
+	return &MockStore_InstallKeyResolveSystemPairing_Call{Call: _e.mock.On("InstallKeyResolveSystemPairing", ctx, sc)}
 }
 
-func (_c *MockStore_InstallKeyResolveSystemPairing_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_InstallKeyResolveSystemPairing_Call {
+func (_c *MockStore_InstallKeyResolveSystemPairing_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_InstallKeyResolveSystemPairing_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		run(
 			arg0,
@@ -2970,7 +3025,7 @@ func (_c *MockStore_InstallKeyResolveSystemPairing_Call) Return(installKey *mode
 	return _c
 }
 
-func (_c *MockStore_InstallKeyResolveSystemPairing_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.InstallKey, error)) *MockStore_InstallKeyResolveSystemPairing_Call {
+func (_c *MockStore_InstallKeyResolveSystemPairing_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) (*models.InstallKey, error)) *MockStore_InstallKeyResolveSystemPairing_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3147,8 +3202,8 @@ func (_c *MockStore_MembershipInvitationDelete_Call) RunAndReturn(run func(ctx c
 }
 
 // MembershipInvitationResolve provides a mock function for the type MockStore
-func (_mock *MockStore) MembershipInvitationResolve(ctx context.Context, tenantID string, userID string) (*models.MembershipInvitation, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
+func (_mock *MockStore) MembershipInvitationResolve(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error) {
+	ret := _mock.Called(ctx, sc, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MembershipInvitationResolve")
@@ -3156,18 +3211,18 @@ func (_mock *MockStore) MembershipInvitationResolve(ctx context.Context, tenantI
 
 	var r0 *models.MembershipInvitation
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*models.MembershipInvitation, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) (*models.MembershipInvitation, error)); ok {
+		return returnFunc(ctx, sc, userID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *models.MembershipInvitation); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) *models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, sc, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.MembershipInvitation)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, string) error); ok {
+		r1 = returnFunc(ctx, sc, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3181,21 +3236,21 @@ type MockStore_MembershipInvitationResolve_Call struct {
 
 // MembershipInvitationResolve is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - userID string
-func (_e *MockStore_Expecter) MembershipInvitationResolve(ctx any, tenantID any, userID any) *MockStore_MembershipInvitationResolve_Call {
-	return &MockStore_MembershipInvitationResolve_Call{Call: _e.mock.On("MembershipInvitationResolve", ctx, tenantID, userID)}
+func (_e *MockStore_Expecter) MembershipInvitationResolve(ctx any, sc any, userID any) *MockStore_MembershipInvitationResolve_Call {
+	return &MockStore_MembershipInvitationResolve_Call{Call: _e.mock.On("MembershipInvitationResolve", ctx, sc, userID)}
 }
 
-func (_c *MockStore_MembershipInvitationResolve_Call) Run(run func(ctx context.Context, tenantID string, userID string)) *MockStore_MembershipInvitationResolve_Call {
+func (_c *MockStore_MembershipInvitationResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, userID string)) *MockStore_MembershipInvitationResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -3215,7 +3270,7 @@ func (_c *MockStore_MembershipInvitationResolve_Call) Return(membershipInvitatio
 	return _c
 }
 
-func (_c *MockStore_MembershipInvitationResolve_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string) (*models.MembershipInvitation, error)) *MockStore_MembershipInvitationResolve_Call {
+func (_c *MockStore_MembershipInvitationResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error)) *MockStore_MembershipInvitationResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3486,16 +3541,16 @@ func (_c *MockStore_NamespaceCreate_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // NamespaceCreateMembership provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceCreateMembership(ctx context.Context, tenantID string, member *models.Member) error {
-	ret := _mock.Called(ctx, tenantID, member)
+func (_mock *MockStore) NamespaceCreateMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
+	ret := _mock.Called(ctx, sc, member)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceCreateMembership")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
-		r0 = returnFunc(ctx, tenantID, member)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Member) error); ok {
+		r0 = returnFunc(ctx, sc, member)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3509,21 +3564,21 @@ type MockStore_NamespaceCreateMembership_Call struct {
 
 // NamespaceCreateMembership is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - member *models.Member
-func (_e *MockStore_Expecter) NamespaceCreateMembership(ctx any, tenantID any, member any) *MockStore_NamespaceCreateMembership_Call {
-	return &MockStore_NamespaceCreateMembership_Call{Call: _e.mock.On("NamespaceCreateMembership", ctx, tenantID, member)}
+func (_e *MockStore_Expecter) NamespaceCreateMembership(ctx any, sc any, member any) *MockStore_NamespaceCreateMembership_Call {
+	return &MockStore_NamespaceCreateMembership_Call{Call: _e.mock.On("NamespaceCreateMembership", ctx, sc, member)}
 }
 
-func (_c *MockStore_NamespaceCreateMembership_Call) Run(run func(ctx context.Context, tenantID string, member *models.Member)) *MockStore_NamespaceCreateMembership_Call {
+func (_c *MockStore_NamespaceCreateMembership_Call) Run(run func(ctx context.Context, sc scope.Scope, member *models.Member)) *MockStore_NamespaceCreateMembership_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.Member
 		if args[2] != nil {
@@ -3543,7 +3598,7 @@ func (_c *MockStore_NamespaceCreateMembership_Call) Return(err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_NamespaceCreateMembership_Call) RunAndReturn(run func(ctx context.Context, tenantID string, member *models.Member) error) *MockStore_NamespaceCreateMembership_Call {
+func (_c *MockStore_NamespaceCreateMembership_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, member *models.Member) error) *MockStore_NamespaceCreateMembership_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3672,16 +3727,16 @@ func (_c *MockStore_NamespaceDeleteMany_Call) RunAndReturn(run func(ctx context.
 }
 
 // NamespaceDeleteMembership provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
-	ret := _mock.Called(ctx, tenantID, member)
+func (_mock *MockStore) NamespaceDeleteMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
+	ret := _mock.Called(ctx, sc, member)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceDeleteMembership")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
-		r0 = returnFunc(ctx, tenantID, member)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Member) error); ok {
+		r0 = returnFunc(ctx, sc, member)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3695,21 +3750,21 @@ type MockStore_NamespaceDeleteMembership_Call struct {
 
 // NamespaceDeleteMembership is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - member *models.Member
-func (_e *MockStore_Expecter) NamespaceDeleteMembership(ctx any, tenantID any, member any) *MockStore_NamespaceDeleteMembership_Call {
-	return &MockStore_NamespaceDeleteMembership_Call{Call: _e.mock.On("NamespaceDeleteMembership", ctx, tenantID, member)}
+func (_e *MockStore_Expecter) NamespaceDeleteMembership(ctx any, sc any, member any) *MockStore_NamespaceDeleteMembership_Call {
+	return &MockStore_NamespaceDeleteMembership_Call{Call: _e.mock.On("NamespaceDeleteMembership", ctx, sc, member)}
 }
 
-func (_c *MockStore_NamespaceDeleteMembership_Call) Run(run func(ctx context.Context, tenantID string, member *models.Member)) *MockStore_NamespaceDeleteMembership_Call {
+func (_c *MockStore_NamespaceDeleteMembership_Call) Run(run func(ctx context.Context, sc scope.Scope, member *models.Member)) *MockStore_NamespaceDeleteMembership_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.Member
 		if args[2] != nil {
@@ -3729,18 +3784,18 @@ func (_c *MockStore_NamespaceDeleteMembership_Call) Return(err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_NamespaceDeleteMembership_Call) RunAndReturn(run func(ctx context.Context, tenantID string, member *models.Member) error) *MockStore_NamespaceDeleteMembership_Call {
+func (_c *MockStore_NamespaceDeleteMembership_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, member *models.Member) error) *MockStore_NamespaceDeleteMembership_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // NamespaceGetMembers provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceGetMembers(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error) {
+func (_mock *MockStore) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, tenantID, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, tenantID)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -3751,23 +3806,23 @@ func (_mock *MockStore) NamespaceGetMembers(ctx context.Context, tenantID string
 	var r0 []models.MemberView
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) ([]models.MemberView, int, error)); ok {
-		return returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.MemberView, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) []models.MemberView); ok {
-		r0 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.MemberView); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.MemberView)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -3781,22 +3836,22 @@ type MockStore_NamespaceGetMembers_Call struct {
 
 // NamespaceGetMembers is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) NamespaceGetMembers(ctx any, tenantID any, opts ...any) *MockStore_NamespaceGetMembers_Call {
+func (_e *MockStore_Expecter) NamespaceGetMembers(ctx any, sc any, opts ...any) *MockStore_NamespaceGetMembers_Call {
 	return &MockStore_NamespaceGetMembers_Call{Call: _e.mock.On("NamespaceGetMembers",
-		append([]any{ctx, tenantID}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_NamespaceGetMembers_Call) Run(run func(ctx context.Context, tenantID string, opts ...store.QueryOption)) *MockStore_NamespaceGetMembers_Call {
+func (_c *MockStore_NamespaceGetMembers_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_NamespaceGetMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 []store.QueryOption
 		var variadicArgs []store.QueryOption
@@ -3818,7 +3873,7 @@ func (_c *MockStore_NamespaceGetMembers_Call) Return(memberViews []models.Member
 	return _c
 }
 
-func (_c *MockStore_NamespaceGetMembers_Call) RunAndReturn(run func(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MemberView, int, error)) *MockStore_NamespaceGetMembers_Call {
+func (_c *MockStore_NamespaceGetMembers_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error)) *MockStore_NamespaceGetMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3892,16 +3947,16 @@ func (_c *MockStore_NamespaceGetPreferred_Call) RunAndReturn(run func(ctx contex
 }
 
 // NamespaceIncrementDeviceCount provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
-	ret := _mock.Called(ctx, tenantID, status, count)
+func (_mock *MockStore) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error {
+	ret := _mock.Called(ctx, sc, status, count)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceIncrementDeviceCount")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.DeviceStatus, int64) error); ok {
-		r0 = returnFunc(ctx, tenantID, status, count)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.DeviceStatus, int64) error); ok {
+		r0 = returnFunc(ctx, sc, status, count)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3915,22 +3970,22 @@ type MockStore_NamespaceIncrementDeviceCount_Call struct {
 
 // NamespaceIncrementDeviceCount is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - status models.DeviceStatus
 //   - count int64
-func (_e *MockStore_Expecter) NamespaceIncrementDeviceCount(ctx any, tenantID any, status any, count any) *MockStore_NamespaceIncrementDeviceCount_Call {
-	return &MockStore_NamespaceIncrementDeviceCount_Call{Call: _e.mock.On("NamespaceIncrementDeviceCount", ctx, tenantID, status, count)}
+func (_e *MockStore_Expecter) NamespaceIncrementDeviceCount(ctx any, sc any, status any, count any) *MockStore_NamespaceIncrementDeviceCount_Call {
+	return &MockStore_NamespaceIncrementDeviceCount_Call{Call: _e.mock.On("NamespaceIncrementDeviceCount", ctx, sc, status, count)}
 }
 
-func (_c *MockStore_NamespaceIncrementDeviceCount_Call) Run(run func(ctx context.Context, tenantID string, status models.DeviceStatus, count int64)) *MockStore_NamespaceIncrementDeviceCount_Call {
+func (_c *MockStore_NamespaceIncrementDeviceCount_Call) Run(run func(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64)) *MockStore_NamespaceIncrementDeviceCount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 models.DeviceStatus
 		if args[2] != nil {
@@ -3955,7 +4010,7 @@ func (_c *MockStore_NamespaceIncrementDeviceCount_Call) Return(err error) *MockS
 	return _c
 }
 
-func (_c *MockStore_NamespaceIncrementDeviceCount_Call) RunAndReturn(run func(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error) *MockStore_NamespaceIncrementDeviceCount_Call {
+func (_c *MockStore_NamespaceIncrementDeviceCount_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error) *MockStore_NamespaceIncrementDeviceCount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4044,12 +4099,12 @@ func (_c *MockStore_NamespaceList_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // NamespaceMembershipInvitationList provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceMembershipInvitationList(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
+func (_mock *MockStore) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, tenantID, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, tenantID)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -4060,23 +4115,23 @@ func (_mock *MockStore) NamespaceMembershipInvitationList(ctx context.Context, t
 	var r0 []models.MembershipInvitation
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) ([]models.MembershipInvitation, int64, error)); ok {
-		return returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...store.QueryOption) []models.MembershipInvitation); ok {
-		r0 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.MembershipInvitation)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...store.QueryOption) int64); ok {
-		r1 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int64); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, tenantID, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -4090,22 +4145,22 @@ type MockStore_NamespaceMembershipInvitationList_Call struct {
 
 // NamespaceMembershipInvitationList is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) NamespaceMembershipInvitationList(ctx any, tenantID any, opts ...any) *MockStore_NamespaceMembershipInvitationList_Call {
+func (_e *MockStore_Expecter) NamespaceMembershipInvitationList(ctx any, sc any, opts ...any) *MockStore_NamespaceMembershipInvitationList_Call {
 	return &MockStore_NamespaceMembershipInvitationList_Call{Call: _e.mock.On("NamespaceMembershipInvitationList",
-		append([]any{ctx, tenantID}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, tenantID string, opts ...store.QueryOption)) *MockStore_NamespaceMembershipInvitationList_Call {
+func (_c *MockStore_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_NamespaceMembershipInvitationList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 []store.QueryOption
 		var variadicArgs []store.QueryOption
@@ -4127,7 +4182,7 @@ func (_c *MockStore_NamespaceMembershipInvitationList_Call) Return(membershipInv
 	return _c
 }
 
-func (_c *MockStore_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error)) *MockStore_NamespaceMembershipInvitationList_Call {
+func (_c *MockStore_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error)) *MockStore_NamespaceMembershipInvitationList_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4315,16 +4370,16 @@ func (_c *MockStore_NamespaceUpdate_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // NamespaceUpdateMembership provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceUpdateMembership(ctx context.Context, tenantID string, member *models.Member) error {
-	ret := _mock.Called(ctx, tenantID, member)
+func (_mock *MockStore) NamespaceUpdateMembership(ctx context.Context, sc scope.Scope, member *models.Member) error {
+	ret := _mock.Called(ctx, sc, member)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceUpdateMembership")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
-		r0 = returnFunc(ctx, tenantID, member)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Member) error); ok {
+		r0 = returnFunc(ctx, sc, member)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -4338,21 +4393,21 @@ type MockStore_NamespaceUpdateMembership_Call struct {
 
 // NamespaceUpdateMembership is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - member *models.Member
-func (_e *MockStore_Expecter) NamespaceUpdateMembership(ctx any, tenantID any, member any) *MockStore_NamespaceUpdateMembership_Call {
-	return &MockStore_NamespaceUpdateMembership_Call{Call: _e.mock.On("NamespaceUpdateMembership", ctx, tenantID, member)}
+func (_e *MockStore_Expecter) NamespaceUpdateMembership(ctx any, sc any, member any) *MockStore_NamespaceUpdateMembership_Call {
+	return &MockStore_NamespaceUpdateMembership_Call{Call: _e.mock.On("NamespaceUpdateMembership", ctx, sc, member)}
 }
 
-func (_c *MockStore_NamespaceUpdateMembership_Call) Run(run func(ctx context.Context, tenantID string, member *models.Member)) *MockStore_NamespaceUpdateMembership_Call {
+func (_c *MockStore_NamespaceUpdateMembership_Call) Run(run func(ctx context.Context, sc scope.Scope, member *models.Member)) *MockStore_NamespaceUpdateMembership_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.Member
 		if args[2] != nil {
@@ -4372,7 +4427,7 @@ func (_c *MockStore_NamespaceUpdateMembership_Call) Return(err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_NamespaceUpdateMembership_Call) RunAndReturn(run func(ctx context.Context, tenantID string, member *models.Member) error) *MockStore_NamespaceUpdateMembership_Call {
+func (_c *MockStore_NamespaceUpdateMembership_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, member *models.Member) error) *MockStore_NamespaceUpdateMembership_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4672,12 +4727,12 @@ func (_c *MockStore_PublicKeyDelete_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // PublicKeyList provides a mock function for the type MockStore
-func (_mock *MockStore) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
+func (_mock *MockStore) PublicKeyList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -4688,23 +4743,23 @@ func (_mock *MockStore) PublicKeyList(ctx context.Context, opts ...store.QueryOp
 	var r0 []models.PublicKey
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.PublicKey, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.PublicKey, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.PublicKey); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.PublicKey); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -4718,27 +4773,33 @@ type MockStore_PublicKeyList_Call struct {
 
 // PublicKeyList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) PublicKeyList(ctx any, opts ...any) *MockStore_PublicKeyList_Call {
+func (_e *MockStore_Expecter) PublicKeyList(ctx any, sc any, opts ...any) *MockStore_PublicKeyList_Call {
 	return &MockStore_PublicKeyList_Call{Call: _e.mock.On("PublicKeyList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_PublicKeyList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_PublicKeyList_Call {
+func (_c *MockStore_PublicKeyList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_PublicKeyList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -4749,18 +4810,18 @@ func (_c *MockStore_PublicKeyList_Call) Return(publicKeys []models.PublicKey, n 
 	return _c
 }
 
-func (_c *MockStore_PublicKeyList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error)) *MockStore_PublicKeyList_Call {
+func (_c *MockStore_PublicKeyList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.PublicKey, int, error)) *MockStore_PublicKeyList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // PublicKeyResolve provides a mock function for the type MockStore
-func (_mock *MockStore) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
+func (_mock *MockStore) PublicKeyResolve(ctx context.Context, sc scope.Scope, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -4770,18 +4831,18 @@ func (_mock *MockStore) PublicKeyResolve(ctx context.Context, resolver store.Pub
 
 	var r0 *models.PublicKey
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) (*models.PublicKey, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.PublicKeyResolver, string, ...store.QueryOption) (*models.PublicKey, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) *models.PublicKey); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.PublicKeyResolver, string, ...store.QueryOption) *models.PublicKey); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.PublicKey)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.PublicKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4795,39 +4856,45 @@ type MockStore_PublicKeyResolve_Call struct {
 
 // PublicKeyResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.PublicKeyResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) PublicKeyResolve(ctx any, resolver any, value any, opts ...any) *MockStore_PublicKeyResolve_Call {
+func (_e *MockStore_Expecter) PublicKeyResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_PublicKeyResolve_Call {
 	return &MockStore_PublicKeyResolve_Call{Call: _e.mock.On("PublicKeyResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_PublicKeyResolve_Call) Run(run func(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption)) *MockStore_PublicKeyResolve_Call {
+func (_c *MockStore_PublicKeyResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption)) *MockStore_PublicKeyResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.PublicKeyResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.PublicKeyResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.PublicKeyResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.PublicKeyResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -4838,7 +4905,7 @@ func (_c *MockStore_PublicKeyResolve_Call) Return(publicKey *models.PublicKey, e
 	return _c
 }
 
-func (_c *MockStore_PublicKeyResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error)) *MockStore_PublicKeyResolve_Call {
+func (_c *MockStore_PublicKeyResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error)) *MockStore_PublicKeyResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5377,12 +5444,12 @@ func (_c *MockStore_SSHIdentityDelete_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // SSHIdentityList provides a mock function for the type MockStore
-func (_mock *MockStore) SSHIdentityList(ctx context.Context, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
+func (_mock *MockStore) SSHIdentityList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -5393,23 +5460,23 @@ func (_mock *MockStore) SSHIdentityList(ctx context.Context, opts ...store.Query
 	var r0 []models.SSHIdentity
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.SSHIdentity, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.SSHIdentity, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.SSHIdentity); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.SSHIdentity)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -5423,27 +5490,33 @@ type MockStore_SSHIdentityList_Call struct {
 
 // SSHIdentityList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) SSHIdentityList(ctx any, opts ...any) *MockStore_SSHIdentityList_Call {
+func (_e *MockStore_Expecter) SSHIdentityList(ctx any, sc any, opts ...any) *MockStore_SSHIdentityList_Call {
 	return &MockStore_SSHIdentityList_Call{Call: _e.mock.On("SSHIdentityList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_SSHIdentityList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_SSHIdentityList_Call {
+func (_c *MockStore_SSHIdentityList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_SSHIdentityList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -5454,18 +5527,18 @@ func (_c *MockStore_SSHIdentityList_Call) Return(sSHIdentitys []models.SSHIdenti
 	return _c
 }
 
-func (_c *MockStore_SSHIdentityList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.SSHIdentity, int, error)) *MockStore_SSHIdentityList_Call {
+func (_c *MockStore_SSHIdentityList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.SSHIdentity, int, error)) *MockStore_SSHIdentityList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SSHIdentityResolve provides a mock function for the type MockStore
-func (_mock *MockStore) SSHIdentityResolve(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
+func (_mock *MockStore) SSHIdentityResolve(ctx context.Context, sc scope.Scope, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -5475,18 +5548,18 @@ func (_mock *MockStore) SSHIdentityResolve(ctx context.Context, resolver store.S
 
 	var r0 *models.SSHIdentity
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) (*models.SSHIdentity, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.SSHIdentityResolver, string, ...store.QueryOption) (*models.SSHIdentity, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) *models.SSHIdentity); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.SSHIdentityResolver, string, ...store.QueryOption) *models.SSHIdentity); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.SSHIdentity)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.SSHIdentityResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.SSHIdentityResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -5500,39 +5573,45 @@ type MockStore_SSHIdentityResolve_Call struct {
 
 // SSHIdentityResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.SSHIdentityResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) SSHIdentityResolve(ctx any, resolver any, value any, opts ...any) *MockStore_SSHIdentityResolve_Call {
+func (_e *MockStore_Expecter) SSHIdentityResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_SSHIdentityResolve_Call {
 	return &MockStore_SSHIdentityResolve_Call{Call: _e.mock.On("SSHIdentityResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_SSHIdentityResolve_Call) Run(run func(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption)) *MockStore_SSHIdentityResolve_Call {
+func (_c *MockStore_SSHIdentityResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption)) *MockStore_SSHIdentityResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.SSHIdentityResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.SSHIdentityResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.SSHIdentityResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.SSHIdentityResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -5543,7 +5622,7 @@ func (_c *MockStore_SSHIdentityResolve_Call) Return(sSHIdentity *models.SSHIdent
 	return _c
 }
 
-func (_c *MockStore_SSHIdentityResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error)) *MockStore_SSHIdentityResolve_Call {
+func (_c *MockStore_SSHIdentityResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.SSHIdentityResolver, value string, opts ...store.QueryOption) (*models.SSHIdentity, error)) *MockStore_SSHIdentityResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6156,12 +6235,12 @@ func (_c *MockStore_SessionEventsList_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // SessionList provides a mock function for the type MockStore
-func (_mock *MockStore) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
+func (_mock *MockStore) SessionList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -6172,23 +6251,23 @@ func (_mock *MockStore) SessionList(ctx context.Context, opts ...store.QueryOpti
 	var r0 []models.Session
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Session, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.Session, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Session); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.Session); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -6202,27 +6281,33 @@ type MockStore_SessionList_Call struct {
 
 // SessionList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) SessionList(ctx any, opts ...any) *MockStore_SessionList_Call {
+func (_e *MockStore_Expecter) SessionList(ctx any, sc any, opts ...any) *MockStore_SessionList_Call {
 	return &MockStore_SessionList_Call{Call: _e.mock.On("SessionList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_SessionList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_SessionList_Call {
+func (_c *MockStore_SessionList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_SessionList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -6233,18 +6318,18 @@ func (_c *MockStore_SessionList_Call) Return(sessions []models.Session, n int, e
 	return _c
 }
 
-func (_c *MockStore_SessionList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error)) *MockStore_SessionList_Call {
+func (_c *MockStore_SessionList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error)) *MockStore_SessionList_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SessionResolve provides a mock function for the type MockStore
-func (_mock *MockStore) SessionResolve(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
+func (_mock *MockStore) SessionResolve(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -6254,18 +6339,18 @@ func (_mock *MockStore) SessionResolve(ctx context.Context, resolver store.Sessi
 
 	var r0 *models.Session
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) (*models.Session, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.SessionResolver, string, ...store.QueryOption) (*models.Session, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) *models.Session); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.SessionResolver, string, ...store.QueryOption) *models.Session); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.SessionResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -6279,39 +6364,45 @@ type MockStore_SessionResolve_Call struct {
 
 // SessionResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.SessionResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) SessionResolve(ctx any, resolver any, value any, opts ...any) *MockStore_SessionResolve_Call {
+func (_e *MockStore_Expecter) SessionResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_SessionResolve_Call {
 	return &MockStore_SessionResolve_Call{Call: _e.mock.On("SessionResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_SessionResolve_Call) Run(run func(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption)) *MockStore_SessionResolve_Call {
+func (_c *MockStore_SessionResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption)) *MockStore_SessionResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.SessionResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.SessionResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.SessionResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.SessionResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -6322,7 +6413,7 @@ func (_c *MockStore_SessionResolve_Call) Return(session *models.Session, err err
 	return _c
 }
 
-func (_c *MockStore_SessionResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error)) *MockStore_SessionResolve_Call {
+func (_c *MockStore_SessionResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error)) *MockStore_SessionResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6567,8 +6658,8 @@ func (_c *MockStore_SystemSet_Call) RunAndReturn(run func(ctx context.Context, s
 }
 
 // TagConflicts provides a mock function for the type MockStore
-func (_mock *MockStore) TagConflicts(ctx context.Context, tenantID string, target *models.TagConflicts) ([]string, bool, error) {
-	ret := _mock.Called(ctx, tenantID, target)
+func (_mock *MockStore) TagConflicts(ctx context.Context, sc scope.Scope, target *models.TagConflicts) ([]string, bool, error) {
+	ret := _mock.Called(ctx, sc, target)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TagConflicts")
@@ -6577,23 +6668,23 @@ func (_mock *MockStore) TagConflicts(ctx context.Context, tenantID string, targe
 	var r0 []string
 	var r1 bool
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.TagConflicts) ([]string, bool, error)); ok {
-		return returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.TagConflicts) ([]string, bool, error)); ok {
+		return returnFunc(ctx, sc, target)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.TagConflicts) []string); ok {
-		r0 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.TagConflicts) []string); ok {
+		r0 = returnFunc(ctx, sc, target)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *models.TagConflicts) bool); ok {
-		r1 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *models.TagConflicts) bool); ok {
+		r1 = returnFunc(ctx, sc, target)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, *models.TagConflicts) error); ok {
-		r2 = returnFunc(ctx, tenantID, target)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *models.TagConflicts) error); ok {
+		r2 = returnFunc(ctx, sc, target)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -6607,21 +6698,21 @@ type MockStore_TagConflicts_Call struct {
 
 // TagConflicts is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tenantID string
+//   - sc scope.Scope
 //   - target *models.TagConflicts
-func (_e *MockStore_Expecter) TagConflicts(ctx any, tenantID any, target any) *MockStore_TagConflicts_Call {
-	return &MockStore_TagConflicts_Call{Call: _e.mock.On("TagConflicts", ctx, tenantID, target)}
+func (_e *MockStore_Expecter) TagConflicts(ctx any, sc any, target any) *MockStore_TagConflicts_Call {
+	return &MockStore_TagConflicts_Call{Call: _e.mock.On("TagConflicts", ctx, sc, target)}
 }
 
-func (_c *MockStore_TagConflicts_Call) Run(run func(ctx context.Context, tenantID string, target *models.TagConflicts)) *MockStore_TagConflicts_Call {
+func (_c *MockStore_TagConflicts_Call) Run(run func(ctx context.Context, sc scope.Scope, target *models.TagConflicts)) *MockStore_TagConflicts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 *models.TagConflicts
 		if args[2] != nil {
@@ -6641,7 +6732,7 @@ func (_c *MockStore_TagConflicts_Call) Return(conflicts []string, has bool, err 
 	return _c
 }
 
-func (_c *MockStore_TagConflicts_Call) RunAndReturn(run func(ctx context.Context, tenantID string, target *models.TagConflicts) ([]string, bool, error)) *MockStore_TagConflicts_Call {
+func (_c *MockStore_TagConflicts_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, target *models.TagConflicts) ([]string, bool, error)) *MockStore_TagConflicts_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6770,12 +6861,12 @@ func (_c *MockStore_TagDelete_Call) RunAndReturn(run func(ctx context.Context, t
 }
 
 // TagList provides a mock function for the type MockStore
-func (_mock *MockStore) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.Tag, int, error) {
+func (_mock *MockStore) TagList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, opts)
+		tmpRet = _mock.Called(ctx, sc, opts)
 	} else {
-		tmpRet = _mock.Called(ctx)
+		tmpRet = _mock.Called(ctx, sc)
 	}
 	ret := tmpRet
 
@@ -6786,23 +6877,23 @@ func (_mock *MockStore) TagList(ctx context.Context, opts ...store.QueryOption) 
 	var r0 []models.Tag
 	var r1 int
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Tag, int, error)); ok {
-		return returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.Tag, int, error)); ok {
+		return returnFunc(ctx, sc, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Tag); ok {
-		r0 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.Tag); ok {
+		r0 = returnFunc(ctx, sc, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Tag)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
-		r1 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int); ok {
+		r1 = returnFunc(ctx, sc, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
-		r2 = returnFunc(ctx, opts...)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -6816,27 +6907,33 @@ type MockStore_TagList_Call struct {
 
 // TagList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) TagList(ctx any, opts ...any) *MockStore_TagList_Call {
+func (_e *MockStore_Expecter) TagList(ctx any, sc any, opts ...any) *MockStore_TagList_Call {
 	return &MockStore_TagList_Call{Call: _e.mock.On("TagList",
-		append([]any{ctx}, opts...)...)}
+		append([]any{ctx, sc}, opts...)...)}
 }
 
-func (_c *MockStore_TagList_Call) Run(run func(ctx context.Context, opts ...store.QueryOption)) *MockStore_TagList_Call {
+func (_c *MockStore_TagList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_TagList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.QueryOption
-		var variadicArgs []store.QueryOption
-		if len(args) > 1 {
-			variadicArgs = args[1].([]store.QueryOption)
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
 		}
-		arg1 = variadicArgs
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
 		run(
 			arg0,
-			arg1...,
+			arg1,
+			arg2...,
 		)
 	})
 	return _c
@@ -6847,7 +6944,7 @@ func (_c *MockStore_TagList_Call) Return(tags []models.Tag, totalCount int, err 
 	return _c
 }
 
-func (_c *MockStore_TagList_Call) RunAndReturn(run func(ctx context.Context, opts ...store.QueryOption) ([]models.Tag, int, error)) *MockStore_TagList_Call {
+func (_c *MockStore_TagList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Tag, int, error)) *MockStore_TagList_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7000,12 +7097,12 @@ func (_c *MockStore_TagPushToTarget_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // TagResolve provides a mock function for the type MockStore
-func (_mock *MockStore) TagResolve(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
+func (_mock *MockStore) TagResolve(ctx context.Context, sc scope.Scope, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
 	var tmpRet mock.Arguments
 	if len(opts) > 0 {
-		tmpRet = _mock.Called(ctx, resolver, value, opts)
+		tmpRet = _mock.Called(ctx, sc, resolver, value, opts)
 	} else {
-		tmpRet = _mock.Called(ctx, resolver, value)
+		tmpRet = _mock.Called(ctx, sc, resolver, value)
 	}
 	ret := tmpRet
 
@@ -7015,18 +7112,18 @@ func (_mock *MockStore) TagResolve(ctx context.Context, resolver store.TagResolv
 
 	var r0 *models.Tag
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.TagResolver, string, ...store.QueryOption) (*models.Tag, error)); ok {
-		return returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.TagResolver, string, ...store.QueryOption) (*models.Tag, error)); ok {
+		return returnFunc(ctx, sc, resolver, value, opts...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.TagResolver, string, ...store.QueryOption) *models.Tag); ok {
-		r0 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.TagResolver, string, ...store.QueryOption) *models.Tag); ok {
+		r0 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Tag)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, store.TagResolver, string, ...store.QueryOption) error); ok {
-		r1 = returnFunc(ctx, resolver, value, opts...)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.TagResolver, string, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, resolver, value, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -7040,39 +7137,45 @@ type MockStore_TagResolve_Call struct {
 
 // TagResolve is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - resolver store.TagResolver
 //   - value string
 //   - opts ...store.QueryOption
-func (_e *MockStore_Expecter) TagResolve(ctx any, resolver any, value any, opts ...any) *MockStore_TagResolve_Call {
+func (_e *MockStore_Expecter) TagResolve(ctx any, sc any, resolver any, value any, opts ...any) *MockStore_TagResolve_Call {
 	return &MockStore_TagResolve_Call{Call: _e.mock.On("TagResolve",
-		append([]any{ctx, resolver, value}, opts...)...)}
+		append([]any{ctx, sc, resolver, value}, opts...)...)}
 }
 
-func (_c *MockStore_TagResolve_Call) Run(run func(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption)) *MockStore_TagResolve_Call {
+func (_c *MockStore_TagResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, resolver store.TagResolver, value string, opts ...store.QueryOption)) *MockStore_TagResolve_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 store.TagResolver
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(store.TagResolver)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 store.TagResolver
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(store.TagResolver)
 		}
-		var arg3 []store.QueryOption
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 []store.QueryOption
 		var variadicArgs []store.QueryOption
-		if len(args) > 3 {
-			variadicArgs = args[3].([]store.QueryOption)
+		if len(args) > 4 {
+			variadicArgs = args[4].([]store.QueryOption)
 		}
-		arg3 = variadicArgs
+		arg4 = variadicArgs
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3...,
+			arg3,
+			arg4...,
 		)
 	})
 	return _c
@@ -7083,7 +7186,7 @@ func (_c *MockStore_TagResolve_Call) Return(tag *models.Tag, err error) *MockSto
 	return _c
 }
 
-func (_c *MockStore_TagResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error)) *MockStore_TagResolve_Call {
+func (_c *MockStore_TagResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error)) *MockStore_TagResolve_Call {
 	_c.Call.Return(run)
 	return _c
 }

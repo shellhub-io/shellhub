@@ -6,21 +6,16 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
-	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	GetPublicKeysURL    = "/sshkeys/public-keys"
-	GetPublicKeyURL     = "/sshkeys/public-keys/:fingerprint/:tenant"
-	CreatePublicKeyURL  = "/sshkeys/public-keys"
-	UpdatePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
-	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
-	CreatePrivateKeyURL = "/sshkeys/private-keys"
-	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
+	GetPublicKeysURL   = "/sshkeys/public-keys"
+	CreatePublicKeyURL = "/sshkeys/public-keys"
+	UpdatePublicKeyURL = "/sshkeys/public-keys/:fingerprint"
+	DeletePublicKeyURL = "/sshkeys/public-keys/:fingerprint"
 )
 
 const (
@@ -59,30 +54,6 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
 
 	return c.JSON(http.StatusOK, list)
-}
-
-func (h *Handler) GetPublicKey(c gateway.Context) error {
-	var req requests.PublicKeyGet
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-
-	err = c.Validate(&req)
-	if err != nil {
-		return err
-	}
-
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), req.Fingerprint, req.Tenant)
-	if err != nil {
-		if err == store.ErrNoDocuments {
-			return c.NoContent(http.StatusNotFound)
-		}
-
-		return err
-	}
-
-	return c.JSON(http.StatusOK, pubKey)
 }
 
 func (h *Handler) CreatePublicKey(c gateway.Context) error {
@@ -152,37 +123,4 @@ func (h *Handler) DeletePublicKey(c gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) CreatePrivateKey(c gateway.Context) error {
-	privKey, err := h.service.CreatePrivateKey(c.Ctx())
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, privKey)
-}
-
-func (h *Handler) EvaluateKey(c gateway.Context) error {
-	var device models.Device
-	if err := c.Bind(&device); err != nil {
-		return c.JSON(http.StatusForbidden, err)
-	}
-
-	pubKey, err := h.service.GetPublicKey(c.Ctx(), c.Param(ParamPublicKeyFingerprint), device.TenantID)
-	if err != nil {
-		return c.JSON(http.StatusForbidden, err)
-	}
-
-	usernameOk, err := h.service.EvaluateKeyUsername(c.Ctx(), pubKey, c.Param(ParamUserName))
-	if err != nil {
-		return err
-	}
-
-	filterOk, err := h.service.EvaluateKeyFilter(c.Ctx(), pubKey, device)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, usernameOk && filterOk)
 }
