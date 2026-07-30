@@ -42,16 +42,3 @@ func (c *client) Submit(ctx context.Context, pattern worker.TaskPattern, payload
 
 	return nil
 }
-
-func (c *client) SubmitToBatch(ctx context.Context, pattern worker.TaskPattern, payload []byte) error {
-	if !pattern.Validate() {
-		return worker.ErrTaskPatternInvalid
-	}
-
-	task := asynq.NewTask(pattern.String(), payload)
-	if _, err := c.asynqClient.EnqueueContext(ctx, task, asynq.Queue(pattern.Queue()), asynq.Group(pattern.String())); err != nil {
-		return worker.ErrSubmitFailed
-	}
-
-	return nil
-}

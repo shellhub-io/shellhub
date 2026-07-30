@@ -53,15 +53,6 @@ type Env struct {
 	// Leave empty to disable Sentry integration.
 	SentryDSN string `env:"SENTRY_DSN,default="`
 
-	// AsynqGroupMaxDelay specifies the maximum time (in seconds) to wait before
-	// processing a group of tasks, regardless of other conditions.
-	AsynqGroupMaxDelay int `env:"ASYNQ_GROUP_MAX_DELAY,default=1"`
-	// AsynqGroupGracePeriod defines the grace period (in seconds) before task aggregation.
-	// Tasks arriving within this period will be aggregated with existing tasks in the group.
-	AsynqGroupGracePeriod int64 `env:"ASYNQ_GROUP_GRACE_PERIOD,default=2"`
-	// AsynqGroupMaxSize specifies the maximum number of tasks that can be aggregated in a group.
-	// When this limit is reached, the group will be processed immediately.
-	AsynqGroupMaxSize int `env:"ASYNQ_GROUP_MAX_SIZE,default=1000"`
 	// AsynqUniquenessTimeout defines how long (in hours) a unique job remains locked in the queue.
 	// If a job doesn't complete within this period, its lock is released, allowing a new instance
 	// to be enqueued and executed.
@@ -99,13 +90,20 @@ type sshEnv struct {
 }
 
 type Server struct {
-	env    *Env
-	router *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
-	worker worker.Server
-	ssh    *sshserver.Server
+	env         *Env
+	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
+	worker      worker.Server
+	ssh         *sshserver.Server
+	heartbeater *services.DeviceHeartbeater
 }
 
-const httpAddress = ":8080"
+const (
+	httpAddress = ":8080"
+
+	// heartbeaterDrainTimeout bounds how long shutdown waits for the pending
+	// device heartbeats to be written.
+	heartbeaterDrainTimeout = 10 * time.Second
+)
 
 // Setup initializes all server components including database connections, cache, services, API routes, and background workers.
 // It prepares the server for starting but does not actually begin serving requests.
@@ -193,11 +191,9 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	s.worker = asynq.NewServer(
 		s.env.RedisURI,
-		asynq.BatchConfig(s.env.AsynqGroupMaxSize, s.env.AsynqGroupMaxDelay, int(s.env.AsynqGroupGracePeriod)),
 		asynq.UniquenessTimeout(s.env.AsynqUniquenessTimeout),
 	)
 
-	s.worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 	s.worker.HandleCron(services.CronDeviceCleanup, service.DeviceCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronNamespaceDeviceCountSync, service.NamespaceDeviceCountSync(), asynq.Unique())
 	s.worker.HandleCron(services.CronEphemeralCleanup, service.EphemeralCleanup(), asynq.Unique())
@@ -206,6 +202,8 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	// Apply any worker extensions registered by cloud/enterprise packages.
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
+
+	s.heartbeater = services.NewDeviceHeartbeater(store)
 
 	if err := s.setupSSH(cache, apiClient); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
@@ -261,7 +259,7 @@ func (s *Server) setupSSH(c cache.Cache, apiClient internalclient.Client) error 
 		return err
 	}
 
-	d := dialer.NewDialer(apiClient)
+	d := dialer.NewDialer(apiClient, s.heartbeater)
 
 	sshhttp.Register(s.router, d, apiClient, &sshhttp.Config{
 		WebEndpoints:          env.WebEndpoints,
@@ -322,6 +320,17 @@ func (s *Server) Shutdown() {
 	s.worker.Shutdown()
 	s.router.Close() // nolint: errcheck
 	s.ssh.Close()    // nolint: errcheck
+
+	// Drained after the SSH listener closes, so no tunnel can submit a beat that
+	// the final batch would miss.
+	if s.heartbeater != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), heartbeaterDrainTimeout)
+		defer cancel()
+
+		if err := s.heartbeater.Shutdown(ctx); err != nil {
+			log.WithError(err).Warn("device heartbeats were still pending at shutdown")
+		}
+	}
 
 	log.Info("Server shutdown complete")
 }

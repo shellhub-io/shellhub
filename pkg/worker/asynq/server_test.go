@@ -22,7 +22,7 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Setup server and handlers
-	srv := asynq.NewServer(redisConnStr, asynq.BatchConfig(2, 1, 1))
+	srv := asynq.NewServer(redisConnStr)
 
 	// Shutdown the server before terminating Redis to avoid connection refused spam.
 	t.Cleanup(func() {

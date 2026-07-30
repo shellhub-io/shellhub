@@ -2,7 +2,6 @@ package asynq
 
 import (
 	"runtime"
-	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -10,27 +9,6 @@ import (
 )
 
 type ServerOption func(s *server) error
-
-// BatchConfig sets the batch configuration of the server. It's required when
-// setting a task with [BatchTask] option.
-//
-// maxSize is the maximum number of tasks that a batch task can handle before
-// processing.
-//
-// maxDelay is the maximum amount of time that a batch task can wait before
-// processing.
-//
-// gracePeriod is the amount of time that the server will wait before aggregating
-// batch tasks.
-func BatchConfig(maxSize, maxDelay, gracePeriod int) ServerOption {
-	return func(s *server) error {
-		s.batchConfig.maxSize = maxSize
-		s.batchConfig.maxDelay = time.Second * time.Duration(maxDelay)
-		s.batchConfig.gracePeriod = time.Second * time.Duration(gracePeriod)
-
-		return nil
-	}
-}
 
 // UniquenessTimeout defines the maximum duration, in hours, for which a unique job remains locked
 // in the queue. If the job does not complete within this timeout, the lock is released, allowing
@@ -48,7 +26,6 @@ type server struct {
 	asynqSrv          *asynq.Server
 	asynqMux          *asynq.ServeMux
 	asynqSch          *asynq.Scheduler
-	batchConfig       *batchConfig
 	uniquenessTimeout int
 
 	queues   queues
@@ -58,11 +35,10 @@ type server struct {
 
 func NewServer(redisURI string, opts ...ServerOption) worker.Server {
 	s := &server{
-		redisURI:    redisURI,
-		queues:      queues{cronQueue: 1},
-		tasks:       []worker.Task{},
-		cronjobs:    []worker.Cronjob{},
-		batchConfig: &batchConfig{},
+		redisURI: redisURI,
+		queues:   queues{cronQueue: 1},
+		tasks:    []worker.Task{},
+		cronjobs: []worker.Cronjob{},
 	}
 
 	for _, opt := range opts {
@@ -137,12 +113,8 @@ func (s *server) setupAsynq() error {
 	s.asynqSrv = asynq.NewServer(
 		addr,
 		asynq.Config{ //nolint:exhaustruct
-			Concurrency:      runtime.NumCPU(),
-			Queues:           s.queues,
-			GroupAggregator:  asynq.GroupAggregatorFunc(aggregate),
-			GroupMaxSize:     s.batchConfig.maxSize,
-			GroupMaxDelay:    s.batchConfig.maxDelay,
-			GroupGracePeriod: s.batchConfig.gracePeriod,
+			Concurrency: runtime.NumCPU(),
+			Queues:      s.queues,
 		},
 	)
 

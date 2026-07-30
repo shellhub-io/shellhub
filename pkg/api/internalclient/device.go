@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/worker"
 )
 
 type deviceAPI interface {
@@ -16,9 +15,6 @@ type deviceAPI interface {
 
 	// DevicesOffline updates a device's status to offline.
 	DevicesOffline(ctx context.Context, uid string) error
-
-	// DevicesHeartbeat enqueues a task to send a heartbeat for the device.
-	DevicesHeartbeat(ctx context.Context, uid string) error
 
 	// DeviceLookup performs a lookup operation based on the provided parameters.
 	DeviceLookup(ctx context.Context, tenantID, name string) (*models.Device, error)
@@ -35,10 +31,6 @@ func (c *client) DevicesOffline(ctx context.Context, uid string) error {
 		Post(apiBaseURL + "/internal/devices/{uid}/offline")
 
 	return HasError(res, err)
-}
-
-func (c *client) DevicesHeartbeat(ctx context.Context, uid string) error {
-	return c.worker.SubmitToBatch(ctx, worker.TaskPattern("api:heartbeat"), []byte(uid))
 }
 
 func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*models.Device, error) {
