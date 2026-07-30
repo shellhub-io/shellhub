@@ -5,12 +5,13 @@ import (
 	"crypto/rand"
 	"sync"
 	"testing"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/services"
+	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,12 +19,12 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func newIdentitySession(apiClient internalclient.Client, mode string) *Session {
+func newIdentitySession(service services.Service, mode string) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device") //nolint:errcheck
 
 	return &Session{
-		UID: "test-uid",
-		api: apiClient,
+		UID:     "test-uid",
+		service: service,
 		Data: Data{
 			Target:       tgt,
 			IPAddress:    "127.0.0.1",
@@ -65,13 +66,13 @@ func TestResolveKeyAuth(t *testing.T) {
 	fingerprint := gossh.FingerprintSHA256(pubKey)
 
 	t.Run("enrolled active key yields the identity auth and binds the account", func(t *testing.T) {
-		apiMock := mocks.NewMockClient(t)
-		apiMock.EXPECT().
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&internalclient.SSHIdentityResolution{Found: true, Active: true, UserID: "user1", SingleUse: true}, nil).
+			Return(&models.SSHIdentity{PrincipalID: "user1", SingleUse: true}, true, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(apiMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
@@ -82,13 +83,16 @@ func TestResolveKeyAuth(t *testing.T) {
 	})
 
 	t.Run("dead key is rejected, not sent to enrollment", func(t *testing.T) {
-		apiMock := mocks.NewMockClient(t)
-		apiMock.EXPECT().
+		consumedAt := time.Now()
+
+		serviceMock := servicemocks.NewMockService(t)
+		// A burned single-use key resolves but is no longer active.
+		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&internalclient.SSHIdentityResolution{Found: true, Active: false, UserID: "user1"}, nil).
+			Return(&models.SSHIdentity{PrincipalID: "user1", ConsumedAt: &consumedAt}, true, nil). //nolint:exhaustruct
 			Once()
 
-		sess := newIdentitySession(apiMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
@@ -97,14 +101,31 @@ func TestResolveKeyAuth(t *testing.T) {
 		assert.Empty(t, sess.UserID)
 	})
 
-	t.Run("unknown key opens an identity approval and yields the approval auth", func(t *testing.T) {
-		apiMock := mocks.NewMockClient(t)
-		apiMock.EXPECT().
+	t.Run("an expired key is rejected too", func(t *testing.T) {
+		expiredAt := time.Now().Add(-time.Hour)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&internalclient.SSHIdentityResolution{Found: false}, nil).
+			Return(&models.SSHIdentity{PrincipalID: "user1", ExpiresAt: &expiredAt}, true, nil). //nolint:exhaustruct
 			Once()
-		apiMock.EXPECT().
-			CreateSSHApproval(mock.Anything, mock.MatchedBy(func(req requests.SSHApprovalCreate) bool {
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+
+		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
+		require.ErrorIs(t, err, ErrAccessDenied)
+		assert.Nil(t, auth)
+		assert.Empty(t, sess.UserID)
+	})
+
+	t.Run("unknown key opens an identity approval and yields the approval auth", func(t *testing.T) {
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(nil, false, nil).
+			Once()
+		serviceMock.EXPECT().
+			CreateSSHApproval(mock.Anything, mock.MatchedBy(func(req *requests.SSHApprovalCreate) bool {
 				return req.Fingerprint == fingerprint &&
 					req.Kind == models.SSHApprovalIdentity &&
 					req.TenantID == "tenant-id"
@@ -112,7 +133,7 @@ func TestResolveKeyAuth(t *testing.T) {
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
 
-		sess := newIdentitySession(apiMock, models.SSHAccessModeIdentity)
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)

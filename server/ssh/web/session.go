@@ -9,8 +9,10 @@ import (
 	"io"
 	"unicode/utf8"
 
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	log "github.com/sirupsen/logrus"
@@ -89,7 +91,7 @@ func bannerCallback(conn *Conn) func(string) error {
 }
 
 // getAuth gets the authentication methods from credentials.
-func getAuth(ctx context.Context, cli internalclient.Client, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
+func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
 	// Identity mode: the browser presents its own enrolled key. Sign the SSH
 	// challenge over the WebSocket with it (the private half never leaves the
 	// browser); the gateway resolves the key to the identity via ssh_identities.
@@ -112,25 +114,27 @@ func getAuth(ctx context.Context, cli internalclient.Client, conn *Conn, creds *
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
 
-	// Trys to get a device from the API.
-	device, err := cli.GetDevice(ctx, creds.Device)
+	device, err := service.GetDevice(ctx, scope.NewUnbounded(reasonWebHandoffDeviceResolve), models.UID(creds.Device))
 	if err != nil {
 		return nil, ErrFindDevice
 	}
 
-	// Trys to get a public key from the API.
-	key, err := cli.GetPublicKey(ctx, creds.Fingerprint, device.TenantID)
+	key, err := service.GetPublicKey(ctx, creds.Fingerprint, device.TenantID)
 	if err != nil {
 		return nil, ErrFindPublicKey
 	}
 
-	// Trys to evaluate the public key from the API.
-	ok, err := cli.EvaluateKey(ctx, creds.Fingerprint, device, creds.Username)
+	usernameOK, err := service.EvaluateKeyUsername(ctx, key, creds.Username)
 	if err != nil {
 		return nil, ErrEvaluatePublicKey
 	}
 
-	if !ok {
+	filterOK, err := service.EvaluateKeyFilter(ctx, key, *device)
+	if err != nil {
+		return nil, ErrEvaluatePublicKey
+	}
+
+	if !usernameOK || !filterOK {
 		return nil, ErrForbiddenPublicKey
 	}
 
@@ -183,7 +187,7 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, cli internalclient.Client, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -199,7 +203,7 @@ func newSession(ctx context.Context, cli internalclient.Client, handoff *webhand
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
-	auth, err := getAuth(ctx, cli, conn, creds)
+	auth, err := getAuth(ctx, service, conn, creds)
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
@@ -23,7 +24,7 @@ type authFunc func(*Session, *gossh.ClientConfig) error
 // holds the matching private key and vouches for it; the user's own credential
 // is never forwarded. Shared by the public-key and browser-approval auth methods.
 func mintEphemeralSigner(session *Session, config *gossh.ClientConfig) error {
-	privateKey, err := session.api.CreatePrivateKey(context.TODO())
+	privateKey, err := session.service.CreatePrivateKey(context.Background())
 	if err != nil {
 		return err
 	}
@@ -100,11 +101,26 @@ func (p *publicKeyAuth) Evaluate(session *Session) error {
 	}
 
 	if gossh.FingerprintLegacyMD5(magic) != fingerprint {
-		if _, err = session.api.GetPublicKey(context.TODO(), fingerprint, session.Device.TenantID); err != nil {
+		ctx := context.Background()
+
+		// The key is fetched once and evaluated twice. Over HTTP this was two
+		// requests, the second fetching the key again on the other side.
+		key, err := session.service.GetPublicKey(ctx, fingerprint, session.Device.TenantID)
+		if err != nil {
 			return err
 		}
 
-		if ok, err := session.api.EvaluateKey(context.TODO(), fingerprint, session.Device, session.Data.Target.Username); !ok || err != nil {
+		usernameOK, err := session.service.EvaluateKeyUsername(ctx, key, session.Data.Target.Username)
+		if err != nil {
+			return ErrEvaluatePublicKey
+		}
+
+		filterOK, err := session.service.EvaluateKeyFilter(ctx, key, *session.Device)
+		if err != nil {
+			return ErrEvaluatePublicKey
+		}
+
+		if !usernameOK || !filterOK {
 			return ErrEvaluatePublicKey
 		}
 	}
@@ -158,7 +174,13 @@ func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
 	defer cancel()
 
 	for {
-		status, err := s.api.GetSSHApprovalStatus(ctx, s.ApprovalCode)
+		// Wait asks the service to hold the request open until the login is decided,
+		// which is what keeps the terminal from freezing for a poll interval after
+		// the person already answered.
+		status, err := s.service.GetSSHApprovalStatus(ctx, &requests.SSHApprovalStatus{
+			Code: s.ApprovalCode,
+			Wait: true,
+		})
 		if err == nil {
 			switch status.State {
 			case models.SSHApprovalConfirmed:
@@ -183,7 +205,7 @@ func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
 // minted, so the agent is never contacted for a login the policies deny. It
 // returns the decision so the caller can honor a step-up requirement.
 func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
-	dec, err := s.api.AuthorizeSSHAccess(ctx, s.Namespace.TenantID, s.UserID, s.Device.UID, s.Target.Username, s.IPAddress)
+	dec, err := s.service.Authorize(ctx, s.Namespace.TenantID, s.UserID, s.Device.UID, s.Target.Username, s.IPAddress)
 	if err != nil || dec == nil || !dec.Allowed {
 		return nil, ErrAccessDenied
 	}
@@ -325,22 +347,22 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 	s.Fingerprint = gossh.FingerprintSHA256(publicKey)
 	s.KeyData = gossh.MarshalAuthorizedKey(publicKey)
 
-	resolution, err := s.api.ResolveSSHIdentity(ctx, s.Namespace.TenantID, s.Fingerprint)
+	identity, found, err := s.service.ResolveSSHIdentity(ctx, s.Namespace.TenantID, s.Fingerprint)
 	if err != nil {
 		return nil, err
 	}
 
-	if resolution.Found {
+	if found {
 		// A found-but-inactive key is a dead one: expired, or a single-use key
 		// already burned. Reject the connection cleanly; it must never fall into
 		// the interactive enrollment flow, which is for genuinely unknown keys.
-		if !resolution.Active {
+		if !identity.Active(clock.Now()) {
 			return nil, ErrAccessDenied
 		}
 
-		s.UserID = resolution.UserID
-		s.LastReauthAt = resolution.LastReauthAt
-		s.SingleUse = resolution.SingleUse
+		s.UserID = identity.PrincipalID
+		s.LastReauthAt = identity.LastReauthAt
+		s.SingleUse = identity.SingleUse
 
 		return AuthIdentity(ctx), nil
 	}
