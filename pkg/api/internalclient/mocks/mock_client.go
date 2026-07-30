@@ -133,69 +133,6 @@ func (_c *MockClient_AuthorizeSSHAccess_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
-// BillingReport provides a mock function for the type MockClient
-func (_mock *MockClient) BillingReport(ctx context.Context, tenant string, action string) error {
-	ret := _mock.Called(ctx, tenant, action)
-
-	if len(ret) == 0 {
-		panic("no return value specified for BillingReport")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, tenant, action)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockClient_BillingReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BillingReport'
-type MockClient_BillingReport_Call struct {
-	*mock.Call
-}
-
-// BillingReport is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tenant string
-//   - action string
-func (_e *MockClient_Expecter) BillingReport(ctx any, tenant any, action any) *MockClient_BillingReport_Call {
-	return &MockClient_BillingReport_Call{Call: _e.mock.On("BillingReport", ctx, tenant, action)}
-}
-
-func (_c *MockClient_BillingReport_Call) Run(run func(ctx context.Context, tenant string, action string)) *MockClient_BillingReport_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockClient_BillingReport_Call) Return(err error) *MockClient_BillingReport_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockClient_BillingReport_Call) RunAndReturn(run func(ctx context.Context, tenant string, action string) error) *MockClient_BillingReport_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ConsumeSSHIdentity provides a mock function for the type MockClient
 func (_mock *MockClient) ConsumeSSHIdentity(ctx context.Context, tenant string, fingerprint string) (bool, error) {
 	ret := _mock.Called(ctx, tenant, fingerprint)

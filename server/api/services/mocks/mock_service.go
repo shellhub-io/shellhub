@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -5914,6 +5915,69 @@ func (_c *MockService_RenameSSHIdentity_Call) Return(sSHIdentity *models.SSHIden
 }
 
 func (_c *MockService_RenameSSHIdentity_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)) *MockService_RenameSSHIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ReportBilling provides a mock function for the type MockService
+func (_mock *MockService) ReportBilling(ctx context.Context, tenant string, action services.BillingAction) error {
+	ret := _mock.Called(ctx, tenant, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReportBilling")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, services.BillingAction) error); ok {
+		r0 = returnFunc(ctx, tenant, action)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_ReportBilling_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReportBilling'
+type MockService_ReportBilling_Call struct {
+	*mock.Call
+}
+
+// ReportBilling is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+//   - action services.BillingAction
+func (_e *MockService_Expecter) ReportBilling(ctx any, tenant any, action any) *MockService_ReportBilling_Call {
+	return &MockService_ReportBilling_Call{Call: _e.mock.On("ReportBilling", ctx, tenant, action)}
+}
+
+func (_c *MockService_ReportBilling_Call) Run(run func(ctx context.Context, tenant string, action services.BillingAction)) *MockService_ReportBilling_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 services.BillingAction
+		if args[2] != nil {
+			arg2 = args[2].(services.BillingAction)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ReportBilling_Call) Return(err error) *MockService_ReportBilling_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_ReportBilling_Call) RunAndReturn(run func(ctx context.Context, tenant string, action services.BillingAction) error) *MockService_ReportBilling_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -2016,7 +2015,9 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 
-	licenseEvaluator := servicemocks.NewMockLicenseEvaluator(t)
+	licenseEvaluator := &mockLicenseEvaluator{}
+	licenseEvaluator.Test(t)
+	t.Cleanup(func() { licenseEvaluator.AssertExpectations(t) })
 
 	ctx := context.Background()
 
