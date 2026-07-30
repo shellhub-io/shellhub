@@ -91,8 +91,8 @@ func WithOpenAPIValidator(cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
 //
 // It is an option rather than a default so handler tests can keep exercising a
 // route's authorization with an identity injected straight into the request
-// headers. Every production entrypoint must pass it; [TestRouterAuthenticates]
-// guards that the wiring stays in place.
+// headers. Every production entrypoint must pass it;
+// [TestRouterRejectsUncredentialedRequests] guards that the wiring stays in place.
 func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 	return func(e *echo.Echo, handler *Handler) error {
 		handler.WithAuthenticator(authn)
