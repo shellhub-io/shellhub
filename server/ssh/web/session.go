@@ -315,7 +315,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 			case messageKindResize:
 				dim := message.Data.(Dimensions)
 
-				if err := agent.WindowChange(int(dim.Rows), int(dim.Cols)); err != nil {
+				if err := agent.WindowChange(dim.rows(), dim.cols()); err != nil {
 					logger.WithError(err).Error("failed to change the size of window for terminal session")
 
 					return

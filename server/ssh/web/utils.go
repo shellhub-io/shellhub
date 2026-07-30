@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"math"
 )
 
 type Credentials struct {
@@ -78,6 +79,24 @@ func (c *Credentials) isPassword() bool {
 type Dimensions struct {
 	Cols uint32 `json:"cols"`
 	Rows uint32 `json:"rows"`
+}
+
+// maxDimension bounds a terminal's width and height. The client sends them as
+// uint32, but they reach the kernel as a winsize, whose fields are unsigned
+// shorts — and narrowing an unbounded uint32 to int wraps negative where int is
+// 32 bits wide.
+const maxDimension = math.MaxUint16
+
+func (d Dimensions) rows() int { return boundDimension(d.Rows) }
+
+func (d Dimensions) cols() int { return boundDimension(d.Cols) }
+
+func boundDimension(value uint32) int {
+	if value > maxDimension {
+		return maxDimension
+	}
+
+	return int(value)
 }
 
 type Info struct {

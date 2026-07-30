@@ -35,7 +35,7 @@ func prepareShell(logger *log.Entry, session shellSession, dim Dimensions) error
 			Debug("failed to set the character locale on session")
 	}
 
-	if err := session.RequestPty(terminalType, int(dim.Rows), int(dim.Cols), ssh.TerminalModes{
+	if err := session.RequestPty(terminalType, dim.rows(), dim.cols(), ssh.TerminalModes{
 		ssh.ECHO:          1,
 		ssh.TTY_OP_ISPEED: 14400,
 		ssh.TTY_OP_OSPEED: 14400,
