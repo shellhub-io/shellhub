@@ -43,6 +43,8 @@ agent/latest
 
 # Claude Code context files (symlinked from private repo)
 **/CLAUDE.md
+CONTEXT.md
+docs/adr
 .claude/settings.json
 .claude/rules
 .claude/hooks
