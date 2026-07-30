@@ -31,11 +31,14 @@ jobs:
           - project: cli
             extra_args: ""
             lint_args: ""
-          # Integration tests with PostgreSQL
+          # Integration tests with PostgreSQL. Each of the ~31 SSH cases stands up
+          # its own agent container and runs twice (transport v1 and v2), so the
+          # suite needs well over the 25m the unit-test projects get.
           - project: tests
             extra_args: ""
             lint_args: ""
             database: postgres
+            test_timeout: "45m"
 
     runs-on: ubuntu-latest
 
@@ -115,7 +118,7 @@ jobs:
       - name: Unit test [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: go test ${{ matrix.extra_args }} -timeout 25m ./...
+        run: go test ${{ matrix.extra_args }} -timeout ${{ matrix.test_timeout || '25m' }} ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
