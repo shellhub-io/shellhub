@@ -182,6 +182,20 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, leOpts...)
 
+	feOpts, err := s.firewallEvaluatorOption(ctx, store, cache)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, feOpts...)
+
+	weOpts, err := s.webEndpointResolverOption(ctx, store, cache)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, weOpts...)
+
 	routerOptions, err := s.routerOptions()
 	if err != nil {
 		return err
@@ -263,7 +277,7 @@ func (s *Server) setupSSH(service services.Service, apiClient internalclient.Cli
 
 	d := dialer.NewDialer(service, s.heartbeater)
 
-	sshhttp.Register(s.router, d, service, apiClient, &sshhttp.Config{
+	sshhttp.Register(s.router, d, service, &sshhttp.Config{
 		WebEndpoints:          env.WebEndpoints,
 		WebEndpointsDomain:    env.WebEndpointsDomain,
 		Domain:                env.Domain,
@@ -389,6 +403,47 @@ func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c c
 	// is sufficient — no typed-nil interface can occur here.
 	if le != nil {
 		return []services.Option{services.WithLicenseEvaluator(le)}, nil
+	}
+
+	return nil, nil
+}
+
+// firewallEvaluatorOption initialises the firewall evaluator when an enterprise package
+// registered a factory. The nil guard carries the same weight as in
+// licenseEvaluatorOption: injecting a typed nil would panic on first use.
+func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.FirewallEvaluatorFactory()
+	if factory == nil {
+		return nil, nil
+	}
+
+	fe, err := factory(ctx, st, c)
+	if err != nil {
+		return nil, errors.Join(errors.New("init firewall evaluator"), err)
+	}
+
+	if fe != nil {
+		return []services.Option{services.WithFirewallEvaluator(fe)}, nil
+	}
+
+	return nil, nil
+}
+
+// webEndpointResolverOption initialises the web endpoint resolver when an enterprise
+// package registered a factory. See licenseEvaluatorOption for the nil guard rationale.
+func (s *Server) webEndpointResolverOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.WebEndpointResolverFactory()
+	if factory == nil {
+		return nil, nil
+	}
+
+	r, err := factory(ctx, st, c)
+	if err != nil {
+		return nil, errors.Join(errors.New("init web endpoint resolver"), err)
+	}
+
+	if r != nil {
+		return []services.Option{services.WithWebEndpointResolver(r)}, nil
 	}
 
 	return nil, nil

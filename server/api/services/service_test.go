@@ -17,6 +17,10 @@ func (m *mockLicenseEvaluator) CanAcceptDevice(_ context.Context) (bool, error) 
 	return true, nil
 }
 
+func (m *mockLicenseEvaluator) CanConnectDevice(_ context.Context) (bool, error) {
+	return true, nil
+}
+
 func TestWithLicenseEvaluator(t *testing.T) {
 	t.Run("licenseEvaluator is nil without the option", func(t *testing.T) {
 		store := storemock.NewMockStore(t)

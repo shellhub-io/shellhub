@@ -96,3 +96,63 @@ func (_c *MockLicenseEvaluator_CanAcceptDevice_Call) RunAndReturn(run func(ctx c
 	_c.Call.Return(run)
 	return _c
 }
+
+// CanConnectDevice provides a mock function for the type MockLicenseEvaluator
+func (_mock *MockLicenseEvaluator) CanConnectDevice(ctx context.Context) (bool, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CanConnectDevice")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (bool, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) bool); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockLicenseEvaluator_CanConnectDevice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanConnectDevice'
+type MockLicenseEvaluator_CanConnectDevice_Call struct {
+	*mock.Call
+}
+
+// CanConnectDevice is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockLicenseEvaluator_Expecter) CanConnectDevice(ctx any) *MockLicenseEvaluator_CanConnectDevice_Call {
+	return &MockLicenseEvaluator_CanConnectDevice_Call{Call: _e.mock.On("CanConnectDevice", ctx)}
+}
+
+func (_c *MockLicenseEvaluator_CanConnectDevice_Call) Run(run func(ctx context.Context)) *MockLicenseEvaluator_CanConnectDevice_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockLicenseEvaluator_CanConnectDevice_Call) Return(b bool, err error) *MockLicenseEvaluator_CanConnectDevice_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockLicenseEvaluator_CanConnectDevice_Call) RunAndReturn(run func(ctx context.Context) (bool, error)) *MockLicenseEvaluator_CanConnectDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}

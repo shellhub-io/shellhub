@@ -14,7 +14,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -29,7 +28,6 @@ type Handlers struct {
 	Config  *Config
 	Dialer  *dialer.Dialer
 	Service services.Service
-	Client  internalclient.Client
 }
 
 const (
@@ -170,7 +168,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 		"address":    address,
 	}).Debug("path")
 
-	endpoint, err := h.Client.LookupWebEndpoints(c.Request().Context(), address)
+	endpoint, err := h.Service.LookupWebEndpoint(c.Request().Context(), address)
 	if err != nil {
 		log.WithError(err).Error("failed to get the web endpoint")
 

@@ -423,53 +423,36 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 	return a, nil
 }
 
-func (s *Session) checkFirewall(ctx context.Context) (bool, error) {
-	// TODO: Refactor firewall evaluation to remove the map requirement.
-	if err := s.api.FirewallEvaluate(ctx, map[string]string{
-		"domain":     s.Namespace.Name,
-		"name":       s.Device.Name,
-		"username":   s.Target.Username,
-		"ip_address": s.IPAddress,
-	}); err != nil {
-		defer log.WithError(err).WithFields(log.Fields{
-			"uid":   s.UID,
-			"sshid": s.SSHID,
-		}).Info("an error or a firewall rule block this connection")
-
-		var e *internalclient.Error
-		if !errors.As(err, &e) {
-			return false, ErrFirewallUnknown
-		}
-
-		switch e.Code {
-		case http.StatusForbidden:
-			return false, ErrFirewallBlock
-		case http.StatusServiceUnavailable:
-			return false, ErrFirewallConnection
-		default:
-			return false, ErrFirewallUnknown
-		}
+func (s *Session) checkFirewall(ctx context.Context) error {
+	err := s.service.EvaluateFirewall(ctx, models.FirewallConnection{
+		Namespace: s.Namespace.Name,
+		Hostname:  s.Device.Name,
+		Username:  s.Target.Username,
+		IPAddress: s.IPAddress,
+	})
+	if err == nil {
+		return nil
 	}
 
-	return true, nil
+	log.WithError(err).WithFields(log.Fields{
+		"uid":   s.UID,
+		"sshid": s.SSHID,
+	}).Info("an error or a firewall rule block this connection")
+
+	if errors.Is(err, services.ErrFirewallBlocked) {
+		return ErrFirewallBlock
+	}
+
+	return ErrFirewallUnknown
 }
 
-func (s *Session) checkBilling(ctx context.Context) (bool, error) {
-	evaluation, err := s.api.BillingEvaluate(ctx, s.Device.TenantID)
-	if err != nil {
-		var billingErr *internalclient.Error
-		if errors.As(err, &billingErr) && billingErr.Code == 402 {
-			return false, ErrBillingBlock
-		}
-
-		return false, err
+func (s *Session) checkBilling(ctx context.Context) error {
+	err := s.service.EvaluateBilling(ctx, s.Device.TenantID)
+	if errors.Is(err, services.ErrBillingBlocked) {
+		return ErrBillingBlock
 	}
 
-	if !evaluation.CanConnect {
-		return false, ErrBillingBlock
-	}
-
-	return true, nil
+	return err
 }
 
 // registerAPISession registers a new session on the API.
@@ -613,29 +596,20 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	return nil
 }
 
-func (s *Session) checkLicense(ctx context.Context) (bool, error) {
-	evaluation, err := s.api.LicenseEvaluate(ctx)
-	if err != nil {
-		var e *internalclient.Error
-		if errors.As(err, &e) && e.Code == http.StatusPaymentRequired {
-			return false, ErrLicenseBlock
-		}
-
-		return false, err
+func (s *Session) checkLicense(ctx context.Context) error {
+	err := s.service.EvaluateLicense(ctx)
+	if errors.Is(err, services.ErrLicenseBlocked) {
+		return ErrLicenseBlock
 	}
 
-	if !evaluation.CanConnect {
-		return false, ErrLicenseBlock
-	}
-
-	return true, nil
+	return err
 }
 
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	snap := getSnapshot(ctx)
 
 	if envs.IsEnterprise() {
-		if ok, err := s.checkLicense(ctx); err != nil || !ok {
+		if err := s.checkLicense(ctx); err != nil {
 			return err
 		}
 	}
@@ -643,13 +617,13 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	// In identity access mode the firewall (a legacy, key/username blocklist) is
 	// bypassed: Access Policies are the authorization model instead.
 	if envs.IsEnterpriseOrCloud() && !s.Namespace.Settings.IsIdentityAccess() {
-		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
+		if err := s.checkFirewall(ctx); err != nil {
 			return err
 		}
 	}
 
 	if envs.IsCloud() {
-		if ok, err := s.checkBilling(ctx); err != nil || !ok {
+		if err := s.checkBilling(ctx); err != nil {
 			return err
 		}
 	}
