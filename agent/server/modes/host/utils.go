@@ -14,7 +14,7 @@ import (
 
 func generateShellCmd(deviceName string, session gliderssh.Session, term string) *exec.Cmd {
 	username := session.User()
-	envs := acceptClientEnv(session.Environ())
+	envs := sessionEnv(session.Environ())
 
 	user, err := osauth.LookupUser(username)
 	if err != nil {

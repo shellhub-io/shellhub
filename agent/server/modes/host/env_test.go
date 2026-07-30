@@ -1,6 +1,9 @@
 package host
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-playground/assert/v2"
@@ -141,6 +144,132 @@ func TestAcceptClientEnv(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := acceptClientEnv(tt.input)
 			assert.Equal(t, tt.expected, got)
+		})
+	}
+}
+
+// withLocaleFiles points localeFiles at a temporary directory. Each content maps to one entry of
+// localeFiles, in order; an empty content leaves that file absent.
+func withLocaleFiles(t *testing.T, contents ...string) {
+	t.Helper()
+
+	dir := t.TempDir()
+	original := localeFiles
+
+	t.Cleanup(func() { localeFiles = original })
+
+	paths := make([]string, 0, len(contents))
+
+	for i, content := range contents {
+		path := filepath.Join(dir, fmt.Sprintf("locale%d", i))
+
+		if content != "" {
+			if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+				t.Fatalf("failed to write the locale file: %v", err)
+			}
+		}
+
+		paths = append(paths, path)
+	}
+
+	localeFiles = paths
+}
+
+func TestSystemLocaleEnv(t *testing.T) {
+	tests := []struct {
+		name     string
+		files    []string
+		expected []string
+	}{
+		{
+			name:     "no locale file on the host",
+			files:    []string{"", "", ""},
+			expected: []string{},
+		},
+		{
+			name:     "reads a configured locale",
+			files:    []string{"LANG=pt_BR.UTF-8\n", "", ""},
+			expected: []string{"LANG=pt_BR.UTF-8"},
+		},
+		{
+			name:     "skips comments and blank lines",
+			files:    []string{"# the system locale\n\nLANG=en_US.UTF-8\n", "", ""},
+			expected: []string{"LANG=en_US.UTF-8"},
+		},
+		{
+			name:     "unquotes a quoted value",
+			files:    []string{"LANG=\"pt_BR.UTF-8\"\n", "", ""},
+			expected: []string{"LANG=pt_BR.UTF-8"},
+		},
+		{
+			name:     "drops variables outside the allowlist",
+			files:    []string{"PATH=/evil\nLD_PRELOAD=/evil.so\nLANG=C.UTF-8\n", "", ""},
+			expected: []string{"LANG=C.UTF-8"},
+		},
+		{
+			name:     "drops a value carrying a NUL byte",
+			files:    []string{"LANG=en\x00evil\n", "", ""},
+			expected: []string{},
+		},
+		{
+			name:     "the first file to define a variable wins",
+			files:    []string{"LANG=pt_BR.UTF-8\n", "LANG=en_US.UTF-8\n", ""},
+			expected: []string{"LANG=pt_BR.UTF-8"},
+		},
+		{
+			name:     "merges variables across files",
+			files:    []string{"LANG=pt_BR.UTF-8\n", "LC_TIME=en_US.UTF-8\n", ""},
+			expected: []string{"LANG=pt_BR.UTF-8", "LC_TIME=en_US.UTF-8"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withLocaleFiles(t, tt.files...)
+
+			assert.Equal(t, tt.expected, systemLocaleEnv())
+		})
+	}
+}
+
+func TestSessionEnv(t *testing.T) {
+	tests := []struct {
+		name      string
+		files     []string
+		clientEnv []string
+		expected  []string
+	}{
+		{
+			name:      "falls back when the host configures no locale",
+			files:     []string{"", "", ""},
+			clientEnv: nil,
+			expected:  []string{"LANG=C.UTF-8"},
+		},
+		{
+			name:      "keeps the host locale over the fallback",
+			files:     []string{"LANG=pt_BR.UTF-8\n", "", ""},
+			clientEnv: nil,
+			expected:  []string{"LANG=pt_BR.UTF-8"},
+		},
+		{
+			name:      "falls back when the host sets no character locale",
+			files:     []string{"LC_TIME=pt_BR.UTF-8\n", "", ""},
+			clientEnv: nil,
+			expected:  []string{"LANG=C.UTF-8", "LC_TIME=pt_BR.UTF-8"},
+		},
+		{
+			name:      "the client comes last so it overrides the host",
+			files:     []string{"LANG=pt_BR.UTF-8\n", "", ""},
+			clientEnv: []string{"LANG=ja_JP.UTF-8", "PATH=/evil"},
+			expected:  []string{"LANG=pt_BR.UTF-8", "LANG=ja_JP.UTF-8"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withLocaleFiles(t, tt.files...)
+
+			assert.Equal(t, tt.expected, sessionEnv(tt.clientEnv))
 		})
 	}
 }
