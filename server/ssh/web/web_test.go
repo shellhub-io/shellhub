@@ -111,7 +111,7 @@ func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 
 	// The token is never found, so the request fails before either dependency is
 	// reached.
-	NewSSHServerBridge(e, nil, webhandoff.NewStore())
+	NewSSHServerBridge(e, nil, nil, webhandoff.NewStore())
 
 	server := httptest.NewServer(e)
 	defer server.Close()

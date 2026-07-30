@@ -7,12 +7,22 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/shellhub-io/shellhub/server/ssh/web/pkg/token"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/websocket"
+)
+
+const (
+	// WebsocketSSHBridgeRoute is the WebSocket upgrade that carries the terminal
+	// stream. It is gated by a single-use token rather than authenticated.
+	WebsocketSSHBridgeRoute = "/ws/ssh"
+	// WebSessionRoute is the credential/token POST. It is authenticated, so the
+	// bridge learns the logged-in ShellHub account (used in identity mode).
+	WebSessionRoute = "/ws/ssh/session"
 )
 
 // exitLogLevel returns logrus.WarnLevel for expected/banner-derived errors that
@@ -40,15 +50,18 @@ func exitLogLevel(err error) log.Level {
 }
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Echo, service services.Service, handoff *webhandoff.Store) {
-	// The WebSocket upgrade; token-gated (browsers can't send auth headers on a
-	// WebSocket), so it stays unauthenticated at the gateway.
-	const WebsocketSSHBridgeRoute = "/ws/ssh"
-	// The credential/token POST. The gateway authenticates it and injects X-ID,
-	// so the bridge learns the logged-in ShellHub account (used in identity mode).
-	const WebSessionRoute = "/ws/ssh/session"
-
+//
+// authn is the API's authenticator, used to declare the WebSocket upgrade as
+// reachable without a credential. It may be nil in tests.
+func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service, handoff *webhandoff.Store) {
 	manager := newManager(30 * time.Second)
+
+	// The upgrade is token-gated rather than authenticated: a browser cannot set
+	// headers on a WebSocket handshake. The token comes from WebSessionRoute
+	// below, which is authenticated, so the account is established there.
+	if authn != nil {
+		authn.AllowAnonymous(http.MethodGet, WebsocketSSHBridgeRoute)
+	}
 
 	// NOTICE: this is the route that users send your credentials securely.
 	router.Add(http.MethodPost, WebSessionRoute, echo.WrapHandler(

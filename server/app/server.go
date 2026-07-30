@@ -92,6 +92,7 @@ type sshEnv struct {
 type Server struct {
 	env         *Env
 	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
+	authn       *middleware.Authenticator
 	worker      worker.Server
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
@@ -196,6 +197,12 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	service := services.NewService(store, nil, nil, cache, servicesOptions...)
+
+	// Authentication runs in-process: the edge proxy forwards requests without
+	// deciding anything about them.
+	s.authn = middleware.NewAuthenticator(service)
+	routerOptions = append(routerOptions, routes.WithAuthentication(s.authn))
+
 	s.router = routes.NewRouter(service, routerOptions...)
 
 	s.worker = asynq.NewServer(
@@ -271,7 +278,7 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	d := dialer.NewDialer(service, s.heartbeater)
 
-	sshhttp.Register(s.router, d, service, &sshhttp.Config{
+	sshhttp.Register(s.router, s.authn, d, service, &sshhttp.Config{
 		WebEndpoints:          env.WebEndpoints,
 		WebEndpointsDomain:    env.WebEndpointsDomain,
 		Domain:                env.Domain,
@@ -283,7 +290,7 @@ func (s *Server) setupSSH(service services.Service) error {
 	// the loopback dial claims it.
 	handoff := webhandoff.NewStore()
 
-	web.NewSSHServerBridge(s.router, service, handoff)
+	web.NewSSHServerBridge(s.router, s.authn, service, handoff)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

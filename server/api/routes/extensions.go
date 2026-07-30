@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/worker"
+	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -13,19 +14,23 @@ import (
 // This is the extension point for enterprise/cloud features to add their own HTTP endpoints.
 //
 // Extensions receive:
-// - router: The Echo instance to register routes on
-// - service: The core service providing access to shared infrastructure (store, cache, etc.)
+//   - router: The Echo instance to register routes on
+//   - authn: The authenticator, on which an extension declares any route of its own
+//     that must be reachable without a credential. Routes are authenticated by
+//     default, so an extension that declares nothing stays closed. It is nil when
+//     the router was built without authentication (handler tests).
+//   - service: The core service providing access to shared infrastructure (store, cache, etc.)
 //
 // Extensions should return an error if route registration fails.
 //
 // Example usage:
 //
-//	routes.RegisterRouteExtension(func(router *echo.Echo, service services.Service) error {
+//	routes.RegisterRouteExtension(func(router *echo.Echo, authn *middleware.Authenticator, service services.Service) error {
 //	    adminGroup := router.Group("/api/admin")
 //	    adminGroup.POST("/users", adminHandler.CreateUser)
 //	    return nil
 //	})
-type RouteExtension func(router *echo.Echo, service services.Service) error
+type RouteExtension func(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service) error
 
 // routeExtensions holds all registered route extensions.
 // Extensions are typically registered by enterprise/cloud builds in init() or main().
@@ -41,9 +46,9 @@ func RegisterRouteExtension(ext RouteExtension) {
 
 // applyExtensions invokes all registered extensions on the router.
 // Returns an error if any extension fails to register its routes.
-func applyExtensions(router *echo.Echo, service services.Service) error {
+func applyExtensions(router *echo.Echo, authn *routesmiddleware.Authenticator, service services.Service) error {
 	for _, ext := range routeExtensions {
-		if err := ext(router, service); err != nil {
+		if err := ext(router, authn, service); err != nil {
 			log.WithError(err).Error("failed to apply route extension")
 
 			return err

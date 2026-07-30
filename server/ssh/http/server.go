@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
+	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 )
@@ -73,27 +74,47 @@ var upgrader = websocket.Upgrader{
 
 // Register adds the SSH routes to the API's router. The binder, validator and
 // error handler are the API's; they are a superset of what these handlers need.
-func Register(router *echo.Echo, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
+//
+// authn is the API's authenticator, used to declare which of these routes are
+// reachable without a credential. It may be nil in tests.
+func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
 	handlers := &Handlers{
 		Dialer:  d,
 		Service: service,
 		Config:  cfg,
 	}
 
+	allowAnonymous := func(method, path string) {
+		if authn != nil {
+			authn.AllowAnonymous(method, path)
+		}
+	}
+
+	// Both agent transports authenticate with the device's own token.
 	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
 	router.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
 
+	// The revdial handshake carries no credential of its own: it opens a further
+	// logical session over a connection already authenticated on
+	// HandleConnectionV1Path.
 	router.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
+	allowAnonymous(http.MethodGet, HandleRevdialPath)
 
 	// Registered at the root rather than under the API group: the group carries
 	// license enforcement in Enterprise, which this route does not have today.
+	// HandleSSHClose enforces the SessionClose permission itself, from the role
+	// the authenticator resolves.
 	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 
 	if cfg.WebEndpoints {
-		// NOTE: The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes
+		// NOTE: The `/http/proxy` endpoint is invoked by the edge proxy when a tunnel URL is accessed. It processes
 		// the `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server,
 		// returning an error related to the connection to device or what was returned from the server inside the tunnel.
+		//
+		// A web endpoint is a public URL, so this is anonymous for every method;
+		// the address in X-Address is what scopes the request to a device.
 		router.Any(HandleHTTPProxyPath, handlers.HandleHTTPProxy)
+		allowAnonymous(routesmiddleware.AnyMethod, HandleHTTPProxyPath)
 	}
 
 	return handlers
