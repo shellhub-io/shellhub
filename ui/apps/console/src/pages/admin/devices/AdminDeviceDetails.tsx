@@ -16,6 +16,7 @@ import { formatDateFull, formatRelative } from "@/utils/date";
 import IdentityCard from "@/components/common/IdentityCard";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
 
 export default function AdminDeviceDetails() {
@@ -28,19 +29,11 @@ export default function AdminDeviceDetails() {
 
   if (error || !device) {
     return (
-      <div className="text-center py-24">
-        <CpuChipIcon
-          className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-          strokeWidth={1}
-        />
-        <p className="text-sm text-text-muted mb-2">Device not found</p>
-        <Link
-          to="/admin/devices"
-          className="text-sm text-primary hover:underline"
-        >
-          Back to devices
-        </Link>
-      </div>
+      <ResourceNotFound
+        icon={CpuChipIcon}
+        resource="Device"
+        backTo="/admin/devices"
+      />
     );
   }
 

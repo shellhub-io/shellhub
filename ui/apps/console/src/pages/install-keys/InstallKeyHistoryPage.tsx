@@ -9,6 +9,8 @@ import { ExclamationCircleIcon as ExclamationCircleSolidIcon } from "@heroicons/
 import { IconBadge } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
+import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import InstallKeyEventsTable from "./InstallKeyEventsTable";
 import InstallKeyActions from "./InstallKeyActions";
 import RevealInstallKeyDialog from "./RevealInstallKeyDialog";
@@ -47,14 +49,28 @@ export default function InstallKeyHistoryPage() {
   // Source the key from the list rather than router state alone: the summary must survive a refresh or
   // a deep link (state is only set when arriving from the list) and stay live after a revoke/disable
   // here (the mutation invalidates the list). Fall back to the router-state copy while the list loads.
-  // The list caps at 100 keys; past that a deep link degrades to the leaner header.
-  const { installKeys } = useInstallKeys({ perPage: 100 });
+  // The list caps at 100 keys; past that a deep link shows "Install key not found"
+  const { installKeys, isLoading } = useInstallKeys({ perPage: 100 });
   const key = installKeys.find((k) => k.id === id) ?? state?.key ?? null;
   const name = key ? installKeyDisplayName(key) : (state?.name ?? "");
   const [revealOpen, setRevealOpen] = useState(false);
 
   const mode = key ? modeInfo(key.mode) : null;
   const ModeIcon = mode?.icon;
+
+  if (isLoading && !key) {
+    return <PageLoader label="Loading install key" />;
+  }
+
+  if (!key) {
+    return (
+      <ResourceNotFound
+        icon={TicketIcon}
+        resource="Install key"
+        backTo="/install-keys"
+      />
+    );
+  }
 
   return (
     <div>

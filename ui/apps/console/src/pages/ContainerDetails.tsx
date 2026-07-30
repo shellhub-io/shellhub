@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  useParams,
-  useNavigate,
-  useSearchParams,
-  Navigate,
-} from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import RenameSection from "@/components/common/RenameSection";
 import {
@@ -37,6 +32,7 @@ import TimelineCard from "@/components/common/TimelineCard";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { LABEL_BASE } from "@/utils/styles";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 
 export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
@@ -88,14 +84,18 @@ export default function ContainerDetails() {
     }
   }, [searchParams, container, existingSession, restoreTerminal]);
 
-  if (!uid) return <Navigate to="/containers" replace />;
-
   if (isLoading) {
     return <PageLoader label="Loading container details" />;
   }
 
   if (error || !container) {
-    return <Navigate to="/containers" replace />;
+    return (
+      <ResourceNotFound
+        icon={CubeIcon}
+        resource="Container"
+        backTo="/containers"
+      />
+    );
   }
 
   const nsName = currentNamespace?.name ?? "";

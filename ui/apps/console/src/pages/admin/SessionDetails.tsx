@@ -1,7 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import {
   CommandLineIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
@@ -12,6 +11,7 @@ import InfoItem from "@/components/common/InfoItem";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
 
 function BoolField({
@@ -48,18 +48,11 @@ export default function AdminSessionDetails() {
 
   if (error || !session) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center" role="alert">
-          <ExclamationCircleIcon className="w-10 h-10 text-accent-red mx-auto mb-3" />
-          <p className="text-sm font-medium text-text-primary">
-            Session not found
-          </p>
-          <p className="text-2xs text-text-muted mt-1">
-            {error?.message ??
-              "The session may have been removed or the ID is invalid."}
-          </p>
-        </div>
-      </div>
+      <ResourceNotFound
+        icon={CommandLineIcon}
+        resource="Session"
+        backTo="/admin/sessions"
+      />
     );
   }
 

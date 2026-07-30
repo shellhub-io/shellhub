@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import {
   ClockIcon,
@@ -44,6 +44,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import InfoItem from "@/components/common/InfoItem";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "./sessions/SessionTypeBadge";
 
 type EventStatus = "success" | "error" | "info" | "active" | "muted";
@@ -244,7 +245,6 @@ function DurationStat({
 
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
-  const navigate = useNavigate();
   const { session, isLoading, error } = useSession(uid!);
   const closeSession = useCloseSession();
   const deleteRecording = useDeleteSessionRecording();
@@ -292,23 +292,17 @@ export default function SessionDetails() {
     }
   };
 
-  if (isLoading || !session) {
+  if (isLoading) {
     return <PageLoader label="Loading session" />;
   }
 
-  if (error) {
+  if (error || !session) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <XCircleIcon className="w-8 h-8 text-accent-red/60" />
-        <p className="text-sm font-mono text-text-muted">{error.message}</p>
-        <button
-          type="button"
-          onClick={() => void navigate("/sessions")}
-          className="text-xs font-mono text-primary hover:underline"
-        >
-          ← Back to sessions
-        </button>
-      </div>
+      <ResourceNotFound
+        icon={CommandLineIcon}
+        resource="Session"
+        backTo="/sessions"
+      />
     );
   }
 
