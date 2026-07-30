@@ -37,6 +37,12 @@ func (rw *capture) WriteHeader(statusCode int) {
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
+// Unwrap lets http.ResponseController reach the underlying writer, which is how
+// echo resolves Hijack and Flush. Without it the SSH WebSocket routes fail here.
+func (rw *capture) Unwrap() http.ResponseWriter {
+	return rw.ResponseWriter
+}
+
 // OpenAPIValidatorConfig holds the configuration for schema validation middleware
 type OpenAPIValidatorConfig struct {
 	// EnabledPaths specifies which paths to validate (nil = all paths)

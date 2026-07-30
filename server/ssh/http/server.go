@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 )
@@ -53,17 +52,6 @@ func (c *Config) webEndpointHost(address string) string {
 	return webendpoints.Host(address, webendpoints.Domain(c.WebEndpointsDomain, c.Domain))
 }
 
-// Server wires HTTP routes (connection upgrade, reverse dialing,
-// web endpoint proxy, healthcheck) to the underlying dialer and
-// handlers. It exposes both V1 (/ssh/connection + /ssh/revdial) and V2
-// (/connection) endpoints during the transition period while agents
-// upgrade.
-type Server struct {
-	Config   *Config
-	Router   *echo.Echo
-	Handlers *Handlers
-}
-
 var (
 	ErrWebEndpointForbidden      = errors.New("web endpoint not found")
 	ErrDeviceTunnelDial          = errors.New("failed to connect to device")
@@ -83,85 +71,30 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// ListenAndServe starts the Echo HTTP server on the provided address.
-func (s *Server) ListenAndServe(address string) error {
-	return s.Router.Start(address)
-}
-
-type Binder struct{}
-
-func NewBinder() *Binder {
-	return &Binder{}
-}
-
-func (b *Binder) Bind(s any, c echo.Context) error {
-	binder := new(echo.DefaultBinder)
-	if err := binder.Bind(s, c); err != nil {
-		err := err.(*echo.HTTPError) //nolint:forcetypeassert
-
-		return err
-	}
-
-	if err := binder.BindHeaders(c, s); err != nil {
-		err := err.(*echo.HTTPError) //nolint:forcetypeassert
-
-		return err
-	}
-
-	return nil
-}
-
-type Validator struct {
-	validator *validator.Validator
-}
-
-// NewValidator creates a new validator for the echo framework from the ShellHub validator.
-func NewValidator() *Validator {
-	return &Validator{validator: validator.New()}
-}
-
-// Validate is called by the echo framework to validate the request body.
-// If the request body is invalid, it returns an error with the invalid fields.
-func (v *Validator) Validate(structure any) error {
-	if ok, err := v.validator.Struct(structure); !ok || err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func NewServer(d *dialer.Dialer, cli internalclient.Client, cfg *Config) *Server {
-	r := echo.New()
-
-	r.Binder = NewBinder()
-	r.Validator = NewValidator()
-	r.HideBanner = true
-	r.HidePort = true
-
+// Register adds the SSH routes to the API's router. The binder, validator and
+// error handler are the API's; they are a superset of what these handlers need.
+func Register(router *echo.Echo, d *dialer.Dialer, cli internalclient.Client, cfg *Config) *Handlers {
 	handlers := &Handlers{
 		Dialer: d,
 		Client: cli,
 		Config: cfg,
 	}
 
-	r.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
-	r.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
+	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
+	router.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
 
-	r.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
+	router.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
 
-	r.POST(HandleSSHClosePath, handlers.HandleSSHClose)
-	r.GET(HandleHealthcheckPath, handlers.HandleHealthcheck)
+	// Registered at the root rather than under the API group: the group carries
+	// license enforcement in Enterprise, which this route does not have today.
+	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 
 	if cfg.WebEndpoints {
 		// NOTE: The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes
 		// the `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server,
 		// returning an error related to the connection to device or what was returned from the server inside the tunnel.
-		r.Any(HandleHTTPProxyPath, handlers.HandleHTTPProxy)
+		router.Any(HandleHTTPProxyPath, handlers.HandleHTTPProxy)
 	}
 
-	return &Server{
-		Config:   cfg,
-		Router:   r,
-		Handlers: handlers,
-	}
+	return handlers
 }
