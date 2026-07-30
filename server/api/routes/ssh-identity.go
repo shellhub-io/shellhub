@@ -5,19 +5,15 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
 const (
-	ListSSHIdentitiesURL  = "/ssh-identities"
-	CreateSSHIdentityURL  = "/ssh-identities"
-	UpdateSSHIdentityURL  = "/ssh-identities/:id"
-	DeleteSSHIdentityURL  = "/ssh-identities/:id"
-	ResolveSSHIdentityURL = "/ssh-identities/resolve"
-	ConsumeSSHIdentityURL = "/ssh-identities/consume"
+	ListSSHIdentitiesURL = "/ssh-identities"
+	CreateSSHIdentityURL = "/ssh-identities"
+	UpdateSSHIdentityURL = "/ssh-identities/:id"
+	DeleteSSHIdentityURL = "/ssh-identities/:id"
 )
 
 // ListSSHIdentities returns the caller's enrolled SSH identities in the current
@@ -146,44 +142,4 @@ func (h *Handler) DeleteSSHIdentity(c gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-// ResolveSSHIdentity is the internal endpoint the SSH gateway calls to resolve a
-// presented key's fingerprint to a ShellHub identity in the identity access
-// mode.
-func (h *Handler) ResolveSSHIdentity(c gateway.Context) error {
-	tenant := c.QueryParam("tenant")
-	fingerprint := c.QueryParam("fingerprint")
-
-	identity, found, err := h.service.ResolveSSHIdentity(c.Ctx(), tenant, fingerprint)
-	if err != nil {
-		return err
-	}
-
-	resolution := internalclient.SSHIdentityResolution{Found: found}
-	if found {
-		resolution.UserID = identity.PrincipalID
-		resolution.Name = identity.Name
-		resolution.LastReauthAt = identity.LastReauthAt
-		resolution.Active = identity.Active(clock.Now())
-		resolution.SingleUse = identity.SingleUse
-	}
-
-	return c.JSON(http.StatusOK, resolution)
-}
-
-// ConsumeSSHIdentity is the internal endpoint the SSH gateway calls once a
-// single-use key's session is established, to atomically burn it. The response
-// reports whether this call won the burn; a false means a concurrent session
-// already consumed it and the caller must be denied.
-func (h *Handler) ConsumeSSHIdentity(c gateway.Context) error {
-	tenant := c.QueryParam("tenant")
-	fingerprint := c.QueryParam("fingerprint")
-
-	consumed, err := h.service.ConsumeSSHIdentity(c.Ctx(), tenant, fingerprint)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, map[string]bool{"consumed": consumed})
 }

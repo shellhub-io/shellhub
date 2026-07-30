@@ -12,7 +12,6 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -148,11 +147,6 @@ func (s *Server) Setup(ctx context.Context) error {
 		return errors.Join(errors.New("failed to reconcile instance binding"), err)
 	}
 
-	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(s.env.RedisURI))
-	if err != nil {
-		return err
-	}
-
 	servicesOptions, err := s.serviceOptions(ctx)
 	if err != nil {
 		return err
@@ -220,7 +214,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	s.heartbeater = services.NewDeviceHeartbeater(store)
 
-	if err := s.setupSSH(service, apiClient); err != nil {
+	if err := s.setupSSH(service); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
 	}
 
@@ -269,7 +263,7 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 // now live in the same process, so a second client would buy nothing. The
 // service is handed over for the same reason: the SSH side is migrating off the
 // loopback HTTP client and onto in-process calls.
-func (s *Server) setupSSH(service services.Service, apiClient internalclient.Client) error {
+func (s *Server) setupSSH(service services.Service) error {
 	env, err := envs.ParseWithPrefix[sshEnv]("SSH_")
 	if err != nil {
 		return err
@@ -296,7 +290,7 @@ func (s *Server) setupSSH(service services.Service, apiClient internalclient.Cli
 		pprof.Register(s.router)
 	}
 
-	s.ssh, err = sshserver.NewServer(d, service, apiClient, handoff, &sshserver.Options{
+	s.ssh, err = sshserver.NewServer(d, service, handoff, &sshserver.Options{
 		ConnectTimeout:               env.ConnectTimeout,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
 		HostKeyFile:                  env.HostKeyFile,

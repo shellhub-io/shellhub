@@ -10,7 +10,6 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
@@ -57,7 +56,7 @@ const validSSHID = "user@namespace.device"
 // succeed by default. Individual tests override the stub they want to fail.
 func stubDeps() bannerDeps {
 	return bannerDeps{
-		newSession: func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ internalclient.Client, _ *webhandoff.Store) (*session.Session, error) {
+		newSession: func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 			return &session.Session{}, nil //nolint:exhaustruct
 		},
 		dial: func(_ *session.Session, _ gliderssh.Context) error {
@@ -78,7 +77,7 @@ func bannerKind(message string) banner.Kind {
 }
 
 func TestBannerHandlerInvalidSSHID(t *testing.T) {
-	h := newBannerHandler(nil, nil, nil, nil)
+	h := newBannerHandler(nil, nil, nil)
 	result := h(newStubCtx("not-a-valid-sshid"))
 
 	assert.Equal(t, banner.KindInvalidSSHID, bannerKind(result),
@@ -87,11 +86,11 @@ func TestBannerHandlerInvalidSSHID(t *testing.T) {
 
 func TestBannerHandlerNewSessionFailure(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ internalclient.Client, _ *webhandoff.Store) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 		return nil, errors.New("api unreachable")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, nil, deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
@@ -104,7 +103,7 @@ func TestBannerHandlerDialFailure(t *testing.T) {
 		return errors.New("device offline")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, nil, deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindConnectionFailed, bannerKind(result),
@@ -117,7 +116,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 		return errors.New("firewall block")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, nil, deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
 	result := h(newStubCtx(validSSHID))
 
 	assert.Equal(t, banner.KindAccessDenied, bannerKind(result),
@@ -125,7 +124,7 @@ func TestBannerHandlerEvaluateFailure(t *testing.T) {
 }
 
 func TestBannerHandlerSuccess(t *testing.T) {
-	h := newBannerHandlerWithDeps(nil, nil, nil, nil, stubDeps())
+	h := newBannerHandlerWithDeps(nil, nil, nil, stubDeps())
 	result := h(newStubCtx(validSSHID))
 
 	assert.Empty(t, result,
@@ -134,11 +133,11 @@ func TestBannerHandlerSuccess(t *testing.T) {
 
 func TestBannerHandlerRecoversFromPanic(t *testing.T) {
 	deps := stubDeps()
-	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ internalclient.Client, _ *webhandoff.Store) (*session.Session, error) {
+	deps.newSession = func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
 		panic("boom")
 	}
 
-	h := newBannerHandlerWithDeps(nil, nil, nil, nil, deps)
+	h := newBannerHandlerWithDeps(nil, nil, nil, deps)
 
 	var result string
 	require.NotPanics(t, func() {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -16,12 +15,9 @@ import (
 const (
 	GetDeviceListURL           = "/devices"
 	GetDeviceURL               = "/devices/:uid"
-	GetDeviceInternalURL       = "/devices/:uid"
 	ResolveDeviceURL           = "/devices/resolve"
 	DeleteDeviceURL            = "/devices/:uid"
 	RenameDeviceURL            = "/devices/:uid"
-	OfflineDeviceURL           = "/devices/:uid/offline"
-	LookupDeviceURL            = "/device/lookup"
 	UpdateDeviceStatusURL      = "/devices/:uid/:status"
 	UpdateDevice               = "/devices/:uid"
 	SetDeviceCustomFieldURL    = "/devices/:uid/custom_fields/:key"
@@ -140,33 +136,6 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-// GetDeviceInternal resolves a device by UID across every namespace. It is the counterpart to
-// [Handler.GetDevice], which is bounded to the caller's namespace: the SSH server has to resolve a
-// device before it knows which namespace the connection belongs to, so it cannot supply a tenant.
-//
-// The two contracts are deliberately two routes rather than one route that widens when the tenant
-// header is missing. This one is registered only on the internal group, which the gateway does not
-// expose, so it is reachable only from within the container network.
-func (h *Handler) GetDeviceInternal(c gateway.Context) error {
-	var req requests.DeviceGet
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	sc := scope.NewUnbounded("the SSH server resolves a device before it knows which namespace the connection belongs to; reachable only on the unexposed internal route group")
-
-	device, err := h.service.GetDevice(c.Ctx(), sc, models.UID(req.UID))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, device)
-}
-
 func (h *Handler) ResolveDevice(c gateway.Context) error {
 	var req requests.ResolveDevice
 	if err := c.Bind(&req); err != nil {
@@ -227,41 +196,6 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) OfflineDevice(c gateway.Context) error {
-	var req requests.DeviceOffline
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.OfflineDevice(c.Ctx(), models.UID(req.UID)); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) LookupDevice(c gateway.Context) error {
-	var req requests.DeviceLookup
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	device, err := h.service.LookupDevice(c.Ctx(), req.TenantID, req.Name)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, device)
 }
 
 func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {

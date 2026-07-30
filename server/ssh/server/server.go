@@ -9,7 +9,6 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
@@ -45,7 +44,7 @@ type Server struct {
 // defaults (set by defaultBannerDeps) delegate to the real session package;
 // tests supply stubs to exercise individual branches without network I/O.
 type bannerDeps struct {
-	newSession func(ctx gliderssh.Context, d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) (*session.Session, error)
+	newSession func(ctx gliderssh.Context, d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*session.Session, error)
 	dial       func(sess *session.Session, ctx gliderssh.Context) error
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
@@ -62,13 +61,13 @@ func defaultBannerDeps() bannerDeps {
 // establishes the session, and dials the target device. It returns a banner
 // message (using ssh/pkg/banner) when any step fails, or an empty string on
 // success so the SSH handshake continues normally.
-func newBannerHandler(d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) gliderssh.BannerHandler {
-	return newBannerHandlerWithDeps(d, service, api, handoff, defaultBannerDeps())
+func newBannerHandler(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store) gliderssh.BannerHandler {
+	return newBannerHandlerWithDeps(d, service, handoff, defaultBannerDeps())
 }
 
 // newBannerHandlerWithDeps is the testable core of newBannerHandler. Callers
 // supply a bannerDeps to stub out network-dependent operations.
-func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
+func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
@@ -95,7 +94,7 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, api in
 			return banner.Message(banner.KindInvalidSSHID)
 		}
 
-		sess, err := deps.newSession(ctx, d, service, api, handoff)
+		sess, err := deps.newSession(ctx, d, service, handoff)
 		if err != nil {
 			logger.WithError(err).Error("failed to create the session")
 
@@ -176,7 +175,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	}
 }
 
-func NewServer(dialer *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store, opts *Options) (*Server, error) {
+func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		dialer: dialer,
@@ -190,7 +189,7 @@ func NewServer(dialer *dialer.Dialer, service services.Service, api internalclie
 			return conn
 		},
 		ServerConfigCallback: newServerConfigCallback,
-		BannerHandler:        newBannerHandler(dialer, service, api, handoff),
+		BannerHandler:        newBannerHandler(dialer, service, handoff),
 		PasswordHandler:      auth.PasswordHandler,
 		PublicKeyHandler:     auth.PublicKeyHandler,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A

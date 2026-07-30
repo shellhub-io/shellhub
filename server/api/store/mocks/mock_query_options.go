@@ -16,8 +16,7 @@ import (
 func NewMockQueryOptions(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockQueryOptions {
+}) *MockQueryOptions {
 	mock := &MockQueryOptions{}
 	mock.Mock.Test(t)
 

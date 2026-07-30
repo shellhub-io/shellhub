@@ -12,7 +12,6 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -144,10 +143,8 @@ type Session struct {
 	// Client represents a connection to a Client.
 	Client *Client
 
-	api internalclient.Client
-	// service is the API's service layer, reached in process. It is replacing api
-	// call by call: both halves run in the same binary, so the HTTP hop the client
-	// makes is a call to ourselves.
+	// service is the API's service layer, reached in process: both halves run in
+	// the same binary.
 	service services.Service
 	dialer  *dialer.Dialer
 	// Events is a connection to the endpoint to save session's events.
@@ -238,7 +235,7 @@ func (s *Seats) SetPty(seat int, status bool) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*Session, error) {
 	snap := getSnapshot(ctx)
 
 	sshid := ctx.User()
@@ -313,7 +310,6 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 
 	session := &Session{
 		UID:     ctx.SessionID(),
-		api:     api,
 		service: service,
 		dialer:  dialer,
 		Events:  NewEvents(ctx.SessionID(), service),

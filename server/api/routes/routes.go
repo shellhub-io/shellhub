@@ -96,50 +96,9 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		}
 	}
 
-	// Internal routes only accessible by other services in the local container network
-	internalAPI := router.Group("/internal")
-
-	internalAPI.GET(AuthRequestURL, gateway.Handler(handler.AuthRequest))
-	internalAPI.GET(AuthUserTokenInternalURL, gateway.Handler(handler.CreateUserToken)) // TODO: same as defined in public API. remove it.
-
-	internalAPI.POST(OfflineDeviceURL, gateway.Handler(handler.OfflineDevice))
-	internalAPI.GET(LookupDeviceURL, gateway.Handler(handler.LookupDevice))
-
-	// Internal device resolve used by the SSH server, which has to identify the device before it
-	// knows the namespace. Its public counterpart on /api/devices/:uid is bounded to the caller's
-	// tenant; the two guarantees are two routes so neither caller can silently get the other's.
-	internalAPI.GET(GetDeviceInternalURL, gateway.Handler(handler.GetDeviceInternal))
-
-	internalAPI.POST(CreateSessionURL, gateway.Handler(handler.CreateSession))
-	internalAPI.POST(FinishSessionURL, gateway.Handler(handler.FinishSession))
-	internalAPI.POST(KeepAliveSessionURL, gateway.Handler(handler.KeepAliveSession))
-	internalAPI.PATCH(UpdateSessionURL, gateway.Handler(handler.UpdateSession))
-
-	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
-	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
-
-	// The SSH gateway mints a JIT login approval and polls its decision while it
-	// holds the connection open. The approve/deny endpoints are user-facing (see
-	// publicAPI below).
-	internalAPI.POST(CreateSSHApprovalURL, gateway.Handler(handler.CreateSSHApproval))
-	internalAPI.GET(GetSSHApprovalStatusURL, gateway.Handler(handler.GetSSHApprovalStatus))
-
-	// The SSH gateway resolves a presented key's fingerprint to a ShellHub
-	// identity in the identity access mode, and burns a single-use key once its
-	// session establishes.
-	internalAPI.GET(ResolveSSHIdentityURL, gateway.Handler(handler.ResolveSSHIdentity))
-	internalAPI.POST(ConsumeSSHIdentityURL, gateway.Handler(handler.ConsumeSSHIdentity))
-
-	// Internal namespace lookup used by other services (ssh, cloud) to resolve
-	// a namespace by tenant without passing through the user-facing tenant
-	// guard on /api/namespaces/:tenant.
-	internalAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace))
-
-	// The SSH gateway authorizes an approved identity against the namespace's
-	// Access Policies at the ephemeral-key mint point.
-	internalAPI.GET(AuthorizeSSHAccessURL, gateway.Handler(handler.AuthorizeSSHAccess))
-	internalAPI.GET(HasAccessPoliciesURL, gateway.Handler(handler.HasAccessPolicies))
+	// The only internal route left: the nginx gateway's auth_request target. The
+	// rest served the ssh side, which now calls the service in process.
+	router.GET("/internal"+AuthRequestURL, gateway.Handler(handler.AuthRequest))
 
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
