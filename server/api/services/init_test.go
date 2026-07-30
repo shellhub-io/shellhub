@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmocks "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -20,7 +19,6 @@ import (
 var (
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
-	clientMock *mocks.MockClient
 	envMock    *env_mocks.MockBackend
 	clockMock  *clockmocks.MockClock
 	hashMock   *hashmock.MockHasher
@@ -37,7 +35,6 @@ func TestMain(m *testing.M) {
 	// uses the real wall-clock backend and returns a valid timestamp.
 	now = clock.Now()
 	realUUIDBackend = uuid.DefaultBackend
-	clientMock = &mocks.MockClient{}
 	clockMock = &clockmocks.MockClock{}
 	envMock = &env_mocks.MockBackend{}
 	clock.DefaultBackend = clockMock

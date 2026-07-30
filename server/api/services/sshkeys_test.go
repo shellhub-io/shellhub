@@ -168,7 +168,7 @@ func TestEvaluateKeyFilter(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 			ok, err := service.EvaluateKeyFilter(ctx, tc.key, tc.device)
 			assert.Equal(t, tc.expected, Expected{ok, err})
 		})
@@ -184,7 +184,7 @@ func TestListPublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -271,7 +271,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	ctx := context.TODO()
 
@@ -348,7 +348,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 
 	ctx := context.TODO()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	type Expected struct {
 		key *models.PublicKey
@@ -572,7 +572,7 @@ func TestDeletePublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	type Expected struct {
 		err error
@@ -678,7 +678,7 @@ func TestCreatePublicKeys(t *testing.T) {
 
 	clockMock.On("Now").Return(now)
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	pubKey, _ := ssh.NewPublicKey(publicKey)
 

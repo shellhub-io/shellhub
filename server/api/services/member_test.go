@@ -198,7 +198,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -701,7 +701,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock, clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1223,7 +1223,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1523,7 +1523,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+	s := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -1568,7 +1568,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded(ns.TenantID), "placeholder").Return(nil, store.ErrNoDocuments).Once()
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).Return(nil).Once()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",
@@ -1619,7 +1619,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 		return nil
 	})
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost:  "localhost",
 		ForwardedProto: "https",
@@ -1679,7 +1679,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 		return nil
 	})
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",

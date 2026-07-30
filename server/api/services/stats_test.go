@@ -99,7 +99,7 @@ func TestGetStats(t *testing.T) {
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

@@ -233,7 +233,7 @@ func TestCreateInstallKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -273,7 +273,7 @@ func TestListInstallKeys(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	keys, count, err := s.ListInstallKeys(context.Background(), req)
 	require.NoError(t, err)
@@ -483,7 +483,7 @@ func TestUpdateInstallKey(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -520,7 +520,7 @@ func TestAppendInstallKeyEvent(t *testing.T) {
 				e.Ephemeral && e.ReRegistration && e.Info != nil && e.Info.Arch == "amd64"
 		})).Return(nil).Once()
 
-		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 		s.appendInstallKeyEvent(context.Background(), key, req, "uid-1", "web-01", true)
 
 		storeMock.AssertExpectations(t)
@@ -530,7 +530,7 @@ func TestAppendInstallKeyEvent(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("InstallKeyEventCreate", mock.Anything, mock.Anything).Return(errors.New("boom")).Once()
 
-		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 		require.NotPanics(t, func() {
 			s.appendInstallKeyEvent(context.Background(), key, req, "uid-1", "web-01", false)
 		})
@@ -587,7 +587,7 @@ func TestListInstallKeyEvents(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

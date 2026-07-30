@@ -277,7 +277,7 @@ func TestListSessions(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
@@ -355,7 +355,7 @@ func TestGetSession(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 			returnedSession, err := service.GetSession(ctx, tc.scope, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 			storeMock.AssertExpectations(t)
@@ -425,7 +425,7 @@ func TestCreateSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock, WithLocator(locator))
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), WithLocator(locator))
 			returnedSession, err := service.CreateSession(ctx, tc.session)
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 		})
@@ -488,7 +488,7 @@ func TestDeactivateSession(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache())
 			err := service.DeactivateSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -546,7 +546,7 @@ func TestUpdateSession(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(mockStore), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(store.Store(mockStore), privateKey, publicKey, storecache.NewNullCache())
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()

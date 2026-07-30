@@ -188,7 +188,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
-	service := services.NewService(store, nil, nil, cache, apiClient, servicesOptions...)
+	service := services.NewService(store, nil, nil, cache, servicesOptions...)
 	s.router = routes.NewRouter(service, routerOptions...)
 
 	s.worker = asynq.NewServer(

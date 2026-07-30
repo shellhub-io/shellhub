@@ -3,7 +3,6 @@ package services
 import (
 	"crypto/rsa"
 
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
@@ -21,7 +20,6 @@ type service struct {
 	privKey          *rsa.PrivateKey
 	pubKey           *rsa.PublicKey
 	cache            cache.Cache
-	client           internalclient.Client
 	locator          geoip.Locator
 	validator        *validator.Validator
 	billing          BillingProvider
@@ -86,7 +84,7 @@ func WithLicenseEvaluator(le LicenseEvaluator) Option {
 	}
 }
 
-func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c internalclient.Client, options ...Option) *APIService {
+func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
 		privKey, pubKey, err = LoadKeys()
@@ -101,7 +99,6 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			privKey:          privKey,
 			pubKey:           pubKey,
 			cache:            cache,
-			client:           c,
 			locator:          geoip.NewNullGeoLite(),
 			validator:        validator.New(),
 			billing:          nil, // injected via WithBilling option

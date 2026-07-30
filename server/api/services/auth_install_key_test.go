@@ -147,7 +147,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -215,7 +215,7 @@ func TestEnrollmentInstallKey(t *testing.T) {
 			cacheMock := mockcache.NewMockCache(tt)
 			tc.requiredMocks(ctx, storeMock)
 
-			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 			key, id, err := svc.enrollmentInstallKey(ctx, scope.MustBounded(tenant), requests.DeviceAuth{TenantID: tenant}, tc.paired)
 
 			require.NoError(tt, err)

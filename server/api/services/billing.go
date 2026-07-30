@@ -52,7 +52,7 @@ func BillingFactory() BillingProviderFactory {
 // Example usage:
 //
 //	cloudBilling := billingAdapter.NewCoreBillingAdapter(cloudBillingService)
-//	coreService := services.NewService(store, privKey, pubKey, cache, client,
+//	coreService := services.NewService(store, privKey, pubKey, cache,
 //	    services.WithBilling(cloudBilling))
 type BillingProvider interface {
 	// Evaluate checks if a namespace can accept or connect more devices based on

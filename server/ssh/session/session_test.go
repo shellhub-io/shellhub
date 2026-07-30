@@ -166,13 +166,10 @@ func TestEvaluate(t *testing.T) {
 					Return(nil).
 					Once()
 
+				// The tenant comes from the device the session already resolved, so
+				// billing is evaluated without a second device lookup.
 				m.EXPECT().
-					GetDevice(mock.Anything, "device-uid").
-					Return(&models.Device{UID: "device-uid", TenantID: "billing-tenant-id"}, nil).
-					Once()
-
-				m.EXPECT().
-					BillingEvaluate(mock.Anything, "billing-tenant-id").
+					BillingEvaluate(mock.Anything, "tenant-id").
 					Return(&models.BillingEvaluation{CanConnect: true}, nil).
 					Once()
 			},
@@ -189,12 +186,7 @@ func TestEvaluate(t *testing.T) {
 					Once()
 
 				m.EXPECT().
-					GetDevice(mock.Anything, "device-uid").
-					Return(&models.Device{UID: "device-uid", TenantID: "billing-tenant-id"}, nil).
-					Once()
-
-				m.EXPECT().
-					BillingEvaluate(mock.Anything, "billing-tenant-id").
+					BillingEvaluate(mock.Anything, "tenant-id").
 					Return(&models.BillingEvaluation{CanConnect: false}, nil).
 					Once()
 			},

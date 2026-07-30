@@ -76,7 +76,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			tc.requireMocks(storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, nil, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, nil)
 
 			err := service.DeleteServiceAccount(ctx, req)
 			if tc.expectedErr {

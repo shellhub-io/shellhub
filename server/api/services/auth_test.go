@@ -1113,7 +1113,7 @@ func TestAuthDevice(t *testing.T) {
 		},
 	}
 
-	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+	service := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -2183,7 +2183,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+	service := NewService(store.Store(mock), privateKey, &privateKey.PublicKey, cacheMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2500,7 +2500,7 @@ func TestCreateUserToken(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2716,7 +2716,7 @@ func TestAuthAPIKey(t *testing.T) {
 
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock, clientMock)
+	service := NewService(storeMock, privKey, &privKey.PublicKey, cacheMock)
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2830,7 +2830,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -2891,7 +2891,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,
@@ -2946,7 +2946,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Return(nil).
 			Once()
 
-		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, clientMock)
+		svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock)
 
 		res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
 			TenantID:  tenantID,

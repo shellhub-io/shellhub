@@ -166,7 +166,7 @@ func TestListDevices(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -281,7 +281,7 @@ func TestListDevices_status_removed(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -527,7 +527,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
@@ -625,7 +625,7 @@ func TestGetDevice(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 			returnedDevice, err := service.GetDevice(ctx, tc.scope, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
@@ -758,7 +758,7 @@ func TestResolveDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
@@ -974,7 +974,7 @@ func TestDeleteDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 			err := service.DeleteDevice(ctx, tc.uid, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -1105,7 +1105,7 @@ func TestRenameDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1217,7 +1217,7 @@ func TestLookupDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.device, tc.namespace)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 			returnedDevice, err := service.LookupDevice(ctx, tc.namespace, tc.device.Name)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
 		})
@@ -1276,7 +1276,7 @@ func TestOfflineDevice(t *testing.T) {
 		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1972,7 +1972,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -2303,7 +2303,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock, WithLicenseEvaluator(licenseEvaluator))
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(licenseEvaluator))
 
 	storeMock.
 		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -2490,7 +2490,7 @@ func TestDeviceUpdate(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, test := range cases {
 		t.Run(test.description, func(t *testing.T) {
@@ -2632,7 +2632,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, test := range cases {
 		t.Run(test.description, func(t *testing.T) {
@@ -2719,7 +2719,7 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 		},
 	}
 
-	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
 	for _, test := range cases {
 		t.Run(test.description, func(t *testing.T) {

@@ -146,7 +146,7 @@ func TestCreateDevicePairing(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			pairing, err := service.CreateDevicePairing(context.TODO(), req)
 			require.Equal(tt, tc.expected.err, err)
@@ -249,7 +249,7 @@ func TestGetDevicePairingStatus(t *testing.T) {
 			cacheMock := new(cachemock.MockCache)
 			tc.requiredMocks(cacheMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			status, err := service.GetDevicePairingStatus(context.TODO(), tc.code)
 			require.Equal(tt, tc.expected, Expected{status, err})
@@ -363,7 +363,7 @@ func TestAcceptDevicePairing(t *testing.T) {
 
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			accepted, err := service.AcceptDevicePairing(context.TODO(), tc.userID, tc.req)
 			require.Equal(tt, tc.expectedErr, err)
@@ -459,7 +459,7 @@ func TestPrepareDevicePairing(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			pairing, err := service.PrepareDevicePairing(context.TODO(), tc.userID, tc.tenantID)
 			require.Equal(tt, tc.expectedErr, err)
@@ -615,7 +615,7 @@ func TestClaimDevicePairing(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock, clientMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock)
 
 			pairing, err := service.CreateDevicePairing(context.TODO(), tc.req)
 			require.Equal(tt, tc.expected.err, err)
