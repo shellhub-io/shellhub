@@ -24,7 +24,7 @@ type MemberParam struct {
 type NamespaceList struct {
 	UserID   string `header:"X-ID"`
 	TenantID string `header:"X-Tenant-ID"`
-	// IsAdmin is set by nginx from the /auth subrequest; client-supplied X-Admin is overwritten.
+	// IsAdmin comes from the authenticated identity; a client-supplied X-Admin is overwritten.
 	IsAdmin bool `header:"X-Admin"`
 	query.Paginator
 	query.Filters
