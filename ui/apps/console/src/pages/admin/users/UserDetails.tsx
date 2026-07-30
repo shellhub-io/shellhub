@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   UsersIcon,
   PencilSquareIcon,
@@ -20,6 +20,7 @@ import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import {
   Badge,
   Button,
@@ -56,19 +57,11 @@ export default function UserDetails() {
 
   if (error || !user) {
     return (
-      <div className="text-center py-24">
-        <UsersIcon
-          className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-          strokeWidth={1}
-        />
-        <p className="text-sm text-text-muted mb-2">User not found</p>
-        <Link
-          to="/admin/users"
-          className="text-sm text-primary hover:underline"
-        >
-          Back to users
-        </Link>
-      </div>
+      <ResourceNotFound
+        icon={UsersIcon}
+        resource="User"
+        backTo="/admin/users"
+      />
     );
   }
 

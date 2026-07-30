@@ -13,6 +13,7 @@ import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
 import AnnouncementContent from "./AnnouncementContent";
 import { formatDateFull } from "@/utils/date";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 const LABEL =
@@ -34,19 +35,11 @@ export default function AnnouncementDetails() {
 
   if (error || !announcement) {
     return (
-      <div className="text-center py-24">
-        <MegaphoneIcon
-          className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-          strokeWidth={1}
-        />
-        <p className="text-sm text-text-muted mb-2">Announcement not found</p>
-        <Link
-          to="/admin/announcements"
-          className="text-sm text-primary hover:underline"
-        >
-          Back to announcements
-        </Link>
-      </div>
+      <ResourceNotFound
+        icon={MegaphoneIcon}
+        resource="Announcement"
+        backTo="/admin/announcements"
+      />
     );
   }
 

@@ -37,12 +37,13 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 
 export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { device, isLoading } = useDevice(uid ?? "");
+  const { device, isLoading, error } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { installKeys } = useInstallKeys({ perPage: 100 });
@@ -87,8 +88,18 @@ export default function DeviceDetails() {
     }
   }, [searchParams, device, existingSession, restoreTerminal]);
 
-  if (isLoading || !device) {
+  if (isLoading) {
     return <PageLoader label="Loading device details" />;
+  }
+
+  if (error || !device) {
+    return (
+      <ResourceNotFound
+        icon={CpuChipIcon}
+        resource="Device"
+        backTo="/devices"
+      />
+    );
   }
 
   const nsName = currentNamespace?.name ?? "";

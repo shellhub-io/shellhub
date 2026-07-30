@@ -14,6 +14,7 @@ import CopyButton from "@/components/common/CopyButton";
 import FilterBadge from "@/components/common/FilterBadge";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
 
 export default function AdminFirewallRuleDetails() {
@@ -26,19 +27,11 @@ export default function AdminFirewallRuleDetails() {
 
   if (error || !rule) {
     return (
-      <div className="text-center py-24">
-        <ShieldExclamationIcon
-          className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-          strokeWidth={1}
-        />
-        <p className="text-sm text-text-muted mb-2">Firewall rule not found</p>
-        <Link
-          to="/admin/firewall-rules"
-          className="text-sm text-primary hover:underline"
-        >
-          Back to firewall rules
-        </Link>
-      </div>
+      <ResourceNotFound
+        icon={ShieldExclamationIcon}
+        resource="Firewall rule"
+        backTo="/admin/firewall-rules"
+      />
     );
   }
 

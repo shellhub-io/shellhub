@@ -17,6 +17,7 @@ import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
+import ResourceNotFound from "@/components/common/ResourceNotFound";
 import {
   Badge,
   Button,
@@ -44,19 +45,11 @@ export default function NamespaceDetails() {
 
   if (error || !namespace) {
     return (
-      <div className="text-center py-24">
-        <ServerStackIcon
-          className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-          strokeWidth={1}
-        />
-        <p className="text-sm text-text-muted mb-2">Namespace not found</p>
-        <Link
-          to="/admin/namespaces"
-          className="text-sm text-primary hover:underline"
-        >
-          Back to namespaces
-        </Link>
-      </div>
+      <ResourceNotFound
+        icon={ServerStackIcon}
+        resource="Namespace"
+        backTo="/admin/namespaces"
+      />
     );
   }
 
