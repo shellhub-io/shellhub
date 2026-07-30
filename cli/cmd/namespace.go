@@ -49,11 +49,17 @@ The owner must be a valid username within the system. If a tenant ID is provided
 				return err
 			}
 
+			sshAccessMode, err := cmd.Flags().GetString("ssh-access-mode")
+			if err != nil {
+				return err
+			}
+
 			input := inputs.NamespaceCreate{
-				Namespace: strings.ToLower(args[0]),
-				Owner:     strings.ToLower(args[1]),
-				TenantID:  "",
-				Type:      strings.ToLower(namespaceType),
+				Namespace:     strings.ToLower(args[0]),
+				Owner:         strings.ToLower(args[1]),
+				TenantID:      "",
+				Type:          strings.ToLower(namespaceType),
+				SSHAccessMode: strings.ToLower(sshAccessMode),
 			}
 
 			if len(args) == 3 {
@@ -80,6 +86,7 @@ The owner must be a valid username within the system. If a tenant ID is provided
 	}
 
 	cmdNamespace.PersistentFlags().String("type", "team", "type")
+	cmdNamespace.PersistentFlags().String("ssh-access-mode", "", "SSH authorization model: legacy or identity (default identity)")
 
 	return cmdNamespace
 }
