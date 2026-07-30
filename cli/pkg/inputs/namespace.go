@@ -6,6 +6,9 @@ type NamespaceCreate struct {
 	Owner     string `validate:"required,username"`
 	TenantID  string `validate:"omitempty,uuid"`
 	Type      string `validate:"omitempty,lowercase,oneof=personal team"`
+	// SSHAccessMode selects the namespace's SSH authorization model. Empty leaves
+	// the store's identity-first default in place.
+	SSHAccessMode string `validate:"omitempty,lowercase,oneof=legacy identity"`
 }
 
 // NamespaceDelete defines the structure for inputs when deleting a namespace.
