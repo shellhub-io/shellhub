@@ -4,9 +4,13 @@ import {
   PlusIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { Dropdown } from "@shellhub/design-system/primitives";
+import { Dropdown, Spinner } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { useNamespaces, useNamespace } from "@/hooks/useNamespaces";
+import {
+  useNamespaces,
+  useNamespace,
+  type Namespace,
+} from "@/hooks/useNamespaces";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useAuthStore } from "@/stores/authStore";
 import { getInitials } from "@/utils/string";
@@ -27,7 +31,8 @@ export default function NamespaceSelector({
   const { namespaces } = useNamespaces();
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const isAdmin = useAuthStore((s) => s.isAdmin);
-  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { namespace: currentNamespace, isLoading: isNamespaceLoading } =
+    useNamespace(tenantId);
   const switchNs = useSwitchNamespace();
   const navigate = useNavigate();
 
@@ -42,7 +47,6 @@ export default function NamespaceSelector({
     : namespaces.filter((ns) => ns.tenant_id !== currentNamespace?.tenant_id);
 
   const handleSwitch = async (id: string) => {
-    setOpen(false);
     await switchNs.mutateAsync({ tenantId: id });
   };
 
@@ -72,19 +76,12 @@ export default function NamespaceSelector({
                   Admin Console
                 </span>
               </>
-            ) : currentNamespace ? (
-              <>
-                <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-                  {getInitials(currentNamespace.name)}
-                </span>
-                <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
-                  {currentNamespace.name}
-                </span>
-              </>
             ) : (
-              <span className="text-sm text-text-muted italic">
-                No namespace
-              </span>
+              <NamespaceTriggerLabel
+                namespace={currentNamespace}
+                isSwitching={switchNs.isPending}
+                isLoading={isNamespaceLoading}
+              />
             )}
             <ChevronDownIcon
               className={cn(
@@ -186,7 +183,6 @@ export default function NamespaceSelector({
               <button
                 type="button"
                 onClick={() => {
-                  setOpen(false);
                   void navigate("/admin");
                 }}
                 className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
@@ -234,6 +230,43 @@ export default function NamespaceSelector({
         open={upsellOpen}
         onClose={() => setUpsellOpen(false)}
       />
+    </>
+  );
+}
+
+function NamespaceTriggerLabel({
+  namespace,
+  isSwitching,
+  isLoading,
+}: {
+  namespace: Namespace | null;
+  isSwitching: boolean;
+  isLoading: boolean;
+}) {
+  if (isSwitching || isLoading) {
+    const label = isSwitching ? "Switching..." : "Loading...";
+    return (
+      <>
+        <Spinner size="xs" tone="subtle" />
+        <span className="text-sm text-text-muted italic hidden md:inline">
+          {label}
+        </span>
+      </>
+    );
+  }
+
+  if (!namespace) {
+    return <span className="text-sm text-text-muted italic">No namespace</span>;
+  }
+
+  return (
+    <>
+      <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
+        {getInitials(namespace.name)}
+      </span>
+      <span className="hidden md:inline text-sm font-medium text-text-primary max-w-[180px] truncate">
+        {namespace.name}
+      </span>
     </>
   );
 }
