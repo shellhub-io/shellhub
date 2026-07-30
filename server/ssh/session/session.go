@@ -890,34 +890,11 @@ func (s *Session) Finish() (err error) {
 				Error("Error when trying to finish the session")
 		}
 
-		if envs.IsEnterpriseOrCloud() {
-			log.WithFields(log.Fields{
-				"uid": s.UID,
-			}).Info("saving sessions as Asciinema files")
-
-			s.Seats.Items.Range(func(key, value any) bool {
-				id := key.(int)
-				seat := value.(*Seat)
-
-				if seat.HasPty {
-					if err := s.api.SaveSession(context.TODO(), s.UID, id); err != nil {
-						log.WithError(err).WithFields(log.Fields{
-							"uid":  s.UID,
-							"seat": seat,
-						}).Error("failed to save the session as Asciinema file")
-
-						return true
-					}
-
-					log.WithFields(log.Fields{
-						"uid":  s.UID,
-						"seat": seat,
-					}).Info("asciinema file saved")
-				}
-
-				return true
-			})
-		}
+		// Archiving the recording is the cron's job. It runs every minute over
+		// every session that is closed, recorded and not yet converted, so it
+		// covers this one -- and by the time the session is marked closed above,
+		// the events are already written, because closing them is the first thing
+		// Finish does.
 
 		log.WithFields(
 			log.Fields{
