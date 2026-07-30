@@ -279,7 +279,7 @@ func splitWebData(data string) (device, ip string, err error) {
 func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
-	api, err := internalclient.NewClient(nil)
+	api, err := internalclient.NewClient()
 	if err != nil {
 		return nil, err
 	}

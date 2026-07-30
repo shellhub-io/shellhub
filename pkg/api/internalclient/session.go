@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -47,7 +46,7 @@ func (c *client) SessionCreate(ctx context.Context, session requests.SessionCrea
 		R().
 		SetContext(ctx).
 		SetBody(session).
-		Post(c.config.APIBaseURL + "/internal/sessions")
+		Post(apiBaseURL + "/internal/sessions")
 
 	return HasError(resp, err)
 }
@@ -60,7 +59,7 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 		SetBody(&models.Status{
 			Authenticated: true,
 		}).
-		Patch(c.config.APIBaseURL + "/internal/sessions/{uid}")
+		Patch(apiBaseURL + "/internal/sessions/{uid}")
 
 	return HasError(resp, err)
 }
@@ -70,7 +69,7 @@ func (c *client) FinishSession(ctx context.Context, uid string) error {
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/finish")
+		Post(apiBaseURL + "/internal/sessions/{uid}/finish")
 
 	return HasError(resp, err)
 }
@@ -80,7 +79,7 @@ func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
+		Post(apiBaseURL + "/internal/sessions/{uid}/keepalive")
 
 	return HasError(resp, err)
 }
@@ -93,23 +92,15 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 			"tenant": uid,
 		}).
 		SetBody(model).
-		Patch(c.config.APIBaseURL + "/internal/sessions/{tenant}")
+		Patch(apiBaseURL + "/internal/sessions/{tenant}")
 
 	return HasError(res, err)
 }
 
 func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
-	// Dial the enterprise events websocket. Convert configured enterprise HTTP scheme to ws(s).
-	scheme := "ws"
-	if strings.HasPrefix(c.config.APIBaseURL, "https") {
-		scheme = "wss"
-	}
-
-	host := strings.TrimPrefix(strings.TrimPrefix(c.config.APIBaseURL, "http://"), "https://")
-
 	connection, _, err := websocket.DefaultDialer.DialContext(
 		ctx,
-		fmt.Sprintf("%s://%s/internal/sessions/%s/events", scheme, host, uid),
+		fmt.Sprintf("ws://127.0.0.1:8080/internal/sessions/%s/events", uid),
 		nil,
 	)
 	if err != nil {
@@ -127,7 +118,7 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 			"uid":  uid,
 			"seat": strconv.Itoa(seat),
 		}).
-		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/records/{seat}")
+		Post(apiBaseURL + "/internal/sessions/{uid}/records/{seat}")
 	if err := HasError(resp, err); err != nil {
 		return err
 	}

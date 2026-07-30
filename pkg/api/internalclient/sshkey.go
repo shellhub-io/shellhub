@@ -29,7 +29,7 @@ func (c *client) GetPublicKey(ctx context.Context, fingerprint, tenant string) (
 			"tenant":      tenant,
 		}).
 		SetResult(&pubKey).
-		Get(c.config.APIBaseURL + "/internal/sshkeys/public-keys/{fingerprint}/{tenant}")
+		Get(apiBaseURL + "/internal/sshkeys/public-keys/{fingerprint}/{tenant}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *client) EvaluateKey(ctx context.Context, fingerprint string, dev *model
 		}).
 		SetBody(dev).
 		SetResult(&evaluate).
-		Post(c.config.APIBaseURL + "/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}")
+		Post(apiBaseURL + "/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}")
 	if err := HasError(resp, err); err != nil {
 		return false, err
 	}
@@ -64,7 +64,7 @@ func (c *client) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, erro
 		R().
 		SetContext(ctx).
 		SetResult(&privKey).
-		Post(c.config.APIBaseURL + "/internal/sshkeys/private-keys")
+		Post(apiBaseURL + "/internal/sshkeys/private-keys")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}

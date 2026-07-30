@@ -17,7 +17,7 @@ func (c *client) LicenseEvaluate(ctx context.Context) (*models.BillingEvaluation
 		R().
 		SetContext(ctx).
 		SetResult(&eval).
-		Get(c.config.APIBaseURL + "/internal/license/evaluate")
+		Get(apiBaseURL + "/internal/license/evaluate")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
