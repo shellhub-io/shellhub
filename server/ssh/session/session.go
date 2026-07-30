@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -321,7 +322,7 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 			webUserID = data.UserID
 		}
 
-		device, err := api.GetDevice(ctx, target.Data)
+		device, err := service.GetDevice(ctx, scope.NewUnbounded(reasonSSHIDDeviceResolve), models.UID(target.Data))
 		if err != nil {
 			return nil, err
 		}
@@ -330,12 +331,12 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 		deviceName = device.Name
 	}
 
-	lookupDevice, err := api.DeviceLookup(ctx, namespaceName, deviceName)
+	lookupDevice, err := service.LookupDevice(ctx, namespaceName, deviceName)
 	if err != nil {
 		return nil, err
 	}
 
-	namespace, err := api.NamespaceLookup(ctx, lookupDevice.TenantID)
+	namespace, err := service.GetNamespace(ctx, lookupDevice.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +474,7 @@ func (s *Session) checkBilling(ctx context.Context) (bool, error) {
 
 // registerAPISession registers a new session on the API.
 func (s *Session) register(ctx context.Context) error {
-	err := s.api.SessionCreate(ctx, requests.SessionCreate{
+	_, err := s.service.CreateSession(ctx, requests.SessionCreate{
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
@@ -500,7 +501,7 @@ func (s *Session) register(ctx context.Context) error {
 func (s *Session) authenticate(ctx context.Context) error {
 	value := true
 
-	return s.api.UpdateSession(ctx, s.UID, &models.SessionUpdate{
+	return s.service.UpdateSession(ctx, models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Authenticated: &value,
 	})
 }
@@ -516,7 +517,10 @@ func (s *Session) Recorded(seat int) error {
 		return errors.New("session won't be recorded because there is no pty")
 	}
 
-	return s.api.UpdateSession(context.TODO(), s.UID, &models.SessionUpdate{
+	// Not the pipe's context: this records that the session is being recorded, and
+	// losing the flag to a cancellation leaves the events in the database with
+	// nothing to archive them.
+	return s.service.UpdateSession(context.Background(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Recorded: &value,
 	})
 }
@@ -655,7 +659,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	// the namespace has no policy: refuse now instead of proceeding to a login
 	// that could never be authorized.
 	if s.Namespace.Settings.IsIdentityAccess() {
-		has, err := s.api.NamespaceHasAccessPolicies(ctx, s.Namespace.TenantID)
+		has, err := s.service.NamespaceHasAccessPolicies(ctx, s.Namespace.TenantID)
 		if err != nil {
 			return err
 		}
@@ -675,7 +679,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 // actually needed — an unknown key, or a policy demanding a re-auth — so a login
 // that sails through leaves nothing behind.
 func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind, reauthPeriod *int) error {
-	approval, err := s.api.CreateSSHApproval(ctx, requests.SSHApprovalCreate{
+	approval, err := s.service.CreateSSHApproval(ctx, &requests.SSHApprovalCreate{
 		SessionUID:   s.UID,
 		SSHID:        s.SSHID,
 		TenantID:     s.Namespace.TenantID,
@@ -825,7 +829,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 		// concurrent session already consumed the key this one loses the race and
 		// is denied without ever counting as authenticated.
 		if sess.SingleUse {
-			won, err := sess.api.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
+			won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
 			if err != nil {
 				return err
 			}
@@ -891,7 +895,7 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 }
 
 func (s *Session) KeepAlive(ctx context.Context) error {
-	if err := s.api.KeepAliveSession(ctx, s.UID); err != nil {
+	if err := s.service.KeepAliveSession(ctx, models.UID(s.UID)); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			Error("Error when trying to keep alive the session")
@@ -950,7 +954,10 @@ func (s *Session) Finish() (err error) {
 			}
 		}
 
-		if err := s.api.FinishSession(context.TODO(), s.UID); err != nil {
+		// Finish runs after the transport is already gone, so there is no request
+		// context left to inherit -- and closing the session must not be skipped
+		// because of a cancellation.
+		if err := s.service.DeactivateSession(context.Background(), models.UID(s.UID)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to finish the session")

@@ -275,7 +275,7 @@ func (s *Server) setupSSH(service services.Service, apiClient internalclient.Cli
 	// the loopback dial claims it.
 	handoff := webhandoff.NewStore()
 
-	web.NewSSHServerBridge(s.router, apiClient, handoff)
+	web.NewSSHServerBridge(s.router, service, handoff)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)

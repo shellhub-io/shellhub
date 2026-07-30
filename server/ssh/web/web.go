@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/shellhub-io/shellhub/server/ssh/web/pkg/token"
@@ -40,7 +40,7 @@ func exitLogLevel(err error) log.Level {
 }
 
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Echo, cli internalclient.Client, handoff *webhandoff.Store) {
+func NewSSHServerBridge(router *echo.Echo, service services.Service, handoff *webhandoff.Store) {
 	// The WebSocket upgrade; token-gated (browsers can't send auth headers on a
 	// WebSocket), so it stays unauthenticated at the gateway.
 	const WebsocketSSHBridgeRoute = "/ws/ssh"
@@ -157,7 +157,7 @@ func NewSSHServerBridge(router *echo.Echo, cli internalclient.Client, handoff *w
 
 		if err := newSession(
 			wsconn.Request().Context(),
-			cli,
+			service,
 			handoff,
 			conn,
 			creds,
