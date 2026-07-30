@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, Navigate } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   KeyIcon,
   CheckCircleIcon,
@@ -325,15 +330,15 @@ function PendingRequest({
       <Countdown secondsLeft={secondsLeft} totalSeconds={totalSeconds} />
 
       <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="md"
-            disabled={deciding}
-            icon={<NoSymbolIcon className="w-4 h-4" strokeWidth={2} />}
-            onClick={onReject}
-          >
-            Reject
-          </Button>
+        <Button
+          variant="ghost"
+          size="md"
+          disabled={deciding}
+          icon={<NoSymbolIcon className="w-4 h-4" strokeWidth={2} />}
+          onClick={onReject}
+        >
+          Reject
+        </Button>
         {elsewhere ? (
           <Button
             variant="primary"
@@ -610,6 +615,7 @@ function useNamespaceMismatch(namespace: string) {
   const currentTenant = useAuthStore((s) => s.tenant);
   const { namespaces } = useNamespaces();
   const switchNs = useSwitchNamespace();
+  const { pathname } = useLocation();
 
   const target = namespaces.find((ns) => ns.name === namespace);
   const elsewhere =
@@ -620,10 +626,12 @@ function useNamespaceMismatch(namespace: string) {
     currentName:
       namespaces.find((ns) => ns.tenant_id === currentTenant)?.name ?? "",
     switching: switchNs.isPending,
-    // The switch reloads the current URL, so the dialog comes back on the same
-    // code with the console scoped to the right namespace.
     switchToTarget: () => {
-      if (target) void switchNs.mutateAsync({ tenantId: target.tenant_id });
+      if (target)
+        void switchNs.mutateAsync({
+          tenantId: target.tenant_id,
+          redirectTo: pathname,
+        });
     },
   };
 }

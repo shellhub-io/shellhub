@@ -41,13 +41,12 @@ export function useSwitchNamespace() {
         path: { tenant: tenantId },
         throwOnError: true,
       });
+      window.location.href = redirectTo ?? "/dashboard";
       useAuthStore.getState().setSession({
         token: data.token,
         tenant: tenantId,
         role: data.role,
       });
-      if (redirectTo) window.location.href = redirectTo;
-      else window.location.reload();
     },
   });
 }
@@ -63,12 +62,12 @@ export function useCreateNamespace() {
         path: { tenant: ns.tenant_id },
         throwOnError: true,
       });
+      window.location.href = "/dashboard";
       useAuthStore.getState().setSession({
         token: data.token,
         tenant: ns.tenant_id,
         role: data.role,
       });
-      window.location.reload();
     },
   });
 }

@@ -43,10 +43,7 @@ export default function NamespaceSelector({
 
   const handleSwitch = async (id: string) => {
     setOpen(false);
-    await switchNs.mutateAsync({
-      tenantId: id,
-      redirectTo: isAdminContext ? "/dashboard" : undefined,
-    });
+    await switchNs.mutateAsync({ tenantId: id });
   };
 
   const handleCreate = () => {
@@ -85,7 +82,9 @@ export default function NamespaceSelector({
                 </span>
               </>
             ) : (
-              <span className="text-sm text-text-muted italic">No namespace</span>
+              <span className="text-sm text-text-muted italic">
+                No namespace
+              </span>
             )}
             <ChevronDownIcon
               className={cn(
@@ -186,7 +185,10 @@ export default function NamespaceSelector({
             <div className="p-2 border-t border-border">
               <button
                 type="button"
-                onClick={() => { setOpen(false); void navigate("/admin"); }}
+                onClick={() => {
+                  setOpen(false);
+                  void navigate("/admin");
+                }}
                 className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
               >
                 <span className="w-7 h-7 rounded bg-accent-red/10 border border-accent-red/20 flex items-center justify-center text-accent-red group-hover:bg-accent-red/15 transition-colors shrink-0">
