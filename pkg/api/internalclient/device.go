@@ -36,7 +36,7 @@ func (c *client) DevicesOffline(ctx context.Context, uid string) error {
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.config.APIBaseURL + "/internal/devices/{uid}/offline")
+		Post(apiBaseURL + "/internal/devices/{uid}/offline")
 
 	return HasError(res, err)
 }
@@ -55,7 +55,7 @@ func (c *client) Lookup(ctx context.Context, lookup map[string]string) (string, 
 		SetContext(ctx).
 		SetQueryParams(lookup).
 		SetResult(&device).
-		Get(c.config.APIBaseURL + "/internal/lookup")
+		Get(apiBaseURL + "/internal/lookup")
 	if err := HasError(resp, err); err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*mode
 		SetQueryParam("tenant_id", tenantID).
 		SetQueryParam("name", name).
 		SetResult(&device).
-		Get(c.config.APIBaseURL + "/internal/device/lookup")
+		Get(apiBaseURL + "/internal/device/lookup")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (c *client) ListDevices(ctx context.Context) ([]models.Device, error) {
 		R().
 		SetContext(ctx).
 		SetResult(&list).
-		Get(c.config.APIBaseURL + "/api/devices")
+		Get(apiBaseURL + "/api/devices")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		SetResult(&device).
-		Get(c.config.APIBaseURL + "/api/devices/{uid}")
+		Get(apiBaseURL + "/api/devices/{uid}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEn
 		SetContext(ctx).
 		SetPathParam("address", address).
 		SetResult(&endpoint).
-		Get(c.config.APIBaseURL + "/internal/web-endpoints/{address}")
+		Get(apiBaseURL + "/internal/web-endpoints/{address}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}

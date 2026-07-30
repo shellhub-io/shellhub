@@ -28,12 +28,20 @@ type client struct {
 	http   *resty.Client
 	logger *log.Logger
 	worker worker.Client
-
-	config *Config
 }
 
 const (
 	DeviceUIDHeader = "X-Device-UID"
+)
+
+const (
+	// apiBaseURL is the API's own listener. Every caller of this package runs
+	// inside the server process, so this is always a call to ourselves.
+	apiBaseURL = "http://127.0.0.1:8080"
+
+	retryCount       = 3
+	retryWaitTime    = 5 * time.Second
+	retryMaxWaitTime = 20 * time.Second
 )
 
 var (
@@ -43,21 +51,11 @@ var (
 	ErrUnknown          = errors.New("unknown error")
 )
 
-func NewClient(cfg *Config, opts ...clientOption) (Client, error) {
-	if cfg == nil {
-		var err error
-
-		cfg, err = NewConfigFromEnv()
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func NewClient(opts ...clientOption) (Client, error) {
 	httpClient := resty.New()
 
-	c := &client{
-		http:   httpClient,
-		config: cfg,
+	c := &client{ //nolint:exhaustruct
+		http: httpClient,
 	}
 
 	for _, opt := range opts {
@@ -71,9 +69,9 @@ func NewClient(cfg *Config, opts ...clientOption) (Client, error) {
 	}
 
 	// NOTE: Avoid setting a global base URL on the Resty client; each call sets its own URL.
-	httpClient.SetRetryCount(c.config.RetryCount)
-	httpClient.SetRetryWaitTime(time.Duration(c.config.RetryWaitTime) * time.Second)
-	httpClient.SetRetryMaxWaitTime(time.Duration(c.config.RetryMaxWaitTime) * time.Second)
+	httpClient.SetRetryCount(retryCount)
+	httpClient.SetRetryWaitTime(retryWaitTime)
+	httpClient.SetRetryMaxWaitTime(retryMaxWaitTime)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true

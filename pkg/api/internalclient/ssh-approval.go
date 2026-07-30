@@ -28,7 +28,7 @@ func (c *client) CreateSSHApproval(ctx context.Context, req requests.SSHApproval
 		SetContext(ctx).
 		SetBody(req).
 		SetResult(approval).
-		Post(c.config.APIBaseURL + "/internal/ssh-approvals")
+		Post(apiBaseURL + "/internal/ssh-approvals")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *client) GetSSHApprovalStatus(ctx context.Context, code string) (*models
 		SetPathParam("code", code).
 		SetQueryParam("wait", "true").
 		SetResult(status).
-		Get(c.config.APIBaseURL + "/internal/ssh-approvals/{code}/status")
+		Get(apiBaseURL + "/internal/ssh-approvals/{code}/status")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}

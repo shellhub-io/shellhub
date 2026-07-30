@@ -34,7 +34,7 @@ func (c *client) AuthorizeSSHAccess(ctx context.Context, tenant, userID, deviceU
 			"source_ip": sourceIP,
 		}).
 		SetResult(decision).
-		Get(c.config.APIBaseURL + "/internal/access-policies/authorize")
+		Get(apiBaseURL + "/internal/access-policies/authorize")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c *client) NamespaceHasAccessPolicies(ctx context.Context, tenant string) 
 		SetContext(ctx).
 		SetQueryParam("tenant", tenant).
 		SetResult(&out).
-		Get(c.config.APIBaseURL + "/internal/access-policies/exists")
+		Get(apiBaseURL + "/internal/access-policies/exists")
 	if err := HasError(resp, err); err != nil {
 		return false, err
 	}

@@ -149,7 +149,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		return errors.Join(errors.New("failed to reconcile instance binding"), err)
 	}
 
-	apiClient, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(s.env.RedisURI))
+	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {
 		return err
 	}

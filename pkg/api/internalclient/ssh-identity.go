@@ -48,7 +48,7 @@ func (c *client) ResolveSSHIdentity(ctx context.Context, tenant, fingerprint str
 			"fingerprint": fingerprint,
 		}).
 		SetResult(resolution).
-		Get(c.config.APIBaseURL + "/internal/ssh-identities/resolve")
+		Get(apiBaseURL + "/internal/ssh-identities/resolve")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (c *client) ConsumeSSHIdentity(ctx context.Context, tenant, fingerprint str
 			"fingerprint": fingerprint,
 		}).
 		SetResult(result).
-		Post(c.config.APIBaseURL + "/internal/ssh-identities/consume")
+		Post(apiBaseURL + "/internal/ssh-identities/consume")
 	if err := HasError(resp, err); err != nil {
 		return false, err
 	}
