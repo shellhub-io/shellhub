@@ -1,5 +1,10 @@
 import { create } from "zustand";
 import axios from "axios";
+import {
+  DEFAULT_TERMINAL_ENCODING,
+  isTerminalEncoding,
+  type TerminalEncoding,
+} from "@/utils/terminalOutputDecoder";
 
 export interface TerminalThemeColors {
   background: string;
@@ -57,6 +62,7 @@ const STORAGE_KEYS = {
   theme: "terminalTheme",
   fontFamily: "terminalFontFamily",
   fontSize: "terminalFontSize",
+  encoding: "terminalEncoding",
 };
 
 const FALLBACK_THEME: TerminalTheme = {
@@ -103,21 +109,25 @@ interface TerminalThemeState {
   fontFamily: TerminalFont;
   fontSize: number;
   fontFamilyWithFallback: string;
+  encoding: TerminalEncoding;
   loaded: boolean;
   loadThemes: () => Promise<void>;
   setTheme: (name: string) => void;
   setFontFamily: (font: TerminalFont) => void;
   setFontSize: (size: number) => void;
+  setEncoding: (encoding: TerminalEncoding) => void;
 }
 
 export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
   const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
   const savedFont = localStorage.getItem(STORAGE_KEYS.fontFamily);
   const savedSize = localStorage.getItem(STORAGE_KEYS.fontSize);
+  const savedEncoding = localStorage.getItem(STORAGE_KEYS.encoding);
 
   const initialThemeName = savedTheme || "ShellHub Dark";
   const initialFont = (savedFont as TerminalFont) || "IBM Plex Mono";
   const initialSize = savedSize ? parseInt(savedSize, 10) : 14;
+  const initialEncoding = isTerminalEncoding(savedEncoding) ? savedEncoding : DEFAULT_TERMINAL_ENCODING;
 
   return {
     themes: [FALLBACK_THEME],
@@ -126,6 +136,7 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
     fontFamily: initialFont,
     fontSize: initialSize,
     fontFamilyWithFallback: `'${initialFont}', monospace`,
+    encoding: initialEncoding,
     loaded: false,
 
     loadThemes: async () => {
@@ -175,6 +186,13 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
       const clamped = Math.min(Math.max(size, 8), 24);
       localStorage.setItem(STORAGE_KEYS.fontSize, clamped.toString());
       set({ fontSize: clamped });
+    },
+
+    setEncoding: (encoding) => {
+      if (!isTerminalEncoding(encoding)) return;
+
+      localStorage.setItem(STORAGE_KEYS.encoding, encoding);
+      set({ encoding });
     },
   };
 });

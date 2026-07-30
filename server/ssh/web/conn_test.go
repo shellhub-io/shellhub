@@ -1,13 +1,19 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http/httptest"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/server/ssh/web/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/websocket"
 )
 
 func TestConnReadMessage_input(t *testing.T) {
@@ -164,4 +170,79 @@ func TestConnReadMessage_resize(t *testing.T) {
 			assert.ErrorIs(t, err, test.expect.err)
 		})
 	}
+}
+
+// TestConnConcurrentWritesDoNotRace pins the synchronisation on Conn rather
+// than on any one writer: output frames, control messages and keep-alive pings
+// all share the socket, and the frame writer underneath is not goroutine-safe.
+func TestConnConcurrentWritesDoNotRace(t *testing.T) {
+	const rounds = 50
+
+	output := bytes.Repeat([]byte{'o'}, 128)
+
+	server := httptest.NewServer(websocket.Handler(func(socket *websocket.Conn) {
+		conn := NewConn(socket)
+
+		wg := sync.WaitGroup{}
+		wg.Add(3)
+
+		go func() {
+			defer wg.Done()
+
+			for range rounds {
+				if _, err := conn.WriteBinary(output); err != nil {
+					return
+				}
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+
+			for range rounds {
+				if _, err := conn.WriteMessage(&Message{Kind: messageKindSession, Data: "uid"}); err != nil {
+					return
+				}
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+
+			for range rounds {
+				if err := conn.WritePing(); err != nil {
+					return
+				}
+			}
+		}()
+
+		wg.Wait()
+	}))
+
+	defer server.Close()
+
+	client, err := websocket.Dial("ws"+strings.TrimPrefix(server.URL, "http"), "", server.URL)
+	require.NoError(t, err)
+
+	defer client.Close() //nolint:errcheck
+
+	binary := 0
+
+	for range rounds * 2 {
+		var frame capturedFrame
+
+		if err := frameCapture.Receive(client, &frame); err != nil {
+			break
+		}
+
+		if frame.payloadType == websocket.BinaryFrame {
+			binary++
+
+			// A frame carrying anything other than the whole payload means two
+			// writers interleaved on the shared frame writer.
+			assert.Equal(t, output, frame.data)
+		}
+	}
+
+	assert.Equal(t, rounds, binary)
 }

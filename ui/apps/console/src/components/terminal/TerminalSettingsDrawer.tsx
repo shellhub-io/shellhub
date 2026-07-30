@@ -7,6 +7,10 @@ import {
   TERMINAL_FONTS,
   type TerminalTheme,
 } from "@/stores/terminalThemeStore";
+import {
+  TERMINAL_ENCODINGS,
+  type TerminalEncoding,
+} from "@/utils/terminalOutputDecoder";
 import Drawer from "../common/Drawer";
 import { getConfig } from "@/env";
 
@@ -31,9 +35,11 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
     theme,
     fontFamily,
     fontSize,
+    encoding,
     setTheme,
     setFontFamily,
     setFontSize,
+    setEncoding,
     loadThemes,
   } = useTerminalThemeStore();
 
@@ -143,6 +149,28 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
             {fontSize}
           </span>
         </div>
+      </div>
+
+      {/* Character Encoding */}
+      <div className="border-b border-border p-4">
+        <div className="mb-2.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
+          Character Encoding
+        </div>
+        <select
+          aria-label="Character encoding"
+          value={encoding}
+          onChange={(e) => setEncoding(e.target.value as TerminalEncoding)}
+          className="w-full rounded-md border border-border bg-hover-subtle px-2.5 py-1.5 text-[13px] text-text-secondary"
+        >
+          {TERMINAL_ENCODINGS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-2xs text-text-muted">
+          Applies to terminals opened after the change.
+        </p>
       </div>
 
       {/* Preview */}

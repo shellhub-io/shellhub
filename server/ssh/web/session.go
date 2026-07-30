@@ -1,13 +1,11 @@
 package web
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
-	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -336,85 +334,14 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		}
 	}()
 
-	go redirToWs(stdout, conn) // nolint:errcheck
-	go io.Copy(conn, stderr)   //nolint:errcheck
+	output := newOutputWriter(conn)
+
+	go io.Copy(output, stdout) //nolint:errcheck
+	go io.Copy(output, stderr) //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {
 		logger.WithError(err).Warning("client remote command returned a error")
 	}
 
 	return nil
-}
-
-func redirToWs(rd io.Reader, ws *Conn) error {
-	// TODO: Evaluate refactoring this function to improve its readability.
-	var buf [32 * 1024]byte
-	var start, end, buflen int
-
-	for {
-		nr, err := rd.Read(buf[start:])
-		if err != nil {
-			return err
-		}
-
-		if nr == 0 {
-			// NOTE: "Callers should treat a return of 0 and nil as indicating that nothing happened; in particular it
-			// does not indicate EOF", in such a case, the caller should not interpret it as EOF, but instead wait for
-			// more data.
-			//
-			// https://pkg.go.dev/io#Reader
-			continue
-		}
-
-		buflen = start + nr
-
-		for end = buflen - 1; end >= 0; end-- {
-			if utf8.RuneStart(buf[end]) {
-				ch, width := utf8.DecodeRune(buf[end:buflen])
-				if ch != utf8.RuneError {
-					end += width
-				}
-
-				break
-			}
-
-			if buflen-end >= 6 {
-				end = nr
-
-				break
-			}
-		}
-
-		if end < 0 {
-			// NOTE: This workround is to avoid a panic in case the end is negative, which would lead to a negative slice.
-			// This situation can happen when the buffer contains only UTF-8 continuation bytes, which are bytes that
-			// cannot start a valid UTF-8 rune. In such cases, the loop above will not find a valid rune start and
-			// will leave `end` as -1.
-			//
-			// https://datatracker.ietf.org/doc/html/rfc3629#section-3
-			log.WithFields(log.Fields{
-				"buf":    buf,
-				"buflen": buflen,
-				"start":  start,
-				"end":    end,
-				"nr":     nr,
-			}).Warn("end is negative, skipping write to avoid panic")
-
-			end = 0
-		}
-
-		if _, err = ws.WriteBinary([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
-			return err
-		}
-
-		start = buflen - end
-
-		if start > 0 {
-			// copy remaning read bytes from the end to the beginning of a buffer
-			// so that we will get normal bytes
-			for i := 0; i < start; i++ {
-				buf[i] = buf[end+i]
-			}
-		}
-	}
 }

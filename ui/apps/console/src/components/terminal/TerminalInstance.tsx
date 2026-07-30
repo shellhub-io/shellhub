@@ -24,6 +24,7 @@ import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
 import { OpfsCastRecorder } from "@/utils/recordings";
 import { useRecordingsStore } from "@/stores/recordingsStore";
+import { createOutputDecoder } from "@/utils/terminalOutputDecoder";
 
 interface TerminalInstanceProps {
   session: TerminalSession;
@@ -64,6 +65,7 @@ export default function TerminalInstance({
       theme: initTheme,
       fontFamilyWithFallback: initFont,
       fontSize: initSize,
+      encoding: initEncoding,
     } = useTerminalThemeStore.getState();
 
     // Finalize the recording exactly once (guarded by nulling the ref before
@@ -142,7 +144,10 @@ export default function TerminalInstance({
       const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${proto}//${window.location.host}/ws/ssh?token=${token}&cols=${cols}&rows=${rows}`;
       const ws = new WebSocket(wsUrl);
+      ws.binaryType = "arraybuffer";
       wsRef.current = ws;
+
+      const decoder = createOutputDecoder(initEncoding);
       resizeRegisteredRef.current = false;
 
       // Copy key material into local variables so the closure doesn't hold
@@ -191,16 +196,24 @@ export default function TerminalInstance({
         }
       };
 
-      ws.onmessage = async (event) => {
+      // Synchronous by design: awaiting here would decode each frame in
+      // isolation (corrupting a character that spans frames) and would let
+      // frame order follow promise resolution rather than arrival.
+      ws.onmessage = (event) => {
         if (cancelled) return;
-        if (event.data instanceof Blob) {
-          // Binary data = terminal output (password auth or post-signature)
-          const text = await event.data.text();
+        // Control messages are JSON text frames and arrive as strings; anything
+        // else is device output.
+        if (typeof event.data !== "string") {
+          const text = decoder.decode(new Uint8Array(event.data as ArrayBuffer));
           term.write(text);
           recorderRef.current?.recordOutput(text);
           registerResizeHandler();
-        } else {
-          // JSON text message = challenge-response or error
+          return;
+        }
+
+        // Control messages stay async (the signature case signs with WebCrypto),
+        // but the output path above must not await.
+        void (async () => {
           const textData = String(event.data as unknown);
           const msg = parseMessage(textData);
           if (!msg) {
@@ -270,7 +283,7 @@ export default function TerminalInstance({
             default:
               break;
           }
-        }
+        })();
       };
 
       ws.onclose = () => {
