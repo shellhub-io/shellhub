@@ -54,7 +54,7 @@ RUN apk add --no-cache util-linux setpriv ca-certificates
 FROM base AS development
 
 ARG GOPROXY
-ENV GOPROXY ${GOPROXY}
+ENV GOPROXY=${GOPROXY}
 
 RUN apk add --update openssl openssh-client util-linux setpriv
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
