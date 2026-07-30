@@ -46,10 +46,8 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 # Cross-compile for target architecture
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
-# Runtime utilities stage - CRITICAL: must use target platform
-FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
+FROM alpine:${ALPINE_VERSION:-3.24} AS runtime-utils
 
-# Install runtime binaries for the TARGET architecture
 RUN apk add --no-cache util-linux setpriv ca-certificates
 
 # development stage
