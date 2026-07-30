@@ -4,26 +4,89 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
+	"github.com/shellhub-io/shellhub/server/api/services"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	log "github.com/sirupsen/logrus"
 )
 
 type Handlers struct {
-	Config *Config
-	Dialer *dialer.Dialer
-	Client internalclient.Client
+	Config  *Config
+	Dialer  *dialer.Dialer
+	Service services.Service
+	Client  internalclient.Client
+}
+
+const (
+	// deviceResolveAttempts and deviceResolveBackoff retry a device lookup that
+	// failed for a reason other than the device not existing.
+	//
+	// The loopback HTTP client used to do this for free, and the agent fleet
+	// depends on it: a brief database problem that fails the handshake sends every
+	// agent into a reconnect loop with a fixed ten second delay and no jitter, so
+	// they come back in lockstep. The agent's dial allows 45 seconds, which is
+	// ample for these attempts.
+	deviceResolveAttempts = 3
+	deviceResolveBackoff  = time.Second
+)
+
+// resolveDevice looks a device up by UID across every namespace.
+//
+// Both agent-facing call sites need exactly that: the tenant is the answer, not
+// the input. The V1 handler derives it from the device when the header is absent,
+// which is how agents older than 0.15 connect at all.
+//
+// The returned error is deliberately opaque. These two routes answer agents
+// already deployed, which cannot be updated in step with the server, so the
+// status they see is frozen: any failure here is a server error, exactly as it
+// was when this went over loopback HTTP and the client's error type fell through
+// to the generic branch.
+func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Device, error) {
+	var err error
+
+	for attempt := 1; attempt <= deviceResolveAttempts; attempt++ {
+		var device *models.Device
+
+		device, err = h.Service.GetDevice(ctx, scope.NewUnbounded(reasonAgentDeviceResolve), models.UID(uid))
+		if err == nil {
+			return device, nil
+		}
+
+		// A device that does not exist will not start existing on the next
+		// attempt; only infrastructure failures are worth another try.
+		if errors.Is(err, store.ErrNoDocuments) {
+			break
+		}
+
+		if attempt == deviceResolveAttempts {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, echo.NewHTTPError(http.StatusInternalServerError)
+		case <-time.After(time.Duration(attempt) * deviceResolveBackoff):
+		}
+	}
+
+	log.WithError(err).WithField("uid", uid).Error("unable to retrieve device for connection")
+
+	return nil, echo.NewHTTPError(http.StatusInternalServerError)
 }
 
 const (
@@ -253,10 +316,8 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 // unreachable connection. Refusing here keeps pending and rejected devices from holding tunnels; the
 // agent keeps re-authenticating and connects once it is accepted.
 func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*models.Device, error) {
-	device, err := h.Client.GetDevice(ctx, uid)
+	device, err := h.resolveDevice(ctx, uid)
 	if err != nil {
-		log.WithError(err).WithField("uid", uid).Error("unable to retrieve device for connection")
-
 		return nil, err
 	}
 
@@ -294,10 +355,8 @@ func (h *Handlers) HandleConnectionV1(c echo.Context) error {
 		// WARN: In versions before 0.15, the agent's authentication may not provide the "X-Tenant-ID"
 		// header. This can cause issues with establishing sessions and tracking online devices. To solve
 		// this, we fall back to the device's tenant. Maybe this can be removed in a future release.
-		device, err := h.Client.GetDevice(c.Request().Context(), uid)
+		device, err := h.resolveDevice(c.Request().Context(), uid)
 		if err != nil {
-			log.WithError(err).WithField("uid", uid).Error("unable to retrieve device's tenant id")
-
 			return err
 		}
 

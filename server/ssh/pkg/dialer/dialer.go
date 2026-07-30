@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -23,12 +23,16 @@ type Heartbeater interface {
 	Submit(uid string)
 }
 
-type Dialer struct {
-	Manager *Manager
-	client  internalclient.Client
+// DeviceStatuser records that a device's tunnel is gone.
+type DeviceStatuser interface {
+	OfflineDevice(ctx context.Context, uid models.UID) error
 }
 
-func NewDialer(client internalclient.Client, heartbeater Heartbeater) *Dialer {
+type Dialer struct {
+	Manager *Manager
+}
+
+func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	m := NewManager()
 
 	m.DialerDoneCallback = func(key string) {
@@ -43,7 +47,9 @@ func NewDialer(client internalclient.Client, heartbeater Heartbeater) *Dialer {
 		tenant := parts[0]
 		uid := parts[1]
 
-		if err := client.DevicesOffline(context.TODO(), uid); err != nil {
+		// Not the connection's context: it is already gone by the time this runs,
+		// and cancelling the write would leave the device marked online.
+		if err := devices.OfflineDevice(context.Background(), models.UID(uid)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
 					"uid":       uid,
@@ -65,10 +71,7 @@ func NewDialer(client internalclient.Client, heartbeater Heartbeater) *Dialer {
 		heartbeater.Submit(parts[1])
 	}
 
-	return &Dialer{
-		Manager: m,
-		client:  client,
-	}
+	return &Dialer{Manager: m}
 }
 
 var ErrInvalidArgument = errors.New("invalid argument")
