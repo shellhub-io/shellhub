@@ -86,6 +86,22 @@ func WithOpenAPIValidator(cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
 	}
 }
 
+// WithAuthentication authenticates every request in-process, replacing the
+// per-route authentication subrequest the edge proxy used to issue.
+//
+// It is an option rather than a default so handler tests can keep exercising a
+// route's authorization with an identity injected straight into the request
+// headers. Every production entrypoint must pass it; [TestRouterAuthenticates]
+// guards that the wiring stays in place.
+func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
+	return func(e *echo.Echo, handler *Handler) error {
+		handler.WithAuthenticator(authn)
+		e.Use(authn.Middleware)
+
+		return nil
+	}
+}
+
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
 
@@ -95,10 +111,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 			return nil
 		}
 	}
-
-	// The only internal route left: the nginx gateway's auth_request target. The
-	// rest served the ssh side, which now calls the service in process.
-	router.GET("/internal"+AuthRequestURL, gateway.Handler(handler.AuthRequest))
 
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
@@ -252,8 +264,12 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	// MCP server (Model Context Protocol) for AI assistants.
 	SetupMCPRoutes(router)
 
+	if handler.authn != nil {
+		registerAnonymousRoutes(handler.authn)
+	}
+
 	// Apply route extensions (enterprise/cloud features)
-	if err := applyExtensions(router, service); err != nil {
+	if err := applyExtensions(router, handler.authn, service); err != nil {
 		logrus.WithError(err).Error("failed to apply route extensions")
 	}
 

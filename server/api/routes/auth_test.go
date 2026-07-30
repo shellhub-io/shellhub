@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -10,8 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -530,109 +526,6 @@ func TestAuthPublicKey(t *testing.T) {
 				}
 
 				assert.Equal(t, tc.expected.expectedResponse, &response)
-			}
-		})
-	}
-}
-
-func TestHandler_AuthRequest_with_authorization_header(t *testing.T) {
-	type Expected struct {
-		status  int
-		headers map[string]string
-	}
-
-	svcMock := mocks.NewMockService(t)
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
-
-	cases := []struct {
-		description   string
-		token         func() (string, error)
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			description: "failed when token is invalid",
-			token: func() (string, error) {
-				return "", nil
-			},
-			requiredMocks: func() {
-				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
-			},
-			expected: Expected{
-				status:  401,
-				headers: map[string]string{},
-			},
-		},
-		{
-			description: "succeeds to authenticate a user",
-			token: func() (string, error) {
-				claims := authorizer.UserClaims{
-					ID:       "000000000000000000000000",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Role:     authorizer.RoleOwner,
-					Username: "john_doe",
-				}
-
-				return jwttoken.EncodeUserClaims(claims, privateKey)
-			},
-			requiredMocks: func() {
-				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
-				svcMock.On("GetUserRole", gomock.Anything, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").Return("owner", nil).Once()
-			},
-			expected: Expected{
-				status: 200,
-				headers: map[string]string{
-					"X-ID":        "000000000000000000000000",
-					"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-					"X-Role":      authorizer.RoleOwner.String(),
-					"X-Username":  "john_doe",
-				},
-			},
-		},
-		{
-			description: "succeeds to authenticate a device",
-			token: func() (string, error) {
-				claims := authorizer.DeviceClaims{
-					UID:      "0000000000000000000000000000000000000000000000000000000000000000",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-				}
-
-				return jwttoken.EncodeDeviceClaims(claims, privateKey)
-			},
-			requiredMocks: func() {
-				svcMock.On("PublicKey").Return(&privateKey.PublicKey).Once()
-			},
-			expected: Expected{
-				status: 200,
-				headers: map[string]string{
-					"X-Device-UID": "0000000000000000000000000000000000000000000000000000000000000000",
-					"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				},
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-
-			req := httptest.NewRequest(http.MethodGet, "/internal/auth", nil)
-
-			token, err := tc.token()
-			require.NoError(t, err)
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", token)
-
-			rec := httptest.NewRecorder()
-
-			e := NewRouter(svcMock)
-			e.ServeHTTP(rec, req)
-
-			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
-			for k, v := range tc.expected.headers {
-				require.Equal(t, rec.Result().Header.Get(k), v)
 			}
 		})
 	}
