@@ -7,18 +7,27 @@ import (
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-// mockLicenseEvaluator is a minimal in-test stub of LicenseEvaluator.
-type mockLicenseEvaluator struct{}
-
-func (m *mockLicenseEvaluator) CanAcceptDevice(_ context.Context) (bool, error) {
-	return true, nil
+// mockLicenseEvaluator stands in for LicenseEvaluator. It lives here rather than in the
+// generated mocks package because this package's own tests use it: services/mocks
+// imports services, so an internal test importing it would form a cycle.
+type mockLicenseEvaluator struct {
+	mock.Mock
 }
 
-func (m *mockLicenseEvaluator) CanConnectDevice(_ context.Context) (bool, error) {
-	return true, nil
+func (m *mockLicenseEvaluator) CanAcceptDevice(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *mockLicenseEvaluator) CanConnectDevice(ctx context.Context) (bool, error) {
+	args := m.Called(ctx)
+
+	return args.Bool(0), args.Error(1)
 }
 
 func TestWithLicenseEvaluator(t *testing.T) {

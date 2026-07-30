@@ -14,7 +14,6 @@ import (
 type Client interface {
 	deviceAPI
 	namespaceAPI
-	billingAPI
 	licenseAPI
 	sessionAPI
 	sshkeyAPI

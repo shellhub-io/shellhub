@@ -96,6 +96,11 @@ type BillingService interface {
 	// EvaluateBilling reports whether billing lets an SSH connection to the
 	// namespace through, returning ErrBillingBlocked when it does not.
 	EvaluateBilling(ctx context.Context, tenant string) error
+
+	// ReportBilling notifies the billing system of a namespace action. It
+	// returns ErrPaymentRequired when the namespace's subscription forbids it —
+	// deleting a namespace that still has an active subscription, for one.
+	ReportBilling(ctx context.Context, tenant string, action BillingAction) error
 }
 
 // EvaluateBilling reports whether the namespace's billing state lets a connection to an
@@ -137,6 +142,10 @@ func (s *service) evaluateBilling(ctx context.Context, tenant string) (bool, err
 	}
 
 	return evaluation.CanAccept, nil
+}
+
+func (s *service) ReportBilling(ctx context.Context, tenant string, action BillingAction) error {
+	return s.reportBilling(ctx, tenant, action)
 }
 
 // reportBilling notifies the billing system of a namespace action.
