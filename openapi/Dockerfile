@@ -1,7 +1,7 @@
 FROM golang:1.25.12-alpine3.24 AS base
 
 ARG GOPROXY
-ENV GOPROXY ${GOPROXY}
+ENV GOPROXY=${GOPROXY}
 
 RUN apk add --no-cache openssl nodejs npm openjdk11-jre git
 
