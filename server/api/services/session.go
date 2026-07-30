@@ -44,7 +44,7 @@ type SessionService interface {
 	DeactivateSession(ctx context.Context, uid models.UID) error
 	KeepAliveSession(ctx context.Context, uid models.UID) error
 	UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error
-	EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error
+	EventSession(ctx context.Context, events []models.SessionEvent) error
 }
 
 func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *requests.ListSessions) ([]models.Session, int, error) {
@@ -140,10 +140,13 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 	return s.store.SessionUpdate(ctx, session)
 }
 
-func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	if _, err := s.store.SessionResolve(ctx, scope.NewUnbounded(reasonInternalSessionMutation), store.SessionUIDResolver, string(uid)); err != nil {
-		return NewErrSessionNotFound(uid, err)
-	}
-
-	return s.store.SessionEventsCreate(ctx, event)
+// EventSession records session events.
+//
+// It does not check that the session exists first. session_events.session_id
+// references sessions(id), so an event for a session that is gone is refused by the
+// database anyway — and the check is not free: resolving a session aggregates the types
+// and seats of every event it already has, which made recording an event cost more the
+// longer the session ran.
+func (s *service) EventSession(ctx context.Context, events []models.SessionEvent) error {
+	return s.store.SessionEventsCreateMany(ctx, events)
 }

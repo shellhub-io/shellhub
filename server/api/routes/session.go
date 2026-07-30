@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/websocket"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
@@ -20,7 +19,6 @@ const (
 	CreateSessionURL    = "/sessions"
 	FinishSessionURL    = "/sessions/:uid/finish"
 	KeepAliveSessionURL = "/sessions/:uid/keepalive"
-	EventsSessionsURL   = "/sessions/:uid/events"
 )
 
 const (
@@ -148,56 +146,4 @@ func (h *Handler) KeepAliveSession(c gateway.Context) error {
 	}
 
 	return h.service.KeepAliveSession(c.Ctx(), models.UID(req.UID))
-}
-
-func (h *Handler) EventSession(c gateway.Context) error {
-	var req requests.SessionIDParam
-
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if !c.IsWebSocket() {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	connection, err := h.WebSocketUpgrader.Upgrade(c.Response(), c.Request())
-	if err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
-	defer connection.Close()
-
-	var r requests.SessionEvent
-	for {
-		if err := connection.ReadJSON(&r); err != nil {
-			if websocket.IsErrorCloseNormal(err) || websocket.IsUnexpectedCloseError(err) {
-				log.WithError(err).WithFields(log.Fields{
-					"uid": req.UID,
-				}).Debug("events websocket closed with a ignored error")
-
-				return nil
-			}
-
-			return err
-		}
-
-		if err := c.Validate(&r); err != nil {
-			return err
-		}
-
-		if err := h.service.EventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
-			Session:   req.UID,
-			Type:      models.SessionEventType(r.Type),
-			Timestamp: r.Timestamp,
-			Data:      r.Data,
-			Seat:      r.Seat,
-		}); err != nil {
-			return err
-		}
-	}
 }
