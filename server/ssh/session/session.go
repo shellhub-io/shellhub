@@ -12,7 +12,6 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -133,35 +132,6 @@ func (c *Client) Close() error {
 	}
 
 	return nil
-}
-
-type Events struct {
-	mu   sync.Mutex
-	conn *websocket.Conn
-}
-
-func (e *Events) WriteJSON(v any) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	return e.conn.WriteJSON(v)
-}
-
-func (e *Events) Close() error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	err := e.conn.Close()
-	e.conn = nil
-
-	return err
-}
-
-func (e *Events) Closed() bool {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	return e.conn == nil
 }
 
 // TODO: implement [io.Read] and [io.Write] on session to simplify the data piping.
@@ -341,22 +311,12 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 		return nil, err
 	}
 
-	events, err := api.EventSessionStream(ctx, ctx.SessionID())
-	if err != nil {
-		log.WithError(err).Error("failed to connecting to endpoint to save session's events")
-
-		return nil, err
-	}
-
 	session := &Session{
 		UID:     ctx.SessionID(),
 		api:     api,
 		service: service,
 		dialer:  dialer,
-		Events: &Events{
-			mu:   sync.Mutex{},
-			conn: events,
-		},
+		Events:  NewEvents(ctx.SessionID(), service),
 		Data: Data{
 			IPAddress: hos.Host,
 			Target:    target,
@@ -830,15 +790,9 @@ func (s *Session) NewSeat() (int, error) {
 	return s.Seats.NewSeat()
 }
 
-// Events register an event to the session.
+// Event registers an event to the session.
 func (s *Session) Event(t string, data any, seat int) {
-	if s.Events.Closed() {
-		log.Debug("failed to save because events connection was closed")
-
-		return
-	}
-
-	s.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
+	s.Events.Write(models.SessionEvent{
 		Session:   s.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
@@ -847,23 +801,18 @@ func (s *Session) Event(t string, data any, seat int) {
 	})
 }
 
+// Event registers an event whose payload is an SSH request body, decoded into D.
 func Event[D any](sess *Session, t string, data []byte, seat int) {
-	if sess.Events.Closed() {
-		log.Debug("failed to save because events connection was closed")
-
-		return
-	}
-
 	d := new(D)
 	if err := gossh.Unmarshal(data, d); err != nil {
 		return
 	}
 
-	sess.Events.WriteJSON(&models.SessionEvent{ //nolint:errcheck
+	sess.Events.Write(models.SessionEvent{
 		Session:   sess.UID,
 		Type:      models.SessionEventType(t),
 		Timestamp: clock.Now(),
-		Data:      data,
+		Data:      d,
 		Seat:      seat,
 	})
 }
@@ -916,7 +865,11 @@ func (s *Session) Finish() (err error) {
 			"uid": s.UID,
 		}).Trace("session finish called")
 
-		defer s.Events.Close()
+		// Stop recording and write what is still queued before anything else
+		// runs. Deferring this to the end of Finish let an event that was still
+		// in flight land after the session had been archived, where nothing
+		// would ever read it again.
+		s.Events.Close() //nolint:errcheck
 
 		if s.Agent.Conn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)

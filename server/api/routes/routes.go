@@ -118,7 +118,6 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
 	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
-	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
 	// The SSH gateway mints a JIT login approval and polls its decision while it
 	// holds the connection open. The approve/deny endpoints are user-facing (see

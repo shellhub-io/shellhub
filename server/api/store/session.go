@@ -37,6 +37,10 @@ type SessionStore interface {
 
 	// SessionEventsCreate creates a session event. It returns an error if any.
 	SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error
+	// SessionEventsCreateMany creates session events in a single statement. Events
+	// carry their own timestamp, so a batch does not reorder anything a reader
+	// sees. It returns an error if any; an empty slice is a no-op.
+	SessionEventsCreateMany(ctx context.Context, events []models.SessionEvent) error
 	// SessionEventsList retrieves session events based on filters. It returns the list of events, total count, and an error if any.
 	SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...QueryOption) ([]models.SessionEvent, int, error)
 	// SessionEventsDelete removes session events based on filters. It returns an error if any.

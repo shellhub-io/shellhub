@@ -2,11 +2,9 @@ package internalclient
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -28,9 +26,6 @@ type sessionAPI interface {
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error
-
-	// EventSessionStream creates a WebSocket client connection to endpoint to save session's events.
-	EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error)
 
 	// SaveSession saves a session as a Asciinema file into the Object Storage and delete
 	// [models.SessionEventTypePtyOutput] events.
@@ -78,19 +73,6 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 		Patch(apiBaseURL + "/internal/sessions/{tenant}")
 
 	return HasError(res, err)
-}
-
-func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
-	connection, _, err := websocket.DefaultDialer.DialContext(
-		ctx,
-		fmt.Sprintf("ws://127.0.0.1:8080/internal/sessions/%s/events", uid),
-		nil,
-	)
-	if err != nil {
-		return nil, HasError(nil, err)
-	}
-
-	return connection, nil
 }
 
 func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {

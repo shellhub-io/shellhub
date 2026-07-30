@@ -252,6 +252,27 @@ func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEven
 	return nil
 }
 
+func (pg *Pg) SessionEventsCreateMany(ctx context.Context, events []models.SessionEvent) error {
+	if len(events) == 0 {
+		return nil
+	}
+
+	db := pg.GetConnection(ctx)
+
+	entities := make([]*entity.SessionEvent, 0, len(events))
+	for i := range events {
+		e := entity.SessionEventFromModel(&events[i])
+		e.ID = uuid.Generate()
+		entities = append(entities, e)
+	}
+
+	if _, err := db.NewInsert().Model(&entities).Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
 	db := pg.GetConnection(ctx)
 

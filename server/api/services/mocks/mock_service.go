@@ -3073,16 +3073,16 @@ func (_c *MockService_EvaluateLicense_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // EventSession provides a mock function for the type MockService
-func (_mock *MockService) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	ret := _mock.Called(ctx, uid, event)
+func (_mock *MockService) EventSession(ctx context.Context, events []models.SessionEvent) error {
+	ret := _mock.Called(ctx, events)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EventSession")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
-		r0 = returnFunc(ctx, uid, event)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []models.SessionEvent) error); ok {
+		r0 = returnFunc(ctx, events)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3096,30 +3096,24 @@ type MockService_EventSession_Call struct {
 
 // EventSession is a helper method to define mock.On call
 //   - ctx context.Context
-//   - uid models.UID
-//   - event *models.SessionEvent
-func (_e *MockService_Expecter) EventSession(ctx any, uid any, event any) *MockService_EventSession_Call {
-	return &MockService_EventSession_Call{Call: _e.mock.On("EventSession", ctx, uid, event)}
+//   - events []models.SessionEvent
+func (_e *MockService_Expecter) EventSession(ctx any, events any) *MockService_EventSession_Call {
+	return &MockService_EventSession_Call{Call: _e.mock.On("EventSession", ctx, events)}
 }
 
-func (_c *MockService_EventSession_Call) Run(run func(ctx context.Context, uid models.UID, event *models.SessionEvent)) *MockService_EventSession_Call {
+func (_c *MockService_EventSession_Call) Run(run func(ctx context.Context, events []models.SessionEvent)) *MockService_EventSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 []models.SessionEvent
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
-		}
-		var arg2 *models.SessionEvent
-		if args[2] != nil {
-			arg2 = args[2].(*models.SessionEvent)
+			arg1 = args[1].([]models.SessionEvent)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -3130,7 +3124,7 @@ func (_c *MockService_EventSession_Call) Return(err error) *MockService_EventSes
 	return _c
 }
 
-func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Context, uid models.UID, event *models.SessionEvent) error) *MockService_EventSession_Call {
+func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Context, events []models.SessionEvent) error) *MockService_EventSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
