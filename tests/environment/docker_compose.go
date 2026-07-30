@@ -119,13 +119,18 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the "namespace
 // create" method of the CLI.
 //
+// sshAccessMode selects the namespace's SSH authorization model ("legacy" or "identity"); an empty value
+// leaves the server's default in place.
+//
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
-func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant string) {
-	container, err := dc.buildCLICommand(
-		t.Context(),
-		[]string{"./cli", "namespace", "create", name, owner, tenant},
-	)
+func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
+	cmd := []string{"./cli", "namespace", "create", name, owner, tenant}
+	if sshAccessMode != "" {
+		cmd = append(cmd, "--ssh-access-mode", sshAccessMode)
+	}
+
+	container, err := dc.buildCLICommand(t.Context(), cmd)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
 	}
