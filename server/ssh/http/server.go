@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -74,11 +73,10 @@ var upgrader = websocket.Upgrader{
 
 // Register adds the SSH routes to the API's router. The binder, validator and
 // error handler are the API's; they are a superset of what these handlers need.
-func Register(router *echo.Echo, d *dialer.Dialer, service services.Service, cli internalclient.Client, cfg *Config) *Handlers {
+func Register(router *echo.Echo, d *dialer.Dialer, service services.Service, cfg *Config) *Handlers {
 	handlers := &Handlers{
 		Dialer:  d,
 		Service: service,
-		Client:  cli,
 		Config:  cfg,
 	}
 

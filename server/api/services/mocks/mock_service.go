@@ -2762,6 +2762,120 @@ func (_c *MockService_EditSessionRecordStatus_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// EvaluateBilling provides a mock function for the type MockService
+func (_mock *MockService) EvaluateBilling(ctx context.Context, tenant string) error {
+	ret := _mock.Called(ctx, tenant)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateBilling")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, tenant)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_EvaluateBilling_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EvaluateBilling'
+type MockService_EvaluateBilling_Call struct {
+	*mock.Call
+}
+
+// EvaluateBilling is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenant string
+func (_e *MockService_Expecter) EvaluateBilling(ctx any, tenant any) *MockService_EvaluateBilling_Call {
+	return &MockService_EvaluateBilling_Call{Call: _e.mock.On("EvaluateBilling", ctx, tenant)}
+}
+
+func (_c *MockService_EvaluateBilling_Call) Run(run func(ctx context.Context, tenant string)) *MockService_EvaluateBilling_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_EvaluateBilling_Call) Return(err error) *MockService_EvaluateBilling_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_EvaluateBilling_Call) RunAndReturn(run func(ctx context.Context, tenant string) error) *MockService_EvaluateBilling_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EvaluateFirewall provides a mock function for the type MockService
+func (_mock *MockService) EvaluateFirewall(ctx context.Context, conn models.FirewallConnection) error {
+	ret := _mock.Called(ctx, conn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateFirewall")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.FirewallConnection) error); ok {
+		r0 = returnFunc(ctx, conn)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_EvaluateFirewall_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EvaluateFirewall'
+type MockService_EvaluateFirewall_Call struct {
+	*mock.Call
+}
+
+// EvaluateFirewall is a helper method to define mock.On call
+//   - ctx context.Context
+//   - conn models.FirewallConnection
+func (_e *MockService_Expecter) EvaluateFirewall(ctx any, conn any) *MockService_EvaluateFirewall_Call {
+	return &MockService_EvaluateFirewall_Call{Call: _e.mock.On("EvaluateFirewall", ctx, conn)}
+}
+
+func (_c *MockService_EvaluateFirewall_Call) Run(run func(ctx context.Context, conn models.FirewallConnection)) *MockService_EvaluateFirewall_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 models.FirewallConnection
+		if args[1] != nil {
+			arg1 = args[1].(models.FirewallConnection)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_EvaluateFirewall_Call) Return(err error) *MockService_EvaluateFirewall_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_EvaluateFirewall_Call) RunAndReturn(run func(ctx context.Context, conn models.FirewallConnection) error) *MockService_EvaluateFirewall_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EvaluateKeyFilter provides a mock function for the type MockService
 func (_mock *MockService) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	ret := _mock.Called(ctx, key, dev)
@@ -2902,6 +3016,57 @@ func (_c *MockService_EvaluateKeyUsername_Call) Return(b bool, err error) *MockS
 }
 
 func (_c *MockService_EvaluateKeyUsername_Call) RunAndReturn(run func(ctx context.Context, key *models.PublicKey, username string) (bool, error)) *MockService_EvaluateKeyUsername_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EvaluateLicense provides a mock function for the type MockService
+func (_mock *MockService) EvaluateLicense(ctx context.Context) error {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateLicense")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_EvaluateLicense_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EvaluateLicense'
+type MockService_EvaluateLicense_Call struct {
+	*mock.Call
+}
+
+// EvaluateLicense is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockService_Expecter) EvaluateLicense(ctx any) *MockService_EvaluateLicense_Call {
+	return &MockService_EvaluateLicense_Call{Call: _e.mock.On("EvaluateLicense", ctx)}
+}
+
+func (_c *MockService_EvaluateLicense_Call) Run(run func(ctx context.Context)) *MockService_EvaluateLicense_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_EvaluateLicense_Call) Return(err error) *MockService_EvaluateLicense_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_EvaluateLicense_Call) RunAndReturn(run func(ctx context.Context) error) *MockService_EvaluateLicense_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4888,6 +5053,74 @@ func (_c *MockService_LookupDevice_Call) Return(device *models.Device, err error
 }
 
 func (_c *MockService_LookupDevice_Call) RunAndReturn(run func(ctx context.Context, namespace string, name string) (*models.Device, error)) *MockService_LookupDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// LookupWebEndpoint provides a mock function for the type MockService
+func (_mock *MockService) LookupWebEndpoint(ctx context.Context, address string) (*models.WebEndpoint, error) {
+	ret := _mock.Called(ctx, address)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LookupWebEndpoint")
+	}
+
+	var r0 *models.WebEndpoint
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.WebEndpoint, error)); ok {
+		return returnFunc(ctx, address)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.WebEndpoint); ok {
+		r0 = returnFunc(ctx, address)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.WebEndpoint)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, address)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_LookupWebEndpoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LookupWebEndpoint'
+type MockService_LookupWebEndpoint_Call struct {
+	*mock.Call
+}
+
+// LookupWebEndpoint is a helper method to define mock.On call
+//   - ctx context.Context
+//   - address string
+func (_e *MockService_Expecter) LookupWebEndpoint(ctx any, address any) *MockService_LookupWebEndpoint_Call {
+	return &MockService_LookupWebEndpoint_Call{Call: _e.mock.On("LookupWebEndpoint", ctx, address)}
+}
+
+func (_c *MockService_LookupWebEndpoint_Call) Run(run func(ctx context.Context, address string)) *MockService_LookupWebEndpoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_LookupWebEndpoint_Call) Return(webEndpoint *models.WebEndpoint, err error) *MockService_LookupWebEndpoint_Call {
+	_c.Call.Return(webEndpoint, err)
+	return _c
+}
+
+func (_c *MockService_LookupWebEndpoint_Call) RunAndReturn(run func(ctx context.Context, address string) (*models.WebEndpoint, error)) *MockService_LookupWebEndpoint_Call {
 	_c.Call.Return(run)
 	return _c
 }

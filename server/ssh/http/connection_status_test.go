@@ -32,7 +32,7 @@ func newConnectionTestServer(t *testing.T, service services.Service, cfg *Config
 	e.Validator = handlers.NewValidator()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
 
-	h := &Handlers{Config: cfg, Dialer: nil, Service: service, Client: nil}
+	h := &Handlers{Config: cfg, Dialer: nil, Service: service}
 
 	e.GET(HandleConnectionV1Path, h.HandleConnectionV1)
 	e.GET(HandleConnectionV2Path, h.HandleConnectionV2)

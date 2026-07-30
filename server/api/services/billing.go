@@ -92,6 +92,38 @@ const (
 // IMPLEMENTATION
 // ========================================
 
+type BillingService interface {
+	// EvaluateBilling reports whether billing lets an SSH connection to the
+	// namespace through, returning ErrBillingBlocked when it does not.
+	EvaluateBilling(ctx context.Context, tenant string) error
+}
+
+// EvaluateBilling reports whether the namespace's billing state lets a connection to an
+// already accepted device through. It reads CanConnect, not CanAccept: at the exact plan
+// limit a namespace stops accepting new devices but keeps SSH working on the ones it
+// already has.
+//
+// A missing provider allows the connection. Device acceptance guards on
+// `IsCloud() && s.billing != nil` and so is never reached without a provider, but the
+// SSH path guards on IsCloud() alone — blocking here would take down every connection on
+// a cloud whose billing failed to initialize.
+func (s *service) EvaluateBilling(ctx context.Context, tenant string) error {
+	if s.billing == nil {
+		return nil
+	}
+
+	evaluation, err := s.billing.Evaluate(ctx, tenant)
+	if err != nil {
+		return NewErrBillingEvaluate(err)
+	}
+
+	if !evaluation.CanConnect {
+		return ErrBillingBlocked
+	}
+
+	return nil
+}
+
 // evaluateBilling checks if a namespace can accept more devices.
 // Returns false if billing provider is not available (Community Edition).
 func (s *service) evaluateBilling(ctx context.Context, tenant string) (bool, error) {

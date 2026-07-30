@@ -2,17 +2,17 @@ package session
 
 import (
 	"context"
+	"errors"
 	"net"
-	"net/http"
 	"sync"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/api/internalclient/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/services"
+	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -58,12 +58,12 @@ func (s *stubContext) Value(key interface{}) interface{} {
 }
 
 // newTestSession builds a Session with only the fields Evaluate reads.
-func newTestSession(apiClient internalclient.Client) *Session {
+func newTestSession(service services.Service) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device") //nolint:errcheck
 
 	return &Session{
-		UID: "test-uid",
-		api: apiClient,
+		UID:     "test-uid",
+		service: service,
 		Data: Data{
 			Target:    tgt,
 			IPAddress: "127.0.0.1",
@@ -90,37 +90,49 @@ func TestEvaluate(t *testing.T) {
 	tests := []struct {
 		description          string
 		edition              envs.Edition
-		setupMock            func(m *mocks.MockClient)
+		setupMock            func(m *servicemocks.MockService)
 		expectedErr          error
 		expectStateEvaluated bool
 	}{
 		{
 			description: "cloud: firewall denies the connection",
 			edition:     envs.Cloud,
-			setupMock: func(m *mocks.MockClient) {
-				// Firewall runs first; a 403 denies before billing is consulted.
+			setupMock: func(m *servicemocks.MockService) {
+				// Firewall runs first; a denial stops before billing is consulted.
 				m.EXPECT().
-					FirewallEvaluate(mock.Anything, mock.Anything).
-					Return(&internalclient.Error{Code: http.StatusForbidden}).
+					EvaluateFirewall(mock.Anything, mock.Anything).
+					Return(services.ErrFirewallBlocked).
 					Once()
 			},
 			expectedErr:          ErrFirewallBlock,
 			expectStateEvaluated: false,
 		},
 		{
+			description: "cloud: a firewall evaluation failure is not a rule block",
+			edition:     envs.Cloud,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().
+					EvaluateFirewall(mock.Anything, mock.Anything).
+					Return(errors.New("no license to evaluate the firewall against")).
+					Once()
+			},
+			expectedErr:          ErrFirewallUnknown,
+			expectStateEvaluated: false,
+		},
+		{
 			description: "cloud: firewall allows and billing succeeds",
 			edition:     envs.Cloud,
-			setupMock: func(m *mocks.MockClient) {
+			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					FirewallEvaluate(mock.Anything, mock.Anything).
+					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(nil).
 					Once()
 
 				// The tenant comes from the device the session already resolved, so
 				// billing is evaluated without a second device lookup.
 				m.EXPECT().
-					BillingEvaluate(mock.Anything, "tenant-id").
-					Return(&models.BillingEvaluation{CanConnect: true}, nil).
+					EvaluateBilling(mock.Anything, "tenant-id").
+					Return(nil).
 					Once()
 			},
 			expectedErr:          nil,
@@ -129,32 +141,44 @@ func TestEvaluate(t *testing.T) {
 		{
 			description: "cloud: firewall allows but billing blocks",
 			edition:     envs.Cloud,
-			setupMock: func(m *mocks.MockClient) {
+			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					FirewallEvaluate(mock.Anything, mock.Anything).
+					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(nil).
 					Once()
 
 				m.EXPECT().
-					BillingEvaluate(mock.Anything, "tenant-id").
-					Return(&models.BillingEvaluation{CanConnect: false}, nil).
+					EvaluateBilling(mock.Anything, "tenant-id").
+					Return(services.ErrBillingBlocked).
 					Once()
 			},
 			expectedErr:          ErrBillingBlock,
 			expectStateEvaluated: false,
 		},
 		{
+			description: "enterprise (not cloud): license blocks before the firewall runs",
+			edition:     envs.Enterprise,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().
+					EvaluateLicense(mock.Anything).
+					Return(services.ErrLicenseBlocked).
+					Once()
+			},
+			expectedErr:          ErrLicenseBlock,
+			expectStateEvaluated: false,
+		},
+		{
 			description: "enterprise (not cloud): license allows, firewall denies",
 			edition:     envs.Enterprise,
-			setupMock: func(m *mocks.MockClient) {
+			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					LicenseEvaluate(mock.Anything).
-					Return(&models.BillingEvaluation{CanConnect: true}, nil).
+					EvaluateLicense(mock.Anything).
+					Return(nil).
 					Once()
 
 				m.EXPECT().
-					FirewallEvaluate(mock.Anything, mock.Anything).
-					Return(&internalclient.Error{Code: http.StatusForbidden}).
+					EvaluateFirewall(mock.Anything, mock.Anything).
+					Return(services.ErrFirewallBlocked).
 					Once()
 			},
 			expectedErr:          ErrFirewallBlock,
@@ -163,14 +187,14 @@ func TestEvaluate(t *testing.T) {
 		{
 			description: "enterprise (not cloud): license allows, firewall allows",
 			edition:     envs.Enterprise,
-			setupMock: func(m *mocks.MockClient) {
+			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
-					LicenseEvaluate(mock.Anything).
-					Return(&models.BillingEvaluation{CanConnect: true}, nil).
+					EvaluateLicense(mock.Anything).
+					Return(nil).
 					Once()
 
 				m.EXPECT().
-					FirewallEvaluate(mock.Anything, mock.Anything).
+					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(nil).
 					Once()
 			},
@@ -180,8 +204,8 @@ func TestEvaluate(t *testing.T) {
 		{
 			description: "community: no firewall, billing, or license evaluation",
 			edition:     envs.Community,
-			setupMock: func(_ *mocks.MockClient) {
-				// no API calls expected in community mode.
+			setupMock: func(_ *servicemocks.MockService) {
+				// no gate is consulted in community mode.
 			},
 			expectedErr:          nil,
 			expectStateEvaluated: true,
@@ -192,10 +216,10 @@ func TestEvaluate(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			envstest.SetEdition(t, tt.edition)
 
-			apiMock := mocks.NewMockClient(t)
-			tt.setupMock(apiMock)
+			serviceMock := servicemocks.NewMockService(t)
+			tt.setupMock(serviceMock)
 
-			sess := newTestSession(apiMock)
+			sess := newTestSession(serviceMock)
 			ctx := newStubContext()
 
 			snap := getSnapshot(ctx)

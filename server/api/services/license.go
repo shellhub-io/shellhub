@@ -51,4 +51,40 @@ type LicenseEvaluator interface {
 	//   - false if the device limit has been reached
 	//   - error if the check itself fails (e.g., license fetch error)
 	CanAcceptDevice(ctx context.Context) (bool, error)
+
+	// CanConnectDevice reports whether the current license allows connecting to an
+	// already registered device. It differs from CanAcceptDevice at the exact
+	// limit: a fleet sitting on its licensed device count keeps working, it just
+	// cannot grow.
+	CanConnectDevice(ctx context.Context) (bool, error)
+}
+
+type LicenseService interface {
+	// EvaluateLicense reports whether the license lets an SSH connection through,
+	// returning ErrLicenseBlocked when it does not.
+	EvaluateLicense(ctx context.Context) error
+}
+
+// EvaluateLicense reports whether the license lets an SSH connection through. Without
+// an evaluator (Community Edition) there is no license to exceed, so the connection is
+// allowed.
+//
+// Unlike the device acceptance path, which fails open, a license that cannot be
+// evaluated blocks the connection: that is what the HTTP evaluation this replaced did,
+// and it is the conservative direction for a paid limit.
+func (s *service) EvaluateLicense(ctx context.Context) error {
+	if s.licenseEvaluator == nil {
+		return nil
+	}
+
+	canConnect, err := s.licenseEvaluator.CanConnectDevice(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !canConnect {
+		return ErrLicenseBlocked
+	}
+
+	return nil
 }

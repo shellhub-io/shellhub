@@ -91,3 +91,7 @@ type stubLicenseEvaluator struct{}
 func (s *stubLicenseEvaluator) CanAcceptDevice(_ context.Context) (bool, error) {
 	return true, nil
 }
+
+func (s *stubLicenseEvaluator) CanConnectDevice(_ context.Context) (bool, error) {
+	return true, nil
+}
