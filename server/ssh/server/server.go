@@ -9,10 +9,12 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
-	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/shellhub-io/shellhub/server/ssh/server/auth"
 	"github.com/shellhub-io/shellhub/server/ssh/server/channels"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
@@ -43,7 +45,7 @@ type Server struct {
 // defaults (set by defaultBannerDeps) delegate to the real session package;
 // tests supply stubs to exercise individual branches without network I/O.
 type bannerDeps struct {
-	newSession func(ctx gliderssh.Context, d *dialer.Dialer, c cache.Cache) (*session.Session, error)
+	newSession func(ctx gliderssh.Context, d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) (*session.Session, error)
 	dial       func(sess *session.Session, ctx gliderssh.Context) error
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
 }
@@ -60,13 +62,13 @@ func defaultBannerDeps() bannerDeps {
 // establishes the session, and dials the target device. It returns a banner
 // message (using ssh/pkg/banner) when any step fails, or an empty string on
 // success so the SSH handshake continues normally.
-func newBannerHandler(d *dialer.Dialer, c cache.Cache) gliderssh.BannerHandler {
-	return newBannerHandlerWithDeps(d, c, defaultBannerDeps())
+func newBannerHandler(d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) gliderssh.BannerHandler {
+	return newBannerHandlerWithDeps(d, service, api, handoff, defaultBannerDeps())
 }
 
 // newBannerHandlerWithDeps is the testable core of newBannerHandler. Callers
 // supply a bannerDeps to stub out network-dependent operations.
-func newBannerHandlerWithDeps(d *dialer.Dialer, c cache.Cache, deps bannerDeps) gliderssh.BannerHandler {
+func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store, deps bannerDeps) gliderssh.BannerHandler {
 	return func(ctx gliderssh.Context) (message string) {
 		logger := log.WithFields(
 			log.Fields{
@@ -93,7 +95,7 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, c cache.Cache, deps bannerDeps) 
 			return banner.Message(banner.KindInvalidSSHID)
 		}
 
-		sess, err := deps.newSession(ctx, d, c)
+		sess, err := deps.newSession(ctx, d, service, api, handoff)
 		if err != nil {
 			logger.WithError(err).Error("failed to create the session")
 
@@ -174,7 +176,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	}
 }
 
-func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) (*Server, error) {
+func NewServer(dialer *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store, opts *Options) (*Server, error) {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		dialer: dialer,
@@ -188,7 +190,7 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) (*Server
 			return conn
 		},
 		ServerConfigCallback: newServerConfigCallback,
-		BannerHandler:        newBannerHandler(dialer, cache),
+		BannerHandler:        newBannerHandler(dialer, service, api, handoff),
 		PasswordHandler:      auth.PasswordHandler,
 		PublicKeyHandler:     auth.PublicKeyHandler,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
@@ -251,10 +253,13 @@ func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.Channe
 }
 
 // loopbackProxyPolicy honours a PROXY protocol header only when the real TCP
-// peer is loopback. The sole legitimate producer is the web terminal bridge,
-// which dials localhost; accepting the header from any other peer lets a client
-// forge the source address that feeds the firewall ip_address rule, the audit
-// trail and the geoip record, so every non-loopback peer is rejected.
+// peer is loopback, and rejects the connection outright otherwise.
+//
+// Nothing produces such a header today: the web terminal bridge dials localhost
+// as a plain SSH client and passes the browser's address through the handoff
+// store instead. This is hardening, not a live path — the source address feeds
+// the firewall ip_address rule, the audit trail and the geoip record, so a peer
+// that is not us must never be able to declare one.
 var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
 
 func newProxyListener(lis net.Listener) *proxyproto.Listener {

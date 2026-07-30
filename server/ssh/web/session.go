@@ -7,13 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 	"unicode/utf8"
 
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
@@ -90,7 +89,7 @@ func bannerCallback(conn *Conn) func(string) error {
 }
 
 // getAuth gets the authentication methods from credentials.
-func getAuth(ctx context.Context, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
+func getAuth(ctx context.Context, cli internalclient.Client, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
 	// Identity mode: the browser presents its own enrolled key. Sign the SSH
 	// challenge over the WebSocket with it (the private half never leaves the
 	// browser); the gateway resolves the key to the identity via ssh_identities.
@@ -111,11 +110,6 @@ func getAuth(ctx context.Context, conn *Conn, creds *Credentials) ([]ssh.AuthMet
 
 	if creds.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
-	}
-
-	cli, err := internalclient.NewClient()
-	if err != nil {
-		return nil, err
 	}
 
 	// Trys to get a device from the API.
@@ -189,7 +183,7 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+func newSession(ctx context.Context, cli internalclient.Client, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -205,33 +199,21 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
-	auth, err := getAuth(ctx, conn, creds)
+	auth, err := getAuth(ctx, cli, conn, creds)
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 
 		return ErrGetAuth
 	}
 
-	if err := cache.Set(ctx, "web-ip/"+user, fmt.Sprintf("%s:%s", creds.Device, info.IP), 1*time.Minute); err != nil {
-		logger.WithError(err).Debug("failed to set the session IP on the cache")
-
-		return err
-	}
-
-	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
-
-	// In identity mode there is no device credential; the logged-in account is
-	// the identity. Carry its id across the localhost dial so the gateway can
-	// bind it to the session and authorize via Access Policies. Absent in legacy.
-	if creds.UserID != "" {
-		if err := cache.Set(ctx, "web-user/"+user, creds.UserID, 1*time.Minute); err != nil {
-			logger.WithError(err).Debug("failed to set the session user on the cache")
-
-			return err
-		}
-
-		defer cache.Delete(ctx, "web-user/"+user) //nolint:errcheck
-	}
+	// The SSH handshake has nowhere to carry the browser's address or, in identity
+	// mode, the logged-in account, so they are parked under the username about to
+	// be dialled and claimed by the session on the other side of the loopback.
+	handoff.Put(user, webhandoff.Data{
+		Device: creds.Device,
+		IP:     info.IP,
+		UserID: creds.UserID,
+	})
 
 	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
 		User:            user,

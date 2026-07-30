@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -108,9 +108,10 @@ func TestExitLogLevel(t *testing.T) {
 
 func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 	e := echo.New()
-	cache := new(cachemock.MockCache)
 
-	NewSSHServerBridge(e, cache)
+	// The token is never found, so the request fails before either dependency is
+	// reached.
+	NewSSHServerBridge(e, nil, webhandoff.NewStore())
 
 	server := httptest.NewServer(e)
 	defer server.Close()

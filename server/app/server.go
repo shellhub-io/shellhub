@@ -26,6 +26,7 @@ import (
 	pgoptions "github.com/shellhub-io/shellhub/server/api/store/pg/options"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	sshserver "github.com/shellhub-io/shellhub/server/ssh/server"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
 	log "github.com/sirupsen/logrus"
@@ -205,7 +206,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	s.heartbeater = services.NewDeviceHeartbeater(store)
 
-	if err := s.setupSSH(cache, apiClient); err != nil {
+	if err := s.setupSSH(service, apiClient); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
 	}
 
@@ -251,9 +252,10 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 
 // setupSSH wires the SSH server and its HTTP routes onto the API's router. The
 // cache and the internal client are the ones the API already built: both halves
-// now live in the same process, so a second Redis connection and a second client
-// would buy nothing.
-func (s *Server) setupSSH(c cache.Cache, apiClient internalclient.Client) error {
+// now live in the same process, so a second client would buy nothing. The
+// service is handed over for the same reason: the SSH side is migrating off the
+// loopback HTTP client and onto in-process calls.
+func (s *Server) setupSSH(service services.Service, apiClient internalclient.Client) error {
 	env, err := envs.ParseWithPrefix[sshEnv]("SSH_")
 	if err != nil {
 		return err
@@ -268,14 +270,19 @@ func (s *Server) setupSSH(c cache.Cache, apiClient internalclient.Client) error 
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
-	web.NewSSHServerBridge(s.router, c)
+	// The bridge and the SSH listener share one handoff store: the bridge writes
+	// what the SSH handshake cannot carry, and the session on the other side of
+	// the loopback dial claims it.
+	handoff := webhandoff.NewStore()
+
+	web.NewSSHServerBridge(s.router, apiClient, handoff)
 
 	if envs.IsDevelopment() {
 		runtime.SetBlockProfileRate(1)
 		pprof.Register(s.router)
 	}
 
-	s.ssh, err = sshserver.NewServer(d, c, &sshserver.Options{
+	s.ssh, err = sshserver.NewServer(d, service, apiClient, handoff, &sshserver.Options{
 		ConnectTimeout:               env.ConnectTimeout,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
 		HostKeyFile:                  env.HostKeyFile,

@@ -15,14 +15,15 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -172,8 +173,12 @@ type Session struct {
 	// Client represents a connection to a Client.
 	Client *Client
 
-	api    internalclient.Client
-	dialer *dialer.Dialer
+	api internalclient.Client
+	// service is the API's service layer, reached in process. It is replacing api
+	// call by call: both halves run in the same binary, so the HTTP hop the client
+	// makes is a call to ourselves.
+	service services.Service
+	dialer  *dialer.Dialer
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -262,27 +267,8 @@ func (s *Seats) SetPty(seat int, status bool) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-// splitWebData parses the "<device>:<ip>" payload cached by the web terminal
-// bridge under "web-ip/<sshid>". On a cache miss the value is the empty string,
-// so both fields are required; the IP may be IPv6, hence only the first colon
-// separates the two fields. It returns ErrWebData rather than panicking on a
-// malformed value, which an unauthenticated peer could otherwise trigger.
-func splitWebData(data string) (device, ip string, err error) {
-	parts := strings.SplitN(data, ":", 2)
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", ErrWebData
-	}
-
-	return parts[0], parts[1], nil
-}
-
-func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.Service, api internalclient.Client, handoff *webhandoff.Store) (*Session, error) {
 	snap := getSnapshot(ctx)
-
-	api, err := internalclient.NewClient()
-	if err != nil {
-		return nil, err
-	}
 
 	sshid := ctx.User()
 
@@ -311,39 +297,28 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 		if hos.IsLocalhost() {
 			web = true
 
-			var data string
-
-			if err := cache.Get(ctx, "web-ip/"+sshid, &data); err != nil {
-				log.WithError(err).
-					Error("failed to get the ip from web session")
-
-				return nil, err
-			}
-
-			if err := cache.Delete(ctx, "web-ip/"+sshid); err != nil {
-				log.WithError(err).
-					Error("failed to delete the web session ip from cache")
-
-				return nil, err
-			}
-
-			webDevice, webIP, err := splitWebData(data)
-			if err != nil {
+			data, ok := handoff.Take(sshid)
+			if !ok {
 				log.WithField("sshid", sshid).
-					Error("web session data is malformed")
+					Error("no web session handoff for this connection")
 
-				return nil, err
+				return nil, ErrWebData
 			}
 
-			target.Data = webDevice
-			hos.Host = webIP
+			if data.Device == "" || data.IP == "" {
+				log.WithField("sshid", sshid).
+					Error("web session handoff is incomplete")
+
+				return nil, ErrWebData
+			}
+
+			target.Data = data.Device
+			hos.Host = data.IP
 
 			// The logged-in account driving the web terminal, when the bridge
-			// authenticated the request (identity mode). Best-effort: it is absent
-			// for legacy web sessions, which authenticate with a device credential.
-			if err := cache.Get(ctx, "web-user/"+sshid, &webUserID); err == nil {
-				cache.Delete(ctx, "web-user/"+sshid) //nolint:errcheck
-			}
+			// authenticated the request (identity mode). Absent for legacy web
+			// sessions, which authenticate with a device credential.
+			webUserID = data.UserID
 		}
 
 		device, err := api.GetDevice(ctx, target.Data)
@@ -373,9 +348,10 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache)
 	}
 
 	session := &Session{
-		UID:    ctx.SessionID(),
-		api:    api,
-		dialer: dialer,
+		UID:     ctx.SessionID(),
+		api:     api,
+		service: service,
+		dialer:  dialer,
 		Events: &Events{
 			mu:   sync.Mutex{},
 			conn: events,
