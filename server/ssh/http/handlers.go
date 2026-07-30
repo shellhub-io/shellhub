@@ -31,8 +31,6 @@ const (
 	HandleSSHClosePath = "/api/sessions/:uid/close"
 	// HandleHTTPProxyPath proxies an inbound HTTP request to a device's HTTP server.
 	HandleHTTPProxyPath = "/http/proxy"
-	// HandleHealthcheckPath is used for readiness/liveness checks.
-	HandleHealthcheckPath = "/healthcheck"
 )
 
 const (
@@ -247,12 +245,6 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	}).Info("web endpoint request completed")
 
 	return nil
-}
-
-// HandleHealthcheck returns a simple 200 OK used for readiness/liveness
-// checks.
-func (h *Handlers) HandleHealthcheck(c echo.Context) error {
-	return c.String(http.StatusOK, "OK")
 }
 
 // requireAcceptedDevice fetches the device and refuses the connection unless it is accepted. A pending

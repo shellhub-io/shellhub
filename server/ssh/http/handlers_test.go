@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +21,7 @@ func TestHandleSSHCloseAuthorization(t *testing.T) {
 	for _, role := range forbiddenRoles {
 		t.Run("rejects role "+role, func(t *testing.T) {
 			e := echo.New()
-			e.Binder = NewBinder()
+			e.Binder = handlers.NewBinder()
 
 			req := httptest.NewRequest(http.MethodPost, "/api/sessions/session-uid/close", strings.NewReader(`{"device":"device-uid"}`))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
