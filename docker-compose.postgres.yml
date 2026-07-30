@@ -15,7 +15,7 @@ services:
       - POSTGRES_DB=${SHELLHUB_POSTGRES_DATABASE}
     networks:
       - shellhub
-  api:
+  server:
     depends_on:
       postgres:
         condition: service_healthy

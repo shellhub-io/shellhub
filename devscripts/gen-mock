@@ -5,9 +5,9 @@
 # Each module requires its own mockery run with GOWORK=off so that mockery
 # resolves imports against that module's go.mod instead of a workspace root.
 #
-# The api container mounts both the root module (pkg/) and the api/ sub-module,
-# so it is exec'd twice.  The gateway, ssh, and agent containers each have their
-# own module directory containing a .mockery.yaml.
+# The server container mounts both the root module (pkg/) and the server/
+# sub-module, so it is exec'd twice.  The gateway and agent containers each have
+# their own module directory containing a .mockery.yaml.
 
 # Resolve the repo root relative to this script's location so the script works
 # when invoked from any directory (not just the repo root).
@@ -18,20 +18,16 @@ DC="$REPO_ROOT/bin/docker-compose"
 REPO=/go/src/github.com/shellhub-io/shellhub
 
 # Root module (pkg/ shared packages)
-"$DC" exec api \
+"$DC" exec server \
     sh -c "cd $REPO && GOWORK=off mockery"
 
-# api/ sub-module
-"$DC" exec api \
-    sh -c "cd $REPO/api && GOWORK=off mockery"
+# server/ sub-module
+"$DC" exec server \
+    sh -c "cd $REPO/server && GOWORK=off mockery"
 
 # gateway module
 "$DC" exec gateway \
     sh -c "cd $REPO/gateway && GOWORK=off mockery"
-
-# ssh module
-"$DC" exec ssh \
-    sh -c "cd $REPO/ssh && GOWORK=off mockery"
 
 # agent module
 "$DC" exec agent \

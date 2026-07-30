@@ -37,7 +37,7 @@ type deviceInfo struct {
 }
 
 // webhookRequest is the enrollment payload ShellHub POSTs to the integrator.
-// Field names/tags match api/services/enrollment.go:enrollmentWebhookRequest.
+// Field names/tags match server/api/services/enrollment.go:enrollmentWebhookRequest.
 type webhookRequest struct {
 	TenantID       string      `json:"tenant_id"`
 	InstallKeyID   string      `json:"install_key_id"`   // SHA256 digest of the key (stable, non-secret) — key policy on this

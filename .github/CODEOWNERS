@@ -1,6 +1,5 @@
 * @shellhub-io/team-lead
-api/ @shellhub-io/backend-owners
-ssh/ @shellhub-io/backend-owners
+server/ @shellhub-io/backend-owners
 ui/ @shellhub-io/frontend-owners
 
 # Security scanner ignore files — reviewed by team lead.

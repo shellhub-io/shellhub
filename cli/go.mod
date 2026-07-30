@@ -4,7 +4,7 @@ go 1.25.12
 
 require (
 	github.com/shellhub-io/shellhub v0.0.0
-	github.com/shellhub-io/shellhub/api v0.0.0
+	github.com/shellhub-io/shellhub/server v0.0.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
@@ -49,4 +49,4 @@ require (
 
 replace github.com/shellhub-io/shellhub => ../
 
-replace github.com/shellhub-io/shellhub/api => ../api
+replace github.com/shellhub-io/shellhub/server => ../server

@@ -23,7 +23,7 @@ Replace `<image>` with the component name (`api`, `ssh`, `gateway`, `ui`, `cli`,
 cosign verify \
   --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
-  shellhubio/api:v0.18.0
+  shellhubio/server:v0.18.0
 ```
 
 A successful verification prints the signature payload and confirms that:
@@ -51,7 +51,7 @@ cosign verify-attestation \
   --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   --type cyclonedx \
-  shellhubio/api:v0.18.0
+  shellhubio/server:v0.18.0
 ```
 
 To extract the SBOM payload from the verified attestation:

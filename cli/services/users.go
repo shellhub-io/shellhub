@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
 // UserCreate adds a new user based on the provided user's data. This method validates data and

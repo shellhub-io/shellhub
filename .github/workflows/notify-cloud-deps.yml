@@ -4,11 +4,11 @@ on:
   push:
     branches: [master]
     paths:
-      # Cloud depends on root and api/ modules only (see cloud go.mod replace directives).
+      # Cloud depends on root and server/ modules only (see cloud go.mod replace directives).
       - 'go.mod'
       - 'go.sum'
-      - 'api/go.mod'
-      - 'api/go.sum'
+      - 'server/go.mod'
+      - 'server/go.sum'
 
 concurrency:
   group: notify-cloud-deps

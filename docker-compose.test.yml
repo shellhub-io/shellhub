@@ -1,25 +1,12 @@
 version: "3.7"
 
 services:
-  ssh:
-    image: ssh:test
+  server:
+    image: server:test
     pull_policy: build
     build:
       context: .
-      dockerfile: ssh/Dockerfile
-      target: production
-    restart: on-failure:3
-    healthcheck:
-      interval: 5s
-      start_period: 10s
-      retries: 20
-    ports: []
-  api:
-    image: api:test
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: api/Dockerfile
+      dockerfile: server/Dockerfile
       target: production
     restart: on-failure:3
     healthcheck:

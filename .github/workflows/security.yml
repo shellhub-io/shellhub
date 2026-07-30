@@ -31,16 +31,13 @@ jobs:
           - module: .
             sarif_name: root
             tags: ""
-          - module: api
-            sarif_name: api
+          - module: server
+            sarif_name: server
             tags: ""
-          # agent/ssh build-tag coverage relies on GOFLAGS being forwarded to go/packages
+          # agent build-tag coverage relies on GOFLAGS being forwarded to go/packages
           - module: agent
             sarif_name: agent
             tags: docker
-          - module: ssh
-            sarif_name: ssh
-            tags: internal_api
           - module: cli
             sarif_name: cli
             tags: ""
@@ -90,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [api, ssh, gateway, cli, ui, agent]
+        image: [server, gateway, cli, ui, agent]
 
     runs-on: ubuntu-latest
 

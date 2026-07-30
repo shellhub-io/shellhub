@@ -1,0 +1,164 @@
+package services
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/server/api/store"
+)
+
+type APIKeyService interface {
+	// CreateAPIKey creates a new API key for the specified namespace. If req.Key is empty it will generate a
+	// random UUID, the optional req.OptRole must be less or equal than the user's role when provided. The key
+	// will be hashed into an SHA256 hash. It returns the inserted UUID and an error, if any.
+	CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (res *responses.CreateAPIKey, err error)
+
+	// ListAPIKeys retrieves a list of API keys within the specified tenant ID. It returns the list of API keys, the
+	// total count of documents in the database, and an error, if any.
+	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int, err error)
+
+	// UpdateAPIKey updates an API key with the provided tenant ID and name. It returns an error, if any.
+	UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) (err error)
+
+	// DeleteAPIKey deletes an API key with the provided tenant ID and name. It returns an error, if any.
+	DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) (err error)
+}
+
+func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (*responses.CreateAPIKey, error) {
+	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
+		return nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	expiresIn := int64(0)
+	switch req.ExpiresAt {
+	case 30, 60, 90:
+		expiresIn = clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
+	case 365:
+		expiresIn = clock.Now().AddDate(1, 0, 0).Unix()
+	case -1:
+		expiresIn = -1
+	default:
+		return nil, NewErrBadRequest(errors.New("experid date to APIKey is invalid"))
+	}
+
+	if req.Key == "" {
+		req.Key = uuid.Generate()
+	}
+
+	if req.OptRole != "" {
+		if !req.Role.HasAuthority(req.OptRole) {
+			return nil, NewErrRoleForbidden()
+		}
+
+		req.Role = req.OptRole
+	}
+
+	// We don't store the plain key, which means we cannot save (because it is the primary key)
+	// the UUID with a nondeterministic hash (like bcrypt). For this reason, we convert the
+	// key to a SHA256 hash, which is guaranteed to be the same every time. This way, when
+	// retrieving the API key by the UUID, we can simply convert the UUID to a SHA256 hash and
+	// try to match it.
+	keySum := sha256.Sum256([]byte(req.Key))
+	hashedKey := hex.EncodeToString(keySum[:])
+
+	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{ID: hashedKey, Name: req.Name}); has {
+		return nil, NewErrAPIKeyDuplicated(conflicts)
+	}
+
+	data := &models.APIKey{
+		ID:        hashedKey,
+		Name:      req.Name,
+		TenantID:  req.TenantID,
+		Role:      req.Role,
+		ExpiresIn: expiresIn,
+		CreatedBy: req.UserID,
+	}
+
+	if _, err := s.store.APIKeyCreate(ctx, data); err != nil {
+		return nil, err
+	}
+
+	// As we need to return the plain key in the create service, we temporarily set
+	// the apiKey.ID to the plain key here.
+	apiKey, _ := s.store.APIKeyResolve(ctx, store.APIKeyIDResolver, hashedKey)
+	apiKey.ID = req.Key
+
+	return responses.CreateAPIKeyFromModel(apiKey), nil
+}
+
+func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
+	if req.Sorter.By == "" {
+		req.Sorter.By = "created_at"
+	}
+
+	req.Sorter.Tiebreak = "key_digest"
+
+	return s.store.APIKeyList(
+		ctx,
+		s.store.Options().InNamespace(req.TenantID),
+		s.store.Options().Sort(&req.Sorter),
+		s.store.Options().Paginate(&req.Paginator),
+	)
+}
+
+func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
+	// The acting member must outrank the role being assigned. A RoleInvalid (empty) req.Role means
+	// no role change, so the seam resolves membership without an authority assertion.
+	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
+		return err
+	}
+
+	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.CurrentName, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAPIKeyNotFound(req.CurrentName, err)
+		default:
+			return err
+		}
+	}
+
+	if apiKey.Name != req.Name {
+		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
+			return NewErrAPIKeyDuplicated(conflicts)
+		}
+	}
+
+	if req.Name != "" {
+		apiKey.Name = req.Name
+	}
+	if string(req.Role) != "" {
+		apiKey.Role = req.Role
+	}
+
+	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
+	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAPIKeyNotFound(req.Name, err)
+		default:
+			return err
+		}
+	}
+
+	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil { //nolint:revive
+		return err
+	}
+
+	return nil
+}

@@ -99,8 +99,8 @@ To suppress a known, accepted vulnerability:
 3. Dismissed alerts are audited and visible to the team in the Security tab.  There is no
    separate suppression file — suppression lives entirely in GitHub code scanning.
 
-> **Note:** The `agent` and `ssh` modules scan with build tags (`docker` and `internal_api`
-> respectively) via the `GOFLAGS` environment variable forwarded to `go/packages`.
+> **Note:** The `agent` module scans with the `docker` build tag, via the
+> `GOFLAGS` environment variable forwarded to `go/packages`.
 
 ### `# nosemgrep: <rule-id> -- <reason>` (Semgrep)
 

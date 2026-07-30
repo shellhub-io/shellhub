@@ -6,7 +6,7 @@ RUN apk add --no-cache git ca-certificates
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
 COPY ./go.mod ./
-COPY ./api/go.mod ./api/go.mod
+COPY ./server/go.mod ./server/go.mod
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/cli
 
@@ -17,7 +17,7 @@ RUN go mod download
 # builder stage
 FROM base AS builder
 
-COPY ./api $GOPATH/src/github.com/shellhub-io/shellhub/api
+COPY ./server $GOPATH/src/github.com/shellhub-io/shellhub/server
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
 COPY ./cli .
 

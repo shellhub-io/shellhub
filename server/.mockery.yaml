@@ -1,0 +1,21 @@
+log-level: "info"
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: "mocks"
+structname: "Mock{{.InterfaceName}}"
+filename: "mock_{{.InterfaceName | snakecase}}.go"
+template: testify
+
+packages:
+  github.com/shellhub-io/shellhub/server/api/store:
+    interfaces:
+      Store:
+      QueryOptions:
+
+  github.com/shellhub-io/shellhub/server/api/services:
+    interfaces:
+      Service:
+      LicenseEvaluator:
+
+  github.com/shellhub-io/shellhub/server/ssh/web:
+    interfaces:
+      Socket:
