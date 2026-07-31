@@ -74,19 +74,10 @@ type sshEnv struct {
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
-	WebEndpoints                 bool `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
 	// RequireAcceptedTunnel refuses the agent's reverse tunnel unless the device is accepted, so a
 	// pending or rejected device holds no connection. Off by default: not every fleet can adopt it
 	// (some rely on seeing pending devices online), so it is opt-in per instance.
 	RequireAcceptedTunnel bool `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
-	// WebEndpointsDomain is the dedicated subdomain for web endpoints. When
-	// empty, Domain is used as the fallback. The env key must stay
-	// SHELLHUB_WEB_ENDPOINTS_DOMAIN (not SSH_SHELLHUB_WEB_ENDPOINTS_DOMAIN)
-	// because the prefix "SSH_" is stripped by envs.ParseWithPrefix.
-	WebEndpointsDomain string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN,default=$SHELLHUB_DOMAIN"`
-	// Domain is the base domain for this ShellHub instance. The env key must
-	// stay SHELLHUB_DOMAIN (not SSH_SHELLHUB_DOMAIN) for the same reason.
-	Domain string `env:"SHELLHUB_DOMAIN"`
 }
 
 type Server struct {
@@ -184,13 +175,6 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, feOpts...)
 
-	weOpts, err := s.webEndpointResolverOption(ctx, store, cache)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, weOpts...)
-
 	routerOptions, err := s.routerOptions()
 	if err != nil {
 		return err
@@ -279,9 +263,6 @@ func (s *Server) setupSSH(service services.Service) error {
 	d := dialer.NewDialer(service, s.heartbeater)
 
 	sshhttp.Register(s.router, s.authn, d, service, &sshhttp.Config{
-		WebEndpoints:          env.WebEndpoints,
-		WebEndpointsDomain:    env.WebEndpointsDomain,
-		Domain:                env.Domain,
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,
 	})
 
@@ -425,26 +406,6 @@ func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c 
 
 	if fe != nil {
 		return []services.Option{services.WithFirewallEvaluator(fe)}, nil
-	}
-
-	return nil, nil
-}
-
-// webEndpointResolverOption initialises the web endpoint resolver when an enterprise
-// package registered a factory. See licenseEvaluatorOption for the nil guard rationale.
-func (s *Server) webEndpointResolverOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
-	factory := services.WebEndpointResolverFactory()
-	if factory == nil {
-		return nil, nil
-	}
-
-	r, err := factory(ctx, st, c)
-	if err != nil {
-		return nil, errors.Join(errors.New("init web endpoint resolver"), err)
-	}
-
-	if r != nil {
-		return []services.Option{services.WithWebEndpointResolver(r)}, nil
 	}
 
 	return nil, nil

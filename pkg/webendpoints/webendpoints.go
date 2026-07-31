@@ -16,6 +16,12 @@
 // the Go logic in sync is easier than introducing an indirection layer.
 package webendpoints
 
+import (
+	"net"
+	"regexp"
+	"strings"
+)
+
 // Domain returns the effective domain for a web endpoint.
 //
 // When preferred is non-empty it is returned as-is, giving namespace
@@ -28,6 +34,39 @@ func Domain(preferred, fallback string) string {
 	}
 
 	return fallback
+}
+
+// address is the hex-encoded MD5 sum that models.WebEndpoint.GenerateAddress
+// produces, and the same shape the edge proxy's server_name matches.
+var address = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
+// AddressFromHost is the inverse of Host: it takes the Host of an inbound
+// request and reports the address it names, or false when the request is not
+// addressed to a web endpoint at all.
+//
+// Rejecting a host that only looks close enough is the point. Whoever the
+// address resolves to gets the request proxied into their device, so a caller
+// must be able to tell "this is a web endpoint" apart from "this is the
+// console" without consulting the database first.
+func AddressFromHost(host, domain string) (string, bool) {
+	if domain == "" {
+		return "", false
+	}
+
+	if hostname, _, err := net.SplitHostPort(host); err == nil {
+		host = hostname
+	}
+
+	// A Host may arrive as a fully qualified name, with the root label spelled
+	// out, and still be the same name.
+	host = strings.ToLower(strings.TrimSuffix(host, "."))
+
+	candidate, found := strings.CutSuffix(host, "."+strings.ToLower(domain))
+	if !found || !address.MatchString(candidate) {
+		return "", false
+	}
+
+	return candidate, true
 }
 
 // Host builds the full hostname for a web endpoint.

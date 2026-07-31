@@ -77,7 +77,6 @@ var (
 	ErrFirewallBlocked                 = errors.New("firewall blocked the connection", ErrLayer, ErrCodeForbidden)
 	ErrLicenseBlocked                  = errors.New("license blocked the connection", ErrLayer, ErrCodePayment)
 	ErrBillingBlocked                  = errors.New("billing blocked the connection", ErrLayer, ErrCodePayment)
-	ErrWebEndpointNotAvailable         = errors.New("web endpoints not available", ErrLayer, ErrCodeInvalid)
 	ErrNoContentChange                 = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)

@@ -25,7 +25,6 @@ type service struct {
 	billing           BillingProvider
 	licenseEvaluator  LicenseEvaluator
 	firewallEvaluator FirewallEvaluator
-	webEndpoints      WebEndpointResolver
 }
 
 type Service interface {
@@ -53,7 +52,6 @@ type Service interface {
 	FirewallService
 	LicenseService
 	BillingService
-	WebEndpointService
 
 	// Store returns the underlying store instance.
 	//
@@ -96,12 +94,6 @@ func WithFirewallEvaluator(fe FirewallEvaluator) Option {
 	}
 }
 
-func WithWebEndpointResolver(r WebEndpointResolver) Option {
-	return func(service *APIService) {
-		service.webEndpoints = r
-	}
-}
-
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
@@ -122,7 +114,6 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			billing:           nil, // injected via WithBilling option
 			licenseEvaluator:  nil, // injected via WithLicenseEvaluator option
 			firewallEvaluator: nil, // injected via WithFirewallEvaluator option
-			webEndpoints:      nil, // injected via WithWebEndpointResolver option
 		},
 	}
 

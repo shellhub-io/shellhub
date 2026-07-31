@@ -2,20 +2,13 @@ package http
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -90,8 +83,6 @@ func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Devic
 const (
 	// HandleSSHClosePath receives a request to close an existing SSH session.
 	HandleSSHClosePath = "/api/sessions/:uid/close"
-	// HandleHTTPProxyPath proxies an inbound HTTP request to a device's HTTP server.
-	HandleHTTPProxyPath = "/http/proxy"
 )
 
 const (
@@ -143,169 +134,6 @@ func (h *Handlers) HandleSSHClose(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-// HandleHTTPProxy proxies an inbound HTTP request to a device's HTTP
-// service exposed through the reverse tunnel/web endpoint feature. It
-// supports both transport versions:
-//   - V1: issues a CONNECT prelude then performs a standard HTTP request over the established raw tunnel.
-//   - V2: negotiates the /http/proxy multistream protocol and exchanges a JSON envelope to set up the target host/port.
-//
-// The handler then hijacks the Echo response writer to stream data
-// bidirectionally between client and device.
-func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
-	requestID := c.Request().Header.Get("X-Request-ID")
-
-	address := c.Request().Header.Get("X-Address")
-	log.WithFields(log.Fields{
-		"request-id": requestID,
-		"address":    address,
-	}).Debug("address value")
-
-	path := c.Request().Header.Get("X-Path")
-	log.WithFields(log.Fields{
-		"request-id": requestID,
-		"address":    address,
-	}).Debug("path")
-
-	endpoint, err := h.Service.LookupWebEndpoint(c.Request().Context(), address)
-	if err != nil {
-		log.WithError(err).Error("failed to get the web endpoint")
-
-		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
-	}
-
-	logger := log.WithFields(log.Fields{
-		"request-id": requestID,
-		"namespace":  endpoint.Namespace,
-		"device":     endpoint.DeviceUID,
-	})
-
-	conn, err := h.Dialer.DialTo(c.Request().Context(), endpoint.Namespace, endpoint.DeviceUID, dialer.HTTPProxyTarget{
-		RequestID: requestID,
-		Host:      endpoint.Host,
-		Port:      endpoint.Port,
-	})
-	if err != nil {
-		logger.WithError(err).Error("failed to dial to device")
-
-		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrDeviceTunnelDial))
-	}
-	defer conn.Close()
-
-	logger.Trace("new web endpoint connection initialized")
-	defer logger.Trace("web endpoint connection doned")
-
-	req := c.Request()
-	req.URL, err = url.Parse(fmt.Sprintf("http://%s:%d%s", endpoint.Host, endpoint.Port, path))
-	if err != nil {
-		logger.WithError(err).Error("failed to parse the path")
-
-		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelParsePath))
-	}
-
-	req.Host = h.Config.webEndpointHost(address)
-
-	// NOTE: endpoint.TLS.Domain doubles as a Host-override hint and (when TLS
-	// is enabled) as the SNI used during the handshake. When non-empty, it
-	// rewrites the outgoing Host header so backends that validate Host or
-	// auto-redirect to a canonical hostname can be reached, even when the
-	// proxy-to-backend leg stays cleartext HTTP.
-	if endpoint.TLS.Domain != "" {
-		req.Host = endpoint.TLS.Domain
-	}
-
-	// NOTE: When the endpoint is configured with TLS-to-backend, wrap the raw
-	// tunnel connection with a TLS client so the proxied HTTP request reaches
-	// the device as a TLS handshake plus encrypted payload. SNI is set to
-	// endpoint.TLS.Domain so the backend can select the right virtual host
-	// and certificate. tls.Verify toggles system-CA validation.
-	transportConn := conn
-	if endpoint.TLS.Enabled {
-		cfg := &tls.Config{
-			MinVersion: tls.VersionTLS13,
-			ServerName: endpoint.TLS.Domain,
-		}
-
-		if endpoint.TLS.Verify {
-			roots, err := x509.SystemCertPool()
-			if err != nil {
-				logger.WithError(err).Error("failed to load system CA pool")
-
-				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
-			}
-			cfg.RootCAs = roots
-		} else {
-			cfg.InsecureSkipVerify = true //nolint:gosec // intentional: user opted out of cert verification via TLS.Verify=false
-		}
-
-		tlsConn := tls.Client(conn, cfg)
-		if err := tlsConn.Handshake(); err != nil {
-			logger.WithError(err).Error("tls handshake to device failed")
-
-			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
-		}
-
-		transportConn = tlsConn
-	}
-
-	if err := req.Write(transportConn); err != nil {
-		logger.WithError(err).Error("failed to write the request to the agent")
-
-		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
-	}
-
-	log.WithFields(log.Fields{
-		"request-id": requestID,
-		"method":     req.Method,
-		"url":        req.URL.String(),
-		"host":       req.Host,
-		"headers":    req.Header,
-	}).Debug("request to device")
-
-	ctr := http.NewResponseController(c.Response())
-	out, _, err := ctr.Hijack()
-	if err != nil {
-		logger.WithError(err).Error("failed to hijack the http request")
-
-		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelHijackRequest))
-	}
-
-	defer out.Close()
-
-	// Bidirectional copy between the client and the device.
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	startTime := clock.Now()
-
-	go func() {
-		defer wg.Done()
-
-		if _, err := io.Copy(transportConn, out); err != nil {
-			logger.WithError(err).Debug("in and out done returned a error")
-		}
-
-		logger.Trace("in and out done")
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		if _, err := io.Copy(out, transportConn); err != nil {
-			logger.WithError(err).Debug("out and in done returned a error")
-		}
-
-		logger.Trace("out and in done")
-	}()
-
-	wg.Wait()
-
-	logger.WithFields(log.Fields{
-		"duration": clock.Now().Sub(startTime).String(),
-	}).Info("web endpoint request completed")
-
-	return nil
 }
 
 // requireAcceptedDevice fetches the device and refuses the connection unless it is accepted. A pending
