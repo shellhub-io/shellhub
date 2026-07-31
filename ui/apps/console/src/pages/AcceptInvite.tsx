@@ -44,7 +44,7 @@ export default function AcceptInvite() {
   const authUserId = useAuthStore((s) => s.userId);
   const authEmail = useAuthStore((s) => s.email);
   const logout = useAuthStore((s) => s.logout);
-  const setSession = useAuthStore((s) => s.setSession);
+  const loginWithToken = useAuthStore((s) => s.loginWithToken);
 
   const invite = searchParams.get("invite") ?? "";
 
@@ -147,7 +147,7 @@ export default function AcceptInvite() {
     setError("");
     try {
       if (postAction?.kind === "joined" && postAction.token) {
-        setSession({ token: postAction.token, tenant });
+        await loginWithToken(postAction.token);
       }
 
       await switchNamespace.mutateAsync({
