@@ -53,28 +53,37 @@ func TestMain_smoke(t *testing.T) {
 
 	t.Logf("gateway container listening at %s", baseURL)
 
-	healthURL := baseURL + "/healthcheck"
-
-	client := http.Client{Timeout: 5 * time.Second}
+	// The one route nginx answers by itself. Everything else proxies to an
+	// upstream that does not exist beside a lone container, so asking for it
+	// would assert on how nginx reports a missing backend rather than on
+	// whether this image boots and serves the configuration it generated.
+	//
+	// Location matters as much as the status: absolute_redirect is off, so the
+	// redirects this gateway emits are relative, and a client that compares the
+	// header would see it change if that ever stopped being true.
+	client := http.Client{
+		Timeout: 5 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 
 	const maxRetries = 10
 
 	var resp *http.Response
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		t.Logf("healthcheck attempt %d/%d: GET %s", attempt, maxRetries, healthURL)
-
 		var err error
 
-		resp, err = client.Get(healthURL)
+		resp, err = client.Get(baseURL + "/v1/")
 		if err == nil {
 			break
 		}
 
-		t.Logf("healthcheck attempt %d/%d failed: %v", attempt, maxRetries, err)
+		t.Logf("attempt %d/%d failed: %v", attempt, maxRetries, err)
 
 		if attempt == maxRetries {
-			t.Fatalf("healthcheck: all %d attempts exhausted, last error: %v", maxRetries, err)
+			t.Fatalf("all %d attempts exhausted, last error: %v", maxRetries, err)
 		}
 
 		delay := time.Duration(attempt) * time.Second
@@ -87,5 +96,6 @@ func TestMain_smoke(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusMovedPermanently, resp.StatusCode)
+	assert.Equal(t, "/", resp.Header.Get("Location"))
 }
