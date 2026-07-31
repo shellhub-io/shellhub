@@ -4,7 +4,10 @@ import {
   type GetNamespaceMembershipInvitationListData,
   type MembershipInvitation,
 } from "@/client";
-import { getNamespaceMembershipInvitationListQueryKey } from "@/client/@tanstack/react-query.gen";
+import {
+  getNamespaceMembershipInvitationListQueryKey,
+  resolveInvitationOptions,
+} from "@/client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "@/api/pagination";
 import {
   invitationStatusFilter,
@@ -17,6 +20,27 @@ interface UseNamespaceInvitationsParams {
   page?: number;
   perPage?: number;
   enabled?: boolean;
+}
+
+export function useResolveInvitation(invite: string) {
+  const { data, isLoading, isError } = useQuery({
+    ...resolveInvitationOptions({ query: { invite } }),
+    enabled: !!invite,
+    retry: false,
+    staleTime: Infinity,
+  });
+
+  const resolved =
+    data?.tenant_id && data.user_id && data.status
+      ? {
+          tenantId: data.tenant_id,
+          userId: data.user_id,
+          email: data.email ?? "",
+          status: data.status,
+        }
+      : null;
+
+  return { resolved, isLoading, isError };
 }
 
 export function useNamespaceInvitations({

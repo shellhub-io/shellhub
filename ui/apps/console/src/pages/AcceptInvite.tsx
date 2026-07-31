@@ -10,10 +10,10 @@ import {
   UserCircleIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { resolveInvitation } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
 import { useAcceptInvite } from "@/hooks/useInvitationMutations";
+import { useResolveInvitation } from "@/hooks/useInvitations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
@@ -25,14 +25,17 @@ import { cn } from "@shellhub/design-system/cn";
 import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
 
 type Branch =
-  | { kind: "loading" }
-  | { kind: "missing-params" }
-  | { kind: "error"; message: string }
-  | { kind: "wrong-user" }
-  | { kind: "complete" } // account doesn't exist yet: the invitee sets it up here
-  | { kind: "submitted" } // completed, waiting for a superadmin's approval
-  | { kind: "joined"; token?: string } // accepted/completed and live: confirm before entering
-  | { kind: "ready" }; // account exists and is signed in: accept
+  | "loading"
+  | "missing-params"
+  | "error"
+  | "wrong-user"
+  | "sign-up"
+  | "pending-approval"
+  | "joined"
+  | "accept";
+
+type PostAction =
+  { kind: "pending-approval" } | { kind: "joined"; token?: string };
 
 export default function AcceptInvite() {
   const [searchParams] = useSearchParams();
@@ -52,14 +55,14 @@ export default function AcceptInvite() {
   const signUpLoading = useSignUpStore((s) => s.signUpLoading);
   const signUpError = useSignUpStore((s) => s.signUpError);
 
-  // Resolved from the invite code (the link no longer carries these). tenant is
-  // needed to accept/decline; email is shown as context while completing.
-  const [tenant, setTenant] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [branch, setBranch] = useState<Branch>({ kind: "loading" });
-  const [confirmKind, setConfirmKind] = useState<"accept" | null>(null);
-  const [actionError, setActionError] = useState("");
-  const [completeError, setCompleteError] = useState("");
+  const { resolved, isLoading, isError } = useResolveInvitation(invite);
+
+  const tenant = resolved?.tenantId ?? "";
+  const inviteEmail = resolved?.email ?? "";
+
+  const [postAction, setPostAction] = useState<PostAction | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
 
   const { control, handleSubmit } = useForm<InviteFormValues>({
     resolver: inviteResolver,
@@ -72,76 +75,36 @@ export default function AcceptInvite() {
     },
   });
 
+  const needsLogin =
+    !authToken &&
+    !postAction &&
+    !!resolved &&
+    (resolved.status === "not-confirmed" || resolved.status === "confirmed");
+
   useEffect(() => {
-    let cancelled = false;
+    if (!needsLogin) return;
+    const redirectTarget = `/accept-invite?invite=${encodeURIComponent(invite)}`;
+    void navigate(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+  }, [needsLogin, invite, navigate]);
 
-    async function resolve() {
-      if (!invite) {
-        if (!cancelled) setBranch({ kind: "missing-params" });
-        return;
-      }
+  const branch: Branch = (() => {
+    if (postAction) return postAction.kind;
+    if (!invite) return "missing-params";
+    if (isLoading || needsLogin) return "loading";
+    if (isError || !resolved) return "error";
 
-      try {
-        const { data } = await resolveInvitation({
-          query: { invite },
-          throwOnError: true,
-        });
-        if (cancelled) return;
-
-        if (data.tenant_id) setTenant(data.tenant_id);
-        if (data.email) setInviteEmail(data.email);
-
-        // Logged in: only the invited account may accept. Compare against the
-        // account the code resolves to.
-        if (authToken) {
-          if (authUserId === data.user_id) setBranch({ kind: "ready" });
-          else setBranch({ kind: "wrong-user" });
-          return;
-        }
-
-        // No account yet — the invitee sets it up right here, no generic sign-up.
-        if (data.status === "invited") {
-          setBranch({ kind: "complete" });
-          return;
-        }
-
-        // Account exists but they aren't signed in: send them to log in, then
-        // back here to accept.
-        if (data.status === "not-confirmed" || data.status === "confirmed") {
-          const redirectTarget = `/accept-invite?invite=${encodeURIComponent(invite)}`;
-          void navigate(
-            `/login?redirect=${encodeURIComponent(redirectTarget)}`,
-          );
-          return;
-        }
-
-        if (!cancelled) {
-          setBranch({
-            kind: "error",
-            message: "We couldn't verify this invitation. Please try again.",
-          });
-        }
-      } catch {
-        if (!cancelled) {
-          setBranch({
-            kind: "error",
-            message:
-              "This invitation is invalid or has expired. Please ask the sender for a new one.",
-          });
-        }
-      }
+    if (authToken) {
+      return authUserId === resolved.userId ? "accept" : "wrong-user";
     }
 
-    void resolve();
-    return () => {
-      cancelled = true;
-    };
-  }, [invite, authToken, authUserId, navigate]);
+    if (resolved.status === "invited") return "sign-up";
 
-  const onComplete = async (values: InviteFormValues) => {
-    setCompleteError("");
+    return "error";
+  })();
 
-    // email comes from the invite; no ToS/marketing (that's Cloud's open sign-up).
+  const handleSignUp = async (values: InviteFormValues) => {
+    setError("");
+
     const token = await signUp({
       name: values.name,
       username: values.username,
@@ -151,60 +114,48 @@ export default function AcceptInvite() {
       sig: invite,
     });
 
-    const { signUpError: err, signUpServerFields: fields } =
-      useSignUpStore.getState();
-
-    if (err) return; // shown via the signUpError Callout
-    if (fields.length > 0) {
-      setCompleteError(
+    const { signUpError: err, signUpServerFields } = useSignUpStore.getState();
+    if (err) return;
+    if (signUpServerFields.length > 0) {
+      setError(
         "That username or email is already in use. Try a different username.",
       );
       return;
     }
 
     if (token) {
-      // Confirmed account (superadmin invite / Cloud). Carry the token so entering the namespace
-      // can establish the session. Calling setSession here would flip authToken and re-run the
-      // resolve effect, clobbering this screen; defer it to handleEnterNamespace instead.
-      setBranch({ kind: "joined", token });
+      setPostAction({ kind: "joined", token });
       return;
     }
 
-    // No token: the account was created but needs a superadmin's approval
-    // before it can sign in (Enterprise, non-superadmin inviter).
-    setBranch({ kind: "submitted" });
+    setPostAction({ kind: "pending-approval" });
   };
 
   const handleAccept = async () => {
     if (!tenant || !authToken) return;
-    setActionError("");
+    setError("");
     try {
       await acceptInvite.mutateAsync({ path: { tenant } });
-      setConfirmKind(null);
-      setBranch({ kind: "joined" });
+      setShowConfirm(false);
+      setPostAction({ kind: "joined" });
     } catch {
-      setActionError("Failed to accept the invitation. Please try again.");
+      setError("Failed to accept the invitation. Please try again.");
     }
   };
 
   const handleEnterNamespace = async () => {
-    setActionError("");
+    setError("");
     try {
-      // A freshly-completed account isn't signed in yet: establish the session from the completion
-      // token so getNamespaceToken is authenticated. (The accept flow of an existing account is
-      // already signed in and carries no token.)
-      if (branch.kind === "joined" && branch.token) {
-        setSession({ token: branch.token, tenant });
+      if (postAction?.kind === "joined" && postAction.token) {
+        setSession({ token: postAction.token, tenant });
       }
 
-      // switchNamespace mints a fresh namespace-scoped token, stores { token, tenant, role }
-      // via setSession, and hard-navigates so NamespaceGuard re-initializes cleanly.
       await switchNamespace.mutateAsync({
         tenantId: tenant,
         redirectTo: "/dashboard",
       });
     } catch {
-      setActionError("Couldn't open the namespace. Please try again.");
+      setError("Couldn't open the namespace. Please try again.");
     }
   };
 
@@ -218,7 +169,7 @@ export default function AcceptInvite() {
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <div className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm">
-        {branch.kind === "loading" && (
+        {branch === "loading" && (
           <div
             className="flex flex-col items-center gap-3 py-6"
             role="status"
@@ -229,7 +180,7 @@ export default function AcceptInvite() {
           </div>
         )}
 
-        {branch.kind === "missing-params" && (
+        {branch === "missing-params" && (
           <InvitationMessage
             tone="error"
             icon={
@@ -254,7 +205,7 @@ export default function AcceptInvite() {
           />
         )}
 
-        {branch.kind === "error" && (
+        {branch === "error" && (
           <InvitationMessage
             tone="error"
             icon={
@@ -264,7 +215,7 @@ export default function AcceptInvite() {
               />
             }
             title="Invitation Unavailable"
-            description={branch.message}
+            description="This invitation is invalid or has expired. Please ask the sender for a new one."
             action={
               <Button
                 as={Link}
@@ -279,7 +230,7 @@ export default function AcceptInvite() {
           />
         )}
 
-        {branch.kind === "wrong-user" && (
+        {branch === "wrong-user" && (
           <InvitationMessage
             tone="warning"
             icon={
@@ -311,7 +262,7 @@ export default function AcceptInvite() {
           />
         )}
 
-        {branch.kind === "complete" && (
+        {branch === "sign-up" && (
           <div>
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/20 mb-5">
@@ -332,19 +283,11 @@ export default function AcceptInvite() {
               </p>
             </div>
 
-            {signUpError && (
-              <Callout variant="error" className="mb-4">
-                {signUpError}
-              </Callout>
-            )}
-            {completeError && (
-              <Callout variant="error" className="mb-4">
-                {completeError}
-              </Callout>
-            )}
+            <ErrorCallout message={signUpError} />
+            <ErrorCallout message={error} />
 
             <form
-              onSubmit={(e) => void handleSubmit(onComplete)(e)}
+              onSubmit={(e) => void handleSubmit(handleSignUp)(e)}
               className="space-y-4"
               aria-label="Complete your account"
             >
@@ -385,7 +328,7 @@ export default function AcceptInvite() {
           </div>
         )}
 
-        {branch.kind === "submitted" && (
+        {branch === "pending-approval" && (
           <InvitationMessage
             tone="warning"
             icon={
@@ -410,7 +353,7 @@ export default function AcceptInvite() {
           />
         )}
 
-        {branch.kind === "joined" && (
+        {branch === "joined" && (
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-5">
               <CheckCircleIcon
@@ -434,11 +377,7 @@ export default function AcceptInvite() {
               ) : null}
               .
             </p>
-            {actionError && (
-              <Callout variant="error" className="mb-4">
-                {actionError}
-              </Callout>
-            )}
+            <ErrorCallout message={error} />
             <div className="flex items-center justify-center">
               <Button
                 onClick={() => void handleEnterNamespace()}
@@ -453,7 +392,7 @@ export default function AcceptInvite() {
           </div>
         )}
 
-        {branch.kind === "ready" && (
+        {branch === "accept" && (
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/20 mb-5">
               <EnvelopeOpenIcon
@@ -471,7 +410,7 @@ export default function AcceptInvite() {
             <div className="flex items-center justify-center">
               <Button
                 icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-                onClick={() => setConfirmKind("accept")}
+                onClick={() => setShowConfirm(true)}
               >
                 Accept
               </Button>
@@ -481,19 +420,28 @@ export default function AcceptInvite() {
       </div>
 
       <ConfirmDialog
-        open={confirmKind === "accept"}
+        open={showConfirm}
         onClose={() => {
-          setConfirmKind(null);
-          setActionError("");
+          setShowConfirm(false);
+          setError("");
         }}
         onConfirm={handleAccept}
         title="Accept Invitation"
         description="You will be added to the namespace and switched to it immediately."
         confirmLabel="Accept"
         variant="primary"
-        errorMessage={confirmKind === "accept" ? actionError || null : null}
+        errorMessage={error || null}
       />
     </div>
+  );
+}
+
+function ErrorCallout({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <Callout variant="error" className="mb-4">
+      {message}
+    </Callout>
   );
 }
 
@@ -517,7 +465,10 @@ function InvitationMessage({
   return (
     <div className="text-center">
       <div
-        className={cn("inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5", ringClass)}
+        className={cn(
+          "inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5",
+          ringClass,
+        )}
       >
         {icon}
       </div>

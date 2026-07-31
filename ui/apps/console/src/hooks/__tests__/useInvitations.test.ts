@@ -2,13 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useNamespaceInvitations } from "../useInvitations";
+import {
+  useNamespaceInvitations,
+  useResolveInvitation,
+} from "../useInvitations";
 import type { MembershipInvitation } from "../../client";
 
 vi.mock("../../client", () => ({
   getMembershipInvitationList: vi.fn(),
   getNamespaceMembershipInvitationList: vi.fn(),
 }));
+
+const mockResolveFn = vi.fn();
 
 vi.mock("../../client/@tanstack/react-query.gen", () => ({
   getMembershipInvitationListQueryKey: vi.fn((opts: unknown) => [
@@ -19,6 +24,10 @@ vi.mock("../../client/@tanstack/react-query.gen", () => ({
     { _id: "getNamespaceMembershipInvitationList" },
     opts,
   ]),
+  resolveInvitationOptions: vi.fn((opts: unknown) => ({
+    queryKey: [{ _id: "resolveInvitation" }, opts],
+    queryFn: () => mockResolveFn() as unknown,
+  })),
 }));
 
 vi.mock("../../api/pagination", () => ({
@@ -154,5 +163,75 @@ describe("useNamespaceInvitations", () => {
       expect(opts.query.page).toBe(1);
       expect(opts.query.per_page).toBe(10);
     });
+  });
+});
+
+describe("useResolveInvitation", () => {
+  it("normalizes wire fields to camelCase", async () => {
+    mockResolveFn.mockResolvedValue({
+      tenant_id: "t1",
+      user_id: "u1",
+      email: "alice@example.com",
+      status: "confirmed",
+    });
+
+    const { result } = renderHook(() => useResolveInvitation("CODE"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.resolved).toEqual({
+      tenantId: "t1",
+      userId: "u1",
+      email: "alice@example.com",
+      status: "confirmed",
+    });
+  });
+
+  it.each(["tenant_id", "user_id", "status"])(
+    "returns null when %s is missing",
+    async (field) => {
+      const data = {
+        tenant_id: "t1",
+        user_id: "u1",
+        email: "a@b.com",
+        status: "confirmed",
+        [field]: null,
+      };
+      mockResolveFn.mockResolvedValue(data);
+
+      const { result } = renderHook(() => useResolveInvitation("CODE"), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.resolved).toBeNull();
+    },
+  );
+
+  it("falls back to empty string when email is null", async () => {
+    mockResolveFn.mockResolvedValue({
+      tenant_id: "t1",
+      user_id: "u1",
+      email: null,
+      status: "invited",
+    });
+
+    const { result } = renderHook(() => useResolveInvitation("CODE"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.resolved?.email).toBe("");
+  });
+
+  it("does not fetch when invite is empty", () => {
+    const { result } = renderHook(() => useResolveInvitation(""), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.resolved).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(mockResolveFn).not.toHaveBeenCalled();
   });
 });
