@@ -13,7 +13,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/yamux v0.1.2
 	github.com/hibiken/asynq v0.26.0
-	github.com/jarcoal/httpmock v1.3.1
+	github.com/jarcoal/httpmock v1.4.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/labstack/gommon v0.5.0
 	github.com/sethvargo/go-envconfig v0.9.0
