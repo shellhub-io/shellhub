@@ -1,5 +1,9 @@
 version: 2
 
+# Every entry sets open-pull-requests-limit explicitly. The default is 5 per entry,
+# which multiplies by the number of entries here and lets a quiet week turn into
+# dozens of simultaneous pull requests.
+
 updates:
 - package-ecosystem: github-actions
   directory: "/"
@@ -7,10 +11,14 @@ updates:
     interval: weekly
   cooldown:
     default-days: 7
+  open-pull-requests-limit: 5
   groups:
-    codeql:
+    # applies-to keeps this to version updates, so a security fix still arrives on
+    # its own instead of waiting behind an unrelated action in the same pull request.
+    actions:
+      applies-to: version-updates
       patterns:
-        - "github/codeql-action/*"
+        - "*"
 
 - package-ecosystem: docker
   directories:
@@ -24,6 +32,15 @@ updates:
     default-days: 7
   commit-message:
     prefix: "docker"
+  open-pull-requests-limit: 5
+  groups:
+    # These four share the same base image, so without group-by a single bump
+    # arrives as four pull requests that all edit the same version.
+    images:
+      applies-to: version-updates
+      group-by: dependency-name
+      patterns:
+        - "*"
   # The Go image follows the toolchain pinned in go.mod, so it only moves when we
   # bump the toolchain ourselves.
   ignore:
@@ -37,6 +54,7 @@ updates:
     default-days: 7
   commit-message:
     prefix: "docker"
+  open-pull-requests-limit: 5
   ignore:
     - dependency-name: "node"
       update-types: ["version-update:semver-major"]
@@ -51,56 +69,61 @@ updates:
   commit-message:
     prefix: "ui"
   versioning-strategy: lockfile-only
+  open-pull-requests-limit: 5
   groups:
+    # React refuses to run unless react and react-dom are on the exact same version,
+    # so split across two pull requests each half fails CI on its own and neither can
+    # ever go green.
+    react:
+      patterns:
+        - "react"
+        - "react-dom"
+        - "@types/react"
+        - "@types/react-dom"
     tiptap:
       patterns:
         - "@tiptap/*"
+    # A dependency matching more than one group is not placed in the first match, so
+    # the catch-all has to exclude the groups above by hand.
+    ui:
+      applies-to: version-updates
+      update-types:
+        - minor
+        - patch
+      exclude-patterns:
+        - "react"
+        - "react-dom"
+        - "@types/react"
+        - "@types/react-dom"
+        - "@tiptap/*"
 
+# One entry for every Go module rather than one entry each. The modules share a
+# workspace, so `go mod tidy` on any of them rewrites the others' go.sum, and a
+# dependency they have in common used to arrive as one pull request per module —
+# each carrying the same edits, each conflicting with the rest. group-by collapses
+# those into a single pull request per dependency.
+#
+# The commit scope is `deps` because such an update genuinely spans layers; there is
+# no single module to name.
+#
 # Indirect dependencies come along when `devscripts/prepare-release` re-resolves the
 # module, so only direct ones are allowed here: an indirect bump on its own lands
 # ahead of the dependency that pins it and cannot build.
 - package-ecosystem: gomod
-  directory: "/"
+  directories:
+    - "/"
+    - "/agent"
+    - "/gateway"
+    - "/openapi"
+    - "/server"
+    - "/tests"
   schedule:
     interval: weekly
   cooldown:
     default-days: 7
   commit-message:
-    prefix: "pkg"
-  allow:
-    - dependency-type: direct
-- package-ecosystem: gomod
-  directory: "/server"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "server"
-  allow:
-    - dependency-type: direct
-  ignore:
-    - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/agent"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "agent"
-  allow:
-    - dependency-type: direct
-  ignore:
-    - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/gateway"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "gateway"
+    prefix: "deps"
+  open-pull-requests-limit: 10
   allow:
     - dependency-type: direct
   groups:
@@ -108,29 +131,13 @@ updates:
       patterns:
         - "github.com/caddyserver/*"
         - "github.com/caddy-dns/*"
-  ignore:
-    - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/openapi"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "openapi"
-  allow:
-    - dependency-type: direct
-  ignore:
-    - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/tests"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "tests"
-  allow:
-    - dependency-type: direct
+    go-modules:
+      applies-to: version-updates
+      group-by: dependency-name
+      patterns:
+        - "*"
+      exclude-patterns:
+        - "github.com/caddyserver/*"
+        - "github.com/caddy-dns/*"
   ignore:
     - dependency-name: "github.com/shellhub-io/shellhub"
