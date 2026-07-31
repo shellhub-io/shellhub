@@ -9,7 +9,7 @@ require (
 	github.com/caddyserver/caddy/v2 v2.11.4
 	github.com/caddyserver/certmagic v0.25.4
 	github.com/go-playground/validator/v10 v10.30.3
-	github.com/sethvargo/go-envconfig v0.9.0
+	github.com/sethvargo/go-envconfig v1.4.3
 	github.com/shellhub-io/shellhub v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
