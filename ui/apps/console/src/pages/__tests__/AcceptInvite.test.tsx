@@ -154,6 +154,16 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
+    loginWithToken: async (token: string) => {
+      useAuthStore.setState({
+        token,
+        user: "alice",
+        userId: "u1",
+        email: "alice@example.com",
+        name: "Alice",
+        loading: false,
+      });
+    },
   });
   signUpState.signUpLoading = false;
   signUpState.signUpError = null;
@@ -329,9 +339,11 @@ describe("AcceptInvite", () => {
           redirectTo: "/dashboard",
         }),
       );
-      // The completion token must establish the session, otherwise switchNamespace fires
-      // unauthenticated and bounces the invitee to /login.
-      expect(useAuthStore.getState().token).toBe("tok");
+      const session = useAuthStore.getState();
+      expect(session.token).toBe("tok");
+      expect(session.user).toBe("alice");
+      expect(session.name).toBe("Alice");
+      expect(session.email).toBe("alice@example.com");
     });
 
     it("shows the Waiting for Approval screen when no token is returned", async () => {
