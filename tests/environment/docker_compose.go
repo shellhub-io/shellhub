@@ -2,15 +2,16 @@ package environment
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"log"
+	"strings"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	tc "github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
 
 type DockerCompose struct {
@@ -62,32 +63,26 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
-// buildAdminCommand prepares a throwaway container running one "server admin ..."
-// invocation. It reuses the image the compose stack already built, so the
-// production entrypoint of ["/server", "server"] has to be replaced.
-func (dc *DockerCompose) buildAdminCommand(ctx context.Context, args []string) (tc.Container, error) {
-	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
-		ContainerRequest: tc.ContainerRequest{
-			WaitingFor: wait.ForExit(),
-			Image:      "server:test",
-			Entrypoint: []string{"/server"},
-			Cmd:        append([]string{"admin"}, args...),
-			Networks:   []string{dc.envs["SHELLHUB_NETWORK"]},
-			Env: map[string]string{
-				"POSTGRES_HOST":     "postgres",
-				"POSTGRES_PORT":     "5432",
-				"POSTGRES_USERNAME": "admin",
-				"POSTGRES_PASSWORD": "admin",
-				"POSTGRES_DATABASE": "main",
-			},
-		},
-		Logger: log.New(io.Discard, "", log.LstdFlags),
-	})
-	if err != nil {
-		return nil, err
+// runAdminCommand runs one "server admin ..." invocation inside the running server
+// container. The commands ship in the server binary, so there is no container to stand
+// up and no connection settings to repeat: the process inherits the service's own.
+//
+// It calls assert.FailNow when the command cannot be run or exits non-zero, so callers
+// do not silently proceed against a database that was never seeded.
+func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
+	code, output, err := dc.Service(ServiceServer).Exec(
+		ctx,
+		append([]string{"/server", "admin"}, args...),
+		tcexec.Multiplexed(),
+	)
+	if !assert.NoError(dc.t, err) {
+		assert.FailNow(dc.t, err.Error())
 	}
 
-	return container, nil
+	if code != 0 {
+		body, _ := io.ReadAll(output)
+		assert.FailNow(dc.t, fmt.Sprintf("admin %s exited with %d: %s", strings.Join(args, " "), code, body))
+	}
 }
 
 // NewUser creates a new user with the specified values. It is an abstraction around the server's
@@ -96,19 +91,7 @@ func (dc *DockerCompose) buildAdminCommand(ctx context.Context, args []string) (
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
-	container, err := dc.buildAdminCommand(
-		t.Context(),
-		[]string{"user", "create", username, password, email},
-	)
-	if !assert.NoError(dc.t, err) {
-		assert.FailNow(dc.t, err.Error())
-	}
-
-	container.Start(t.Context())
-
-	t.Cleanup(func() {
-		container.Terminate(context.Background())
-	})
+	dc.runAdminCommand(t.Context(), []string{"user", "create", username, password, email})
 }
 
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the server's
@@ -120,21 +103,12 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
-	cmd := []string{"namespace", "create", name, owner, tenant}
+	args := []string{"namespace", "create", name, owner, tenant}
 	if sshAccessMode != "" {
-		cmd = append(cmd, "--ssh-access-mode", sshAccessMode)
+		args = append(args, "--ssh-access-mode", sshAccessMode)
 	}
 
-	container, err := dc.buildAdminCommand(t.Context(), cmd)
-	if !assert.NoError(dc.t, err) {
-		assert.FailNow(dc.t, err.Error())
-	}
-
-	container.Start(t.Context())
-
-	t.Cleanup(func() {
-		container.Terminate(context.Background())
-	})
+	dc.runAdminCommand(t.Context(), args)
 }
 
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"
