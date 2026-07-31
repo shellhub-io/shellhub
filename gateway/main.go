@@ -33,7 +33,14 @@ func main() {
 		return
 	}
 
-	log.WithField("config", config).Info("configuration loaded")
+	// Deliberately not the whole struct: it carries the DNS provider's API
+	// token, and this line would put it in the logs of every deployment that
+	// serves web endpoints.
+	log.WithFields(log.Fields{
+		"domain":   config.Domain,
+		"env":      config.Env,
+		"auto_ssl": config.EnableAutoSSL,
+	}).Info("configuration loaded")
 
 	adapted, warnings, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
 	if err != nil {
