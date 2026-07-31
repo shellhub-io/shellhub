@@ -280,5 +280,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		"/api/containers/*": "/api/devices/$1",
 	}))
 
+	router.Pre(echoMiddleware.Rewrite(rootAliases))
+
 	return router
 }
