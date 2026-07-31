@@ -88,6 +88,7 @@ vi.mock("@/stores/signUpStore", () => ({
 
 const mockAcceptMutateAsync = vi.fn();
 const mockSwitchNamespaceMutateAsync = vi.fn();
+const switchNamespaceState = vi.hoisted(() => ({ isPending: false }));
 
 vi.mock("@/hooks/useInvitationMutations", () => ({
   useAcceptInvite: () => ({
@@ -99,7 +100,9 @@ vi.mock("@/hooks/useInvitationMutations", () => ({
 vi.mock("@/hooks/useNamespaceMutations", () => ({
   useSwitchNamespace: () => ({
     mutateAsync: mockSwitchNamespaceMutateAsync,
-    isPending: false,
+    get isPending() {
+      return switchNamespaceState.isPending;
+    },
   }),
 }));
 
@@ -168,6 +171,7 @@ beforeEach(() => {
   signUpState.signUpLoading = false;
   signUpState.signUpError = null;
   signUpState.signUpServerFields = [];
+  switchNamespaceState.isPending = false;
   mockAcceptMutateAsync.mockResolvedValue(undefined);
   mockSwitchNamespaceMutateAsync.mockResolvedValue(undefined);
   setResolved("confirmed");
@@ -308,6 +312,17 @@ describe("AcceptInvite", () => {
       expect(screen.queryByLabelText(/^email$/i)).not.toBeInTheDocument();
     });
 
+    it("links the form to the email hint via aria-describedby", () => {
+      renderPage(VALID_PARAMS);
+      const form = screen.getByRole("form", {
+        name: /complete your account/i,
+      });
+      const describedById = form.getAttribute("aria-describedby");
+      expect(describedById).toBeTruthy();
+      const hint = document.getElementById(describedById!);
+      expect(hint).toHaveTextContent(/alice@example.com/);
+    });
+
     it("submits with the invite code as sig, no marketing, and switches namespace on token", async () => {
       mockSignUp.mockResolvedValue("tok");
       const user = userEvent.setup();
@@ -344,6 +359,34 @@ describe("AcceptInvite", () => {
       expect(session.user).toBe("alice");
       expect(session.name).toBe("Alice");
       expect(session.email).toBe("alice@example.com");
+    });
+
+    it("announces the loading state to screen readers when switching namespace", async () => {
+      mockSignUp.mockResolvedValue("tok");
+      const user = userEvent.setup();
+      renderPage(VALID_PARAMS);
+      await fillForm(user);
+      await user.click(screen.getByRole("button", { name: /join namespace/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole("heading", { name: /you're in/i }),
+        ).toBeInTheDocument(),
+      );
+
+      switchNamespaceState.isPending = true;
+      mockSwitchNamespaceMutateAsync.mockReturnValue(new Promise(() => {}));
+
+      await user.click(
+        screen.getByRole("button", { name: /go to dashboard/i }),
+      );
+
+      await waitFor(() => {
+        const statuses = screen.getAllByRole("status");
+        expect(statuses.some((el) => el.textContent?.match(/switching/i))).toBe(
+          true,
+        );
+      });
     });
 
     it("shows the Waiting for Approval screen when no token is returned", async () => {
