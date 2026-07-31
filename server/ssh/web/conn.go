@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -21,6 +22,12 @@ type Conn struct {
 	Socket Socket
 	// Pinger is reponsable to inform the server that a SSH session is open.
 	Pinger *time.Ticker
+
+	// writes serializes every frame written to the socket. Device output, JSON
+	// control messages and keep-alive pings are produced by different
+	// goroutines, and the frame writer underneath is not goroutine-safe: two
+	// concurrent writers otherwise interleave and corrupt a frame.
+	writes sync.Mutex
 }
 
 func NewConn(socket Socket) *Conn {
@@ -116,6 +123,9 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 }
 
 func (c *Conn) WriteMessage(message *Message) (int, error) {
+	c.writes.Lock()
+	defer c.writes.Unlock()
+
 	buffer, err := json.Marshal(message)
 	if err != nil {
 		return 0, errors.Join(ErrConnReadMessageJSONInvalid)
@@ -130,6 +140,9 @@ func (c *Conn) WriteMessage(message *Message) (int, error) {
 }
 
 func (c *Conn) WriteBinary(data []byte) (int, error) {
+	c.writes.Lock()
+	defer c.writes.Unlock()
+
 	socket, ok := c.Socket.(*websocket.Conn)
 	if !ok {
 		// NOTE: If the underlying connection is not a websocket connection, fallback to a normal write.
@@ -151,11 +164,35 @@ func (c *Conn) WriteBinary(data []byte) (int, error) {
 	return wrote, nil
 }
 
+func (c *Conn) WritePing() error {
+	c.writes.Lock()
+	defer c.writes.Unlock()
+
+	socket, ok := c.Socket.(*websocket.Conn)
+	if !ok {
+		return nil
+	}
+
+	frame, err := socket.NewFrameWriter(websocket.PingFrame)
+	if err != nil {
+		return err
+	}
+
+	if _, err := frame.Write([]byte{}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Conn) Read(buffer []byte) (int, error) {
 	return c.Socket.Read(buffer)
 }
 
 func (c *Conn) Write(buffer []byte) (int, error) {
+	c.writes.Lock()
+	defer c.writes.Unlock()
+
 	return c.Socket.Write(buffer)
 }
 
@@ -176,9 +213,7 @@ func (c *Conn) KeepAlive() {
 			return
 		}
 
-		if fw, err := socket.NewFrameWriter(websocket.PingFrame); err != nil {
-			return
-		} else if _, err = fw.Write([]byte{}); err != nil {
+		if err := c.WritePing(); err != nil {
 			return
 		}
 
