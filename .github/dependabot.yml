@@ -141,3 +141,11 @@ updates:
         - "github.com/caddy-dns/*"
   ignore:
     - dependency-name: "github.com/shellhub-io/shellhub"
+    # echo-contrib's v0.50 line is its Echo 5 support, published by mistake on the
+    # v0 series: upstream says anyone still on Echo 4 pulls it in unintentionally,
+    # and that it will be retracted so v0 goes back to meaning Echo 4. Our line
+    # continues at v0.18. Without this, v0.50.1 is the highest version and the only
+    # one ever offered, so ignoring it is what lets v0.18.x through rather than what
+    # stops updates. Drop this once the retraction lands.
+    - dependency-name: "github.com/labstack/echo-contrib"
+      versions: [">=0.50.0"]
