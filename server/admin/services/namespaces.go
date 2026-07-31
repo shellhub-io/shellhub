@@ -5,13 +5,13 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 

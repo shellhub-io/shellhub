@@ -34,8 +34,6 @@ jobs:
             build_tags: ""
           - module: agent
             build_tags: "docker"
-          - module: cli
-            build_tags: ""
           - module: gateway
             build_tags: ""
           - module: openapi

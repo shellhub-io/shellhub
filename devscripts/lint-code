@@ -21,7 +21,7 @@ go() {
 
     [ ! -e .golangci.yaml ] && echo "ERROR: Run the script from the project root." && exit 1
 
-    for container in agent:docker agent:native server cli; do
+    for container in agent:docker agent:native server; do
         echo "Running Golang linter on $container"
 
         case $container in

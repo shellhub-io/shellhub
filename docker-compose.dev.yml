@@ -52,19 +52,6 @@ services:
       # whole certificate path, without knowing this URL and without spending
       # the production rate limit on a rehearsal.
       - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
-  cli:
-    image: cli
-    build:
-      context: .
-      dockerfile: cli/Dockerfile
-      target: development
-    environment:
-      - SHELLHUB_EDITION=${SHELLHUB_EDITION}
-    volumes:
-      - ./cli:/go/src/github.com/shellhub-io/shellhub/cli
-      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - ./server:/go/src/github.com/shellhub-io/shellhub/server
-      - ./.golangci.yaml:/.golangci.yaml
   openapi:
     image: openapi
     build:

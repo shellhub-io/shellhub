@@ -18,7 +18,7 @@ type DockerCompose struct {
 	// making assertions.
 	t *testing.T
 
-	// services is a list of running services such as API and CLI.
+	// services is a list of running services such as the gateway and the server.
 	services map[Service]*tc.DockerContainer
 
 	// client is a HTTP client with "http://localhost:{SHELLHUB_HTTP_PORT}" as the base URL.
@@ -62,28 +62,23 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
-func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc.Container, error) {
+// buildAdminCommand prepares a throwaway container running one "server admin ..."
+// invocation. It reuses the image the compose stack already built, so the
+// production entrypoint of ["/server", "server"] has to be replaced.
+func (dc *DockerCompose) buildAdminCommand(ctx context.Context, args []string) (tc.Container, error) {
 	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: tc.ContainerRequest{
 			WaitingFor: wait.ForExit(),
-			Cmd:        cmds,
+			Image:      "server:test",
+			Entrypoint: []string{"/server"},
+			Cmd:        append([]string{"admin"}, args...),
 			Networks:   []string{dc.envs["SHELLHUB_NETWORK"]},
 			Env: map[string]string{
-				"DATABASE":          dc.envs["SHELLHUB_DATABASE"],
-				"REDIS_URI":         "redis://redis:6379",
 				"POSTGRES_HOST":     "postgres",
 				"POSTGRES_PORT":     "5432",
 				"POSTGRES_USERNAME": "admin",
 				"POSTGRES_PASSWORD": "admin",
 				"POSTGRES_DATABASE": "main",
-			},
-			FromDockerfile: tc.FromDockerfile{
-				Repo:          "cli",
-				Tag:           "test",
-				Context:       "..",
-				Dockerfile:    "cli/Dockerfile.test",
-				PrintBuildLog: false,
-				KeepImage:     true,
 			},
 		},
 		Logger: log.New(io.Discard, "", log.LstdFlags),
@@ -95,15 +90,15 @@ func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc
 	return container, nil
 }
 
-// NewUser creates a new user with the specified values. It is an abstraction around the "user create" method
-// of the CLI.
+// NewUser creates a new user with the specified values. It is an abstraction around the server's
+// "admin user create" command.
 //
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
-	container, err := dc.buildCLICommand(
+	container, err := dc.buildAdminCommand(
 		t.Context(),
-		[]string{"./cli", "user", "create", username, password, email},
+		[]string{"user", "create", username, password, email},
 	)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
@@ -116,8 +111,8 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 	})
 }
 
-// NewNamespace creates a new namespace with the specified values. It is an abstraction around the "namespace
-// create" method of the CLI.
+// NewNamespace creates a new namespace with the specified values. It is an abstraction around the server's
+// "admin namespace create" command.
 //
 // sshAccessMode selects the namespace's SSH authorization model ("legacy" or "identity"); an empty value
 // leaves the server's default in place.
@@ -125,12 +120,12 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
-	cmd := []string{"./cli", "namespace", "create", name, owner, tenant}
+	cmd := []string{"namespace", "create", name, owner, tenant}
 	if sshAccessMode != "" {
 		cmd = append(cmd, "--ssh-access-mode", sshAccessMode)
 	}
 
-	container, err := dc.buildCLICommand(t.Context(), cmd)
+	container, err := dc.buildAdminCommand(t.Context(), cmd)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
 	}

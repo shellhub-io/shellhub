@@ -1,4 +1,4 @@
-package cmd
+package admin
 
 import (
 	"testing"
@@ -31,7 +31,7 @@ func TestNamespaceCreateCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := NamespaceCommands(nil)
+			cmd := namespaceCommands(nil)
 			cmd.SetArgs(append([]string{"create"}, tc.args...))
 			err := cmd.Execute()
 
@@ -60,7 +60,7 @@ func TestNamespaceDeleteCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := NamespaceCommands(nil)
+			cmd := namespaceCommands(nil)
 			cmd.SetArgs(append([]string{"delete"}, tc.args...))
 			err := cmd.Execute()
 
@@ -89,7 +89,7 @@ func TestMemberAddCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := NamespaceCommands(nil)
+			cmd := namespaceCommands(nil)
 			cmd.SetArgs(append([]string{"member", "add"}, tc.args...))
 			err := cmd.Execute()
 
@@ -113,7 +113,7 @@ func TestMemberRemoveCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := NamespaceCommands(nil)
+			cmd := namespaceCommands(nil)
 			cmd.SetArgs(append([]string{"member", "remove"}, tc.args...))
 			err := cmd.Execute()
 

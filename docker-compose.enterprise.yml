@@ -51,9 +51,6 @@ services:
       - SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD=${SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD}
       - SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN=${SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN}
 
-  cli:
-    image: registry.infra.ossystems.io/cache/shellhubio/cli:${SHELLHUB_VERSION}
-
   redis:
     image: registry.infra.ossystems.io/cache/valkey/valkey:9.1-alpine
 

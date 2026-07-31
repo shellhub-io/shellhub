@@ -15,7 +15,10 @@ if [ ! -f /var/run/secrets/ssh_private_key ]; then
     openssl genpkey -algorithm RSA -out /var/run/secrets/ssh_private_key -pkeyopt rsa_keygen_bits:2048
 fi
 
-ln -sf $PWD/server /server
+# air rebuilds to /tmp/air/main on every change. Symlinking it at /server keeps
+# the binary at the same path in development and production, which is what
+# bin/cli execs to reach the admin commands.
+ln -sf /tmp/air/main /server
 
 # go work init fails when the file already exists, so drop any left from an
 # earlier run before choosing a build below.

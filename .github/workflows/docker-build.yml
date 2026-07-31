@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [server, gateway, cli]
+        project: [server, gateway]
 
     runs-on: ubuntu-24.04
 
