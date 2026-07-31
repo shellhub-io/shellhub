@@ -274,7 +274,10 @@ export default function AcceptInvite() {
               <h2 className="text-lg font-semibold text-text-primary mb-2">
                 You&apos;ve been invited
               </h2>
-              <p className="text-sm text-text-secondary leading-relaxed">
+              <p
+                id="invite-email-hint"
+                className="text-sm text-text-secondary leading-relaxed"
+              >
                 Set up your account to join. You&apos;re joining as{" "}
                 <span className="font-medium text-text-primary font-mono">
                   {inviteEmail || "your email"}
@@ -290,6 +293,7 @@ export default function AcceptInvite() {
               onSubmit={(e) => void handleSubmit(handleSignUp)(e)}
               className="space-y-4"
               aria-label="Complete your account"
+              aria-describedby="invite-email-hint"
             >
               <FormInputField<InviteFormValues>
                 id="invite-name"
@@ -389,6 +393,11 @@ export default function AcceptInvite() {
                 Go to Dashboard
               </Button>
             </div>
+            {switchNamespace.isPending && (
+              <p className="sr-only" role="status">
+                Switching to namespace…
+              </p>
+            )}
           </div>
         )}
 
