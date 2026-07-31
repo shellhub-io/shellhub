@@ -47,6 +47,16 @@ func TestRootAliasesReachCanonicalRoutes(t *testing.T) {
 			},
 		},
 		{
+			description: "the install script's former name",
+			target:      "/kickstart.sh",
+			mock: func(service *serviceMocks.MockService) {
+				service.
+					On("SystemDownloadInstallScript", mock.Anything, mock.Anything).
+					Return("#!/bin/sh", nil).
+					Once()
+			},
+		},
+		{
 			description: "install script keeps its query string",
 			target:      "/install.sh?tenant_id=00000000-0000-4000-0000-000000000000&preferred_hostname=host",
 			mock: func(service *serviceMocks.MockService) {

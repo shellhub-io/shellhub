@@ -23,4 +23,8 @@ var rootAliases = map[string]string{
 	// the query string, so it has to survive the rewrite.
 	"^/install.sh":   "/api" + GetSystemDownloadInstallScriptURL,
 	"^/install.sh?*": "/api" + GetSystemDownloadInstallScriptURL + "?$1",
+	// The name the install script was published under before, kept because the
+	// address is the part that outlives the release that changed it.
+	"^/kickstart.sh":   "/api" + GetSystemDownloadInstallScriptURL,
+	"^/kickstart.sh?*": "/api" + GetSystemDownloadInstallScriptURL + "?$1",
 }
