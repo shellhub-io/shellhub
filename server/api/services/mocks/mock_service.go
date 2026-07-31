@@ -3898,6 +3898,72 @@ func (_c *MockService_GetSystemInfo_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// GetUserAdmin provides a mock function for the type MockService
+func (_mock *MockService) GetUserAdmin(ctx context.Context, userID string) (bool, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserAdmin")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetUserAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserAdmin'
+type MockService_GetUserAdmin_Call struct {
+	*mock.Call
+}
+
+// GetUserAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *MockService_Expecter) GetUserAdmin(ctx any, userID any) *MockService_GetUserAdmin_Call {
+	return &MockService_GetUserAdmin_Call{Call: _e.mock.On("GetUserAdmin", ctx, userID)}
+}
+
+func (_c *MockService_GetUserAdmin_Call) Run(run func(ctx context.Context, userID string)) *MockService_GetUserAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetUserAdmin_Call) Return(admin bool, err error) *MockService_GetUserAdmin_Call {
+	_c.Call.Return(admin, err)
+	return _c
+}
+
+func (_c *MockService_GetUserAdmin_Call) RunAndReturn(run func(ctx context.Context, userID string) (bool, error)) *MockService_GetUserAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUserRole provides a mock function for the type MockService
 func (_mock *MockService) GetUserRole(ctx context.Context, tenantID string, userID string) (string, error) {
 	ret := _mock.Called(ctx, tenantID, userID)

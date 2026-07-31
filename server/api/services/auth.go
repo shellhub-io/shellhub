@@ -59,6 +59,9 @@ type AuthService interface {
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
 	// GetUserRole get the user's role. It returns the user's role and an error, if any.
 	GetUserRole(ctx context.Context, tenantID, userID string) (role string, err error)
+	// GetUserAdmin checks whether the user currently has admin privileges.
+	// Unlike the JWT claim, this queries the store so changes take effect immediately.
+	GetUserAdmin(ctx context.Context, userID string) (admin bool, err error)
 	// AuthAPIKey authenticates the given key, returning its API key document. An API key can be used
 	// in place of a JWT token to authenticate requests. The key is only related to a namespace and not to a user,
 	// which means that some routes are blocked from authentication within this method. An API key can be expired,
@@ -791,6 +794,15 @@ func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (str
 	}
 
 	return member.Role.String(), nil
+}
+
+func (s *service) GetUserAdmin(ctx context.Context, userID string) (bool, error) {
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, userID)
+	if err != nil {
+		return false, err
+	}
+
+	return user.Admin, nil
 }
 
 func (s *service) PublicKey() *rsa.PublicKey {

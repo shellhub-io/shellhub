@@ -18,6 +18,7 @@ import (
 type AuthnService interface {
 	AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error)
 	GetUserRole(ctx context.Context, tenantID, userID string) (string, error)
+	GetUserAdmin(ctx context.Context, userID string) (bool, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -184,8 +185,8 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 			TenantID:  claims.TenantID,
 		}, nil
 	case *authorizer.UserClaims:
-		// The role is a dynamic attribute and the token is stateless, so it has
-		// to be read back (generally from cache) on every request.
+		// Role and admin are dynamic attributes that can change while a JWT is
+		// still valid, so we re-fetch them from the store on every request.
 		if claims.TenantID != "" {
 			role, err := a.service.GetUserRole(c.Request().Context(), claims.TenantID, claims.ID)
 			if err != nil {
@@ -195,12 +196,17 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 			claims.Role = authorizer.RoleFromString(role)
 		}
 
+		admin, err := a.service.GetUserAdmin(c.Request().Context(), claims.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		return &gateway.Identity{
 			ID:       claims.ID,
 			Username: claims.Username,
 			TenantID: claims.TenantID,
 			Role:     claims.Role,
-			Admin:    claims.Admin,
+			Admin:    admin,
 		}, nil
 	}
 
