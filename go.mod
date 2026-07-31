@@ -3,7 +3,7 @@ module github.com/shellhub-io/shellhub
 go 1.25.12
 
 require (
-	github.com/adhocore/gronx v1.8.1
+	github.com/adhocore/gronx v1.20.0
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-redis/cache/v8 v8.4.4
 	github.com/go-redis/redis/v8 v8.11.5
