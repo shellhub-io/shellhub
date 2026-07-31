@@ -142,8 +142,15 @@ export default function TerminalInstance({
       const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${proto}//${window.location.host}/ws/ssh?token=${token}&cols=${cols}&rows=${rows}`;
       const ws = new WebSocket(wsUrl);
+      ws.binaryType = "arraybuffer";
       wsRef.current = ws;
       resizeRegisteredRef.current = false;
+
+      // xterm.js decodes bytes itself, statefully across writes. The recorder
+      // needs text — asciicast v2 output events are JSON strings — so it gets
+      // its own streaming decoder, which holds a character split across frames
+      // until the bytes completing it arrive.
+      const recordingDecoder = new TextDecoder("utf-8");
 
       // Copy key material into local variables so the closure doesn't hold
       // the original session object (which would keep keys reachable in memory).
@@ -191,15 +198,25 @@ export default function TerminalInstance({
         }
       };
 
-      ws.onmessage = async (event) => {
+      // The output path is synchronous by design: awaiting here decoded each
+      // frame in isolation, corrupting a character that spans frames, and let
+      // frame order follow promise resolution rather than arrival.
+      ws.onmessage = (event) => {
         if (cancelled) return;
-        if (event.data instanceof Blob) {
+        if (typeof event.data !== "string") {
           // Binary data = terminal output (password auth or post-signature)
-          const text = await event.data.text();
-          term.write(text);
-          recorderRef.current?.recordOutput(text);
+          const bytes = new Uint8Array(event.data as ArrayBuffer);
+          term.write(bytes);
+          recorderRef.current?.recordOutput(
+            recordingDecoder.decode(bytes, { stream: true }),
+          );
           registerResizeHandler();
-        } else {
+          return;
+        }
+
+        // Control messages stay async (the signature case signs with WebCrypto),
+        // but the output path above must not await.
+        void (async () => {
           // JSON text message = challenge-response or error
           const textData = String(event.data as unknown);
           const msg = parseMessage(textData);
@@ -270,7 +287,7 @@ export default function TerminalInstance({
             default:
               break;
           }
-        }
+        })();
       };
 
       ws.onclose = () => {
