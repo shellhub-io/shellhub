@@ -11,36 +11,22 @@ updates:
     codeql:
       patterns:
         - "github/codeql-action/*"
+
 - package-ecosystem: docker
-  directory: "/cli"
+  directories:
+    - "/agent"
+    - "/cli"
+    - "/gateway"
+    - "/openapi"
+    - "/server"
   schedule:
     interval: weekly
   cooldown:
     default-days: 7
   commit-message:
-    prefix: "docker: cli"
-  ignore:
-    - dependency-name: "golang"
-      update-types: ["version-update:semver-major", "version-update:semver-minor"]
-- package-ecosystem: docker
-  directory: "/api"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker: api"
-  ignore:
-    - dependency-name: "golang"
-      update-types: ["version-update:semver-major", "version-update:semver-minor"]
-- package-ecosystem: docker
-  directory: "/gateway"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker: gateway"
+    prefix: "docker"
+  # The Go image follows the toolchain pinned in go.mod, so it only moves when we
+  # bump the toolchain ourselves.
   ignore:
     - dependency-name: "golang"
       update-types: ["version-update:semver-major", "version-update:semver-minor"]
@@ -51,33 +37,12 @@ updates:
   cooldown:
     default-days: 7
   commit-message:
-    prefix: "docker: ui"
+    prefix: "docker"
   ignore:
     - dependency-name: "node"
       update-types: ["version-update:semver-major"]
       versions: [">=25"]
-- package-ecosystem: docker
-  directory: "/agent"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker: agent"
-  ignore:
-    - dependency-name: "golang"
-      update-types: ["version-update:semver-major", "version-update:semver-minor"]
-- package-ecosystem: docker
-  directory: "/ssh"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "docker: ssh"
-  ignore:
-    - dependency-name: "golang"
-      update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
 - package-ecosystem: npm
   directory: "/ui"
   schedule:
@@ -91,6 +56,32 @@ updates:
     tiptap:
       patterns:
         - "@tiptap/*"
+
+# Indirect dependencies come along when `devscripts/prepare-release` re-resolves the
+# module, so only direct ones are allowed here: an indirect bump on its own lands
+# ahead of the dependency that pins it and cannot build.
+- package-ecosystem: gomod
+  directory: "/"
+  schedule:
+    interval: weekly
+  cooldown:
+    default-days: 7
+  commit-message:
+    prefix: "pkg"
+  allow:
+    - dependency-type: direct
+- package-ecosystem: gomod
+  directory: "/server"
+  schedule:
+    interval: weekly
+  cooldown:
+    default-days: 7
+  commit-message:
+    prefix: "server"
+  allow:
+    - dependency-type: direct
+  ignore:
+    - dependency-name: "github.com/shellhub-io/shellhub"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
@@ -99,28 +90,10 @@ updates:
     default-days: 7
   commit-message:
     prefix: "agent"
+  allow:
+    - dependency-type: direct
   ignore:
-      - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/api"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "api"
-  ignore:
-      - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/ssh"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "ssh"
-  ignore:
-      - dependency-name: "github.com/shellhub-io/shellhub"
+    - dependency-name: "github.com/shellhub-io/shellhub"
 - package-ecosystem: gomod
   directory: "/cli"
   schedule:
@@ -129,5 +102,48 @@ updates:
     default-days: 7
   commit-message:
     prefix: "cli"
+  allow:
+    - dependency-type: direct
   ignore:
-      - dependency-name: "github.com/shellhub-io/shellhub"
+    - dependency-name: "github.com/shellhub-io/shellhub"
+- package-ecosystem: gomod
+  directory: "/gateway"
+  schedule:
+    interval: weekly
+  cooldown:
+    default-days: 7
+  commit-message:
+    prefix: "gateway"
+  allow:
+    - dependency-type: direct
+  groups:
+    caddy:
+      patterns:
+        - "github.com/caddyserver/*"
+        - "github.com/caddy-dns/*"
+  ignore:
+    - dependency-name: "github.com/shellhub-io/shellhub"
+- package-ecosystem: gomod
+  directory: "/openapi"
+  schedule:
+    interval: weekly
+  cooldown:
+    default-days: 7
+  commit-message:
+    prefix: "openapi"
+  allow:
+    - dependency-type: direct
+  ignore:
+    - dependency-name: "github.com/shellhub-io/shellhub"
+- package-ecosystem: gomod
+  directory: "/tests"
+  schedule:
+    interval: weekly
+  cooldown:
+    default-days: 7
+  commit-message:
+    prefix: "tests"
+  allow:
+    - dependency-type: direct
+  ignore:
+    - dependency-name: "github.com/shellhub-io/shellhub"
