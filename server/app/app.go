@@ -14,6 +14,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
+	"github.com/shellhub-io/shellhub/server/admin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,15 @@ import (
 func Run() {
 	loglevel.UseEnvs()
 
-	rootCmd := &cobra.Command{Use: "api"}
+	// Both the server and the admin commands reach envs.IsCloud/IsEnterprise,
+	// which panic on an unrecognized edition. Resolving here turns a typo into a
+	// clean startup failure instead of a panic deep in a request.
+	if _, err := envs.ResolveEdition(); err != nil {
+		log.WithError(err).Fatal("failed to resolve ShellHub edition")
+	}
+
+	rootCmd := &cobra.Command{Use: "server"}
+	rootCmd.AddCommand(admin.Command())
 	rootCmd.AddCommand(&cobra.Command{
 		Use: "server",
 		RunE: func(cmd *cobra.Command, _ []string) error {

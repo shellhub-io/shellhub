@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 

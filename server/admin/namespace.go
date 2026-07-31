@@ -1,4 +1,4 @@
-package cmd
+package admin
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
-	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/shellhub-io/shellhub/server/admin/inputs"
+	"github.com/shellhub-io/shellhub/server/admin/services"
 	"github.com/spf13/cobra"
 )
 
-// NamespaceCommands creates and returns a Cobra command for namespace management.
+// namespaceCommands creates and returns a Cobra command for namespace management.
 // It registers namespace-related subcommands and uses the provided service
 // to handle the underlying business logic.
-func NamespaceCommands(service services.Services) *cobra.Command {
+func namespaceCommands(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "namespace",
 		Short: "Manage namespaces",
@@ -35,13 +35,13 @@ func NamespaceCommands(service services.Services) *cobra.Command {
 	return cmd
 }
 
-func namespaceCreate(service services.Services) *cobra.Command {
+func namespaceCreate(service serviceFunc) *cobra.Command {
 	cmdNamespace := &cobra.Command{
 		Use:   "create <namespace> <owner> [tenant]",
 		Short: "Create a namespace",
 		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID and Type.
 The owner must be a valid username within the system. If a tenant ID is provided, it should be in UUID format.`,
-		Example: `cli namespace create dev john_doe --type=team`,
+		Example: `./bin/cli namespace create dev john_doe --type=team`,
 		Args:    cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			namespaceType, err := cmd.Flags().GetString("type")
@@ -70,7 +70,7 @@ The owner must be a valid username within the system. If a tenant ID is provided
 				return err
 			}
 
-			namespace, err := service.NamespaceCreate(cmd.Context(), &input)
+			namespace, err := service().NamespaceCreate(cmd.Context(), &input)
 			if err != nil {
 				return err
 			}
@@ -91,12 +91,12 @@ The owner must be a valid username within the system. If a tenant ID is provided
 	return cmdNamespace
 }
 
-func namespaceDelete(service services.Services) *cobra.Command {
+func namespaceDelete(service serviceFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:     "delete <namespace>",
 		Short:   "Delete a namespace",
 		Long:    `Deletes a namespace and all associated data from the system based on the provided name.`,
-		Example: `cli namespace delete dev`,
+		Example: `./bin/cli namespace delete dev`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.NamespaceDelete{
@@ -107,7 +107,7 @@ func namespaceDelete(service services.Services) *cobra.Command {
 				return err
 			}
 
-			if err := service.NamespaceDelete(cmd.Context(), &input); err != nil {
+			if err := service().NamespaceDelete(cmd.Context(), &input); err != nil {
 				return err
 			}
 
@@ -119,16 +119,16 @@ func namespaceDelete(service services.Services) *cobra.Command {
 	}
 }
 
-func namespaceList(service services.Services) *cobra.Command {
+func namespaceList(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List namespaces",
 		Long:    "List all namespaces in the system",
-		Example: `cli namespace list
-cli namespace ls
-cli namespace ls -q
-cli namespace ls -q tenant-id`,
+		Example: `./bin/cli namespace list
+./bin/cli namespace ls
+./bin/cli namespace ls -q
+./bin/cli namespace ls -q tenant-id`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			out := cmd.OutOrStdout()
@@ -155,7 +155,7 @@ cli namespace ls -q tenant-id`,
 				return fmt.Errorf("invalid field: %s (allowed: name, tenant-id)", field)
 			}
 
-			namespaces, err := service.NamespaceList(cmd.Context())
+			namespaces, err := service().NamespaceList(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -201,15 +201,15 @@ cli namespace ls -q tenant-id`,
 	return cmd
 }
 
-func namespaceInspect(service services.Services) *cobra.Command {
+func namespaceInspect(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inspect <namespace>",
 		Short: "Inspect a namespace",
 		Long:  "Inspect a namespace by either name or tenant-id",
-		Example: `cli namespace inspect dev
-cli namespace inspect --tenant-id 8f3c2e1a...
-cli namespace inspect $(cli namespace ls -q | sed -n '2p')
-cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')`,
+		Example: `./bin/cli namespace inspect dev
+./bin/cli namespace inspect --tenant-id 8f3c2e1a...
+./bin/cli namespace inspect $(./bin/cli namespace ls -q | sed -n '2p')
+./bin/cli namespace inspect --tenant-id $(./bin/cli namespace ls -q tenant-id | sed -n '2p')`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			out := cmd.OutOrStdout()
@@ -249,12 +249,12 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 				value = strings.ToLower(args[0])
 			}
 
-			ns, err := service.NamespaceResolve(cmd.Context(), resolver, value)
+			ns, err := service().NamespaceResolve(cmd.Context(), resolver, value)
 			if err != nil {
 				return err
 			}
 
-			users, err := service.UserList(cmd.Context())
+			users, err := service().UserList(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -269,7 +269,7 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 				return fmt.Errorf("owner %s not found", ns.Owner)
 			}
 
-			counts, err := service.NamespaceDeviceCounts(cmd.Context(), ns.TenantID)
+			counts, err := service().NamespaceDeviceCounts(cmd.Context(), ns.TenantID)
 			if err != nil {
 				return err
 			}
@@ -334,7 +334,7 @@ Members (%d):
 // memberCommands factory function that creates and returns a new command with
 // add and remove subcommands dedicated to members management. It receives a service
 // for handling business logic.
-func memberCommands(service services.Services) *cobra.Command {
+func memberCommands(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
 		Short: "Manage members",
@@ -347,14 +347,14 @@ func memberCommands(service services.Services) *cobra.Command {
 	return cmd
 }
 
-func memberAdd(service services.Services) *cobra.Command {
+func memberAdd(service serviceFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "add <username> <namespace> <role>",
 		Short: "Add a member",
 		Long: `Adds a new member to the specified namespace with the given role. 
 The username identifies the member to be added, the namespace specifies where the member should be added, 
 and the role indicates the permissions that the member will have within that namespace.`,
-		Example: `cli member add myuser mynamespace observer`,
+		Example: `./bin/cli namespace member add myuser mynamespace observer`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			role := authorizer.RoleFromString(args[2])
@@ -372,7 +372,7 @@ and the role indicates the permissions that the member will have within that nam
 				return err
 			}
 
-			namespace, err := service.NamespaceAddMember(cmd.Context(), &input)
+			namespace, err := service().NamespaceAddMember(cmd.Context(), &input)
 			if err != nil {
 				return err
 			}
@@ -388,13 +388,13 @@ and the role indicates the permissions that the member will have within that nam
 	}
 }
 
-func memberRemove(service services.Services) *cobra.Command {
+func memberRemove(service serviceFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   "remove <username> <namespace>",
 		Short: "Remove a member",
 		Long: `Removes an existing member from the specified namespace. 
 The username identifies the member to be removed, and the namespace specifies where the member is currently located.`,
-		Example: `cli member remove john_doe dev`,
+		Example: `./bin/cli namespace member remove john_doe dev`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.MemberRemove{
@@ -406,7 +406,7 @@ The username identifies the member to be removed, and the namespace specifies wh
 				return err
 			}
 
-			namespace, err := service.NamespaceRemoveMember(cmd.Context(), &input)
+			namespace, err := service().NamespaceRemoveMember(cmd.Context(), &input)
 			if err != nil {
 				return err
 			}

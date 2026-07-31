@@ -38,9 +38,6 @@ jobs:
           - module: agent
             sarif_name: agent
             tags: docker
-          - module: cli
-            sarif_name: cli
-            tags: ""
           - module: gateway
             sarif_name: gateway
             tags: ""
@@ -87,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [server, gateway, cli, ui, agent]
+        image: [server, gateway, ui, agent]
 
     runs-on: ubuntu-latest
 

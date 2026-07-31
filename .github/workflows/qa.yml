@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [server, agent, pkg, cli, gateway]
+        project: [server, agent, pkg, gateway]
         database: ['']  # Empty by default
         include:
           - project: server
@@ -29,9 +29,6 @@ jobs:
             extra_args: "-tags docker"
             lint_args: "--build-tags docker"
           - project: pkg
-            extra_args: ""
-            lint_args: ""
-          - project: cli
             extra_args: ""
             lint_args: ""
           # Integration tests with PostgreSQL. Each of the ~31 SSH cases stands up
@@ -72,7 +69,6 @@ jobs:
               - 'server/**'
               - 'agent/**'
               - 'pkg/**'
-              - 'cli/**'
               - 'gateway/**'
               - 'tests/**'
 

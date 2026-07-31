@@ -1,4 +1,4 @@
-package cmd
+package admin
 
 import (
 	"testing"
@@ -31,7 +31,7 @@ func TestUserCreateCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := UserCommands(nil)
+			cmd := userCommands(nil)
 			cmd.SetArgs(append([]string{"create"}, tc.args...))
 			err := cmd.Execute()
 
@@ -60,7 +60,7 @@ func TestUserResetPasswordCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := UserCommands(nil)
+			cmd := userCommands(nil)
 			cmd.SetArgs(append([]string{"password"}, tc.args...))
 			err := cmd.Execute()
 
@@ -84,7 +84,7 @@ func TestUserDeleteCmd(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			cmd := UserCommands(nil)
+			cmd := userCommands(nil)
 			cmd.SetArgs(append([]string{"delete"}, tc.args...))
 			err := cmd.Execute()
 

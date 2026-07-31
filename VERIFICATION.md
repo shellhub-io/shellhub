@@ -15,7 +15,7 @@ cosign verify \
   shellhubio/<image>:<tag>
 ```
 
-Replace `<image>` with the component name (`api`, `ssh`, `gateway`, `ui`, `cli`, `agent`) and `<tag>` with the version (e.g., `v0.26.0`).
+Replace `<image>` with the component name (`server`, `gateway`, `ui`, `agent`) and `<tag>` with the version (e.g., `v0.26.0`).
 
 ### Example
 

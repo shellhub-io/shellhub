@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [server, gateway, ui, cli, server-enterprise]
+        project: [server, gateway, ui, server-enterprise]
 
     runs-on: ubuntu-24.04
 

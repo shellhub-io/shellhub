@@ -33,8 +33,8 @@ all three `security-gate` jobs report success (or skipped).
 
 | Workflow file | Tool | What it scans | Runs on |
 |---|---|---|---|
-| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `api`, `agent`, `ssh`, `cli`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
-| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`api`, `ssh`, `gateway`, `cli`, `ui`, `agent`) | PR + push to master + weekly |
+| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
+| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `gateway`, `ui`, `agent`) | PR + push to master + weekly |
 | `.github/workflows/semgrep.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + push to master + weekly |
 | `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | PR + push to master + weekly |
 | `.github/workflows/build-agent.yml` | **Trivy (image, amd64)** | Agent image CVEs as part of the agent build pipeline | Push to master + tags |

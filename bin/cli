@@ -5,10 +5,14 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
-SERVICES=$(docker compose ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true' || true)
-[ "$SERVICES" -le 0 ] && { echo "🚫 ERROR: ShellHub is not running. Exiting."; exit 1; }
+if ! ./bin/docker-compose ps --status running --services 2>/dev/null | grep -qx server; then
+    echo "🚫 ERROR: ShellHub is not running. Exiting."
+    exit 1
+fi
 
 TTY_FLAG=""
 [ ! -t 1 ] && TTY_FLAG="-T"
 
-exec ./bin/docker-compose exec $TTY_FLAG cli /cli "$@"
+# The admin commands live in the server binary. In production /server is the
+# built binary; in development it is a symlink to air's output.
+exec ./bin/docker-compose exec $TTY_FLAG server /server admin "$@"

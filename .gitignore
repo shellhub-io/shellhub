@@ -31,7 +31,6 @@ ui/apps/console/src/client/
 # Docker binaries
 agent/agent
 server/server
-cli/cli
 gateway/gateway
 
 agent/shellhub.key

@@ -15,7 +15,6 @@ updates:
 - package-ecosystem: docker
   directories:
     - "/agent"
-    - "/cli"
     - "/gateway"
     - "/openapi"
     - "/server"
@@ -90,18 +89,6 @@ updates:
     default-days: 7
   commit-message:
     prefix: "agent"
-  allow:
-    - dependency-type: direct
-  ignore:
-    - dependency-name: "github.com/shellhub-io/shellhub"
-- package-ecosystem: gomod
-  directory: "/cli"
-  schedule:
-    interval: weekly
-  cooldown:
-    default-days: 7
-  commit-message:
-    prefix: "cli"
   allow:
     - dependency-type: direct
   ignore:
