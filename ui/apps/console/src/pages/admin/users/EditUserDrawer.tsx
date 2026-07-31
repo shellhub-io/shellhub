@@ -25,7 +25,7 @@ export default function EditUserDrawer({
   user,
 }: EditUserDrawerProps) {
   const updateUser = useUpdateUser();
-  const currentUsername = useAuthStore((s) => s.username);
+  const currentUserId = useAuthStore((s) => s.userId);
 
   const schema = useMemo(() => userSchema("edit"), []);
   const defaults = useMemo(() => buildUserDefaults(user), [user]);
@@ -33,7 +33,7 @@ export default function EditUserDrawer({
   const form = useDrawerForm(open, schema, defaults);
   const { control, setError, clearErrors } = form;
 
-  const isSelf = user?.username === currentUsername;
+  const isSelf = user?.id === currentUserId;
   const canChangeConfirmed = user?.status !== "confirmed";
   const disableAdmin = !!user?.admin && isSelf;
 
@@ -47,9 +47,10 @@ export default function EditUserDrawer({
       });
       onClose();
     } catch (err) {
-      const message = isSdkError(err) && err.status === 409
-        ? "A user with this email or username already exists."
-        : "Failed to update user. Please try again.";
+      const message =
+        isSdkError(err) && err.status === 409
+          ? "A user with this email or username already exists."
+          : "Failed to update user. Please try again.";
 
       setError("root", { message });
     }

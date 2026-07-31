@@ -49,7 +49,7 @@ describe("EditUserDrawer", () => {
     vi.mocked(useUpdateUser).mockReturnValue({
       mutateAsync: mockMutateAsync,
     } as never);
-    useAuthStore.setState({ username: "admin" } as never);
+    useAuthStore.setState({ userId: "u2" } as never);
   });
 
   describe("rendering — closed", () => {
@@ -193,25 +193,21 @@ describe("EditUserDrawer", () => {
 
   describe("admin checkbox — self-demotion constraint", () => {
     it("admin checkbox is disabled when editing your own admin account", () => {
-      useAuthStore.setState({ username: "alice" } as never);
+      useAuthStore.setState({ userId: "u1" } as never);
       const selfAdmin: UserAdminResponse = { ...mockUser, admin: true };
       renderDrawer({ user: selfAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).toBeDisabled();
     });
 
     it("admin checkbox is enabled when editing another admin", () => {
-      useAuthStore.setState({ username: "admin" } as never);
-      const otherAdmin: UserAdminResponse = {
-        ...mockUser,
-        username: "bob",
-        admin: true,
-      };
+      useAuthStore.setState({ userId: "u2" } as never);
+      const otherAdmin: UserAdminResponse = { ...mockUser, admin: true };
       renderDrawer({ user: otherAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).not.toBeDisabled();
     });
 
     it("admin checkbox is enabled for a non-admin self user", () => {
-      useAuthStore.setState({ username: "alice" } as never);
+      useAuthStore.setState({ userId: "u1" } as never);
       const selfNonAdmin: UserAdminResponse = { ...mockUser, admin: false };
       renderDrawer({ user: selfNonAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).not.toBeDisabled();
