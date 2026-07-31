@@ -1,22 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  cleanup,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { useAuthStore } from "@/stores/authStore";
 import AcceptInvite from "../AcceptInvite";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
-// Stub ConfirmDialog — jsdom lacks HTMLDialogElement.showModal()
 vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
@@ -59,7 +48,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 const mockResolveResult = vi.hoisted(() => ({
-  resolved: null as Record<string, unknown> | null,
+  resolved: null as {
+    tenantId: string;
+    userId: string;
+    email: string;
+    status: string;
+  } | null,
   isLoading: false,
   isError: false,
 }));
@@ -106,10 +100,6 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
   }),
 }));
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
 const INVITE_CODE = "INVITECODE12";
 const VALID_PARAMS = `invite=${INVITE_CODE}`;
 
@@ -139,12 +129,6 @@ function createWrapper(initialSearch = "") {
 function renderPage(search = VALID_PARAMS) {
   return render(<AcceptInvite />, { wrapper: createWrapper(search) });
 }
-
-/* ------------------------------------------------------------------ */
-/* Setup / teardown                                                    */
-/* ------------------------------------------------------------------ */
-
-afterEach(cleanup);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -176,10 +160,6 @@ beforeEach(() => {
   mockSwitchNamespaceMutateAsync.mockResolvedValue(undefined);
   setResolved("confirmed");
 });
-
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
 
 describe("AcceptInvite", () => {
   describe("branch: missing-params", () => {
@@ -223,7 +203,7 @@ describe("AcceptInvite", () => {
         userId: "u1",
         email: "alice@example.com",
         loading: false,
-      } as never);
+      });
     });
 
     it("renders the Namespace Invitation heading with Accept", () => {
@@ -281,7 +261,7 @@ describe("AcceptInvite", () => {
         userId: "other-user-id",
         email: "other@example.com",
         loading: false,
-      } as never);
+      });
       renderPage(VALID_PARAMS);
       expect(
         screen.getByRole("heading", { name: /different account signed in/i }),
