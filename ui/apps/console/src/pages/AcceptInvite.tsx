@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ComponentType, SVGProps, useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -166,6 +166,159 @@ export default function AcceptInvite() {
     );
   };
 
+  const messages: Partial<Record<Branch, InvitationMessageProps>> = {
+    "missing-params": {
+      tone: "error",
+      icon: XCircleIcon,
+      title: "Invalid Invitation",
+      description:
+        "This invitation link is missing its code. Please use the link from the original email.",
+      action: { label: "Back to Login", to: "/login" },
+    },
+    error: {
+      tone: "error",
+      icon: ExclamationTriangleIcon,
+      title: "Invitation Unavailable",
+      description:
+        "This invitation is invalid or has expired. Please ask the sender for a new one.",
+      action: { label: "Back to Login", to: "/login" },
+    },
+    "wrong-user": {
+      tone: "warning",
+      icon: UserCircleIcon,
+      title: "Different Account Signed In",
+      description: (
+        <>
+          You're signed in as{" "}
+          <span className="font-medium text-text-primary font-mono">
+            {authEmail ?? "another account"}
+          </span>
+          . Sign out and use the account this invitation was sent to.
+        </>
+      ),
+      action: { label: "Sign Out", onClick: handleSignOut },
+    },
+    "sign-up": {
+      tone: "primary",
+      icon: EnvelopeOpenIcon,
+      title: "You've been invited",
+      descriptionId: "invite-email-hint",
+      description: (
+        <>
+          Set up your account to join. You're joining as{" "}
+          <span className="font-medium text-text-primary font-mono">
+            {inviteEmail || "your email"}
+          </span>
+          .
+        </>
+      ),
+      children: (
+        <>
+          <ErrorCallout message={signUpError} />
+          <ErrorCallout message={error} />
+
+          <form
+            onSubmit={(e) => void handleSubmit(handleSignUp)(e)}
+            className="space-y-4"
+            aria-label="Complete your account"
+            aria-describedby="invite-email-hint"
+          >
+            <FormInputField<InviteFormValues>
+              id="invite-name"
+              label="Name"
+              name="name"
+              control={control}
+              placeholder="Your name"
+              autoComplete="name"
+            />
+            <FormInputField<InviteFormValues>
+              id="invite-username"
+              label="Username"
+              name="username"
+              control={control}
+              placeholder="username"
+              autoComplete="username"
+            />
+            <FormPasswordField<InviteFormValues>
+              id="invite-password"
+              label="Password"
+              name="password"
+              control={control}
+              autoComplete="new-password"
+            />
+            <FormPasswordField<InviteFormValues>
+              id="invite-confirm-password"
+              label="Confirm password"
+              name="confirmPassword"
+              control={control}
+              autoComplete="new-password"
+            />
+            <Button type="submit" className="w-full" loading={signUpLoading}>
+              Join Namespace
+            </Button>
+          </form>
+        </>
+      ),
+    },
+    "pending-approval": {
+      tone: "warning",
+      icon: ClockIcon,
+      title: "Waiting for Approval",
+      description:
+        "Your account was created and is waiting for an administrator to approve it. You'll be able to sign in once it's approved.",
+      action: { label: "Back to Login", to: "/login" },
+    },
+    joined: {
+      tone: "success",
+      icon: CheckCircleIcon,
+      title: "You're in",
+      description: (
+        <>
+          Your account is now a member of the namespace
+          {inviteEmail ? (
+            <>
+              {" "}
+              as{" "}
+              <span className="font-medium text-text-primary font-mono">
+                {inviteEmail}
+              </span>
+            </>
+          ) : null}
+          .
+        </>
+      ),
+      action: {
+        label: "Go to Dashboard",
+        onClick: () => void handleEnterNamespace(),
+        loading: switchNamespace.isPending,
+      },
+      children: (
+        <>
+          <ErrorCallout message={error} />
+          {switchNamespace.isPending && (
+            <p className="sr-only" role="status">
+              Switching to namespace…
+            </p>
+          )}
+        </>
+      ),
+    },
+    accept: {
+      tone: "primary",
+      icon: EnvelopeOpenIcon,
+      title: "Namespace Invitation",
+      description:
+        "Accepting this invitation will add you to the namespace. You will be automatically switched to it after accepting.",
+      action: {
+        label: "Accept",
+        onClick: () => setShowConfirm(true),
+        icon: CheckCircleIcon,
+      },
+    },
+  };
+
+  const message = messages[branch];
+
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
       <div className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm">
@@ -180,252 +333,7 @@ export default function AcceptInvite() {
           </div>
         )}
 
-        {branch === "missing-params" && (
-          <InvitationMessage
-            tone="error"
-            icon={
-              <XCircleIcon
-                className="w-7 h-7 text-accent-red"
-                strokeWidth={1.5}
-              />
-            }
-            title="Invalid Invitation"
-            description="This invitation link is missing its code. Please use the link from the original email."
-            action={
-              <Button
-                as={Link}
-                to="/login"
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-              >
-                Back to Login
-              </Button>
-            }
-          />
-        )}
-
-        {branch === "error" && (
-          <InvitationMessage
-            tone="error"
-            icon={
-              <ExclamationTriangleIcon
-                className="w-7 h-7 text-accent-red"
-                strokeWidth={1.5}
-              />
-            }
-            title="Invitation Unavailable"
-            description="This invitation is invalid or has expired. Please ask the sender for a new one."
-            action={
-              <Button
-                as={Link}
-                to="/login"
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-              >
-                Back to Login
-              </Button>
-            }
-          />
-        )}
-
-        {branch === "wrong-user" && (
-          <InvitationMessage
-            tone="warning"
-            icon={
-              <UserCircleIcon
-                className="w-7 h-7 text-accent-yellow"
-                strokeWidth={1.5}
-              />
-            }
-            title="Different Account Signed In"
-            description={
-              <>
-                You&apos;re signed in as{" "}
-                <span className="font-medium text-text-primary font-mono">
-                  {authEmail ?? "another account"}
-                </span>
-                . Sign out and use the account this invitation was sent to.
-              </>
-            }
-            action={
-              <Button
-                onClick={handleSignOut}
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-              >
-                Sign Out
-              </Button>
-            }
-          />
-        )}
-
-        {branch === "sign-up" && (
-          <div>
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/20 mb-5">
-                <EnvelopeOpenIcon
-                  className="w-7 h-7 text-primary"
-                  strokeWidth={1.5}
-                />
-              </div>
-              <h2 className="text-lg font-semibold text-text-primary mb-2">
-                You&apos;ve been invited
-              </h2>
-              <p
-                id="invite-email-hint"
-                className="text-sm text-text-secondary leading-relaxed"
-              >
-                Set up your account to join. You&apos;re joining as{" "}
-                <span className="font-medium text-text-primary font-mono">
-                  {inviteEmail || "your email"}
-                </span>
-                .
-              </p>
-            </div>
-
-            <ErrorCallout message={signUpError} />
-            <ErrorCallout message={error} />
-
-            <form
-              onSubmit={(e) => void handleSubmit(handleSignUp)(e)}
-              className="space-y-4"
-              aria-label="Complete your account"
-              aria-describedby="invite-email-hint"
-            >
-              <FormInputField<InviteFormValues>
-                id="invite-name"
-                label="Name"
-                name="name"
-                control={control}
-                placeholder="Your name"
-                autoComplete="name"
-              />
-              <FormInputField<InviteFormValues>
-                id="invite-username"
-                label="Username"
-                name="username"
-                control={control}
-                placeholder="username"
-                autoComplete="username"
-              />
-              <FormPasswordField<InviteFormValues>
-                id="invite-password"
-                label="Password"
-                name="password"
-                control={control}
-                autoComplete="new-password"
-              />
-              <FormPasswordField<InviteFormValues>
-                id="invite-confirm-password"
-                label="Confirm password"
-                name="confirmPassword"
-                control={control}
-                autoComplete="new-password"
-              />
-              <Button type="submit" className="w-full" loading={signUpLoading}>
-                Join Namespace
-              </Button>
-            </form>
-          </div>
-        )}
-
-        {branch === "pending-approval" && (
-          <InvitationMessage
-            tone="warning"
-            icon={
-              <ClockIcon
-                className="w-7 h-7 text-accent-yellow"
-                strokeWidth={1.5}
-              />
-            }
-            title="Waiting for Approval"
-            description="Your account was created and is waiting for an administrator to approve it. You'll be able to sign in once it's approved."
-            action={
-              <Button
-                as={Link}
-                to="/login"
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-              >
-                Back to Login
-              </Button>
-            }
-          />
-        )}
-
-        {branch === "joined" && (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-5">
-              <CheckCircleIcon
-                className="w-7 h-7 text-accent-green"
-                strokeWidth={1.5}
-              />
-            </div>
-            <h2 className="text-lg font-semibold text-text-primary mb-3">
-              You&apos;re in
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed mb-6">
-              Your account is now a member of the namespace
-              {inviteEmail ? (
-                <>
-                  {" "}
-                  as{" "}
-                  <span className="font-medium text-text-primary font-mono">
-                    {inviteEmail}
-                  </span>
-                </>
-              ) : null}
-              .
-            </p>
-            <ErrorCallout message={error} />
-            <div className="flex items-center justify-center">
-              <Button
-                onClick={() => void handleEnterNamespace()}
-                loading={switchNamespace.isPending}
-                iconRight={
-                  <ArrowRightIcon className="w-4 h-4" strokeWidth={2} />
-                }
-              >
-                Go to Dashboard
-              </Button>
-            </div>
-            {switchNamespace.isPending && (
-              <p className="sr-only" role="status">
-                Switching to namespace…
-              </p>
-            )}
-          </div>
-        )}
-
-        {branch === "accept" && (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/20 mb-5">
-              <EnvelopeOpenIcon
-                className="w-7 h-7 text-primary"
-                strokeWidth={1.5}
-              />
-            </div>
-            <h2 className="text-lg font-semibold text-text-primary mb-3">
-              Namespace Invitation
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed mb-6">
-              Accepting this invitation will add you to the namespace. You will
-              be automatically switched to it after accepting.
-            </p>
-            <div className="flex items-center justify-center">
-              <Button
-                icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-                onClick={() => setShowConfirm(true)}
-              >
-                Accept
-              </Button>
-            </div>
-          </div>
-        )}
+        {message && <InvitationMessage {...message} />}
       </div>
 
       <ConfirmDialog
@@ -454,38 +362,102 @@ function ErrorCallout({ message }: { message: string | null }) {
   );
 }
 
-function InvitationMessage({
-  tone,
-  icon,
-  title,
-  description,
-  action,
-}: {
-  tone: "error" | "warning";
-  icon: React.ReactNode;
+type Tone = "error" | "warning" | "primary" | "success";
+
+const toneStyles: Record<Tone, { ring: string; iconColor: string }> = {
+  error: {
+    ring: "bg-accent-red/10 border-accent-red/20",
+    iconColor: "text-accent-red",
+  },
+  warning: {
+    ring: "bg-accent-yellow/10 border-accent-yellow/20",
+    iconColor: "text-accent-yellow",
+  },
+  primary: { ring: "bg-primary/10 border-primary/20", iconColor: "text-primary" },
+  success: {
+    ring: "bg-accent-green/10 border-accent-green/20",
+    iconColor: "text-accent-green",
+  },
+};
+
+interface InvitationActionProps {
+  label: string;
+  to?: string;
+  onClick?: () => void;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  loading?: boolean;
+}
+
+interface InvitationMessageProps {
+  tone: Tone;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   title: string;
   description: React.ReactNode;
-  action: React.ReactNode;
-}) {
-  const ringClass =
-    tone === "error"
-      ? "bg-accent-red/10 border-accent-red/20"
-      : "bg-accent-yellow/10 border-accent-yellow/20";
+  descriptionId?: string;
+  action?: InvitationActionProps;
+  children?: React.ReactNode;
+}
+
+function InvitationMessage({
+  tone,
+  icon: Icon,
+  title,
+  description,
+  descriptionId,
+  action,
+  children,
+}: InvitationMessageProps) {
+  const { ring, iconColor } = toneStyles[tone];
+
+  return (
+    <div>
+      <div className="text-center">
+        <div
+          className={cn(
+            "inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5",
+            ring,
+          )}
+        >
+          <Icon className={cn("w-7 h-7", iconColor)} strokeWidth={1.5} />
+        </div>
+        <h1 className="text-lg font-semibold text-text-primary mb-3">
+          {title}
+        </h1>
+        <p
+          id={descriptionId}
+          className="text-sm text-text-secondary leading-relaxed mb-6"
+        >
+          {description}
+        </p>
+      </div>
+      {children}
+      {action && <InvitationAction {...action} />}
+    </div>
+  );
+}
+
+function InvitationAction({
+  label,
+  to,
+  onClick,
+  icon: ActionIcon,
+  loading,
+}: InvitationActionProps) {
+  const iconProps = ActionIcon
+    ? { icon: <ActionIcon className="w-4 h-4" strokeWidth={2} /> }
+    : { iconRight: <ArrowRightIcon className="w-4 h-4" strokeWidth={2} /> };
+
   return (
     <div className="text-center">
-      <div
-        className={cn(
-          "inline-flex items-center justify-center w-14 h-14 rounded-full border mb-5",
-          ringClass,
-        )}
-      >
-        {icon}
-      </div>
-      <h2 className="text-lg font-semibold text-text-primary mb-3">{title}</h2>
-      <p className="text-sm text-text-secondary leading-relaxed mb-6">
-        {description}
-      </p>
-      {action}
+      {to ? (
+        <Button as={Link} to={to} loading={loading} {...iconProps}>
+          {label}
+        </Button>
+      ) : (
+        <Button onClick={onClick} loading={loading} {...iconProps}>
+          {label}
+        </Button>
+      )}
     </div>
   );
 }
