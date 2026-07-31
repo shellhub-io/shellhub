@@ -7,10 +7,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
-	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	log "github.com/sirupsen/logrus"
 )
 
 type Message struct {
@@ -24,44 +24,13 @@ func NewMessageFromError(err error) Message {
 }
 
 // Config controls optional features for the SSH HTTP sidecar server.
-//
-// When WebEndpoints is enabled the server exposes an HTTP proxy entry
-// point (/http/proxy) that allows externally accessible per-device
-// subdomains to be resolved and forwarded through the reverse tunnel
-// transport (supporting both legacy V1 and yamux/multistream V2).
 type Config struct {
-	// WebEndpoints enables the web endpoints (HTTP proxy) feature.
-	WebEndpoints bool
-	// WebEndpointsDomain is the base domain used when constructing the
-	// host header for tunneled HTTP requests (e.g. <address>.<domain>).
-	// When non-empty it takes precedence over Domain.
-	WebEndpointsDomain string
-	// Domain is the fallback base domain when WebEndpointsDomain is not
-	// set.
-	Domain string
 	// RequireAcceptedTunnel refuses the reverse tunnel for a device that is not accepted (pending or
 	// rejected). Off by default; opt-in per instance.
 	RequireAcceptedTunnel bool
 }
 
-// webEndpointHost builds the full host value for a tunneled HTTP
-// request by joining address and the effective domain with a dot.
-// When the effective domain is empty the address is returned as-is
-// (no trailing dot), acting as a regression guard against malformed
-// Host headers.
-func (c *Config) webEndpointHost(address string) string {
-	return webendpoints.Host(address, webendpoints.Domain(c.WebEndpointsDomain, c.Domain))
-}
-
-var (
-	ErrWebEndpointForbidden      = errors.New("web endpoint not found")
-	ErrDeviceTunnelDial          = errors.New("failed to connect to device")
-	ErrDeviceTunnelWriteRequest  = errors.New("failed to send data to the device")
-	ErrDeviceTunnelReadResponse  = errors.New("failed to write the response back to the client")
-	ErrDeviceTunnelHijackRequest = errors.New("failed to capture the request")
-	ErrDeviceTunnelParsePath     = errors.New("failed to parse the path")
-	ErrDeviceTunnelConnect       = errors.New("failed to connect to the port on device")
-)
+var ErrDeviceTunnelDial = errors.New("failed to connect to device")
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -106,15 +75,8 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 	// the authenticator resolves.
 	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 
-	if cfg.WebEndpoints {
-		// NOTE: The `/http/proxy` endpoint is invoked by the edge proxy when a tunnel URL is accessed. It processes
-		// the `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server,
-		// returning an error related to the connection to device or what was returned from the server inside the tunnel.
-		//
-		// A web endpoint is a public URL, so this is anonymous for every method;
-		// the address in X-Address is what scopes the request to a device.
-		router.Any(HandleHTTPProxyPath, handlers.HandleHTTPProxy)
-		allowAnonymous(routesmiddleware.AnyMethod, HandleHTTPProxyPath)
+	if err := applyTunnelExtensions(router, authn, d); err != nil {
+		log.WithError(err).Error("failed to register the tunnel extensions")
 	}
 
 	return handlers
