@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig"
-	_ "github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
-	_ "github.com/caddyserver/caddy/v2/modules/standard"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
