@@ -207,9 +207,12 @@ export default function TerminalInstance({
           // Binary data = terminal output (password auth or post-signature)
           const bytes = new Uint8Array(event.data as ArrayBuffer);
           term.write(bytes);
-          recorderRef.current?.recordOutput(
-            recordingDecoder.decode(bytes, { stream: true }),
-          );
+          // Decode unconditionally: the recorder is null until its async
+          // creation resolves, and feeding the decoder only while it exists
+          // would leave the stream state missing those bytes — so a character
+          // straddling that window would come out corrupted in the recording.
+          const decoded = recordingDecoder.decode(bytes, { stream: true });
+          recorderRef.current?.recordOutput(decoded);
           registerResizeHandler();
           return;
         }
