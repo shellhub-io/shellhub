@@ -45,7 +45,17 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	// NOTE: Instantiates a new logger instance to be used by the logger's middleware.
 	server.Logger = pkgmiddleware.NewEchoLogger(logrus.NewEntry(logrus.StandardLogger()))
 
-	server.Use(echoMiddleware.RequestID())
+	// Echo writes the ID it generates to the response only. Mirror it onto the
+	// request, because that is where everything downstream reads it from: the
+	// log middleware, and the agent transport, which binds it as a required
+	// field and uses it to trace the connection. Until now the value was always
+	// the edge proxy's $request_id, so a request that did not come through the
+	// proxy reached the V2 handshake with nothing to bind.
+	server.Use(echoMiddleware.RequestIDWithConfig(echoMiddleware.RequestIDConfig{
+		RequestIDHandler: func(c echo.Context, id string) {
+			c.Request().Header.Set(echo.HeaderXRequestID, id)
+		},
+	}))
 	server.Use(echoMiddleware.Secure())
 	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
