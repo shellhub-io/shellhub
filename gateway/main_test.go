@@ -53,14 +53,10 @@ func TestMain_smoke(t *testing.T) {
 
 	t.Logf("gateway container listening at %s", baseURL)
 
-	// The one route nginx answers by itself. Everything else proxies to an
+	// The one route the proxy answers by itself. Everything else proxies to an
 	// upstream that does not exist beside a lone container, so asking for it
-	// would assert on how nginx reports a missing backend rather than on
-	// whether this image boots and serves the configuration it generated.
-	//
-	// Location matters as much as the status: absolute_redirect is off, so the
-	// redirects this gateway emits are relative, and a client that compares the
-	// header would see it change if that ever stopped being true.
+	// would assert on how a missing backend is reported rather than on whether
+	// this image boots and serves the configuration it generated.
 	client := http.Client{
 		Timeout: 5 * time.Second,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
@@ -75,7 +71,7 @@ func TestMain_smoke(t *testing.T) {
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		var err error
 
-		resp, err = client.Get(baseURL + "/v1/")
+		resp, err = client.Get(baseURL + "/admin")
 		if err == nil {
 			break
 		}
@@ -97,5 +93,5 @@ func TestMain_smoke(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusMovedPermanently, resp.StatusCode)
-	assert.Equal(t, "/", resp.Header.Get("Location"))
+	assert.Contains(t, resp.Header.Get("Location"), "/admin/")
 }

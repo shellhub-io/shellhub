@@ -43,11 +43,15 @@ services:
       - ./gateway:/go/src/github.com/shellhub-io/shellhub/gateway
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./.golangci.yaml:/.golangci.yaml
-      - ./gateway/nginx:/templates
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}
       - SHELLHUB_GATEWAY_ACCESS_LOGS=${SHELLHUB_GATEWAY_ACCESS_LOGS}
+      # Development asks Let's Encrypt's staging directory, always. Turning
+      # SHELLHUB_AUTO_SSL on in .env.override is then enough to exercise the
+      # whole certificate path, without knowing this URL and without spending
+      # the production rate limit on a rehearsal.
+      - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
   cli:
     image: cli
     build:

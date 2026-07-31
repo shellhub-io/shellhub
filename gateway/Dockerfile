@@ -3,7 +3,7 @@ FROM golang:1.25.12-alpine3.24 AS base
 
 ARG GOPROXY
 
-RUN apk add --no-cache git ca-certificates libgcc curl certbot certbot-nginx certbot-dns certbot-dns-digitalocean certbot-dns-cloudflare
+RUN apk add --no-cache git ca-certificates libgcc
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -32,17 +32,8 @@ RUN go build
 # development stage
 FROM base AS development
 
-COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
-
-RUN mkdir /etc/shellhub-gateway
-
-RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
-    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/shellhub-gateway/dhparam.pem
-
-RUN apk add --update openssl
 RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
-    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 && \
-    CGO_ENABLED=0 go install github.com/vektra/mockery/v3/...@v3.7.1
+    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -57,19 +48,14 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.24.1 AS production
 
-RUN apk add libgcc curl certbot certbot-nginx certbot-dns certbot-dns-digitalocean certbot-dns-cloudflare
+RUN apk add --no-cache ca-certificates libgcc
 
-COPY --from=openresty/openresty:1.25.3.1-5-alpine-apk /usr/local/openresty /usr/local/openresty
-
-RUN mkdir /etc/shellhub-gateway
-
-RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
-    curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/shellhub-gateway/dhparam.pem
+# The account key and the certificates. Declared here rather than in the compose
+# file so the volume exists however the image is run: without it, every recreate
+# of the container asks the CA for everything again, and Let's Encrypt caps how
+# many times a week it will answer.
+VOLUME /data
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/gateway/gateway /gateway
-
-RUN mkdir /templates
-
-COPY ./gateway/nginx /templates
 
 ENTRYPOINT ["/gateway"]
