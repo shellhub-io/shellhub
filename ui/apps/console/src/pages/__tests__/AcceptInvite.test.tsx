@@ -9,7 +9,6 @@ import {
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import AcceptInvite from "../AcceptInvite";
 
@@ -59,11 +58,14 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const mockResolveInvitation = vi.fn();
+const mockResolveResult = vi.hoisted(() => ({
+  resolved: null as Record<string, unknown> | null,
+  isLoading: false,
+  isError: false,
+}));
 
-vi.mock("@/client", () => ({
-  resolveInvitation: (...args: unknown[]): unknown =>
-    mockResolveInvitation(...args),
+vi.mock("@/hooks/useInvitations", () => ({
+  useResolveInvitation: () => mockResolveResult,
 }));
 
 const { mockSignUp, signUpState } = vi.hoisted(() => {
@@ -108,29 +110,25 @@ vi.mock("@/hooks/useNamespaceMutations", () => ({
 const INVITE_CODE = "INVITECODE12";
 const VALID_PARAMS = `invite=${INVITE_CODE}`;
 
-function resolved(status: string) {
-  return {
-    data: {
-      tenant_id: "t1",
-      user_id: "u1",
-      email: "alice@example.com",
-      status,
-    },
-    response: new Response(),
+function setResolved(status: string) {
+  mockResolveResult.resolved = {
+    tenantId: "t1",
+    userId: "u1",
+    email: "alice@example.com",
+    status,
   };
+  mockResolveResult.isLoading = false;
+  mockResolveResult.isError = false;
 }
 
 function createWrapper(initialSearch = "") {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
   return ({ children }: { children: React.ReactNode }) => (
     <MemoryRouter
       initialEntries={[
         `/accept-invite${initialSearch ? "?" + initialSearch : ""}`,
       ]}
     >
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      {children}
     </MemoryRouter>
   );
 }
@@ -162,7 +160,7 @@ beforeEach(() => {
   signUpState.signUpServerFields = [];
   mockAcceptMutateAsync.mockResolvedValue(undefined);
   mockSwitchNamespaceMutateAsync.mockResolvedValue(undefined);
-  mockResolveInvitation.mockResolvedValue(resolved("confirmed"));
+  setResolved("confirmed");
 });
 
 /* ================================================================== */
@@ -182,8 +180,10 @@ describe("AcceptInvite", () => {
   });
 
   describe("initial loading state", () => {
-    it("shows the checking invitation spinner while resolving", async () => {
-      mockResolveInvitation.mockReturnValue(new Promise(() => {}));
+    it("shows the checking invitation spinner while resolving", () => {
+      mockResolveResult.resolved = null;
+      mockResolveResult.isLoading = true;
+      mockResolveResult.isError = false;
       renderPage(VALID_PARAMS);
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText(/checking invitation/i)).toBeInTheDocument();
@@ -191,18 +191,18 @@ describe("AcceptInvite", () => {
   });
 
   describe("branch: error (resolve rejects)", () => {
-    it("renders the Invitation Unavailable heading", async () => {
-      mockResolveInvitation.mockRejectedValue(new Error("network failure"));
+    it("renders the Invitation Unavailable heading", () => {
+      mockResolveResult.resolved = null;
+      mockResolveResult.isLoading = false;
+      mockResolveResult.isError = true;
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /invitation unavailable/i }),
-        ).toBeInTheDocument(),
-      );
+      expect(
+        screen.getByRole("heading", { name: /invitation unavailable/i }),
+      ).toBeInTheDocument();
     });
   });
 
-  describe("branch: ready (authenticated as the invited user)", () => {
+  describe("branch: accept (authenticated as the invited user)", () => {
     beforeEach(() => {
       useAuthStore.setState({
         token: "jwt-token",
@@ -212,13 +212,11 @@ describe("AcceptInvite", () => {
       } as never);
     });
 
-    it("renders the Namespace Invitation heading with Accept", async () => {
+    it("renders the Namespace Invitation heading with Accept", () => {
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /namespace invitation/i }),
-        ).toBeInTheDocument(),
-      );
+      expect(
+        screen.getByRole("heading", { name: /namespace invitation/i }),
+      ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /accept/i }),
       ).toBeInTheDocument();
@@ -230,11 +228,6 @@ describe("AcceptInvite", () => {
     it("accepts and switches namespace using the resolved tenant", async () => {
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /^accept$/i }),
-        ).toBeInTheDocument(),
-      );
       await user.click(screen.getByRole("button", { name: /^accept$/i }));
       const dialog = screen.getByRole("dialog");
       await user.click(
@@ -268,7 +261,7 @@ describe("AcceptInvite", () => {
   });
 
   describe("branch: wrong-user (authenticated as a different user)", () => {
-    it("renders the Different Account Signed In heading", async () => {
+    it("renders the Different Account Signed In heading", () => {
       useAuthStore.setState({
         token: "jwt-token",
         userId: "other-user-id",
@@ -276,17 +269,15 @@ describe("AcceptInvite", () => {
         loading: false,
       } as never);
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /different account signed in/i }),
-        ).toBeInTheDocument(),
-      );
+      expect(
+        screen.getByRole("heading", { name: /different account signed in/i }),
+      ).toBeInTheDocument();
     });
   });
 
-  describe("branch: complete (unauthenticated, status invited)", () => {
+  describe("branch: sign-up (unauthenticated, status invited)", () => {
     beforeEach(() => {
-      mockResolveInvitation.mockResolvedValue(resolved("invited"));
+      setResolved("invited");
     });
 
     async function fillForm(user: ReturnType<typeof userEvent.setup>) {
@@ -296,17 +287,14 @@ describe("AcceptInvite", () => {
       await user.type(screen.getByLabelText(/confirm password/i), "Secret123");
     }
 
-    it("renders the invite completion form with the resolved email", async () => {
+    it("renders the invite completion form with the resolved email", () => {
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /you've been invited/i }),
-        ).toBeInTheDocument(),
-      );
+      expect(
+        screen.getByRole("heading", { name: /you've been invited/i }),
+      ).toBeInTheDocument();
       expect(screen.getByText(/alice@example.com/)).toBeInTheDocument();
       expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^username$/i)).toBeInTheDocument();
-      // Email is NOT an editable field
       expect(screen.queryByLabelText(/^email$/i)).not.toBeInTheDocument();
     });
 
@@ -314,11 +302,6 @@ describe("AcceptInvite", () => {
       mockSignUp.mockResolvedValue("tok");
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /join namespace/i }),
-        ).toBeInTheDocument(),
-      );
       await fillForm(user);
       await user.click(screen.getByRole("button", { name: /join namespace/i }));
 
@@ -355,11 +338,6 @@ describe("AcceptInvite", () => {
       mockSignUp.mockResolvedValue(null);
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /join namespace/i }),
-        ).toBeInTheDocument(),
-      );
       await fillForm(user);
       await user.click(screen.getByRole("button", { name: /join namespace/i }));
 
@@ -374,7 +352,7 @@ describe("AcceptInvite", () => {
 
   describe("branch: unauthenticated with an existing account → login", () => {
     it("navigates to /login with a redirect back to accept-invite when confirmed", async () => {
-      mockResolveInvitation.mockResolvedValue(resolved("confirmed"));
+      setResolved("confirmed");
       renderPage(VALID_PARAMS);
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -386,7 +364,7 @@ describe("AcceptInvite", () => {
     });
 
     it("navigates to /login when not-confirmed", async () => {
-      mockResolveInvitation.mockResolvedValue(resolved("not-confirmed"));
+      setResolved("not-confirmed");
       renderPage(VALID_PARAMS);
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith(
