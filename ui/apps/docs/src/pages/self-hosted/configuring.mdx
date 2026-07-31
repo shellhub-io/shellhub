@@ -35,7 +35,8 @@ $ make restart
 |----------|---------|-------------|
 | `SHELLHUB_DOMAIN` | `localhost` | Public domain name for your instance |
 | `SHELLHUB_AUTO_SSL` | `false` | Enable automatic Let's Encrypt certificates |
-| `SHELLHUB_PROXY` | `false` | Enable PROXY protocol support on nginx listen directives |
+| `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol on the gateway's listener |
+| `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Peers allowed to declare the client's address |
 
 > **Note:** `SHELLHUB_PROXY` is for Layer 4 / TCP load balancers (AWS NLB, HAProxy in TCP mode) that send PROXY protocol headers. This lets ShellHub read the real client IP. If you terminate SSL at a reverse proxy (nginx, Caddy, Traefik), you don't need this flag.
 
@@ -56,7 +57,8 @@ $ make restart
 |----------|---------|-------------|
 | `SHELLHUB_LOG_LEVEL` | `info` | Log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal` |
 | `SHELLHUB_LOG_FORMAT` | `text` | Log format: `text` or `json` |
-| `SHELLHUB_GATEWAY_ACCESS_LOGS` | `true` | Enable nginx access logs |
+| `SHELLHUB_GATEWAY_ACCESS_LOGS` | `true` | Enable gateway access logs |
+| `SHELLHUB_ACME_CA_SERVER` | | ACME directory to request certificates from; empty means Let's Encrypt |
 
 ### Features
 
@@ -75,7 +77,6 @@ $ make restart
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SHELLHUB_API_RATE_LIMIT` | `1000r/s` | API rate limit |
 | `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | Redis connection pool size (0 = default) |
 | `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Account lockout duration in minutes after failed logins |
 

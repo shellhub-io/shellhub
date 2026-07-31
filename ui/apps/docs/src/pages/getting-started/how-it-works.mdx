@@ -19,7 +19,7 @@ The server runs as a set of microservices orchestrated with Docker Compose:
 
 | Service | Role |
 |---------|------|
-| **Gateway** | Nginx reverse proxy — entry point for all traffic, handles SSL termination |
+| **Gateway** | Reverse proxy — entry point for all traffic, handles SSL termination |
 | **API** | REST service — manages users, devices, namespaces, keys, and sessions |
 | **SSH** | SSH service — authenticates users and bridges connections to device agents |
 | **Database** | MongoDB or PostgreSQL — stores all persistent data |

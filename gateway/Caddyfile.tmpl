@@ -1,0 +1,248 @@
+{{- $cfg := .Config -}}
+{
+	# The admin endpoint is how Caddy is reconfigured from outside. Nothing
+	# reconfigures this proxy from outside: the config is built from the
+	# environment when the process starts.
+	admin off
+
+	# The account key and every certificate live here. Caddy's default is a
+	# directory under $HOME, which no volume covers -- and an edge that loses its
+	# account on recreate asks the CA for everything again, which is the quickest
+	# way to spend a rate limit.
+	storage file_system /data
+
+{{- if not .TLS }}
+
+	# Without TLS there is nothing to obtain and nothing to redirect to, and
+	# leaving automatic HTTPS on would have Caddy try to issue a certificate for
+	# a name no CA will sign.
+	auto_https off
+{{- end }}
+{{- if .ACMECAServer }}
+
+	# The directory to ask for certificates. Point it at Let's Encrypt's staging
+	# endpoint to rehearse without spending the real rate limit -- staging
+	# certificates are signed by a root no browser trusts, so this is for
+	# validating the flow, never for serving.
+	acme_ca {{ .ACMECAServer }}
+{{- end }}
+
+{{- if not $cfg.EnableAccessLogs }}
+
+	log {
+		output discard
+	}
+{{- end }}
+
+{{- if $cfg.EnableProxyProtocol }}
+
+	servers {
+		# The load balancer is the only peer allowed to declare who the client
+		# is. Without this list anyone reaching the port could write a PROXY
+		# preamble and choose their own address, which is what the login lockout
+		# and the GeoIP rules are keyed on.
+		trusted_proxies static {{ .TrustedProxies }}
+
+		listener_wrappers {
+			proxy_protocol {
+				allow {{ .TrustedProxies }}
+			}
+{{- if .TLS }}
+			tls
+{{- end }}
+		}
+	}
+{{- end }}
+}
+
+# Forwarded to every upstream, in one place. What this proxy owes the backend is
+# the transport context -- who connected, over what, and under which name.
+#
+# No identity headers appear here. The API authenticates in-process and
+# overwrites the whole X-ID/X-Role/X-Tenant-ID/X-Username/X-Admin/X-Device-UID
+# set from the request's own credential, so a forged one cannot survive and this
+# proxy has nothing to strip.
+(forwarded) {
+	header_up Host {host}
+	header_up X-Forwarded-Port {x_forwarded_port}
+	header_up X-Request-ID {http.request.uuid}
+	header_up X-Real-IP {remote_host}
+}
+
+{{ .SiteAddress }} {
+	encode gzip zstd
+
+	# X-Forwarded-Port carries the port the client addressed, which is the one in
+	# Host; only when Host omits it does the listening port answer instead.
+	map {http.request.port} {x_forwarded_port} {
+		"" {http.request.local.port}
+	}
+
+	# route, not bare handle blocks: the order below is deliberate, and route
+	# preserves what is written here while handle would re-sort it by how
+	# specific each path looks.
+	route {
+		# Nothing is served under /internal. Refuse it here rather than letting
+		# it fall through to the console, so a route added there later is never
+		# reachable from outside by accident.
+		handle /internal* {
+			respond 404
+		}
+
+		handle /api* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+{{- if $cfg.EnableEnterprise }}
+
+		handle /admin/api* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+{{- end }}
+
+		handle /mcp* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
+		# The agent transports and the browser terminal. Caddy does not time a
+		# proxied stream out by default, which is what these need; the previous
+		# configuration had to say so explicitly.
+		handle /ssh/* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
+		handle /agent/* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
+		handle /ws* {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
+		# Published at the root of the domain and answered under /api. The API
+		# resolves them itself, so they are routed and nothing more.
+		@root path /healthcheck /healthcheck/* /info /info/*
+		handle @root {
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
+		@install path /install.sh /kickstart.sh
+		handle @install {
+			# The script embeds request-derived defaults (SERVER_ADDRESS from the
+			# forwarded host), so it must never be cached: a shared cache would
+			# serve one requester's address to everyone.
+			header Cache-Control "no-store"
+
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+{{- if .Development }}
+
+		# Prism, on the ports openapi/scripts/mock and openapi/scripts/proxy
+		# start it on. Neither is published to the host, so this is the only way
+		# in; and neither runs on its own, so expect 502 until someone starts one.
+		handle_path /openapi/mock/* {
+			reverse_proxy openapi:4010 {
+				import forwarded
+			}
+		}
+
+		handle_path /openapi/proxy/* {
+			reverse_proxy openapi:4020 {
+				import forwarded
+			}
+		}
+
+		handle /openapi* {
+			reverse_proxy openapi:8080 {
+				import forwarded
+			}
+		}
+{{- end }}
+
+		# The console's own router serves /admin, but only under a trailing
+		# slash. A redir with its own matcher rather than a handle block: handle
+		# blocks are mutually exclusive and get sorted among themselves, which
+		# is not what a single-path redirect wants.
+		@admin path /admin
+		redir @admin /admin/ 301
+
+		handle {
+			header Cache-Control "no-cache, no-store"
+			header Pragma "no-cache"
+
+			reverse_proxy ui:8080 {
+				import forwarded
+			}
+		}
+	}
+}
+{{- if $cfg.WebEndpoints }}
+
+# Every device tunnel lives on its own subdomain of this domain. One block
+# serves all of them: the address is the hostname, and the API reads it off the
+# Host header. Nothing here is generated per endpoint.
+{{ .WebEndpointsAddress }} {
+{{- if and .TLS .WebEndpointsInternalTLS }}
+
+	# No public authority will sign this name, so Caddy's own does.
+	tls internal
+{{- else if .TLS }}
+
+	# A wildcard cannot be proven over HTTP: the challenge would have to be
+	# answered at a name that does not exist yet. DNS-01 proves the domain
+	# instead, once, for every tunnel it will ever have.
+	tls {
+		dns {{ .DNSProvider }}
+	}
+{{- end }}
+
+	# The path belongs to the device's own HTTP server and is not ours to
+	# interpret. Caddy forwards it as the client wrote it, escaping intact.
+	reverse_proxy {{ $cfg.APIBackend }} {
+		header_up Host {host}
+		header_up X-Request-ID {http.request.uuid}
+		header_up X-Real-IP {remote_host}
+	}
+}
+{{- end }}
+{{- if .Development }}
+
+# Dev-only: the marketing website and the docs are served by their own dev
+# servers inside the ui container, reachable only through here.
+http://website.{{ $cfg.Domain }} {
+	reverse_proxy ui:8082 {
+		import forwarded
+	}
+}
+
+http://docs.{{ $cfg.Domain }} {
+	reverse_proxy ui:8083 {
+		import forwarded
+	}
+}
+{{- if $cfg.EnableEnterprise }}
+
+# The test SAML IdP only exists in the cloud repository's development stack, so
+# this is gated on the edition as well as on the environment.
+http://idp.{{ $cfg.Domain }} {
+	reverse_proxy saml-idp:8080 {
+		import forwarded
+	}
+}
+{{- end }}
+{{- end }}

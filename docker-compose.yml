@@ -78,15 +78,11 @@ services:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
       - SHELLHUB_DOMAIN=${SHELLHUB_DOMAIN}
-      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
-      - SHELLHUB_SSH_PORT=${SHELLHUB_SSH_PORT}
       - SHELLHUB_PROXY=${SHELLHUB_PROXY}
+      - SHELLHUB_PROXY_TRUSTED_IPS=${SHELLHUB_PROXY_TRUSTED_IPS}
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_AUTO_SSL=${SHELLHUB_AUTO_SSL}
-      - SHELLHUB_API_RATE_LIMIT=${SHELLHUB_API_RATE_LIMIT}
-      - SHELLHUB_API_RATE_LIMIT_ZONE_SIZE=${SHELLHUB_API_RATE_LIMIT_ZONE_SIZE}
-      - SHELLHUB_API_BURST_SIZE=${SHELLHUB_API_BURST_SIZE}
-      - SHELLHUB_API_BURST_DELAY=${SHELLHUB_API_BURST_DELAY}
+      - SHELLHUB_ACME_CA_SERVER=${SHELLHUB_ACME_CA_SERVER}
       - SHELLHUB_GATEWAY_ACCESS_LOGS=${SHELLHUB_GATEWAY_ACCESS_LOGS}
       - SHELLHUB_DATABASE=${SHELLHUB_DATABASE}
     depends_on:
@@ -97,14 +93,7 @@ services:
     networks:
       - shellhub
     healthcheck:
-      test: >
-        sh -c '
-        if [ "$SHELLHUB_PROXY" = "true" ]; then
-          curl -f -k -L --haproxy-protocol http://gateway/healthcheck || exit 1
-        else
-          curl -f -k -L http://gateway/healthcheck || exit 1
-        fi
-        '
+      test: wget -q --spider -T 5 http://gateway/healthcheck || exit 1
       interval: 30s
       start_period: 10s
   cli:
