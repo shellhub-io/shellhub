@@ -530,9 +530,13 @@ func (s *Session) Recorded(seat int) error {
 
 // connect connects the session's client to the session's agent.
 func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
+	// NOTE: ClientConfig.Timeout only bounds the TCP dial in gossh.Dial, which is
+	// not the path taken here, so the handshake below is bounded by a deadline on
+	// the connection instead.
 	config := &gossh.ClientConfig{
 		User:            s.Target.Username,
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
+		Timeout:         sshconf.ConnectTimeout,
 	}
 
 	if err := authOpt(s, config); err != nil {
@@ -549,7 +553,9 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	}
 
 	if config.Timeout > 0 {
-		if err := s.Agent.Conn.SetReadDeadline(clock.Now().Add(config.Timeout)); err != nil {
+		// Both directions: an agent that accepts the stream and never drains it
+		// blocks the write just as surely as a silent one blocks the read.
+		if err := s.Agent.Conn.SetDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
@@ -572,7 +578,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	}
 
 	if config.Timeout > 0 {
-		if err := s.Agent.Conn.SetReadDeadline(time.Time{}); err != nil {
+		if err := s.Agent.Conn.SetDeadline(time.Time{}); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
