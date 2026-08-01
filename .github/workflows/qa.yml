@@ -19,21 +19,30 @@ jobs:
         project: [server, agent, pkg, gateway]
         database: ['']  # Empty by default
         include:
+          # race_args applies to `go test` only: a race-instrumented `go build`
+          # would just be discarded, and the detector costs several minutes.
           - project: server
             extra_args: ""
             lint_args: ""
+            race_args: "-race"
+            test_timeout: "40m"
           - project: gateway
             extra_args: ""
             lint_args: ""
+            race_args: "-race"
           - project: agent
             extra_args: "-tags docker"
             lint_args: "--build-tags docker"
+            race_args: "-race"
           - project: pkg
             extra_args: ""
             lint_args: ""
+            race_args: "-race"
           # Integration tests with PostgreSQL. Each of the ~31 SSH cases stands up
           # its own agent container and runs twice (transport v1 and v2), so the
-          # suite needs well over the 25m the unit-test projects get.
+          # suite needs well over the 25m the unit-test projects get. The detector
+          # is left off here: it would instrument the harness, not the services
+          # under test, on an already 45-minute job.
           - project: tests
             extra_args: ""
             lint_args: ""
@@ -117,7 +126,7 @@ jobs:
       - name: Unit test [Go]
         if: steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: go test ${{ matrix.extra_args }} -timeout ${{ matrix.test_timeout || '25m' }} ./...
+        run: go test ${{ matrix.extra_args }} ${{ matrix.race_args }} -timeout ${{ matrix.test_timeout || '25m' }} ./...
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
 
