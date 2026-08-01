@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"os/user"
 	"strings"
 	"sync"
 	"syscall"
@@ -417,7 +416,11 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 
 	cmd := newSFTPServerCommand()
 
-	looked, err := user.Lookup(session.User())
+	// osauth, not os/user: the agent usually runs in a container with the host's
+	// filesystem mounted, and osauth is the one that reads the host's passwd.
+	// os/user reads the container's, where the account being logged into does
+	// not exist.
+	looked, err := osauth.LookupUser(session.User())
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
 			"user": session.Context().User(),
@@ -427,8 +430,8 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	}
 
 	home := fmt.Sprintf("HOME=%s", looked.HomeDir)
-	gid := fmt.Sprintf("GID=%s", looked.Gid)
-	uid := fmt.Sprintf("UID=%s", looked.Uid)
+	gid := fmt.Sprintf("GID=%d", looked.GID)
+	uid := fmt.Sprintf("UID=%d", looked.UID)
 
 	cmd.Env = append(cmd.Env, home)
 	cmd.Env = append(cmd.Env, gid)
