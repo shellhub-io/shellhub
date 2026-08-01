@@ -8,7 +8,7 @@ function healthcheck(): Plugin {
   return {
     name: "healthcheck",
     configureServer(server) {
-      server.middlewares.use("/healthcheck", (_req, res) => {
+      server.middlewares.use("/health", (_req, res) => {
         res.setHeader("Content-Type", "text/plain");
         res.end("OK");
       });

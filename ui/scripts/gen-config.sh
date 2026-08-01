@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Generates a JSON config file from SHELLHUB_* environment variables.
-# The output is served by nginx as the /config.json endpoint.
+# The output is served as the /config.json endpoint.
 #
 # Usage: gen-config.sh <output-file>
 

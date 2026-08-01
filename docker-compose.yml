@@ -70,7 +70,7 @@ services:
     networks:
       - shellhub
     healthcheck:
-      test: "curl -f http://ui:8080/healthcheck || exit 1"
+      test: "wget -q --spider -T 5 http://ui:8080/health || exit 1"
       interval: 30s
       start_period: 10s
   gateway:

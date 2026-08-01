@@ -62,18 +62,38 @@ RUN apk add --no-cache brotli gzip && \
       -exec brotli -q 11 -k {} \; \
       -exec gzip -9 -k {} \;
 
-FROM nginx:1.31.3-alpine AS production
+FROM alpine:3.24.1 AS production
 
-# Patch CVE-2026-6732 (libxml2 DoS); drop once the nginx base ships the fix
-RUN apk add --no-cache --upgrade "libxml2>=2.13.9-r1"
+# Pinned exactly, not to a major: the header precedence ui/sws.toml relies on is
+# undocumented, so a release that changed it would break caching silently.
+ARG SWS_VERSION=2.44.0
+ARG TARGETARCH
 
-RUN apk add curl
+RUN set -eux; \
+    case "$TARGETARCH" in \
+      amd64) target=x86_64-unknown-linux-musl; \
+             sha=804bc0c31c78385ac04e9a36f3c2aa3d3170eb77d66807c2a1660c56b2026bb1 ;; \
+      arm64) target=aarch64-unknown-linux-musl; \
+             sha=e9d6bd0b05dea441028eb4e690249ab585d711b311646bf9f420fcea01449670 ;; \
+      *) echo "unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
+    esac; \
+    wget -qO /tmp/sws.tar.gz \
+      "https://github.com/static-web-server/static-web-server/releases/download/v${SWS_VERSION}/static-web-server-v${SWS_VERSION}-${target}.tar.gz"; \
+    echo "${sha}  /tmp/sws.tar.gz" | sha256sum -c -; \
+    tar -xzf /tmp/sws.tar.gz -C /tmp; \
+    mv "/tmp/static-web-server-v${SWS_VERSION}-${target}/static-web-server" /usr/local/bin/; \
+    rm -rf /tmp/sws.tar.gz "/tmp/static-web-server-v${SWS_VERSION}-${target}"
 
-RUN rm /etc/nginx/conf.d/default.conf
-COPY ui/nginx.conf /etc/nginx/conf.d
+RUN addgroup -g 1000 -S shellhub && adduser -u 1000 -S -G shellhub shellhub
 
-COPY --from=builder /app/apps/console/dist /usr/share/nginx/html/ui
-
+COPY ui/sws.toml /etc/sws.toml
 COPY ui/scripts /scripts
+
+# Owned, not just readable: the entrypoint writes config.json in here.
+COPY --from=builder --chown=1000:1000 /app/apps/console/dist /var/www
+
+USER 1000:1000
+
+EXPOSE 8080
 
 CMD ["/scripts/entrypoint.sh"]
