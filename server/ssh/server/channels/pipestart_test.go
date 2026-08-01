@@ -3,6 +3,8 @@ package channels
 import (
 	"testing"
 
+	"github.com/shellhub-io/shellhub/server/ssh/session"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +44,7 @@ func TestStartsDataPipe(t *testing.T) {
 		},
 		{
 			description: "a keepalive does not",
-			requestType: KeepAliveRequestType,
+			requestType: session.KeepAliveRequestType,
 			expected:    false,
 		},
 		{

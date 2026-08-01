@@ -1,7 +1,6 @@
 package channels
 
 import (
-	"strings"
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -10,11 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
-
-// KeepAliveRequestTypePrefix Through the time, the [KeepAliveRequestType] type sent from agent to server changed its
-// name, but always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this prefix
-// exists and perform the necessary operations.
-const KeepAliveRequestTypePrefix string = "keepalive"
 
 const (
 	// Once the session has been set up, a program is started at the remote end.  The program can be a shell, an
@@ -50,8 +44,6 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.7
 	WindowChangeRequestType = "window-change"
-	// It is a custom request type that the Agent sends to maintain the session alive, even when no data is sent.
-	KeepAliveRequestType = KeepAliveRequestTypePrefix + "@shellhub.io"
 	//  When the command running at the other end terminates, the following message can be sent to return the exit
 	//  status of the command. Returning the status is RECOMMENDED.
 	//
@@ -185,61 +177,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 			go pipe(sess, client.Channel, agent.Channel, seat, done)
 		})
 
-		wg.Add(3)
-
-		go func() {
-			defer wg.Done()
-
-			for {
-				select {
-				case <-ctx.Done():
-					logger.Info("context has done (global requests)")
-
-					return
-				case req, ok := <-sess.Agent.Requests:
-					if !ok {
-						logger.Trace("global requests is closed")
-
-						return
-					}
-
-					logger.Debugf("global request from agent: %s", req.Type)
-
-					switch {
-					// NOTE: The Agent sends "keepalive" requests to the server to avoid the Web Socket being closed due
-					// to inactivity. Through the time, the request type sent from agent to server changed its name, but
-					// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
-					// prefix exists and perform the necessary operations.
-					case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
-						if req.WantReply {
-							if err := req.Reply(true, nil); err != nil {
-								logger.WithError(err).Error("failed to reply to keepalive request from agent")
-							}
-
-							logger.Info("replied to keepalive request from agent")
-						}
-
-						if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
-							logger.Error("failed to send the keepalive request received from agent to client")
-
-							return
-						}
-
-						if err := sess.KeepAlive(ctx); err != nil {
-							logger.WithError(err).Error("failed to send the API request to inform that the session is open")
-
-							return
-						}
-					default:
-						if req.WantReply {
-							if err := req.Reply(false, nil); err != nil {
-								logger.WithError(err).Error(err)
-							}
-						}
-					}
-				}
-			}
-		}()
+		wg.Add(2)
 
 		go func() {
 			defer wg.Done()
