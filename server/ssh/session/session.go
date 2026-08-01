@@ -82,8 +82,6 @@ type Agent struct {
 	Conn net.Conn
 	// Client is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
 	Client *gossh.Client
-	// Requests is the channel to handle SSH global requests.
-	Requests <-chan *gossh.Request
 	// mu guards Channels. Channel handlers run one goroutine per channel open on
 	// a shared connection, so an unguarded map here is a runtime fatal error that
 	// recover cannot contain — and the HTTP API shares this process.
@@ -591,9 +589,68 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	close(ch)
 
 	s.Agent.Client = gossh.NewClient(conn, chans, ch)
-	s.Agent.Requests = reqs
+
+	go s.drainAgentRequests(ctx, reqs)
 
 	return nil
+}
+
+// keepAliveRequestPrefix matches the agent's keepalive. The name it sends has
+// changed over the years but has always kept this prefix, so old agents are
+// recognised by it rather than by an exact match.
+const keepAliveRequestPrefix = "keepalive"
+
+// KeepAliveRequestType is the keepalive the gateway forwards to the client.
+const KeepAliveRequestType = keepAliveRequestPrefix + "@shellhub.io"
+
+// drainAgentRequests consumes the agent's global requests for as long as the
+// agent connection lives.
+//
+// It has to exist and it has to be the only one. The agent's requests are
+// deliberately kept away from [gossh.NewClient] above, so nothing else reads
+// them, and x/crypto buffers only a handful before the mux blocks on the send —
+// which would freeze every channel on this connection, port forwards included.
+// The agent keeps sending regardless, since its keepalive loop is scoped to its
+// connection and not to any one channel.
+//
+// That is why no error in here ends the loop. Only the channel closing does,
+// which happens when the agent connection goes away.
+func (s *Session) drainAgentRequests(ctx gliderssh.Context, reqs <-chan *gossh.Request) {
+	logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
+
+	defer logger.Trace("agent global requests drained")
+
+	for req := range reqs {
+		if !strings.HasPrefix(req.Type, keepAliveRequestPrefix) {
+			if req.WantReply {
+				if err := req.Reply(false, nil); err != nil {
+					logger.WithError(err).Warn("failed to refuse a global request from the agent")
+				}
+			}
+
+			continue
+		}
+
+		if req.WantReply {
+			if err := req.Reply(true, nil); err != nil {
+				logger.WithError(err).Warn("failed to reply to the keepalive from the agent")
+			}
+		}
+
+		if err := s.KeepAlive(ctx); err != nil {
+			logger.WithError(err).Warn("failed to record the session as alive")
+		}
+
+		// Forwarded on the connection rather than on a channel, so it also
+		// reaches a client that only has port forwards open. The value is read
+		// per request because the library publishes it once the handshake is
+		// done, and this loop starts during authentication.
+		if conn, ok := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn); ok && conn != nil {
+			if _, _, err := conn.SendRequest(KeepAliveRequestType, false, req.Payload); err != nil {
+				logger.WithError(err).Warn("failed to forward the keepalive to the client")
+			}
+		}
+	}
 }
 
 var ErrDialUnknown = errors.New("unknown protocol version")
