@@ -86,7 +86,19 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
-		sess, _ := session.ObtainSession(ctx)
+		sess, state := session.ObtainSession(ctx)
+		if sess == nil || state < session.StateFinished {
+			// Unreachable today: a channel only opens once authentication has
+			// completed, and that is what advances the session to StateFinished.
+			// Kept so a change to the auth ordering fails the channel instead of
+			// dereferencing nothing and taking the API down with it.
+			log.WithFields(log.Fields{"session": ctx.SessionID(), "state": state}).
+				Error("session channel opened without an established session")
+
+			newChan.Reject(gossh.ConnectionFailed, "session is not established") //nolint:errcheck
+
+			return
+		}
 
 		go func() {
 			// NOTE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
