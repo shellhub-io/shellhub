@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"net"
 	"os"
@@ -39,6 +40,33 @@ type Options struct {
 	// scheme of that approval URL.
 	AutoSSL bool
 }
+
+// keepAlive is how a peer that went away without closing its socket gets
+// reclaimed: the kernel probes an idle connection and the read then fails with
+// a net.Error, which is what cancels the connection's context.
+//
+// These are Go's own defaults, set explicitly so the bound stays a decision of
+// ours rather than one a future release could change underneath us. Nine probes
+// fifteen seconds apart after fifteen seconds of silence puts the worst case at
+// about two and a half minutes.
+var keepAlive = net.KeepAliveConfig{
+	Enable:   true,
+	Idle:     15 * time.Second,
+	Interval: 15 * time.Second,
+	Count:    9,
+}
+
+// handshakeBudget bounds an unauthenticated connection.
+//
+// It has to outlast the browser approvals an identity-mode login can wait on:
+// an enrollment and a re-auth are two separate waits in one handshake, and the
+// deadline would otherwise cut off a login the user is about to approve.
+//
+// It bounds the connection, not the time spent inside a callback. The library
+// applies it as a socket deadline, and no I/O is in flight while the gateway
+// waits on an approval, so it fires on the next read rather than interrupting
+// the wait.
+const handshakeBudget = 2*session.ApprovalWaitTimeout + 30*time.Second
 
 type Server struct {
 	sshd   *gliderssh.Server
@@ -196,6 +224,14 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
 		Addr: ":2222",
+		// Only the handshake is bounded by a deadline. An established connection
+		// is left to TCP keepalive, which reclaims a dead peer without punishing
+		// a live one for being quiet — an idle port forward carries no traffic
+		// for hours and is perfectly healthy.
+		//
+		// MaxTimeout is deliberately left unset too: it is an absolute deadline
+		// that is never cleared, so it would kill established shells at the limit.
+		HandshakeTimeout: handshakeBudget,
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
 			ctx.SetValue("conn", conn)
 
@@ -291,7 +327,9 @@ func (s *Server) ListenAndServe() error {
 		"addr": s.sshd.Addr,
 	}).Info("ssh server listening")
 
-	list, err := net.Listen("tcp", s.sshd.Addr)
+	lc := net.ListenConfig{KeepAliveConfig: keepAlive} //nolint:exhaustruct
+
+	list, err := lc.Listen(context.Background(), "tcp", s.sshd.Addr)
 	if err != nil {
 		log.WithError(err).Error("failed to listen an serve the TCP server")
 

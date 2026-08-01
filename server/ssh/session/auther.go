@@ -157,6 +157,11 @@ func (*passwordAuth) Evaluate(*Session) error {
 // so this is the only thing that releases an abandoned login.
 const approvalWaitTimeout = 90 * time.Second
 
+// ApprovalWaitTimeout is [approvalWaitTimeout] for callers that have to size a
+// deadline around it — the SSH server's handshake timeout, above all, which
+// would otherwise cut off a login the user is about to approve.
+const ApprovalWaitTimeout = approvalWaitTimeout
+
 // approvalAskInterval is the pause between two asks. The API holds each one open
 // until the decision lands, so this is not what paces the wait — it only keeps a
 // gateway talking to an API too old to honour that from spinning, and bounds how
