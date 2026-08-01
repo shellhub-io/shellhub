@@ -39,9 +39,13 @@ func TestClient(t *testing.T) {
 		},
 	)
 
-	assertTaskPayload := ""
+	// Buffered so the handler never blocks on a test that has already given up,
+	// and a channel rather than a variable because the handler runs on one of
+	// asynq's own goroutines: the send is what orders the write against the read
+	// below.
+	handled := make(chan string, 1)
 	asynqMux.HandleFunc("queue:kind", func(_ context.Context, t *asynqlib.Task) error {
-		assertTaskPayload = string(t.Payload())
+		handled <- string(t.Payload())
 
 		return nil
 	})
@@ -54,6 +58,11 @@ func TestClient(t *testing.T) {
 	defer client.Close()
 
 	require.NoError(t, client.Submit(ctx, "queue:kind", []byte("task was called")))
-	time.Sleep(10 * time.Second)
-	require.Equal(t, "task was called", assertTaskPayload)
+
+	select {
+	case payload := <-handled:
+		require.Equal(t, "task was called", payload)
+	case <-time.After(30 * time.Second):
+		t.Fatal("the task was never handled")
+	}
 }
