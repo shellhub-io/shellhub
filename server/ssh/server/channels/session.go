@@ -105,10 +105,13 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 				"ip":       sess.IPAddress,
 			})
 
+		// Only usable before the channel is accepted: Reject on a channel that has
+		// already been decided returns an error that nothing can act on, so the
+		// client would be left with no explanation at all.
 		reject := func(err error, msg string) {
 			logger.WithError(err).Error(msg)
 
-			newChan.Reject(gossh.ConnectionFailed, msg) //nolint:errcheck
+			newChan.Reject(openFailureReason(err), msg) //nolint:errcheck
 		}
 
 		logger.Info("session channel started")
@@ -121,23 +124,28 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 			return
 		}
 
-		client, err := sess.NewClientChannel(newChan, seat)
-		if err != nil {
-			reject(err, "failed to accept the channel opening")
-
-			return
-		}
-
-		defer client.Close()
-
+		// The agent channel is opened first so its failure can still be reported:
+		// accepting the client's channel commits to it, and a rejection after that
+		// reaches nobody. The device dropping between the banner-handler dial and
+		// this point is the common case, and it used to close in silence.
 		agent, err := sess.NewAgentChannel(SessionChannel, seat)
 		if err != nil {
-			reject(err, "failed to open the session channel on agent")
+			reject(err, openFailureMessage(err))
 
 			return
 		}
 
 		defer agent.Close()
+
+		client, err := sess.NewClientChannel(newChan, seat)
+		if err != nil {
+			reject(err, "failed to accept the channel opening")
+			sess.DropAgentChannel(seat)
+
+			return
+		}
+
+		defer client.Close()
 
 		var wg sync.WaitGroup
 
