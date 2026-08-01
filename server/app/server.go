@@ -60,6 +60,14 @@ type Env struct {
 
 	// Metrics enables the /metrics endpoint.
 	Metrics bool `env:"METRICS,default=false"`
+
+	// Domain is the instance's base domain, used to build the browser approval
+	// URL shown in the terminal when a namespace requires SSH login approval.
+	Domain string `env:"SHELLHUB_DOMAIN,default=localhost"`
+
+	// AutoSSL reports whether the console is served over HTTPS; it selects the
+	// scheme of that approval URL.
+	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
 }
 
 // sshEnv is parsed with the SSH_ prefix, keeping the names the ssh service used.
@@ -282,6 +290,8 @@ func (s *Server) setupSSH(service services.Service) error {
 		ConnectTimeout:               env.ConnectTimeout,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
 		HostKeyFile:                  env.HostKeyFile,
+		Domain:                       s.env.Domain,
+		AutoSSL:                      s.env.AutoSSL,
 	})
 
 	return err

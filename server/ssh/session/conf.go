@@ -1,34 +1,40 @@
 package session
 
-import (
-	"github.com/shellhub-io/shellhub/pkg/envs"
-	log "github.com/sirupsen/logrus"
-)
+import "time"
 
-type config struct {
-	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
-	// Agents 0.5.x or earlier do not validate the public key request and may panic.
+// Config carries the settings the session package needs from the SSH server.
+type Config struct {
+	// AllowPublickeyAccessBelow060 allows SSH to connect with an agent via a public key when the agent version is
+	// less than 0.6.0. Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
-	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
+	AllowPublickeyAccessBelow060 bool
 
 	// Domain is the instance's base domain, used to build the browser approval URL
 	// shown in the terminal when a namespace requires SSH login approval.
-	Domain string `env:"SHELLHUB_DOMAIN,default=localhost"`
+	Domain string
 
 	// AutoSSL reports whether the instance serves the console over HTTPS; it
 	// selects the scheme of the approval URL.
-	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
+	AutoSSL bool
+
+	// ConnectTimeout bounds the SSH handshake against the agent. Zero leaves it
+	// unbounded.
+	ConnectTimeout time.Duration
 }
 
-// sshconf is a global variable responsible for managing all environment configurations.
-var sshconf *config
+// sshconf holds the settings installed by [Configure].
+//
+// It is never nil: a test that does not configure the package reads these
+// defaults rather than dereferencing nothing.
+var sshconf = &Config{
+	AllowPublickeyAccessBelow060: false,
+	Domain:                       "localhost",
+	AutoSSL:                      false,
+	ConnectTimeout:               0,
+}
 
-func init() {
-	var err error
-
-	sshconf, err = envs.Parse[config]()
-	if err != nil {
-		log.WithError(err).
-			Error("failed to parse the environment variables")
-	}
+// Configure installs the package settings. It is called once from the SSH
+// server's constructor, before any connection is served.
+func Configure(cfg Config) {
+	sshconf = &cfg
 }
