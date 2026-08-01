@@ -295,7 +295,10 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						var pty models.SSHPty
 
 						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-							reject(nil, "failed to recover the session dimensions")
+							logger.WithError(err).Error("failed to recover the session dimensions")
+							denyRequest(logger, req)
+
+							continue
 						}
 
 						sess.Seats.SetPty(seat, true)
@@ -305,7 +308,10 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						var dimensions models.SSHWindowChange
 
 						if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-							reject(nil, "failed to recover the session dimensions")
+							logger.WithError(err).Error("failed to recover the new window dimensions")
+							denyRequest(logger, req)
+
+							continue
 						}
 
 						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
@@ -320,14 +326,14 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							for {
 								newAgentChannel, ok := <-agentChannels
 								if !ok {
-									reject(nil, "channel for agent forwarding done")
+									logger.Trace("channel for agent forwarding done")
 
 									return
 								}
 
 								agentChannel, agentReqs, err := newAgentChannel.Accept()
 								if err != nil {
-									reject(nil, "failed to accept the chanel request from agent on auth request")
+									logger.WithError(err).Error("failed to accept the chanel request from agent on auth request")
 
 									return
 								}
@@ -337,7 +343,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 								clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
 								if err != nil {
-									reject(nil, "failed to open the auth request channel from agent to client")
+									logger.WithError(err).Error("failed to open the auth request channel from agent to client")
 
 									return
 								}
