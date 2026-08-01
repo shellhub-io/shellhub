@@ -1,0 +1,53 @@
+# Server configuration for the console.
+#
+# The gateway is not in every topology -- a Kubernetes install may point an
+# Ingress straight at the ui Service -- so what may be cached, and in which
+# encoding it is served, is decided here rather than by whatever sits in front.
+
+[general]
+
+host = "0.0.0.0"
+port = 8080
+root = "/var/www"
+directory-listing = false
+health = true
+log-level = "error"
+
+# A path that is not a file on disk is a deep link the app's router resolves.
+page-fallback = "/var/www/index.html"
+
+# Static for the siblings the build produced; dynamic for what has none, which
+# is config.json. Dynamic skips anything already encoded, so they never stack.
+compression-static = true
+compression = true
+
+# The built-in table keys Cache-Control off the file extension and cannot be
+# configured. It gives HTML a day, which is a day of a stale app shell naming
+# bundles that no longer exist. The rules below replace it.
+cache-control-headers = false
+
+[advanced]
+
+# Order matters, and not in the direction the documentation states. The docs
+# say the first matching block wins; the implementation applies every block
+# that matches, in file order, each overwriting the last. So the catch-all goes
+# FIRST, to be overridden. Swapping these two turns every hashed asset back
+# into no-cache with no symptom beyond a slower load.
+#
+# Verified by request against 2.44.0, which is why ui/Dockerfile pins it.
+
+[[advanced.headers]]
+source = "**"
+
+[advanced.headers.headers]
+Cache-Control = "no-cache"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[advanced.headers]]
+source = "/assets/**"
+
+# Vite puts a content hash in every name here, so the URL changes whenever the
+# bytes do. Only this key is overridden; the headers above still apply.
+[advanced.headers.headers]
+Cache-Control = "public, max-age=31536000, immutable"
