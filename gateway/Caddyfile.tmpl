@@ -181,10 +181,11 @@
 		@admin path /admin
 		redir @admin /admin/ 301
 
+		# No cache headers here. header replaces rather than adds, so
+		# anything set would overwrite what the console's own server
+		# decided -- and that server is the one part of the stack every
+		# topology has.
 		handle {
-			header Cache-Control "no-cache, no-store"
-			header Pragma "no-cache"
-
 			reverse_proxy ui:8080 {
 				import forwarded
 			}
