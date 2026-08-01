@@ -32,6 +32,12 @@ type Options struct {
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool
+	// Domain is the instance's base domain, used to build the browser approval
+	// URL shown in the terminal when a namespace requires SSH login approval.
+	Domain string
+	// AutoSSL reports whether the console is served over HTTPS; it selects the
+	// scheme of that approval URL.
+	AutoSSL bool
 }
 
 type Server struct {
@@ -176,6 +182,13 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 }
 
 func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store, opts *Options) (*Server, error) {
+	session.Configure(session.Config{
+		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
+		Domain:                       opts.Domain,
+		AutoSSL:                      opts.AutoSSL,
+		ConnectTimeout:               opts.ConnectTimeout,
+	})
+
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
 		dialer: dialer,
