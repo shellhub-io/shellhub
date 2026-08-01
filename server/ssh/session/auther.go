@@ -52,12 +52,22 @@ func mintEphemeralSigner(session *Session, config *gossh.ClientConfig) error {
 // must have an [authFunc] to authenticate the session and an 'Evaluate' method to
 // evaluate the session's context if necessary (e.g. the agent version when
 // authenticating with public keys).
+//
+// The two checks are split by what the client has proven. The SSH protocol lets
+// a client ask whether a key would be acceptable without signing anything, and
+// x/crypto runs the publickey callback for that query, so anything reachable
+// before a signature must stay cheap and free of side effects.
 type Auth interface {
 	// Auth defines the callback that must be called when authenticating the session.
 	Auth() authFunc
 
-	// Evaluate evaluates the session's context, returning an error if there's something
-	// possibly broken. It's not always necessary.
+	// Offer decides whether the credential is acceptable at all. It may run
+	// before the client has proven it holds the key — including for a key it
+	// does not hold — so it must only read.
+	Offer(*Session) error
+
+	// Evaluate runs once the credential is proven, and is where anything with a
+	// cost or a side effect belongs. It's not always necessary.
 	Evaluate(*Session) error
 }
 
@@ -73,7 +83,13 @@ func (*publicKeyAuth) Auth() authFunc {
 	return mintEphemeralSigner
 }
 
-func (p *publicKeyAuth) Evaluate(session *Session) error {
+func (*publicKeyAuth) Evaluate(*Session) error {
+	// Everything legacy mode checks about a key is a read, so it all happens in
+	// Offer and there is nothing left to do once the signature lands.
+	return nil
+}
+
+func (p *publicKeyAuth) Offer(session *Session) error {
 	// Versions earlier than 0.6.0 do not validate the user when receiving a public key
 	// authentication request. This implies that requests with invalid users are
 	// treated as "authenticated" because the connection does not raise any error.
@@ -148,6 +164,11 @@ func (p *passwordAuth) Auth() authFunc {
 
 func (*passwordAuth) Evaluate(*Session) error {
 	// We don't need (yet) to do any evaluation when authenticating with password.
+	return nil
+}
+
+func (*passwordAuth) Offer(*Session) error {
+	// A password is only ever sent proven; the protocol has no query form for it.
 	return nil
 }
 
@@ -234,7 +255,22 @@ func (*approvalAuth) Auth() authFunc {
 	return mintEphemeralSigner
 }
 
+func (*approvalAuth) Offer(*Session) error {
+	// An unenrolled key is acceptable — turning it into an identity is the whole
+	// point of the flow — but nothing may be parked or written until the client
+	// has proven it holds the key.
+	return nil
+}
+
 func (a *approvalAuth) Evaluate(session *Session) error {
+	if err := session.openApproval(a.ctx, models.SSHApprovalIdentity, nil); err != nil {
+		return err
+	}
+
+	// Now that the key is known to be unknown and proven to be theirs, surface
+	// the approval URL and hold here.
+	sendBanner(a.ctx, buildAddKeyBanner(sshconf.Domain, sshconf.AutoSSL, session.ApprovalCode, session.Fingerprint))
+
 	approver, err := session.awaitApproval(a.ctx)
 	if err != nil {
 		return err
@@ -263,6 +299,12 @@ func AuthIdentity(ctx gliderssh.Context) Auth {
 
 func (*identityAuth) Auth() authFunc {
 	return mintEphemeralSigner
+}
+
+func (*identityAuth) Offer(*Session) error {
+	// The key resolved to a live identity, which is all that can be decided
+	// before the client proves it holds it.
+	return nil
 }
 
 func (a *identityAuth) Evaluate(session *Session) error {
@@ -345,9 +387,11 @@ func sendBanner(ctx gliderssh.Context, msg string) {
 
 // ResolveKeyAuth resolves the presented key to a ShellHub identity (identity
 // mode) and returns the auth to run: a hit yields the identity auth (authorize +
-// mint, no browser); a miss arranges a browser approval (attaching the key to
-// the pending code, surfacing its URL to the client, and having the console page
-// bind it) and yields the approval auth (poll + mint).
+// mint, no browser); a miss yields the approval auth, which arranges the browser
+// approval once the client has proven it holds the key.
+//
+// It is a lookup and nothing more. It runs for a key the client has only
+// offered, so it must not write.
 func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.PublicKey) (Auth, error) {
 	s.Fingerprint = gossh.FingerprintSHA256(publicKey)
 	s.KeyData = gossh.MarshalAuthorizedKey(publicKey)
@@ -379,14 +423,6 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 	if s.Web {
 		return nil, ErrAccessDenied
 	}
-
-	if err := s.openApproval(ctx, models.SSHApprovalIdentity, nil); err != nil {
-		return nil, err
-	}
-
-	// Now that the key is known to be unknown, surface the approval URL and hold
-	// here. A key that is already an identity returns above and never sees this.
-	sendBanner(ctx, buildAddKeyBanner(sshconf.Domain, sshconf.AutoSSL, s.ApprovalCode, s.Fingerprint))
 
 	return AuthApproval(ctx), nil
 }
