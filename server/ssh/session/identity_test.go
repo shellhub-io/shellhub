@@ -118,7 +118,44 @@ func TestResolveKeyAuth(t *testing.T) {
 		assert.Empty(t, sess.UserID)
 	})
 
-	t.Run("unknown key opens an identity approval and yields the approval auth", func(t *testing.T) {
+	t.Run("unknown key yields the approval auth without writing anything", func(t *testing.T) {
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(nil, false, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+
+		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
+		require.NoError(t, err)
+		assert.IsType(t, &approvalAuth{}, auth)
+		assert.Empty(t, sess.UserID)
+
+		// The approval is only parked once the client proves it holds the key: the
+		// code is untouched, and the mock would fail if CreateSSHApproval ran.
+		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
+	})
+
+	// Offer is what runs for a key the client has merely offered, so it must not
+	// reach the service at all.
+	t.Run("offering an unknown key writes nothing", func(t *testing.T) {
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+			Return(nil, false, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+
+		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
+		require.NoError(t, err)
+		require.NoError(t, auth.Offer(sess))
+
+		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
+	})
+
+	t.Run("the approval is parked once the key is proven", func(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
 			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
@@ -132,13 +169,19 @@ func TestResolveKeyAuth(t *testing.T) {
 			})).
 			Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil).
 			Once()
+		serviceMock.EXPECT().
+			GetSSHApprovalStatus(mock.Anything, mock.Anything).
+			Return(&models.SSHApprovalStatus{State: models.SSHApprovalRejected}, nil). //nolint:exhaustruct
+			Once()
 
 		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
-		assert.IsType(t, &approvalAuth{}, auth)
+
+		// Rejected rather than approved: the point is that the approval was
+		// created and waited on, not what the person decided.
+		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
-		assert.Empty(t, sess.UserID)
 	})
 }

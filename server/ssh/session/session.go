@@ -789,7 +789,7 @@ func buildReauthBanner(domain string, autoSSL bool, code string) string {
 // As a client may try to create N sessions with the same context, a [snapshot] is used
 // to save/retrieve the current session state. To illustrate a practical use of this
 // pattern you can imagine a client that wants to connect to a specified device. It first
-// calls the `PublicKeyHandler` with a specified context. At this stage, there are no
+// calls the `PublicKeyVerified` handler with a specified context. At this stage, there are no
 // sessions associated with the provided context, and a new one will be created. If it
 // fails, the same client (and consequently the same context) will call the
 // `PasswordHandler`, which also calls `session.New`. Since we have already created a

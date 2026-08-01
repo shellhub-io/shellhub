@@ -182,6 +182,21 @@ var (
 func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 	return &gossh.ServerConfig{ //nolint:exhaustruct
 		NoClientAuth: true,
+		// Runs only after the client has signed for the key it offered, and only
+		// when the offer was accepted. x/crypto reads it from the top-level config
+		// rather than from the callbacks a PartialSuccessError installs, so it
+		// covers identity and legacy namespaces alike.
+		//
+		// A publickey callback must not return a PartialSuccessError while this is
+		// set — x/crypto rejects that combination by dropping the connection, not
+		// by failing the attempt. Ours return only nil or a denial.
+		VerifiedPublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey, _ *gossh.Permissions, _ string) (*gossh.Permissions, error) {
+			if ok := auth.PublicKeyVerified(ctx, key); !ok {
+				return nil, errPermissionDenied
+			}
+
+			return ctx.Permissions().Permissions, nil
+		},
 		// Capture the pre-auth connection so the enrollment/step-up banner can be
 		// sent mid-handshake, after the presented key is resolved, instead of
 		// unconditionally up front.
@@ -197,7 +212,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 			return nil, &gossh.PartialSuccessError{
 				Next: gossh.ServerAuthCallbacks{ //nolint:exhaustruct
 					PublicKeyCallback: func(_ gossh.ConnMetadata, key gossh.PublicKey) (*gossh.Permissions, error) {
-						if ok := auth.PublicKeyHandler(ctx, key); !ok {
+						if ok := auth.PublicKeyOffer(ctx, key); !ok {
 							return nil, errPermissionDenied
 						}
 
@@ -240,7 +255,7 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 		ServerConfigCallback: newServerConfigCallback,
 		BannerHandler:        newBannerHandler(dialer, service, handoff),
 		PasswordHandler:      auth.PasswordHandler,
-		PublicKeyHandler:     auth.PublicKeyHandler,
+		PublicKeyHandler:     auth.PublicKeyOffer,
 		// Channels form the foundation of secure communication between clients and servers in SSH connections. A
 		// channel, in the context of SSH, is a logical conduit through which data travels securely between the client
 		// and the server. SSH channels serve as the infrastructure for executing commands, establishing shell sessions,
