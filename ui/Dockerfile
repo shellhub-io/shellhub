@@ -51,6 +51,17 @@ COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
 RUN OPENAPI_SPEC_PATH=./openapi.json npm run generate -w @shellhub/console
 RUN npm run build -w @shellhub/console
 
+# Caddy has no brotli encoder, so a sibling on disk is the only way the console
+# is ever served as brotli. config.json is excluded because the entrypoint
+# rewrites it at boot and a stale sibling would outrank the rewrite.
+RUN apk add --no-cache brotli gzip && \
+    find apps/console/dist -type f -size +1024c \
+      \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.json' \
+         -o -name '*.svg' -o -name '*.ico' \) \
+      ! -name 'config.json' \
+      -exec brotli -q 11 -k {} \; \
+      -exec gzip -9 -k {} \;
+
 FROM nginx:1.31.3-alpine AS production
 
 # Patch CVE-2026-6732 (libxml2 DoS); drop once the nginx base ships the fix
