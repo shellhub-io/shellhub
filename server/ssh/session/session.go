@@ -36,14 +36,8 @@ type Data struct {
 	// Namespace is the namespace where device is located.
 	Namespace *models.Namespace
 	IPAddress string
-	// Type is the connection type.
-	Type string
-	// Term is the terminal used for the client.
-	Term string
 	// Web reports whether the session originated from the web terminal.
 	Web bool
-	// Handled check if the session is already handling a "shell", "exec" or a "subsystem".
-	Handled bool
 	// UserID is the ShellHub account bound to this session: resolved from the
 	// presented key in identity mode, or set by the enrollment/step-up approval.
 	// Empty in legacy mode.
@@ -90,15 +84,21 @@ type Agent struct {
 	Client *gossh.Client
 	// Requests is the channel to handle SSH global requests.
 	Requests <-chan *gossh.Request
+	// mu guards Channels. Channel handlers run one goroutine per channel open on
+	// a shared connection, so an unguarded map here is a runtime fatal error that
+	// recover cannot contain — and the HTTP API shares this process.
+	mu sync.Mutex
 	// Channels store the channels to agent, and its seat.
 	Channels map[int]*AgentChannel
 }
 
 // Close closes the underlying ssh client connection.
 func (a *Agent) Close() error {
+	a.mu.Lock()
 	for _, channel := range a.Channels {
 		channel.Close() //nolint:errcheck
 	}
+	a.mu.Unlock()
 
 	return a.Client.Close()
 }
@@ -118,12 +118,17 @@ func (c *ClientChannel) Close() error {
 
 // Client represents a connection to a client.
 type Client struct {
+	// mu guards Channels, for the same reason as [Agent.mu].
+	mu sync.Mutex
 	// Channels store the channels to client, and its seat.
 	Channels map[int]*ClientChannel
 }
 
 // Close closes a connection to client and all its channels.
 func (c *Client) Close() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for _, channel := range c.Channels {
 		if err := channel.Close(); err != nil {
 			return err
@@ -165,6 +170,10 @@ type Session struct {
 type Seat struct {
 	// HasPty is the status of pty on the seat.
 	HasPty bool
+	// Type is the connection type requested on this seat ("exec", "subsystem",
+	// …). It is per-seat and not per-session: one seat may run a shell while
+	// another runs an exec on the same multiplexed connection.
+	Type string
 }
 
 type Seats struct {
@@ -194,13 +203,30 @@ func (s *Seats) NewSeat() (int, error) {
 
 	s.Items.Store(id, &Seat{
 		HasPty: false,
+		Type:   "",
 	})
 
 	return id, nil
 }
 
-// Get gets a seat reference from their id.
-func (s *Seats) Get(seat int) (*Seat, bool) {
+// Get returns a copy of the seat with the given id.
+//
+// It is a copy because the stored value is mutated in place by the setters: a
+// caller holding the pointer would read fields without synchronization, and the
+// pipe goroutine does exactly that.
+func (s *Seats) Get(seat int) (Seat, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	item, ok := s.load(seat)
+	if !ok {
+		return Seat{}, false //nolint:exhaustruct
+	}
+
+	return *item, true
+}
+
+func (s *Seats) load(seat int) (*Seat, bool) {
 	loaded, ok := s.Items.Load(seat)
 	if !ok {
 		return nil, false
@@ -219,7 +245,7 @@ func (s *Seats) SetPty(seat int, status bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	item, ok := s.Get(seat)
+	item, ok := s.load(seat)
 	if !ok {
 		log.Warn("failed to set pty because no seat was created before")
 
@@ -227,6 +253,23 @@ func (s *Seats) SetPty(seat int, status bool) {
 	}
 
 	item.HasPty = status
+
+	s.Items.Store(seat, item)
+}
+
+// SetType sets the connection type on a seat from their id.
+func (s *Seats) SetType(seat int, kind string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	item, ok := s.load(seat)
+	if !ok {
+		log.Warn("failed to set type because no seat was created before")
+
+		return
+	}
+
+	item.Type = kind
 
 	s.Items.Store(seat, item)
 }
@@ -339,6 +382,9 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 
 // NewClientChannel accepts a new channel from a client and set a seat for it.
 func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*ClientChannel, error) {
+	s.Client.mu.Lock()
+	defer s.Client.mu.Unlock()
+
 	if _, ok := s.Client.Channels[seat]; ok {
 		return nil, ErrSeatAlreadySet
 	}
@@ -360,6 +406,9 @@ func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*Clie
 
 // NewAgentChannel opens a new channel to agent and set a seat for it.
 func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) {
+	s.Agent.mu.Lock()
+	defer s.Agent.mu.Unlock()
+
 	if _, ok := s.Agent.Channels[seat]; ok {
 		return nil, ErrSeatAlreadySet
 	}
@@ -377,6 +426,21 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 	s.Agent.Channels[seat] = a
 
 	return a, nil
+}
+
+// DropAgentChannel closes the agent channel on a seat and forgets it, so a seat
+// whose client side failed to open does not keep a live channel behind it.
+func (s *Session) DropAgentChannel(seat int) {
+	s.Agent.mu.Lock()
+	defer s.Agent.mu.Unlock()
+
+	channel, ok := s.Agent.Channels[seat]
+	if !ok {
+		return
+	}
+
+	channel.Close() //nolint:errcheck
+	delete(s.Agent.Channels, seat)
 }
 
 func (s *Session) checkFirewall(ctx context.Context) error {
