@@ -6,3 +6,8 @@
 ./agent/tmp
 **/go.work
 **/go.work.sum
+
+# Dev artifacts: on a developer's disk via the bind mount, never in a clean
+# checkout, so leaving them in makes local builds differ from CI's.
+ui/apps/console/public/config.json
+**/node_modules
