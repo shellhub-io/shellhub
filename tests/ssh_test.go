@@ -360,45 +360,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.Error(t, err)
 			},
 		},
-		/*{
-			name: "connection keepalive when session is requested",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				config := &ssh.ClientConfig{
-					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
-					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var globalConn ssh.Conn
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					dialed, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config.Timeout)
-					assert.NoError(tt, err)
-
-					conn, _, _, err := ssh.NewClientConn(dialed, fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
-					assert.NoError(tt, err)
-
-					globalConn = conn
-				}, 30*time.Second, 1*time.Second)
-
-				ch, reqs, err := globalConn.OpenChannel("session", nil)
-				assert.NoError(t, err)
-
-				ok, err := ch.SendRequest("shell", true, nil)
-				assert.True(t, ok)
-				assert.NoError(t, err)
-
-				req := <-reqs
-				assert.True(t, strings.HasPrefix(req.Type, "keepalive"))
-
-				ch.Close()
-				globalConn.Close()
-			},
-		}*/
 		{
 			name: "connection SHELL with Pty",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
@@ -919,6 +880,208 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				assert.Equal(t, 1024*1024, len(output))
 				for _, b := range output {
 					assert.Equal(t, byte('X'), b)
+				}
+			},
+		},
+		{
+			// Regression: stderr used to be merged into stdout, so `2>/dev/null`
+			// filtered nothing and redirects were polluted. CombinedOutput cannot
+			// catch that — it merges the two streams itself — so this reads them
+			// apart.
+			name: "connection EXEC with separate stdout and stderr",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				var stdout, stderr bytes.Buffer
+
+				sess.Stdout = &stdout
+				sess.Stderr = &stderr
+
+				err = sess.Run(`echo -n "to stdout"; echo -n "to stderr" 1>&2; exit 7`)
+
+				var status *ssh.ExitError
+
+				require.ErrorAs(t, err, &status)
+				assert.Equal(t, 7, status.ExitStatus())
+
+				assert.Equal(t, "to stdout", stdout.String())
+				assert.Equal(t, "to stderr", stderr.String())
+			},
+		},
+		{
+			// Regression: io.MultiReader drains its readers in sequence, so nothing
+			// read stderr until stdout reached EOF. A command writing past the pipe
+			// buffer blocked in write(2) and never exited, so stdout never reached
+			// EOF either. The assertion that matters is that this returns at all.
+			name: "connection EXEC with large stderr",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				var stdout, stderr bytes.Buffer
+
+				sess.Stdout = &stdout
+				sess.Stderr = &stderr
+
+				done := make(chan error, 1)
+
+				go func() {
+					// Well past the 64 KiB pipe buffer that used to deadlock.
+					done <- sess.Run("yes E | tr -d '\n' | head -c 1048576 1>&2; echo -n done")
+				}()
+
+				select {
+				case err := <-done:
+					require.NoError(t, err)
+				case <-time.After(60 * time.Second):
+					t.Fatal("writing 1MiB to stderr never completed")
+				}
+
+				assert.Equal(t, 1024*1024, stderr.Len())
+				assert.Equal(t, "done", stdout.String())
+			},
+		},
+		{
+			// Regression: a shell with no pty is all a heredoc sends, and it was
+			// not one of the requests that started the data pipe, so the session
+			// had no data path and hung until the client gave up.
+			name: "connection SHELL without Pty",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				stdin, err := sess.StdinPipe()
+				require.NoError(t, err)
+
+				var stdout, stderr bytes.Buffer
+
+				sess.Stdout = &stdout
+				sess.Stderr = &stderr
+
+				// No RequestPty: this is the heredoc shape.
+				require.NoError(t, sess.Shell())
+
+				_, err = io.WriteString(stdin, "echo -n heredoc_out\necho -n heredoc_err 1>&2\nexit 5\n")
+				require.NoError(t, err)
+				require.NoError(t, stdin.Close())
+
+				done := make(chan error, 1)
+
+				go func() { done <- sess.Wait() }()
+
+				select {
+				case err := <-done:
+					var status *ssh.ExitError
+
+					require.ErrorAs(t, err, &status)
+					assert.Equal(t, 5, status.ExitStatus())
+				case <-time.After(60 * time.Second):
+					t.Fatal("a shell without a pty never produced anything")
+				}
+
+				assert.Equal(t, "heredoc_out", stdout.String())
+				assert.Equal(t, "heredoc_err", stderr.String())
+			},
+		},
+		{
+			// Replaces a case disabled since b32abb41d. It waited for the keepalive
+			// on the channel's request stream; the gateway forwards it on the
+			// connection now, so that a client holding only port forwards gets one
+			// too.
+			name: "connection keepalive reaches the client",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				addr := fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT"))
+
+				dialed, err := net.DialTimeout("tcp", addr, 30*time.Second)
+				require.NoError(t, err)
+
+				conn, chans, reqs, err := ssh.NewClientConn(dialed, addr, config)
+				require.NoError(t, err)
+
+				defer conn.Close()
+
+				go func() {
+					for newChan := range chans {
+						newChan.Reject(ssh.UnknownChannelType, "unexpected") //nolint:errcheck
+					}
+				}()
+
+				// The agent only starts its keepalive loop once a session is
+				// requested, so ask for one and leave it open.
+				ch, chReqs, err := conn.OpenChannel("session", nil)
+				require.NoError(t, err)
+
+				defer ch.Close()
+
+				go ssh.DiscardRequests(chReqs)
+
+				_, err = ch.SendRequest("shell", true, nil)
+				require.NoError(t, err)
+
+				// The agent runs with SHELLHUB_KEEPALIVE_INTERVAL=1.
+				for {
+					select {
+					case req, ok := <-reqs:
+						require.True(t, ok, "the connection closed before a keepalive arrived")
+
+						if req.WantReply {
+							req.Reply(false, nil) //nolint:errcheck
+						}
+
+						if strings.HasPrefix(req.Type, "keepalive") {
+							return
+						}
+					case <-time.After(60 * time.Second):
+						t.Fatal("no keepalive reached the client on the connection")
+					}
 				}
 			},
 		},
