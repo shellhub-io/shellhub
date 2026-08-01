@@ -78,6 +78,22 @@ const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.2
 const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 
+// startsDataPipe reports whether a channel request puts the session into
+// service, and so must start the data pipe between client and agent.
+//
+// Piping waits for one of these rather than starting as soon as the channel
+// opens, so a recorded session has its header written before any frame reaches
+// it. A shell counts: without a pty the client sends nothing else, and leaving
+// it out left that session with no data path at all.
+func startsDataPipe(requestType string) bool {
+	switch requestType {
+	case ShellRequestType, PtyRequestType, ExecRequestType, SubsystemRequestType:
+		return true
+	default:
+		return false
+	}
+}
+
 // DefaultSessionHandler is the default handler for session's channel.
 //
 // A session is a remote execution of a program. The program may be a shell, an application, a system command, or some
@@ -387,8 +403,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						}
 					}
 
-					switch req.Type {
-					case PtyRequestType, ExecRequestType, SubsystemRequestType:
+					if startsDataPipe(req.Type) {
 						oncePipe()
 					}
 				}
