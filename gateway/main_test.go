@@ -57,6 +57,10 @@ func TestMain_smoke(t *testing.T) {
 	// upstream that does not exist beside a lone container, so asking for it
 	// would assert on how a missing backend is reported rather than on whether
 	// this image boots and serves the configuration it generated.
+	//
+	// 404 is what distinguishes it: an unmatched path falls through to the
+	// catch-all and reaches for the console, which is not here, so a
+	// configuration that failed to render this block would answer 502.
 	client := http.Client{
 		Timeout: 5 * time.Second,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
@@ -71,7 +75,7 @@ func TestMain_smoke(t *testing.T) {
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		var err error
 
-		resp, err = client.Get(baseURL + "/admin")
+		resp, err = client.Get(baseURL + "/internal/whatever")
 		if err == nil {
 			break
 		}
@@ -92,6 +96,5 @@ func TestMain_smoke(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusMovedPermanently, resp.StatusCode)
-	assert.Contains(t, resp.Header.Get("Location"), "/admin/")
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }

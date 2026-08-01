@@ -174,13 +174,6 @@
 		}
 {{- end }}
 
-		# The console's own router serves /admin, but only under a trailing
-		# slash. A redir with its own matcher rather than a handle block: handle
-		# blocks are mutually exclusive and get sorted among themselves, which
-		# is not what a single-path redirect wants.
-		@admin path /admin
-		redir @admin /admin/ 301
-
 		# No cache headers here. header replaces rather than adds, so
 		# anything set would overwrite what the console's own server
 		# decided -- and that server is the one part of the stack every
