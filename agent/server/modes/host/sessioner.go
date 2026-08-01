@@ -170,6 +170,33 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	return nil
 }
 
+// relayOutput copies a command's output back to the SSH session, keeping stdout
+// and stderr on their own streams, and adds both copies to wg.
+//
+// The two must be copied concurrently. io.MultiReader drains its readers in
+// sequence, so it never touches stderr until stdout reaches EOF: a command
+// writing more than the pipe buffer to stderr blocks in write(2), never exits,
+// and stdout never reaches EOF either.
+func relayOutput(wg *sync.WaitGroup, session gliderssh.Session, stdout, stderr io.Reader) {
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		if _, err := io.Copy(session, stdout); err != nil {
+			fmt.Println(err) //nolint:forbidigo
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		if _, err := io.Copy(session.Stderr(), stderr); err != nil {
+			fmt.Println(err) //nolint:forbidigo
+		}
+	}()
+}
+
 // Heredoc handles the server's SSH heredoc session when server is running in host mode.
 //
 // heredoc is special block of code that contains multi-line strings that will be redirected to a stdin of a shell. It
@@ -225,12 +252,12 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		stdin.Close()
 	}()
 
-	go func() {
-		combinedOutput := io.MultiReader(stdout, stderr)
-		if _, err := io.Copy(session, combinedOutput); err != nil {
-			fmt.Println(err) //nolint:forbidigo
-		}
-	}()
+	wg := &sync.WaitGroup{}
+	relayOutput(wg, session, stdout, stderr)
+
+	// cmd.Wait closes the parent ends of the pipes, so the copies have to finish
+	// first or they lose whatever the command wrote last.
+	wg.Wait()
 
 	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
@@ -320,16 +347,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 			stdin.Close()
 		}()
 
-		wg.Add(1)
-
-		// relay the command's combined output and error streams back to the SSH session.
-		go func() {
-			defer wg.Done()
-			combinedOutput := io.MultiReader(stdout, stderr)
-			if _, err := io.Copy(session, combinedOutput); err != nil {
-				fmt.Println(err) //nolint:forbidigo
-			}
-		}()
+		relayOutput(wg, session, stdout, stderr)
 	}
 
 	log.WithFields(log.Fields{
