@@ -282,7 +282,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					case ExecRequestType, SubsystemRequestType:
 						session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
 
-						sess.Type = ExecRequestType
+						sess.Seats.SetType(seat, ExecRequestType)
 					case PtyRequestType:
 						var pty models.SSHPty
 

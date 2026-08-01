@@ -128,8 +128,10 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			// NOTE: When request is [ExecRequestType] and agent's version is less than v0.9.2, we should close the agent
 			// connection to avoid it be hanged after data flow ends.
 			if ver, err := semver.NewVersion(sess.Device.Info.Version); ver != nil && err == nil {
+				item, _ := sess.Seats.Get(seat)
+
 				// NOTE: We indicate here v0.9.3, but it is not included due the assertion `less than`.
-				if ver.LessThan(semver.MustParse("v0.9.3")) && sess.Type == ExecRequestType {
+				if ver.LessThan(semver.MustParse("v0.9.3")) && item.Type == ExecRequestType {
 					agent.Close()
 				} else {
 					agent.CloseWrite() //nolint:errcheck
