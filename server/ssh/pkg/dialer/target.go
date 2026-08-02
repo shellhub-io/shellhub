@@ -2,6 +2,7 @@ package dialer
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,19 +15,19 @@ import (
 )
 
 type Target interface {
-	prepare(conn net.Conn, version TransportVersion) (net.Conn, error)
+	prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error)
 }
 
 // SSHOpenTarget prepares a connection for initiating a new SSH session
 // with the agent.
 type SSHOpenTarget struct{ SessionID string }
 
-func (t SSHOpenTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		log.Debug("preparing SSH open target for transport version 1")
 
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", t.SessionID), nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("/ssh/%s", t.SessionID), nil)
 		if err := req.Write(conn); err != nil {
 			log.Errorf("failed to write HTTP request: %v", err)
 
@@ -51,10 +52,10 @@ func (t SSHOpenTarget) prepare(conn net.Conn, version TransportVersion) (net.Con
 // SSHCloseTarget prepares a connection to request closing an existing SSH session.
 type SSHCloseTarget struct{ SessionID string }
 
-func (t SSHCloseTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case TransportVersion1:
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", t.SessionID), nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("/ssh/close/%s", t.SessionID), nil)
 		if err := req.Write(conn); err != nil {
 			return nil, err
 		}
@@ -82,11 +83,11 @@ type HTTPProxyTarget struct {
 	Port      int
 }
 
-func (t HTTPProxyTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		// Write initial handshake request and expect 200 OK.
-		handshakeReq, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
+		handshakeReq, _ := http.NewRequestWithContext(ctx, http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
 		if err := handshakeReq.Write(conn); err != nil {
 			return nil, err
 		}
