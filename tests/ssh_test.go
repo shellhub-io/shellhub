@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -1144,28 +1145,31 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				defer sess.Close()
 
 				err = sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{
-					ssh.ECHO: 1,
+					ssh.ECHO: 0,
 				})
 				require.NoError(t, err)
 
-				stdin, _ := sess.StdinPipe()
+				// Nothing drains the size until the session handler starts, and that
+				// only happens on the exec below: a resize that blocks here never
+				// lets it through.
+				require.NoError(t, sess.WindowChange(48, 160))
+
+				// No reply confirms a resize reached the pty, so wait on the device's
+				// own report — it can only follow the ioctl. Under exec because an
+				// interactive shell defers the trap until its line editor returns.
+				const reportResizes = `sh -c 'trap "echo SIZE \$(stty size)" WINCH; echo READY; sleep 3600 & while :; do wait; done'`
+
 				stdout, _ := sess.StdoutPipe()
 
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				var output struct {
-					sync.Mutex
-					buf bytes.Buffer
-				}
+				lines := make(chan string, 256)
 				go func() {
-					tmp := make([]byte, 1024)
+					defer close(lines)
+
+					reader := bufio.NewReader(stdout)
 					for {
-						n, err := stdout.Read(tmp)
-						if n > 0 {
-							output.Lock()
-							output.buf.Write(tmp[:n])
-							output.Unlock()
+						line, err := reader.ReadString('\n')
+						if line != "" {
+							lines <- strings.TrimSpace(line)
 						}
 						if err != nil {
 							return
@@ -1173,49 +1177,48 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					}
 				}()
 
-				waitForOutput := func(substr string, timeout time.Duration) error {
-					deadline := time.After(timeout)
-					ticker := time.NewTicker(200 * time.Millisecond)
-					defer ticker.Stop()
+				// The deadline stops a wedged session hanging the suite, and is never
+				// the criterion — raising it has hidden this bug before.
+				waitFor := func(want string) error {
+					deadline := time.After(30 * time.Second)
 
 					for {
 						select {
-						case <-ticker.C:
-							output.Lock()
-							got := output.buf.String()
-							output.Unlock()
+						case line, ok := <-lines:
+							if !ok {
+								return fmt.Errorf("session ended while waiting for %q", want)
+							}
 
-							if strings.Contains(got, substr) {
+							if strings.Contains(line, want) {
 								return nil
 							}
 						case <-deadline:
-							output.Lock()
-							got := output.buf.String()
-							output.Unlock()
-
-							return fmt.Errorf("timed out waiting for %q in output (last %d bytes: %q)",
-								substr, min(len(got), 500), got[max(0, len(got)-500):])
+							return fmt.Errorf("timed out waiting for %q", want)
 						}
 					}
 				}
 
-				_, err = fmt.Fprintln(stdin, "bind 'set enable-bracketed-paste off'")
-				require.NoError(t, err)
+				// Start waits on the exec reply forever, and a wedged loop never sends one.
+				started := make(chan error, 1)
+				go func() {
+					started <- sess.Start(reportResizes)
+				}()
 
-				_, err = fmt.Fprintln(stdin, "echo READY")
-				require.NoError(t, err)
-				require.NoError(t, waitForOutput("READY", 30*time.Second))
+				select {
+				case err := <-started:
+					require.NoError(t, err)
+				case <-time.After(15 * time.Second):
+					require.FailNow(t, "exec went unanswered: the session's request loop is wedged")
+				}
 
-				err = sess.WindowChange(48, 160)
-				require.NoError(t, err)
+				require.NoError(t, waitFor("READY"))
 
-				output.Lock()
-				output.buf.Reset()
-				output.Unlock()
+				for _, size := range [][2]int{{40, 120}, {24, 80}, {50, 200}, {30, 100}} {
+					rows, cols := size[0], size[1]
 
-				_, err = fmt.Fprintln(stdin, "stty size")
-				require.NoError(t, err)
-				require.NoError(t, waitForOutput("48 160", 30*time.Second))
+					require.NoError(t, sess.WindowChange(rows, cols))
+					require.NoError(t, waitFor(fmt.Sprintf("SIZE %d %d", rows, cols)))
+				}
 			},
 		},
 		{
