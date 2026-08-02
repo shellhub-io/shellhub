@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
@@ -76,6 +78,12 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 
 var ErrInvalidArgument = errors.New("invalid argument")
 
+// HandshakeTimeout bounds the target's handshake once the stream is open. The
+// exchange is short and has a known shape, unlike the streaming phase that
+// follows it, which is legitimately long-lived and runs without a deadline. It
+// is an upper bound only: an earlier deadline on the caller's context wins.
+const HandshakeTimeout = 30 * time.Second
+
 // DialTo establishes a raw reverse connection to the device and performs
 // the version-specific bootstrap for the provided target. It returns a
 // connection ready for application protocol usage.
@@ -93,5 +101,59 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 		return conn, nil
 	}
 
-	return target.prepare(conn, version)
+	return handshake(ctx, conn, version, target)
+}
+
+// handshake runs the target's bootstrap under a deadline and hands back a
+// connection with that deadline cleared, ready for streaming. An agent that
+// accepts the stream but never answers fails here instead of parking the
+// caller's goroutine until whatever sits in front times out.
+func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { // nolint:ireturn
+	deadline := time.Now().Add(HandshakeTimeout)
+	if caller, ok := ctx.Deadline(); ok && caller.Before(deadline) {
+		deadline = caller
+	}
+
+	if err := conn.SetDeadline(deadline); err != nil {
+		conn.Close()
+
+		return nil, err
+	}
+
+	// A deadline does not observe cancellation, so a caller that gives up
+	// mid-handshake would hold the stream until the deadline fires. Closing the
+	// connection is what unblocks the read. AfterFunc's stop answers only once,
+	// hence the OnceValue: the deferred call must not consume the verdict the
+	// return paths below read.
+	watchdogStopped := sync.OnceValue(context.AfterFunc(ctx, func() {
+		conn.Close()
+	}))
+	defer watchdogStopped()
+
+	prepared, err := target.prepare(ctx, conn, version)
+	if err != nil {
+		conn.Close()
+
+		// The watchdog's Close surfaces as an I/O error, which reads like a
+		// broken agent. Report what actually happened.
+		if !watchdogStopped() {
+			return nil, ctx.Err()
+		}
+
+		return nil, err
+	}
+
+	if !watchdogStopped() {
+		prepared.Close()
+
+		return nil, ctx.Err()
+	}
+
+	if err := prepared.SetDeadline(time.Time{}); err != nil {
+		prepared.Close()
+
+		return nil, err
+	}
+
+	return prepared, nil
 }
