@@ -23,13 +23,9 @@ import (
 // NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 
-// startPtyFn and initPtyFn are package-level function variables that point to
-// the real pty helpers by default. Tests may replace them with stubs to avoid
-// spawning real pseudo-terminals.
-var (
-	startPtyFn = startPty
-	initPtyFn  = initPty
-)
+// geteuidFn is a package-level seam for os.Geteuid, so tests can drive the
+// non-root path without running as another user.
+var geteuidFn = os.Geteuid
 
 // checkCredentialSwitchFn is a package-level seam for command.CheckCredentialSwitch.
 // Tests may replace it to simulate a denied credential switch without touching the
@@ -51,11 +47,26 @@ func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
 	return nil
 }
 
-// ptyFailureHint returns a diagnostic hint string when err indicates that PTY
+// ptyStartOptions builds the options for starting a command on an allocated pty.
+//
+// The slave belongs to whoever runs the agent, so a command switched to another
+// user cannot write to its own terminal unless it is handed over; only root can
+// switch at all, which is the condition command.NewCmd already uses.
+func ptyStartOptions(uid uint32) []gliderssh.PtyStartOption {
+	opts := []gliderssh.PtyStartOption{gliderssh.WithJobControl()}
+
+	if geteuidFn() == 0 {
+		opts = append(opts, gliderssh.WithOwner(int(uid))) //nolint:gosec // uid_t is 32-bit; os.Chown takes an int
+	}
+
+	return opts
+}
+
+// PtyFailureHint returns a diagnostic hint string when err indicates that PTY
 // allocation failed because the system does not support pseudo-terminals (ENOTTY
 // or "inappropriate ioctl for device"). It returns an empty string for all other
 // errors so callers can append it to log messages without extra branching.
-func ptyFailureHint(err error) string {
+func PtyFailureHint(err error) string {
 	if errors.Is(err, syscall.ENOTTY) || strings.Contains(err.Error(), "inappropriate ioctl for device") {
 		return "the system may not support PTY allocation — ensure /dev/ptmx is accessible and the agent is not in a restricted environment"
 	}
@@ -103,24 +114,11 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		return err
 	}
 
-	sspty, winCh, isPty := session.Pty()
+	sspty, _, isPty := session.Pty()
 
 	scmd := generateShellCmd(*s.deviceName, session, sspty.Term)
 	if scmd == nil {
 		return errors.New("failed to generate shell command")
-	}
-
-	pts, err := startPtyFn(scmd, session, winCh)
-	if err != nil {
-		entry := log.WithError(err)
-		if hint := ptyFailureHint(err); hint != "" {
-			entry = entry.WithField("hint", hint)
-		}
-
-		entry.Error("failed to start pty")
-		_ = session.Exit(1)
-
-		return fmt.Errorf("failed to start pty: %w", err)
 	}
 
 	u, err := osauth.LookupUser(session.User())
@@ -128,11 +126,19 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		return err
 	}
 
-	err = os.Chown(pts.Name(), int(u.UID), -1)
-	if err != nil {
-		log.Warn(err)
+	if err := sspty.Start(scmd, ptyStartOptions(u.UID)...); err != nil {
+		entry := log.WithError(err)
+		if hint := PtyFailureHint(err); hint != "" {
+			entry = entry.WithField("hint", hint)
+		}
+
+		entry.Error("failed to start the shell on its pty")
+		_ = session.Exit(1)
+
+		return fmt.Errorf("failed to start pty: %w", err)
 	}
 
+	pts := sspty
 	remoteAddr := session.RemoteAddr()
 
 	log.WithFields(log.Fields{
@@ -297,7 +303,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return err
 	}
 
-	sPty, sWinCh, sIsPty := session.Pty()
+	sPty, _, sIsPty := session.Pty()
 
 	shell := user.Shell
 	if shell == "" {
@@ -312,27 +318,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	cmd := command.NewCmd(user, shell, term, *s.deviceName, sessionEnv(session.Environ()), shell, "-c", session.RawCommand())
 
 	wg := &sync.WaitGroup{}
-	if sIsPty {
-		pty, tty, err := initPtyFn(cmd, session, sWinCh)
-		if err != nil {
-			entry := log.WithError(err)
-			if hint := ptyFailureHint(err); hint != "" {
-				entry = entry.WithField("hint", hint)
-			}
-
-			entry.Error("failed to init pty")
-			_ = session.Exit(1)
-
-			return fmt.Errorf("failed to init pty: %w", err)
-		}
-
-		defer tty.Close()
-		defer pty.Close()
-
-		if err := os.Chown(tty.Name(), int(user.UID), -1); err != nil {
-			log.Warn(err)
-		}
-	} else {
+	if !sIsPty {
 		stdout, _ := cmd.StdoutPipe()
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
@@ -357,7 +343,23 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command started")
 
-	if err := cmd.Start(); err != nil {
+	// Pty.Start starts the command itself, so only the pipe branch reaches
+	// cmd.Start. Both must leave cmd.Process set before the reaper below.
+	if sIsPty {
+		if err := sPty.Start(cmd, ptyStartOptions(user.UID)...); err != nil {
+			entry := log.WithError(err)
+			if hint := PtyFailureHint(err); hint != "" {
+				entry = entry.WithField("hint", hint)
+			}
+
+			entry.Error("failed to start the command on its pty")
+			_ = session.Exit(1)
+
+			return fmt.Errorf("failed to init pty: %w", err)
+		}
+	} else if err := cmd.Start(); err != nil {
+		_ = session.Exit(1)
+
 		return err
 	}
 

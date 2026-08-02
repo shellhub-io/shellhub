@@ -144,6 +144,29 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 		},
 	}
 
+	// Host mode only: in connector mode the pty lives inside the container, so
+	// allocating one here would leave an orphan and a second reader on the
+	// channel.
+	//
+	// Wrapped because the request loop swallows the error and carries on, and a
+	// refused pty downgrades a shell request to a heredoc — the session loses
+	// its terminal and nothing says why.
+	if _, ok := mode.(*host.Mode); ok {
+		server.sshd.PtyHandler = func(ctx gliderssh.Context, sess gliderssh.Session, pty gliderssh.Pty) (func() error, error) {
+			closer, err := gliderssh.AllocatePtyHandler(ctx, sess, pty)
+			if err != nil {
+				entry := log.WithError(err)
+				if hint := host.PtyFailureHint(err); hint != "" {
+					entry = entry.WithField("hint", hint)
+				}
+
+				entry.Error("failed to allocate a pty")
+			}
+
+			return closer, err
+		}
+	}
+
 	err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey))
 	if err != nil {
 		log.Warn(err)

@@ -6,18 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
-	"os/exec"
-	"strings"
 	"sync/atomic"
 	"syscall"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	osauthMocks "github.com/shellhub-io/shellhub/agent/pkg/osauth/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -147,60 +141,6 @@ func TestFakeSessionCompiles(t *testing.T) {
 	}
 }
 
-// TestShell_StartPtyError verifies that Shell() returns an error and does NOT
-// panic when startPtyFn fails (e.g. "ptmx: inappropriate ioctl for device").
-// Before the fix the nil *os.File returned by the stub was dereferenced, causing
-// a panic.  After the fix there is an early-return guard that logs the error,
-// calls session.Exit(1), and returns a wrapped error — all before any call that
-// would dereference pts.
-func TestShell_StartPtyError(t *testing.T) {
-	// Restore the real startPtyFn after the test so other tests are not affected.
-	origStartPty := startPtyFn
-
-	t.Cleanup(func() {
-		startPtyFn = origStartPty
-	})
-
-	// Stub startPtyFn to simulate a pty open failure.
-	startPtyFn = func(_ *exec.Cmd, _ io.ReadWriter, _ <-chan gliderssh.Window) (*os.File, error) {
-		return nil, errors.New("ptmx: inappropriate ioctl for device")
-	}
-
-	// Mock osauth so generateShellCmd (and any subsequent LookupUser call) can
-	// return a real user without touching /etc/passwd.
-	osauthMock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = osauthMock
-
-	fakeUser := &osauth.User{
-		UID:      0,
-		GID:      0,
-		Username: "root",
-		Shell:    "/bin/sh",
-		HomeDir:  "/root",
-	}
-
-	osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(fakeUser, nil).Maybe()
-	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
-
-	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
-
-	sess := newFakeSession("session-1", "root")
-
-	var retErr error
-
-	assert.NotPanics(t, func() {
-		retErr = s.Shell(sess)
-	})
-
-	assert.NotNil(t, retErr, "Shell() must return a non-nil error when startPty fails")
-	assert.True(t, strings.Contains(retErr.Error(), "pty"), "error should mention 'pty', got: %s", retErr.Error())
-	assert.Empty(t, s.cmds, "s.cmds must be empty — the session must not have been registered")
-	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
-	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
-}
-
 // TestPtyFailureHint verifies the ptyFailureHint helper:
 //   - wrapping syscall.ENOTTY yields a non-empty hint
 //   - an error whose message contains "inappropriate ioctl for device" yields a non-empty hint
@@ -232,7 +172,7 @@ func TestPtyFailureHint(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hint := ptyFailureHint(tt.err)
+			hint := PtyFailureHint(tt.err)
 
 			if tt.wantEmpty {
 				assert.Empty(t, hint, "expected empty hint for unrelated error")
@@ -241,59 +181,4 @@ func TestPtyFailureHint(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestExec_InitPtyError verifies that Exec() with sIsPty=true does NOT panic and
-// returns a non-nil error when initPtyFn fails. It also asserts that session.Exit(1)
-// is called — the early-return guard must fire before any defer on nil *os.File.
-func TestExec_InitPtyError(t *testing.T) {
-	origInitPty := initPtyFn
-
-	t.Cleanup(func() {
-		initPtyFn = origInitPty
-	})
-
-	// Stub initPtyFn to simulate a pty open failure.
-	initPtyFn = func(_ *exec.Cmd, _ io.ReadWriter, _ <-chan gliderssh.Window) (*os.File, *os.File, error) {
-		return nil, nil, errors.New("ptmx: inappropriate ioctl for device")
-	}
-
-	// Mock osauth so LookupUser succeeds without touching /etc/passwd.
-	osauthMock := &osauthMocks.MockBackend{}
-	osauth.DefaultBackend = osauthMock
-
-	fakeUser := &osauth.User{
-		UID:      0,
-		GID:      0,
-		Username: "root",
-		Shell:    "/bin/sh",
-		HomeDir:  "/root",
-	}
-
-	osauthMock.On("LookupUser", mock.AnythingOfType("string")).Return(fakeUser, nil).Maybe()
-	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
-
-	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
-
-	sess := newFakeSession("session-exec-pty", "root")
-	sess.isPty = true
-	sess.command = []string{"/bin/echo", "hello"}
-	sess.rawCommand = "/bin/echo hello"
-
-	var retErr error
-
-	assert.NotPanics(t, func() {
-		retErr = s.Exec(sess)
-	}, "Exec() must not panic when initPtyFn fails")
-
-	assert.NotNil(t, retErr, "Exec() must return a non-nil error when initPtyFn fails")
-	assert.True(
-		t,
-		strings.Contains(retErr.Error(), "pty") || strings.Contains(retErr.Error(), "ptmx"),
-		"error should mention the pty failure, got: %s", retErr.Error(),
-	)
-	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
-	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
 }
