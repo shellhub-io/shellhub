@@ -64,6 +64,8 @@ func (s *stubSession) Pty() (gliderssh.Pty, <-chan gliderssh.Window, bool) {
 	return gliderssh.Pty{}, nil, false
 }
 
+func (s *stubSession) EmulatedPty() bool { return false }
+
 func (s *stubSession) Signals(_ chan<- gliderssh.Signal) {}
 
 func (s *stubSession) Break(_ chan<- bool) {}

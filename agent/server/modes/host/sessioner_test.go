@@ -99,6 +99,8 @@ func (f *fakeSession) Pty() (gliderssh.Pty, <-chan gliderssh.Window, bool) {
 	return f.pty, f.winCh, f.isPty
 }
 
+func (f *fakeSession) EmulatedPty() bool { return false }
+
 func (f *fakeSession) Signals(c chan<- gliderssh.Signal) {}
 
 func (f *fakeSession) Break(c chan<- bool) {}
