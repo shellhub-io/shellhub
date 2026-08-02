@@ -338,6 +338,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
 					if err != nil {
 						logger.WithError(err).Error("failed to send the request from client to agent")
+						ptyRequested = nil
 
 						continue
 					}
@@ -349,7 +350,10 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					}
 
 					if ptyRequested != nil {
-						if ok {
+						// SendRequest reports false when the client asked for no
+						// reply, so only a client that wanted one tells us
+						// anything about the device's answer.
+						if ok || !req.WantReply {
 							sess.Seats.SetPty(seat, true)
 							sess.Event(PtyRequestType, *ptyRequested, seat) //nolint:errcheck
 						} else {
