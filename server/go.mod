@@ -139,4 +139,4 @@ require (
 
 replace github.com/shellhub-io/shellhub => ../
 
-replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260802041333-0de04e2021d3
+replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac
