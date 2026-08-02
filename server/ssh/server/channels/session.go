@@ -231,6 +231,10 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 		go func() {
 			defer wg.Done()
 
+			// Carries a parsed pty-req from its case down to the tail, which is
+			// where the agent's answer arrives.
+			var ptyRequested *models.SSHPty
+
 			for {
 				select {
 				case <-ctx.Done():
@@ -267,9 +271,12 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							continue
 						}
 
-						sess.Seats.SetPty(seat, true)
-
-						sess.Event(req.Type, pty, seat) //nolint:errcheck
+						// The seat is only marked once the agent says it allocated
+						// one, below. A device can refuse a pty-req — no /dev/ptmx
+						// in a restricted container — and a seat that claims a pty
+						// it does not have sends the announcement into a stdout
+						// that is a pipe, and records a session with no terminal.
+						ptyRequested = &pty
 					case WindowChangeRequestType:
 						var dimensions models.SSHWindowChange
 
@@ -339,6 +346,17 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 						if err := req.Reply(ok, nil); err != nil {
 							logger.WithError(err).Error(err)
 						}
+					}
+
+					if ptyRequested != nil {
+						if ok {
+							sess.Seats.SetPty(seat, true)
+							sess.Event(PtyRequestType, *ptyRequested, seat) //nolint:errcheck
+						} else {
+							logger.Warn("the device refused the pty; the session continues without one")
+						}
+
+						ptyRequested = nil
 					}
 
 					if startsDataPipe(req.Type) {
