@@ -5,7 +5,6 @@ package host
 import (
 	"errors"
 	"net"
-	"os/exec"
 	"sync/atomic"
 	"testing"
 
@@ -47,11 +46,11 @@ func (f *fakeGosshConn) Wait() error {
 	select {}
 }
 
-// TestShell_DeniedCredentialSwitch verifies that Shell() returns a non-nil error,
-// calls session.Exit(1) exactly once, and leaves s.cmds empty when
-// checkCredentialSwitchFn returns an error.  The gate must fire before any call
-// to session.Pty(), generateShellCmd, or startPtyFn, so the test does NOT need a
-// real ServerConn in the session context.
+// TestShell_DeniedCredentialSwitch verifies that Shell() returns a non-nil error
+// and calls session.Exit(1) exactly once when checkCredentialSwitchFn returns an
+// error. The gate must fire before any call to session.Pty() or
+// generateShellCmd, so the test does NOT need a real ServerConn in the session
+// context.
 func TestShell_DeniedCredentialSwitch(t *testing.T) {
 	origCheckCredentialSwitch := checkCredentialSwitchFn
 
@@ -65,8 +64,7 @@ func TestShell_DeniedCredentialSwitch(t *testing.T) {
 	}
 
 	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
+	s := NewSessioner(&deviceName, nil)
 
 	sess := newFakeSession("session-cred-switch", "root")
 
@@ -79,7 +77,6 @@ func TestShell_DeniedCredentialSwitch(t *testing.T) {
 	assert.NotNil(t, retErr, "Shell() must return a non-nil error when credential switch is denied")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
-	assert.Empty(t, s.cmds, "s.cmds must be empty — the session must not have been registered")
 }
 
 // TestExec_DeniedCredentialSwitch verifies that Exec() returns a non-nil error,
@@ -99,8 +96,7 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 	}
 
 	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
+	s := NewSessioner(&deviceName, nil)
 
 	sess := newFakeSession("session-exec-cred-switch", "root")
 	sess.command = []string{"/bin/true"}
@@ -145,8 +141,7 @@ func TestHeredoc_StartFailure(t *testing.T) {
 	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
 
 	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
+	s := NewSessioner(&deviceName, nil)
 
 	sess := newFakeSession("session-heredoc-start-fail", "root")
 
@@ -184,8 +179,7 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 	}
 
 	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
+	s := NewSessioner(&deviceName, nil)
 
 	sess := newFakeSession("session-heredoc-cred-switch", "root")
 
@@ -227,8 +221,7 @@ func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	osauthMock.On("ListGroups", mock.AnythingOfType("string")).Return([]uint32{}, nil).Maybe()
 
 	deviceName := "test-device"
-	cmds := make(map[string]*exec.Cmd)
-	s := NewSessioner(&deviceName, cmds, nil)
+	s := NewSessioner(&deviceName, nil)
 
 	sess := newFakeSession("session-exec-npty", "root")
 	sess.isPty = false

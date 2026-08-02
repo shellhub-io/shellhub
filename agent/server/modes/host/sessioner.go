@@ -74,10 +74,29 @@ func PtyFailureHint(err error) string {
 	return ""
 }
 
+// reapOnDisconnect kills cmd once the SSH connection is gone. It must be called
+// after a successful start, so the process is there to kill.
+//
+// Nothing else ends the command when a client vanishes. On a pty session the
+// terminal stays open because the server holds it until the handler returns,
+// and the handler is inside Wait; on the piped ones the command keeps its ends
+// of the pipes.
+func reapOnDisconnect(session gliderssh.Session, cmd *exec.Cmd) error {
+	serverConn, ok := session.Context().Value(gliderssh.ContextKeyConn).(*gossh.ServerConn)
+	if !ok {
+		return errors.New("failed to get server connection from session context")
+	}
+
+	go func() {
+		serverConn.Wait()  //nolint:errcheck
+		cmd.Process.Kill() //nolint:errcheck
+	}()
+
+	return nil
+}
+
 // Sessioner implements the Sessioner interface when the server is running in host mode.
 type Sessioner struct {
-	mu   sync.Mutex
-	cmds map[string]*exec.Cmd
 	// deviceName is the device name.
 	//
 	// NOTICE: It's a pointer because when the server is created, we don't know the device name yet, that is set later.
@@ -89,10 +108,6 @@ type Sessioner struct {
 	sftpServerCommand func() *exec.Cmd
 }
 
-func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
-	s.cmds = cmds
-}
-
 // NewSessioner creates a new instance of Sessioner for the host mode.
 // The device name is a pointer to a string because when the server is created, we don't know the device name yet, that
 // is set later.
@@ -100,10 +115,9 @@ func (s *Sessioner) SetCmds(cmds map[string]*exec.Cmd) {
 // sftpServerCommand builds the command used to start the SFTP server subprocess. When nil,
 // [command.SFTPServerCommand] is used (re-executing /proc/self/exe). It can be overridden so
 // the agent can run embedded in another binary, where /proc/self/exe is not the agent.
-func NewSessioner(deviceName *string, cmds map[string]*exec.Cmd, sftpServerCommand func() *exec.Cmd) *Sessioner {
+func NewSessioner(deviceName *string, sftpServerCommand func() *exec.Cmd) *Sessioner {
 	return &Sessioner{
 		deviceName:        deviceName,
-		cmds:              cmds,
 		sftpServerCommand: sftpServerCommand,
 	}
 }
@@ -155,9 +169,9 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		remoteAddr.String(),
 	)
 
-	s.mu.Lock()
-	s.cmds[session.Context().Value(gliderssh.ContextKeySessionID).(string)] = scmd
-	s.mu.Unlock()
+	if err := reapOnDisconnect(session, scmd); err != nil {
+		return err
+	}
 
 	if err := scmd.Wait(); err != nil {
 		log.Warn(err)
@@ -171,6 +185,15 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	}).Info("Session ended")
 
 	utmp.UtmpEndSession(ut)
+
+	code := 1
+	if scmd.ProcessState != nil {
+		code = scmd.ProcessState.ExitCode()
+	}
+
+	if err := session.Exit(code); err != nil {
+		log.Warn(err)
+	}
 
 	return nil
 }
@@ -222,11 +245,6 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	stdin, _ := cmd.StdinPipe()
 	stderr, _ := cmd.StderrPipe()
 
-	serverConn, ok := session.Context().Value(gliderssh.ContextKeyConn).(*gossh.ServerConn)
-	if !ok {
-		return fmt.Errorf("failed to get server connection from session context")
-	}
-
 	log.WithFields(log.Fields{
 		"user":        session.User(),
 		"ispty":       isPty,
@@ -242,12 +260,9 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		return err
 	}
 
-	// kill the process if the SSH connection is interrupted — must be after a
-	// successful cmd.Start() so cmd.Process is guaranteed non-nil.
-	go func() {
-		serverConn.Wait()  // nolint:errcheck
-		cmd.Process.Kill() // nolint:errcheck
-	}()
+	if err := reapOnDisconnect(session, cmd); err != nil {
+		return err
+	}
 
 	go func() {
 		if _, err := io.Copy(stdin, session); err != nil {
@@ -363,20 +378,16 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return err
 	}
 
+	// Before the wait below, not after: that wait ends when the command closes
+	// its output, which a command that ignores a vanished client never does, so
+	// a reaper installed afterwards would never be installed at all.
+	if err := reapOnDisconnect(session, cmd); err != nil {
+		return err
+	}
+
 	if !sIsPty {
 		wg.Wait()
 	}
-
-	serverConn, ok := session.Context().Value(gliderssh.ContextKeyConn).(*gossh.ServerConn)
-	if !ok {
-		return fmt.Errorf("failed to get server connection from session context")
-	}
-
-	// kill the process if the SSH connection is interrupted
-	go func() {
-		serverConn.Wait()  // nolint:errcheck
-		cmd.Process.Kill() // nolint:errcheck
-	}()
 
 	if err := cmd.Wait(); err != nil {
 		log.Warn(err)
@@ -472,6 +483,10 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 		}).Error("Failed to start command")
 
 		return errors.New("failed to start command")
+	}
+
+	if err := reapOnDisconnect(session, cmd); err != nil {
+		return err
 	}
 
 	go func() {
