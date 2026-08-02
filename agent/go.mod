@@ -5,7 +5,6 @@ go 1.25.12
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/Masterminds/semver v1.5.0
-	github.com/creack/pty v1.1.24
 	github.com/docker/docker v28.5.3-0.20260325154711-31a1689cb0a1+incompatible
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-playground/assert/v2 v2.2.0
@@ -32,6 +31,7 @@ require (
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
+	github.com/creack/pty v1.1.24 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
@@ -81,4 +81,4 @@ require (
 
 replace github.com/shellhub-io/shellhub => ../
 
-replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260802001203-122036eb1cc1
+replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260802041333-0de04e2021d3
