@@ -2,7 +2,6 @@ package server
 
 import (
 	"net"
-	"os/exec"
 	"sync"
 	"time"
 
@@ -20,27 +19,11 @@ const (
 	SFTPSubsystemName = "sftp"
 )
 
-type sshConn struct {
-	net.Conn
-	closeCallback func(string)
-	ctx           gliderssh.Context
-}
-
-func (c *sshConn) Close() error {
-	if id, ok := c.ctx.Value(gliderssh.ContextKeySessionID).(string); ok {
-		c.closeCallback(id)
-	}
-
-	return c.Conn.Close()
-}
-
 type Server struct {
 	sshd              *gliderssh.Server
 	api               client.Client
-	cmds              map[string]*exec.Cmd
 	deviceName        string
 	ContainerID       string
-	mu                sync.Mutex
 	keepAliveInterval uint32
 
 	// mode is the mode of the server, identifing where and how the SSH's server is running.
@@ -102,13 +85,8 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 	server := &Server{
 		api:               api,
 		mode:              mode,
-		cmds:              make(map[string]*exec.Cmd),
 		keepAliveInterval: cfg.KeepAliveInterval,
 		Sessions:          sync.Map{},
-	}
-
-	if m, ok := mode.(*host.Mode); ok {
-		m.Sessioner.SetCmds(server.cmds)
 	}
 
 	server.sshd = &gliderssh.Server{
@@ -118,19 +96,6 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 		SessionRequestCallback: server.sessionRequestCallback,
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{
 			SFTPSubsystemName: server.sftpSubsystemHandler,
-		},
-		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
-			closeCallback := func(id string) {
-				server.mu.Lock()
-				defer server.mu.Unlock()
-
-				if v, ok := server.cmds[id]; ok {
-					v.Process.Kill() // nolint:errcheck
-					delete(server.cmds, id)
-				}
-			}
-
-			return &sshConn{conn, closeCallback, ctx}
 		},
 		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&LocalPortForwardFeature > 0

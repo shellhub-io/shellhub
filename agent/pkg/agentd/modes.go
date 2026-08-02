@@ -2,7 +2,6 @@ package agentd
 
 import (
 	"context"
-	"os/exec"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
@@ -42,7 +41,7 @@ func (m *HostMode) Serve(agent *Agent) {
 		agent.cli,
 		&host.Mode{
 			Authenticator: *host.NewAuthenticator(agent.cli, agent.authData, agent.config.SingleUserPassword, &agent.authData.Name),
-			Sessioner:     *host.NewSessioner(&agent.authData.Name, make(map[string]*exec.Cmd), agent.config.SFTPServerCommand),
+			Sessioner:     *host.NewSessioner(&agent.authData.Name, agent.config.SFTPServerCommand),
 		},
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,

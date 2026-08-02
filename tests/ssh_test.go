@@ -970,6 +970,93 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
+			// A shell with a pty used to report success whatever it exited with,
+			// because the agent never sent a status of its own and the library
+			// filled in a zero. Exec and the heredoc shape both got this right,
+			// so the gap was invisible unless you asked for a terminal.
+			name: "connection SHELL with Pty reports the exit code",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				stdin, err := sess.StdinPipe()
+				require.NoError(t, err)
+
+				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{}))
+				require.NoError(t, sess.Shell())
+
+				_, err = io.WriteString(stdin, "exit 42\n")
+				require.NoError(t, err)
+
+				done := make(chan error, 1)
+
+				go func() { done <- sess.Wait() }()
+
+				select {
+				case err := <-done:
+					var status *ssh.ExitError
+
+					require.ErrorAs(t, err, &status)
+					assert.Equal(t, 42, status.ExitStatus())
+				case <-time.After(60 * time.Second):
+					t.Fatal("a shell with a pty never reported an exit status")
+				}
+			},
+		},
+		{
+			name: "connection SHELL with Pty reports a successful exit",
+			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				config := &ssh.ClientConfig{
+					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
+					Auth: []ssh.AuthMethod{
+						ssh.Password(ShellHubAgentPassword),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+				}
+
+				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				sess, err := conn.NewSession()
+				require.NoError(t, err)
+				defer sess.Close()
+
+				stdin, err := sess.StdinPipe()
+				require.NoError(t, err)
+
+				require.NoError(t, sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{}))
+				require.NoError(t, sess.Shell())
+
+				_, err = io.WriteString(stdin, "exit 0\n")
+				require.NoError(t, err)
+
+				done := make(chan error, 1)
+
+				go func() { done <- sess.Wait() }()
+
+				select {
+				case err := <-done:
+					require.NoError(t, err)
+				case <-time.After(60 * time.Second):
+					t.Fatal("a shell with a pty never reported an exit status")
+				}
+			},
+		},
+		{
 			// Regression: a shell with no pty is all a heredoc sends, and it was
 			// not one of the requests that started the data pipe, so the session
 			// had no data path and hung until the client gave up.
