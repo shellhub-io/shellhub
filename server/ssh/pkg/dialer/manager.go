@@ -195,6 +195,8 @@ func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, TransportVers
 				"key":     key,
 				"version": "v2",
 			}).WithError(err).Error("failed to open yamux stream for reverse connection")
+
+			return nil, TransportVersionUnknown, err
 		}
 
 		return conn, TransportVersion2, nil
