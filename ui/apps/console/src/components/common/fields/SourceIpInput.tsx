@@ -32,14 +32,17 @@ export default function SourceIpInput({
   hint,
   values,
   onChange,
+  onDraftError,
 }: {
   id: string;
   label: string;
   hint: string;
   values: string[];
   onChange: (next: string[]) => void;
+  onDraftError: (hasError: boolean) => void;
 }) {
   const [draft, setDraft] = useState("");
+  const [showDraftError, setShowDraftError] = useState(false);
   const parsed = parseSourceIp(draft);
   const canAdd =
     parsed.status === "valid" ||
@@ -52,7 +55,30 @@ export default function SourceIpInput({
   };
 
   const commitDraft = () => {
-    if (canAdd) add(parsed.value);
+    if (canAdd) {
+      add(parsed.value);
+      setShowDraftError(false);
+      onDraftError(false);
+    }
+  };
+
+  const handleBlur = () => {
+    if (canAdd) {
+      commitDraft();
+      return;
+    }
+    if (draft.trim()) {
+      setShowDraftError(true);
+      onDraftError(true);
+    }
+  };
+
+  const handleChange = (value: string) => {
+    setDraft(value);
+    if (showDraftError) {
+      setShowDraftError(false);
+      onDraftError(false);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -118,9 +144,9 @@ export default function SourceIpInput({
           id={id}
           type="text"
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={commitDraft}
+          onBlur={handleBlur}
           placeholder={values.length === 0 ? "e.g. 10.0.0.5 or 10.0.0.0/8" : ""}
           aria-describedby={hintId}
           className="flex-1 min-w-[150px] bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
@@ -159,7 +185,8 @@ export default function SourceIpInput({
           </span>
         </button>
       )}
-      {parsed.status === "invalid" && (
+      {(parsed.status === "invalid" ||
+        (showDraftError && parsed.status === "incomplete")) && (
         <div className="mt-1.5 flex items-center gap-2 px-3 py-2 rounded-lg border border-accent-red/40 bg-accent-red/[0.06]">
           <ExclamationTriangleIcon
             className="w-4 h-4 text-accent-red shrink-0"
