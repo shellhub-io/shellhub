@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	log "github.com/sirupsen/logrus"
 )
 
 // AuthnService is the slice of the service layer the authenticator needs to turn
@@ -192,10 +193,16 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 		// yields no identity rather than an error, so a token whose namespace,
 		// membership or user is gone gets a 401 telling the caller to
 		// re-authenticate instead of the store's own status as a 500. As with
-		// the API key, that deliberately covers a store outage too.
+		// the API key, that deliberately covers a store outage too, so both log
+		// the error they swallow: otherwise an outage is indistinguishable from
+		// a stale token and shows up only as a rise in 401s.
 		if claims.TenantID != "" {
 			role, err := a.service.GetUserRole(c.Request().Context(), claims.TenantID, claims.ID)
 			if err != nil {
+				log.WithError(err).
+					WithFields(log.Fields{"user_id": claims.ID, "tenant_id": claims.TenantID}).
+					Warn("failed to resolve the token's role")
+
 				return nil, nil //nolint:nilerr
 			}
 
@@ -204,6 +211,10 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 
 		admin, err := a.service.GetUserAdmin(c.Request().Context(), claims.ID)
 		if err != nil {
+			log.WithError(err).
+				WithField("user_id", claims.ID).
+				Warn("failed to resolve the token's admin status")
+
 			return nil, nil //nolint:nilerr
 		}
 
