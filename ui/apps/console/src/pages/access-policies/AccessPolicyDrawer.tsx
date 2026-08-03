@@ -288,6 +288,8 @@ function AccessPolicyDrawer({
   const [loginsOption, setLoginsOption] = useState<LoginsOption>("any");
   const [logins, setLogins] = useState<string[]>([]);
   const [sourceIP, setSourceIP] = useState<string[]>([]);
+  const [sourceIpDraftError, setSourceIpDraftError] = useState(false);
+  const [sourceIpKey, setSourceIpKey] = useState(0);
   const [requireReauth, setRequireReauth] = useState(false);
   // null = always (re-auth every session); a number is the freshness window in
   // seconds within which a re-auth is skipped.
@@ -353,6 +355,8 @@ function AccessPolicyDrawer({
     setLoginsOption(loginsInit);
     setLogins(loginsInit === "specific" ? (editPolicy?.logins ?? []) : []);
     setSourceIP(editPolicy?.source_ip ?? []);
+    setSourceIpDraftError(false);
+    setSourceIpKey((k) => k + 1);
     setRequireReauth(editPolicy?.require_reauth ?? false);
     setReauthPeriod(editPolicy?.reauth_period ?? null);
     setSubmitting(false);
@@ -386,7 +390,8 @@ function AccessPolicyDrawer({
     (filterOption === "hostname" && !hostname.trim()) ||
     (filterOption === "tags" &&
       (selectedTags.length === 0 || selectedTags.length > 3)) ||
-    (loginsOption === "specific" && logins.length === 0);
+    logins.length === 0 ||
+    sourceIpDraftError;
 
   /* ---- summaries for the trigger pills + consequence callout ---- */
   const memberById = (id: string) => members.find((m) => m.id === id);
@@ -797,11 +802,13 @@ function AccessPolicyDrawer({
 
         {/* Source IP */}
         <SourceIpInput
+          key={sourceIpKey}
           id="access-policy-source-ip"
           label="Source IP"
           hint="Only connections from these IPs or ranges."
           values={sourceIP}
           onChange={setSourceIP}
+          onDraftError={setSourceIpDraftError}
         />
 
         {/* Require re-authentication — toggle card, with the freshness window
