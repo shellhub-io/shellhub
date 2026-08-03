@@ -87,6 +87,7 @@ COPY --from=runtime-utils /bin/setpriv /bin/
 
 # Copy shared libraries from runtime-utils
 COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
+COPY --from=runtime-utils /usr/lib/libeconf.so.* /usr/lib/
 
 # Copy musl loader from runtime-utils
 COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
