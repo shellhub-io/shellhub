@@ -1,6 +1,16 @@
 import { differenceInDays } from "date-fns";
 import { formatDateShort } from "@/utils/date";
+import { isSdkError } from "@/api/errors";
 import type { SshIdentity } from "@/client";
+
+/**
+ * Whether an enroll failure means the key is already an identity. The endpoint
+ * answers 409 for a fingerprint already taken in the namespace, which for a key
+ * the caller holds privately can only be an enrollment of their own.
+ */
+export function isAlreadyEnrolled(err: unknown): boolean {
+  return isSdkError(err) && err.status === 409;
+}
 
 /**
  * Turn the expiry form value into the create-request field. "-1" (never) omits

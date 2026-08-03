@@ -5,7 +5,6 @@ import {
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
-import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
   useCreateSSHIdentity,
@@ -25,6 +24,7 @@ import {
   keyExpiryPayload,
   serviceAccountLifecyclePayload,
   sshIdentitySource,
+  isAlreadyEnrolled,
 } from "@/utils/sshIdentity";
 import KeyExpiryField from "@/components/common/KeyExpiryField";
 import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
@@ -119,7 +119,7 @@ function IdentityDrawer({
       }
       onClose();
     } catch (err: unknown) {
-      if (!isEdit && isSdkError(err) && err.status === 409) {
+      if (!isEdit && isAlreadyEnrolled(err)) {
         setKeyError("This key is already an identity in this namespace.");
       } else {
         setError(

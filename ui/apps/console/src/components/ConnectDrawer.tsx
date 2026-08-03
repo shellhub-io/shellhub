@@ -24,6 +24,7 @@ import {
 } from "../utils/browserKey";
 import { BROWSER_KEY_QUERY_KEY } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
+import { isAlreadyEnrolled } from "../utils/sshIdentity";
 import { listSshIdentitiesOptions } from "../client/@tanstack/react-query.gen";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
 import CopyButton from "./common/CopyButton";
@@ -238,9 +239,16 @@ export default function ConnectDrawer({
     params: ConnectParams,
     name: string,
   ) => {
-    await createIdentity.mutateAsync({
-      body: { name, data: key.publicKeyLine, source: "browser" },
-    });
+    try {
+      await createIdentity.mutateAsync({
+        body: { name, data: key.publicKeyLine, source: "browser" },
+      });
+    } catch (err: unknown) {
+      // The registered check above reads the server, so another tab enrolling
+      // this same key in between lands here. The key works either way, so the
+      // connection this consent was for should still happen.
+      if (!isAlreadyEnrolled(err)) throw err;
+    }
     await persistBrowserKey(scope, key);
     // This browser now holds a key it did not a moment ago, and the identities
     // list reads that to mark its own row.

@@ -5,6 +5,7 @@ import {
   serviceAccountLifecyclePayload,
   sshIdentitySource,
   shortFingerprint,
+  isAlreadyEnrolled,
 } from "@/utils/sshIdentity";
 
 const NOW = Date.UTC(2026, 0, 10);
@@ -182,5 +183,29 @@ describe("sshIdentityEndOfLife", () => {
       value: "on first use",
       tone: "armed",
     });
+  });
+});
+
+describe("isAlreadyEnrolled", () => {
+  it("recognizes the conflict the enroll endpoint answers with", () => {
+    expect(isAlreadyEnrolled({ status: 409, headers: new Headers() })).toBe(
+      true,
+    );
+  });
+
+  it.each([400, 401, 403, 404, 500])(
+    "does not treat %i as an existing enrollment",
+    (status) => {
+      expect(isAlreadyEnrolled({ status, headers: new Headers() })).toBe(false);
+    },
+  );
+
+  it.each([
+    ["a plain error", new Error("network down")],
+    ["null", null],
+    ["undefined", undefined],
+    ["a bare object", {}],
+  ])("does not treat %s as an existing enrollment", (_label, err) => {
+    expect(isAlreadyEnrolled(err)).toBe(false);
   });
 });
