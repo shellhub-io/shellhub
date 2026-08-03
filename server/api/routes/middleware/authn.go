@@ -154,7 +154,12 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 			// surface the store's own status -- 404 for an unknown key, 400 for
 			// an expired one -- when the caller's problem is the credential.
 			// The edge proxy turned every non-2xx from the authentication
-			// subrequest into a 401, including when its store was down.
+			// subrequest into a 401, including when its store was down. Log the
+			// error for the same reason the bearer path does: an outage is
+			// otherwise indistinguishable from an unusable key. The key itself
+			// is a credential and never goes to the log.
+			log.WithError(err).Warn("failed to resolve the API key")
+
 			return nil, nil //nolint:nilerr
 		}
 
