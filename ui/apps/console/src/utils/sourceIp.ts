@@ -4,7 +4,7 @@
 
 export type SourceIpParse =
   | { status: "empty" }
-  | { status: "incomplete" }
+  | { status: "incomplete"; note: string }
   | { status: "invalid"; note: string }
   // value is the canonical CIDR that will be stored; label describes it.
   | {
@@ -59,11 +59,20 @@ export function parseSourceIp(raw: string): SourceIpParse {
   const s = raw.trim();
   if (!s) return { status: "empty" };
 
+  // Reject leading zeros early — Go's net.ParseCIDR rejects them to avoid
+  // octal ambiguity, so the UI must too.
   const cidr = s.match(/^(.+)\/(\d{1,3})$/);
+  const addrPart = cidr ? cidr[1] : s;
+  const hasLeadingZero =
+    (cidr && cidr[2].length > 1 && cidr[2][0] === "0") ||
+    (/^\d{1,3}(\.\d{1,3}){3}$/.test(addrPart) &&
+      addrPart.split(".").some((p) => p.length > 1 && p[0] === "0"));
+  if (hasLeadingZero)
+    return { status: "invalid", note: "leading zeros are not allowed" };
+
   if (cidr) {
-    const [, addr, bitsStr] = cidr;
-    const bits = Number(bitsStr);
-    const v4 = ipv4Octets(addr);
+    const bits = Number(cidr[2]);
+    const v4 = ipv4Octets(addrPart);
     if (v4) {
       if (bits > 32)
         return {
@@ -83,7 +92,7 @@ export function parseSourceIp(raw: string): SourceIpParse {
         label: `${classifyV4(v4)} · ${addressCount(bits)}`,
       };
     }
-    if (looksIpv6(addr)) {
+    if (looksIpv6(addrPart)) {
       if (bits > 128)
         return {
           status: "invalid",
@@ -110,11 +119,10 @@ export function parseSourceIp(raw: string): SourceIpParse {
       note: `stored as ${s}/128`,
     };
 
-  // A complete four-octet IPv4 that failed validation is wrong, not still-being-typed.
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s))
     return { status: "invalid", note: "octet out of range (max 255)" };
-  // Still typing something address-shaped (digits, dots, slash, hex/colon) — don't cry wolf yet.
-  if (/^[\d./:a-fA-F]+$/.test(s)) return { status: "incomplete" };
+  if (/^[\d./:a-fA-F]+$/.test(s))
+    return { status: "incomplete", note: "incomplete IP address" };
   return { status: "invalid", note: "not a valid IP or CIDR" };
 }
 
