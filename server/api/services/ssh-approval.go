@@ -253,11 +253,11 @@ func (s *service) applySSHApproval(ctx context.Context, userID string, approval 
 		return nil
 	}
 
-	// Enrollment is idempotent for the same account, so a re-confirm does not
-	// fail. An empty name lets the identity service generate a default from the
-	// key. The source is the one the server asserts for itself: it saw the key
-	// offered on a login it was holding open.
-	if _, err := s.enrollSSHIdentity(ctx, &models.SSHIdentity{
+	// A confirmation can be replayed, so this enrolls through the tolerant path.
+	// An empty name lets the identity service generate a default from the key.
+	// The source is the one the server asserts for itself: it saw the key offered
+	// on a login it was holding open.
+	if _, err := s.reenrollSSHIdentity(ctx, &models.SSHIdentity{
 		TenantID:    approval.TenantID,
 		PrincipalID: userID,
 		Fingerprint: approval.Fingerprint,

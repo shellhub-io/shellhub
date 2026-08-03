@@ -122,12 +122,12 @@ func TestEnrollSSHIdentity(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			description: "is idempotent when the same account already holds the key",
+			description: "rejects when the same account already holds the key",
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
 			},
-			expectedErr: nil,
+			expectedErr: NewErrSSHIdentityDuplicated(fingerprint, nil),
 		},
 		{
 			description: "rejects when the fingerprint is bound to another identity",
@@ -173,6 +173,79 @@ func TestEnrollSSHIdentity(t *testing.T) {
 	}
 }
 
+func TestReenrollSSHIdentity(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID    = "00000000-0000-4000-0000-000000000000"
+		fingerprint = "SHA256:abc"
+		userID      = "user1"
+	)
+
+	cases := []struct {
+		description  string
+		requireMocks func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
+		expectedID   string
+		expectedErr  error
+	}{
+		{
+			description: "returns the existing binding when the same account already holds the key",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+					Return(&models.SSHIdentity{ID: "existing", PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
+			},
+			expectedID:  "existing",
+			expectedErr: nil,
+		},
+		{
+			description: "creates the binding when the fingerprint is free",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("SSHIdentityCreate", ctx, mock.Anything).Return("created", nil).Once()
+			},
+			expectedID:  "created",
+			expectedErr: nil,
+		},
+		{
+			description: "rejects when the fingerprint is bound to another identity",
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+					Return(&models.SSHIdentity{ID: "id2", PrincipalID: "other", Fingerprint: fingerprint}, nil).Once()
+			},
+			expectedErr: NewErrSSHIdentityDuplicated(fingerprint, nil),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := new(storemock.MockStore)
+			queryOptionsMock := new(storemock.MockQueryOptions)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+			tc.requireMocks(storeMock, queryOptionsMock)
+
+			service := NewService(storeMock, privateKey, publicKey, nil)
+
+			identity, err := service.reenrollSSHIdentity(ctx, &models.SSHIdentity{
+				TenantID:    tenantID,
+				PrincipalID: userID,
+				Fingerprint: fingerprint,
+				Data:        []byte("ssh-ed25519 AAAA"),
+				Source:      models.SSHIdentitySourceApproval,
+			})
+			require.Equal(t, tc.expectedErr, err)
+
+			if tc.expectedErr == nil {
+				require.NotNil(t, identity)
+				require.Equal(t, tc.expectedID, identity.ID)
+			}
+
+			storeMock.AssertExpectations(t)
+		})
+	}
+}
+
 func TestCreateSSHIdentity(t *testing.T) {
 	ctx := context.TODO()
 
@@ -208,6 +281,21 @@ func TestCreateSSHIdentity(t *testing.T) {
 		identity, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{TenantID: tenantID, UserID: userID, Name: "laptop", Data: authorized})
 		require.NoError(t, err)
 		require.Equal(t, fingerprint, identity.Fingerprint)
+
+		storeMock.AssertExpectations(t)
+	})
+
+	t.Run("reports a duplicate when the caller already enrolled the key", func(t *testing.T) {
+		storeMock := new(storemock.MockStore)
+		queryOptionsMock := new(storemock.MockQueryOptions)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+			Return(&models.SSHIdentity{ID: "id1", PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
+
+		service := NewService(storeMock, privateKey, publicKey, nil)
+
+		_, err := service.CreateSSHIdentity(ctx, &requests.SSHIdentityCreate{TenantID: tenantID, UserID: userID, Name: "laptop", Data: authorized})
+		require.Equal(t, NewErrSSHIdentityDuplicated(fingerprint, nil), err)
 
 		storeMock.AssertExpectations(t)
 	})
