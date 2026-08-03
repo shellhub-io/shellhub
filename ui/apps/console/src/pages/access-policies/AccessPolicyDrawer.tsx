@@ -267,9 +267,6 @@ function reauthPeriodLabel(value: number | null): string {
   );
 }
 
-/* Compact custom dropdown for the re-auth window, matching the picker language.
-   The menu renders in a portal on document.body so it escapes the drawer's
-   vertical scroll clip — otherwise it would be cut off inside the form. */
 function PeriodSelect({
   value,
   onChange,
@@ -282,7 +279,6 @@ function PeriodSelect({
   return (
     <Dropdown
       placement="bottom-end"
-      portal
       open={open}
       onOpenChange={(next) => setOpen(next)}
     >
