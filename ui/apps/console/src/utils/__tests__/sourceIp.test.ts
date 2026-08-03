@@ -41,8 +41,21 @@ describe("parseSourceIp", () => {
     expect(parseSourceIp("10.0.0.0/40").status).toBe("invalid");
   });
 
+  it.each(["10.0.0.04", "10.0.0.04/24", "10.0.0.0/08"])(
+    "rejects leading zeros in %s",
+    (input) => {
+      expect(parseSourceIp(input)).toMatchObject({
+        status: "invalid",
+        note: "leading zeros are not allowed",
+      });
+    },
+  );
+
   it("treats still-being-typed input as incomplete, not invalid", () => {
-    expect(parseSourceIp("10.0.").status).toBe("incomplete");
+    expect(parseSourceIp("10.0.")).toMatchObject({
+      status: "incomplete",
+      note: "incomplete IP address",
+    });
   });
 
   it("rejects clearly bogus input", () => {
