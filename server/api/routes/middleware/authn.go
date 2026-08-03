@@ -187,10 +187,16 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 	case *authorizer.UserClaims:
 		// Role and admin are dynamic attributes that can change while a JWT is
 		// still valid, so we re-fetch them from the store on every request.
+		//
+		// Both lookups follow the same rule as the API key above: any failure
+		// yields no identity rather than an error, so a token whose namespace,
+		// membership or user is gone gets a 401 telling the caller to
+		// re-authenticate instead of the store's own status as a 500. As with
+		// the API key, that deliberately covers a store outage too.
 		if claims.TenantID != "" {
 			role, err := a.service.GetUserRole(c.Request().Context(), claims.TenantID, claims.ID)
 			if err != nil {
-				return nil, err
+				return nil, nil //nolint:nilerr
 			}
 
 			claims.Role = authorizer.RoleFromString(role)
@@ -198,7 +204,7 @@ func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
 
 		admin, err := a.service.GetUserAdmin(c.Request().Context(), claims.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil //nolint:nilerr
 		}
 
 		return &gateway.Identity{
