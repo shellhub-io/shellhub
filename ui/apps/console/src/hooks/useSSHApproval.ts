@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getSshApproval,
-  confirmSshApproval,
-  rejectSshApproval,
-} from "@/client";
+import { getSshApproval } from "@/client";
 import { isSdkError } from "@/api/errors";
+import {
+  useConfirmSSHApproval,
+  useRejectSSHApproval,
+} from "./useSSHIdentityMutations";
 
 /**
  * Drives the SSH login approval modal: fetch the request the gateway is holding
@@ -53,6 +53,8 @@ export function useSSHApproval(code: string) {
   const [deciding, setDeciding] = useState(false);
   const [actionError, setActionError] = useState("");
   const expiresAtRef = useRef(0);
+  const confirmMutation = useConfirmSSHApproval();
+  const rejectMutation = useRejectSSHApproval();
 
   // Fetch the request once on mount (or when the code changes).
   useEffect(() => {
@@ -132,21 +134,19 @@ export function useSSHApproval(code: string) {
     return () => window.clearInterval(id);
   }, [phase]);
 
-  /** Reports whether the decision landed, so a caller can react to it. */
   const decide = useCallback(
     async (decision: "confirm" | "reject") => {
       if (!code || deciding) return false;
       setDeciding(true);
       setActionError("");
       try {
-        const call =
-          decision === "confirm" ? confirmSshApproval : rejectSshApproval;
-        await call({ path: { code }, throwOnError: true });
+        const mutation =
+          decision === "confirm" ? confirmMutation : rejectMutation;
+        await mutation.mutateAsync({ path: { code } });
         setPhase(decision === "confirm" ? "confirmed" : "rejected");
 
         return true;
       } catch (err) {
-        // The window closed under us while deciding.
         if (isSdkError(err) && err.status === 404) {
           setPhase("expired");
           return false;
@@ -158,7 +158,7 @@ export function useSSHApproval(code: string) {
         setDeciding(false);
       }
     },
-    [code, deciding],
+    [code, deciding, confirmMutation, rejectMutation],
   );
 
   const confirm = useCallback(() => decide("confirm"), [decide]);

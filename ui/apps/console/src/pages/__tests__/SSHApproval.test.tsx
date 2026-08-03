@@ -2,19 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SSHApproval from "../SSHApproval";
-import {
-  getSshApproval,
-  confirmSshApproval,
-  rejectSshApproval,
-  webTerminalReauth,
-} from "@/client";
+import { getSshApproval, webTerminalReauth } from "@/client";
 
 vi.mock("@/client", () => ({
   getSshApproval: vi.fn(),
-  confirmSshApproval: vi.fn(),
-  rejectSshApproval: vi.fn(),
   webTerminalReauth: vi.fn(),
+}));
+
+const mockConfirmMutateAsync = vi.fn();
+const mockRejectMutateAsync = vi.fn();
+
+vi.mock("@/hooks/useSSHIdentityMutations", () => ({
+  useConfirmSSHApproval: () => ({ mutateAsync: mockConfirmMutateAsync }),
+  useRejectSSHApproval: () => ({ mutateAsync: mockRejectMutateAsync }),
 }));
 
 vi.mock("@/hooks/useNamespaces", () => ({
@@ -60,30 +62,34 @@ const approval = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-/** Renders both routes so a canonicalizing redirect lands somewhere observable. */
 function renderAt(path: string) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route
-          path="/ssh-identities/new/:code"
-          element={<SSHApproval flow="new" />}
-        />
-        <Route
-          path="/ssh-identities/confirm/:code"
-          element={<SSHApproval flow="confirm" />}
-        />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route
+            path="/ssh-identities/new/:code"
+            element={<SSHApproval flow="new" />}
+          />
+          <Route
+            path="/ssh-identities/confirm/:code"
+            element={<SSHApproval flow="confirm" />}
+          />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
 describe("SSHApproval", () => {
   beforeEach(() => {
     vi.mocked(getSshApproval).mockReset();
-    vi.mocked(confirmSshApproval).mockReset();
-    vi.mocked(rejectSshApproval).mockReset();
     vi.mocked(webTerminalReauth).mockReset();
+    mockConfirmMutateAsync.mockReset();
+    mockRejectMutateAsync.mockReset();
   });
 
   it("asks to add the key, and names the account and namespace it lands in", async () => {
@@ -155,7 +161,7 @@ describe("SSHApproval", () => {
 
   it("confirms the request and reports the outcome", async () => {
     vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
-    vi.mocked(confirmSshApproval).mockResolvedValue({} as never);
+    mockConfirmMutateAsync.mockResolvedValue({});
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -164,7 +170,7 @@ describe("SSHApproval", () => {
     );
 
     await waitFor(() =>
-      expect(confirmSshApproval).toHaveBeenCalledWith(
+      expect(mockConfirmMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({ path: { code: "WXYZ2K7Q" } }),
       ),
     );
@@ -173,7 +179,7 @@ describe("SSHApproval", () => {
 
   it("rejects the request and reports the outcome", async () => {
     vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
-    vi.mocked(rejectSshApproval).mockResolvedValue({} as never);
+    mockRejectMutateAsync.mockResolvedValue({});
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -181,7 +187,7 @@ describe("SSHApproval", () => {
       await screen.findByRole("button", { name: /reject/i }),
     );
 
-    await waitFor(() => expect(rejectSshApproval).toHaveBeenCalled());
+    await waitFor(() => expect(mockRejectMutateAsync).toHaveBeenCalled());
     expect(await screen.findByText("Rejected")).toBeInTheDocument();
   });
 

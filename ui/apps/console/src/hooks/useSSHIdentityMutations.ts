@@ -1,10 +1,26 @@
 import { useMutation } from "@tanstack/react-query";
 import {
+  confirmSshApprovalMutation,
+  rejectSshApprovalMutation,
   createSshIdentityMutation,
   renameSshIdentityMutation,
   deleteSshIdentityMutation,
 } from "../client/@tanstack/react-query.gen";
 import { useInvalidateByIds } from "./useInvalidateQueries";
+
+export function useConfirmSSHApproval() {
+  const invalidate = useInvalidateByIds("listSshIdentities");
+  return useMutation({
+    ...confirmSshApprovalMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRejectSSHApproval() {
+  return useMutation({
+    ...rejectSshApprovalMutation(),
+  });
+}
 
 export function useCreateSSHIdentity() {
   const invalidate = useInvalidateByIds("listSshIdentities");
