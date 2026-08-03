@@ -108,18 +108,32 @@ func (s *service) ConsumeSSHIdentity(ctx context.Context, tenantID, fingerprint 
 	return s.store.SSHIdentityConsume(ctx, tenantID, fingerprint)
 }
 
-// enrollSSHIdentity creates the binding, returning the existing one unchanged
-// when the same account already holds it (idempotent) and a duplicated error
-// when the fingerprint is taken by another identity in the namespace. A zero
-// ExpiresAt and SingleUse give the durable, reusable key most callers want.
+// enrollSSHIdentity creates the binding, failing with a duplicated error when
+// the fingerprint is already taken in the namespace — by this principal or
+// another. A caller re-adding a key it already holds is a mistake worth
+// reporting, not a no-op to hide; the one path that must tolerate a replay uses
+// reenrollSSHIdentity. A zero ExpiresAt and SingleUse give the durable,
+// reusable key most callers want.
 func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
-	sc, err := BoundTo(identity.TenantID)
+	existing, err := s.resolveEnrolledSSHIdentity(ctx, identity.TenantID, identity.Fingerprint)
 	if err != nil {
 		return nil, err
 	}
 
-	existing, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, identity.Fingerprint)
-	if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+	if existing != nil {
+		return nil, NewErrSSHIdentityDuplicated(identity.Fingerprint, nil)
+	}
+
+	return s.persistSSHIdentity(ctx, identity)
+}
+
+// reenrollSSHIdentity is enrollSSHIdentity for the paths that can legitimately
+// run twice for the same key — a confirmation replayed by the person or the
+// gateway — returning the existing binding unchanged instead of a conflict. The
+// fingerprint held by a different principal still conflicts.
+func (s *service) reenrollSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
+	existing, err := s.resolveEnrolledSSHIdentity(ctx, identity.TenantID, identity.Fingerprint)
+	if err != nil {
 		return nil, err
 	}
 
@@ -131,6 +145,27 @@ func (s *service) enrollSSHIdentity(ctx context.Context, identity *models.SSHIde
 		return nil, NewErrSSHIdentityDuplicated(identity.Fingerprint, nil)
 	}
 
+	return s.persistSSHIdentity(ctx, identity)
+}
+
+// resolveEnrolledSSHIdentity reports a free fingerprint as a nil identity rather
+// than an error, so the enroll paths branch on the holder instead of on
+// ErrNoDocuments.
+func (s *service) resolveEnrolledSSHIdentity(ctx context.Context, tenantID, fingerprint string) (*models.SSHIdentity, error) {
+	sc, err := BoundTo(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := s.store.SSHIdentityResolve(ctx, sc, store.SSHIdentityFingerprintResolver, fingerprint)
+	if err != nil && !errors.Is(err, store.ErrNoDocuments) {
+		return nil, err
+	}
+
+	return existing, nil
+}
+
+func (s *service) persistSSHIdentity(ctx context.Context, identity *models.SSHIdentity) (*models.SSHIdentity, error) {
 	if identity.Name == "" {
 		identity.Name = defaultSSHIdentityName(identity.Fingerprint, identity.Data)
 	}
