@@ -1,4 +1,4 @@
-import { useState, FormEvent, ReactNode } from "react";
+import { useState, useRef, KeyboardEvent, FormEvent, ReactNode } from "react";
 import {
   UsersIcon,
   UserIcon,
@@ -10,8 +10,14 @@ import {
   ExclamationCircleIcon,
   CheckIcon,
   ChevronDownIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { DevicesIcon, Dropdown } from "@shellhub/design-system/primitives";
+import {
+  DevicesIcon,
+  Dropdown,
+  IconButton,
+  Button,
+} from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
@@ -24,16 +30,110 @@ import {
 } from "@/hooks/useAccessPolicyMutations";
 import type { AccessPolicy, AccessPolicyRequest } from "@/client";
 import { ROLES } from "@/pages/team/helpers";
-import ChipInput from "@/components/common/fields/ChipInput";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
-import { Button } from "@shellhub/design-system/primitives";
 
 type SubjectType = "all-members" | "role" | "user" | "service-account";
 type FilterOption = "all" | "hostname" | "tags";
-type LoginsOption = "any" | "specific";
+
+const ANY_LOGIN = ["*"];
+function isAnyLogin(v: string[]): boolean {
+  return v.length === 1 && v[0] === "*";
+}
+
+function LoginsInput({
+  values,
+  onChange,
+}: {
+  values: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const any = isAnyLogin(values);
+
+  const commit = (raw: string): boolean => {
+    const token = raw.trim();
+    setDraft("");
+    if (!values.includes(token) && token) onChange([...values, token]);
+    return !!token;
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      commit(draft);
+      return;
+    }
+
+    if (e.key === "Backspace" && draft === "" && values.length > 0) {
+      onChange(values.slice(0, -1));
+    }
+  };
+
+  if (any) {
+    return (
+      <div className="flex items-center gap-2 min-h-[44px] px-3 py-2 bg-card border border-border rounded-lg">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">
+          <CommandLineIcon className="w-3.5 h-3.5" /> Any login
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            onChange([]);
+            requestAnimationFrame(() => inputRef.current?.focus());
+          }}
+          className="ml-auto text-xs text-primary hover:underline"
+        >
+          Restrict…
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 bg-card border border-border rounded-lg cursor-text transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+      {values.map((v) => (
+        <span
+          key={v}
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium"
+        >
+          {v}
+          <IconButton
+            size="sm"
+            aria-label={`Remove ${v}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              const next = values.filter((x) => x !== v);
+              onChange(next.length === 0 ? ANY_LOGIN : next);
+            }}
+          >
+            <XMarkIcon className="w-3 h-3" strokeWidth={2} />
+          </IconButton>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        type="text"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          const committed = commit(draft);
+          if (!committed && values.length === 0) onChange(ANY_LOGIN);
+        }}
+        placeholder={
+          values.length === 0
+            ? "type a unix login + Enter (e.g. deploy, root)"
+            : ""
+        }
+        className="flex-1 min-w-[120px] bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
+      />
+    </div>
+  );
+}
 
 /* A field label above a control, with an optional one-line description. */
 function Label({ children, hint }: { children: ReactNode; hint?: string }) {
@@ -285,8 +385,7 @@ function AccessPolicyDrawer({
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
   const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [loginsOption, setLoginsOption] = useState<LoginsOption>("any");
-  const [logins, setLogins] = useState<string[]>([]);
+  const [logins, setLogins] = useState<string[]>(ANY_LOGIN);
   const [sourceIP, setSourceIP] = useState<string[]>([]);
   const [sourceIpDraftError, setSourceIpDraftError] = useState(false);
   const [sourceIpKey, setSourceIpKey] = useState(0);
@@ -310,12 +409,6 @@ function AccessPolicyDrawer({
           ? "hostname"
           : "all"
       : "all";
-    const loginsInit: LoginsOption =
-      editPolicy &&
-      !(editPolicy.logins.length === 1 && editPolicy.logins[0] === "*")
-        ? "specific"
-        : "any";
-
     const editValue = editPolicy?.subject.value ?? "";
     const editIsServiceAccount =
       editPolicy?.subject.type === "user" &&
@@ -352,8 +445,7 @@ function AccessPolicyDrawer({
         ? editPolicy.filter.tags.map((t) => t.name)
         : [],
     );
-    setLoginsOption(loginsInit);
-    setLogins(loginsInit === "specific" ? (editPolicy?.logins ?? []) : []);
+    setLogins(editPolicy?.logins ?? ANY_LOGIN);
     setSourceIP(editPolicy?.source_ip ?? []);
     setSourceIpDraftError(false);
     setSourceIpKey((k) => k + 1);
@@ -377,8 +469,6 @@ function AccessPolicyDrawer({
       return { tags: selectedTags };
     return { hostname: ".*" };
   };
-  const buildLogins = (): string[] => (loginsOption === "any" ? ["*"] : logins);
-
   // Re-auth is interactive, so it does not apply to a service account; hide the
   // control and never send it for one.
   const reauthApplies = subjectType !== "service-account";
@@ -415,12 +505,12 @@ function AccessPolicyDrawer({
     return "all devices";
   };
   const loginLabel = (): string =>
-    loginsOption === "any" ? "any login (incl. root)" : logins.join(", ");
+    isAnyLogin(logins) ? "any login (incl. root)" : logins.join(", ");
 
   const isBroad =
     action === "allow" &&
     subjectType === "all-members" &&
-    loginsOption === "any" &&
+    isAnyLogin(logins) &&
     filterOption === "all";
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -433,7 +523,7 @@ function AccessPolicyDrawer({
       action,
       subject: buildSubject(),
       filter: buildFilter(),
-      logins: buildLogins(),
+      logins,
       source_ip: sourceIP,
       require_reauth: reauthApplies && requireReauth,
       reauth_period: reauthApplies && requireReauth ? reauthPeriod : null,
@@ -770,34 +860,7 @@ function AccessPolicyDrawer({
           <Label hint="Which unix logins are allowed on those devices.">
             Logins
           </Label>
-          {loginsOption === "any" ? (
-            <div className="flex items-center gap-2 min-h-[44px] px-3 py-2 bg-card border border-border rounded-lg">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">
-                <CommandLineIcon className="w-3.5 h-3.5" /> Any login
-              </span>
-              <button
-                type="button"
-                onClick={() => setLoginsOption("specific")}
-                className="ml-auto text-xs text-primary hover:underline"
-              >
-                Restrict…
-              </button>
-            </div>
-          ) : (
-            <>
-              <ChipInput
-                id="access-policy-logins"
-                label=""
-                hint=""
-                placeholder="type a unix login + Enter (e.g. deploy, root)"
-                values={logins}
-                onChange={(next) => {
-                  setLogins(next);
-                  if (next.length === 0) setLoginsOption("any");
-                }}
-              />
-            </>
-          )}
+          <LoginsInput values={logins} onChange={setLogins} />
         </div>
 
         {/* Source IP */}
