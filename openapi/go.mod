@@ -4,6 +4,6 @@ go 1.25.12
 
 require github.com/shellhub-io/shellhub v0.0.0
 
-require github.com/sethvargo/go-envconfig v0.9.0 // indirect
+require github.com/sethvargo/go-envconfig v1.4.3 // indirect
 
 replace github.com/shellhub-io/shellhub => ../
