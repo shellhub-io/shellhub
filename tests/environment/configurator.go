@@ -92,8 +92,10 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		envs:     dcc.envs,
 		services: make(map[Service]*tc.DockerContainer),
 		t:        dcc.t,
-		client:   resty.New().SetBaseURL("http://localhost:" + dcc.envs["SHELLHUB_HTTP_PORT"]),
-		down:     nil,
+		client: resty.New().
+			SetBaseURL("http://localhost:" + dcc.envs["SHELLHUB_HTTP_PORT"]).
+			SetContentLength(true),
+		down: nil,
 	}
 
 	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml"}
