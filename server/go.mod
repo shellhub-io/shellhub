@@ -9,7 +9,6 @@ require (
 	github.com/getkin/kin-openapi v0.145.0
 	github.com/getsentry/sentry-go v0.48.0
 	github.com/gliderlabs/ssh v0.3.8
-	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/yamux v0.1.2
