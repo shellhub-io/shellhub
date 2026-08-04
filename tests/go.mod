@@ -4,7 +4,7 @@ go 1.25.12
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
-	github.com/docker/docker v28.5.2+incompatible
+	github.com/docker/docker v28.5.3-0.20260325154711-31a1689cb0a1+incompatible
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.13.11
