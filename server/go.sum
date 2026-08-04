@@ -263,8 +263,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 h1:KRzFb2m7YtdldCEkzs6KqmJw4nqEVZGK7IN2kJkjTuQ=
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.2/go.mod h1:JXeL+ps8p7/KNMjDQk3TCwPpBy0wYklyWTfbkIzdIFU=
-github.com/sethvargo/go-envconfig v0.9.0 h1:Q6FQ6hVEeTECULvkJZakq3dZMeBQ3JUpcKMfPQbKMDE=
-github.com/sethvargo/go-envconfig v0.9.0/go.mod h1:Iz1Gy1Sf3T64TQlJSvee81qDhf7YIlt8GMUX6yyNFs0=
+github.com/sethvargo/go-envconfig v1.4.3 h1:9RJrW9aiy3SJVRJ1svntpZvBw3ghj941u/BseS/TokY=
+github.com/sethvargo/go-envconfig v1.4.3/go.mod h1:ebe6rgj7KzrRZPzDXU4W6WZWDEirQwvcgmS0bmC3Sjg=
 github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac h1:FoFcRe6uMUZ4ctoJ0VVViLMiZ0+kc4BtMLzCwWw6Qxk=
 github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac/go.mod h1:x9I554T2Lmh78Qai8VN4wnVyxXjkLAEYpJMBVchsG6A=
 github.com/shirou/gopsutil/v4 v4.26.5 h1:RPcBXkpz7kOj9PqGFQOlBPZHsyaPvPVQc098y9RmCNM=
