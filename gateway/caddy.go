@@ -34,6 +34,8 @@ type caddyfileData struct {
 
 	ACMECAServer   string
 	TrustedProxies string
+	TLSCertFile    string
+	TLSKeyFile     string
 
 	// WebEndpointsInternalTLS asks for a locally-signed certificate instead of
 	// a public one. Caddy falls back to its internal authority on its own for a
@@ -89,6 +91,9 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 
 		ACMECAServer:   cfg.ACMECAServer,
 		TrustedProxies: cfg.ProxyTrustedIPs,
+
+		TLSCertFile: cfg.TLSCertFile,
+		TLSKeyFile:  cfg.TLSKeyFile,
 
 		WebEndpointsInternalTLS: !certmagic.SubjectQualifiesForPublicCert("*." + domain),
 	}

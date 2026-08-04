@@ -54,7 +54,17 @@ type GatewayConfig struct {
 	// ACMECAServer is the directory a certificate is asked for. Empty means the
 	// default, which is Let's Encrypt's production endpoint; point it at their
 	// staging endpoint to rehearse without spending the real rate limit.
-	ACMECAServer     string `env:"SHELLHUB_ACME_CA_SERVER"`
+	ACMECAServer string `env:"SHELLHUB_ACME_CA_SERVER"`
+
+	// TLSCertFile and TLSKeyFile name a certificate to serve instead of obtaining
+	// one, which is the only way to run TLS on a name no public authority will
+	// sign.
+	//
+	// Both or neither, checked even with TLS off: a half-set pair is a typo in
+	// every case, and the alternative to refusing it is quietly asking a public
+	// CA instead of serving what the operator supplied.
+	TLSCertFile      string `env:"SHELLHUB_TLS_CERT_FILE" validate:"required_with=TLSKeyFile"`
+	TLSKeyFile       string `env:"SHELLHUB_TLS_KEY_FILE" validate:"required_with=TLSCertFile"`
 	Database         string `env:"SHELLHUB_DATABASE,default=mongo"`
 	EnableAccessLogs bool   `env:"SHELLHUB_GATEWAY_ACCESS_LOGS,default=true"`
 

@@ -47,6 +47,11 @@ func configurations() map[string]*GatewayConfig {
 		"development":    with(func(c *GatewayConfig) { c.Env = "development"; c.EnableEnterprise = true }),
 		"dev community":  with(func(c *GatewayConfig) { c.Env = "development" }),
 		"no access logs": with(func(c *GatewayConfig) { c.EnableAccessLogs = false }),
+		"supplied certificate": with(func(c *GatewayConfig) {
+			c.EnableAutoSSL = true
+			c.TLSCertFile = "/etc/shellhub/certs/fullchain.pem"
+			c.TLSKeyFile = "/etc/shellhub/certs/privkey.pem"
+		}),
 	}
 }
 
@@ -154,6 +159,25 @@ func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 
 	assert.Contains(t, string(rendered), "https://shellhub.example")
 	assert.NotContains(t, string(rendered), "auto_https off")
+}
+
+// TestCaddyfileServesTheSuppliedCertificate pins both halves of the conditional,
+// because a mistake in either is silent: the directive missing means an ACME
+// request nobody asked for, and the directive appearing when no certificate was
+// supplied means a site that cannot serve at all.
+func TestCaddyfileServesTheSuppliedCertificate(t *testing.T) {
+	cfg := configurations()["supplied certificate"]
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "tls "+cfg.TLSCertFile+" "+cfg.TLSKeyFile)
+
+	without, err := Caddyfile(configurations()["auto ssl"])
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(without), "tls ",
+		"automatic issuance is the default and must stay untouched when no certificate is supplied")
 }
 
 // TestHealthcheckAnswersOnEveryConfiguration asserts every shape rather than one,
