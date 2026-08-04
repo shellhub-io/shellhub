@@ -61,7 +61,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"

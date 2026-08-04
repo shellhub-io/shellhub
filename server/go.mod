@@ -4,7 +4,7 @@ go 1.25.12
 
 require (
 	code.dny.dev/ssrf v0.3.0
-	github.com/Masterminds/semver v1.5.0
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/getkin/kin-openapi v0.145.0
 	github.com/getsentry/sentry-go v0.48.0

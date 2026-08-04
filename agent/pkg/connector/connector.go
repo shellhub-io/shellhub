@@ -3,7 +3,7 @@ package connector
 import (
 	"context"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 // ConnectorVersion stores the version of the ShellHub Instane that is running the connector.
