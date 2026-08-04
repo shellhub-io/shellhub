@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/agent/pkg/selfupdater"

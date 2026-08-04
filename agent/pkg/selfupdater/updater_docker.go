@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	containertypes "github.com/docker/docker/api/types/container"
 	dockerimage "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
