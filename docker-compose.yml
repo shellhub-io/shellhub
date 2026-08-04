@@ -94,8 +94,10 @@ services:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
     networks:
       - shellhub
+    extra_hosts:
+      - "healthcheck.internal:127.0.0.1"
     healthcheck:
-      test: wget -q --spider -T 5 http://gateway/healthcheck || exit 1
+      test: wget -q --spider -T 5 http://healthcheck.internal/healthz || exit 1
       interval: 30s
       start_period: 10s
   redis:

@@ -156,6 +156,22 @@ func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 	assert.NotContains(t, string(rendered), "auto_https off")
 }
 
+// TestHealthcheckAnswersOnEveryConfiguration asserts every shape rather than one,
+// because the bug it replaces was a healthcheck that passed under one setting and
+// failed under another -- and passed by accident, on Caddy's reply to a name it
+// did not serve, so nobody had reason to look at it.
+func TestHealthcheckAnswersOnEveryConfiguration(t *testing.T) {
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			rendered, err := Caddyfile(cfg)
+			require.NoError(t, err)
+
+			assert.Contains(t, string(rendered), "http://healthcheck.internal",
+				"the healthcheck site must not depend on how TLS is configured")
+		})
+	}
+}
+
 // TestCaddyfileStoresCertificatesOnTheVolume guards a mistake that is invisible
 // until a container is recreated and the CA is asked for everything again:
 // Caddy's default storage is a directory under $HOME, which no volume covers.

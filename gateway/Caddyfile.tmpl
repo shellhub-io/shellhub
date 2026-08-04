@@ -185,6 +185,18 @@
 		}
 	}
 }
+
+# The container healthcheck. Written http:// so automatic HTTPS cannot redirect
+# it, and given a name of its own so it can share port 80 with the site above:
+# the probe runs inside this container, where every other name available to it is
+# one this proxy does not serve. docker-compose.yml repeats the name under
+# extra_hosts, so the two have to move together. It reports that the proxy is up,
+# and nothing else -- the API has its own.
+http://healthcheck.internal {
+	handle /healthz {
+		respond "ok" 200
+	}
+}
 {{- if $cfg.WebEndpoints }}
 
 # Every device tunnel lives on its own subdomain of this domain. One block
