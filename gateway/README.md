@@ -46,6 +46,16 @@ Losing it means asking the CA for everything again, and Let's Encrypt caps how o
 answer, so a deployment that cares should mount a named volume there rather than rely on the
 anonymous one Docker creates.
 
+`SHELLHUB_TLS_CERT_FILE` and `SHELLHUB_TLS_KEY_FILE` serve a certificate the operator supplies
+instead of obtaining one, which is the only way to run HTTPS on a name no public authority will
+sign: an internal hostname, or a domain this deployment does not own. Both are paths inside the
+gateway container, so whatever holds them has to be mounted there.
+
+They are read only when `SHELLHUB_AUTO_SSL` is enabled, and they are all or nothing: setting one
+without the other stops the gateway from starting, checked even with automatic HTTPS off. A
+half-set pair is a typo in every case, and the alternative to refusing it is quietly asking a
+public CA for a name the operator meant to serve themselves.
+
 ### Behind a load balancer
 
 `SHELLHUB_PROXY` enables the PROXY protocol, and `SHELLHUB_PROXY_TRUSTED_IPS` names the peers

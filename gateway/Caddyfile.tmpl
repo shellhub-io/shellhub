@@ -70,6 +70,11 @@
 }
 
 {{ .SiteAddress }} {
+{{- if and .TLS .TLSCertFile .TLSKeyFile }}
+	# Also what keeps Caddy off ACME: with no tls directive the default applies,
+	# which is to ask a public authority for this name.
+	tls {{ .TLSCertFile }} {{ .TLSKeyFile }}
+{{- end }}
 	encode gzip zstd
 
 	# X-Forwarded-Port carries the port the client addressed, which is the one in
