@@ -85,6 +85,46 @@ func TestBinder(t *testing.T) {
 			},
 			wantName: "@@@",
 		},
+		{
+			// A body-less request sent with Transfer-Encoding: chunked (resty does so
+			// since v2.17) has no Content-Length, and Echo's binder would reject the
+			// missing Content-Type with 415 instead of skipping the absent body.
+			description: "succeeds to bind a body-less chunked request",
+			setup: func() echo.Context {
+				e := echo.New()
+				req := httptest.NewRequest(http.MethodPatch, "/", strings.NewReader(""))
+				req.ContentLength = -1
+				c := e.NewContext(req, httptest.NewRecorder())
+				c.SetParamNames("name")
+				c.SetParamValues("test")
+
+				return c
+			},
+			wantName: "test",
+		},
+		{
+			description: "succeeds to bind a chunked json body",
+			setup: func() echo.Context {
+				e := echo.New()
+				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
+				req.ContentLength = -1
+				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+				return e.NewContext(req, httptest.NewRecorder())
+			},
+			wantName: "test",
+		},
+		{
+			description: "fails to bind a chunked body without a content type",
+			setup: func() echo.Context {
+				e := echo.New()
+				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
+				req.ContentLength = -1
+
+				return e.NewContext(req, httptest.NewRecorder())
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tc := range cases {

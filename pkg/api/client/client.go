@@ -96,6 +96,9 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.http.SetRetryCount(math.MaxInt32)
 	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
 	client.http.SetBaseURL(uri.String())
+	// Keeps body-less requests on Content-Length: 0 instead of an empty chunked body, which
+	// proxies and request binders handle far more predictably.
+	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok {
 			log.WithFields(log.Fields{
