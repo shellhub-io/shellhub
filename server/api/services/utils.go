@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 	"os"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {

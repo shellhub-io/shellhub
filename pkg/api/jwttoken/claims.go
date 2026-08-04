@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -20,18 +20,18 @@ type (
 	// claimKind represents the type of claims used in JWT tokens.
 	claimKind string
 
-	// userClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v4.RegisteredClaims]
+	// userClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v5.RegisteredClaims]
 	// into [github.com/shellhub-io/shellhub/pkg/api/authorizer.UserClaims] to convert it into
-	// [github.com/golang-jwt/jwt/v4.Claims] for use in an [encode] call.
+	// [github.com/golang-jwt/jwt/v5.Claims] for use in an [encode] call.
 	userClaims struct {
 		Kind claimKind `json:"claims"`
 		authorizer.UserClaims
 		jwt.RegisteredClaims
 	}
 
-	// deviceClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v4.RegisteredClaims]
+	// deviceClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v5.RegisteredClaims]
 	// into [github.com/shellhub-io/shellhub/pkg/api/authorizer.DeviceClaims] to convert it into
-	// [github.com/golang-jwt/jwt/v4.Claims] for use in an [encode] call.
+	// [github.com/golang-jwt/jwt/v5.Claims] for use in an [encode] call.
 	deviceClaims struct {
 		Kind claimKind `json:"claims"`
 		authorizer.DeviceClaims

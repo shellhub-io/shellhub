@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // encodeClaims encodes the provided claims into a JWT token using the provided RSA private key.
