@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	rediscache "github.com/go-redis/cache/v8"
-	"github.com/go-redis/redis/v8"
+	rediscache "github.com/go-redis/cache/v9"
+	"github.com/redis/go-redis/v9"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	log "github.com/sirupsen/logrus"
