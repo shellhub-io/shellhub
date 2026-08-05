@@ -1,15 +1,5 @@
-import { addDays, differenceInCalendarDays, format } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { type InstallKey } from "@/client";
-
-/** Midnight-UTC RFC3339 string for a date, so it round-trips through a day input. */
-export function startOfDayUtc(date: Date): string {
-  return new Date(`${date.toISOString().slice(0, 10)}T00:00:00Z`).toISOString();
-}
-
-/** The prefilled expiry for a new/never-off key: 30 days out at the start of that day. */
-export function defaultExpiry(): string {
-  return startOfDayUtc(addDays(new Date(), 30));
-}
 
 /**
  * The auto-managed system keys: every namespace has two, discriminated by `type` — `legacy` (devices
@@ -205,6 +195,29 @@ export function getInstallKeyStateLabel(
     default:
       return null;
   }
+}
+
+export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
+  const days = Number(expiresIn);
+  return days > 0 ? { expires_in: days } : {};
+}
+
+export function keyExpiryUpdatePayload(expiresIn: string): {
+  expires_in: number | null;
+} {
+  const days = Number(expiresIn);
+  return { expires_in: days > 0 ? days : null };
+}
+
+export function getRemainingDays(expiresAt: string | null | undefined): {
+  days: string;
+  expired: boolean;
+} {
+  if (expiresAt == null) return { days: "-1", expired: false };
+  const expired = new Date(expiresAt).getTime() <= Date.now();
+  const remaining = differenceInCalendarDays(new Date(expiresAt), new Date());
+  if (remaining < 1) return { days: "1", expired };
+  return { days: String(remaining), expired: false };
 }
 
 export type ExpiryTone = "muted" | "normal" | "warning" | "danger";

@@ -54,14 +54,15 @@ properties:
       Pause or resume the key. Reversible: set to true to stop the key enrolling
       devices, false to re-enable it.
     example: true
-  expires_at:
-    type: string
-    format: date-time
+  expires_in:
+    type: integer
+    minimum: 1
+    maximum: 36500
     nullable: true
     description: |
-      Set a new absolute expiration date (must be in the future). Omit to leave
-      the current expiry unchanged; null makes the key never expire.
-    example: 2026-08-20T00:00:00Z
+      Set a new expiration as days from now (1–36500). Omit to leave the
+      current expiry unchanged; null makes the key never expire.
+    example: 30
   usage_limit:
     type: integer
     minimum: 0

@@ -49,14 +49,14 @@ properties:
     minimum: 0
     maximum: 86400
     example: 3600
-  expires_at:
-    type: string
-    format: date-time
-    nullable: true
+  expires_in:
+    type: integer
+    minimum: 1
+    maximum: 36500
     description: |
-      Absolute date the key expires (must be in the future). Null or omitted
-      means the key never expires.
-    example: 2026-08-20T00:00:00Z
+      How many days the key should keep working (max 36500 ≈ 100 years).
+      Omit it for a key that never expires.
+    example: 30
   usage_limit:
     type: integer
     description: |

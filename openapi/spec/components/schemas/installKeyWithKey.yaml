@@ -51,9 +51,9 @@ properties:
     example: false
   expires_at:
     type: string
-    format: date
+    format: date-time
     nullable: true
-    example: 2026-08-20
+    example: 2026-08-20T00:00:00Z
   created_at:
     type: string
     format: date

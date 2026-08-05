@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { CheckIcon } from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
 import { type InstallKey, type InstallKeyUpdate } from "@/client";
-import { isSystemKey } from "./helpers";
+import {
+  getRemainingDays,
+  isSystemKey,
+  keyExpiryUpdatePayload,
+} from "./helpers";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
@@ -36,7 +40,9 @@ function EditInstallKeyDrawer({
   const [usageLimit, setUsageLimit] = useState(1);
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
-  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [expiresIn, setExpiresIn] = useState("-1");
+  const [expiryTouched, setExpiryTouched] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [nameError, setNameError] = useState("");
@@ -76,11 +82,20 @@ function EditInstallKeyDrawer({
     setUsageLimit(installKey?.usage_limit ?? 1);
     setEphemeral(installKey?.ephemeral ?? false);
     setEphemeralTimeout(installKey?.ephemeral_timeout || 10);
-    setExpiresAt(installKey?.expires_at ?? null);
+    const { days, expired } = getRemainingDays(installKey?.expires_at);
+    setExpiresIn(days);
+    setExpiryTouched(false);
+    setIsExpired(expired);
     setTags(installKey?.tags ?? []);
     setNameError("");
     setError("");
   });
+
+  const handleExpiresInChange = (value: string) => {
+    setExpiresIn(value);
+    setExpiryTouched(true);
+    setIsExpired(false);
+  };
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -135,7 +150,7 @@ function EditInstallKeyDrawer({
             ...modeBody,
             name: name.trim(),
             usage_limit: usageLimit,
-            expires_at: expiresAt,
+            ...(expiryTouched ? keyExpiryUpdatePayload(expiresIn) : {}),
             tags,
             ephemeral,
             // Only meaningful for ephemeral keys; already clamped to 1-10 by the field.
@@ -223,7 +238,18 @@ function EditInstallKeyDrawer({
         />
         {!isSystem && (
           <>
-            <ExpirationField value={expiresAt} onChange={setExpiresAt} />
+            <div>
+              {isExpired && (
+                <Callout variant="warning" className="mb-3">
+                  This key has expired. Set a new expiration to resume
+                  registrations.
+                </Callout>
+              )}
+              <ExpirationField
+                expiresIn={expiresIn}
+                onExpiresInChange={handleExpiresInChange}
+              />
+            </div>
             <div className="space-y-1.5">
               <UsageLimitField value={usageLimit} onChange={setUsageLimit} />
               {usageLimitError && (
