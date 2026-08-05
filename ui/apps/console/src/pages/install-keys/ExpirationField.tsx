@@ -4,13 +4,12 @@ import {
   CheckIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
-import { addDays, startOfMonth } from "date-fns";
+import { addDays, differenceInCalendarDays, startOfMonth } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { formatDateShort } from "@/utils/date";
 import { LABEL } from "@/utils/styles";
-import { defaultExpiry, startOfDayUtc } from "./helpers";
 
 const PRESETS = [
   { label: "30 days", days: 30 },
@@ -31,13 +30,13 @@ const CALENDAR_CLASSNAMES = {
   month_caption: "flex items-center justify-center h-9",
   caption_label: "text-sm font-semibold text-text-primary",
   month_grid: "w-full border-collapse",
-  weekdays: "flex",
+  weekdays: "flex w-full",
   weekday:
-    "w-9 h-8 flex items-center justify-center text-2xs font-mono font-medium uppercase tracking-label text-text-muted",
+    "flex-1 h-8 flex items-center justify-center text-2xs font-mono font-medium uppercase tracking-label text-text-muted",
   week: "flex w-full",
-  day: "p-0",
+  day: "flex-1 p-0",
   day_button:
-    "inline-flex items-center justify-center w-9 h-9 rounded-md text-xs text-text-secondary hover:bg-hover-subtle hover:text-text-primary transition-colors cursor-pointer",
+    "inline-flex items-center justify-center w-full h-9 rounded-md text-xs text-text-secondary hover:bg-hover-subtle hover:text-text-primary transition-colors cursor-pointer",
   today: "[&>button]:text-primary [&>button]:font-semibold",
   selected:
     "[&>button]:bg-primary [&>button]:text-white [&>button]:font-semibold [&>button]:hover:bg-primary [&>button]:hover:text-white",
@@ -48,21 +47,21 @@ const CALENDAR_CLASSNAMES = {
 };
 
 export default function ExpirationField({
-  value,
-  onChange,
+  expiresIn,
+  onExpiresInChange,
 }: {
-  value: string | null;
-  onChange: (value: string | null) => void;
+  expiresIn: string;
+  onExpiresInChange: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
 
-  const never = value === null;
-  const selected = value ? new Date(value) : undefined;
-  const selectedDay = value ? value.slice(0, 10) : null;
+  const days = Number(expiresIn);
+  const never = days < 1;
+  const targetDate = never ? undefined : addDays(new Date(), days);
   const tomorrow = addDays(new Date(), 1);
 
-  const pick = (iso: string | null) => {
-    onChange(iso);
+  const pick = (value: number | null) => {
+    onExpiresInChange(value === null ? "-1" : String(value));
     setOpen(false);
   };
 
@@ -77,7 +76,9 @@ export default function ExpirationField({
           >
             <CalendarDaysIcon className="w-4 h-4 text-text-muted shrink-0" />
             <span className="flex-1 text-left">
-              {never ? "Never expires" : formatDateShort(value ?? "")}
+              {never
+                ? "Never expires"
+                : formatDateShort(targetDate!.toISOString())}
             </span>
             <ChevronDownIcon
               className={cn(
@@ -88,19 +89,15 @@ export default function ExpirationField({
           </button>
         </Dropdown.Trigger>
 
-        <Dropdown.Panel
-          aria-label="Choose an expiration date"
-          className="w-[19rem] p-3"
-        >
+        <Dropdown.Panel aria-label="Choose an expiration date" className="p-3">
           <div className="flex flex-wrap gap-1.5 mb-3">
             {PRESETS.map((preset) => {
-              const iso = startOfDayUtc(addDays(new Date(), preset.days));
-              const active = selectedDay === iso.slice(0, 10);
+              const active = days === preset.days;
               return (
                 <button
                   key={preset.days}
                   type="button"
-                  onClick={() => pick(iso)}
+                  onClick={() => pick(preset.days)}
                   className={cn(
                     "px-2.5 py-1 rounded-md text-2xs font-medium border transition-colors",
                     active
@@ -116,11 +113,15 @@ export default function ExpirationField({
 
           <DayPicker
             mode="single"
-            selected={selected}
-            onSelect={(day) => day && pick(startOfDayUtc(day))}
+            selected={targetDate}
+            onSelect={(day?: Date) => {
+              if (!day) return;
+              const d = differenceInCalendarDays(day, new Date());
+              if (d > 0) pick(d);
+            }}
             disabled={{ before: tomorrow }}
             startMonth={startOfMonth(new Date())}
-            defaultMonth={selected ?? new Date()}
+            defaultMonth={targetDate ?? new Date()}
             showOutsideDays
             classNames={CALENDAR_CLASSNAMES}
           />
@@ -128,7 +129,7 @@ export default function ExpirationField({
           <div className="mt-3 pt-3 border-t border-border">
             <button
               type="button"
-              onClick={() => pick(never ? defaultExpiry() : null)}
+              onClick={() => pick(never ? 30 : null)}
               className={cn(
                 "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors",
                 never
@@ -142,11 +143,6 @@ export default function ExpirationField({
           </div>
         </Dropdown.Panel>
       </Dropdown>
-      <p className="text-2xs text-text-muted mt-1.5">
-        {never
-          ? "The key never expires."
-          : "The key expires at the start of the chosen day."}
-      </p>
     </div>
   );
 }

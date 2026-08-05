@@ -2,20 +2,19 @@ package requests
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 )
 
-// OptionalTime carries RFC 7396 (JSON Merge Patch) semantics for a nullable field in a partial
-// update: an omitted key leaves the value unchanged (Present is false), an explicit null clears it
-// (Present is true, Value is nil), and a timestamp sets it.
-type OptionalTime struct {
+// OptionalInt carries RFC 7396 (JSON Merge Patch) semantics for a nullable integer field in a
+// partial update: an omitted key leaves the value unchanged (Present is false), an explicit null
+// clears it (Present is true, Value is nil), and a number sets it.
+type OptionalInt struct {
 	Present bool
-	Value   *time.Time
+	Value   *int
 }
 
-func (o *OptionalTime) UnmarshalJSON(data []byte) error {
+func (o *OptionalInt) UnmarshalJSON(data []byte) error {
 	o.Present = true
 	if string(data) == "null" {
 		o.Value = nil
@@ -41,9 +40,8 @@ type CreateInstallKey struct {
 	// max 24h) is the deferred-decision token's validity. 0/omitted uses the server default.
 	WebhookTimeout     int `json:"webhook_timeout" validate:"omitempty,min=0,max=15"`
 	WebhookCallbackTTL int `json:"webhook_callback_ttl" validate:"omitempty,min=0,max=86400"`
-	// ExpiresAt is the absolute date the key expires. A null (or omitted) value means the key never
-	// expires. When set, it must be in the future.
-	ExpiresAt *time.Time `json:"expires_at"`
+	// ExpiresIn is how many days from now the key should expire. Nil/omitted means no expiration.
+	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1,max=36500"`
 	// UsageLimit caps how many devices may enroll: 1 is single-use (one-off), a higher value is that
 	// many devices, 0 (or omitted) is unlimited. Whether the key is reusable is derived from this.
 	UsageLimit int  `json:"usage_limit" validate:"omitempty,min=0"`
@@ -83,9 +81,9 @@ type UpdateInstallKey struct {
 	// Disabled toggles the reversible pause. Both true and false are honored, so a disabled key can
 	// be re-enabled (unlike Revoked).
 	Disabled *bool `json:"disabled"`
-	// ExpiresAt sets a new absolute expiration date (must be in the future). Omitted leaves the
-	// current expiry unchanged; null makes the key never expire (RFC 7396 semantics).
-	ExpiresAt OptionalTime `json:"expires_at"`
+	// ExpiresIn sets a new expiration as days from now. RFC 7396: omitted leaves the current expiry
+	// unchanged, null clears it (never expires), a positive integer sets it.
+	ExpiresIn OptionalInt `json:"expires_in"`
 	// UsageLimit sets a new enrollment cap (0 unlimited, 1 single-use, N devices). Nil leaves it
 	// untouched. Reusability is re-derived from it.
 	UsageLimit *int     `json:"usage_limit" validate:"omitempty,min=0"`

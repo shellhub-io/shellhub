@@ -118,11 +118,11 @@ properties:
       created before at-rest encryption. The full key is available via reveal.
     example: 1e7b0f4b
   expires_at:
-    description: The absolute date the key expires. Null means it never expires.
+    description: When the key expires. Null means it never expires.
     type: string
-    format: date
+    format: date-time
     nullable: true
-    example: 2026-08-20
+    example: 2026-08-20T00:00:00Z
   created_at:
     type: string
     description: The UTC date when the key was created.

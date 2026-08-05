@@ -15,7 +15,7 @@ import ExpirationField from "./ExpirationField";
 import ModeField, { type InstallKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
 import {
-  defaultExpiry,
+  keyExpiryPayload,
   parseAllowedMacs,
   validateModeConfig,
   validateName,
@@ -48,7 +48,7 @@ function CreateInstallKeyDrawer({
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
   const [tags, setTags] = useState<string[]>([]);
-  const [expiresAt, setExpiresAt] = useState<string | null>(defaultExpiry());
+  const [expiresIn, setExpiresIn] = useState("30");
   const [submitting, setSubmitting] = useState(false);
   const [nameError, setNameError] = useState("");
   const [error, setError] = useState("");
@@ -74,7 +74,7 @@ function CreateInstallKeyDrawer({
     setEphemeral(false);
     setEphemeralTimeout(10);
     setTags([]);
-    setExpiresAt(defaultExpiry());
+    setExpiresIn("30");
     setNameError("");
     setError("");
     setGeneratedKey("");
@@ -117,7 +117,7 @@ function CreateInstallKeyDrawer({
               }
             : {}),
           ...(mode === "allowlist" ? { allowed_macs: macList } : {}),
-          expires_at: expiresAt,
+          ...keyExpiryPayload(expiresIn),
           // Reusability is derived server-side from this: 1 is single-use,
           // N (>=2) enrolls N devices, 0 is unlimited (reusable forever).
           usage_limit: usageLimit,
@@ -249,7 +249,10 @@ function CreateInstallKeyDrawer({
             webhookCallbackTtl={webhookCallbackTtl}
             onWebhookCallbackTtlChange={setWebhookCallbackTtl}
           />
-          <ExpirationField value={expiresAt} onChange={setExpiresAt} />
+          <ExpirationField
+            expiresIn={expiresIn}
+            onExpiresInChange={setExpiresIn}
+          />
           <UsageLimitField value={usageLimit} onChange={setUsageLimit} />
           <EphemeralField
             id="create-install-key-ephemeral"

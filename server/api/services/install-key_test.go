@@ -50,7 +50,7 @@ func TestCreateInstallKey(t *testing.T) {
 	hashedKey := hex.EncodeToString(keySum[:])
 
 	future := now.AddDate(0, 0, 30)
-	past := now.Add(-time.Hour)
+	days30 := 30
 
 	// InstallKeyCreate receives a struct whose KeyEncrypted has a random nonce, so match on the
 	// deterministic fields and assert the ciphertext and hint were populated.
@@ -93,13 +93,24 @@ func TestCreateInstallKey(t *testing.T) {
 			expectedErr: NewErrNamespaceNotFound(tenant, errors.New("error")),
 		},
 		{
-			description: "fails when the expiration is in the past",
-			req:         &requests.CreateInstallKey{TenantID: tenant, Name: "ci", ExpiresAt: &past},
+			description: "creates a key that never expires when expires_in is omitted",
+			req:         &requests.CreateInstallKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
+				uuidMock := uuidmock.NewMockUUID(t)
+				uuid.DefaultBackend = uuidMock
+				uuidMock.On("Generate").Return(generated).Once()
+				storeMock.On("InstallKeyConflicts", ctx, scope.MustBounded(tenant), &models.InstallKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("InstallKeyCreate", ctx, matchCreate(&models.InstallKey{
+					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
+					CreatedBy: "000000000000000000000000",
+				})).Return(hashedKey, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyIDResolver, hashedKey).
+					Return(&models.InstallKey{ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()
 			},
-			expectedErr: NewErrBadRequest(errors.New("expires_at must be a future date")),
+			expectedKey: plain,
 		},
 		{
 			description: "fails when webhook mode has no http(s) url",
@@ -209,8 +220,8 @@ func TestCreateInstallKey(t *testing.T) {
 			expectedKey: plain,
 		},
 		{
-			description: "stores the provided expiration date",
-			req:         &requests.CreateInstallKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", ExpiresAt: &future},
+			description: "converts expires_in days to an absolute expiry",
+			req:         &requests.CreateInstallKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", ExpiresIn: &days30},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -287,6 +298,14 @@ func TestUpdateInstallKey(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	clockMock := clockmock.NewMockClock(t)
+	prevClock := clock.DefaultBackend
+	clock.DefaultBackend = clockMock
+	defer func() { clock.DefaultBackend = prevClock }()
+	clockMock.On("Now").Return(now).Maybe()
+
 	const tenant = "00000000-0000-4000-0000-000000000000"
 	namespace := &models.Namespace{Name: "namespace", TenantID: tenant}
 	truePtr := true
@@ -295,6 +314,9 @@ func TestUpdateInstallKey(t *testing.T) {
 	limitUnlimited := 0
 	ephemeralTimeout5 := 5
 	modeAutomatic := "automatic"
+	days60 := 60
+	days0 := 0
+	days36501 := 36501
 
 	cases := []struct {
 		description   string
@@ -466,6 +488,74 @@ func TestUpdateInstallKey(t *testing.T) {
 					Return(nil).Once()
 			},
 			expectedErr: nil,
+		},
+		{
+			description: "sets a new expiry from expires_in days",
+			req:         &requests.UpdateInstallKey{TenantID: tenant, CurrentName: "ci", ExpiresIn: requests.OptionalInt{Present: true, Value: &days60}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
+					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				expiry := now.AddDate(0, 0, 60)
+				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &expiry}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "clears the expiry when expires_in is null",
+			req:         &requests.UpdateInstallKey{TenantID: tenant, CurrentName: "ci", ExpiresIn: requests.OptionalInt{Present: true, Value: nil}},
+			requiredMocks: func(ctx context.Context) {
+				existing := now.AddDate(0, 0, 30)
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
+					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing}, nil).Once()
+				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: nil}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "leaves the expiry unchanged when expires_in is omitted",
+			req:         &requests.UpdateInstallKey{TenantID: tenant, CurrentName: "ci", Revoked: &truePtr},
+			requiredMocks: func(ctx context.Context) {
+				existing := now.AddDate(0, 0, 30)
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
+					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing, Reusable: true}, nil).Once()
+				storeMock.On("InstallKeyUpdate", ctx, &models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing, Reusable: true, Revoked: true}).
+					Return(nil).Once()
+			},
+			expectedErr: nil,
+		},
+		{
+			description: "rejects expires_in below 1",
+			req:         &requests.UpdateInstallKey{TenantID: tenant, CurrentName: "ci", ExpiresIn: requests.OptionalInt{Present: true, Value: &days0}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
+					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+			},
+			expectedErr: NewErrInstallKeyInvalidField(map[string]string{
+				"expires_in": "must be between 1 and 36500",
+			}),
+		},
+		{
+			description: "rejects expires_in above 36500",
+			req:         &requests.UpdateInstallKey{TenantID: tenant, CurrentName: "ci", ExpiresIn: requests.OptionalInt{Present: true, Value: &days36501}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("InstallKeyResolve", ctx, mock.Anything, store.InstallKeyNameResolver, "ci").
+					Return(&models.InstallKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+			},
+			expectedErr: NewErrInstallKeyInvalidField(map[string]string{
+				"expires_in": "must be between 1 and 36500",
+			}),
 		},
 		{
 			description: "rejects changing ephemeral on the legacy key",

@@ -29,14 +29,15 @@ const (
 	installKeyMaxEphemeralTimeout = 10
 )
 
-// validateInstallKeyExpiry rejects an expiration that is not in the future. A nil expiry (never
-// expires) is always valid.
-func validateInstallKeyExpiry(expiresAt *time.Time) error {
-	if expiresAt != nil && !expiresAt.After(clock.Now()) {
-		return NewErrBadRequest(errors.New("expires_at must be a future date"))
+// installKeyExpiry converts a relative day count into an absolute timestamp anchored to clock.Now().
+func installKeyExpiry(days *int) *time.Time {
+	if days == nil {
+		return nil
 	}
 
-	return nil
+	at := clock.Now().AddDate(0, 0, *days)
+
+	return &at
 }
 
 // normalizeMACs lowercases and trims each MAC and drops blanks, so allowlist matching is
@@ -190,10 +191,6 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if err := validateInstallKeyExpiry(req.ExpiresAt); err != nil {
-		return nil, err
-	}
-
 	// Default to automatic (the classic auto-accept behavior) when no mode is given.
 	mode := models.InstallKeyMode(req.Mode)
 	if mode == "" {
@@ -254,7 +251,7 @@ func (s *service) CreateInstallKey(ctx context.Context, req *requests.CreateInst
 		Ephemeral:          req.Ephemeral,
 		EphemeralTimeout:   ephemeralTimeout,
 		Tags:               req.Tags,
-		ExpiresAt:          req.ExpiresAt,
+		ExpiresAt:          installKeyExpiry(req.ExpiresIn),
 		CreatedBy:          req.UserID,
 		KeyEncrypted:       encryptedKey,
 		KeyHint:            installKeyHint(key),
@@ -328,7 +325,7 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 	// entirely — devices without a key are rejected). Its other fields (name/lifecycle/limit/tags) are
 	// fixed. Revoke never applies: the legacy key is permanent.
 	if installKey.IsSystem() {
-		if req.Name != "" || req.Revoked != nil || req.UsageLimit != nil || req.ExpiresAt.Present || req.Tags != nil || req.Ephemeral != nil || req.EphemeralTimeout != nil {
+		if req.Name != "" || req.Revoked != nil || req.UsageLimit != nil || req.ExpiresIn.Present || req.Tags != nil || req.Ephemeral != nil || req.EphemeralTimeout != nil {
 			return NewErrInstallKeyForbidden()
 		}
 	} else if installKey.Revoked {
@@ -431,14 +428,14 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 
 	// RFC 7396 semantics: only touch the expiry when the field was sent, so a revoke or disable that
 	// omits it never wipes the key's lifetime. Present with a nil value clears it (never expires).
-	if req.ExpiresAt.Present {
-		if req.ExpiresAt.Value != nil && !req.ExpiresAt.Value.After(clock.Now()) {
+	if req.ExpiresIn.Present {
+		if req.ExpiresIn.Value != nil && (*req.ExpiresIn.Value < 1 || *req.ExpiresIn.Value > 36500) {
 			return NewErrInstallKeyInvalidField(map[string]string{
-				"expires_at": "must be a future date",
+				"expires_in": "must be between 1 and 36500",
 			})
 		}
 
-		installKey.ExpiresAt = req.ExpiresAt.Value
+		installKey.ExpiresAt = installKeyExpiry(req.ExpiresIn.Value)
 	}
 
 	if err := s.store.InstallKeyUpdate(ctx, installKey); err != nil { //nolint:revive
