@@ -16,7 +16,7 @@
             "__PREFERRED_HOSTNAME__",
             "__PREFERRED_IDENTITY__",
             "__KEEPALIVE_INTERVAL__",
-            "SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key"
+            "SHELLHUB_PRIVATE_KEY=/host/etc/shellhub-agent/shellhub.key"
         ],
         "cwd": "/",
         "capabilities": {
