@@ -148,6 +148,42 @@ const (
 	TransportVersion2 TransportVersion = 2
 )
 
+// openStream opens a yamux stream without outliving the caller.
+//
+// Opening does not await an acknowledgement, but it does block where yamux
+// takes no context: the in-flight SYN semaphore, which has no deadline once
+// AcceptBacklog opens are unacknowledged, and sending the SYN, bounded by
+// ConnectionWriteTimeout. Both are reached when the peer stops reading.
+//
+// The open is left running so a stream that lands late is closed rather than
+// leaked on the device.
+func openStream(ctx context.Context, session *yamux.Session) (net.Conn, error) { //nolint:ireturn
+	type opened struct {
+		conn net.Conn
+		err  error
+	}
+
+	done := make(chan opened, 1)
+
+	go func() {
+		conn, err := session.Open()
+		done <- opened{conn: conn, err: err}
+	}()
+
+	select {
+	case result := <-done:
+		return result.conn, result.err
+	case <-ctx.Done():
+		go func() {
+			if result := <-done; result.err == nil {
+				result.conn.Close() //nolint:errcheck
+			}
+		}()
+
+		return nil, ctx.Err()
+	}
+}
+
 // Dial tries to find a connection by its key and dials it.
 //
 // It returns the connection, its version ([TransportVersion1] or [TransportVersion2]) and an error,
@@ -189,7 +225,7 @@ func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, TransportVers
 			"version": "v2",
 		}).Debug("using v2 connection for reverse tunnel dialing")
 
-		conn, err := session.Open()
+		conn, err := openStream(ctx, session)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"key":     key,
