@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
@@ -109,7 +110,7 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 // accepts the stream but never answers fails here instead of parking the
 // caller's goroutine until whatever sits in front times out.
 func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { // nolint:ireturn
-	deadline := time.Now().Add(HandshakeTimeout)
+	deadline := clock.Now().Add(HandshakeTimeout)
 	if caller, ok := ctx.Deadline(); ok && caller.Before(deadline) {
 		deadline = caller
 	}
