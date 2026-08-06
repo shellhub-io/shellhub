@@ -93,7 +93,7 @@ func startsDataPipe(requestType string) bool {
 //
 // https://www.rfc-editor.org/rfc/rfc4254#section-6
 func DefaultSessionHandler() gliderssh.ChannelHandler {
-	return func(_ *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+	return func(_ *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		sess, state := session.ObtainSession(ctx)
 		if sess == nil || state < session.StateFinished {
 			// Unreachable today: a channel only opens once authentication has
@@ -107,14 +107,6 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 			return
 		}
-
-		go func() {
-			// NOTE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
-			// other channel invocation. To avoid it, we wait for the connection to be closed to finish the session.
-			conn.Wait() //nolint:errcheck
-
-			sess.Finish() //nolint:errcheck
-		}()
 
 		logger := log.WithFields(
 			log.Fields{
