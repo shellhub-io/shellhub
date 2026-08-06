@@ -1,15 +1,12 @@
 import { type ReactNode, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
-import {
-  ArrowLeftIcon,
-  ClockIcon,
-  TicketIcon,
-} from "@heroicons/react/24/outline";
+import { useLocation, useParams } from "react-router-dom";
+import { ClockIcon, TicketIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon as ExclamationCircleSolidIcon } from "@heroicons/react/24/solid";
 import { IconBadge } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
 import PageLoader from "@/components/common/PageLoader";
+import Breadcrumb from "@/components/common/Breadcrumb";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import InstallKeyEventsTable from "./InstallKeyEventsTable";
 import InstallKeyActions from "./InstallKeyActions";
@@ -74,13 +71,13 @@ export default function InstallKeyHistoryPage() {
 
   return (
     <div>
-      <Link
-        to="/install-keys"
-        className="mb-4 inline-flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-text-primary"
-      >
-        <ArrowLeftIcon className="w-3.5 h-3.5" strokeWidth={2} />
-        Install Keys
-      </Link>
+      <Breadcrumb
+        items={[
+          { label: "Install Keys", to: "/install-keys" },
+          { label: name || "Install Key" },
+        ]}
+        className="mb-4"
+      />
 
       <div className="mb-7">
         <div className="flex items-center gap-3">
