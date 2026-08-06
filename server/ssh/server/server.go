@@ -22,6 +22,25 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+// finishingConn finishes the session bound to a connection when it closes.
+//
+// A channel handler cannot carry this: a client that opens no channel leaves
+// the session with nothing to finish it. The library closes this connection on
+// every exit path, so it is the one signal every session gets.
+type finishingConn struct {
+	net.Conn
+
+	ctx gliderssh.Context
+}
+
+func (c *finishingConn) Close() error {
+	if sess, _ := session.ObtainSession(c.ctx); sess != nil {
+		sess.Finish() //nolint:errcheck
+	}
+
+	return c.Conn.Close()
+}
+
 type Options struct {
 	ConnectTimeout time.Duration
 	// HostKeyFile is the path to the SSH host key. It is deliberately not read
@@ -248,9 +267,13 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 		// that is never cleared, so it would kill established shells at the limit.
 		HandshakeTimeout: handshakeBudget,
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
-			ctx.SetValue("conn", conn)
+			wrapped := &finishingConn{Conn: conn, ctx: ctx}
 
-			return conn
+			// Stored wrapped as well: the auth handlers close this on a failed
+			// guard, and that has to finish the session too.
+			ctx.SetValue("conn", net.Conn(wrapped))
+
+			return wrapped
 		},
 		ServerConfigCallback: newServerConfigCallback,
 		BannerHandler:        newBannerHandler(dialer, service, handoff),

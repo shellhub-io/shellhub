@@ -14,7 +14,7 @@ import (
 
 // DefaultDirectTCPIPHandler is the channel's handler for direct-tcpip channels like "local port forwarding" and "dynamic
 // application-level port forwarding".
-func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
+func DefaultDirectTCPIPHandler(server *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 	sess, state := session.ObtainSession(ctx)
 	if sess == nil || state < session.StateFinished {
 		// See the same guard in the session channel handler: unreachable today,
@@ -26,14 +26,6 @@ func DefaultDirectTCPIPHandler(server *gliderssh.Server, conn *gossh.ServerConn,
 
 		return
 	}
-
-	go func() {
-		// NOTICE: As [gossh.ServerConn] is shared by all channels calls, close it after a channel close block any
-		// other channel involkation. To avoid it, we wait for the connection be closed to finish the sesison.
-		conn.Wait() //nolint:errcheck
-
-		sess.Finish() //nolint:errcheck
-	}()
 
 	log.WithFields(log.Fields{
 		"username": sess.Target.Username,
