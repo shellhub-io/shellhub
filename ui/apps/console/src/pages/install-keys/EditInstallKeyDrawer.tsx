@@ -59,6 +59,8 @@ function EditInstallKeyDrawer({
     macList,
     {
       secretOptional: alreadyWebhook,
+      webhookTimeout,
+      webhookCallbackTtl,
     },
   );
 
@@ -235,6 +237,8 @@ function EditInstallKeyDrawer({
           onWebhookTimeoutChange={setWebhookTimeout}
           webhookCallbackTtl={webhookCallbackTtl}
           onWebhookCallbackTtlChange={setWebhookCallbackTtl}
+          isEditing={alreadyWebhook}
+          panelKey={installKey?.name}
         />
         {!isSystem && (
           <>

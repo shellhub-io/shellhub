@@ -7,6 +7,7 @@ import {
   getUsageInfo,
   installKeyDisplayName,
   isPairingKey,
+  isWebhookUrl,
   parseAllowedMacs,
   resolveEnrollmentSource,
   validateModeConfig,
@@ -158,13 +159,38 @@ describe("getExpiryInfo", () => {
   });
 });
 
+describe("isWebhookUrl", () => {
+  it.each([
+    "https://hook.example.com",
+    "http://10.0.0.1:8080/hook",
+    "https://register.example.com/v1/enroll?key=abc",
+  ])("accepts %s", (url) => {
+    expect(isWebhookUrl(url)).toBe(true);
+  });
+
+  it.each([
+    ["https://", "protocol-only, no host"],
+    ["ftp://files.example.com", "wrong protocol"],
+    ["not-a-url", "plain string"],
+    ["", "empty string"],
+    ["   ", "whitespace only"],
+  ])("rejects %s (%s)", (url) => {
+    expect(isWebhookUrl(url)).toBe(false);
+  });
+
+  it("trims surrounding whitespace before validating", () => {
+    expect(isWebhookUrl("  https://example.com  ")).toBe(true);
+  });
+});
+
 describe("validateModeConfig", () => {
   it("accepts a non-webhook, non-allowlist mode with no extra config", () => {
     expect(validateModeConfig("automatic", "", "", [])).toBe("");
   });
 
-  it("requires an http(s) url and a secret for webhook mode", () => {
+  it("requires a structurally valid http(s) url and a secret for webhook mode", () => {
     expect(validateModeConfig("webhook", "not-a-url", "s", [])).not.toBe("");
+    expect(validateModeConfig("webhook", "https://", "s", [])).not.toBe("");
     expect(
       validateModeConfig("webhook", "https://hook.example", "", []),
     ).not.toBe("");
@@ -180,6 +206,16 @@ describe("validateModeConfig", () => {
     );
   });
 
+  it("rejects an out-of-range timeout or callback window", () => {
+    const valid = (opts = {}) =>
+      validateModeConfig("webhook", "https://hook.example", "s", [], opts);
+    expect(valid({ webhookTimeout: 0 })).not.toBe("");
+    expect(valid({ webhookTimeout: 16 })).not.toBe("");
+    expect(valid({ webhookCallbackTtl: 0 })).not.toBe("");
+    expect(valid({ webhookCallbackTtl: 25 * 3600 })).not.toBe("");
+    expect(valid({ webhookTimeout: 5, webhookCallbackTtl: 3600 })).toBe("");
+  });
+
   it("lets a blank secret pass when it is optional (editing a webhook key)", () => {
     expect(
       validateModeConfig("webhook", "https://hook.example", "", []),
@@ -189,7 +225,6 @@ describe("validateModeConfig", () => {
         secretOptional: true,
       }),
     ).toBe("");
-    // The URL is still validated even when the secret is optional.
     expect(
       validateModeConfig("webhook", "bad", "", [], { secretOptional: true }),
     ).not.toBe("");

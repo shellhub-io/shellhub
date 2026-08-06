@@ -1,8 +1,17 @@
-import { type KeyboardEvent, useRef } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
+import NumericInput from "@/components/common/fields/NumericInput";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import { LABEL } from "@/utils/styles";
 import { MODE_INFO } from "./constants";
+import {
+  TIMEOUT_MIN,
+  TIMEOUT_MAX,
+  WINDOW_MIN_H,
+  WINDOW_MAX_H,
+  isWebhookUrl,
+} from "./helpers";
 
 export type InstallKeyMode = "automatic" | "manual" | "webhook" | "allowlist";
 
@@ -12,10 +21,144 @@ const OPTIONS = (
   ["automatic", "manual", "webhook", "allowlist"] as InstallKeyMode[]
 ).map((value) => ({ value, ...MODE_INFO[value] }));
 
-/**
- * The enrollment policy for a key: a list of selectable cards (title + description) across the four
- * modes, revealing the mode-specific config (webhook endpoint + secret, or the MAC allowlist) beneath.
- */
+function WebhookPanel({
+  idPrefix,
+  webhookUrl,
+  onWebhookUrlChange,
+  webhookSecret,
+  onWebhookSecretChange,
+  webhookTimeout,
+  onWebhookTimeoutChange,
+  webhookCallbackTtl,
+  onWebhookCallbackTtlChange,
+  isEditing,
+}: {
+  idPrefix: string;
+  webhookUrl: string;
+  onWebhookUrlChange: (value: string) => void;
+  webhookSecret: string;
+  onWebhookSecretChange: (value: string) => void;
+  webhookTimeout: number;
+  onWebhookTimeoutChange: (value: number) => void;
+  webhookCallbackTtl: number;
+  onWebhookCallbackTtlChange: (value: number) => void;
+  isEditing?: boolean;
+}) {
+  const [urlError, setUrlError] = useState("");
+  const [timeoutStr, setTimeoutStr] = useState(String(webhookTimeout || 5));
+  const [windowStr, setWindowStr] = useState(
+    String(Math.round((webhookCallbackTtl || 3600) / 3600)),
+  );
+
+  const handleUrlChange = (value: string) => {
+    onWebhookUrlChange(value);
+    if (urlError && isWebhookUrl(value)) setUrlError("");
+  };
+
+  const handleUrlBlur = () => {
+    if (webhookUrl.trim() && !isWebhookUrl(webhookUrl)) {
+      setUrlError("Webhook URL must be a valid http or https URL.");
+    }
+  };
+
+  const clamp = (n: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, n));
+
+  const rangeError = (raw: string, min: number, max: number) => {
+    const n = parseInt(raw, 10);
+    if (!raw || Number.isNaN(n) || n < min || n > max)
+      return `Must be ${min}–${max}.`;
+    return undefined;
+  };
+
+  const timeoutError = rangeError(timeoutStr, TIMEOUT_MIN, TIMEOUT_MAX);
+  const windowError = rangeError(windowStr, WINDOW_MIN_H, WINDOW_MAX_H);
+
+  const handleTimeoutChange = (raw: string) => {
+    setTimeoutStr(raw);
+    const n = parseInt(raw, 10);
+    onWebhookTimeoutChange(!raw || Number.isNaN(n) ? 0 : n);
+  };
+
+  const handleTimeoutBlur = () => {
+    const n = clamp(
+      parseInt(timeoutStr, 10) || TIMEOUT_MIN,
+      TIMEOUT_MIN,
+      TIMEOUT_MAX,
+    );
+    setTimeoutStr(String(n));
+    onWebhookTimeoutChange(n);
+  };
+
+  const handleWindowChange = (raw: string) => {
+    setWindowStr(raw);
+    const n = parseInt(raw, 10);
+    onWebhookCallbackTtlChange(!raw || Number.isNaN(n) ? 0 : n * 3600);
+  };
+
+  const handleWindowBlur = () => {
+    const n = clamp(
+      parseInt(windowStr, 10) || WINDOW_MIN_H,
+      WINDOW_MIN_H,
+      WINDOW_MAX_H,
+    );
+    setWindowStr(String(n));
+    onWebhookCallbackTtlChange(n * 3600);
+  };
+
+  const secretHint = isEditing
+    ? "Leave blank to keep the current secret. Signs the request as the X-ShellHub-Signature header (HMAC-SHA256)."
+    : "Signs the request as the X-ShellHub-Signature header (HMAC-SHA256), so your endpoint can verify it came from ShellHub.";
+
+  return (
+    <div className="space-y-3 border-t border-primary/20 bg-card/40 px-3.5 py-3">
+      <InputField
+        id={`${idPrefix}-webhook-url`}
+        label="Webhook URL"
+        value={webhookUrl}
+        onChange={handleUrlChange}
+        onBlur={handleUrlBlur}
+        placeholder="https://register.example.com/hook"
+        hint="Called with a signed payload at registration. http or https."
+        error={urlError || undefined}
+        autoComplete="webhook"
+      />
+      <PasswordField
+        id={`${idPrefix}-webhook-secret`}
+        label="Signing secret"
+        value={webhookSecret}
+        suppressPasswordManager
+        onChange={onWebhookSecretChange}
+        hint={secretHint}
+      />
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-1 min-w-[10rem]">
+          <NumericInput
+            id={`${idPrefix}-webhook-timeout`}
+            label="Reply timeout (s)"
+            value={timeoutStr}
+            onChange={handleTimeoutChange}
+            onBlur={handleTimeoutBlur}
+            hint="How long ShellHub waits for your endpoint to answer, in seconds (1–15)."
+            error={timeoutError}
+          />
+        </div>
+        <div className="flex-1 min-w-[10rem]">
+          <NumericInput
+            id={`${idPrefix}-webhook-window`}
+            label="Callback window (h)"
+            value={windowStr}
+            onChange={handleWindowChange}
+            onBlur={handleWindowBlur}
+            hint="If your endpoint replies later instead of right away, how long it has to call back (up to 24h)."
+            error={windowError}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ModeField({
   idPrefix,
   mode,
@@ -30,6 +173,8 @@ export default function ModeField({
   onWebhookTimeoutChange,
   webhookCallbackTtl,
   onWebhookCallbackTtlChange,
+  isEditing,
+  panelKey,
 }: {
   // Unique per drawer: Create and Edit are both mounted at once, so shared field ids would cross-wire
   // their labels (a click in one drawer targeting the other's inert input).
@@ -46,10 +191,9 @@ export default function ModeField({
   onWebhookTimeoutChange: (value: number) => void;
   webhookCallbackTtl: number;
   onWebhookCallbackTtlChange: (value: number) => void;
+  isEditing?: boolean;
+  panelKey?: string;
 }) {
-  const clamp = (n: number, min: number, max: number) =>
-    Math.min(max, Math.max(min, n));
-
   // Roving-tabindex radiogroup: Tab lands on the selected option, then arrows move the selection (and
   // focus) between the four, wrapping around — the keyboard behavior a radiogroup is expected to have.
   const radioRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -129,52 +273,19 @@ export default function ModeField({
               </button>
 
               {selected && option.value === "webhook" && (
-                <div className="space-y-3 border-t border-primary/20 bg-card/40 px-3.5 py-3">
-                  <InputField
-                    id={`${idPrefix}-webhook-url`}
-                    label="Webhook URL"
-                    value={webhookUrl}
-                    onChange={onWebhookUrlChange}
-                    placeholder="https://register.example.com/hook"
-                    hint="Called with a signed payload at registration. http or https."
-                  />
-                  <InputField
-                    id={`${idPrefix}-webhook-secret`}
-                    label="Signing secret"
-                    type="password"
-                    value={webhookSecret}
-                    onChange={onWebhookSecretChange}
-                    hint="Signs the request as the X-ShellHub-Signature header (HMAC-SHA256), so your endpoint can verify it came from ShellHub."
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <InputField
-                      id={`${idPrefix}-webhook-timeout`}
-                      label="Reply timeout (s)"
-                      type="number"
-                      value={String(webhookTimeout || 5)}
-                      onChange={(v) =>
-                        onWebhookTimeoutChange(
-                          clamp(parseInt(v, 10) || 5, 1, 15),
-                        )
-                      }
-                      hint="How long ShellHub waits for your endpoint to answer, in seconds (1–15)."
-                    />
-                    <InputField
-                      id={`${idPrefix}-webhook-window`}
-                      label="Callback window (h)"
-                      type="number"
-                      value={String(
-                        Math.round((webhookCallbackTtl || 3600) / 3600),
-                      )}
-                      onChange={(v) =>
-                        onWebhookCallbackTtlChange(
-                          clamp(parseInt(v, 10) || 1, 1, 24) * 3600,
-                        )
-                      }
-                      hint="If your endpoint replies later instead of right away, how long it has to call back (up to 24h)."
-                    />
-                  </div>
-                </div>
+                <WebhookPanel
+                  key={panelKey}
+                  idPrefix={idPrefix}
+                  webhookUrl={webhookUrl}
+                  onWebhookUrlChange={onWebhookUrlChange}
+                  webhookSecret={webhookSecret}
+                  onWebhookSecretChange={onWebhookSecretChange}
+                  webhookTimeout={webhookTimeout}
+                  onWebhookTimeoutChange={onWebhookTimeoutChange}
+                  webhookCallbackTtl={webhookCallbackTtl}
+                  onWebhookCallbackTtlChange={onWebhookCallbackTtlChange}
+                  isEditing={isEditing}
+                />
               )}
 
               {selected && option.value === "allowlist" && (

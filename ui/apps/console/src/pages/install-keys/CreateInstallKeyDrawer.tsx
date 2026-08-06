@@ -60,6 +60,7 @@ function CreateInstallKeyDrawer({
     webhookUrl,
     webhookSecret,
     macList,
+    { webhookTimeout, webhookCallbackTtl },
   );
 
   useResetOnOpen(open, () => {
