@@ -62,6 +62,20 @@ export function validateName(value: string): string {
   return "";
 }
 
+export const TIMEOUT_MIN = 1;
+export const TIMEOUT_MAX = 15;
+export const WINDOW_MIN_H = 1;
+export const WINDOW_MAX_H = 24;
+
+export function isWebhookUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Client-side check of a mode's required config, mirroring the API: webhook needs an https URL and a
  * secret; allowlist needs at least one MAC. Returns an error message, or "" when valid. Pass
@@ -73,13 +87,28 @@ export function validateModeConfig(
   webhookUrl: string,
   webhookSecret: string,
   macs: string[],
-  options: { secretOptional?: boolean } = {},
+  options: {
+    secretOptional?: boolean;
+    webhookTimeout?: number;
+    webhookCallbackTtl?: number;
+  } = {},
 ): string {
   if (mode === "webhook") {
-    if (!/^https?:\/\//.test(webhookUrl.trim()))
+    if (!isWebhookUrl(webhookUrl))
       return "Webhook URL must be an http or https URL.";
     if (!webhookSecret && !options.secretOptional)
       return "A signing secret is required for webhook mode.";
+    const { webhookTimeout, webhookCallbackTtl } = options;
+    if (
+      webhookTimeout !== undefined &&
+      (webhookTimeout < TIMEOUT_MIN || webhookTimeout > TIMEOUT_MAX)
+    )
+      return `Reply timeout must be ${TIMEOUT_MIN}–${TIMEOUT_MAX} seconds.`;
+    if (webhookCallbackTtl !== undefined) {
+      const hours = Math.round(webhookCallbackTtl / 3600);
+      if (hours < WINDOW_MIN_H || hours > WINDOW_MAX_H)
+        return `Callback window must be ${WINDOW_MIN_H}–${WINDOW_MAX_H} hours.`;
+    }
   }
   if (mode === "allowlist" && macs.length === 0) {
     return "Add at least one MAC address for allowlist mode.";
