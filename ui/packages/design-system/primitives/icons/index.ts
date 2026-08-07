@@ -1,4 +1,5 @@
 export { GithubIcon } from "./GithubIcon";
+export { GoogleIcon } from "./GoogleIcon";
 export { TwitterXIcon } from "./TwitterXIcon";
 export { DiscordIcon } from "./DiscordIcon";
 export { DockerIcon } from "./DockerIcon";

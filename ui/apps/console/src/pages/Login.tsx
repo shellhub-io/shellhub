@@ -18,6 +18,8 @@ import { isCloud, isEnterpriseOrCloud } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
+import { useAuthConnectors } from "@/hooks/useAuthConnectors";
+import AuthConnectorButtons from "@/components/auth/AuthConnectorButtons";
 import {
   FormInputField,
   FormPasswordField,
@@ -83,12 +85,14 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
   const missingAssertions = searchParams.get("missing_assertions");
+  const ssoError = searchParams.get("sso_error");
   const [tokenLoading, setTokenLoading] = useState(!!queryToken);
   const [authentication, setAuthentication] = useState<{
     local?: boolean;
     saml?: boolean;
   } | null>(null);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const { connectors } = useAuthConnectors(isEnterpriseOrCloudEdition);
 
   useEffect(() => {
     if (notice) {
@@ -206,6 +210,9 @@ export default function Login() {
   const showLocalForm =
     !isEnterpriseOrCloudEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseOrCloudEdition && authentication?.local === false;
+  const hasSso =
+    isEnterpriseOrCloudEdition &&
+    (!!authentication?.saml || connectors.length > 0);
 
   // Already authenticated (e.g. straight after setup's auto-login): the login form
   // has nothing to do here, so send the user into the app. Skipped while a query
@@ -251,6 +258,7 @@ export default function Login() {
       {(lockoutExpired ||
         !!notice ||
         !!missingAssertions ||
+        !!ssoError ||
         (!!error && !lockoutExpired)) && (
         <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
           {lockoutExpired && (
@@ -263,6 +271,13 @@ export default function Login() {
             <Callout variant="error">
               The SSO configuration is incomplete due to missing required
               mappings. Please contact your administrator.
+            </Callout>
+          )}
+          {ssoError && (
+            <Callout variant="error">
+              {ssoError === "invalid_state"
+                ? "That sign-in did not start in this browser. Please try again."
+                : "Sign-in through your identity provider failed. Please try again or contact your administrator."}
             </Callout>
           )}
           {error && !lockoutExpired && (
@@ -330,13 +345,13 @@ export default function Login() {
       )}
 
       {/* SSO login */}
-      {isEnterpriseOrCloudEdition && authentication?.saml && (
+      {hasSso && (
         <div
-          className="w-full max-w-sm animate-slide-up"
+          className="w-full max-w-sm animate-slide-up flex flex-col gap-3"
           style={{ animationDelay: ssoOnly ? "200ms" : "300ms" }}
         >
           {!ssoOnly && (
-            <div className="flex items-center gap-3 my-4">
+            <div className="flex items-center gap-3 my-1">
               <div className="flex-1 h-px bg-border" />
               <span className="text-2xs font-mono text-text-muted uppercase tracking-label">
                 or
@@ -345,17 +360,28 @@ export default function Login() {
             </div>
           )}
 
-          <Button
-            variant={ssoOnly ? "primary" : "secondary"}
-            fullWidth
-            loading={ssoLoading}
-            disabled={ssoLoading}
-            icon={<ArrowRightEndOnRectangleIcon className="w-4 h-4" />}
-            data-testid="sso-btn"
-            onClick={() => void handleSsoLogin()}
-          >
-            Login with SSO
-          </Button>
+          <AuthConnectorButtons
+            connectors={connectors}
+            variant={
+              ssoOnly && connectors.length === 1 ? "primary" : "secondary"
+            }
+          />
+
+          {authentication?.saml && (
+            <Button
+              variant={
+                ssoOnly && connectors.length === 0 ? "primary" : "secondary"
+              }
+              fullWidth
+              loading={ssoLoading}
+              disabled={ssoLoading}
+              icon={<ArrowRightEndOnRectangleIcon className="w-4 h-4" />}
+              data-testid="sso-btn"
+              onClick={() => void handleSsoLogin()}
+            >
+              Login with SSO
+            </Button>
+          )}
         </div>
       )}
 

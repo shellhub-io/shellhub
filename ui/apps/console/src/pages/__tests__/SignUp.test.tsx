@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSignUpStore } from "@/stores/signUpStore";
 import SignUp from "../SignUp";
 
@@ -21,6 +22,24 @@ vi.mock("@/client", () => ({
   resendEmail: vi.fn(),
   getValidateAccount: vi.fn(),
 }));
+
+// The generated query helpers import the SDK from '../sdk.gen', out of reach of the '@/client'
+// mock above, so the one query this page makes is stubbed at its own boundary.
+const authConnectors = vi.hoisted(() => ({
+  value: [] as { id: string; type: string; name: string }[],
+}));
+
+vi.mock("@/client/@tanstack/react-query.gen", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/client/@tanstack/react-query.gen")>();
+  return {
+    ...actual,
+    listAuthConnectorsOptions: () => ({
+      queryKey: ["listAuthConnectors"],
+      queryFn: () => Promise.resolve(authConnectors.value),
+    }),
+  };
+});
 
 import { registerUser as registerUserSdk } from "@/client";
 
@@ -45,10 +64,16 @@ function mockSdkResponse<T>(data: T): SdkResponse<T> {
 /* ------------------------------------------------------------------ */
 
 function renderSignUp(search = "") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   return render(
-    <MemoryRouter initialEntries={[`/signup${search}`]}>
-      <SignUp />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[`/signup${search}`]}>
+        <SignUp />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
