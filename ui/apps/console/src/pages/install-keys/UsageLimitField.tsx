@@ -51,17 +51,17 @@ export default function UsageLimitField({
   return (
     <div>
       <span className={LABEL}>Usage limit</span>
-      <div className="flex items-stretch h-11 bg-card border border-border rounded-lg overflow-hidden">
+      <div className="flex @sm/drawer:flex-row flex-col bg-card border border-border rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => onChange(1)}
-          className={`${capBase} ${mode === "single" ? capOn : capOff}`}
+          className={`${capBase} h-11 justify-center ${mode === "single" ? capOn : capOff}`}
         >
           <span className="text-xs leading-none">1&times;</span> Single-use
         </button>
 
         <div
-          className={`flex items-center flex-1 min-w-0 border-x border-border transition-colors ${
+          className={`flex items-center @sm/drawer:flex-1 min-w-0 h-11 @sm/drawer:border-x border-y @sm/drawer:border-y-0 border-border transition-colors ${
             mode === "limited" ? "bg-primary/[0.07]" : ""
           }`}
         >
@@ -89,7 +89,7 @@ export default function UsageLimitField({
         <button
           type="button"
           onClick={() => onChange(0)}
-          className={`${capBase} ${mode === "unlimited" ? capOn : capOff}`}
+          className={`${capBase} h-11 justify-center ${mode === "unlimited" ? capOn : capOff}`}
         >
           <span className="text-[15px] leading-none">&#8734;</span> Unlimited
         </button>
