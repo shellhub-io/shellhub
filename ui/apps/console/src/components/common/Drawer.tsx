@@ -56,7 +56,7 @@ export default function Drawer({
         aria-hidden={!open}
         {...(!open ? { inert: true } : {})}
         className={cn(
-          "fixed inset-y-0 right-0 z-drawer w-full",
+          "fixed inset-y-0 right-0 z-drawer w-full @container/drawer",
           WIDTH_MAP[width],
           "bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",
