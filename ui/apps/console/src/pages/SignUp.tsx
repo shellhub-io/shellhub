@@ -6,6 +6,8 @@ import { signUpResolver } from "./setup/signUpResolver";
 import type { SignUpFormValues } from "./setup/signUpResolver";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
+import AuthConnectorButtons from "@/components/auth/AuthConnectorButtons";
+import { useAuthConnectors } from "@/hooks/useAuthConnectors";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import {
   FormInputField,
@@ -30,6 +32,7 @@ const SERVER_FIELD_MESSAGES: Record<string, string> = {
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { connectors } = useAuthConnectors();
   const signUp = useSignUpStore((s) => s.signUp);
   const signUpLoading = useSignUpStore((s) => s.signUpLoading);
   const signUpError = useSignUpStore((s) => s.signUpError);
@@ -141,6 +144,25 @@ export default function SignUp() {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        {/* Identity providers — signing up through one skips the form and the confirmation email,
+            since the provider already proved the address. */}
+        {connectors.length > 0 && (
+          <div
+            className="flex flex-col gap-3 animate-slide-up"
+            style={{ animationDelay: "100ms" }}
+          >
+            <AuthConnectorButtons connectors={connectors} />
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-2xs font-mono text-text-muted uppercase tracking-label">
+                or
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          </div>
+        )}
+
         {/* Form card */}
         <div
           className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"

@@ -35,6 +35,7 @@ export type { CalloutVariant, CalloutProps } from "./Callout";
 export { Dropdown } from "./Dropdown";
 export {
   GithubIcon,
+  GoogleIcon,
   TwitterXIcon,
   DiscordIcon,
   DockerIcon,

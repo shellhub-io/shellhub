@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import type { UserAuth, Info } from "@/client";
 import Login from "../Login";
@@ -26,6 +27,29 @@ vi.mock("@/client", () => ({
   getInfo: vi.fn(),
   getSamlAuthUrl: vi.fn(),
 }));
+
+// The generated query helpers import the SDK from '../sdk.gen', so mocking '@/client' does not
+// reach them. Overriding the one query option keeps the hook itself under test.
+const authConnectors = vi.hoisted(() => ({
+  value: [] as { id: string; type: string; name: string }[],
+  fails: false,
+}));
+
+vi.mock("@/client/@tanstack/react-query.gen", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/client/@tanstack/react-query.gen")>();
+  return {
+    ...actual,
+    listAuthConnectorsOptions: () => ({
+      queryKey: ["listAuthConnectors"],
+      queryFn: () =>
+        authConnectors.fails
+          ? Promise.reject(new Error("unreachable"))
+          : Promise.resolve(authConnectors.value),
+    }),
+  };
+});
+
 import {
   login as loginSdk,
   getInfo as getInfoSdk,
@@ -92,10 +116,16 @@ function makeSdkError(status: number, headers?: Record<string, string>) {
 }
 
 function renderLogin() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   return render(
-    <MemoryRouter>
-      <Login />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
@@ -119,6 +149,8 @@ beforeEach(() => {
   mockNavigate.mockReset();
   mockedLogin.mockReset();
   mockedGetSamlAuthUrl.mockReset();
+  authConnectors.value = [];
+  authConnectors.fails = false;
   mockedGetInfo.mockResolvedValue(
     mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
   );
@@ -425,6 +457,78 @@ describe("Login", () => {
       expect(
         screen.queryByText(/too many failed login attempts/i),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("identity provider buttons", () => {
+    const enterpriseWithConnectors = (
+      connectors: { id: string; type: string; name: string }[],
+    ) => {
+      mockedGetConfig.mockReturnValue({
+        ...defaultConfig,
+        edition: "enterprise",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: false } }),
+        ),
+      );
+      authConnectors.value = connectors;
+    };
+
+    it("shows one button per configured identity provider", async () => {
+      enterpriseWithConnectors([
+        { id: "acme-okta", type: "oidc", name: "Acme Okta" },
+        { id: "corp-ldap", type: "ldap", name: "Corp Directory" },
+      ]);
+
+      renderLogin();
+
+      expect(
+        await screen.findByRole("button", { name: /Continue with Acme Okta/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Continue with Corp Directory/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("starts the login at the provider when its button is clicked", async () => {
+      enterpriseWithConnectors([
+        { id: "acme okta", type: "oidc", name: "Acme Okta" },
+      ]);
+
+      const assign = vi.fn();
+      vi.spyOn(window, "location", "get").mockReturnValue({
+        ...window.location,
+        assign,
+      });
+
+      renderLogin();
+
+      await userEvent.click(
+        await screen.findByRole("button", { name: /Continue with Acme Okta/i }),
+      );
+
+      expect(assign).toHaveBeenCalledWith("/api/auth/sso/acme%20okta");
+    });
+
+    it("keeps the local form usable when the connector list cannot be read", async () => {
+      mockedGetConfig.mockReturnValue({
+        ...defaultConfig,
+        edition: "enterprise",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: false } }),
+        ),
+      );
+      authConnectors.fails = true;
+
+      renderLogin();
+
+      expect(
+        await screen.findByRole("button", { name: /sign in/i }),
+      ).toBeInTheDocument();
     });
   });
 
