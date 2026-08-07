@@ -1,0 +1,27 @@
+type: object
+description: An external identity provider users can authenticate against.
+required:
+  - id
+  - type
+  - name
+properties:
+  id:
+    type: string
+    description: Stable identifier, used to start a login against this provider.
+    example: acme-okta
+  type:
+    type: string
+    description: The upstream protocol or vendor this provider speaks.
+    enum:
+      - oidc
+      - saml
+      - ldap
+      - github
+      - gitlab
+      - google
+      - microsoft
+    example: oidc
+  name:
+    type: string
+    description: Display name, shown on the login button.
+    example: Acme Okta

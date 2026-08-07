@@ -1,0 +1,39 @@
+type: object
+description: |
+  An identity provider together with its configuration. The configuration is passed through to the
+  embedded provider unchanged, so its shape depends on the type: an OIDC provider takes `issuer`,
+  `clientID`, `clientSecret` and `redirectURI`, while a SAML one takes `ssoURL`, `ssoIssuer`,
+  `entityIssuer`, `caData` and the attribute names to read the identity from.
+required:
+  - id
+  - type
+  - name
+properties:
+  id:
+    type: string
+    description: Stable identifier, used to start a login against this provider.
+    example: acme-okta
+  type:
+    type: string
+    enum:
+      - oidc
+      - saml
+      - ldap
+      - github
+      - gitlab
+      - google
+      - microsoft
+    example: oidc
+  name:
+    type: string
+    description: Display name, shown on the login button.
+    example: Acme Okta
+  config:
+    type: object
+    additionalProperties: true
+    description: Type-specific configuration. Write-only; never returned in a list.
+    example:
+      issuer: https://acme.okta.com
+      clientID: 0oa1b2c3d4
+      clientSecret: s3cr3t
+      redirectURI: https://cloud.example.com/api/dex/callback

@@ -1,0 +1,49 @@
+get:
+  operationId: listSsoConnectors
+  summary: List configured identity providers
+  description: |
+    Lists every configured provider. Configuration is omitted; read a single provider to get it.
+  tags:
+    - admin
+  responses:
+    '200':
+      description: The configured identity providers
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/auth-connector.yaml'
+    '402':
+      description: The instance has no valid license
+    '500':
+      $ref: '../components/responses/500.yaml'
+
+post:
+  operationId: createSsoConnector
+  summary: Configure an identity provider
+  description: |
+    Validates and stores a provider. The configuration is decoded and opened exactly as it will be
+    at login time, so a wrong issuer or an unparseable certificate is rejected here rather than
+    stranding users on a broken button. For OIDC this reaches the upstream discovery document.
+
+    The new provider takes effect on the next login, without restarting the instance.
+  tags:
+    - admin
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/auth-connector-config.yaml'
+  responses:
+    '201':
+      description: The provider was configured
+    '400':
+      description: The type is not supported, or the configuration was rejected
+    '402':
+      description: The instance has no valid license
+    '409':
+      description: A provider with this id already exists, or the id is reserved
+    '500':
+      $ref: '../components/responses/500.yaml'
