@@ -1,0 +1,77 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: The provider's identifier.
+
+get:
+  operationId: getSsoConnector
+  summary: Read one identity provider
+  description: |
+    Returns the provider including its configuration, so it can be edited. The configuration
+    carries client secrets and bind passwords.
+  tags:
+    - admin
+  responses:
+    '200':
+      description: The provider
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/auth-connector-config.yaml'
+    '402':
+      description: The instance has no valid license
+    '404':
+      description: No such provider
+    '500':
+      $ref: '../components/responses/500.yaml'
+
+put:
+  operationId: updateSsoConnector
+  summary: Reconfigure an identity provider
+  description: |
+    Replaces the provider's type, name and configuration. The change takes effect on the next
+    login, without restarting the instance.
+  tags:
+    - admin
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/auth-connector-config.yaml'
+  responses:
+    '200':
+      description: The provider was reconfigured
+    '400':
+      description: The type is not supported, or the configuration was rejected
+    '402':
+      description: The instance has no valid license
+    '404':
+      description: No such provider
+    '409':
+      description: The id is reserved
+    '500':
+      $ref: '../components/responses/500.yaml'
+
+delete:
+  operationId: deleteSsoConnector
+  summary: Remove an identity provider
+  description: |
+    Removes the provider. Users who signed in through it keep their accounts, but can no longer
+    authenticate until another provider or local login is available to them.
+  tags:
+    - admin
+  responses:
+    '200':
+      description: The provider was removed
+    '402':
+      description: The instance has no valid license
+    '404':
+      description: No such provider
+    '409':
+      description: The id is reserved
+    '500':
+      $ref: '../components/responses/500.yaml'

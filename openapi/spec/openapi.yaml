@@ -279,6 +279,12 @@ paths:
     $ref: paths/api@billing@evaluate.yaml
   /api/user/saml/auth:
     $ref: paths/api@user@saml@auth.yaml
+  /api/auth/connectors:
+    $ref: paths/api@auth@connectors.yaml
+  /admin/api/sso/connectors:
+    $ref: paths/admin@api@sso@connectors.yaml
+  /admin/api/sso/connectors/{id}:
+    $ref: 'paths/admin@api@sso@connectors@{id}.yaml'
   /api/user/mfa/auth:
     $ref: paths/api@user@mfa@auth.yaml
   /api/user/mfa/recover:

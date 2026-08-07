@@ -115,7 +115,13 @@ paths:
   # Enterprise only
   /api/user/saml/auth:
     $ref: paths/api@user@saml@auth.yaml
+  /api/auth/connectors:
+    $ref: paths/api@auth@connectors.yaml
   # Admin (cloud and enterprise)
+  /admin/api/sso/connectors:
+    $ref: paths/admin@api@sso@connectors.yaml
+  /admin/api/sso/connectors/{id}:
+    $ref: 'paths/admin@api@sso@connectors@{id}.yaml'
   /admin/api/authentication:
     $ref: paths/admin@api@authentication.yaml
   /admin/api/authentication/local:

@@ -1,0 +1,28 @@
+get:
+  operationId: listAuthConnectors
+  summary: List the identity providers available for login
+  description: |
+    Lists the external identity providers an administrator has configured, so the login page can
+    offer one entry per provider.
+
+    The endpoint is public: it is read before the user holds any session, and it exposes only what
+    the login page renders. Provider configuration, which carries client secrets and bind
+    passwords, is never returned here.
+
+    It answers on any edition. Community and instances with no provider configured return an empty
+    list.
+  tags:
+    - cloud
+    - users
+  security: []
+  responses:
+    '200':
+      description: The configured identity providers
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/auth-connector.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'
