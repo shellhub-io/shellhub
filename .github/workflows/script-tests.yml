@@ -30,3 +30,29 @@ jobs:
       - name: Run is-latest-tag tests
         if: steps.filter.outputs.scripts == 'true'
         run: bash tests/is-latest-tag_test.sh
+
+  gen-config:
+    name: gen-config
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
+        id: filter
+        with:
+          filters: |
+            scripts:
+              - 'ui/scripts/gen-config.sh'
+              - 'tests/ui/**'
+              - '.github/workflows/script-tests.yml'
+
+      - name: Install bats
+        if: steps.filter.outputs.scripts == 'true'
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+
+      - name: Run gen-config tests
+        if: steps.filter.outputs.scripts == 'true'
+        run: bats tests/ui/gen-config.bats
