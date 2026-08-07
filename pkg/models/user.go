@@ -31,7 +31,15 @@ const (
 	UserOriginLocal UserOrigin = "local"
 
 	// UserOriginSAML indicates that the user was created using a SAML method.
+	//
+	// NOTE: the stored value is lowercase, matching the user_origin enum; callers writing this
+	// to the database must lowercase it. New origins avoid the discrepancy by being declared
+	// exactly as the enum spells them.
 	UserOriginSAML UserOrigin = "SAML"
+
+	// UserOriginExternal indicates that the user was provisioned on first login through an
+	// identity provider brokered by the embedded OIDC provider.
+	UserOriginExternal UserOrigin = "external"
 )
 
 func (o UserOrigin) String() string {
@@ -64,11 +72,27 @@ const (
 
 	// UserAuthMethodManual indicates that the user can authenticate using a third-party SAML application.
 	UserAuthMethodSAML UserAuthMethod = "saml"
+
+	// UserAuthMethodExternal indicates that the user authenticates through an identity provider
+	// brokered by the embedded OIDC provider.
+	UserAuthMethodExternal UserAuthMethod = "external"
 )
 
 func (a UserAuthMethod) String() string {
 	return string(a)
 }
+
+const (
+	// DefaultMaxNamespaces is how many namespaces a self-registered user may own. On Cloud every
+	// namespace past it is a paid subscription, tracked by incrementing this same column, so the
+	// value is the free tier rather than an arbitrary default.
+	DefaultMaxNamespaces = 1
+
+	// UnlimitedMaxNamespaces lifts the limit. It is only correct where no billing counts
+	// namespaces: the increment and decrement that follow a subscription treat the column as a
+	// plain counter, and would walk this sentinel into meaningless values.
+	UnlimitedMaxNamespaces = -1
+)
 
 type User struct {
 	ID string `json:"id,omitempty"`

@@ -61,7 +61,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		},
 		Password:       password,
 		CreatedAt:      clock.Now(),
-		MaxNamespaces:  1,
+		MaxNamespaces:  models.DefaultMaxNamespaces,
 		EmailMarketing: req.EmailMarketing,
 		Status:         models.UserStatusNotConfirmed,
 		Preferences: models.UserPreferences{
@@ -109,7 +109,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		Admin:          false,
 		Origin:         models.UserOriginLocal,
 		Status:         models.UserStatusNotConfirmed,
-		MaxNamespaces:  1,
+		MaxNamespaces:  models.DefaultMaxNamespaces,
 		EmailMarketing: req.EmailMarketing,
 		Password:       password,
 		UserData: models.UserData{
