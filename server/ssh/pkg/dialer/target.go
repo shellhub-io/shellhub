@@ -91,13 +91,18 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 		if err := handshakeReq.Write(conn); err != nil {
 			return nil, err
 		}
-		resp, err := http.ReadResponse(bufio.NewReader(conn), handshakeReq)
+
+		buffered := bufio.NewReader(conn)
+
+		resp, err := http.ReadResponse(buffered, handshakeReq)
 		if err != nil {
 			return nil, err
 		}
 		if resp.StatusCode != http.StatusOK {
 			return nil, fmt.Errorf("http proxy handshake failed: %s", resp.Status)
 		}
+
+		return withBuffered(conn, buffered), nil
 	case TransportVersion2:
 		if err := multistream.SelectProtoOrFail(ProtoHTTPProxy, conn); err != nil {
 			return nil, err
@@ -113,15 +118,17 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 
 		// NOTE: limit the size of the response to avoid DoS via large payloads.
 		const Limit = 512
-		if err := json.NewDecoder(io.LimitReader(conn, Limit)).Decode(&result); err != nil {
+
+		decoder := json.NewDecoder(io.LimitReader(conn, Limit))
+		if err := decoder.Decode(&result); err != nil {
 			return nil, err
 		}
 		if result["status"] != "ok" {
 			return nil, fmt.Errorf("http proxy negotiation failed: %s", result["message"])
 		}
+
+		return withBuffered(conn, io.MultiReader(decoder.Buffered(), conn)), nil
 	default:
 		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
-
-	return conn, nil
 }
