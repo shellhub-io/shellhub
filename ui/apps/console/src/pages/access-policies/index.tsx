@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import {
   ShieldCheckIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
   TagIcon,
   UsersIcon,
   UserIcon,
@@ -35,6 +34,7 @@ import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import SearchField from "@/components/common/fields/SearchField";
 import { formatDate } from "@/utils/date";
 import AccessPolicyDrawer from "./AccessPolicyDrawer";
 
@@ -229,8 +229,8 @@ export default function AccessPolicies() {
   const { serviceAccounts } = useServiceAccounts();
   const isIdentityMode = ns?.settings?.ssh_access_mode === "identity";
 
-  // Resolve a policy subject's id to a human label for the list. A "user" subject may be a
-  // member (show email) or a service account (show name); a role shows its member count.
+  // A "user" subject may be a member (show email) or a service account (show name);
+  // a role shows its member count.
   const members = ns?.members ?? [];
   const memberEmail = (id: string) => members.find((m) => m.id === id)?.email;
   const serviceAccountName = (id: string) =>
@@ -242,10 +242,10 @@ export default function AccessPolicies() {
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccessPolicy | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState("");
 
   const filtered = policies.filter((p) =>
-    p.name.toLowerCase().includes(query.trim().toLowerCase()),
+    p.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
   const closeDelete = () => {
@@ -456,19 +456,13 @@ export default function AccessPolicies() {
         </RestrictedAction>
       </PageHeader>
 
-      <div className="relative mb-3 max-w-xs">
-        <MagnifyingGlassIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-          strokeWidth={2}
-        />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search policies by name…"
-          className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary outline-none focus:border-primary/60"
-        />
-      </div>
+      <SearchField
+        className="mb-3"
+        value={search}
+        onChange={setSearch}
+        placeholder="Search policies by name…"
+        aria-label="Search access policies by name"
+      />
 
       <DataTable
         columns={columns}
@@ -477,7 +471,7 @@ export default function AccessPolicies() {
         isLoading={isLoading}
         loadingMessage="Loading access policies..."
         emptyMessage={
-          query ? `No policies match "${query}"` : "No access policies found"
+          search ? `No policies match "${search}"` : "No access policies found"
         }
         onRowClick={openEdit}
         rowClassName={() => "cursor-pointer"}
