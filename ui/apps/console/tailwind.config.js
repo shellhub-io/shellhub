@@ -1,4 +1,5 @@
 import preset from "@shellhub/design-system/tailwind.preset";
+import containerQueries from "@tailwindcss/container-queries";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -8,5 +9,5 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     "../../packages/design-system/**/*.{ts,tsx}",
   ],
-  plugins: [],
+  plugins: [containerQueries],
 };
