@@ -197,8 +197,6 @@ const (
 
 func Log(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		logger := c.Logger()
-
 		start := time.Now()
 
 		// NOTE: The next must be called to proceed to the next handler in the chain that should be the processing of
@@ -215,7 +213,7 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			bytesIn = "0"
 		}
 
-		fields := log.JSON{
+		fields := logrus.Fields{
 			"id":            c.Request().Header.Get(echo.HeaderXRequestID),
 			"remote_ip":     c.RealIP(),
 			"host":          c.Request().Host,
@@ -242,9 +240,9 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			fields["error"] = err.Error()
 
-			logger.Errorj(fields)
+			logrus.WithFields(fields).Error()
 		} else {
-			logger.Infoj(fields)
+			logrus.WithFields(fields).Info()
 		}
 
 		return nil
