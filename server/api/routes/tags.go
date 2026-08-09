@@ -28,7 +28,7 @@ const (
 	URLOldPullTagFromDevice = "/namespaces/:tenant/devices/:uid/tags/:name"
 )
 
-func (h *Handler) CreateTag(c gateway.Context) error {
+func (h *Handler) CreateTag(c *gateway.Context) error {
 	req := new(requests.CreateTag)
 
 	if err := c.Bind(req); err != nil {
@@ -52,7 +52,7 @@ func (h *Handler) CreateTag(c gateway.Context) error {
 	}
 }
 
-func (h *Handler) GetTags(c gateway.Context) error {
+func (h *Handler) GetTags(c *gateway.Context) error {
 	req := new(requests.ListTags)
 
 	if err := c.Bind(req); err != nil {
@@ -90,7 +90,7 @@ func (h *Handler) GetTags(c gateway.Context) error {
 	return c.JSON(http.StatusOK, tags)
 }
 
-func (h *Handler) UpdateTag(c gateway.Context) error {
+func (h *Handler) UpdateTag(c *gateway.Context) error {
 	req := new(requests.UpdateTag)
 
 	if err := c.Bind(req); err != nil {
@@ -112,7 +112,7 @@ func (h *Handler) UpdateTag(c gateway.Context) error {
 	}
 }
 
-func (h *Handler) DeleteTag(c gateway.Context) error {
+func (h *Handler) DeleteTag(c *gateway.Context) error {
 	req := new(requests.DeleteTag)
 
 	if err := c.Bind(req); err != nil {
@@ -130,7 +130,7 @@ func (h *Handler) DeleteTag(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) PushTagToDevice(c gateway.Context) error {
+func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 	req := new(requests.PushTag)
 
 	if err := c.Bind(req); err != nil {
@@ -150,7 +150,7 @@ func (h *Handler) PushTagToDevice(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) PullTagFromDevice(c gateway.Context) error {
+func (h *Handler) PullTagFromDevice(c *gateway.Context) error {
 	req := new(requests.PullTag)
 
 	if err := c.Bind(req); err != nil {

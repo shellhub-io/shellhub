@@ -23,7 +23,7 @@ const (
 	EnrollmentCallbackURL = "/devices/enroll/callback/:token"
 )
 
-func (h *Handler) CreateInstallKey(c gateway.Context) error {
+func (h *Handler) CreateInstallKey(c *gateway.Context) error {
 	req := new(requests.CreateInstallKey)
 
 	if err := c.Bind(req); err != nil {
@@ -51,7 +51,7 @@ func (h *Handler) CreateInstallKey(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) ListInstallKeys(c gateway.Context) error {
+func (h *Handler) ListInstallKeys(c *gateway.Context) error {
 	req := new(requests.ListInstallKey)
 
 	if err := c.Bind(req); err != nil {
@@ -82,7 +82,7 @@ func (h *Handler) ListInstallKeys(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) UpdateInstallKey(c gateway.Context) error {
+func (h *Handler) UpdateInstallKey(c *gateway.Context) error {
 	req := new(requests.UpdateInstallKey)
 
 	if err := c.Bind(req); err != nil {
@@ -109,7 +109,7 @@ func (h *Handler) UpdateInstallKey(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RevealInstallKey(c gateway.Context) error {
+func (h *Handler) RevealInstallKey(c *gateway.Context) error {
 	req := new(requests.RevealInstallKey)
 
 	if err := c.Bind(req); err != nil {
@@ -128,7 +128,7 @@ func (h *Handler) RevealInstallKey(c gateway.Context) error {
 	return c.JSON(http.StatusOK, &responses.RevealInstallKey{Key: key})
 }
 
-func (h *Handler) EnrollmentCallback(c gateway.Context) error {
+func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 	req := new(requests.EnrollmentCallback)
 
 	if err := c.Bind(req); err != nil {
@@ -146,7 +146,7 @@ func (h *Handler) EnrollmentCallback(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) HistoryInstallKey(c gateway.Context) error {
+func (h *Handler) HistoryInstallKey(c *gateway.Context) error {
 	req := new(requests.ListInstallKeyEvents)
 
 	if err := c.Bind(req); err != nil {

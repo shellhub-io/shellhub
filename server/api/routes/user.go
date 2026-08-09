@@ -20,7 +20,7 @@ const (
 	ParamUserName = "username"
 )
 
-func (h *Handler) UpdateUser(c gateway.Context) error {
+func (h *Handler) UpdateUser(c *gateway.Context) error {
 	req := new(requests.UpdateUser)
 
 	if err := c.Bind(req); err != nil {
@@ -57,7 +57,7 @@ func (h *Handler) UpdateUser(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UpdateUserPassword(c gateway.Context) error {
+func (h *Handler) UpdateUserPassword(c *gateway.Context) error {
 	var req requests.UserPasswordUpdate
 	if err := c.Bind(&req); err != nil {
 		return err

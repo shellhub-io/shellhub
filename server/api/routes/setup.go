@@ -11,7 +11,7 @@ const (
 	SetupEndpoint = "/setup"
 )
 
-func (h *Handler) Setup(c gateway.Context) error {
+func (h *Handler) Setup(c *gateway.Context) error {
 	var req requests.Setup
 
 	if err := c.Bind(&req); err != nil {

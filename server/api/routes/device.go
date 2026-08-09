@@ -30,7 +30,7 @@ const (
 	ParamDeviceCustomFieldKey = "key"
 )
 
-func (h *Handler) GetDeviceList(c gateway.Context) error {
+func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	req := new(requests.DeviceList)
 
 	if err := c.Bind(req); err != nil {
@@ -113,7 +113,7 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) GetDevice(c gateway.Context) error {
+func (h *Handler) GetDevice(c *gateway.Context) error {
 	var req requests.DeviceGet
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -136,7 +136,7 @@ func (h *Handler) GetDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func (h *Handler) ResolveDevice(c gateway.Context) error {
+func (h *Handler) ResolveDevice(c *gateway.Context) error {
 	var req requests.ResolveDevice
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -154,7 +154,7 @@ func (h *Handler) ResolveDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, device)
 }
 
-func (h *Handler) DeleteDevice(c gateway.Context) error {
+func (h *Handler) DeleteDevice(c *gateway.Context) error {
 	var req requests.DeviceDelete
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -176,7 +176,7 @@ func (h *Handler) DeleteDevice(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) RenameDevice(c gateway.Context) error {
+func (h *Handler) RenameDevice(c *gateway.Context) error {
 	var req requests.DeviceRename
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -198,7 +198,7 @@ func (h *Handler) RenameDevice(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
+func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 	req := new(requests.DeviceUpdateStatus)
 
 	if err := c.Bind(req); err != nil {
@@ -228,7 +228,7 @@ func (h *Handler) UpdateDeviceStatus(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) UpdateDevice(c gateway.Context) error {
+func (h *Handler) UpdateDevice(c *gateway.Context) error {
 	req := new(requests.DeviceUpdate)
 
 	if err := c.Bind(req); err != nil {
@@ -246,7 +246,7 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) SetDeviceCustomField(c gateway.Context) error {
+func (h *Handler) SetDeviceCustomField(c *gateway.Context) error {
 	req := new(requests.DeviceSetCustomField)
 
 	if err := c.Bind(req); err != nil {
@@ -264,7 +264,7 @@ func (h *Handler) SetDeviceCustomField(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteDeviceCustomField(c gateway.Context) error {
+func (h *Handler) DeleteDeviceCustomField(c *gateway.Context) error {
 	req := new(requests.DeviceDeleteCustomField)
 
 	if err := c.Bind(req); err != nil {

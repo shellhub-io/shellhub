@@ -31,7 +31,7 @@ const (
 	ParamNamespaceMemberID = "uid"
 )
 
-func (h *Handler) GetNamespaceList(c gateway.Context) error {
+func (h *Handler) GetNamespaceList(c *gateway.Context) error {
 	req := new(requests.NamespaceList)
 
 	if err := c.Bind(req); err != nil {
@@ -64,7 +64,7 @@ func (h *Handler) GetNamespaceList(c gateway.Context) error {
 	return c.JSON(http.StatusOK, namespaces)
 }
 
-func (h *Handler) CreateNamespace(c gateway.Context) error {
+func (h *Handler) CreateNamespace(c *gateway.Context) error {
 	req := new(requests.NamespaceCreate)
 
 	if err := c.Bind(req); err != nil {
@@ -83,7 +83,7 @@ func (h *Handler) CreateNamespace(c gateway.Context) error {
 	return c.JSON(http.StatusOK, namespace)
 }
 
-func (h *Handler) GetNamespace(c gateway.Context) error {
+func (h *Handler) GetNamespace(c *gateway.Context) error {
 	var req requests.NamespaceGet
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -112,7 +112,7 @@ func (h *Handler) GetNamespace(c gateway.Context) error {
 	return c.JSON(http.StatusOK, ns)
 }
 
-func (h *Handler) ListNamespaceMembers(c gateway.Context) error {
+func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
 	req := new(requests.MemberList)
 
 	if err := c.Bind(req); err != nil {
@@ -135,7 +135,7 @@ func (h *Handler) ListNamespaceMembers(c gateway.Context) error {
 	return c.JSON(http.StatusOK, members)
 }
 
-func (h *Handler) DeleteNamespace(c gateway.Context) error {
+func (h *Handler) DeleteNamespace(c *gateway.Context) error {
 	var req requests.NamespaceDelete
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -152,7 +152,7 @@ func (h *Handler) DeleteNamespace(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditNamespace(c gateway.Context) error {
+func (h *Handler) EditNamespace(c *gateway.Context) error {
 	req := new(requests.NamespaceEdit)
 
 	if err := c.Bind(req); err != nil {
@@ -171,7 +171,7 @@ func (h *Handler) EditNamespace(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AddNamespaceMember(c gateway.Context) error {
+func (h *Handler) AddNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceAddMember)
 
 	if err := c.Bind(req); err != nil {
@@ -190,7 +190,7 @@ func (h *Handler) AddNamespaceMember(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) RemoveNamespaceMember(c gateway.Context) error {
+func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceRemoveMember)
 
 	if err := c.Bind(req); err != nil {
@@ -209,7 +209,7 @@ func (h *Handler) RemoveNamespaceMember(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) LeaveNamespace(c gateway.Context) error {
+func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 	req := new(requests.LeaveNamespace)
 
 	if err := c.Bind(req); err != nil {
@@ -231,7 +231,7 @@ func (h *Handler) LeaveNamespace(c gateway.Context) error {
 	}
 }
 
-func (h *Handler) EditNamespaceMember(c gateway.Context) error {
+func (h *Handler) EditNamespaceMember(c *gateway.Context) error {
 	req := new(requests.NamespaceUpdateMember)
 
 	if err := c.Bind(req); err != nil {
@@ -249,7 +249,7 @@ func (h *Handler) EditNamespaceMember(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditSSHAccessMode(c gateway.Context) error {
+func (h *Handler) EditSSHAccessMode(c *gateway.Context) error {
 	var req requests.EditSSHAccessMode
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -266,7 +266,7 @@ func (h *Handler) EditSSHAccessMode(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) EditSessionRecordStatus(c gateway.Context) error {
+func (h *Handler) EditSessionRecordStatus(c *gateway.Context) error {
 	var req requests.SessionEditRecordStatus
 	if err := c.Bind(&req); err != nil {
 		return err

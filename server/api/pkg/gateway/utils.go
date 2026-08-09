@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Handler(next func(Context) error) echo.HandlerFunc {
+func Handler(next func(*Context) error) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		gCtx, ok := From(c)
 		if !ok {
@@ -19,15 +19,15 @@ func Handler(next func(Context) error) echo.HandlerFunc {
 		c.SetRequest(c.Request().WithContext(ctx))
 		c.Set("ctx", gCtx)
 
-		return next(*gCtx)
+		return next(gCtx)
 	}
 }
 
 func Middleware(m echo.MiddlewareFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			return Handler(func(c Context) error {
-				return m(next)(&c)
+			return Handler(func(c *Context) error {
+				return m(next)(c)
 			})(c)
 		}
 	}

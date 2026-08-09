@@ -18,7 +18,7 @@ const (
 
 // GetSSHApproval returns the request details the console renders on the approval
 // page so the user sees what they are approving.
-func (h *Handler) GetSSHApproval(c gateway.Context) error {
+func (h *Handler) GetSSHApproval(c *gateway.Context) error {
 	req := new(requests.SSHApprovalGet)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -43,7 +43,7 @@ func (h *Handler) GetSSHApproval(c gateway.Context) error {
 
 // ConfirmSSHApproval approves a pending login. Authorization against the target's
 // namespace happens in the service, since the session may be scoped elsewhere.
-func (h *Handler) ConfirmSSHApproval(c gateway.Context) error {
+func (h *Handler) ConfirmSSHApproval(c *gateway.Context) error {
 	req := new(requests.SSHApprovalConfirm)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -66,7 +66,7 @@ func (h *Handler) ConfirmSSHApproval(c gateway.Context) error {
 }
 
 // RejectSSHApproval rejects a pending login.
-func (h *Handler) RejectSSHApproval(c gateway.Context) error {
+func (h *Handler) RejectSSHApproval(c *gateway.Context) error {
 	req := new(requests.SSHApprovalReject)
 	if err := c.Bind(req); err != nil {
 		return err

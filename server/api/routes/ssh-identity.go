@@ -19,7 +19,7 @@ const (
 // ListSSHIdentities returns the caller's enrolled SSH identities in the current
 // namespace. With ?all=true (and the manage permission) it returns every
 // member's, for offboarding.
-func (h *Handler) ListSSHIdentities(c gateway.Context) error {
+func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
 	req := new(requests.SSHIdentityList)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (h *Handler) ListSSHIdentities(c gateway.Context) error {
 }
 
 // CreateSSHIdentity manually enrolls a pasted OpenSSH public key for the caller.
-func (h *Handler) CreateSSHIdentity(c gateway.Context) error {
+func (h *Handler) CreateSSHIdentity(c *gateway.Context) error {
 	req := new(requests.SSHIdentityCreate)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -81,7 +81,7 @@ func (h *Handler) CreateSSHIdentity(c gateway.Context) error {
 }
 
 // UpdateSSHIdentity renames one of the caller's own identities.
-func (h *Handler) UpdateSSHIdentity(c gateway.Context) error {
+func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 	req := new(requests.SSHIdentityUpdate)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -111,7 +111,7 @@ func (h *Handler) UpdateSSHIdentity(c gateway.Context) error {
 
 // DeleteSSHIdentity revokes an identity. Revoking one's own needs the enroll
 // permission; revoking another member's needs the manage permission.
-func (h *Handler) DeleteSSHIdentity(c gateway.Context) error {
+func (h *Handler) DeleteSSHIdentity(c *gateway.Context) error {
 	req := new(requests.SSHIdentityDelete)
 	if err := c.Bind(req); err != nil {
 		return err

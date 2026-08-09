@@ -34,7 +34,7 @@ func TestEvaluateHealth(t *testing.T) {
 			echoContext := e.NewContext(req, rec)
 
 			apictx := gateway.NewContext(mock, echoContext)
-			err := h.EvaluateHealth(*apictx)
+			err := h.EvaluateHealth(apictx)
 
 			assert.Equal(t, tc.expectedErr, err)
 			assert.Equal(t, http.StatusOK, rec.Code)

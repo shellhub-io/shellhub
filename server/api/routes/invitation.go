@@ -23,7 +23,7 @@ const (
 
 // RegisterUser completes a user account. On the invitation flow the invitee proves email ownership
 // via the invite code (sig) and the account is created confirmed, joining the namespace.
-func (h *Handler) RegisterUser(c gateway.Context) error {
+func (h *Handler) RegisterUser(c *gateway.Context) error {
 	var req requests.RegisterUser
 
 	if err := c.Bind(&req); err != nil {
@@ -59,7 +59,7 @@ func (h *Handler) RegisterUser(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) ResolveInvitation(c gateway.Context) error {
+func (h *Handler) ResolveInvitation(c *gateway.Context) error {
 	req := new(requests.ResolveInvitation)
 
 	if err := c.Bind(req); err != nil {
@@ -78,7 +78,7 @@ func (h *Handler) ResolveInvitation(c gateway.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) GenerateInvitationLink(c gateway.Context) error {
+func (h *Handler) GenerateInvitationLink(c *gateway.Context) error {
 	req := new(requests.GenerateInvitationLink)
 
 	if err := c.Bind(req); err != nil {
@@ -97,7 +97,7 @@ func (h *Handler) GenerateInvitationLink(c gateway.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"link": link})
 }
 
-func (h *Handler) AcceptInvite(c gateway.Context) error {
+func (h *Handler) AcceptInvite(c *gateway.Context) error {
 	req := new(requests.AcceptInvite)
 
 	if err := c.Bind(req); err != nil {
@@ -115,7 +115,7 @@ func (h *Handler) AcceptInvite(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) GetUserMembershipInvitationList(c gateway.Context) error {
+func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 	req := new(requests.UserMembershipInvitationList)
 
 	if err := c.Bind(req); err != nil {
@@ -145,7 +145,7 @@ func (h *Handler) GetUserMembershipInvitationList(c gateway.Context) error {
 	return c.JSON(http.StatusOK, invitations)
 }
 
-func (h *Handler) GetNamespaceMembershipInvitationList(c gateway.Context) error {
+func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error {
 	req := new(requests.NamespaceMembershipInvitationList)
 
 	if err := c.Bind(req); err != nil {
@@ -175,7 +175,7 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c gateway.Context) error 
 	return c.JSON(http.StatusOK, invitations)
 }
 
-func (h *Handler) CancelMembershipInvitation(c gateway.Context) error {
+func (h *Handler) CancelMembershipInvitation(c *gateway.Context) error {
 	req := new(requests.CancelMembershipInvitation)
 
 	if err := c.Bind(req); err != nil {

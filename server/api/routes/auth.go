@@ -23,7 +23,7 @@ const (
 	AuthMFAURL               = "/auth/mfa"
 )
 
-func (h *Handler) AuthDevice(c gateway.Context) error {
+func (h *Handler) AuthDevice(c *gateway.Context) error {
 	var req requests.DeviceAuth
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -49,7 +49,7 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthLocalUser(c gateway.Context) error {
+func (h *Handler) AuthLocalUser(c *gateway.Context) error {
 	req := new(requests.AuthLocalUser)
 
 	if err := c.Bind(req); err != nil {
@@ -84,7 +84,7 @@ func (h *Handler) AuthLocalUser(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) CreateUserToken(c gateway.Context) error {
+func (h *Handler) CreateUserToken(c *gateway.Context) error {
 	req := new(requests.CreateUserToken)
 
 	if err := c.Bind(req); err != nil {
@@ -103,7 +103,7 @@ func (h *Handler) CreateUserToken(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) AuthPublicKey(c gateway.Context) error {
+func (h *Handler) AuthPublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {
 		return err

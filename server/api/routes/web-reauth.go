@@ -15,7 +15,7 @@ const WebReauthURL = "/web-terminal/reauth"
 // WebReauthVerify validates the logged-in user's step-up factor and, on success,
 // refreshes the presented identity's re-auth window. Identity comes from the
 // gateway-injected X-ID/X-Tenant-ID, never the body.
-func (h *Handler) WebReauthVerify(c gateway.Context) error {
+func (h *Handler) WebReauthVerify(c *gateway.Context) error {
 	req := new(requests.WebReauthVerify)
 	if err := c.Bind(req); err != nil {
 		return err

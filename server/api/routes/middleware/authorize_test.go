@@ -47,7 +47,7 @@ func TestRequiresTenant(t *testing.T) {
 			expected:    http.StatusForbidden,
 		},
 		{
-			description: "blocks when context is not a gateway.Context",
+			description: "blocks when context is not a *gateway.Context",
 			paramValue:  tenant,
 			header:      tenant,
 			useGateway:  false,
