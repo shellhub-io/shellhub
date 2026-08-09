@@ -36,6 +36,18 @@ func NewContext(service interface{}, c echo.Context) *Context {
 	return &Context{service: service, Context: c}
 }
 
+// From returns the [Context] the gateway middleware installed for this request. It reports false
+// when there is none, so callers can fail closed instead of assuming an identity is present.
+//
+// Middleware and handlers must reach the gateway context through this function rather than
+// asserting on the concrete type: how the context is carried is the gateway's business, and it
+// changes with the web framework underneath.
+func From(c echo.Context) (*Context, bool) {
+	gCtx, ok := c.(*Context)
+
+	return gCtx, ok
+}
+
 func (c *Context) Service() interface{} {
 	return c.service
 }
