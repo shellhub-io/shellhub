@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo/v4"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo-contrib/v5/echoprometheus"
+	"github.com/labstack/echo/v5"
+	echoMiddleware "github.com/labstack/echo/v5/middleware"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
@@ -24,7 +24,7 @@ type DefaultHTTPHandlerConfig struct {
 	Reporter *sentry.Client
 }
 
-// DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v4] package, with the default
+// DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v5] package, with the default
 // configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/server/api/pkg/gateway] into
 // the context, and the service layer. The configuration received controls the error reporter and more.
 func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Handler {
@@ -40,10 +40,10 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	server.HTTPErrorHandler = handlers.NewErrors(cfg.Reporter)
 
 	// Configures the default IP extractor for a header.
-	server.IPExtractor = echo.ExtractIPFromRealIPHeader()
+	server.IPExtractor = handlers.RealIPExtractor()
 
 	// NOTE: Instantiates a new logger instance to be used by the logger's middleware.
-	server.Logger = pkgmiddleware.NewEchoLogger(logrus.NewEntry(logrus.StandardLogger()))
+	server.Logger = pkgmiddleware.NewSlogLogger(logrus.NewEntry(logrus.StandardLogger()))
 
 	// Echo writes the ID it generates to the response only. Mirror it onto the
 	// request, because that is where everything downstream reads it from: the
@@ -52,18 +52,13 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	// the edge proxy's $request_id, so a request that did not come through the
 	// proxy reached the V2 handshake with nothing to bind.
 	server.Use(echoMiddleware.RequestIDWithConfig(echoMiddleware.RequestIDConfig{
-		RequestIDHandler: func(c echo.Context, id string) {
+		RequestIDHandler: func(c *echo.Context, id string) {
 			c.Request().Header.Set(echo.HeaderXRequestID, id)
 		},
 	}))
 	server.Use(echoMiddleware.Secure())
-	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			// NOTE: We load the gateway context to each route handler to access their context as gateway's context.
-			// https://echo.labstack.com/docs/context
-			return next(gateway.NewContext(service, c))
-		}
-	})
+	// NOTE: We load the gateway context to each route handler to access their context as gateway's context.
+	server.Use(gateway.WithContext(service))
 	server.Use(pkgmiddleware.Log)
 
 	return server

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,8 +30,7 @@ func TestHandleSSHCloseAuthorization(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
-			c.SetParamNames("uid")
-			c.SetParamValues("session-uid")
+			c.SetPathValues(echo.PathValues{{Name: "uid", Value: "session-uid"}})
 
 			h := &Handlers{} //nolint:exhaustruct // Dialer must not be reached for forbidden roles.
 

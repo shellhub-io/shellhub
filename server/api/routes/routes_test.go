@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +35,7 @@ func TestRequestIDReachesTheHandler(t *testing.T) {
 
 			var seen string
 
-			router.GET(probe, func(c echo.Context) error {
+			router.GET(probe, func(c *echo.Context) error {
 				seen = c.Request().Header.Get(echo.HeaderXRequestID)
 
 				return c.NoContent(http.StatusOK)

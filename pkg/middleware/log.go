@@ -1,191 +1,90 @@
 package middleware
 
 import (
-	"io"
-	"maps"
+	"context"
+	"log/slog"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
-	echo "github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
+	echo "github.com/labstack/echo/v5"
 	"github.com/sirupsen/logrus"
 )
 
-type Logger struct {
-	prefix string
-	logger *logrus.Entry
+// NewSlogLogger returns the logger Echo writes its internals to, backed by logrus so the
+// framework's own messages land in the same stream and format as everything else ShellHub logs.
+func NewSlogLogger(logger *logrus.Entry) *slog.Logger {
+	return slog.New(&slogHandler{entry: logger})
 }
 
-var _ echo.Logger = (*Logger)(nil)
+type slogHandler struct {
+	entry  *logrus.Entry
+	groups []string
+}
 
-func NewEchoLogger(logger *logrus.Entry) echo.Logger {
-	return &Logger{
-		prefix: "",
-		logger: logger,
+var _ slog.Handler = (*slogHandler)(nil)
+
+func (h *slogHandler) Enabled(_ context.Context, level slog.Level) bool {
+	return h.entry.Logger.IsLevelEnabled(logrusLevel(level))
+}
+
+func (h *slogHandler) Handle(_ context.Context, record slog.Record) error {
+	entry := h.entry
+
+	if record.NumAttrs() > 0 {
+		fields := make(logrus.Fields, record.NumAttrs())
+		record.Attrs(func(attr slog.Attr) bool {
+			fields[h.qualify(attr.Key)] = attr.Value.Any()
+
+			return true
+		})
+
+		entry = entry.WithFields(fields)
 	}
+
+	entry.Log(logrusLevel(record.Level), record.Message)
+
+	return nil
 }
 
-// Debug implements echo.Logger.
-func (c *Logger) Debug(i ...any) {
-	c.logger.Debug(i...)
+func (h *slogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	fields := make(logrus.Fields, len(attrs))
+	for _, attr := range attrs {
+		fields[h.qualify(attr.Key)] = attr.Value.Any()
+	}
+
+	return &slogHandler{entry: h.entry.WithFields(fields), groups: h.groups}
 }
 
-// Debugf implements echo.Logger.
-func (c *Logger) Debugf(format string, args ...any) {
-	c.logger.Debugf(format, args...)
+func (h *slogHandler) WithGroup(name string) slog.Handler {
+	return &slogHandler{entry: h.entry, groups: append(slices.Clone(h.groups), name)}
 }
 
-// Debugj implements echo.Logger.
-func (c *Logger) Debugj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
+// qualify prefixes a key with the groups open around it, the way slog's own handlers do.
+// logrus fields are flat, so the nesting has to live in the key.
+func (h *slogHandler) qualify(key string) string {
+	if len(h.groups) == 0 {
+		return key
+	}
 
-	c.logger.WithFields(m).Debug()
+	return strings.Join(h.groups, ".") + "." + key
 }
 
-// Info implements echo.Logger.
-func (c *Logger) Info(i ...any) {
-	c.logger.Info(i...)
-}
-
-// Infof implements echo.Logger.
-func (c *Logger) Infof(format string, args ...any) {
-	c.logger.Infof(format, args...)
-}
-
-// Print implements echo.Logger.
-func (c *Logger) Print(i ...any) {
-	c.logger.Print(i...)
-}
-
-// Printf implements echo.Logger.
-func (c *Logger) Printf(format string, args ...any) {
-	c.logger.Printf(format, args...)
-}
-
-// Printj implements echo.Logger.
-func (c *Logger) Printj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Print()
-}
-
-// Infoj implements echo.Logger.
-func (c *Logger) Infoj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Info()
-}
-
-// Warn implements echo.Logger.
-func (c *Logger) Warn(i ...any) {
-	c.logger.Warn(i...)
-}
-
-// Warnf implements echo.Logger.
-func (c *Logger) Warnf(format string, args ...any) {
-	c.logger.Warnf(format, args...)
-}
-
-// Warnj implements echo.Logger.
-func (c *Logger) Warnj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Warn()
-}
-
-// Error implements echo.Logger.
-func (c *Logger) Error(i ...any) {
-	c.logger.Error(i...)
-}
-
-// Errorf implements echo.Logger.
-func (c *Logger) Errorf(format string, args ...any) {
-	c.logger.Errorf(format, args...)
-}
-
-// Errorj implements echo.Logger.
-func (c *Logger) Errorj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Error()
-}
-
-// Fatal implements echo.Logger.
-func (c *Logger) Fatal(i ...any) {
-	c.logger.Fatal(i...)
-}
-
-// Fatalf implements echo.Logger.
-func (c *Logger) Fatalf(format string, args ...any) {
-	c.logger.Fatalf(format, args...)
-}
-
-// Fatalj implements echo.Logger.
-func (c *Logger) Fatalj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Fatal()
-}
-
-// Panic implements echo.Logger.
-func (c *Logger) Panic(i ...any) {
-	c.logger.Panic(i...)
-}
-
-// Panicf implements echo.Logger.
-func (c *Logger) Panicf(format string, args ...any) {
-	c.logger.Panicf(format, args...)
-}
-
-// Panicj implements echo.Logger.
-func (c *Logger) Panicj(j log.JSON) {
-	m := make(logrus.Fields)
-	maps.Copy(m, j)
-
-	c.logger.WithFields(m).Panic()
-}
-
-// Level implements echo.Logger.
-func (c *Logger) Level() log.Lvl {
-	// NOTE: It is safe to convert logrus.Level to int because logrus's max value is lower than uint8's max value.
-	return log.Lvl(int(c.logger.Level)) //nolint: gosec
-}
-
-// SetLevel implements echo.Logger.
-func (c *Logger) SetLevel(v log.Lvl) {
-	// NOTE: It is safe to convert log.Lvl to int because logrus's max value is lower than uint8's max value.
-	c.logger.Level = logrus.Level(int(v)) //nolint: gosec
-}
-
-// Output implements echo.Logger.
-func (c *Logger) Output() io.Writer {
-	return c.logger.Logger.Out
-}
-
-// SetOutput implements echo.Logger.
-func (c *Logger) SetOutput(w io.Writer) {
-	c.logger.Logger.Out = w
-}
-
-// Prefix implements echo.Logger.
-func (c *Logger) Prefix() string {
-	return c.prefix
-}
-
-// SetPrefix implements echo.Logger.
-func (c *Logger) SetPrefix(p string) {
-	c.prefix = p
-}
-
-// SetHeader implements echo.Logger.
-func (c *Logger) SetHeader(h string) {
-	panic("unimplemented")
+// logrusLevel maps an slog level onto the nearest logrus one. slog leaves gaps between its
+// levels for callers to define their own, so anything below Info is debug and anything from
+// Error up is error.
+func logrusLevel(level slog.Level) logrus.Level {
+	switch {
+	case level < slog.LevelInfo:
+		return logrus.DebugLevel
+	case level < slog.LevelWarn:
+		return logrus.InfoLevel
+	case level < slog.LevelError:
+		return logrus.WarnLevel
+	default:
+		return logrus.ErrorLevel
+	}
 }
 
 const (
@@ -196,14 +95,16 @@ const (
 )
 
 func Log(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		start := time.Now()
 
 		// NOTE: The next must be called to proceed to the next handler in the chain that should be the processing of
 		// the request itself.
 		err := next(c)
 		if err != nil {
-			c.Error(err)
+			// Run the error handler here rather than returning the error, so the status it
+			// writes is already on the response by the time we read it below.
+			c.Echo().HTTPErrorHandler(c, err)
 		}
 
 		elapsed := time.Since(start)
@@ -213,6 +114,13 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			bytesIn = "0"
 		}
 
+		// Echo hands out the bare [http.ResponseWriter], so the status and the byte count have
+		// to be unwrapped back out of it.
+		status, bytesOut := 0, int64(0)
+		if response, unwrapErr := echo.UnwrapResponse(c.Response()); unwrapErr == nil {
+			status, bytesOut = response.Status, response.Size
+		}
+
 		fields := logrus.Fields{
 			"id":            c.Request().Header.Get(echo.HeaderXRequestID),
 			"remote_ip":     c.RealIP(),
@@ -220,11 +128,11 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			"uri":           c.Request().RequestURI,
 			"method":        c.Request().Method,
 			"user_agent":    c.Request().UserAgent(),
-			"status":        c.Response().Status,
+			"status":        status,
 			"latency":       strconv.FormatInt(elapsed.Nanoseconds()/1000, 10),
 			"latency_human": elapsed.String(),
 			"bytes_in":      bytesIn,
-			"bytes_out":     strconv.FormatInt(c.Response().Size, 10),
+			"bytes_out":     strconv.FormatInt(bytesOut, 10),
 		}
 
 		uid := c.Request().Header.Get(HeaderUserID)

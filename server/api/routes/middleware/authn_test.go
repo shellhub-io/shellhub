@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
@@ -42,7 +42,7 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 	return bearer, privateKey
 }
 
-func authenticatedRequest(e *echo.Echo, bearer string) (echo.Context, *httptest.ResponseRecorder) {
+func authenticatedRequest(e *echo.Echo, bearer string) (*echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("Authorization", "Bearer "+bearer)
 	rec := httptest.NewRecorder()
@@ -132,7 +132,7 @@ func TestAuthenticatorMiddlewareStaleToken(t *testing.T) {
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
 
-	next := func(echo.Context) error { return c.NoContent(http.StatusOK) }
+	next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
 	require.NoError(t, NewAuthenticator(service).Middleware(next)(c))
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
@@ -152,7 +152,7 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 	authenticator := NewAuthenticator(service)
 	authenticator.AllowAnonymous(http.MethodGet, "/api/namespaces")
 
-	next := func(echo.Context) error { return c.NoContent(http.StatusOK) }
+	next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
 	require.NoError(t, authenticator.Middleware(next)(c))
 
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)

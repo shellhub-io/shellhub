@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"bufio"
+	stderrors "errors"
 	"io"
 	"net/http"
 	"net/url"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	errors "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
@@ -16,37 +17,43 @@ func NewBinder() *Binder {
 	return &Binder{}
 }
 
-func (b *Binder) Bind(s any, c echo.Context) error {
+func (b *Binder) Bind(c *echo.Context, s any) error {
 	// Echo does not URL-decode path parameters. Decode them here so that
 	// names containing reserved characters (e.g. @, %) round-trip correctly.
-	values := make([]string, len(c.ParamValues()))
-	for i, v := range c.ParamValues() {
-		decoded, err := url.PathUnescape(v)
+	values := c.PathValues()
+	for i, v := range values {
+		decoded, err := url.PathUnescape(v.Value)
 		if err != nil {
-			decoded = v
+			continue
 		}
 
-		values[i] = decoded
+		values[i].Value = decoded
 	}
 
-	c.SetParamValues(values...)
+	c.SetPathValues(values)
 
 	discardEmptyChunkedBody(c.Request())
 
 	binder := new(echo.DefaultBinder)
-	if err := binder.Bind(s, c); err != nil {
-		err := err.(*echo.HTTPError) //nolint:forcetypeassert
-
-		return errors.NewErrUnprocessableEntity(err.Unwrap())
+	if err := binder.Bind(c, s); err != nil {
+		return errors.NewErrUnprocessableEntity(unwrapBindError(err))
 	}
 
-	if err := binder.BindHeaders(c, s); err != nil {
-		err := err.(*echo.HTTPError) //nolint:forcetypeassert
-
-		return errors.NewErrUnprocessableEntity(err.Unwrap())
+	if err := echo.BindHeaders(c, s); err != nil {
+		return errors.NewErrUnprocessableEntity(unwrapBindError(err))
 	}
 
 	return nil
+}
+
+// unwrapBindError digs out the cause Echo wrapped in the error it returns from binding, which is
+// what callers get told about. It returns the error itself when there is nothing underneath.
+func unwrapBindError(err error) error {
+	if cause := stderrors.Unwrap(err); cause != nil {
+		return cause
+	}
+
+	return err
 }
 
 // discardEmptyChunkedBody marks a request that carries no payload as having a zero-length

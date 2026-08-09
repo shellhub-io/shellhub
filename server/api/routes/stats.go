@@ -61,7 +61,7 @@ func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 		req.Host = c.Request().Host
 	}
 
-	c.Response().Writer.Header().Add("Content-Type", "text/x-shellscript")
+	c.Response().Header().Add("Content-Type", "text/x-shellscript")
 
 	data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req)
 	if err != nil {

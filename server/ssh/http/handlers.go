@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -70,14 +70,14 @@ func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Devic
 
 		select {
 		case <-ctx.Done():
-			return nil, echo.NewHTTPError(http.StatusInternalServerError)
+			return nil, echo.ErrInternalServerError
 		case <-time.After(time.Duration(attempt) * deviceResolveBackoff):
 		}
 	}
 
 	log.WithError(err).WithField("uid", uid).Error("unable to retrieve device for connection")
 
-	return nil, echo.NewHTTPError(http.StatusInternalServerError)
+	return nil, echo.ErrInternalServerError
 }
 
 const (
@@ -105,7 +105,7 @@ const (
 // session should be closed. It dials the device (choosing the correct
 // transport version) and then performs the version-specific close
 // sequence: HTTP GET for V1 or multistream + JSON payload for V2.
-func (h *Handlers) HandleSSHClose(c echo.Context) error {
+func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	var data struct {
 		UID    string `param:"uid"`
 		Device string `json:"device"`
@@ -160,7 +160,7 @@ func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*mode
 // HandleConnectionV1 upgrades the HTTP connection to WebSocket and
 // registers a legacy (V1) reverse dialer for the agent. Each new logical
 // session requires an extra reverse dial handshake.
-func (h *Handlers) HandleConnectionV1(c echo.Context) error {
+func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	requestID := c.Request().Header.Get("X-Request-ID")
 
 	tenant := c.Request().Header.Get("X-Tenant-ID")
@@ -217,7 +217,7 @@ type HandleConnectionV2Data struct {
 // binds it to a yamux session (V2). Subsequent logical streams are
 // opened without additional HTTP handshakes and are protocol-negotiated
 // via multistream-select.
-func (h *Handlers) HandleConnectionV2(c echo.Context) error {
+func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 	log.Trace("handling v2 connection")
 	defer log.Trace("v2 connection handle closed")
 

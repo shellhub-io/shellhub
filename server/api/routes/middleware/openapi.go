@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/server/api/pkg/openapi"
 	"github.com/sirupsen/logrus"
 )
@@ -52,7 +52,7 @@ type OpenAPIValidatorConfig struct {
 	// SchemaPath overrides the default schema path
 	SchemaPath *url.URL
 	// Skipper defines a function to skip middleware. If Skipper returns true, middleware is skipped.
-	Skipper func(echo.Context) bool
+	Skipper func(*echo.Context) bool
 }
 
 type OpenAPIValidationMessage struct {
@@ -67,7 +67,7 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if cfg.Skipper != nil && cfg.Skipper(c) {
 				return next(c)
 			}
@@ -83,12 +83,12 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 			body := &bytes.Buffer{}
 
 			rw := &capture{
-				ResponseWriter: res.Writer,
+				ResponseWriter: res,
 				body:           body,
 				statusCode:     200,
 			}
 
-			res.Writer = rw
+			c.SetResponse(rw)
 
 			err := next(c)
 

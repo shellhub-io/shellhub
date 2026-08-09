@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -80,8 +80,8 @@ func newSpyClient(t *testing.T) (*sentry.Client, *spyTransport) {
 	return client, spy
 }
 
-// newEchoCtx returns an echo.Context backed by an HTTP recorder for assertions.
-func newEchoCtx() (echo.Context, *httptest.ResponseRecorder) {
+// newEchoCtx returns an *echo.Context backed by an HTTP recorder for assertions.
+func newEchoCtx() (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -126,7 +126,7 @@ func TestNewErrors(t *testing.T) {
 			handler := NewErrors(client)
 
 			ctx, rec := newEchoCtx()
-			handler(tc.err, ctx)
+			handler(ctx, tc.err)
 
 			assert.Equal(t, tc.wantStatus, rec.Code, "unexpected HTTP status code")
 
