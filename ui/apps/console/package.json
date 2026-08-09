@@ -33,11 +33,11 @@
     "@xterm/addon-webgl": "^0.19.0",
     "@xterm/xterm": "^6.0.0",
     "asciinema-player": "^3.17.0",
-    "axios": "^1.18.1",
+    "axios": "^1.19.0",
     "font-logos": "^1.4.0",
     "node-rsa": "^1.1.1",
     "react-day-picker": "^10.0.1",
-    "react-hook-form": "^7.83.0",
+    "react-hook-form": "^7.84.0",
     "sshpk": "^1.18.0",
     "zod": "^3.25.76",
     "zustand": "^5.0.14"
