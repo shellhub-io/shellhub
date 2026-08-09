@@ -3,15 +3,17 @@ package app
 import (
 	"context"
 	"errors"
+	"net"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/labstack/echo-contrib/pprof"
+	"github.com/labstack/echo-contrib/v5/pprof"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -91,6 +93,7 @@ type sshEnv struct {
 type Server struct {
 	env         *Env
 	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
+	http        *http.Server
 	authn       *middleware.Authenticator
 	worker      worker.Server
 	ssh         *sshserver.Server
@@ -306,21 +309,25 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	errs := make(chan error, 2)
-
-	go func() { errs <- s.router.Start(httpAddress) }()
-
-	// The SSH side reaches the API over loopback on its first connection, and an
-	// unbound port refuses it rather than queueing it, so hold it back until the
-	// HTTP listener is up.
-	for s.router.ListenerAddr() == nil {
-		select {
-		case err := <-errs:
-			return err
-		case <-time.After(10 * time.Millisecond):
-		}
+	// The SSH side reaches the API over loopback on its first connection, and an unbound port
+	// refuses it rather than queueing it. Bind here instead of letting the HTTP server do it, so
+	// the port is already accepting by the time the SSH listener comes up.
+	// The wildcard bind is the intended one: the API answers the gateway container and the SSH
+	// side over loopback, and the port is not published to the host. Echo bound this same
+	// address from inside the library until now, which is the only reason the scanners have
+	// started pointing at it.
+	// nosemgrep: go.lang.security.audit.net.bind_all.avoid-bind-to-all-interfaces
+	listener, err := net.Listen("tcp", httpAddress) //nolint:gosec
+	if err != nil {
+		return err
 	}
 
+	// No timeouts, matching what Echo's own Start built for us until now.
+	s.http = &http.Server{Handler: s.router} //nolint:gosec
+
+	errs := make(chan error, 2)
+
+	go func() { errs <- s.http.Serve(listener) }()
 	go func() { errs <- s.ssh.ListenAndServe() }()
 
 	return <-errs
@@ -331,8 +338,12 @@ func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
 	s.worker.Shutdown()
-	s.router.Close() // nolint: errcheck
-	s.ssh.Close()    // nolint: errcheck
+
+	if s.http != nil {
+		s.http.Close() // nolint: errcheck
+	}
+
+	s.ssh.Close() // nolint: errcheck
 
 	// Drained after the SSH listener closes, so no tunnel can submit a beat that
 	// the final batch would miss.
@@ -456,7 +467,7 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 
 		opts = append(opts, routes.WithOpenAPIValidator(&middleware.OpenAPIValidatorConfig{
 			// NOTE: By default, metrics and internal endpoints are skipped from validation for now.
-			Skipper: func(ctx echo.Context) bool {
+			Skipper: func(ctx *echo.Context) bool {
 				routes := []string{"/metrics", "/internal"}
 
 				for _, path := range routes {

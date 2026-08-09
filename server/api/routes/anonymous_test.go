@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
@@ -43,7 +43,7 @@ func TestAnonymousAllowlistMatchesRegisteredRoutes(t *testing.T) {
 	registered := make(map[string]struct{})
 	paths := make(map[string]struct{})
 
-	for _, route := range router.Routes() {
+	for _, route := range router.Router().Routes() {
 		registered[route.Method+" "+route.Path] = struct{}{}
 		paths[route.Path] = struct{}{}
 	}
@@ -145,7 +145,7 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 
 	var seen http.Header
 
-	router.GET(probe, func(c echo.Context) error {
+	router.GET(probe, func(c *echo.Context) error {
 		seen = c.Request().Header.Clone()
 
 		return c.NoContent(http.StatusOK)

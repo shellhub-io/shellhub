@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,13 +18,13 @@ func TestBinder(t *testing.T) {
 
 	cases := []struct {
 		description string
-		setup       func() echo.Context
+		setup       func() *echo.Context
 		wantName    string
 		wantErr     bool
 	}{
 		{
 			description: "succeeds to bind json body",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -35,12 +35,11 @@ func TestBinder(t *testing.T) {
 		},
 		{
 			description: "succeeds to bind path parameters",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodGet, "/", nil)
 				c := e.NewContext(req, httptest.NewRecorder())
-				c.SetParamNames("name")
-				c.SetParamValues("plain")
+				c.SetPathValues(echo.PathValues{{Name: "name", Value: "plain"}})
 
 				return c
 			},
@@ -51,12 +50,11 @@ func TestBinder(t *testing.T) {
 			// value as extracted from the URL (e.g. "%40" instead of "@"). The binder
 			// must decode them so the application never sees percent-encoded strings.
 			description: "decodes URL-encoded path parameters",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodGet, "/", nil)
 				c := e.NewContext(req, httptest.NewRecorder())
-				c.SetParamNames("name")
-				c.SetParamValues("%40%40%40%40%40%40")
+				c.SetPathValues(echo.PathValues{{Name: "name", Value: "%40%40%40%40%40%40"}})
 
 				return c
 			},
@@ -64,7 +62,7 @@ func TestBinder(t *testing.T) {
 		},
 		{
 			description: "succeeds to bind query parameters",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodGet, "/?name=test", nil)
 
@@ -77,7 +75,7 @@ func TestBinder(t *testing.T) {
 			// Go's url.ParseQuery before Echo touches them, so no binder intervention
 			// is needed for this case.
 			description: "succeeds to bind query parameters with special characters",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodGet, "/?name=%40%40%40", nil)
 
@@ -90,13 +88,12 @@ func TestBinder(t *testing.T) {
 			// since v2.17) has no Content-Length, and Echo's binder would reject the
 			// missing Content-Type with 415 instead of skipping the absent body.
 			description: "succeeds to bind a body-less chunked request",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodPatch, "/", strings.NewReader(""))
 				req.ContentLength = -1
 				c := e.NewContext(req, httptest.NewRecorder())
-				c.SetParamNames("name")
-				c.SetParamValues("test")
+				c.SetPathValues(echo.PathValues{{Name: "name", Value: "test"}})
 
 				return c
 			},
@@ -104,7 +101,7 @@ func TestBinder(t *testing.T) {
 		},
 		{
 			description: "succeeds to bind a chunked json body",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.ContentLength = -1
@@ -116,7 +113,7 @@ func TestBinder(t *testing.T) {
 		},
 		{
 			description: "fails to bind a chunked body without a content type",
-			setup: func() echo.Context {
+			setup: func() *echo.Context {
 				e := echo.New()
 				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.ContentLength = -1
@@ -131,7 +128,7 @@ func TestBinder(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			b := NewBinder()
 			var req request
-			err := b.Bind(&req, tc.setup())
+			err := b.Bind(tc.setup(), &req)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"

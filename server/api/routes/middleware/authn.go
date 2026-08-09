@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -83,7 +83,7 @@ func (a *Authenticator) AnonymousRoutes() []string {
 // Middleware authenticates the request. Register it with echo's Use so it runs
 // after routing, where the matched route pattern is available.
 func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		if isExempt(c.Path()) {
 			return next(c)
 		}
@@ -132,7 +132,7 @@ func isExempt(path string) bool {
 	return false
 }
 
-func (a *Authenticator) isAnonymous(c echo.Context) bool {
+func (a *Authenticator) isAnonymous(c *echo.Context) bool {
 	if _, ok := a.anonymous[c.Request().Method+" "+c.Path()]; ok {
 		return true
 	}
@@ -145,7 +145,7 @@ func (a *Authenticator) isAnonymous(c echo.Context) bool {
 // Resolve turns the request's credential into an identity. It returns a nil
 // identity when the request carries no usable credential, and an error only
 // when a credential was presented and could not be honoured.
-func (a *Authenticator) Resolve(c echo.Context) (*gateway.Identity, error) {
+func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
 		if err != nil {

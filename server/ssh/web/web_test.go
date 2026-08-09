@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

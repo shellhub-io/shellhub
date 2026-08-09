@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -16,7 +16,7 @@ const ctxAdminRoute ctxKey = "admin-route"
 
 type Context struct {
 	service interface{}
-	echo.Context
+	*echo.Context
 }
 
 // MarkAdminRoute tags the request as originating from the admin route group. Only the admin
@@ -32,18 +32,35 @@ func (c *Context) isAdminRoute() bool {
 	return v
 }
 
-func NewContext(service interface{}, c echo.Context) *Context {
+// contextKey is where [WithContext] parks the gateway [Context] in Echo's per-request store.
+const contextKey = "gateway-context"
+
+func NewContext(service interface{}, c *echo.Context) *Context {
 	return &Context{service: service, Context: c}
 }
 
-// From returns the [Context] the gateway middleware installed for this request. It reports false
-// when there is none, so callers can fail closed instead of assuming an identity is present.
+// WithContext installs a gateway [Context] bound to service on every request passing through it.
+//
+// Echo's Context is a concrete struct, so the gateway context cannot be handed to the next
+// handler in its place — it rides along in the request store instead, and [From] takes it back
+// out. Register this before anything that calls [From].
+func WithContext(service interface{}) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			c.Set(contextKey, NewContext(service, c))
+
+			return next(c)
+		}
+	}
+}
+
+// From returns the [Context] [WithContext] installed for this request. It reports false when
+// there is none, so callers can fail closed instead of assuming an identity is present.
 //
 // Middleware and handlers must reach the gateway context through this function rather than
-// asserting on the concrete type: how the context is carried is the gateway's business, and it
-// changes with the web framework underneath.
-func From(c echo.Context) (*Context, bool) {
-	gCtx, ok := c.(*Context)
+// reading the store directly: where it lives is the gateway's business.
+func From(c *echo.Context) (*Context, bool) {
+	gCtx, ok := c.Get(contextKey).(*Context)
 
 	return gCtx, ok
 }

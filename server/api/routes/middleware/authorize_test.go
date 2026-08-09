@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +47,7 @@ func TestRequiresTenant(t *testing.T) {
 			expected:    http.StatusForbidden,
 		},
 		{
-			description: "blocks when context is not a *gateway.Context",
+			description: "blocks when the gateway middleware is not installed",
 			paramValue:  tenant,
 			header:      tenant,
 			useGateway:  false,
@@ -64,16 +64,16 @@ func TestRequiresTenant(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
-			c.SetParamNames("tenant")
-			c.SetParamValues(tc.paramValue)
+			c.SetPathValues(echo.PathValues{{Name: "tenant", Value: tc.paramValue}})
 
-			ctx := c
+			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+
+			handler := RequiresTenant("tenant")(next)
 			if tc.useGateway {
-				ctx = gateway.NewContext(nil, c)
+				handler = gateway.WithContext(nil)(handler)
 			}
 
-			next := func(echo.Context) error { return c.NoContent(http.StatusOK) }
-			_ = RequiresTenant("tenant")(next)(ctx)
+			_ = handler(c)
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
 	}

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers/pkg/converter"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -29,8 +29,8 @@ func report(reporter *sentry.Client, err error, request *http.Request) {
 }
 
 // NewErrors returns a custom echo's error handler.
-func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
-	return func(err error, ctx echo.Context) {
+func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
+	return func(ctx *echo.Context, err error) {
 		// NOTE(r): The early return approach here, despite it being a bit verbose, is the best way to clarify what
 		// happens in each case, avoiding the use of else statements, which would make the code more confusing or a big
 		// switch statement, which would make the code less readable.
@@ -46,9 +46,10 @@ func NewErrors(reporter *sentry.Client) func(error, echo.Context) {
 		}
 
 		// On HTTP errors, anything related to the HTTP protocol, we just return the error code, avoiding a 500 error.
-		var herr *echo.HTTPError
-		if ok := errors.As(err, &herr); ok {
-			ctx.NoContent(herr.Code) //nolint:errcheck
+		// Ask Echo for the status rather than matching on *echo.HTTPError: its own sentinels
+		// (echo.ErrNotFound and friends) are a different unexported type that a type match misses.
+		if code := echo.StatusCode(err); code != 0 {
+			ctx.NoContent(code) //nolint:errcheck
 
 			return
 		}

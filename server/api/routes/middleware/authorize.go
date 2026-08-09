@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		gCtx, ok := gateway.From(c)
 		if !ok {
 			return c.NoContent(http.StatusForbidden)
@@ -32,7 +32,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 
 // BlockAPIKey blocks request using API keys to continue.
 func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		if key := c.Request().Header.Get("X-API-Key"); key != "" {
 			return c.NoContent(http.StatusForbidden)
 		}
@@ -46,7 +46,7 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 // the next handler.
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if ctx, ok := gateway.From(c); !ok || !ctx.Role().HasPermission(permission) {
 				return c.NoContent(http.StatusForbidden)
 			}
@@ -65,7 +65,7 @@ func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 // /api/* surface still carries X-ID and is subject to the tenant guard.
 func RequiresTenant(param string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			ctx, ok := gateway.From(c)
 			if !ok {
 				return c.NoContent(http.StatusForbidden)

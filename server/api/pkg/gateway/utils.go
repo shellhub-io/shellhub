@@ -2,22 +2,20 @@ package gateway
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func Handler(next func(*Context) error) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		gCtx, ok := From(c)
 		if !ok {
-			return echo.NewHTTPError(http.StatusInternalServerError)
+			return echo.ErrInternalServerError
 		}
 
 		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx) //nolint:revive
 
 		c.SetRequest(c.Request().WithContext(ctx))
-		c.Set("ctx", gCtx)
 
 		return next(gCtx)
 	}
@@ -25,9 +23,9 @@ func Handler(next func(*Context) error) echo.HandlerFunc {
 
 func Middleware(m echo.MiddlewareFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			return Handler(func(c *Context) error {
-				return m(next)(c)
+				return m(next)(c.Context)
 			})(c)
 		}
 	}
