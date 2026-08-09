@@ -11,11 +11,15 @@ import (
 
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := context.WithValue(c.Request().Context(), "ctx", c.(*gateway.Context)) //nolint:revive
+		gCtx, ok := gateway.From(c)
+		if !ok {
+			return c.NoContent(http.StatusForbidden)
+		}
+
+		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx) //nolint:revive
 
 		id := gateway.IDFromContext(ctx)
 		tenant := gateway.TenantFromContext(ctx)
-		gCtx := c.(*gateway.Context)
 
 		// Allow admins to access resources without tenant scope (e.g., from /admin/api endpoints)
 		if id != nil && tenant == nil && !gCtx.IsAdmin() {
@@ -43,7 +47,7 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if ctx, ok := c.(*gateway.Context); !ok || !ctx.Role().HasPermission(permission) {
+			if ctx, ok := gateway.From(c); !ok || !ctx.Role().HasPermission(permission) {
 				return c.NoContent(http.StatusForbidden)
 			}
 
@@ -62,7 +66,7 @@ func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 func RequiresTenant(param string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			ctx, ok := c.(*gateway.Context)
+			ctx, ok := gateway.From(c)
 			if !ok {
 				return c.NoContent(http.StatusForbidden)
 			}
