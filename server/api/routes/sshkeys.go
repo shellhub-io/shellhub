@@ -22,7 +22,7 @@ const (
 	ParamPublicKeyFingerprint = "fingerprint"
 )
 
-func (h *Handler) GetPublicKeys(c gateway.Context) error {
+func (h *Handler) GetPublicKeys(c *gateway.Context) error {
 	req := new(requests.ListPublicKeys)
 
 	if err := c.Bind(req); err != nil {
@@ -56,7 +56,7 @@ func (h *Handler) GetPublicKeys(c gateway.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (h *Handler) CreatePublicKey(c gateway.Context) error {
+func (h *Handler) CreatePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyCreate
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -80,7 +80,7 @@ func (h *Handler) CreatePublicKey(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) UpdatePublicKey(c gateway.Context) error {
+func (h *Handler) UpdatePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -103,7 +103,7 @@ func (h *Handler) UpdatePublicKey(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) DeletePublicKey(c gateway.Context) error {
+func (h *Handler) DeletePublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyDelete
 	if err := c.Bind(&req); err != nil {
 		return err

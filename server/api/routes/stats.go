@@ -13,7 +13,7 @@ const (
 	GetSystemDownloadInstallScriptURL = "/install"
 )
 
-func (h *Handler) GetStats(c gateway.Context) error {
+func (h *Handler) GetStats(c *gateway.Context) error {
 	req := new(requests.GetStats)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -31,7 +31,7 @@ func (h *Handler) GetStats(c gateway.Context) error {
 	return c.JSON(http.StatusOK, stats)
 }
 
-func (h *Handler) GetSystemInfo(c gateway.Context) error {
+func (h *Handler) GetSystemInfo(c *gateway.Context) error {
 	req := new(requests.GetSystemInfo)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -49,7 +49,7 @@ func (h *Handler) GetSystemInfo(c gateway.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
-func (h *Handler) GetSystemDownloadInstallScript(c gateway.Context) error {
+func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 	req := new(requests.SystemInstallScript)
 	if err := c.Bind(req); err != nil {
 		return err

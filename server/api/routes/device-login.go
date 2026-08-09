@@ -20,7 +20,7 @@ const (
 // CreateDeviceLoginCode issues a short-lived code that deep-links this device
 // into the console's accept page. It is authenticated with the device's own
 // token; the gateway sets X-Device-UID and X-Tenant-ID from the device claims.
-func (h *Handler) CreateDeviceLoginCode(c gateway.Context) error {
+func (h *Handler) CreateDeviceLoginCode(c *gateway.Context) error {
 	uid := c.DeviceUID()
 	tenant := c.Tenant()
 	if uid == "" || tenant == nil {
@@ -37,7 +37,7 @@ func (h *Handler) CreateDeviceLoginCode(c gateway.Context) error {
 
 // GetDeviceAuthStatus reports the device's current status to the device
 // itself, so the agent can poll while it waits for acceptance.
-func (h *Handler) GetDeviceAuthStatus(c gateway.Context) error {
+func (h *Handler) GetDeviceAuthStatus(c *gateway.Context) error {
 	uid := c.DeviceUID()
 	if uid == "" {
 		return c.NoContent(http.StatusUnauthorized)
@@ -61,7 +61,7 @@ func (h *Handler) GetDeviceAuthStatus(c gateway.Context) error {
 // ResolveDeviceLoginCode resolves a login code into a device preview for the
 // accept page. It requires a user token; membership in the device's namespace
 // is enforced by the service.
-func (h *Handler) ResolveDeviceLoginCode(c gateway.Context) error {
+func (h *Handler) ResolveDeviceLoginCode(c *gateway.Context) error {
 	var req requests.DeviceLoginCodeResolve
 	if err := c.Bind(&req); err != nil {
 		return err

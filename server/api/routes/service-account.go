@@ -15,7 +15,7 @@ const (
 )
 
 // ListServiceAccounts returns the namespace's service accounts with their identities.
-func (h *Handler) ListServiceAccounts(c gateway.Context) error {
+func (h *Handler) ListServiceAccounts(c *gateway.Context) error {
 	req := new(requests.ServiceAccountList)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -37,7 +37,7 @@ func (h *Handler) ListServiceAccounts(c gateway.Context) error {
 
 // CreateServiceAccount creates a service account from a display name and an OpenSSH
 // public key.
-func (h *Handler) CreateServiceAccount(c gateway.Context) error {
+func (h *Handler) CreateServiceAccount(c *gateway.Context) error {
 	req := new(requests.ServiceAccountCreate)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (h *Handler) CreateServiceAccount(c gateway.Context) error {
 
 // DeleteServiceAccount removes a service account and cascades to its membership and
 // SSH identities.
-func (h *Handler) DeleteServiceAccount(c gateway.Context) error {
+func (h *Handler) DeleteServiceAccount(c *gateway.Context) error {
 	req := new(requests.ServiceAccountDelete)
 	if err := c.Bind(req); err != nil {
 		return err

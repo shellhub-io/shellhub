@@ -15,7 +15,7 @@ const (
 	DeleteAPIKeyURL = "/namespaces/api-key/:name"
 )
 
-func (h *Handler) CreateAPIKey(c gateway.Context) error {
+func (h *Handler) CreateAPIKey(c *gateway.Context) error {
 	req := new(requests.CreateAPIKey)
 
 	if err := c.Bind(req); err != nil {
@@ -34,7 +34,7 @@ func (h *Handler) CreateAPIKey(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) ListAPIKeys(c gateway.Context) error {
+func (h *Handler) ListAPIKeys(c *gateway.Context) error {
 	req := new(requests.ListAPIKey)
 
 	if err := c.Bind(req); err != nil {
@@ -65,7 +65,7 @@ func (h *Handler) ListAPIKeys(c gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) UpdateAPIKey(c gateway.Context) error {
+func (h *Handler) UpdateAPIKey(c *gateway.Context) error {
 	req := new(requests.UpdateAPIKey)
 
 	if err := c.Bind(req); err != nil {
@@ -83,7 +83,7 @@ func (h *Handler) UpdateAPIKey(c gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) DeleteAPIKey(c gateway.Context) error {
+func (h *Handler) DeleteAPIKey(c *gateway.Context) error {
 	req := new(requests.DeleteAPIKey)
 
 	if err := c.Bind(req); err != nil {

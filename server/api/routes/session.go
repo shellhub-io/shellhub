@@ -21,7 +21,7 @@ const (
 	ParamSessionID = "uid"
 )
 
-func (h *Handler) GetSessionList(c gateway.Context) error {
+func (h *Handler) GetSessionList(c *gateway.Context) error {
 	req := new(requests.ListSessions)
 
 	if err := c.Bind(req); err != nil {
@@ -60,7 +60,7 @@ func (h *Handler) GetSessionList(c gateway.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
-func (h *Handler) GetSession(c gateway.Context) error {
+func (h *Handler) GetSession(c *gateway.Context) error {
 	var req requests.SessionGet
 	if err := c.Bind(&req); err != nil {
 		return err

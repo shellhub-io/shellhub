@@ -20,7 +20,7 @@ const (
 // CreateDevicePairing stores the identity payload of a tenant-less agent and
 // returns a short-lived pairing code. No device is created until a user
 // accepts the pairing into a namespace.
-func (h *Handler) CreateDevicePairing(c gateway.Context) error {
+func (h *Handler) CreateDevicePairing(c *gateway.Context) error {
 	req := new(requests.DevicePairingCreate)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -42,7 +42,7 @@ func (h *Handler) CreateDevicePairing(c gateway.Context) error {
 // namespace so the Add Device page can embed it in the install command and have
 // the device accepted automatically. The permission is enforced by route
 // middleware; the service re-checks membership.
-func (h *Handler) PrepareDevicePairing(c gateway.Context) error {
+func (h *Handler) PrepareDevicePairing(c *gateway.Context) error {
 	userID, ok := c.GetID()
 	if !ok {
 		return c.NoContent(http.StatusUnauthorized)
@@ -62,7 +62,7 @@ func (h *Handler) PrepareDevicePairing(c gateway.Context) error {
 }
 
 // GetDevicePairingStatus reports the pairing outcome to the agent polling it.
-func (h *Handler) GetDevicePairingStatus(c gateway.Context) error {
+func (h *Handler) GetDevicePairingStatus(c *gateway.Context) error {
 	var req requests.DevicePairingStatus
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -83,7 +83,7 @@ func (h *Handler) GetDevicePairingStatus(c gateway.Context) error {
 // AcceptDevicePairing materializes the pairing as a device in the namespace
 // chosen by the user. Authorization against the chosen namespace happens in
 // the service, since the session may be scoped to another tenant.
-func (h *Handler) AcceptDevicePairing(c gateway.Context) error {
+func (h *Handler) AcceptDevicePairing(c *gateway.Context) error {
 	req := new(requests.DevicePairingAccept)
 	if err := c.Bind(req); err != nil {
 		return err

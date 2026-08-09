@@ -16,7 +16,7 @@ const (
 	DeleteAccessPolicyURL = "/access-policies/:id"
 )
 
-func (h *Handler) ListAccessPolicies(c gateway.Context) error {
+func (h *Handler) ListAccessPolicies(c *gateway.Context) error {
 	var tenant string
 	if c.Tenant() != nil {
 		tenant = c.Tenant().ID
@@ -32,7 +32,7 @@ func (h *Handler) ListAccessPolicies(c gateway.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (h *Handler) GetAccessPolicy(c gateway.Context) error {
+func (h *Handler) GetAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyGet
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -54,7 +54,7 @@ func (h *Handler) GetAccessPolicy(c gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
-func (h *Handler) CreateAccessPolicy(c gateway.Context) error {
+func (h *Handler) CreateAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyCreate
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -76,7 +76,7 @@ func (h *Handler) CreateAccessPolicy(c gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
-func (h *Handler) UpdateAccessPolicy(c gateway.Context) error {
+func (h *Handler) UpdateAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyUpdate
 	if err := c.Bind(&req); err != nil {
 		return err
@@ -98,7 +98,7 @@ func (h *Handler) UpdateAccessPolicy(c gateway.Context) error {
 	return c.JSON(http.StatusOK, policy)
 }
 
-func (h *Handler) DeleteAccessPolicy(c gateway.Context) error {
+func (h *Handler) DeleteAccessPolicy(c *gateway.Context) error {
 	var req requests.AccessPolicyDelete
 	if err := c.Bind(&req); err != nil {
 		return err

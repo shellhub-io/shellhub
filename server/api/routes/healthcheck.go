@@ -10,6 +10,6 @@ const (
 	HealthCheckURL = "/healthcheck"
 )
 
-func (h *Handler) EvaluateHealth(c gateway.Context) error {
+func (h *Handler) EvaluateHealth(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
