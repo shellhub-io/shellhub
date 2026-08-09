@@ -127,10 +127,33 @@ updates:
   allow:
     - dependency-type: direct
   groups:
+    # group-by below gives each dependency its own pull request, which is right for
+    # dependencies that move on their own. It is wrong for a project shipping several
+    # modules: those release together and pin each other, so one pull request per
+    # module means each carries the same edits and only the first can land. The groups
+    # here name those projects, and the catch-all excludes them by hand because a
+    # dependency matching more than one group is not placed in the first match.
     caddy:
       patterns:
         - "github.com/caddyserver/*"
         - "github.com/caddy-dns/*"
+    # The module packages pin the core version they were built against.
+    testcontainers:
+      patterns:
+        - "github.com/testcontainers/testcontainers-go"
+        - "github.com/testcontainers/testcontainers-go/*"
+    # pgdialect is versioned in lockstep with bun and will not build against a
+    # different one.
+    bun:
+      patterns:
+        - "github.com/uptrace/bun"
+        - "github.com/uptrace/bun/*"
+    # Unlike the groups above these are not coupled, they just tend to move together,
+    # so applies-to keeps a crypto or net security fix arriving on its own.
+    golang-x:
+      applies-to: version-updates
+      patterns:
+        - "golang.org/x/*"
     go-modules:
       applies-to: version-updates
       group-by: dependency-name
@@ -139,6 +162,11 @@ updates:
       exclude-patterns:
         - "github.com/caddyserver/*"
         - "github.com/caddy-dns/*"
+        - "github.com/testcontainers/testcontainers-go"
+        - "github.com/testcontainers/testcontainers-go/*"
+        - "github.com/uptrace/bun"
+        - "github.com/uptrace/bun/*"
+        - "golang.org/x/*"
   ignore:
     - dependency-name: "github.com/shellhub-io/shellhub"
     # echo-contrib's v0.50 line is its Echo 5 support, published by mistake on the
