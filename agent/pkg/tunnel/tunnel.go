@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/multiformats/go-multistream"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	log "github.com/sirupsen/logrus"
@@ -116,7 +116,7 @@ func (t *TunnelV1) Handle(protocol string, handler echo.HandlerFunc) {
 	method := parts[0]
 	path := parts[1]
 
-	t.router.Add(method, path, func(c echo.Context) error {
+	t.router.Add(method, path, func(c *echo.Context) error {
 		log.WithField("protocol", protocol).Debug("handling connection")
 		defer log.WithField("protocol", protocol).Debug("handling connection closed")
 
@@ -129,9 +129,5 @@ func (t *TunnelV1) Listen(ctx context.Context, listener net.Listener) error {
 }
 
 func (t *TunnelV1) Close() error {
-	if err := t.router.Close(); err != nil {
-		return err
-	}
-
 	return t.srv.Close()
 }
