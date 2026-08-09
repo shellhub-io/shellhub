@@ -47,6 +47,7 @@ jobs:
             scripts:
               - 'ui/scripts/gen-config.sh'
               - 'tests/ui/**'
+              - 'ui/Dockerfile'
               - '.github/workflows/script-tests.yml'
 
       - name: Install bats
@@ -56,3 +57,18 @@ jobs:
       - name: Run gen-config tests
         if: steps.filter.outputs.scripts == 'true'
         run: bats tests/ui/gen-config.bats
+
+      # The runner has GNU sed/tr, but gen-config.sh escapes JSON with the
+      # busybox ones in the production image, where the N-slurp, the \n match
+      # and the octal tr ranges all behave differently. Read the image out of
+      # the Dockerfile so an alpine bump is covered by the same guard.
+      - name: Run gen-config tests on busybox
+        if: steps.filter.outputs.scripts == 'true'
+        run: |
+          image=$(sed -n 's/^FROM \(alpine:[^[:space:]]*\) AS production$/\1/p' ui/Dockerfile)
+          if [ -z "$image" ]; then
+            echo "could not read the production alpine image from ui/Dockerfile" >&2
+            exit 1
+          fi
+          docker run --rm -v "$PWD:/src" -w /src "$image" \
+            sh -c 'apk add --no-cache bats jq >/dev/null && bats tests/ui/gen-config.bats'
