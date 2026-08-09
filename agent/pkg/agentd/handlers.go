@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
 	log "github.com/sirupsen/logrus"
@@ -231,10 +231,10 @@ const (
 	HandleHTTPProxyV1 = "CONNECT:///http/proxy/:addr"
 )
 
-func httpProxyHandlerV1(agent *Agent) func(c echo.Context) error {
+func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 	const ProxyHandlerNetwork = "tcp"
 
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		logger := log.WithFields(log.Fields{
 			"remote":    c.Request().RemoteAddr,
 			"namespace": c.Request().Header.Get("X-Namespace"),
@@ -326,7 +326,7 @@ func httpProxyHandlerV1(agent *Agent) func(c echo.Context) error {
 
 		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
 		// depend upon anything externally, only the data.
-		out, _, err := c.Response().Hijack()
+		out, _, err := http.NewResponseController(c.Response()).Hijack()
 		if err != nil {
 			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
 		}
@@ -366,9 +366,9 @@ func httpProxyHandlerV1(agent *Agent) func(c echo.Context) error {
 	}
 }
 
-func sshHandlerV1(ag *Agent) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		hj, ok := c.Response().Writer.(http.Hijacker)
+func sshHandlerV1(ag *Agent) func(c *echo.Context) error {
+	return func(c *echo.Context) error {
+		hj, ok := c.Response().(http.Hijacker)
 		if !ok {
 			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
 		}
@@ -389,8 +389,8 @@ func sshHandlerV1(ag *Agent) func(c echo.Context) error {
 	}
 }
 
-func sshCloseHandlerV1(a *Agent) func(c echo.Context) error {
-	return func(c echo.Context) error {
+func sshCloseHandlerV1(a *Agent) func(c *echo.Context) error {
+	return func(c *echo.Context) error {
 		id := c.Param("id")
 		a.server.CloseSession(id)
 
