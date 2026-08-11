@@ -26,8 +26,6 @@ vi.mock("../AccountRequestsTab", () => ({
   default: () => null,
 }));
 
-vi.mock("./mocks", () => ({}));
-
 // Drawer/Dialog mocks — keep tests fast and focused
 vi.mock("../CreateUserDrawer", () => ({
   default: ({ open }: { open: boolean }) =>

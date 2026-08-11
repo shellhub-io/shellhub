@@ -1,6 +1,6 @@
-import React from "react";
+import type { ReactNode } from "react";
 
-export const MockDrawer = ({
+export function MockDrawer({
   open,
   onClose,
   title,
@@ -10,18 +10,18 @@ export const MockDrawer = ({
   open: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) => {
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   if (!open) return null;
   return (
-    <div>
+    <div role="dialog" aria-label={title}>
       <h2>{title}</h2>
       <button type="button" onClick={onClose}>
         Close Drawer
       </button>
       <div>{children}</div>
-      {footer && <div>{footer as React.ReactNode}</div>}
+      {footer && <div>{footer}</div>}
     </div>
   );
-};
+}

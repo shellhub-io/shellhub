@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import IdentityDrawer from "../IdentityDrawer";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -31,24 +30,8 @@ vi.mock("@/utils/sshKeys", () => ({
   isPublicKeyValid: () => true,
 }));
 
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    title,
-    children,
-    footer,
-  }: {
-    open: boolean;
-    title: string;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
-  }) =>
-    open ? (
-      <div role="dialog" aria-label={title}>
-        {children}
-        {footer}
-      </div>
-    ) : null,
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 vi.mock("@/components/common/fields/KeyFileInput", () => ({

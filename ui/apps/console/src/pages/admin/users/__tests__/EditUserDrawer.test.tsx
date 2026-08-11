@@ -10,7 +10,7 @@ vi.mock("@/hooks/useAdminUserMutations", () => ({
 }));
 
 vi.mock("@/components/common/Drawer", async () => ({
-  default: (await import("./mocks")).MockDrawer,
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 const mockMutateAsync = vi.fn();

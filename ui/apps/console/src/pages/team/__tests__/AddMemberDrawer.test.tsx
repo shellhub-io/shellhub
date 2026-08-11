@@ -21,32 +21,8 @@ vi.mock("@/hooks/useInvitationMutations", () => ({
   }),
 }));
 
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    onClose,
-    title,
-    children,
-    footer,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    title: string;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <h2>{title}</h2>
-        <button type="button" onClick={onClose}>
-          Close
-        </button>
-        {children}
-        {footer ?? null}
-      </div>
-    );
-  },
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 vi.mock("@/components/common/CopyButton", () => ({

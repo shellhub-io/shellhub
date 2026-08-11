@@ -1,4 +1,3 @@
-import { type ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   fireEvent,
@@ -28,31 +27,8 @@ vi.mock("@/hooks/useTags", () => ({
   useTags: vi.fn(),
 }));
 
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    onClose,
-    title,
-    children,
-    footer,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    title: string;
-    children: ReactNode;
-    footer?: ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <button type="button" onClick={onClose}>
-          Close
-        </button>
-        {children}
-        {footer}
-      </div>
-    );
-  },
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 import { useTags } from "@/hooks/useTags";
