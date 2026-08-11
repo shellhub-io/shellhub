@@ -69,19 +69,8 @@ vi.mock("../BillingSuccessful", () => ({
     React.createElement("div", { "data-testid": "billing-successful" }),
 }));
 
-vi.mock("@/components/common/BaseDialog", () => ({
-  default: ({
-    open,
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    canClose?: () => boolean;
-    children: React.ReactNode;
-  }) => {
-    if (!open) return null;
-    return React.createElement("div", { role: "dialog" }, children);
-  },
+vi.mock("@/components/common/BaseDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockBaseDialog,
 }));
 
 import BillingDialog from "../BillingDialog";

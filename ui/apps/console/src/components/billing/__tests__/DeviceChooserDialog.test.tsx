@@ -11,37 +11,8 @@ import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// ── Stub BaseDialog ───────────────────────────────────────────────────────────
-// BaseDialog calls showModal() which jsdom does not implement. Replace it with
-// a plain div that honours the `open` prop and wires up a close button via the
-// native `cancel` event that the real component relies on.
-vi.mock("@/components/common/BaseDialog", () => ({
-  default: ({
-    open,
-    canClose,
-    children,
-    "aria-labelledby": ariaLabelledBy,
-    "aria-describedby": ariaDescribedBy,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    canClose?: () => boolean;
-    children: React.ReactNode;
-    "aria-labelledby"?: string;
-    "aria-describedby"?: string;
-  }) => {
-    if (!open) return null;
-    return React.createElement(
-      "div",
-      {
-        role: "dialog",
-        "aria-labelledby": ariaLabelledBy,
-        "aria-describedby": ariaDescribedBy,
-        "data-can-close": String(canClose ? canClose() : true),
-      },
-      children,
-    );
-  },
+vi.mock("@/components/common/BaseDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockBaseDialog,
 }));
 
 // ── Hook mocks ────────────────────────────────────────────────────────────────

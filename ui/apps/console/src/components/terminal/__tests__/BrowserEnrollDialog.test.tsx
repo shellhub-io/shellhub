@@ -1,14 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import BrowserEnrollDialog from "../BrowserEnrollDialog";
 
-// BaseDialog wraps a native <dialog> (showModal), unsupported in jsdom; render
-// its children directly when open.
-vi.mock("@/components/common/BaseDialog", () => ({
-  default: ({ open, children }: { open: boolean; children: ReactNode }) =>
-    open ? <div role="dialog">{children}</div> : null,
+vi.mock("@/components/common/BaseDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockBaseDialog,
 }));
 
 const DEFAULT_NAME = "Chrome 149 on Linux";
