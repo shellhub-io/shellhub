@@ -43,8 +43,8 @@ vi.mock("@/components/billing/BillingSection", () => ({
   default: () => null,
 }));
 
-vi.mock("@/components/common/CopyButton", () => ({
-  default: () => null,
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 import Settings from "../Settings";

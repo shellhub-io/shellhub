@@ -63,3 +63,7 @@ export function MockConfirmDialog({
     </div>
   );
 }
+
+export function MockCopyButton({ text }: { text: string }) {
+  return <button type="button" aria-label={`Copy ${text}`} />;
+}

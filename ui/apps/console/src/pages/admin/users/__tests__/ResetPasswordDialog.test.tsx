@@ -23,19 +23,17 @@ vi.mock("@/components/common/BaseDialog", () => ({
     if (!open) return null;
     return (
       <div role="dialog">
-        <button type="button" onClick={onClose}>Close Dialog</button>
+        <button type="button" onClick={onClose}>
+          Close Dialog
+        </button>
         {children}
       </div>
     );
   },
 }));
 
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button type="button" aria-label="Copy">
-      {text}
-    </button>
-  ),
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 const mockMutateAsync = vi.fn();

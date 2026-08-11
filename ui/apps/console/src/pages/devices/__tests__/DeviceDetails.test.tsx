@@ -50,10 +50,8 @@ vi.mock("@/hooks/useInstallKeys", () => ({
   useInstallKeys: () => ({ installKeys: [], totalCount: 0, isLoading: false }),
 }));
 
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button type="button" aria-label={`Copy ${text}`} />
-  ),
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 vi.mock("@/components/common/PlatformBadge", () => ({

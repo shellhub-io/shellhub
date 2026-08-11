@@ -22,9 +22,8 @@ vi.mock("../KeyDrawer", () => ({
   default: () => null,
 }));
 
-// CopyButton reads from ClipboardProvider which we don't wire up in tests.
-vi.mock("@/components/common/CopyButton", () => ({
-  default: () => null,
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({

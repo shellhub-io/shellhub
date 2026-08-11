@@ -25,12 +25,8 @@ vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button type="button" aria-label="Copy" data-copy={text}>
-      Copy
-    </button>
-  ),
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 vi.mock("@/utils/styles", () => ({
