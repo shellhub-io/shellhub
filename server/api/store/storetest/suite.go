@@ -62,6 +62,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestSessionEventsCreate(t)
 		s.TestSessionEventsList(t)
 		s.TestSessionEventsDelete(t)
+		s.TestSessionCleanup(t)
 	})
 
 	t.Run("TagStore", func(t *testing.T) {

@@ -27,6 +27,10 @@ services:
       # GeoIP (MaxMind) database source, read by the enterprise binary
       - MAXMIND_MIRROR=${SHELLHUB_MAXMIND_MIRROR:-}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE:-}
+      # How long sessions and their events are kept. Declared here rather than in the community
+      # compose file: the binary defaults to keeping them forever, and it is these deployments
+      # that both accumulate the volume and carry the retention commitment. 0 disables pruning.
+      - SHELLHUB_SESSION_RETENTION_DAYS=${SHELLHUB_SESSION_RETENTION_DAYS:-180}
     secrets:
       - api_private_key
       - api_public_key

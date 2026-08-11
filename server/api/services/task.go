@@ -21,6 +21,20 @@ const (
 	CronEphemeralCleanup          = worker.CronSpec("*/5 * * * *")
 	CronEnrollmentCallbackCleanup = worker.CronSpec("0 4 * * *")
 	CronSSHApprovalCleanup        = worker.CronSpec("*/10 * * * *")
+	CronSessionCleanup            = worker.CronSpec("0 1 * * *")
+)
+
+const (
+	// A session cascades into its events, so one batch is already thousands of rows.
+	sessionCleanupBatchSize = 1000
+
+	// Together with the batch size this caps a run at 100k sessions. An instance adopting
+	// retention for the first time can have years to shed, and draining all of it in one night
+	// is the write storm the batching exists to avoid.
+	sessionCleanupMaxBatches = 100
+
+	// Leaves room between batches for live traffic and for autovacuum to follow behind.
+	sessionCleanupBatchPause = 200 * time.Millisecond
 )
 
 func (s *service) DeviceCleanup() worker.CronHandler {
@@ -55,6 +69,86 @@ func (s *service) SSHApprovalCleanup() worker.CronHandler {
 
 		return nil
 	}
+}
+
+// SessionCleanup enforces the instance's session retention window: sessions that started longer
+// ago than retention are deleted, taking their events with them. Nothing else prunes these two
+// tables, and session_events is by far the largest thing an instance accumulates.
+//
+// A retention that is not positive means "keep forever" and prunes nothing. The guard matters
+// more than it looks: read as a window, a zero would put the cutoff at now and delete every
+// session on the instance.
+func (s *service) SessionCleanup(retention time.Duration) worker.CronHandler {
+	return func(ctx context.Context) error {
+		return s.sessionCleanup(ctx, retention, sessionCleanupBatchPause)
+	}
+}
+
+// sessionCleanup takes the pause as an argument so a test can drive the batching loop without
+// waiting it out.
+func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Duration) error {
+	if retention <= 0 {
+		return nil
+	}
+
+	cutoff := clock.Now().Add(-retention)
+
+	total := int64(0)
+	batches := 0
+
+	for batches < sessionCleanupMaxBatches {
+		uids, err := s.store.SessionListExpired(ctx, cutoff, sessionCleanupBatchSize)
+		if err != nil {
+			log.WithError(err).WithField("deleted", total).Error("failed to list expired sessions")
+
+			return err
+		}
+
+		if len(uids) == 0 {
+			break
+		}
+
+		// Recordings first, rows second. A session's recording lives in object storage under a
+		// key derived from its UID, so the row is the only thing that can still name it: delete
+		// the row first and a failure here strands the object with nothing left to find it by.
+		// Failing this way round costs a retry next run instead.
+		if s.recordingPruner != nil {
+			if err := s.recordingPruner.DeleteRecordings(ctx, uids); err != nil {
+				log.WithError(err).WithField("deleted", total).Error("failed to prune recordings of expired sessions")
+
+				return err
+			}
+		}
+
+		deleted, err := s.store.SessionDeleteMany(ctx, uids)
+		if err != nil {
+			log.WithError(err).WithField("deleted", total).Error("failed to prune expired sessions")
+
+			return err
+		}
+
+		total += deleted
+		batches++
+
+		// A batch that came back short means the store ran out of sessions older than the
+		// cutoff, so there is nothing left for this run to do.
+		if len(uids) < sessionCleanupBatchSize {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(pause):
+		}
+	}
+
+	if total > 0 {
+		log.WithFields(log.Fields{"deleted": total, "cutoff": cutoff, "capped": batches == sessionCleanupMaxBatches}).
+			Info("pruned sessions past the retention window")
+	}
+
+	return nil
 }
 
 // EnrollmentCallbackCleanup prunes single-use callback redemption records once older than the maximum

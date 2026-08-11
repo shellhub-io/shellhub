@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -344,6 +345,53 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 	}
 
 	return nil
+}
+
+func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]string, error) {
+	if limit <= 0 {
+		return []string{}, nil
+	}
+
+	db := pg.GetConnection(ctx)
+
+	// Ordering by started_at walks sessions_started_at_idx and takes the oldest rows first, so
+	// successive batches drain the backlog from its far end instead of re-reading it.
+	//
+	// The anti-join is the safety rail: closed is not reliable for this (a session whose server
+	// died never gets closed and would otherwise be immortal), whereas a row in active_sessions
+	// is what a live session actually holds. Deleting one would cascade that row away underneath
+	// the connection still using it.
+	uids := make([]string, 0, limit)
+	if err := db.NewSelect().
+		Model((*entity.Session)(nil)).
+		Column("id").
+		Where("started_at < ?", before).
+		Where("NOT EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = session.id)").
+		Order("started_at ASC").
+		Limit(limit).
+		Scan(ctx, &uids); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	return uids, nil
+}
+
+func (pg *Pg) SessionDeleteMany(ctx context.Context, uids []string) (int64, error) {
+	if len(uids) == 0 {
+		return 0, nil
+	}
+
+	db := pg.GetConnection(ctx)
+
+	res, err := db.NewDelete().
+		Model((*entity.Session)(nil)).
+		Where("id IN (?)", bun.List(uids)).
+		Exec(ctx)
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	return res.RowsAffected()
 }
 
 // SessionSelectQuery applies the standard session SELECT decorations: relations,
