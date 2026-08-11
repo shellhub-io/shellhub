@@ -1,4 +1,3 @@
-import { type ReactNode } from "react";
 import { useController, type Control, type Path } from "react-hook-form";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -24,31 +23,8 @@ vi.mock("@/hooks/useTags", () => ({
   useTags: vi.fn(),
 }));
 
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    onClose,
-    title,
-    children,
-    footer,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    title: string;
-    children: ReactNode;
-    footer?: ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <button type="button" onClick={onClose}>
-          Close
-        </button>
-        {children}
-        {footer}
-      </div>
-    );
-  },
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 vi.mock("../KeyDataInput", () => ({
@@ -172,7 +148,7 @@ describe("KeyDrawer", () => {
     it("shows 'New Public Key' title", () => {
       renderDrawer();
       expect(
-        screen.getByRole("dialog", { name: /new public key/i }),
+        screen.getByRole("heading", { name: /new public key/i }),
       ).toBeInTheDocument();
     });
 
@@ -198,7 +174,7 @@ describe("KeyDrawer", () => {
     it("shows 'Edit Public Key' title", () => {
       renderDrawer({ editKey: makeKey() });
       expect(
-        screen.getByRole("dialog", { name: /edit public key/i }),
+        screen.getByRole("heading", { name: /edit public key/i }),
       ).toBeInTheDocument();
     });
 

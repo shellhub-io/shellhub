@@ -62,25 +62,8 @@ vi.mock("@/hooks/useSSHIdentityMutations", () => ({
   useCreateSSHIdentity: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    children,
-    footer,
-    title,
-  }: {
-    open: boolean;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
-    title: string;
-    onClose: () => void;
-  }) =>
-    open ? (
-      <div role="dialog" aria-label={title}>
-        {children}
-        {footer}
-      </div>
-    ) : null,
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 vi.mock("@/components/vault/VaultLockedBanner", () => ({

@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -27,33 +26,8 @@ vi.mock("@/utils/sshKeys", () => ({
   getAlgorithm: vi.fn(),
 }));
 
-// KeyFileInput internally uses a hook + file input. To keep tests focused on
-// KeyDrawer logic, we replace it with a simple textarea that forwards the same
-// onChange/value interface that KeyDrawer expects.
-vi.mock("@/components/common/Drawer", () => ({
-  default: ({
-    open,
-    onClose,
-    title,
-    children,
-    footer,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    title: string;
-    children: React.ReactNode;
-    footer?: React.ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div>
-        <h2>{title}</h2>
-        <button type="button" onClick={onClose}>Close Drawer</button>
-        <div>{children}</div>
-        {footer && <div>{footer as React.ReactNode}</div>}
-      </div>
-    );
-  },
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
 vi.mock("@/components/common/fields/KeyFileInput", () => ({
@@ -147,7 +121,7 @@ async function fillName(name: string) {
 }
 
 async function fillKey(pem: string) {
-  await userEvent.type(screen.getByLabelText(/private key/i), pem);
+  await userEvent.type(screen.getByLabelText(/^private key$/i), pem);
 }
 
 describe("KeyDrawer", () => {
@@ -200,7 +174,7 @@ describe("KeyDrawer", () => {
 
     it("key field is disabled in edit mode", () => {
       renderDrawer({ editKey: mockEntry });
-      expect(screen.getByLabelText(/private key/i)).toBeDisabled();
+      expect(screen.getByLabelText(/^private key$/i)).toBeDisabled();
     });
   });
 
