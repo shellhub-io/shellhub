@@ -6,7 +6,7 @@ require (
 	code.dny.dev/ssrf v0.3.0
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
-	github.com/getkin/kin-openapi v0.145.0
+	github.com/getkin/kin-openapi v0.146.0
 	github.com/getsentry/sentry-go v0.48.0
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/golang-jwt/jwt/v5 v5.3.1
