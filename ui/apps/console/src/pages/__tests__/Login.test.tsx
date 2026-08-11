@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
@@ -112,9 +112,6 @@ async function fillAndSubmit(
   await user.tab();
   await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
-
-afterEach(cleanup);
-
 beforeEach(() => {
   mockNavigate.mockReset();
   mockedLogin.mockReset();

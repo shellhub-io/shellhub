@@ -1,10 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { renderHook, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { renderHook } from "@testing-library/react";
 import { useRef } from "react";
 import { useBackdropClose } from "../useBackdropClose";
-
-afterEach(cleanup);
-
 /**
  * Build a minimal HTMLDialogElement stand-in with a real event-target chain
  * so we can control `e.target` vs `dialogRef.current` precisely.
@@ -42,7 +39,10 @@ function setup(
  * where the currentTarget (the dialog) is always `dialog`.
  */
 function fireSequence(
-  handlers: { onMouseDown: React.MouseEventHandler<HTMLDialogElement>; onClick: React.MouseEventHandler<HTMLDialogElement> },
+  handlers: {
+    onMouseDown: React.MouseEventHandler<HTMLDialogElement>;
+    onClick: React.MouseEventHandler<HTMLDialogElement>;
+  },
   _dialog: HTMLDialogElement,
   mouseDownTarget: EventTarget,
   clickTarget: EventTarget,

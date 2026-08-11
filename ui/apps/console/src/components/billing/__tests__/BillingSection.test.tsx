@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
@@ -140,9 +140,6 @@ beforeEach(() => {
   mockOpenPortalIsError.value = false;
   setInactive();
 });
-
-afterEach(cleanup);
-
 describe("BillingSection — Subscribe button visibility", () => {
   it("shows Subscribe button when status is 'inactive'", () => {
     setInactive();

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -90,9 +90,6 @@ beforeEach(() => {
   mockRefetchSubscription.mockResolvedValue({ data: { status: "active" } });
   mockIsSdkError.mockReturnValue(false);
 });
-
-afterEach(cleanup);
-
 function renderDialog(onClose = vi.fn(), onSuccess = vi.fn()) {
   return {
     onClose,

@@ -1,18 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-
-// jsdom doesn't implement showModal/close — stub them so they behave like the
-// open attribute (which testing-library uses to resolve the dialog's role)
-HTMLDialogElement.prototype.showModal = vi.fn(function (
-  this: HTMLDialogElement,
-) {
-  this.setAttribute("open", "");
-});
-HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-  this.removeAttribute("open");
-});
 
 // Mock the step sub-components to keep tests focused on the orchestrator. The
 // install and code faces are presentational markers; the link-path watcher
@@ -75,8 +64,6 @@ import WelcomeWizard from "../WelcomeWizard";
 beforeEach(() => {
   vi.clearAllMocks();
 });
-
-afterEach(cleanup);
 
 function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
   return {

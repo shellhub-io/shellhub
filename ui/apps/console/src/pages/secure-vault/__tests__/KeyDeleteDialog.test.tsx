@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useVaultStore } from "@/stores/vaultStore";
 import KeyDeleteDialog from "../KeyDeleteDialog";
@@ -24,9 +24,6 @@ const entry: VaultKeyEntry = {
   createdAt: "2024-01-01T00:00:00Z",
   updatedAt: "2024-01-01T00:00:00Z",
 };
-
-afterEach(cleanup);
-
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useVaultStore).mockImplementation((selector) => {

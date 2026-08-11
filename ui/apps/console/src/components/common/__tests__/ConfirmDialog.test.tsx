@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   render,
   screen,
-  cleanup,
   fireEvent,
   waitFor,
   act,
@@ -10,9 +9,6 @@ import {
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 import ConfirmDialog from "../ConfirmDialog";
-
-afterEach(cleanup);
-
 function renderDialog(
   open: boolean,
   {

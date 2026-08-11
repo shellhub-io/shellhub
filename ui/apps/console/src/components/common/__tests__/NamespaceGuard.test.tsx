@@ -1,10 +1,17 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import NamespaceGuard from "../NamespaceGuard";
 
-const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+const mockUseNamespaces = vi.fn<
+  () => {
+    namespaces: Array<{ tenant_id: string; name: string }>;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  }
+>();
 
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
@@ -18,9 +25,6 @@ vi.mock("../CreateNamespace", () => ({
 vi.mock("@/components/layout/UserMenu", () => ({
   default: () => <div data-testid="user-menu" />,
 }));
-
-afterEach(cleanup);
-
 beforeEach(() => {
   mockUseNamespaces.mockReturnValue({
     namespaces: [],

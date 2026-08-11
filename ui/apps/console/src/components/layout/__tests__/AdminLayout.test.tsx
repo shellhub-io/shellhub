@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
@@ -39,9 +39,6 @@ vi.mock("../SidebarShell", () => ({
     <div data-testid="sidebar-mobile-drawer">{children}</div>
   ),
 }));
-
-afterEach(cleanup);
-
 function renderLayout() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },

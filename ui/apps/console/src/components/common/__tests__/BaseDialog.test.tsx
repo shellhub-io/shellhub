@@ -1,11 +1,8 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
 import "./helpers/setup-dialog";
 import BaseDialog from "../BaseDialog";
-
-afterEach(cleanup);
-
 function renderDialog(
   open: boolean,
   {
