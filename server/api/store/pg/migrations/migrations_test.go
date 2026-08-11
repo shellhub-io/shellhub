@@ -95,12 +95,19 @@ func stripSQLComments(chunk string) string {
 
 // findNonTransactionalStatement returns the offending keyword, or "" when the statement can run
 // inside a transaction.
-func findNonTransactionalStatement(statement string) string {
-	normalized := strings.Join(strings.Fields(strings.ToUpper(statement)), " ")
+//
+// Every keyword above opens a statement, so the match is anchored to the start of one rather
+// than searched for anywhere in the chunk. Unanchored, "VACUUM" is also a substring of the
+// autovacuum_* storage parameters, which would condemn an ALTER TABLE ... SET that is
+// transactional in every respect.
+func findNonTransactionalStatement(chunk string) string {
+	for _, statement := range strings.Split(chunk, ";") {
+		normalized := strings.Join(strings.Fields(strings.ToUpper(statement)), " ")
 
-	for _, keyword := range nonTransactionalStatements {
-		if strings.Contains(normalized, keyword) {
-			return keyword
+		for _, keyword := range nonTransactionalStatements {
+			if strings.HasPrefix(normalized, keyword) {
+				return keyword
+			}
 		}
 	}
 
@@ -144,6 +151,12 @@ func TestNonTransactionalDetection(t *testing.T) {
 		{
 			name:       "ordinary ddl is transactional",
 			chunk:      "DROP INDEX IF EXISTS devices_last_seen;",
+			keyword:    "",
+			statements: 1,
+		},
+		{
+			name:       "a storage parameter merely spelling a keyword is not that statement",
+			chunk:      "ALTER TABLE sessions SET (autovacuum_vacuum_scale_factor = 0.05);",
 			keyword:    "",
 			statements: 1,
 		},
