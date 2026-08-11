@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+vi.unmock("@/hooks/useFocusTrap");
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef, useState } from "react";
@@ -22,7 +23,9 @@ function Trap({
       <button type="button">Outside</button>
       <div ref={ref} data-testid="container">
         {buttons.map((label) => (
-          <button type="button" key={label}>{label}</button>
+          <button type="button" key={label}>
+            {label}
+          </button>
         ))}
       </div>
     </div>
@@ -37,7 +40,11 @@ function ToggleTrap() {
 
   return (
     <div>
-      <button type="button" data-testid="trigger" onClick={() => setActive((v) => !v)}>
+      <button
+        type="button"
+        data-testid="trigger"
+        onClick={() => setActive((v) => !v)}
+      >
         Toggle
       </button>
       <div ref={ref} data-testid="container">
@@ -73,7 +80,9 @@ describe("useFocusTrap", () => {
   describe("when active=true", () => {
     it("moves focus to the first focusable element", () => {
       render(<Trap active={true} />);
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "First" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "First" }),
+      );
     });
 
     it("wraps Tab forward from the last element to the first", async () => {
@@ -84,11 +93,15 @@ describe("useFocusTrap", () => {
       await user.tab();
       await user.tab();
 
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Third" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Third" }),
+      );
 
       // Tab again — should wrap to First
       await user.tab();
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "First" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "First" }),
+      );
     });
 
     it("wraps Shift+Tab backward from the first element to the last", async () => {
@@ -96,9 +109,13 @@ describe("useFocusTrap", () => {
       render(<Trap active={true} />);
 
       // Focus starts on First; Shift+Tab should wrap to Last
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "First" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "First" }),
+      );
       await user.tab({ shift: true });
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Third" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Third" }),
+      );
     });
 
     it("does not trap Tab when focus is on a middle element", async () => {
@@ -107,7 +124,9 @@ describe("useFocusTrap", () => {
 
       // Focus is on First; Tab moves to Second (no wrap)
       await user.tab();
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Second" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Second" }),
+      );
     });
   });
 
@@ -122,7 +141,9 @@ describe("useFocusTrap", () => {
 
       // Activate trap
       await user.click(trigger);
-      expect(document.activeElement).toBe(screen.getByRole("button", { name: "Inside" }));
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Inside" }),
+      );
 
       // Deactivate trap — focus should return to trigger
       await user.click(trigger);
@@ -132,12 +153,18 @@ describe("useFocusTrap", () => {
 
   describe("cleanup on unmount", () => {
     it("removes the keydown listener when the component unmounts", () => {
-      const removeListener = vi.spyOn(HTMLDivElement.prototype, "removeEventListener");
+      const removeListener = vi.spyOn(
+        HTMLDivElement.prototype,
+        "removeEventListener",
+      );
 
       const { unmount } = render(<Trap active={true} />);
       unmount();
 
-      expect(removeListener).toHaveBeenCalledWith("keydown", expect.any(Function));
+      expect(removeListener).toHaveBeenCalledWith(
+        "keydown",
+        expect.any(Function),
+      );
       removeListener.mockRestore();
     });
   });

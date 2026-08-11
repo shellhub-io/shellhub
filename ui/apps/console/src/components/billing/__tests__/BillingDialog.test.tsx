@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 const mockIsSdkError = vi.fn();
 vi.mock("@/api/errors", () => ({
   isSdkError: (err: unknown): boolean => mockIsSdkError(err) as boolean,
@@ -37,7 +35,11 @@ vi.mock("../BillingPayment", () => ({
       { "data-testid": "billing-payment" },
       React.createElement(
         "button",
-        { type: "button", onClick: onHasDefault, "data-testid": "trigger-has-default" },
+        {
+          type: "button",
+          onClick: onHasDefault,
+          "data-testid": "trigger-has-default",
+        },
         "Set default",
       ),
       React.createElement(

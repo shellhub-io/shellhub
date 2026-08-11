@@ -8,8 +8,6 @@ vi.mock("@/client", () => ({
   requestResetMfa: vi.fn(),
 }));
 
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 import { disableMfa, requestResetMfa } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 

@@ -3,11 +3,6 @@ import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
-// Mock the focus trap so it doesn't interfere with jsdom focus state
-vi.mock("@/hooks/useFocusTrap", () => ({
-  useFocusTrap: vi.fn(),
-}));
-
 // jsdom doesn't implement showModal/close — stub them so they behave like the
 // open attribute (which testing-library uses to resolve the dialog's role)
 HTMLDialogElement.prototype.showModal = vi.fn(function (

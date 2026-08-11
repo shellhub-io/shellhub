@@ -9,8 +9,6 @@ vi.mock("@/client", () => ({
   recoveryDisableMfa: vi.fn(),
 }));
 
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 import { recoveryDisableMfa } from "@/client";
 const mockedRecoveryDisableMfa = vi.mocked(recoveryDisableMfa);
 

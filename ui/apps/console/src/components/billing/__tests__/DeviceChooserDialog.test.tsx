@@ -44,8 +44,6 @@ vi.mock("@/components/common/BaseDialog", () => ({
   },
 }));
 
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 // ── Hook mocks ────────────────────────────────────────────────────────────────
 
 const mockMutateAsync = vi.fn();
