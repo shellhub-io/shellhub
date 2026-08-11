@@ -8,23 +8,6 @@ interface RenderHookWithRouterOptions
   initialEntries?: string[];
 }
 
-/**
- * Wraps `renderHook` with a MemoryRouter (React Router v7) and a QueryClient
- * provider so hooks that call `useSearchParams` (or any other router/query
- * hook) don't throw outside a routing context.
- *
- * @param hook - The hook callback to render.
- * @param options - Optional. Pass `initialEntries` to seed the URL.
- *
- * @example
- * ```ts
- * const { result } = renderHookWithRouter(() => useSearchParams(), {
- *   initialEntries: ["/?page=2"],
- * });
- * const [searchParams] = result.current;
- * expect(searchParams.get("page")).toBe("2");
- * ```
- */
 export function renderHookWithRouter<Result>(
   hook: () => Result,
   { initialEntries, ...rest }: RenderHookWithRouterOptions = {},

@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { act } from "@testing-library/react";
-import { usePaginatedListState, type SortFieldDef } from "../usePaginatedListState";
-import { renderHookWithRouter } from "@/test-utils/renderHookWithRouter";
+import {
+  usePaginatedListState,
+  type SortFieldDef,
+} from "../usePaginatedListState";
+import { renderHookWithRouter } from "@/tests/renderHookWithRouter";
 
 // ── Shared fixture ────────────────────────────────────────────────────────────
 
@@ -553,7 +556,10 @@ describe("usePaginatedListState — prefix option", () => {
   it("reads params from prefixed URL keys", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "devices" }),
+        usePaginatedListState({
+          defaults: PREFIXED_DEFAULTS,
+          prefix: "devices",
+        }),
       { initialEntries: ["/?devices.page=5&devices.search=hello"] },
     );
 
@@ -564,12 +570,18 @@ describe("usePaginatedListState — prefix option", () => {
   it("reads page from its own prefixed key when the URL contains both prefixed keys", () => {
     const { result: r1 } = renderHookWithRouter(
       () =>
-        usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "devices" }),
+        usePaginatedListState({
+          defaults: PREFIXED_DEFAULTS,
+          prefix: "devices",
+        }),
       { initialEntries: ["/?devices.page=2&sessions.page=7"] },
     );
     const { result: r2 } = renderHookWithRouter(
       () =>
-        usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "sessions" }),
+        usePaginatedListState({
+          defaults: PREFIXED_DEFAULTS,
+          prefix: "sessions",
+        }),
       { initialEntries: ["/?devices.page=2&sessions.page=7"] },
     );
 
@@ -605,8 +617,7 @@ describe("usePaginatedListState — prefix option", () => {
 
   it("does not touch the unprefixed key when a prefix is set", () => {
     const { result } = renderHookWithRouter(
-      () =>
-        usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "a" }),
+      () => usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "a" }),
       { initialEntries: ["/?page=99&a.page=2"] },
     );
 

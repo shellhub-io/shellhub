@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { toBase64Json } from "@/utils/encoding";
-import { decodeB64url } from "@/test/decodeB64url";
+import { decodeB64url } from "@/tests/decodeB64url";
 
 describe("toBase64Json", () => {
   it("emits unpadded base64url (no +, /, or = characters)", () => {
@@ -10,15 +10,32 @@ describe("toBase64Json", () => {
     // Covers ASCII (padding), Unicode (/ replacement), and mixed payloads.
     const inputs = [
       // ASCII payload — v1 ends with "=" in standard base64
-      [{ type: "property", params: { name: "name", operator: "contains", value: "qa-edge" } }],
+      [
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: "qa-edge" },
+        },
+      ],
       // Unicode payload — v2 contains "/" in standard base64
-      [{ type: "property", params: { name: "tags.name", operator: "contains", value: "日本語タグ" } }],
+      [
+        {
+          type: "property",
+          params: {
+            name: "tags.name",
+            operator: "contains",
+            value: "日本語タグ",
+          },
+        },
+      ],
       // Emoji + Arabic — also contains "/" in standard base64
       { tag: "日本語タグ", emoji: "🚀", arabic: "سلام" },
     ];
     for (const value of inputs) {
       const encoded = toBase64Json(value);
-      expect(encoded, `output for ${JSON.stringify(value).slice(0, 40)}`).not.toMatch(/[+/=]/);
+      expect(
+        encoded,
+        `output for ${JSON.stringify(value).slice(0, 40)}`,
+      ).not.toMatch(/[+/=]/);
     }
   });
 
@@ -60,7 +77,10 @@ describe("toBase64Json", () => {
     // '>>>' encodes to "Ij4+PiI=" in standard base64 (contains '+' and '=').
     // base64url must replace '+' with '-' and strip trailing '='.
     const json = JSON.stringify(">>>");
-    const expected = btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const expected = btoa(json)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
     expect(toBase64Json(">>>")).toBe(expected);
     expect(toBase64Json(">>>")).not.toMatch(/[+/=]/);
   });

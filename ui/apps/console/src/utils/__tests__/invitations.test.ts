@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { invitationStatusFilter, isInvitationExpired } from "../invitations";
-import { decodeB64url } from "@/test/decodeB64url";
+import { decodeB64url } from "@/tests/decodeB64url";
 
 afterEach(() => {
   vi.restoreAllMocks();
