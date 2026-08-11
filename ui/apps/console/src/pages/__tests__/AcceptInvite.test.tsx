@@ -6,38 +6,8 @@ import React from "react";
 import { useAuthStore } from "@/stores/authStore";
 import AcceptInvite from "../AcceptInvite";
 
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    confirmLabel = "Confirm",
-    cancelLabel = "Cancel",
-    errorMessage,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    errorMessage?: string | null;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog">
-        <h2>{title}</h2>
-        {errorMessage ? <div role="alert">{errorMessage}</div> : null}
-        <button type="button" onClick={onClose}>
-          {cancelLabel}
-        </button>
-        <button type="button" onClick={() => void onConfirm()}>
-          {confirmLabel}
-        </button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 const mockNavigate = vi.hoisted(() => vi.fn());

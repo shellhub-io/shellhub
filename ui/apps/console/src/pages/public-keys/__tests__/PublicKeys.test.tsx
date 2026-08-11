@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -28,35 +27,8 @@ vi.mock("@/components/common/CopyButton", () => ({
   default: () => null,
 }));
 
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    description,
-    confirmLabel = "Confirm",
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    description: ReactNode;
-    confirmLabel?: string;
-    children?: ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <h2>{title}</h2>
-        <div>{description}</div>
-        {children}
-        <button type="button" onClick={onClose}>Cancel</button>
-        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 // Return the debounced value immediately so tests don't need fake timers.

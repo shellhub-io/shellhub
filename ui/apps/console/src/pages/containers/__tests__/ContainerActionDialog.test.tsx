@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -10,38 +9,8 @@ vi.mock("@/hooks/useContainerMutations", () => ({
   useRemoveContainer: vi.fn(),
 }));
 
-// Flatten ConfirmDialog to a plain div so we can exercise the component's
-// logic without animations, portals, or BaseDialog internals.
-// The mock renders children so the error <p role="alert"> is visible.
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    description,
-    confirmLabel = "Confirm",
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    description: ReactNode;
-    confirmLabel?: string;
-    children?: ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog">
-        <h2>{title}</h2>
-        <div>{description}</div>
-        {children}
-        <button type="button" onClick={onClose}>Cancel</button>
-        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────

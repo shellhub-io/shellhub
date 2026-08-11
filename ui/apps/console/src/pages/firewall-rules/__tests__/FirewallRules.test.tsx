@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,37 +24,8 @@ vi.mock("../RuleDrawer", () => ({
   default: () => null,
 }));
 
-// Flatten ConfirmDialog to a plain div so we can exercise the page's logic
-// without animations, portals, or BaseDialog internals.
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    description,
-    confirmLabel = "Confirm",
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    description: ReactNode;
-    confirmLabel?: string;
-    children?: ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <h2>{title}</h2>
-        <div>{description}</div>
-        {children}
-        <button type="button" onClick={onClose}>Cancel</button>
-        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 // Capture DataTable props on every render so we can assert pagination suppression.
@@ -67,7 +37,9 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
     ...actual,
     default: (props: Record<string, unknown>) => {
       capturedDataTableProps.push({ ...props });
-      return actual.default(props as unknown as Parameters<typeof actual.default>[0]);
+      return actual.default(
+        props as unknown as Parameters<typeof actual.default>[0],
+      );
     },
   };
 });
