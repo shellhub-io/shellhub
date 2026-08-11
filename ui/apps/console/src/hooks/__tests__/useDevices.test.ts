@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildFilter } from "../useDevices";
-import { decodeB64url as decodeFilter } from "@/test/decodeB64url";
+import { decodeB64url as decodeFilter } from "@/tests/decodeB64url";
 
 describe("buildFilter", () => {
   describe("search only", () => {
@@ -8,9 +8,19 @@ describe("buildFilter", () => {
       const result = decodeFilter(buildFilter("my-device", []));
       expect(result).toEqual([
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "name", operator: "contains", value: "my-device" } },
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: "my-device" },
+        },
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "custom_fields", operator: "contains", value: "my-device" } },
+        {
+          type: "property",
+          params: {
+            name: "custom_fields",
+            operator: "contains",
+            value: "my-device",
+          },
+        },
       ]);
     });
   });
@@ -19,7 +29,14 @@ describe("buildFilter", () => {
     it("encodes a tags filter", () => {
       const result = decodeFilter(buildFilter("", ["web", "prod"]));
       expect(result).toEqual([
-        { type: "property", params: { name: "tags.name", operator: "contains", value: ["web", "prod"] } },
+        {
+          type: "property",
+          params: {
+            name: "tags.name",
+            operator: "contains",
+            value: ["web", "prod"],
+          },
+        },
       ]);
     });
   });
@@ -29,10 +46,19 @@ describe("buildFilter", () => {
       const result = decodeFilter(buildFilter("srv", ["prod"]));
       expect(result).toEqual([
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "name", operator: "contains", value: "srv" } },
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: "srv" },
+        },
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "custom_fields", operator: "contains", value: "srv" } },
-        { type: "property", params: { name: "tags.name", operator: "contains", value: ["prod"] } },
+        {
+          type: "property",
+          params: { name: "custom_fields", operator: "contains", value: "srv" },
+        },
+        {
+          type: "property",
+          params: { name: "tags.name", operator: "contains", value: ["prod"] },
+        },
       ]);
     });
   });
@@ -51,9 +77,15 @@ describe("buildFilter", () => {
       const result = decodeFilter(buildFilter("¿", []));
       expect(result).toEqual([
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "name", operator: "contains", value: "¿" } },
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: "¿" },
+        },
         { type: "operator", params: { name: "or" } },
-        { type: "property", params: { name: "custom_fields", operator: "contains", value: "¿" } },
+        {
+          type: "property",
+          params: { name: "custom_fields", operator: "contains", value: "¿" },
+        },
       ]);
     });
   });

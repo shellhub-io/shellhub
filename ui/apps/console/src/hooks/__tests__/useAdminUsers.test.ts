@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { decodeB64url } from "@/test/decodeB64url";
+import { decodeB64url } from "@/tests/decodeB64url";
 import { useAdminUsers, useAdminUser } from "../useAdminUsers";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -77,7 +77,7 @@ describe("useAdminUsers", () => {
 
     it("defaults users to empty array while loading", () => {
       // Never resolves — stays in loading state
-      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
+      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -87,7 +87,7 @@ describe("useAdminUsers", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
+      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -97,7 +97,7 @@ describe("useAdminUsers", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
+      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -119,7 +119,7 @@ describe("useAdminUsers", () => {
     });
 
     it("exposes refetch function", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
+      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -241,7 +241,7 @@ describe("useAdminUser", () => {
     });
 
     it("is loading initially when id is provided", () => {
-      mockGetUserFn.mockReturnValue(new Promise(() => { }));
+      mockGetUserFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminUser("u1"), {
         wrapper: createWrapper(),
