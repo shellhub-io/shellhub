@@ -9,11 +9,6 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
-
-vi.mock("@/hooks/useFocusTrap", () => ({
-  useFocusTrap: vi.fn(),
-}));
-
 import { ClipboardProvider } from "../ClipboardProvider";
 import { useCopy } from "@/hooks/useCopy";
 

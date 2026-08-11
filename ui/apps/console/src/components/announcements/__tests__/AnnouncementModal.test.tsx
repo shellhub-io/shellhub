@@ -3,9 +3,6 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
 
-// Mock the focus trap so jsdom focus state doesn't interfere
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 // jsdom doesn't implement showModal/close — stub them
 HTMLDialogElement.prototype.showModal = vi.fn(function (
   this: HTMLDialogElement,

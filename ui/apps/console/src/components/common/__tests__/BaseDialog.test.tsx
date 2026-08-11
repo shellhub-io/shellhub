@@ -2,12 +2,6 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
 import "./helpers/setup-dialog";
-
-// Mock useFocusTrap to avoid jsdom focus-management side effects.
-vi.mock("@/hooks/useFocusTrap", () => ({
-  useFocusTrap: vi.fn(),
-}));
-
 import BaseDialog from "../BaseDialog";
 
 afterEach(cleanup);
@@ -175,7 +169,9 @@ describe("BaseDialog", () => {
   describe("data-custom-backdrop", () => {
     it("has data-custom-backdrop attribute for native ::backdrop CSS styling", () => {
       renderDialog(true);
-      expect(screen.getByRole("dialog")).toHaveAttribute("data-custom-backdrop");
+      expect(screen.getByRole("dialog")).toHaveAttribute(
+        "data-custom-backdrop",
+      );
     });
   });
 

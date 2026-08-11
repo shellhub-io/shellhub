@@ -76,9 +76,6 @@ vi.mock("@/hooks/useInvalidateQueries", () => ({
   useInvalidateByIds: () => mockInvalidate,
 }));
 
-// Deep deps of the real BillingDialog (which gets rendered via React.lazy):
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
-
 vi.mock("@/api/errors", () => ({
   isSdkError: (err: unknown): boolean =>
     typeof err === "object" && err !== null && "status" in err,

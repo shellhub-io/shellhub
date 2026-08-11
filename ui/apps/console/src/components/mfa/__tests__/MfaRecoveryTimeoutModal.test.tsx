@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  act,
+  waitFor,
+  fireEvent,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaRecoveryTimeoutModal from "../MfaRecoveryTimeoutModal";
-
-vi.mock("@/hooks/useFocusTrap", () => ({ useFocusTrap: vi.fn() }));
 
 describe("MfaRecoveryTimeoutModal", () => {
   const onClose = vi.fn();
@@ -69,7 +73,9 @@ describe("MfaRecoveryTimeoutModal", () => {
       );
 
       // useCountdown formats as "X minutes Y seconds remaining"
-      expect(screen.getByText(/\d+ minutes? \d+ seconds? remaining/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/\d+ minutes? \d+ seconds? remaining/i),
+      ).toBeInTheDocument();
     });
 
     it("updates countdown every second", () => {
@@ -353,10 +359,14 @@ describe("MfaRecoveryTimeoutModal", () => {
       // handleDisable in the component has only finally (no catch), so the
       // rejected promise propagates as an unhandled rejection. Suppress it at
       // the process level so Vitest doesn't treat it as a test failure.
-      const suppressRejection = () => { /* intentionally suppressed */ };
+      const suppressRejection = () => {
+        /* intentionally suppressed */
+      };
       process.on("unhandledRejection", suppressRejection);
 
-      onDisable.mockImplementation(() => Promise.reject(new Error("Failed to disable")));
+      onDisable.mockImplementation(() =>
+        Promise.reject(new Error("Failed to disable")),
+      );
 
       render(
         <MfaRecoveryTimeoutModal

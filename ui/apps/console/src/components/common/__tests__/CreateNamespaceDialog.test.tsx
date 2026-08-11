@@ -9,10 +9,6 @@ import {
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 
-// Mock the focus trap so it doesn't interfere with jsdom focus state
-vi.mock("@/hooks/useFocusTrap", () => ({
-  useFocusTrap: vi.fn(),
-}));
 vi.mock("@/hooks/useNamespaceMutations", () => ({
   useCreateNamespace: vi.fn(),
 }));

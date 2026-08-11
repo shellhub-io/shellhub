@@ -9,6 +9,7 @@ import { cleanup } from "@testing-library/react";
 process.env.TZ = "UTC";
 
 vi.mock("@/env");
+vi.mock("@/hooks/useFocusTrap");
 
 afterEach(cleanup);
 

@@ -9,12 +9,6 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
-
-// Mock useFocusTrap to avoid jsdom focus-management side effects.
-vi.mock("@/hooks/useFocusTrap", () => ({
-  useFocusTrap: vi.fn(),
-}));
-
 import ConfirmDialog from "../ConfirmDialog";
 
 afterEach(cleanup);
