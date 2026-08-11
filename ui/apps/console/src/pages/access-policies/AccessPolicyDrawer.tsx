@@ -630,11 +630,16 @@ function AccessPolicyDrawer({
           <Label hint="Allow grants the access below; deny blocks it and wins over any allow.">
             Action
           </Label>
-          <div className="inline-flex bg-card border border-border rounded-lg p-0.5 gap-0.5">
+          <div
+            role="group"
+            aria-label="Policy action"
+            className="inline-flex bg-card border border-border rounded-lg p-0.5 gap-0.5"
+          >
             {(["allow", "deny"] as const).map((e) => (
               <button
                 key={e}
                 type="button"
+                aria-pressed={action === e}
                 onClick={() => setAction(e)}
                 className={cn(
                   "flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
