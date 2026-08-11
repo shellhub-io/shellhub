@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -9,35 +8,8 @@ vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
   useAdminDeleteNamespace: vi.fn(),
 }));
 
-// ConfirmDialog manages open/close state and calls onConfirm on button click.
-// We flatten it to a plain div so we can exercise the component's logic without
-// the real dialog's animations, portals, or BaseDialog internals.
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    description,
-    confirmLabel = "Confirm",
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    description: ReactNode;
-    confirmLabel?: string;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog" aria-label={title}>
-        <h2>{title}</h2>
-        <div>{description}</div>
-        <button type="button" onClick={onClose}>Cancel</button>
-        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 const mockMutateAsync = vi.fn();

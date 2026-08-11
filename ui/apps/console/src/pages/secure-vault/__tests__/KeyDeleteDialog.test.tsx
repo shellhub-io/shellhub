@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -10,35 +9,8 @@ vi.mock("@/stores/vaultStore", () => ({
   useVaultStore: vi.fn(),
 }));
 
-vi.mock("@/components/common/ConfirmDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    onConfirm,
-    title,
-    description,
-    confirmLabel = "Confirm",
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onConfirm: () => Promise<void> | void;
-    title: string;
-    description: React.ReactNode;
-    confirmLabel?: string;
-    children?: React.ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog">
-        <h2>{title}</h2>
-        <div>{description}</div>
-        {children}
-        <button type="button" onClick={onClose}>Cancel</button>
-        <button type="button" onClick={() => void onConfirm()}>{confirmLabel}</button>
-      </div>
-    );
-  },
+vi.mock("@/components/common/ConfirmDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
 const mockRemoveKey = vi.fn();
@@ -68,9 +40,7 @@ beforeEach(() => {
 describe("KeyDeleteDialog", () => {
   describe("rendering", () => {
     it("renders nothing when open is false", () => {
-      render(
-        <KeyDeleteDialog open={false} entry={entry} onClose={vi.fn()} />,
-      );
+      render(<KeyDeleteDialog open={false} entry={entry} onClose={vi.fn()} />);
       expect(screen.queryByText("Delete Private Key")).not.toBeInTheDocument();
     });
 
@@ -111,9 +81,7 @@ describe("KeyDeleteDialog", () => {
     });
 
     it("does not call removeKey when Cancel is clicked", async () => {
-      render(
-        <KeyDeleteDialog open entry={entry} onClose={vi.fn()} />,
-      );
+      render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
 
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(mockRemoveKey).not.toHaveBeenCalled();
