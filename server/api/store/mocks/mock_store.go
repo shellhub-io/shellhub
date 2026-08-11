@@ -6390,23 +6390,23 @@ func (_c *MockStore_SessionList_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // SessionListExpired provides a mock function for the type MockStore
-func (_mock *MockStore) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]string, error) {
+func (_mock *MockStore) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error) {
 	ret := _mock.Called(ctx, before, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionListExpired")
 	}
 
-	var r0 []string
+	var r0 []store.ExpiredSession
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) ([]string, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) ([]store.ExpiredSession, error)); ok {
 		return returnFunc(ctx, before, limit)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) []string); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) []store.ExpiredSession); ok {
 		r0 = returnFunc(ctx, before, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).([]store.ExpiredSession)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time, int) error); ok {
@@ -6453,12 +6453,12 @@ func (_c *MockStore_SessionListExpired_Call) Run(run func(ctx context.Context, b
 	return _c
 }
 
-func (_c *MockStore_SessionListExpired_Call) Return(strings []string, err error) *MockStore_SessionListExpired_Call {
-	_c.Call.Return(strings, err)
+func (_c *MockStore_SessionListExpired_Call) Return(expiredSessions []store.ExpiredSession, err error) *MockStore_SessionListExpired_Call {
+	_c.Call.Return(expiredSessions, err)
 	return _c
 }
 
-func (_c *MockStore_SessionListExpired_Call) RunAndReturn(run func(ctx context.Context, before time.Time, limit int) ([]string, error)) *MockStore_SessionListExpired_Call {
+func (_c *MockStore_SessionListExpired_Call) RunAndReturn(run func(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error)) *MockStore_SessionListExpired_Call {
 	_c.Call.Return(run)
 	return _c
 }

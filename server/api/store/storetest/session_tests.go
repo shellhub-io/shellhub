@@ -945,7 +945,12 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 		expired, err := st.SessionListExpired(ctx, cutoff, limit)
 		require.NoError(t, err)
 
-		deleted, err := st.SessionDeleteMany(ctx, expired)
+		uids := make([]string, len(expired))
+		for i, session := range expired {
+			uids[i] = session.UID
+		}
+
+		deleted, err := st.SessionDeleteMany(ctx, uids)
 		require.NoError(t, err)
 
 		return deleted
@@ -996,12 +1001,36 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 
 		expired, err := st.SessionListExpired(ctx, cutoff, 2)
 		require.NoError(t, err)
-		assert.Equal(t, []string{string(oldest), string(middle)}, expired)
+		assert.Equal(t, []store.ExpiredSession{
+			{UID: string(oldest), Recorded: false},
+			{UID: string(middle), Recorded: false},
+		}, expired)
 
-		deleted, err := st.SessionDeleteMany(ctx, expired)
+		deleted, err := st.SessionDeleteMany(ctx, []string{string(oldest), string(middle)})
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), deleted)
 		assert.Equal(t, []string{string(newest)}, listUIDs(t))
+	})
+
+	t.Run("reports whether each expired session was recorded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		device := s.CreateDevice(t)
+		plain := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = cutoff.AddDate(0, 0, -20)
+		recorded := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+		require.NoError(t, st.SessionUpdate(ctx, &models.Session{UID: string(recorded), Recorded: true}))
+
+		clk.now = now
+
+		expired, err := st.SessionListExpired(ctx, cutoff, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []store.ExpiredSession{
+			{UID: string(plain), Recorded: false},
+			{UID: string(recorded), Recorded: true},
+		}, expired)
 	})
 
 	t.Run("leaves an active session in place however old it is", func(t *testing.T) {

@@ -449,29 +449,38 @@ func TestService_SessionCleanup(t *testing.T) {
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now).Maybe()
 
-	// uids builds a batch of n session UIDs.
-	uids := func(n int) []string {
-		batch := make([]string, n)
+	// expired builds a batch of n sessions, none of them recorded.
+	expired := func(n int) []store.ExpiredSession {
+		batch := make([]store.ExpiredSession, n)
 		for i := range batch {
-			batch[i] = fmt.Sprintf("session-%d", i)
+			batch[i] = store.ExpiredSession{UID: fmt.Sprintf("session-%d", i)}
 		}
 
 		return batch
 	}
 
-	full := uids(sessionCleanupBatchSize)
+	uids := func(sessions []store.ExpiredSession) []string {
+		out := make([]string, len(sessions))
+		for i, session := range sessions {
+			out[i] = session.UID
+		}
+
+		return out
+	}
+
+	full := expired(sessionCleanupBatchSize)
 
 	cases := []struct {
 		description   string
 		retention     time.Duration
-		pruner        func(*testing.T) SessionRecordingPruner
-		requiredMocks func(context.Context)
+		requiredMocks func(context.Context, *mockSessionRecordingPruner)
+		withPruner    bool
 		expected      error
 	}{
 		{
 			description: "does not prune when retention is not positive",
 			retention:   0,
-			requiredMocks: func(_ context.Context) {
+			requiredMocks: func(_ context.Context, _ *mockSessionRecordingPruner) {
 				// No store call is set up: a non-positive window must never be read as a cutoff
 				// of now, which would delete every session there is.
 			},
@@ -480,7 +489,7 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "fails when listing fails",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
 					Return(nil, errors.New("database error")).
@@ -491,10 +500,10 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "stops when nothing is expired",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return([]string{}, nil).
+					Return([]store.ExpiredSession{}, nil).
 					Once()
 			},
 			expected: nil,
@@ -502,13 +511,13 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "fails when deleting fails",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return(uids(3), nil).
+					Return(expired(3), nil).
 					Once()
 				storeMock.
-					On("SessionDeleteMany", ctx, uids(3)).
+					On("SessionDeleteMany", ctx, uids(expired(3))).
 					Return(int64(0), errors.New("database error")).
 					Once()
 			},
@@ -517,14 +526,15 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "stops after a partial batch",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
+				batch := expired(sessionCleanupBatchSize - 1)
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return(uids(sessionCleanupBatchSize-1), nil).
+					Return(batch, nil).
 					Once()
 				storeMock.
-					On("SessionDeleteMany", ctx, uids(sessionCleanupBatchSize-1)).
-					Return(int64(sessionCleanupBatchSize-1), nil).
+					On("SessionDeleteMany", ctx, uids(batch)).
+					Return(int64(len(batch)), nil).
 					Once()
 			},
 			expected: nil,
@@ -532,18 +542,18 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "keeps batching while each batch comes back full",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
 					Return(full, nil).
 					Once()
 				storeMock.
-					On("SessionDeleteMany", ctx, full).
+					On("SessionDeleteMany", ctx, uids(full)).
 					Return(int64(sessionCleanupBatchSize), nil).
 					Once()
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return([]string{}, nil).
+					Return([]store.ExpiredSession{}, nil).
 					Once()
 			},
 			expected: nil,
@@ -551,61 +561,140 @@ func TestService_SessionCleanup(t *testing.T) {
 		{
 			description: "stops at the per-run cap and leaves the rest for the next run",
 			retention:   retention,
-			requiredMocks: func(ctx context.Context) {
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
 					Return(full, nil).
 					Times(sessionCleanupMaxBatches)
 				storeMock.
-					On("SessionDeleteMany", ctx, full).
+					On("SessionDeleteMany", ctx, uids(full)).
 					Return(int64(sessionCleanupBatchSize), nil).
 					Times(sessionCleanupMaxBatches)
 			},
 			expected: nil,
 		},
 		{
-			description: "prunes the batch's recordings before its rows",
+			description: "does not reach for the bucket when nothing in the batch was recorded",
 			retention:   retention,
-			pruner: func(tt *testing.T) SessionRecordingPruner {
-				return &recordingPrunerSpy{t: tt}
-			},
-			requiredMocks: func(ctx context.Context) {
+			withPruner:  true,
+			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return(uids(3), nil).
+					Return(expired(3), nil).
 					Once()
 				storeMock.
-					On("SessionDeleteMany", ctx, uids(3)).
+					On("SessionDeleteMany", ctx, uids(expired(3))).
 					Return(int64(3), nil).
+					Once()
+				// No DeleteRecordings: an instance that records nothing must not pay a storage
+				// lookup per session it deletes.
+			},
+			expected: nil,
+		},
+		{
+			description: "purges a recorded session's recording before deleting its row",
+			retention:   retention,
+			withPruner:  true,
+			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
+				batch := []store.ExpiredSession{
+					{UID: "plain"},
+					{UID: "recorded", Recorded: true},
+				}
+
+				storeMock.
+					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					Return(batch, nil).
+					Once()
+
+				purged := false
+				pruner.
+					On("DeleteRecordings", ctx, []string{"recorded"}).
+					Run(func(_ mock.Arguments) { purged = true }).
+					Return([]string{"recorded"}, nil).
+					Once()
+				storeMock.
+					On("SessionDeleteMany", ctx, []string{"plain", "recorded"}).
+					Run(func(_ mock.Arguments) {
+						assert.True(t, purged, "the row must not be deleted before its recording")
+					}).
+					Return(int64(2), nil).
 					Once()
 			},
 			expected: nil,
 		},
 		{
-			description: "leaves the rows alone when their recordings cannot be pruned",
+			description: "keeps the row of a session whose recording could not be purged",
 			retention:   retention,
-			pruner: func(_ *testing.T) SessionRecordingPruner {
-				return &recordingPrunerSpy{err: errors.New("bucket error")}
-			},
-			requiredMocks: func(ctx context.Context) {
+			withPruner:  true,
+			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
+				batch := []store.ExpiredSession{
+					{UID: "ok", Recorded: true},
+					{UID: "stuck", Recorded: true},
+				}
+
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
-					Return(uids(3), nil).
+					Return(batch, nil).
 					Once()
-				// No SessionDeleteMany: deleting the rows would strand the objects.
+				pruner.
+					On("DeleteRecordings", ctx, []string{"ok", "stuck"}).
+					Return([]string{"ok"}, nil).
+					Once()
+				// "stuck" keeps its row, which is what leaves its object reachable next run.
+				storeMock.
+					On("SessionDeleteMany", ctx, []string{"ok"}).
+					Return(int64(1), nil).
+					Once()
 			},
-			expected: errors.New("bucket error"),
+			expected: nil,
+		},
+		{
+			description: "ends the run when no session in the batch can be deleted",
+			retention:   retention,
+			withPruner:  true,
+			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
+				storeMock.
+					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					Return([]store.ExpiredSession{{UID: "stuck", Recorded: true}}, nil).
+					Once()
+				pruner.
+					On("DeleteRecordings", ctx, []string{"stuck"}).
+					Return([]string{}, nil).
+					Once()
+				// No SessionDeleteMany, and only one listing: retrying inside the run would
+				// re-list the same blocked rows and spin until the cap.
+			},
+			expected: nil,
+		},
+		{
+			description: "fails when the pruner reports the batch is moot",
+			retention:   retention,
+			withPruner:  true,
+			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
+				storeMock.
+					On("SessionListExpired", ctx, cutoff, sessionCleanupBatchSize).
+					Return([]store.ExpiredSession{{UID: "a", Recorded: true}}, nil).
+					Once()
+				pruner.
+					On("DeleteRecordings", ctx, []string{"a"}).
+					Return(nil, context.Canceled).
+					Once()
+			},
+			expected: context.Canceled,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			ctx := context.Background()
-			tc.requiredMocks(ctx)
+
+			pruner := new(mockSessionRecordingPruner)
+			tt.Cleanup(func() { pruner.AssertExpectations(tt) })
+			tc.requiredMocks(ctx, pruner)
 
 			opts := []Option{}
-			if tc.pruner != nil {
-				opts = append(opts, WithSessionRecordingPruner(tc.pruner(tt)))
+			if tc.withPruner {
+				opts = append(opts, WithSessionRecordingPruner(pruner))
 			}
 
 			s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), opts...)
@@ -621,23 +710,17 @@ func TestService_SessionCleanup(t *testing.T) {
 	})
 }
 
-// recordingPrunerSpy records the UIDs it was handed and asserts it ran before the rows went away.
-type recordingPrunerSpy struct {
-	t    *testing.T
-	err  error
-	uids []string
+// mockSessionRecordingPruner stands in for SessionRecordingPruner. It lives here rather than in
+// the generated mocks package for the same reason as mockLicenseEvaluator: services/mocks
+// imports services, so an internal test importing it would form a cycle.
+type mockSessionRecordingPruner struct {
+	mock.Mock
 }
 
-func (p *recordingPrunerSpy) DeleteRecordings(_ context.Context, uids []string) error {
-	p.uids = append(p.uids, uids...)
+func (m *mockSessionRecordingPruner) DeleteRecordings(ctx context.Context, uids []string) ([]string, error) {
+	args := m.Called(ctx, uids)
 
-	if p.err != nil {
-		return p.err
-	}
+	purged, _ := args.Get(0).([]string)
 
-	if p.t != nil {
-		assert.Equal(p.t, []string{"session-0", "session-1", "session-2"}, uids)
-	}
-
-	return nil
+	return purged, args.Error(1)
 }

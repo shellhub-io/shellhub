@@ -347,9 +347,9 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 	return nil
 }
 
-func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]string, error) {
+func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error) {
 	if limit <= 0 {
-		return []string{}, nil
+		return []store.ExpiredSession{}, nil
 	}
 
 	db := pg.GetConnection(ctx)
@@ -362,18 +362,25 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 	// is what a live session actually holds. Deleting one would cascade that row away underneath
 	// the connection still using it.
 	uids := make([]string, 0, limit)
+	recorded := make([]bool, 0, limit)
+
 	if err := db.NewSelect().
 		Model((*entity.Session)(nil)).
-		Column("id").
+		Column("id", "recorded").
 		Where("started_at < ?", before).
 		Where("NOT EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = session.id)").
 		Order("started_at ASC").
 		Limit(limit).
-		Scan(ctx, &uids); err != nil {
+		Scan(ctx, &uids, &recorded); err != nil {
 		return nil, fromSQLError(err)
 	}
 
-	return uids, nil
+	sessions := make([]store.ExpiredSession, len(uids))
+	for i, uid := range uids {
+		sessions[i] = store.ExpiredSession{UID: uid, Recorded: recorded[i]}
+	}
+
+	return sessions, nil
 }
 
 func (pg *Pg) SessionDeleteMany(ctx context.Context, uids []string) (int64, error) {

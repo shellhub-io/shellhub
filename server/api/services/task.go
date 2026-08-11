@@ -72,8 +72,7 @@ func (s *service) SSHApprovalCleanup() worker.CronHandler {
 }
 
 // SessionCleanup enforces the instance's session retention window: sessions that started longer
-// ago than retention are deleted, taking their events with them. Nothing else prunes these two
-// tables, and session_events is by far the largest thing an instance accumulates.
+// ago than retention are deleted, taking their events and recordings with them.
 //
 // A retention that is not positive means "keep forever" and prunes nothing. The guard matters
 // more than it looks: read as a window, a zero would put the cutoff at now and delete every
@@ -97,30 +96,38 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 	batches := 0
 
 	for batches < sessionCleanupMaxBatches {
-		uids, err := s.store.SessionListExpired(ctx, cutoff, sessionCleanupBatchSize)
+		sessions, err := s.store.SessionListExpired(ctx, cutoff, sessionCleanupBatchSize)
 		if err != nil {
 			log.WithError(err).WithField("deleted", total).Error("failed to list expired sessions")
 
 			return err
 		}
 
-		if len(uids) == 0 {
+		if len(sessions) == 0 {
 			break
 		}
 
-		// Recordings first, rows second. A session's recording lives in object storage under a
-		// key derived from its UID, so the row is the only thing that can still name it: delete
-		// the row first and a failure here strands the object with nothing left to find it by.
-		// Failing this way round costs a retry next run instead.
-		if s.recordingPruner != nil {
-			if err := s.recordingPruner.DeleteRecordings(ctx, uids); err != nil {
-				log.WithError(err).WithField("deleted", total).Error("failed to prune recordings of expired sessions")
+		// Recordings first, rows second, because the row is the only thing that can still name
+		// the object. Sessions whose recording could not be purged are left out and keep their
+		// rows, so the next run finds them again.
+		deletable, err := s.pruneRecordings(ctx, sessions)
+		if err != nil {
+			log.WithError(err).WithField("deleted", total).Error("failed to prune recordings of expired sessions")
 
-				return err
-			}
+			return err
 		}
 
-		deleted, err := s.store.SessionDeleteMany(ctx, uids)
+		// The batch is not empty but nothing in it can be deleted, so every session in it is
+		// blocked on its recording. Retrying inside this run would list the same rows again and
+		// spin until the cap; leave it for the next one, by which time the storage may answer.
+		if len(deletable) == 0 {
+			log.WithFields(log.Fields{"deleted": total, "blocked": len(sessions)}).
+				Warn("no expired session in the batch could be deleted; ending the run")
+
+			break
+		}
+
+		deleted, err := s.store.SessionDeleteMany(ctx, deletable)
 		if err != nil {
 			log.WithError(err).WithField("deleted", total).Error("failed to prune expired sessions")
 
@@ -132,7 +139,7 @@ func (s *service) sessionCleanup(ctx context.Context, retention, pause time.Dura
 
 		// A batch that came back short means the store ran out of sessions older than the
 		// cutoff, so there is nothing left for this run to do.
-		if len(uids) < sessionCleanupBatchSize {
+		if len(sessions) < sessionCleanupBatchSize {
 			break
 		}
 
