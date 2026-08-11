@@ -76,12 +76,8 @@ vi.mock("@/components/vault/VaultLockedBanner", () => ({
   ),
 }));
 
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button type="button" aria-label={`Copy ${text}`}>
-      Copy
-    </button>
-  ),
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 vi.mock("@/components/common/fields/InputField", () => ({

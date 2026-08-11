@@ -13,12 +13,8 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useParams: () => ({ id: "rule-1" }) };
 });
 
-// CopyButton relies on ClipboardProvider context and calls showModal() via
-// BaseDialog, which is not supported in jsdom. Mock it to a simple no-op.
-vi.mock("@/components/common/CopyButton", () => ({
-  default: ({ text }: { text: string }) => (
-    <button type="button" aria-label={`Copy ${text}`} />
-  ),
+vi.mock("@/components/common/CopyButton", async () => ({
+  default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
