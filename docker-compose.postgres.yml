@@ -3,7 +3,11 @@ services:
     image: postgres:18.0
     # lz4 compresses full-page images; safe to pin because the image tag above is pinned too,
     # and a build without lz4 support would refuse to start.
-    command: postgres -c io_method=worker -c wal_compression=lz4
+    #
+    # shared_preload_libraries only takes effect on a restart, not a reload, so an existing
+    # deployment picks pg_stat_statements up when the upgrade recreates the stack. A second
+    # library would have to join this one as a quoted comma-separated list, not a second -c.
+    command: postgres -c io_method=worker -c wal_compression=lz4 -c shared_preload_libraries=pg_stat_statements
     restart: unless-stopped
     healthcheck:
       start_period: 90s
