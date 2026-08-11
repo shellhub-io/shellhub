@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
@@ -65,9 +65,6 @@ beforeEach(() => {
     isLoading: false,
   });
 });
-
-afterEach(cleanup);
-
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("AnnouncementModalTrigger", () => {

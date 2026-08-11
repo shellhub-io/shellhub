@@ -1,10 +1,7 @@
 import React from "react";
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { renderHook, act, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
 import { useKeyFileInput } from "../useKeyFileInput";
-
-afterEach(cleanup);
-
 function makeFile(name: string, content: string): File {
   return new File([content], name, { type: "text/plain" });
 }

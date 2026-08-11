@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  cleanup,
   fireEvent,
   render,
   screen,
@@ -26,7 +25,6 @@ beforeEach(() => {
 afterEach(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (navigator as any).clipboard;
-  cleanup();
   vi.clearAllMocks();
 });
 

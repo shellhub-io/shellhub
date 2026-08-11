@@ -1,17 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Announcement } from "@/client";
-
-// jsdom doesn't implement showModal/close — stub them
-HTMLDialogElement.prototype.showModal = vi.fn(function (
-  this: HTMLDialogElement,
-) {
-  this.setAttribute("open", "");
-});
-HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-  this.removeAttribute("open");
-});
 
 // Tiptap uses real DOM APIs that aren't fully available in jsdom.
 // Mock the whole editor so AnnouncementContent renders a stable placeholder.
@@ -70,8 +60,6 @@ function renderModal({
 beforeEach(() => {
   vi.clearAllMocks();
 });
-
-afterEach(cleanup);
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 vi.unmock("@/hooks/useFocusTrap");
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef, useState } from "react";
 import { useFocusTrap } from "../useFocusTrap";
-
-afterEach(cleanup);
-
 // Helper component that exercises the hook
 function Trap({
   active,

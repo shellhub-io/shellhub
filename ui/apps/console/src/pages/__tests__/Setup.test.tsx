@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Setup from "../Setup";
@@ -64,9 +64,6 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^password$/i), "Secret123");
   await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
 }
-
-afterEach(cleanup);
-
 beforeEach(() => {
   mockNavigate.mockReset();
   mockedSetup.mockReset();

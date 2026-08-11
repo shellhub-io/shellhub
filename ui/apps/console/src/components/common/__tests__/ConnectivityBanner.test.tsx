@@ -1,10 +1,9 @@
-import { describe, it, expect, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import ConnectivityBanner from "@/components/common/ConnectivityBanner";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 
 beforeEach(() => useConnectivityStore.setState({ apiReachable: true }));
-afterEach(cleanup);
 
 describe("ConnectivityBanner", () => {
   it("is hidden when api is reachable", () => {

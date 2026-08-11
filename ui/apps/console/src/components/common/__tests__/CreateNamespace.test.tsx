@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Stub the community-polling useEffect so it does not leak timers
@@ -43,9 +43,6 @@ beforeEach(() => {
     isPending: false,
   } as unknown as ReturnType<typeof useSwitchNamespace>);
 });
-
-afterEach(cleanup);
-
 function renderComponent() {
   return render(<CreateNamespace />);
 }

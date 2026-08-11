@@ -1,10 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
-
-afterEach(cleanup);
-
 const noop = () => {};
 const alwaysValid = () => true;
 
@@ -83,8 +80,12 @@ describe("KeyFileInput", () => {
 
     it("hides mode toggle buttons when disabled", () => {
       renderComponent({ disabled: true });
-      expect(screen.queryByRole("button", { name: "File" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Text" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "File" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Text" }),
+      ).not.toBeInTheDocument();
     });
 
     it("shows the drop zone by default (file mode)", () => {
@@ -155,9 +156,7 @@ describe("KeyFileInput", () => {
     it("sets dragging visual when dragOver fires on the drop zone", () => {
       const { container } = renderComponent();
       // Find the drop zone div by a stable child element
-      const dropZone = container.querySelector(
-        "[ondragover], .border-dashed",
-      );
+      const dropZone = container.querySelector("[ondragover], .border-dashed");
       if (!dropZone) throw new Error("drop zone not found");
 
       fireEvent.dragOver(dropZone, { preventDefault: () => {} });
@@ -199,7 +198,9 @@ describe("KeyFileInput", () => {
       const dataTransfer = { files: [file] };
       fireEvent.drop(dropZone, { dataTransfer });
 
-      await waitFor(() => expect(onChange).toHaveBeenCalledWith("ssh-rsa AAAAB3NzaC1"));
+      await waitFor(() =>
+        expect(onChange).toHaveBeenCalledWith("ssh-rsa AAAAB3NzaC1"),
+      );
       restore();
     });
 
@@ -253,7 +254,9 @@ describe("KeyFileInput", () => {
     it("renders a textarea (not the drop zone) when disabled", () => {
       renderComponent({ disabled: true });
       expect(screen.getByRole("textbox")).toBeInTheDocument();
-      expect(screen.queryByText("Drop key file, paste, or browse")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Drop key file, paste, or browse"),
+      ).not.toBeInTheDocument();
     });
 
     it("textarea is disabled", () => {
@@ -275,7 +278,9 @@ describe("KeyFileInput", () => {
   describe("hint", () => {
     it("renders the hint when not disabled", () => {
       renderComponent({ hint: "Paste or drag your key file" });
-      expect(screen.getByText("Paste or drag your key file")).toBeInTheDocument();
+      expect(
+        screen.getByText("Paste or drag your key file"),
+      ).toBeInTheDocument();
     });
 
     it("does not render disabledHint when not disabled", () => {

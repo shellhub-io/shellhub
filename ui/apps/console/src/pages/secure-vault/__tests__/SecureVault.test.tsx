@@ -1,6 +1,6 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useVaultStore } from "@/stores/vaultStore";
@@ -302,9 +302,6 @@ function getState() {
   return (useVaultStore as unknown as { _state: Record<string, unknown> })
     ._state;
 }
-
-afterEach(cleanup);
-
 beforeEach(() => {
   vi.clearAllMocks();
 });

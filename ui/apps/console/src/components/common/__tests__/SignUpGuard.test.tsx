@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 
-afterEach(cleanup);
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import { getConfig, defaultConfig, Edition } from "@/env";
@@ -34,9 +33,12 @@ describe("SignUpGuard", () => {
     expect(screen.getByText("sign up")).toBeInTheDocument();
   });
 
-  it.each(["community", "enterprise"] as const)("redirects to /login when edition is %s", (edition) => {
-    renderWithRouter(edition);
-    expect(screen.queryByText("sign up")).not.toBeInTheDocument();
-    expect(screen.getByText("login")).toBeInTheDocument();
-  });
+  it.each(["community", "enterprise"] as const)(
+    "redirects to /login when edition is %s",
+    (edition) => {
+      renderWithRouter(edition);
+      expect(screen.queryByText("sign up")).not.toBeInTheDocument();
+      expect(screen.getByText("login")).toBeInTheDocument();
+    },
+  );
 });

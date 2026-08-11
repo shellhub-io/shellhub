@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import { useAuthStore } from "@/stores/authStore";
 
 vi.mock("@/hooks/useStats", () => ({
@@ -71,9 +71,6 @@ beforeEach(() => {
   });
   mockHasSeenWelcome.mockReturnValue(false);
 });
-
-afterEach(cleanup);
-
 describe("WelcomeWizardTrigger", () => {
   describe("when tenant has already seen welcome", () => {
     it("renders nothing", () => {
