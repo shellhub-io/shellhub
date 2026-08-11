@@ -1,7 +1,9 @@
 services:
   postgres:
     image: postgres:18.0
-    command: postgres -c io_method=worker
+    # lz4 compresses full-page images; safe to pin because the image tag above is pinned too,
+    # and a build without lz4 support would refuse to start.
+    command: postgres -c io_method=worker -c wal_compression=lz4
     restart: unless-stopped
     healthcheck:
       start_period: 90s
