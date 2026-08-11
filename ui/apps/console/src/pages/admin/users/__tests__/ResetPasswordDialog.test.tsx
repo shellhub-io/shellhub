@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -9,27 +8,8 @@ vi.mock("@/hooks/useAdminUserMutations", () => ({
   useResetUserPassword: vi.fn(),
 }));
 
-// BaseDialog renders open/close state; we flatten it to a simple div for test isolation.
-vi.mock("@/components/common/BaseDialog", () => ({
-  default: ({
-    open,
-    onClose,
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    children: React.ReactNode;
-  }) => {
-    if (!open) return null;
-    return (
-      <div role="dialog">
-        <button type="button" onClick={onClose}>
-          Close Dialog
-        </button>
-        {children}
-      </div>
-    );
-  },
+vi.mock("@/components/common/BaseDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockBaseDialog,
 }));
 
 vi.mock("@/components/common/CopyButton", async () => ({

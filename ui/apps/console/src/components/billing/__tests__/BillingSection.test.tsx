@@ -81,26 +81,8 @@ vi.mock("@/api/errors", () => ({
     typeof err === "object" && err !== null && "status" in err,
 }));
 
-// BaseDialog uses native <dialog> + focus trap — replace with a plain wrapper
-vi.mock("@/components/common/BaseDialog", () => ({
-  default: ({
-    open,
-    children,
-    "aria-label": ariaLabel,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    canClose?: () => boolean;
-    children: React.ReactNode;
-    "aria-label"?: string;
-  }) => {
-    if (!open) return null;
-    return React.createElement(
-      "div",
-      { role: "dialog", "aria-label": ariaLabel },
-      children,
-    );
-  },
+vi.mock("@/components/common/BaseDialog", async () => ({
+  default: (await import("@/tests/mocks")).MockBaseDialog,
 }));
 
 // Stub the wizard steps — we only care that the dialog opens/closes here.
