@@ -1,0 +1,20 @@
+-- HOT needs free space in the same page to write the new tuple version into. Dropping the
+-- index in 018 makes a heartbeat HOT-eligible, but eligibility is not enough: at heartbeat
+-- rates a densely packed heap runs out of in-page room, falls back to a non-HOT update, and
+-- grows until it has accumulated the slack it needed all along. Reserving the slack up front
+-- is both cheaper and smaller than letting the table find it by bloating.
+--
+-- Measured locally, updating every row of a 58,670-row table six times over, starting from a
+-- freshly compacted heap: at the default fillfactor the HOT ratio reached 40.4% and the heap
+-- grew 4.7x, against 85.1% and 3.0x at fillfactor 85. Higher HOT means less expansion, so the
+-- reserved 15% pays for itself — the fillfactor 85 heap ends up smaller in absolute terms.
+--
+-- Must run before 020: VACUUM FULL honours fillfactor when it rewrites the heap (the same
+-- 58,670 rows rebuild into 2,257 pages at 100 and 2,667 at 85), so setting this afterwards
+-- would leave the compacted pages full and only apply to pages allocated later.
+--
+-- The autovacuum_vacuum_scale_factor / autovacuum_analyze_scale_factor knobs proposed
+-- alongside this one are deliberately left alone: the same measurement showed no material
+-- effect from them once fillfactor is set. They belong with the rest of the server-level
+-- tuning rather than here.
+ALTER TABLE devices SET (fillfactor = 85);
