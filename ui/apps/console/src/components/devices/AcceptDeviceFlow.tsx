@@ -11,6 +11,12 @@ import { cn } from "@shellhub/design-system/cn";
 import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
+import { clearPendingDeviceCode } from "@/utils/navigation";
+import { isEnterpriseOrCloud } from "@/env";
+import {
+  NamespaceCreateForm,
+  CommunityInstructions,
+} from "@/components/common/CreateNamespace";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useNamespaces } from "@/hooks/useNamespaces";
@@ -72,6 +78,11 @@ export default function AcceptDeviceFlow({
   const [selectedTenant, setSelectedTenant] = useState("");
   const [accepting, setAccepting] = useState(false);
 
+  const finish = (b: Branch) => {
+    clearPendingDeviceCode();
+    setBranch(b);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -85,9 +96,7 @@ export default function AcceptDeviceFlow({
         // The modal is only shown to signed-in users; the page sends anonymous
         // visitors through login and back.
         if (!embedded) {
-          void navigate(
-            `/login?redirect=${encodeURIComponent(`/accept-device?code=${code}`)}`,
-          );
+          void navigate("/login");
         }
         return;
       }
@@ -107,7 +116,7 @@ export default function AcceptDeviceFlow({
         }
 
         if (data.status === "accepted") {
-          setBranch({ kind: "already-accepted", device: data });
+          finish({ kind: "already-accepted", device: data });
           return;
         }
 
@@ -129,12 +138,10 @@ export default function AcceptDeviceFlow({
         // A stale session token 401s here; send the user through login and back
         // instead of mislabeling it as an expired code.
         if (isSdkError(err) && err.status === 401 && !embedded) {
-          void navigate(
-            `/login?redirect=${encodeURIComponent(`/accept-device?code=${code}`)}`,
-          );
+          void navigate("/login");
           return;
         }
-        setBranch({ kind: "error" });
+        finish({ kind: "error" });
       }
     }
 
@@ -150,7 +157,7 @@ export default function AcceptDeviceFlow({
     setActionError("");
     try {
       await acceptDevice.mutateAsync({ path: { uid: device.uid } });
-      setBranch({ kind: "success", device });
+      finish({ kind: "success", device });
     } catch (err) {
       setActionError(getAcceptDeviceErrorMessage(err));
     }
@@ -166,7 +173,7 @@ export default function AcceptDeviceFlow({
         body: { tenant_id: selectedTenant },
         throwOnError: true,
       });
-      setBranch({
+      finish({
         kind: "pairing-success",
         device,
         uid: data.uid ?? "",
@@ -518,10 +525,16 @@ function NamespacePicker({
 
   if (namespaces.length === 0) {
     return (
-      <p className="text-sm text-text-secondary">
-        You don&apos;t belong to any namespace yet. Create one in the console
-        and try again.
-      </p>
+      <div className="space-y-3">
+        <p className="text-sm text-text-secondary leading-relaxed text-justify">
+          You don't have any namespaces yet. Create one to get started.
+        </p>
+        {isEnterpriseOrCloud() ? (
+          <NamespaceCreateForm />
+        ) : (
+          <CommunityInstructions />
+        )}
+      </div>
     );
   }
 

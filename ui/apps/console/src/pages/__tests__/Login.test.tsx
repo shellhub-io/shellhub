@@ -3,6 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import {
+  PENDING_DEVICE_CODE_KEY,
+  hasPendingDeviceCode,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 import type { UserAuth, Info } from "@/client";
 import Login from "../Login";
 
@@ -112,33 +117,37 @@ async function fillAndSubmit(
   await user.tab();
   await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
-beforeEach(() => {
-  mockNavigate.mockReset();
-  mockedLogin.mockReset();
-  mockedGetSamlAuthUrl.mockReset();
-  mockedGetInfo.mockResolvedValue(
-    mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
-  );
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
-  useAuthStore.setState({
-    token: null,
-    user: null,
-    userId: null,
-    email: null,
-    username: null,
-    recoveryEmail: null,
-    tenant: null,
-    role: null,
-    name: null,
-    loading: false,
-  });
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
 
 describe("Login", () => {
+  beforeEach(() => {
+    mockNavigate.mockReset();
+    mockedLogin.mockReset();
+    mockedGetSamlAuthUrl.mockReset();
+    mockedGetInfo.mockResolvedValue(
+      mockSdkResponse(
+        mockInfo({ authentication: { local: true, saml: false } }),
+      ),
+    );
+    mockedGetConfig.mockReturnValue({ ...defaultConfig });
+    localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
+    useAuthStore.setState({
+      token: null,
+      user: null,
+      userId: null,
+      email: null,
+      username: null,
+      recoveryEmail: null,
+      tenant: null,
+      role: null,
+      name: null,
+      loading: false,
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe("form rendering", () => {
     it("renders username and password fields with a submit button", () => {
       renderLogin();
@@ -562,6 +571,52 @@ describe("Login", () => {
       await waitFor(() =>
         expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
       );
+    });
+  });
+
+  describe("pending device code", () => {
+    it("redirects to /accept-device when a pending code exists and no explicit redirect", async () => {
+      mockedLogin.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ token: "jwt" })),
+      );
+      setPendingDeviceCode("WXYZ2K7Q");
+
+      renderLogin();
+      await fillAndSubmit();
+
+      expect(mockNavigate).toHaveBeenCalledWith("/accept-device?code=WXYZ2K7Q");
+      expect(localStorage.getItem(PENDING_DEVICE_CODE_KEY)).toBeNull();
+    });
+
+    it("prefers an explicit redirect over the pending code", async () => {
+      mockedLogin.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ token: "jwt" })),
+      );
+      setPendingDeviceCode("WXYZ2K7Q");
+
+      render(
+        <MemoryRouter initialEntries={["/login?redirect=%2Fdevices"]}>
+          <Login />
+        </MemoryRouter>,
+      );
+      await fillAndSubmit();
+
+      expect(mockNavigate).toHaveBeenCalledWith("/devices");
+      expect(hasPendingDeviceCode()).toBe(true);
+    });
+
+    it("does not consume the code when MFA is required", async () => {
+      mockedLogin.mockImplementation(async () => {
+        useAuthStore.setState({ mfaToken: "mfa-temp" });
+        return mockSdkResponse(mockUserAuth({ token: "jwt" }));
+      });
+      setPendingDeviceCode("WXYZ2K7Q");
+
+      renderLogin();
+      await fillAndSubmit();
+
+      expect(mockNavigate).toHaveBeenCalledWith("/mfa-login");
+      expect(hasPendingDeviceCode()).toBe(true);
     });
   });
 });

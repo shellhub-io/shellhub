@@ -7,6 +7,7 @@ import type { SignUpFormValues } from "./setup/signUpResolver";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
+import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import {
   FormInputField,
   FormPasswordField,
@@ -141,6 +142,8 @@ export default function SignUp() {
       </div>
 
       <div className="w-full max-w-sm space-y-4">
+        <PendingDeviceCallout />
+
         {/* Form card */}
         <div
           className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"

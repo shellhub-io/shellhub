@@ -10,6 +10,7 @@ import {
   leaveNamespace as leaveNamespaceSdk,
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
+import { consumePendingDeviceCode } from "@/utils/navigation";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useEditNamespace() {
@@ -62,7 +63,10 @@ export function useCreateNamespace() {
         path: { tenant: ns.tenant_id },
         throwOnError: true,
       });
-      window.location.href = "/dashboard";
+      const pendingCode = consumePendingDeviceCode();
+      window.location.href = pendingCode
+        ? `/accept-device?code=${encodeURIComponent(pendingCode)}`
+        : "/dashboard";
       useAuthStore.getState().setSession({
         token: data.token,
         tenant: ns.tenant_id,

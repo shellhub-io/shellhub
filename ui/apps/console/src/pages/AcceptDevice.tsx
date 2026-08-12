@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
+import { setPendingDeviceCode } from "@/utils/navigation";
 
 /**
  * Full-page accept surface, reached from the URL the agent prints
@@ -10,6 +11,8 @@ import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 export default function AcceptDevice() {
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code") ?? "";
+
+  if (code) setPendingDeviceCode(code);
 
   return (
     <div className="w-full max-w-md mx-auto animate-fade-in">
