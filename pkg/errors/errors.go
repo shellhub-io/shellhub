@@ -49,6 +49,16 @@ func (e Error) Error() string {
 	return e.Message
 }
 
+// Is ignores Data so that WithData copies still match their sentinel.
+func (e Error) Is(target error) bool {
+	t, ok := target.(Error)
+	if !ok {
+		return false
+	}
+
+	return e.Message == t.Message && e.Layer == t.Layer && e.Code == t.Code
+}
+
 // Wrap wraps an error with another error.
 //
 // It is a interface for [errors.Join]. Check [errors.Join] for more information.
