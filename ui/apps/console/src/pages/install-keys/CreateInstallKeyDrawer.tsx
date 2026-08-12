@@ -22,8 +22,6 @@ import {
 } from "./helpers";
 import { LABEL } from "@/utils/styles";
 
-/* --- Create Install Key Drawer --- */
-
 function CreateInstallKeyDrawer({
   open,
   onClose,
