@@ -1,13 +1,33 @@
 services:
   postgres:
     image: postgres:18.0
-    # lz4 compresses full-page images; safe to pin because the image tag above is pinned too,
-    # and a build without lz4 support would refuse to start.
-    #
     # shared_preload_libraries only takes effect on a restart, not a reload, so an existing
     # deployment picks pg_stat_statements up when the upgrade recreates the stack. A second
     # library would have to join this one as a quoted comma-separated list, not a second -c.
-    command: postgres -c io_method=worker -c wal_compression=lz4 -c shared_preload_libraries=pg_stat_statements
+    #
+    # Defaults are what this deployment already runs, so nothing changes out of the box. They
+    # let a host be sized from .env.override rather than by replacing `command:`, which Compose
+    # does wholesale. `:-` so an empty override still yields a value; lz4 is only safe as a
+    # default because the image tag is pinned.
+    command: >
+      postgres
+      -c io_method=worker
+      -c shared_preload_libraries=pg_stat_statements
+      -c wal_compression=${SHELLHUB_POSTGRES_WAL_COMPRESSION:-lz4}
+      -c shared_buffers=${SHELLHUB_POSTGRES_SHARED_BUFFERS:-128MB}
+      -c effective_cache_size=${SHELLHUB_POSTGRES_EFFECTIVE_CACHE_SIZE:-4GB}
+      -c work_mem=${SHELLHUB_POSTGRES_WORK_MEM:-4MB}
+      -c maintenance_work_mem=${SHELLHUB_POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+      -c max_wal_size=${SHELLHUB_POSTGRES_MAX_WAL_SIZE:-1GB}
+      -c min_wal_size=${SHELLHUB_POSTGRES_MIN_WAL_SIZE:-80MB}
+      -c checkpoint_timeout=${SHELLHUB_POSTGRES_CHECKPOINT_TIMEOUT:-5min}
+      -c random_page_cost=${SHELLHUB_POSTGRES_RANDOM_PAGE_COST:-4}
+      -c effective_io_concurrency=${SHELLHUB_POSTGRES_EFFECTIVE_IO_CONCURRENCY:-16}
+      -c max_connections=${SHELLHUB_POSTGRES_MAX_CONNECTIONS:-100}
+    # Not shared_buffers, but parallel-query segments — grows with work_mem.
+    shm_size: ${SHELLHUB_POSTGRES_SHM_SIZE:-64m}
+    # 0 is unlimited, as today. Worth setting once shared_buffers grows: no swap on these hosts.
+    mem_limit: ${SHELLHUB_POSTGRES_MEMORY_LIMIT:-0}
     restart: unless-stopped
     healthcheck:
       start_period: 90s
