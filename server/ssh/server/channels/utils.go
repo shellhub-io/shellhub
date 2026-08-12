@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"errors"
 	"io"
 	"sync"
 
@@ -99,9 +100,14 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			}
 
 			if err := sess.Recorded(seat); err != nil {
-				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-					Warning("failed to set the session as recorded")
+				entry := log.WithError(err).
+					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID})
+
+				if errors.Is(err, session.ErrRecordingSkipped) {
+					entry.Debug("session will not be recorded")
+				} else {
+					entry.Warning("failed to set the session as recorded")
+				}
 
 				// NOTE: When we fail to update the session status to record, we don't send session's chunks to storage.
 				recorder = nil

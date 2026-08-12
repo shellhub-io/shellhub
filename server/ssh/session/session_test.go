@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // stubContext is a minimal gliderssh.Context backed by a map for SetValue/Value
@@ -83,6 +84,83 @@ func newTestSession(service services.Service) *Session {
 		Client: &Client{
 			Channels: make(map[int]*ClientChannel),
 		},
+	}
+}
+
+func TestRecorded(t *testing.T) {
+	errStoreDown := errors.New("store is down")
+
+	tests := []struct {
+		description string
+		record      bool
+		pty         bool
+		setupMock   func(m *servicemocks.MockService)
+		expectedErr error
+		// expectSkipped is whether the error means the session was never going to be
+		// recorded, which is what the caller reports below a warning.
+		expectSkipped bool
+	}{
+		{
+			description:   "recording disabled for the namespace",
+			record:        false,
+			pty:           true,
+			setupMock:     func(_ *servicemocks.MockService) {},
+			expectedErr:   ErrRecordingDisabled,
+			expectSkipped: true,
+		},
+		{
+			description:   "seat has no pty to record",
+			record:        true,
+			pty:           false,
+			setupMock:     func(_ *servicemocks.MockService) {},
+			expectedErr:   ErrRecordingNoPty,
+			expectSkipped: true,
+		},
+		{
+			description: "marking the session as recorded fails",
+			record:      true,
+			pty:         true,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().
+					UpdateSession(mock.Anything, models.UID("test-uid"), mock.Anything).
+					Return(errStoreDown).
+					Once()
+			},
+			expectedErr:   errStoreDown,
+			expectSkipped: false,
+		},
+		{
+			description: "session is marked as recorded",
+			record:      true,
+			pty:         true,
+			setupMock: func(m *servicemocks.MockService) {
+				m.EXPECT().
+					UpdateSession(mock.Anything, models.UID("test-uid"), mock.Anything).
+					Return(nil).
+					Once()
+			},
+			expectedErr:   nil,
+			expectSkipped: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			serviceMock := servicemocks.NewMockService(t)
+			tt.setupMock(serviceMock)
+
+			sess := newTestSession(serviceMock)
+			sess.Namespace.Settings = &models.NamespaceSettings{SessionRecord: tt.record}
+
+			seat, err := sess.Seats.NewSeat()
+			require.NoError(t, err)
+			sess.Seats.SetPty(seat, tt.pty)
+
+			err = sess.Recorded(seat)
+
+			assert.ErrorIs(t, err, tt.expectedErr)
+			assert.Equal(t, tt.expectSkipped, errors.Is(err, ErrRecordingSkipped))
+		})
 	}
 }
 
