@@ -182,6 +182,13 @@ func WithDeviceRemovedAt(removedAt *time.Time) DeviceOption {
 	}
 }
 
+// WithDeviceLastSeen sets the last_seen timestamp
+func WithDeviceLastSeen(lastSeen time.Time) DeviceOption {
+	return func(d *models.Device) {
+		d.LastSeen = lastSeen
+	}
+}
+
 // WithDeviceStatusUpdatedAt sets the status_updated_at timestamp
 func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
 	return func(d *models.Device) {

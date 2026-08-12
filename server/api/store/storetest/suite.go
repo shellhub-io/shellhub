@@ -101,6 +101,7 @@ func (s *Suite) Run(t *testing.T) {
 
 	t.Run("StatsStore", func(t *testing.T) {
 		s.TestGetStats(t)
+		s.TestGetStatsOnlineBoundary(t)
 	})
 
 	t.Run("PrivateKeyStore", func(t *testing.T) {

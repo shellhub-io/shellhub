@@ -3,6 +3,7 @@ package storetest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 
@@ -90,5 +91,50 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		assert.Equal(t, 0, stats.ActiveSessions)
 		assert.Equal(t, 0, stats.PendingDevices)
 		assert.Equal(t, 0, stats.RejectedDevices)
+	})
+}
+
+// TestGetStatsOnlineBoundary pins the clock to assert the two-minute window that decides
+// whether a device counts as online. The other stats tests create devices at the current
+// time, so they pass whether the query reads the package clock or the wall clock; this one
+// does not.
+func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	now := time.Date(2026, 8, 12, 12, 0, 0, 0, time.UTC)
+
+	t.Run("counts only devices seen within the window", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+		pinClock(t, now)
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"), WithDeviceLastSeen(now.Add(-1*time.Minute)))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"), WithDeviceLastSeen(now.Add(-3*time.Minute)))
+
+		stats, err := st.GetStats(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+		require.NotNil(t, stats)
+
+		assert.Equal(t, 1, stats.OnlineDevices)
+		assert.Equal(t, 2, stats.RegisteredDevices, "both devices are registered regardless of presence")
+	})
+
+	t.Run("moving the clock past the window takes a device offline", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+		clk := pinClock(t, now)
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"), WithDeviceLastSeen(now.Add(-1*time.Minute)))
+
+		stats, err := st.GetStats(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+		assert.Equal(t, 1, stats.OnlineDevices)
+
+		clk.now = now.Add(2 * time.Minute)
+
+		stats, err = st.GetStats(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+		assert.Equal(t, 0, stats.OnlineDevices, "the window follows the clock, not wall time")
 	})
 }

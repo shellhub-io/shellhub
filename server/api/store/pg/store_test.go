@@ -111,6 +111,7 @@ func TestPgStore(t *testing.T) {
 
 	runSubSuite(t, "StatsStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestGetStats(t)
+		suite.TestGetStatsOnlineBoundary(t)
 	})
 
 	runSubSuite(t, "PrivateKeyStore", func(suite *storetest.Suite, t *testing.T) {
