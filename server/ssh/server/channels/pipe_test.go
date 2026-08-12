@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
+	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gossh "golang.org/x/crypto/ssh"
@@ -169,6 +171,23 @@ func newPipeSession(t *testing.T) *session.Session {
 	return sess
 }
 
+// captureLogs collects what pipe logs on the standard logger, at debug level so
+// entries below the default threshold are recorded too.
+func captureLogs(t *testing.T) *test.Hook {
+	t.Helper()
+
+	hook := test.NewGlobal()
+	level := log.GetLevel()
+	log.SetLevel(log.DebugLevel)
+
+	t.Cleanup(func() {
+		log.SetLevel(level)
+		hook.Reset()
+	})
+
+	return hook
+}
+
 func runPipe(t *testing.T, sess *session.Session, client, agent gossh.Channel) chan struct{} {
 	t.Helper()
 
@@ -191,6 +210,64 @@ func waitFor(t *testing.T, finished chan struct{}) {
 	case <-finished:
 	case <-time.After(10 * time.Second):
 		t.Fatal("pipe did not return")
+	}
+}
+
+// TestPipeReportsExpectedRecordingSkips is the regression: a session that was
+// never going to be recorded — recording off for the namespace, or no pty to
+// record — was logged as a recording failure, so on a fleet of non-interactive
+// sessions every single one warned that a compliance feature had failed.
+func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
+	tests := []struct {
+		description string
+		record      bool
+		pty         bool
+	}{
+		{
+			description: "recording disabled for the namespace",
+			record:      false,
+			pty:         true,
+		},
+		{
+			description: "seat has no pty to record",
+			record:      true,
+			pty:         false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			hook := captureLogs(t)
+
+			sess := newPipeSession(t)
+			// The recorder is only wired in on the editions that record.
+			envstest.SetEdition(t, envs.Enterprise)
+
+			sess.Namespace = &models.Namespace{ //nolint:exhaustruct
+				Settings: &models.NamespaceSettings{SessionRecord: tt.record}, //nolint:exhaustruct
+			}
+			sess.Seats.SetPty(0, tt.pty)
+
+			client, agent := newFakeChannel(), newFakeChannel()
+
+			client.quiet()
+			agent.quiet()
+
+			waitFor(t, runPipe(t, sess, client, agent))
+
+			var skipped *log.Entry
+
+			for _, entry := range hook.AllEntries() {
+				assert.NotEqual(t, log.WarnLevel, entry.Level, "expected recording skip reported as a failure: %s", entry.Message)
+
+				if entry.Message == "session will not be recorded" {
+					skipped = entry
+				}
+			}
+
+			require.NotNil(t, skipped, "expected the recording skip to be reported")
+			assert.Equal(t, log.DebugLevel, skipped.Level)
+		})
 	}
 }
 

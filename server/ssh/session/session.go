@@ -507,15 +507,29 @@ func (s *Session) authenticate(ctx context.Context) error {
 	})
 }
 
+// Errors reported by [Session.Recorded] when the session was never going to be recorded. They
+// are expected conditions, not failures, and callers should not report them as such. The
+// specific ones wrap [ErrRecordingSkipped] so a caller that only wants to know whether anything
+// went wrong needs a single comparison.
+var (
+	ErrRecordingSkipped  = errors.New("session recording skipped")
+	ErrRecordingDisabled = fmt.Errorf("%w: disabled for this namespace", ErrRecordingSkipped)
+	ErrRecordingNoPty    = fmt.Errorf("%w: session has no pty", ErrRecordingSkipped)
+)
+
+// Recorded marks the session as recorded on the API.
+//
+// It returns an error wrapping [ErrRecordingSkipped] when the session is not meant to be
+// recorded; any other error means marking it failed.
 func (s *Session) Recorded(seat int) error {
 	value := true
 
 	if !s.Namespace.Settings.SessionRecord {
-		return errors.New("record is disable for this namespace")
+		return ErrRecordingDisabled
 	}
 
 	if seat, ok := s.Seats.Get(seat); !ok || !seat.HasPty {
-		return errors.New("session won't be recorded because there is no pty")
+		return ErrRecordingNoPty
 	}
 
 	// Not the pipe's context: this records that the session is being recorded, and
