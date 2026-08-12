@@ -24,8 +24,7 @@ import {
   Spinner,
 } from "@shellhub/design-system/primitives";
 
-/* ─── Cloud/Enterprise form ─── */
-function CloudForm() {
+export function NamespaceCreateForm() {
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -105,7 +104,7 @@ function CopyBlock({ command }: { command: string }) {
   );
 }
 
-function CommunityInstructions() {
+export function CommunityInstructions() {
   const switchNs = useSwitchNamespace();
   const [ready, setReady] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -223,7 +222,7 @@ export default function CreateNamespace() {
           className="w-full max-w-xl mx-auto bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
           style={{ animationDelay: "200ms" }}
         >
-          {canCreate ? <CloudForm /> : <CommunityInstructions />}
+          {canCreate ? <NamespaceCreateForm /> : <CommunityInstructions />}
         </div>
 
         {/* Footer links */}

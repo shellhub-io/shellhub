@@ -15,7 +15,8 @@ import {
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { isCloud, isEnterpriseOrCloud } from "../env";
-import { getSafeRedirect } from "../utils/navigation";
+import { getSafeRedirect, resolvePostLoginRedirect } from "@/utils/navigation";
+import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
 import {
@@ -158,7 +159,7 @@ export default function Login() {
             : "/mfa-login";
         void navigate(mfaPath);
       } else {
-        void navigate(redirect);
+        void navigate(resolvePostLoginRedirect(params));
       }
     } catch (err) {
       if (!isSdkError(err)) {
@@ -248,35 +249,31 @@ export default function Login() {
       </div>
 
       {/* Alerts — rendered outside the form so they are visible in SSO-only mode too */}
-      {(lockoutExpired ||
-        !!notice ||
-        !!missingAssertions ||
-        (!!error && !lockoutExpired)) && (
-        <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
-          {lockoutExpired && (
-            <Callout variant="success">
-              Your timeout has finished. Please try to log back in.
-            </Callout>
-          )}
-          {notice && <Callout variant="success">{notice}</Callout>}
-          {missingAssertions && (
-            <Callout variant="error">
-              The SSO configuration is incomplete due to missing required
-              mappings. Please contact your administrator.
-            </Callout>
-          )}
-          {error && !lockoutExpired && (
-            <Callout variant="error">
-              <span>
-                {error}
-                {countdownDisplay && (
-                  <span className="font-semibold"> ({countdownDisplay})</span>
-                )}
-              </span>
-            </Callout>
-          )}
-        </div>
-      )}
+      <div className="w-full max-w-sm flex flex-col gap-3 mb-4 empty:hidden">
+        <PendingDeviceCallout />
+        {lockoutExpired && (
+          <Callout variant="success">
+            Your timeout has finished. Please try to log back in.
+          </Callout>
+        )}
+        {notice && <Callout variant="success">{notice}</Callout>}
+        {missingAssertions && (
+          <Callout variant="error">
+            The SSO configuration is incomplete due to missing required
+            mappings. Please contact your administrator.
+          </Callout>
+        )}
+        {error && !lockoutExpired && (
+          <Callout variant="error">
+            <span>
+              {error}
+              {countdownDisplay && (
+                <span className="font-semibold"> ({countdownDisplay})</span>
+              )}
+            </span>
+          </Callout>
+        )}
+      </div>
 
       {/* Form card — only shown once we know local auth is enabled */}
       {showLocalForm && (

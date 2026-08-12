@@ -3,7 +3,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
-import { getSafeRedirect } from "../utils/navigation";
+import { resolvePostLoginRedirect } from "@/utils/navigation";
+import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
@@ -32,7 +33,7 @@ export default function MfaLogin() {
     try {
       await loginWithMfa(otp.getValue());
       const params = new URLSearchParams(location.search);
-      void navigate(getSafeRedirect(params));
+      void navigate(resolvePostLoginRedirect(params));
     } catch {
       // Error is set in store
       otp.reset();
@@ -63,6 +64,11 @@ export default function MfaLogin() {
           in.
         </p>
       </div>
+
+      <div className="w-full max-w-sm flex flex-col gap-3 mb-4 empty:hidden">
+        <PendingDeviceCallout />
+      </div>
+
       {/* Form card */}
       <div
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
@@ -85,7 +91,7 @@ export default function MfaLogin() {
                 <input
                   key={index}
                   ref={(el) => {
-                    (otp.inputRefs.current[index] = el);
+                    otp.inputRefs.current[index] = el;
                   }}
                   type="text"
                   inputMode="numeric"
