@@ -3,6 +3,7 @@ package dialer
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 	"os"
 	"time"
@@ -32,15 +33,7 @@ func NewManager() *Manager {
 func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) {
 	dialer := revdial.NewDialer(conn.Logger, conn, connPath)
 
-	m.Connections.Store(key, dialer)
-
-	if size := m.Connections.Size(key); size > 1 {
-		log.WithFields(log.Fields{
-			"key":  key,
-			"size": size,
-		}).Warning("Multiple connections stored for the same identifier.")
-	}
-
+	m.evict(key, m.Connections.Store(key, dialer))
 	m.DialerKeepAliveCallback(key)
 
 	// Start the ping loop and get the channel for pong responses
@@ -54,10 +47,49 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 
 				continue
 			case <-dialer.Done():
-				m.Connections.Delete(key, dialer)
-				m.DialerDoneCallback(key)
+				if m.Connections.Delete(key, dialer) == 0 {
+					m.DialerDoneCallback(key)
+				}
 
 				return
+			}
+		}
+	}()
+}
+
+// evict closes the connections a new registration for key displaced.
+//
+// A device that reconnects before the server has noticed its previous socket
+// is gone registers a second connection for the same identifier. Only the last
+// one is ever dialed, so the earlier ones are dead weight: they hold their
+// sockets and buffers until their own ping loop times out, which is up to
+// [BindPingInterval] away and never arrives at all for a peer that vanished
+// without resetting the connection.
+//
+// Closing runs in its own goroutine because it is teardown of an already
+// abandoned connection, and [revdial.Dialer.Close] blocks until its owner
+// observes the close. Neither belongs on the path registering the live
+// connection.
+func (m *Manager) evict(key string, displaced []interface{}) {
+	if len(displaced) == 0 {
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"key":  key,
+		"size": len(displaced) + 1,
+	}).Warning("Multiple connections stored for the same identifier.")
+
+	go func() {
+		for _, conn := range displaced {
+			closer, ok := conn.(io.Closer)
+			if !ok {
+				continue
+			}
+
+			if err := closer.Close(); err != nil {
+				log.WithError(err).WithField("key", key).
+					Warning("failed to close a displaced connection")
 			}
 		}
 	}()
@@ -94,15 +126,7 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 		return err
 	}
 
-	m.Connections.Store(key, session)
-
-	if size := m.Connections.Size(key); size > 1 {
-		log.WithFields(log.Fields{
-			"key":  key,
-			"size": size,
-		}).Warning("Multiple connections stored for the same identifier.")
-	}
-
+	m.evict(key, m.Connections.Store(key, session))
 	m.DialerKeepAliveCallback(key)
 
 	go func() {
@@ -115,8 +139,9 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 						"key": key,
 					}).WithError(err).Error("failed to ping yamux session")
 
-					m.Connections.Delete(key, session)
-					m.DialerDoneCallback(key)
+					if m.Connections.Delete(key, session) == 0 {
+						m.DialerDoneCallback(key)
+					}
 
 					return
 				}
@@ -125,8 +150,9 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 
 				continue
 			case <-session.CloseChan():
-				m.Connections.Delete(key, session)
-				m.DialerDoneCallback(key)
+				if m.Connections.Delete(key, session) == 0 {
+					m.DialerDoneCallback(key)
+				}
 
 				return
 			}
