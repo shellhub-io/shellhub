@@ -116,32 +116,10 @@ export function validateModeConfig(
   return "";
 }
 
-export type InstallKeyStatus =
-  "valid" | "disabled" | "expired" | "revoked" | "overused";
-
-/**
- * Whether a key's absolute expiry has elapsed. A null `expires_at` never
- * expires.
- */
 function isInstallKeyExpired(key: InstallKey): boolean {
   return (
     key.expires_at != null && new Date(key.expires_at).getTime() <= Date.now()
   );
-}
-
-/**
- * Derive a install key's status client-side from its fields, mirroring how the
- * API decides usability: revoked wins, then a reversible pause, then an elapsed
- * expiry, then an exhausted usage limit; otherwise the key is still valid.
- */
-export function getInstallKeyStatus(key: InstallKey): InstallKeyStatus {
-  if (key.revoked) return "revoked";
-  if (key.disabled) return "disabled";
-  if (isInstallKeyExpired(key)) return "expired";
-  if (key.usage_limit > 0 && key.used_times >= key.usage_limit) {
-    return "overused";
-  }
-  return "valid";
 }
 
 export interface KeyBlockers {
@@ -154,9 +132,8 @@ export interface KeyBlockers {
 }
 
 /**
- * The independent reasons a key can't register right now. Unlike getInstallKeyStatus (which collapses
- * to a single highest-priority status), these are surfaced side by side, so a key that is both expired
- * and over its limit shows both — each in the column that caused it.
+ * The independent reasons a key can't register right now — surfaced side by side, so a key that is
+ * both expired and over its limit shows both.
  */
 export function getKeyBlockers(key: InstallKey): KeyBlockers {
   const revoked = !!key.revoked;
@@ -203,27 +180,6 @@ export function getUsageInfo(key: InstallKey): UsageInfo {
     ratio: Math.min(1, used / limit),
     exhausted: used >= limit,
   };
-}
-
-/**
- * The second-line descriptor for the Enrollment cell: a non-valid key surfaces its state (paused,
- * revoked, ...) with a tone; a valid key returns null so the cell shows the mode's behavior instead.
- */
-export function getInstallKeyStateLabel(
-  status: InstallKeyStatus,
-): { label: string; tone: "muted" | "warning" | "danger" } | null {
-  switch (status) {
-    case "disabled":
-      return { label: "Disabled", tone: "muted" };
-    case "expired":
-      return { label: "Expired", tone: "warning" };
-    case "overused":
-      return { label: "Limit reached", tone: "warning" };
-    case "revoked":
-      return { label: "Revoked", tone: "danger" };
-    default:
-      return null;
-  }
 }
 
 export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {

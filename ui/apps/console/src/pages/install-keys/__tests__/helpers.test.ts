@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type InstallKey } from "@/client";
 import {
   getExpiryInfo,
-  getInstallKeyStatus,
   getKeyBlockers,
   getUsageInfo,
   installKeyDisplayName,
@@ -37,54 +36,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
-});
-
-describe("getInstallKeyStatus", () => {
-  it("returns valid for a fresh, unlimited key", () => {
-    expect(getInstallKeyStatus(key({}))).toBe("valid");
-  });
-
-  it("ranks revoked above every other blocker", () => {
-    const k = key({
-      revoked: true,
-      disabled: true,
-      expires_at: daysFromNow(-1),
-      usage_limit: 1,
-      used_times: 5,
-    });
-    expect(getInstallKeyStatus(k)).toBe("revoked");
-  });
-
-  it("ranks disabled above expiry and overuse", () => {
-    const k = key({
-      disabled: true,
-      expires_at: daysFromNow(-1),
-      usage_limit: 1,
-      used_times: 1,
-    });
-    expect(getInstallKeyStatus(k)).toBe("disabled");
-  });
-
-  it("ranks an elapsed expiry above overuse", () => {
-    expect(
-      getInstallKeyStatus(
-        key({ expires_at: daysFromNow(-1), usage_limit: 1, used_times: 1 }),
-      ),
-    ).toBe("expired");
-  });
-
-  it("reports overused only when a positive limit is reached", () => {
-    expect(getInstallKeyStatus(key({ usage_limit: 3, used_times: 3 }))).toBe(
-      "overused",
-    );
-    expect(getInstallKeyStatus(key({ usage_limit: 3, used_times: 2 }))).toBe(
-      "valid",
-    );
-    // usage_limit 0 means unlimited, so it never counts as overused however high used_times climbs.
-    expect(getInstallKeyStatus(key({ usage_limit: 0, used_times: 999 }))).toBe(
-      "valid",
-    );
-  });
 });
 
 describe("getKeyBlockers", () => {

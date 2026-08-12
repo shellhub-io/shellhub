@@ -18,7 +18,7 @@ export default function EventPublicKey({ event }: { event: InstallKeyEvent }) {
   const titleId = `event-pubkey-title-${autoId}`;
   const keyLabelId = `event-pubkey-key-${autoId}`;
 
-  if (!event.fingerprint) return null;
+  if (!event.fingerprint || !event.public_key) return null;
 
   return (
     <>

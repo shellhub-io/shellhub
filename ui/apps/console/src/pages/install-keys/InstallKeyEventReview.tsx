@@ -8,14 +8,16 @@ import { format } from "date-fns";
 import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { type DeviceStatus, type InstallKeyEvent } from "@/client";
+import { type InstallKeyEvent } from "@/client";
 import StatusChip from "./StatusChip";
 
 /**
  * The frozen verdict: a soft status chip (accepted green / rejected red) over when it was decided —
  * chip-over-timestamp, matching the Registration column's layout.
  */
-function Verdict({ status, at }: { status: DeviceStatus; at?: string | null }) {
+type ReviewVerdict = "accepted" | "rejected";
+
+function Verdict({ status, at }: { status: ReviewVerdict; at?: string | null }) {
   const rejected = status === "rejected";
 
   return (
@@ -65,15 +67,15 @@ function ActionLink({
  * removed, so an older re-registration keeps its own), falling back to the current device's live
  * status when the decision predates stamping so a decided device never shows a dash.
  */
-function resolveVerdict(event: InstallKeyEvent): DeviceStatus | undefined {
-  const status = event.device_status;
+function resolveVerdict(event: InstallKeyEvent): ReviewVerdict | undefined {
+  const decided = event.decided_status;
+  if (decided === "accepted" || decided === "rejected") return decided;
 
-  return (
-    event.decided_status ??
-    (event.is_current && (status === "accepted" || status === "rejected")
-      ? status
-      : undefined)
-  );
+  const status = event.device_status;
+  if (event.is_current && (status === "accepted" || status === "rejected")) {
+    return status;
+  }
+  return undefined;
 }
 
 /**
