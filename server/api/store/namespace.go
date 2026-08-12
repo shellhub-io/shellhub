@@ -29,6 +29,13 @@ type NamespaceStore interface {
 	// It returns the resolved namespace if found and an error, if any.
 	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 
+	// NamespaceGetDeviceLimit returns the namespace's device ceiling and its accepted-device
+	// count. It exists so the device-limit check does not have to go through NamespaceResolve,
+	// which carries every membership and its user for callers that never read them.
+	//
+	// It returns ErrNoDocuments when no namespace matches the tenant ID.
+	NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error)
+
 	// NamespaceGetMembers returns the namespace's members as enriched MemberView rows (name,
 	// username, email, role and a flattened status), joining the users table so the caller gets
 	// full identity rather than the thin Member embedded in a namespace. A list of options can be

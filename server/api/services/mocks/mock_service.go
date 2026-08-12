@@ -3964,78 +3964,6 @@ func (_c *MockService_GetUserAdmin_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
-// GetUserRole provides a mock function for the type MockService
-func (_mock *MockService) GetUserRole(ctx context.Context, tenantID string, userID string) (string, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserRole")
-	}
-
-	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockService_GetUserRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserRole'
-type MockService_GetUserRole_Call struct {
-	*mock.Call
-}
-
-// GetUserRole is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tenantID string
-//   - userID string
-func (_e *MockService_Expecter) GetUserRole(ctx any, tenantID any, userID any) *MockService_GetUserRole_Call {
-	return &MockService_GetUserRole_Call{Call: _e.mock.On("GetUserRole", ctx, tenantID, userID)}
-}
-
-func (_c *MockService_GetUserRole_Call) Run(run func(ctx context.Context, tenantID string, userID string)) *MockService_GetUserRole_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_GetUserRole_Call) Return(role string, err error) *MockService_GetUserRole_Call {
-	_c.Call.Return(role, err)
-	return _c
-}
-
-func (_c *MockService_GetUserRole_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string) (string, error)) *MockService_GetUserRole_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // KeepAliveSession provides a mock function for the type MockService
 func (_mock *MockService) KeepAliveSession(ctx context.Context, uid models.UID) error {
 	ret := _mock.Called(ctx, uid)
@@ -6236,6 +6164,86 @@ func (_c *MockService_ResolveInvitation_Call) Return(resolveInvitation *response
 }
 
 func (_c *MockService_ResolveInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.ResolveInvitation) (*responses0.ResolveInvitation, error)) *MockService_ResolveInvitation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResolveNamespaceRole provides a mock function for the type MockService
+func (_mock *MockService) ResolveNamespaceRole(ctx context.Context, tenantID string, userID string) (*models.Namespace, string, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveNamespaceRole")
+	}
+
+	var r0 *models.Namespace
+	var r1 string
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*models.Namespace, string, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *models.Namespace); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) string); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
+		r2 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ResolveNamespaceRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveNamespaceRole'
+type MockService_ResolveNamespaceRole_Call struct {
+	*mock.Call
+}
+
+// ResolveNamespaceRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID string
+func (_e *MockService_Expecter) ResolveNamespaceRole(ctx any, tenantID any, userID any) *MockService_ResolveNamespaceRole_Call {
+	return &MockService_ResolveNamespaceRole_Call{Call: _e.mock.On("ResolveNamespaceRole", ctx, tenantID, userID)}
+}
+
+func (_c *MockService_ResolveNamespaceRole_Call) Run(run func(ctx context.Context, tenantID string, userID string)) *MockService_ResolveNamespaceRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ResolveNamespaceRole_Call) Return(ns *models.Namespace, role string, err error) *MockService_ResolveNamespaceRole_Call {
+	_c.Call.Return(ns, role, err)
+	return _c
+}
+
+func (_c *MockService_ResolveNamespaceRole_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID string) (*models.Namespace, string, error)) *MockService_ResolveNamespaceRole_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3789,6 +3789,72 @@ func (_c *MockStore_NamespaceDeleteMembership_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// NamespaceGetDeviceLimit provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceGetDeviceLimit")
+	}
+
+	var r0 models.NamespaceDeviceLimit
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (models.NamespaceDeviceLimit, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) models.NamespaceDeviceLimit); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Get(0).(models.NamespaceDeviceLimit)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NamespaceGetDeviceLimit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceGetDeviceLimit'
+type MockStore_NamespaceGetDeviceLimit_Call struct {
+	*mock.Call
+}
+
+// NamespaceGetDeviceLimit is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockStore_Expecter) NamespaceGetDeviceLimit(ctx any, tenantID any) *MockStore_NamespaceGetDeviceLimit_Call {
+	return &MockStore_NamespaceGetDeviceLimit_Call{Call: _e.mock.On("NamespaceGetDeviceLimit", ctx, tenantID)}
+}
+
+func (_c *MockStore_NamespaceGetDeviceLimit_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_NamespaceGetDeviceLimit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetDeviceLimit_Call) Return(namespaceDeviceLimit models.NamespaceDeviceLimit, err error) *MockStore_NamespaceGetDeviceLimit_Call {
+	_c.Call.Return(namespaceDeviceLimit, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetDeviceLimit_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error)) *MockStore_NamespaceGetDeviceLimit_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceGetMembers provides a mock function for the type MockStore
 func (_mock *MockStore) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
 	var tmpRet mock.Arguments

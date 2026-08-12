@@ -189,6 +189,46 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 	})
 }
 
+// TestNamespaceGetDeviceLimit tests the narrow device-ceiling read
+func (s *Suite) TestNamespaceGetDeviceLimit(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("returns the ceiling and the accepted count", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 2))
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+
+		limit, err := st.NamespaceGetDeviceLimit(ctx, tenantID)
+		require.NoError(t, err)
+
+		// The narrow read must agree with the full resolve it replaces.
+		assert.Equal(t, ns.MaxDevices, limit.MaxDevices)
+		assert.Equal(t, ns.DevicesAcceptedCount, limit.DevicesAcceptedCount)
+		assert.Equal(t, int64(2), limit.DevicesAcceptedCount)
+	})
+
+	t.Run("returns ErrNoDocuments for non-existent tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		limit, err := st.NamespaceGetDeviceLimit(ctx, "00000000-0000-0000-0000-000000000000")
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Zero(t, limit)
+	})
+
+	t.Run("returns ErrNoDocuments for malformed tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		limit, err := st.NamespaceGetDeviceLimit(ctx, "83176492-e6cl-43d7-922e-ee01c3693e26")
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Zero(t, limit)
+	})
+}
+
 // TestNamespaceGetPreferred tests getting user's preferred namespace
 func (s *Suite) TestNamespaceGetPreferred(t *testing.T) {
 	ctx := context.Background()

@@ -205,6 +205,28 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	return entity.NamespaceToModel(ns), nil
 }
 
+func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
+	db := pg.GetConnection(ctx)
+
+	limit := models.NamespaceDeviceLimit{}
+
+	// Same guard as NamespaceResolve: namespaces.id is uuid-typed, so a malformed value
+	// would reach Postgres and fail with SQLSTATE 22P02 instead of a clean not-found.
+	if _, err := uuid.Parse(tenantID); err != nil {
+		return limit, store.ErrNoDocuments
+	}
+
+	if err := db.NewSelect().
+		Model((*entity.Namespace)(nil)).
+		Column("max_devices", "devices_accepted_count").
+		Where("id = ?", tenantID).
+		Scan(ctx, &limit.MaxDevices, &limit.DevicesAcceptedCount); err != nil {
+		return models.NamespaceDeviceLimit{}, fromSQLError(err)
+	}
+
+	return limit, nil
+}
+
 func (pg *Pg) NamespaceGetMembers(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.MemberView, int, error) {
 	db := pg.GetConnection(ctx)
 

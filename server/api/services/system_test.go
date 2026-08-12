@@ -1,10 +1,18 @@
 package services
 
 import (
+	"context"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/cache"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBuildInstallOverrides(t *testing.T) {
@@ -103,4 +111,98 @@ func TestBuildInstallOverrides(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSystemGet(t *testing.T) {
+	setupSystem := &models.System{
+		Setup: true,
+		Authentication: &models.SystemAuthentication{
+			Local: &models.SystemAuthenticationLocal{Enabled: true},
+		},
+	}
+
+	t.Run("serves a cached row without touching the store", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.
+			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
+			Run(func(args mock.Arguments) { *args.Get(2).(*models.System) = *setupSystem }).
+			Return(nil).
+			Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		assert.Equal(t, setupSystem, system)
+	})
+
+	// A miss leaves the destination zeroed and reports no error, so the hit is only usable once
+	// the guard has confirmed the row is actually populated.
+	t.Run("reads through on a miss and caches the result", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).Return(nil).Once()
+		storeMock.On("SystemGet", mock.Anything).Return(setupSystem, nil).Once()
+		cacheMock.On("Set", mock.Anything, cache.SystemKey, setupSystem, systemCacheTTL).Return(nil).Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		assert.Equal(t, setupSystem, system)
+	})
+
+	// The setup flow polls this endpoint to learn setup completed, and the admin CLI flips the
+	// flag from a package with no access to this cache. Caching only after the transition is what
+	// keeps that from being served stale.
+	t.Run("does not cache before setup completes", func(t *testing.T) {
+		pending := &models.System{Setup: false, Authentication: setupSystem.Authentication}
+
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).Return(nil).Once()
+		storeMock.On("SystemGet", mock.Anything).Return(pending, nil).Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		assert.False(t, system.Setup)
+	})
+
+	// GetSystemInfo dereferences Authentication.Local, so a hit missing it must not be served.
+	t.Run("ignores a cached row with no authentication", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.
+			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
+			Run(func(args mock.Arguments) { *args.Get(2).(*models.System) = models.System{Setup: true} }).
+			Return(nil).
+			Once()
+		storeMock.On("SystemGet", mock.Anything).Return(setupSystem, nil).Once()
+		cacheMock.On("Set", mock.Anything, cache.SystemKey, setupSystem, systemCacheTTL).Return(nil).Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		require.NotNil(t, system.Authentication)
+		assert.True(t, system.Authentication.Local.Enabled)
+	})
+
+	t.Run("serves the row when the cache is unreachable", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.
+			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
+			Return(errors.New("connection refused", "", 0)).
+			Once()
+		storeMock.On("SystemGet", mock.Anything).Return(setupSystem, nil).Once()
+		cacheMock.
+			On("Set", mock.Anything, cache.SystemKey, setupSystem, systemCacheTTL).
+			Return(errors.New("connection refused", "", 0)).
+			Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		assert.Equal(t, setupSystem, system)
+	})
 }

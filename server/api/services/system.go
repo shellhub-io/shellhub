@@ -6,10 +6,14 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
+	log "github.com/sirupsen/logrus"
 )
 
 type SystemService interface {
@@ -22,8 +26,46 @@ type SystemService interface {
 	SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript) (string, error)
 }
 
-func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error) {
+// systemCacheTTL backstops invalidation, bounding how long a write this cache never hears
+// about can be served stale.
+const systemCacheTTL = time.Minute
+
+// systemGet reads the instance's singleton system row through the cache. The UI polls it on
+// every page load, but it only changes at setup and when an administrator reconfigures
+// authentication.
+//
+// Nothing is cached until setup completes: the transition is what the UI polls for, and the
+// admin CLI performs it on the first user it creates without any cache to invalidate. After
+// that the only mutable field this endpoint exposes is the local-authentication flag.
+//
+// Cloud and Enterprise serve /info from their own service, which caches the same key on its
+// own side because it has the SAML config to fetch alongside this row.
+func (s *service) systemGet(ctx context.Context) (*models.System, error) {
+	// Guard the authentication chain rather than just the hit: callers dereference it, and a
+	// cache miss leaves the value zeroed.
+	cached := new(models.System)
+	if err := s.cache.Get(ctx, cache.SystemKey, cached); err == nil &&
+		cached.Setup && cached.Authentication != nil && cached.Authentication.Local != nil {
+
+		return cached, nil
+	}
+
 	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if system.Setup {
+		if err := s.cache.Set(ctx, cache.SystemKey, system, systemCacheTTL); err != nil {
+			log.WithError(err).Warn("failed to cache the system row")
+		}
+	}
+
+	return system, nil
+}
+
+func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses.SystemInfo, error) {
+	system, err := s.systemGet(ctx)
 	if err != nil {
 		return nil, err
 	}
