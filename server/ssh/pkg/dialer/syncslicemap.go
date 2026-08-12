@@ -1,54 +1,77 @@
 package dialer
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
-// SyncSliceMap is a struct that uses sync.Map and stores values in a slice.
+// SyncSliceMap is a map that holds a slice of values per key, safe for
+// concurrent use.
+//
+// Its mutating operations report what they observed under the lock: Store
+// returns the values it displaced and Delete the count that survived. Callers
+// need both to decide whether a key has just gained a duplicate or lost its
+// last value, and reading them back afterwards would race with the next
+// caller.
 type SyncSliceMap struct {
-	syncMap sync.Map
+	mu     sync.RWMutex
+	values map[interface{}][]interface{}
 }
 
-// Load retrieves the last value associated with the key in the slice along with the size of the slice.
+// Load retrieves the most recently stored value for the key.
 func (ssm *SyncSliceMap) Load(key interface{}) (interface{}, bool) {
-	if values, ok := ssm.syncMap.Load(key); ok {
-		if valSlice := values.([]interface{}); len(valSlice) > 0 {
-			return valSlice[len(valSlice)-1], true
-		}
+	ssm.mu.RLock()
+	defer ssm.mu.RUnlock()
+
+	if values := ssm.values[key]; len(values) > 0 {
+		return values[len(values)-1], true
 	}
 
 	return nil, false
 }
 
-// Store appends the value to the slice associated with the key and updates the value in sync.Map.
-// It returns the size of the slice after the append operation.
-func (ssm *SyncSliceMap) Store(key, value interface{}) {
-	ssm.syncMap.LoadOrStore(key, []interface{}{})
-	ssm.syncMap.Store(key, append(ssm.getValues(key), value))
+// Store appends the value to the key's slice and returns the values that were
+// already stored under it.
+func (ssm *SyncSliceMap) Store(key, value interface{}) []interface{} {
+	ssm.mu.Lock()
+	defer ssm.mu.Unlock()
+
+	if ssm.values == nil {
+		ssm.values = make(map[interface{}][]interface{})
+	}
+
+	displaced := slices.Clone(ssm.values[key])
+	ssm.values[key] = append(ssm.values[key], value)
+
+	return displaced
 }
 
-// Delete removes the value from the slice associated with the key and updates the value in sync.Map.
-func (ssm *SyncSliceMap) Delete(key, value interface{}) {
-	if values, ok := ssm.syncMap.Load(key); ok {
-		var updatedValues []interface{}
-		for _, v := range values.([]interface{}) {
-			if v != value {
-				updatedValues = append(updatedValues, v)
-			}
-		}
+// Delete removes the value from the key's slice and returns how many values
+// remain under it. The key itself is dropped once its last value is gone, so
+// the map does not retain an entry for every device ever seen.
+func (ssm *SyncSliceMap) Delete(key, value interface{}) int {
+	ssm.mu.Lock()
+	defer ssm.mu.Unlock()
 
-		ssm.syncMap.Store(key, updatedValues)
+	remaining := slices.DeleteFunc(ssm.values[key], func(v interface{}) bool {
+		return v == value
+	})
+
+	if len(remaining) == 0 {
+		delete(ssm.values, key)
+
+		return 0
 	}
+
+	ssm.values[key] = remaining
+
+	return len(remaining)
 }
 
 // Size returns the current size of the slice associated with the key.
 func (ssm *SyncSliceMap) Size(key interface{}) int {
-	return len(ssm.getValues(key))
-}
+	ssm.mu.RLock()
+	defer ssm.mu.RUnlock()
 
-// getValues returns the slice of values associated with the key.
-func (ssm *SyncSliceMap) getValues(key interface{}) []interface{} {
-	if values, ok := ssm.syncMap.Load(key); ok {
-		return values.([]interface{})
-	}
-
-	return nil
+	return len(ssm.values[key])
 }

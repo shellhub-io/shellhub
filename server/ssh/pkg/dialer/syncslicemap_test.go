@@ -1,6 +1,8 @@
 package dialer
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,12 +32,12 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			title: "fails when loading from a map with multiple values",
+			title: "loads the last value when the key holds multiple",
 			setup: func() *SyncSliceMap {
 				ssm := &SyncSliceMap{}
-				key := "keys"
-				values := []interface{}{"value1", "value2", "value3"}
-				ssm.syncMap.Store(key, values)
+				ssm.Store("keys", "value1")
+				ssm.Store("keys", "value2")
+				ssm.Store("keys", "value3")
 
 				return ssm
 			},
@@ -43,6 +45,21 @@ func TestLoad(t *testing.T) {
 			expected: Expected{
 				result: "value3",
 				status: true,
+			},
+		},
+		{
+			title: "fails when the key held a value that was deleted",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+				ssm.Delete("key", "value1")
+
+				return ssm
+			},
+			key: "key",
+			expected: Expected{
+				result: nil,
+				status: false,
 			},
 		},
 	}
@@ -58,84 +75,146 @@ func TestLoad(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
-	type Expected struct {
-		values any
-		status bool
-	}
-
 	cases := []struct {
-		title    string
-		setup    func() *SyncSliceMap
-		key      string
-		value    interface{}
-		expected Expected
+		title             string
+		setup             func() *SyncSliceMap
+		key               string
+		value             interface{}
+		expectedDisplaced []interface{}
+		expectedSize      int
 	}{
 		{
-			title: "success when storing a value for a new key",
+			title: "reports nothing displaced when storing under a new key",
 			setup: func() *SyncSliceMap {
 				return &SyncSliceMap{}
 			},
-			key:   "key",
-			value: "value1",
-			expected: Expected{
-				values: []interface{}{"value1"},
-				status: true,
+			key:               "key",
+			value:             "value1",
+			expectedDisplaced: nil,
+			expectedSize:      1,
+		},
+		{
+			title: "reports the values already held by the key",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+				ssm.Store("key", "value2")
+
+				return ssm
 			},
+			key:               "key",
+			value:             "value3",
+			expectedDisplaced: []interface{}{"value1", "value2"},
+			expectedSize:      3,
+		},
+		{
+			title: "reports nothing displaced for a key whose values were deleted",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+				ssm.Delete("key", "value1")
+
+				return ssm
+			},
+			key:               "key",
+			value:             "value2",
+			expectedDisplaced: nil,
+			expectedSize:      1,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			ssm := tc.setup()
-			ssm.Store(tc.key, tc.value)
 
-			result, ok := ssm.syncMap.Load(tc.key)
-			assert.Equal(t, tc.expected, Expected{result, ok})
+			assert.Equal(t, tc.expectedDisplaced, ssm.Store(tc.key, tc.value))
+			assert.Equal(t, tc.expectedSize, ssm.Size(tc.key))
+
+			value, ok := ssm.Load(tc.key)
+			assert.True(t, ok)
+			assert.Equal(t, tc.value, value)
 		})
 	}
 }
 
 func TestDelete(t *testing.T) {
-	type Expected struct {
-		values any
-		status bool
-	}
-
 	cases := []struct {
-		title         string
-		setup         func() *SyncSliceMap
-		key           string
-		valueToDelete interface{}
-		expected      Expected
+		title             string
+		setup             func() *SyncSliceMap
+		key               string
+		valueToDelete     interface{}
+		expectedRemaining int
 	}{
 		{
-			title: "success when try deleting a value from an existing key",
+			title: "deletes a value from a key that holds several",
 			setup: func() *SyncSliceMap {
 				ssm := &SyncSliceMap{}
-				key := "existingKey"
-				values := []interface{}{"value1.1", "value1.2", "value1.3"}
-				ssm.syncMap.Store(key, values)
+				ssm.Store("existingKey", "value1.1")
+				ssm.Store("existingKey", "value1.2")
+				ssm.Store("existingKey", "value1.3")
 
 				return ssm
 			},
-			key:           "existingKey",
-			valueToDelete: "value1.2",
-			expected: Expected{
-				values: []interface{}{"value1.1", "value1.3"},
-				status: true,
+			key:               "existingKey",
+			valueToDelete:     "value1.2",
+			expectedRemaining: 2,
+		},
+		{
+			title: "reports no remaining values when the last one is deleted",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+
+				return ssm
 			},
+			key:               "key",
+			valueToDelete:     "value1",
+			expectedRemaining: 0,
+		},
+		{
+			title: "reports no remaining values for an unknown key",
+			setup: func() *SyncSliceMap {
+				return &SyncSliceMap{}
+			},
+			key:               "missing",
+			valueToDelete:     "value1",
+			expectedRemaining: 0,
+		},
+		{
+			title: "leaves the key untouched when the value is not held by it",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+
+				return ssm
+			},
+			key:               "key",
+			valueToDelete:     "other",
+			expectedRemaining: 1,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
 			ssm := tc.setup()
-			ssm.Delete(tc.key, tc.valueToDelete)
 
-			result, ok := ssm.syncMap.Load(tc.key)
-			assert.Equal(t, tc.expected, Expected{result, ok})
+			assert.Equal(t, tc.expectedRemaining, ssm.Delete(tc.key, tc.valueToDelete))
+			assert.Equal(t, tc.expectedRemaining, ssm.Size(tc.key))
 		})
 	}
+}
+
+// TestDeleteDropsTheKey guards the map against growing one entry per device
+// ever connected: a key whose last value is gone must leave nothing behind.
+func TestDeleteDropsTheKey(t *testing.T) {
+	ssm := &SyncSliceMap{}
+	ssm.Store("key", "value1")
+	ssm.Delete("key", "value1")
+
+	ssm.mu.RLock()
+	defer ssm.mu.RUnlock()
+
+	assert.NotContains(t, ssm.values, "key")
 }
 
 func TestSize(t *testing.T) {
@@ -157,9 +236,9 @@ func TestSize(t *testing.T) {
 			title: "getting size of a slice with multiple values",
 			setup: func() *SyncSliceMap {
 				ssm := &SyncSliceMap{}
-				key := "keys"
-				values := []interface{}{"value1", "value2", "value3"}
-				ssm.syncMap.Store(key, values)
+				ssm.Store("keys", "value1")
+				ssm.Store("keys", "value2")
+				ssm.Store("keys", "value3")
 
 				return ssm
 			},
@@ -170,9 +249,7 @@ func TestSize(t *testing.T) {
 			title: "getting size of a slice after adding a new value",
 			setup: func() *SyncSliceMap {
 				ssm := &SyncSliceMap{}
-				key := "key"
-				valueToAdd := "newValue"
-				ssm.syncMap.Store(key, []interface{}{valueToAdd})
+				ssm.Store("key", "newValue")
 
 				return ssm
 			},
@@ -189,4 +266,68 @@ func TestSize(t *testing.T) {
 			assert.Equal(t, tc.expectedSize, size)
 		})
 	}
+}
+
+// TestConcurrentStoreKeepsEveryValue is the reason this type is not a bare
+// sync.Map: a read-modify-write of the key's slice loses one of two concurrent
+// stores, and a connection the manager never recorded is one it never tears
+// down. Run under -race.
+func TestConcurrentStoreKeepsEveryValue(t *testing.T) {
+	const goroutines = 50
+
+	ssm := &SyncSliceMap{}
+
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	for i := range goroutines {
+		go func() {
+			defer wg.Done()
+			ssm.Store("key", fmt.Sprintf("value%d", i))
+		}()
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, goroutines, ssm.Size("key"))
+}
+
+// TestConcurrentStoreAndDeleteReportOneWinner pins the contract the manager
+// relies on to decide a device went offline: across concurrent registrations
+// and teardowns of one key, exactly one Delete may observe an empty key.
+func TestConcurrentStoreAndDeleteReportOneWinner(t *testing.T) {
+	const goroutines = 50
+
+	ssm := &SyncSliceMap{}
+
+	values := make([]string, goroutines)
+	for i := range values {
+		values[i] = fmt.Sprintf("value%d", i)
+		ssm.Store("key", values[i])
+	}
+
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		emptied int
+	)
+
+	wg.Add(goroutines)
+
+	for _, value := range values {
+		go func() {
+			defer wg.Done()
+
+			if ssm.Delete("key", value) == 0 {
+				mu.Lock()
+				emptied++
+				mu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, 1, emptied, "exactly one teardown must see the key empty")
+	assert.Equal(t, 0, ssm.Size("key"))
 }
