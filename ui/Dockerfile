@@ -69,6 +69,8 @@ FROM alpine:3.24.1 AS production
 ARG SWS_VERSION=2.44.0
 ARG TARGETARCH
 
+# The release CDN refuses or drops the connection often enough to fail a noticeable
+# share of builds, and busybox wget retries nothing on its own, so retry here.
 RUN set -eux; \
     case "$TARGETARCH" in \
       amd64) target=x86_64-unknown-linux-musl; \
@@ -77,8 +79,14 @@ RUN set -eux; \
              sha=e9d6bd0b05dea441028eb4e690249ab585d711b311646bf9f420fcea01449670 ;; \
       *) echo "unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
     esac; \
-    wget -qO /tmp/sws.tar.gz \
-      "https://github.com/static-web-server/static-web-server/releases/download/v${SWS_VERSION}/static-web-server-v${SWS_VERSION}-${target}.tar.gz"; \
+    url="https://github.com/static-web-server/static-web-server/releases/download/v${SWS_VERSION}/static-web-server-v${SWS_VERSION}-${target}.tar.gz"; \
+    downloaded=; \
+    for attempt in 1 2 3 4 5; do \
+      if wget -T 20 -qO /tmp/sws.tar.gz "$url"; then downloaded=1; break; fi; \
+      echo "static-web-server download failed (attempt ${attempt}/5)" >&2; \
+      sleep $(( attempt * 3 )); \
+    done; \
+    [ -n "$downloaded" ]; \
     echo "${sha}  /tmp/sws.tar.gz" | sha256sum -c -; \
     tar -xzf /tmp/sws.tar.gz -C /tmp; \
     mv "/tmp/static-web-server-v${SWS_VERSION}-${target}/static-web-server" /usr/local/bin/; \
