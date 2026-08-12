@@ -1,7 +1,19 @@
 services:
   postgres:
     image: postgres:18.0
-    command: postgres -c io_method=worker
+    # shared_preload_libraries only takes effect on a restart, not a reload, so an existing
+    # deployment picks pg_stat_statements up when the upgrade recreates the stack. A second
+    # library would have to join this one as a quoted comma-separated list, not a second -c.
+    #
+    # Only what the product itself needs; sizing belongs to the deployment, which appends it here
+    # because Compose replaces `command:` wholesale rather than merging it. Appended last on
+    # purpose: postgres takes the final occurrence of a setting, so a deployment outranks the
+    # flags above without restating them.
+    command: >
+      postgres
+      -c io_method=worker
+      -c shared_preload_libraries=pg_stat_statements
+      ${SHELLHUB_POSTGRES_EXTRA_ARGS:-}
     restart: unless-stopped
     healthcheck:
       start_period: 90s
