@@ -34,7 +34,7 @@ func (h *Handler) RegisterUser(c *gateway.Context) error {
 		return err
 	}
 
-	authInfo, conflictFields, err := h.service.RegisterUser(c.Ctx(), req, c.Request().Header.Get("X-Forwarded-Host"))
+	authInfo, conflictFields, err := h.service.RegisterUser(c.Ctx(), req, c.Request().Header.Get("X-Forwarded-Host"), c.Request().Header.Get("X-Forwarded-Proto"))
 	if err != nil {
 		// The UI uses the conflicting fields to tell invalid from duplicated.
 		var e errors.Error

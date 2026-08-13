@@ -195,7 +195,7 @@ func TestService_RegisterUser(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-			res, conflicts, err := s.RegisterUser(ctx, tc.req, "shellhub.test")
+			res, conflicts, err := s.RegisterUser(ctx, tc.req, "shellhub.test", "")
 			assert.Equal(t, tc.expected.conflicts, conflicts)
 			assert.Equal(t, tc.expected.err, err)
 			if tc.expected.hasToken {

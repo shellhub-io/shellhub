@@ -5561,8 +5561,8 @@ func (_c *MockService_PushTagTo_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // RegisterUser provides a mock function for the type MockService
-func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error) {
-	ret := _mock.Called(ctx, req, forwardedHost)
+func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, []string, error) {
+	ret := _mock.Called(ctx, req, forwardedHost, forwardedProto)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RegisterUser")
@@ -5571,25 +5571,25 @@ func (_mock *MockService) RegisterUser(ctx context.Context, req requests.Registe
 	var r0 *models.UserAuthResponse
 	var r1 []string
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string) (*models.UserAuthResponse, []string, error)); ok {
-		return returnFunc(ctx, req, forwardedHost)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string, string) (*models.UserAuthResponse, []string, error)); ok {
+		return returnFunc(ctx, req, forwardedHost, forwardedProto)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string) *models.UserAuthResponse); ok {
-		r0 = returnFunc(ctx, req, forwardedHost)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string, string) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, req, forwardedHost, forwardedProto)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.RegisterUser, string) []string); ok {
-		r1 = returnFunc(ctx, req, forwardedHost)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.RegisterUser, string, string) []string); ok {
+		r1 = returnFunc(ctx, req, forwardedHost, forwardedProto)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, requests.RegisterUser, string) error); ok {
-		r2 = returnFunc(ctx, req, forwardedHost)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, requests.RegisterUser, string, string) error); ok {
+		r2 = returnFunc(ctx, req, forwardedHost, forwardedProto)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -5605,11 +5605,12 @@ type MockService_RegisterUser_Call struct {
 //   - ctx context.Context
 //   - req requests.RegisterUser
 //   - forwardedHost string
-func (_e *MockService_Expecter) RegisterUser(ctx any, req any, forwardedHost any) *MockService_RegisterUser_Call {
-	return &MockService_RegisterUser_Call{Call: _e.mock.On("RegisterUser", ctx, req, forwardedHost)}
+//   - forwardedProto string
+func (_e *MockService_Expecter) RegisterUser(ctx any, req any, forwardedHost any, forwardedProto any) *MockService_RegisterUser_Call {
+	return &MockService_RegisterUser_Call{Call: _e.mock.On("RegisterUser", ctx, req, forwardedHost, forwardedProto)}
 }
 
-func (_c *MockService_RegisterUser_Call) Run(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string)) *MockService_RegisterUser_Call {
+func (_c *MockService_RegisterUser_Call) Run(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string)) *MockService_RegisterUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -5623,10 +5624,15 @@ func (_c *MockService_RegisterUser_Call) Run(run func(ctx context.Context, req r
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -5637,7 +5643,7 @@ func (_c *MockService_RegisterUser_Call) Return(userAuthResponse *models.UserAut
 	return _c
 }
 
-func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error)) *MockService_RegisterUser_Call {
+func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, []string, error)) *MockService_RegisterUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

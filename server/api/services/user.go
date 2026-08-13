@@ -16,7 +16,7 @@ type UserService interface {
 	// and joins the namespace. Open self-registration is cloud-only; community and enterprise are
 	// invite-only. Returns the auth response (when the account goes live), conflicting fields, and
 	// an error if any.
-	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error)
+	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error)
 
 	// UpdateUser updates the user's data, such as email and username. Since some attributes must be unique per user,
 	// it returns a list of duplicated unique values and an error if any.
