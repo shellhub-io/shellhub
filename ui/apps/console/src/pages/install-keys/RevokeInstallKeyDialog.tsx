@@ -1,36 +1,48 @@
+import { useState } from "react";
+import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { type InstallKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
-import { type InstallKey } from "@/client";
 
-/**
- * The type-to-confirm revoke dialog for an install key, shared by the list page (one dialog for the
- * targeted row) and the activity-page actions menu (bound to its single key). The caller owns the
- * open/confirm-text/error state since the two drive it differently.
- */
 export default function RevokeInstallKeyDialog({
   installKey,
-  open,
-  confirmText,
-  onConfirmTextChange,
-  onClose,
-  onConfirm,
-  error,
+  onRevoked,
 }: {
   installKey: InstallKey | null;
-  open: boolean;
-  confirmText: string;
-  onConfirmTextChange: (value: string) => void;
-  onClose: () => void;
-  onConfirm: () => Promise<void> | void;
-  error: string | null;
+  onRevoked: () => void;
 }) {
+  const updateKey = useUpdateInstallKey();
+  const [confirmText, setConfirmText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const open = !!installKey;
   const name = installKey?.name ?? "";
+
+  useResetOnOpen(open, () => {
+    setConfirmText("");
+    setError(null);
+  });
+
+  const handleConfirm = async () => {
+    if (!installKey) return;
+    setError(null);
+    try {
+      await updateKey.mutateAsync({
+        path: { key: installKey.name },
+        body: { revoked: true },
+      });
+      onRevoked();
+    } catch {
+      setError("Failed to revoke Install Key.");
+    }
+  };
 
   return (
     <ConfirmDialog
       open={open}
-      onClose={onClose}
-      onConfirm={onConfirm}
+      onClose={onRevoked}
+      onConfirm={handleConfirm}
       title="Revoke Install Key"
       description={
         <>
@@ -50,7 +62,7 @@ export default function RevokeInstallKeyDialog({
         label="Type the key's name to confirm"
         hideLabel
         value={confirmText}
-        onChange={onConfirmTextChange}
+        onChange={setConfirmText}
         autoComplete="off"
       />
     </ConfirmDialog>

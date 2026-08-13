@@ -2,7 +2,6 @@ import { useState } from "react";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
-import { useUpdateInstallKey } from "@/hooks/useInstallKeyMutations";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type InstallKey } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -12,6 +11,7 @@ import CreateInstallKeyDrawer from "./CreateInstallKeyDrawer";
 import EditInstallKeyDrawer from "./EditInstallKeyDrawer";
 import RevokeInstallKeyDialog from "./RevokeInstallKeyDialog";
 import { isSystemKey } from "./helpers";
+import { useToggleInstallKey } from "./useToggleInstallKey";
 
 const PER_PAGE = 10;
 
@@ -29,70 +29,13 @@ export default function InstallKeys() {
   const page = params.page;
   const { installKeys, totalCount, isLoading } = useInstallKeys({ page });
 
-  // The store pins the namespace's auto-managed built-in keys (legacy, pairing) first and paginates
-  // them together with the user's keys, so totalCount already counts them. Drive both the page count
-  // and the item count off that one base, or the "N keys" label and the page controls disagree.
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
-  const updateKey = useUpdateInstallKey();
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InstallKey | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<InstallKey | null>(null);
-  const [revokeConfirmText, setRevokeConfirmText] = useState("");
-  const [revokeError, setRevokeError] = useState<string | null>(null);
-  const [toggleError, setToggleError] = useState<string | null>(null);
+  const { toggle, error: toggleError } = useToggleInstallKey();
 
-  // Pause/resume is reversible, so it fires the mutation directly (no confirm).
-  const toggleDisabled = async (key: InstallKey) => {
-    setToggleError(null);
-    try {
-      await updateKey.mutateAsync({
-        path: { key: key.name },
-        body: { disabled: !key.disabled },
-      });
-    } catch (err) {
-      setToggleError(
-        err instanceof Error
-          ? err.message
-          : `Failed to ${key.disabled ? "enable" : "disable"} Install Key.`,
-      );
-    }
-  };
-
-  // Revoke is irreversible (no un-revoke) and cuts off the key for new enrollments, so it's gated
-  // behind typing the key's name — mirroring the vault-reset confirmation.
-  const openRevoke = (key: InstallKey) => {
-    setRevokeConfirmText("");
-    setRevokeError(null);
-    setRevokeTarget(key);
-  };
-
-  const closeRevoke = () => {
-    setRevokeConfirmText("");
-    setRevokeError(null);
-    setRevokeTarget(null);
-  };
-
-  const confirmRevoke = async () => {
-    if (!revokeTarget) return;
-    setRevokeError(null);
-    try {
-      await updateKey.mutateAsync({
-        path: { key: revokeTarget.name },
-        body: { revoked: true },
-      });
-      closeRevoke();
-    } catch (err) {
-      setRevokeError(
-        err instanceof Error ? err.message : "Failed to revoke Install Key.",
-      );
-    }
-  };
-
-  // The built-in keys (legacy + pairing) always fill the table, so a namespace with no user-created
-  // keys is not an empty page — it's an empty "Custom keys" section. Detect that (any non-built-in key
-  // on this page, or more than one page, means custom keys exist) so the table can show the onboarding
-  // placeholder in that section instead. Replaces the old full-page hero, which never showed.
   const noCustomKeys =
     !installKeys.some((key) => !isSystemKey(key)) && totalPages <= 1;
 
@@ -133,8 +76,8 @@ export default function InstallKeys() {
             onPageChange={setPage}
             onCreate={() => setCreateOpen(true)}
             onEdit={setEditTarget}
-            onToggleDisabled={(k) => void toggleDisabled(k)}
-            onRevoke={openRevoke}
+            onToggleDisabled={(k) => void toggle(k)}
+            onRevoke={setRevokeTarget}
           />
         </div>
       )}
@@ -149,12 +92,7 @@ export default function InstallKeys() {
       />
       <RevokeInstallKeyDialog
         installKey={revokeTarget}
-        open={!!revokeTarget}
-        confirmText={revokeConfirmText}
-        onConfirmTextChange={setRevokeConfirmText}
-        onClose={closeRevoke}
-        onConfirm={confirmRevoke}
-        error={revokeError}
+        onRevoked={() => setRevokeTarget(null)}
       />
     </div>
   );
