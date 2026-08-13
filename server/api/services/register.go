@@ -18,14 +18,14 @@ import (
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
 // account and — if the code resolves — joins the namespace in the same step. Open self-registration
 // is a capability (cloud only); community and enterprise are invite-only.
-func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error) {
+func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
 	// A valid invite code (Sig) is the only way to complete an invited account: it resolves the
 	// invitation server-side and the email comes from it, so the invitee can't retarget it.
 	if req.Sig != "" {
 		if membership, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil {
 			invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, membership.UserID)
 			if err == nil && invitation.Status == models.UserInvitationStatusPending {
-				return s.createInvitedUser(ctx, &req, invitation, forwardedHost)
+				return s.createInvitedUser(ctx, &req, invitation, forwardedHost, forwardedProto)
 			}
 		}
 	}
@@ -39,14 +39,14 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 	}
 
 	if invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationEmailResolver, strings.ToLower(req.Email)); err == nil && invitation.Status == models.UserInvitationStatusPending {
-		return s.createInvitedUser(ctx, &req, invitation, forwardedHost)
+		return s.createInvitedUser(ctx, &req, invitation, forwardedHost, forwardedProto)
 	}
 
-	return s.createNewUser(ctx, &req, forwardedHost)
+	return s.createNewUser(ctx, &req, forwardedHost, forwardedProto)
 }
 
 // createNewUser handles the creation of a new user who was not invited to register.
-func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost string) (*models.UserAuthResponse, []string, error) {
+func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
 		return nil, nil, err
@@ -86,7 +86,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 	validUntil := clock.Now().Add(24 * time.Hour)
 
 	// Email delivery is an edition add-on (cloud) and non-fatal: the user can request a resend.
-	if err := fireUserRegistered(ctx, user, forwardedHost, validUntil); err != nil {
+	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
@@ -94,7 +94,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 }
 
 // createInvitedUser handles the creation of a user who was previously invited through user_invitations.
-func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost string) (*models.UserAuthResponse, []string, error) {
+func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
 	if invitation.Status != models.UserInvitationStatusPending {
 		return nil, nil, errors.New("invitation already accepted")
 	}
@@ -204,7 +204,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		return res, nil, nil
 	case models.UserStatusNotConfirmed:
 		validUntil := clock.Now().Add(24 * time.Hour)
-		if err := fireUserRegistered(ctx, user, forwardedHost, validUntil); err != nil {
+		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 

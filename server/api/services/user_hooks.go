@@ -11,7 +11,7 @@ import (
 // UserRegisteredHookFn is called after a not-confirmed user is created during registration. Cloud
 // uses it to send the email-verification link. It runs outside any transaction and its failure is
 // non-fatal (registration succeeds; the user can request a resend).
-type UserRegisteredHookFn func(ctx context.Context, user *models.User, forwardedHost string, validUntil time.Time) error
+type UserRegisteredHookFn func(ctx context.Context, user *models.User, forwardedHost, forwardedProto string, validUntil time.Time) error
 
 var userRegisteredHooks []UserRegisteredHookFn
 
@@ -26,9 +26,9 @@ func OnUserRegistered(fn UserRegisteredHookFn) {
 }
 
 // fireUserRegistered dispatches all registered post-registration hooks sequentially.
-func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost string, validUntil time.Time) error {
+func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost, forwardedProto string, validUntil time.Time) error {
 	for _, fn := range userRegisteredHooks {
-		if err := fn(ctx, user, forwardedHost, validUntil); err != nil {
+		if err := fn(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 			return fmt.Errorf("user registered hook failed: %w", err)
 		}
 	}
