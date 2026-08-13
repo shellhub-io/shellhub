@@ -1,6 +1,10 @@
 import { type ReactNode, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { TicketIcon } from "@heroicons/react/24/outline";
+import {
+  NoSymbolIcon,
+  PauseCircleIcon,
+  TicketIcon,
+} from "@heroicons/react/24/outline";
 import { IconBadge } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
@@ -80,9 +84,21 @@ export default function InstallKeyHistoryPage() {
             <TicketIcon className="w-6 h-6" />
           </IconBadge>
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-text-primary leading-tight">
-              {name || "Install Key"}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-text-primary leading-tight">
+                {name || "Install Key"}
+              </h1>
+              {key?.revoked && (
+                <StatusChip icon={NoSymbolIcon} label="Revoked" tone="red" />
+              )}
+              {key?.disabled && !key.revoked && (
+                <StatusChip
+                  icon={PauseCircleIcon}
+                  label="Disabled"
+                  tone="muted"
+                />
+              )}
+            </div>
             <p className="mt-0.5 text-sm text-text-muted">
               Every device that registered with this key.
             </p>
