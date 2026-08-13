@@ -12,6 +12,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -63,7 +65,8 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 		{
 			description: "succeeds when both role and admin resolve",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("owner", nil).Once()
+				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
+					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
 				service.On("GetUserAdmin", mock.Anything, testUserID).Return(true, nil).Once()
 			},
 			expected: &gateway.Identity{
@@ -77,14 +80,15 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 		{
 			description: "yields no identity when the namespace no longer exists",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("", store.ErrNoDocuments).Once()
+				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(nil, "", store.ErrNoDocuments).Once()
 			},
 			expected: nil,
 		},
 		{
 			description: "yields no identity when the user no longer exists",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("owner", nil).Once()
+				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
+					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
 				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, store.ErrNoDocuments).Once()
 			},
 			expected: nil,
@@ -92,14 +96,15 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 		{
 			description: "yields no identity when the store is unreachable",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("", errors.New("connection refused")).Once()
+				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(nil, "", errors.New("connection refused")).Once()
 			},
 			expected: nil,
 		},
 		{
 			description: "yields no identity when the request is cancelled",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("owner", nil).Once()
+				service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).
+					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
 				service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, context.DeadlineExceeded).Once()
 			},
 			expected: nil,
@@ -123,12 +128,40 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 	}
 }
 
+// The namespace resolved to establish the caller's role is handed to the rest of the request,
+// so handlers can use it instead of resolving it a second time.
+func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
+	bearer, privateKey := userBearer(t)
+
+	ns := &models.Namespace{TenantID: testTenant, MaxDevices: 3, DevicesAcceptedCount: 1}
+
+	service := new(mocks.MockService)
+	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
+	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(ns, "owner", nil).Once()
+	service.On("GetUserAdmin", mock.Anything, testUserID).Return(false, nil).Once()
+
+	c, _ := authenticatedRequest(echo.New(), bearer)
+
+	_, err := NewAuthenticator(service).Resolve(c)
+	require.NoError(t, err)
+
+	forwarded, ok := authctx.NamespaceDeviceLimit(c.Request().Context(), testTenant)
+	require.True(t, ok)
+	assert.Equal(t, ns.DeviceLimit(), forwarded)
+
+	// A request targeting a different namespace must not be answered from it.
+	_, ok = authctx.NamespaceDeviceLimit(c.Request().Context(), "00000000-0000-4000-0000-000000000009")
+	assert.False(t, ok)
+
+	service.AssertExpectations(t)
+}
+
 func TestAuthenticatorMiddlewareStaleToken(t *testing.T) {
 	bearer, privateKey := userBearer(t)
 
 	service := new(mocks.MockService)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
-	service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("", store.ErrNoDocuments).Once()
+	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(nil, "", store.ErrNoDocuments).Once()
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
 
@@ -144,7 +177,7 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 
 	service := new(mocks.MockService)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
-	service.On("GetUserRole", mock.Anything, testTenant, testUserID).Return("", store.ErrNoDocuments).Once()
+	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(nil, "", store.ErrNoDocuments).Once()
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
 	c.Request().Header.Set("X-ID", "forged")

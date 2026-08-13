@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -127,6 +128,10 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	system.InstanceTenantID = namespace.TenantID
 	if err := s.store.SystemSet(ctx, system); err != nil {
 		return nil, err
+	}
+
+	if err := s.cache.Delete(ctx, cache.SystemKey); err != nil {
+		log.WithError(err).Warn("failed to evict the cached system row after setup")
 	}
 
 	// Issue an authenticated session for the admin we just created so the client can enter the

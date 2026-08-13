@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -68,8 +69,8 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
@@ -110,8 +111,8 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
@@ -178,6 +179,71 @@ func TestListDevices(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestListDevices_namespaceFromRequestContext(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	req := &requests.DeviceList{
+		TenantID:     tenantID,
+		DeviceStatus: models.DeviceStatusAccepted,
+		Paginator:    query.Paginator{Page: 1, PerPage: 10},
+		Sorter:       query.Sorter{By: "created_at", Order: "asc"},
+		Filters:      query.Filters{},
+	}
+
+	expectQueryOptions := func(queryOptionsMock *storemock.MockQueryOptions) {
+		queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
+		queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
+		queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).Return(nil).Once()
+		queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
+	}
+
+	// The authenticator resolved the namespace for this request, so the device-limit check
+	// must read it from the context instead of going back to the store. MockStore fails the
+	// test on any call that was not set up, which is what asserts the store is untouched.
+	t.Run("uses the authenticated namespace instead of reading the store", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		queryOptionsMock := storemock.NewMockQueryOptions(t)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		expectQueryOptions(queryOptionsMock)
+
+		ctx := authctx.WithNamespaceDeviceLimit(context.TODO(), tenantID,
+			models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3})
+
+		storeMock.
+			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+			Return([]models.Device{}, 0, nil).
+			Once()
+
+		service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+		_, _, err := service.ListDevices(ctx, scope.MustBounded(tenantID), req)
+		require.NoError(t, err)
+	})
+
+	// An authenticated namespace for a different tenant must not answer this request's limit.
+	t.Run("falls back to the store when the context namespace is another tenant", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		queryOptionsMock := storemock.NewMockQueryOptions(t)
+		storeMock.On("Options").Return(queryOptionsMock).Maybe()
+		expectQueryOptions(queryOptionsMock)
+
+		ctx := authctx.WithNamespaceDeviceLimit(context.TODO(), "00000000-0000-4000-0000-000000000001",
+			models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3})
+
+		storeMock.
+			On("NamespaceGetDeviceLimit", ctx, tenantID).
+			Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 1}, nil).
+			Once()
+		storeMock.
+			On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
+			Return([]models.Device{}, 0, nil).
+			Once()
+
+		service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+		_, _, err := service.ListDevices(ctx, scope.MustBounded(tenantID), req)
+		require.NoError(t, err)
+	})
 }
 
 func TestListDevices_status_removed(t *testing.T) {
@@ -342,8 +408,8 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(nil, errors.New("error", "", 0)).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{}, errors.New("error", "", 0)).
 					Once()
 			},
 			expected: Expected{
@@ -381,8 +447,8 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
@@ -424,8 +490,8 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
@@ -467,8 +533,8 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).
@@ -510,8 +576,8 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
+					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
+					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
 					Once()
 				storeMock.
 					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 4 })).

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
@@ -18,34 +19,31 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 		return nil, store.ErrInvalidScope
 	}
 
-	onlineDevicesQuery := buildOnlineDevicesQuery(db, sc)
-	onlineDevices, err := onlineDevicesQuery.Count(ctx)
+	onlineDevices, err := countInScope(ctx, buildOnlineDevicesQuery(db), sc)
 	if err != nil {
-		return nil, fromSQLError(err)
+		return nil, err
 	}
 
-	registeredDevicesQuery := buildRegisteredDevicesQuery(db, sc)
-	registeredDevices, err := registeredDevicesQuery.Count(ctx)
+	registeredDevices, err := countInScope(ctx, buildRegisteredDevicesQuery(db), sc)
 	if err != nil {
-		return nil, fromSQLError(err)
+		return nil, err
 	}
 
-	pendingDevicesQuery := buildPendingDevicesQuery(db, sc)
-	pendingDevices, err := pendingDevicesQuery.Count(ctx)
+	pendingDevices, err := countInScope(ctx, buildPendingDevicesQuery(db), sc)
 	if err != nil {
-		return nil, fromSQLError(err)
+		return nil, err
 	}
 
-	rejectedDevicesQuery := buildRejectedDevicesQuery(db, sc)
-	rejectedDevices, err := rejectedDevicesQuery.Count(ctx)
+	rejectedDevices, err := countInScope(ctx, buildRejectedDevicesQuery(db), sc)
 	if err != nil {
-		return nil, fromSQLError(err)
+		return nil, err
 	}
 
-	activeSessionsQuery := buildActiveSessionsQuery(db, sc)
-	activeSessions, err := activeSessionsQuery.Count(ctx)
+	// The active-session count reaches the namespace through devices, so the scope predicate
+	// has to name that table rather than the query's own model.
+	activeSessions, err := countInScope(context.WithValue(ctx, CtxTableAlias, "devices"), buildActiveSessionsQuery(db), sc)
 	if err != nil {
-		return nil, fromSQLError(err)
+		return nil, err
 	}
 
 	stats := &models.Stats{
@@ -59,65 +57,49 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 	return stats, nil
 }
 
-func buildOnlineDevicesQuery(db bun.IDB, sc scope.Scope) *bun.SelectQuery {
-	query := db.NewSelect().
+func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (int, error) {
+	query, err := applyScopedOptions(ctx, query, sc)
+	if err != nil {
+		return 0, err
+	}
+
+	count, err := query.Count(ctx)
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	return count, nil
+}
+
+func buildOnlineDevicesQuery(db bun.IDB) *bun.SelectQuery {
+	return db.NewSelect().
 		Model((*entity.Device)(nil)).
 		Where("disconnected_at IS NULL").
-		Where("last_seen > ?", time.Now().Add(-2*time.Minute)).
+		Where("last_seen > ?", clock.Now().Add(-2*time.Minute)).
 		Where("status = ?", "accepted")
-
-	if sc.IsBounded() {
-		query = query.Where("namespace_id = (SELECT id FROM namespaces WHERE id = ?)", sc.TenantID())
-	}
-
-	return query
 }
 
-func buildRegisteredDevicesQuery(db bun.IDB, sc scope.Scope) *bun.SelectQuery {
-	query := db.NewSelect().
+func buildRegisteredDevicesQuery(db bun.IDB) *bun.SelectQuery {
+	return db.NewSelect().
 		Model((*entity.Device)(nil)).
 		Where("status = ?", "accepted")
-
-	if sc.IsBounded() {
-		query = query.Where("namespace_id = (SELECT id FROM namespaces WHERE id = ?)", sc.TenantID())
-	}
-
-	return query
 }
 
-func buildPendingDevicesQuery(db bun.IDB, sc scope.Scope) *bun.SelectQuery {
-	query := db.NewSelect().
+func buildPendingDevicesQuery(db bun.IDB) *bun.SelectQuery {
+	return db.NewSelect().
 		Model((*entity.Device)(nil)).
 		Where("status = ?", "pending")
-
-	if sc.IsBounded() {
-		query = query.Where("namespace_id = (SELECT id FROM namespaces WHERE id = ?)", sc.TenantID())
-	}
-
-	return query
 }
 
-func buildRejectedDevicesQuery(db bun.IDB, sc scope.Scope) *bun.SelectQuery {
-	query := db.NewSelect().
+func buildRejectedDevicesQuery(db bun.IDB) *bun.SelectQuery {
+	return db.NewSelect().
 		Model((*entity.Device)(nil)).
 		Where("status = ?", "rejected")
-
-	if sc.IsBounded() {
-		query = query.Where("namespace_id = (SELECT id FROM namespaces WHERE id = ?)", sc.TenantID())
-	}
-
-	return query
 }
 
-func buildActiveSessionsQuery(db bun.IDB, sc scope.Scope) *bun.SelectQuery {
-	query := db.NewSelect().
+func buildActiveSessionsQuery(db bun.IDB) *bun.SelectQuery {
+	return db.NewSelect().
 		Model((*entity.ActiveSession)(nil)).
 		Join("JOIN sessions ON active_session.session_id = sessions.id").
 		Join("JOIN devices ON sessions.device_id = devices.id")
-
-	if sc.IsBounded() {
-		query = query.Where("devices.namespace_id = (SELECT id FROM namespaces WHERE id = ?)", sc.TenantID())
-	}
-
-	return query
 }

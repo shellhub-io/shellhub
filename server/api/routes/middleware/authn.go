@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	log "github.com/sirupsen/logrus"
 )
@@ -18,7 +19,7 @@ import (
 // a credential into an identity.
 type AuthnService interface {
 	AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error)
-	GetUserRole(ctx context.Context, tenantID, userID string) (string, error)
+	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error)
 	GetUserAdmin(ctx context.Context, userID string) (bool, error)
 	PublicKey() *rsa.PublicKey
 }
@@ -202,7 +203,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 		// the error they swallow: otherwise an outage is indistinguishable from
 		// a stale token and shows up only as a rise in 401s.
 		if claims.TenantID != "" {
-			role, err := a.service.GetUserRole(c.Request().Context(), claims.TenantID, claims.ID)
+			ns, role, err := a.service.ResolveNamespaceRole(c.Request().Context(), claims.TenantID, claims.ID)
 			if err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"user_id": claims.ID, "tenant_id": claims.TenantID}).
@@ -212,6 +213,12 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			}
 
 			claims.Role = authorizer.RoleFromString(role)
+
+			// Resolving the role already read the namespace, and the device-limit check in
+			// the handler would otherwise read it a second time.
+			c.SetRequest(c.Request().WithContext(
+				authctx.WithNamespaceDeviceLimit(c.Request().Context(), ns.TenantID, ns.DeviceLimit()),
+			))
 		}
 
 		admin, err := a.service.GetUserAdmin(c.Request().Context(), claims.ID)

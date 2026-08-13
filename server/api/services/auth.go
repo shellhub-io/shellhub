@@ -57,8 +57,12 @@ type AuthService interface {
 	//
 	// It returns the created token and an error if any.
 	CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (res *models.UserAuthResponse, err error)
-	// GetUserRole get the user's role. It returns the user's role and an error, if any.
-	GetUserRole(ctx context.Context, tenantID, userID string) (role string, err error)
+	// ResolveNamespaceRole returns the namespace tenantID names, as [store.NamespaceStore.NamespaceResolve]
+	// returns it — memberships included — together with userID's role in it.
+	//
+	// It returns ErrNamespaceMemberNotFound when the user is not a member. The namespace is a
+	// snapshot taken at the moment of the call, not a handle onto live state.
+	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (ns *models.Namespace, role string, err error)
 	// GetUserAdmin checks whether the user currently has admin privileges.
 	// Unlike the JWT claim, this queries the store so changes take effect immediately.
 	GetUserAdmin(ctx context.Context, userID string) (admin bool, err error)
@@ -743,7 +747,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 	// outlive its creator's access: reject it if they left the namespace, and
 	// cap it at their current role so a demotion is honoured while the
 	// least-privilege role chosen at creation is preserved.
-	role, err := s.GetUserRole(ctx, apiKey.TenantID, apiKey.CreatedBy)
+	_, role, err := s.ResolveNamespaceRole(ctx, apiKey.TenantID, apiKey.CreatedBy)
 	if err != nil {
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)
 	}
@@ -782,18 +786,18 @@ func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth)
 	}, nil
 }
 
-func (s *service) GetUserRole(ctx context.Context, tenantID, userID string) (string, error) {
+func (s *service) ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error) {
 	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
 	member, ok := ns.FindMember(userID)
 	if !ok {
-		return "", NewErrNamespaceMemberNotFound(userID, nil)
+		return nil, "", NewErrNamespaceMemberNotFound(userID, nil)
 	}
 
-	return member.Role.String(), nil
+	return ns, member.Role.String(), nil
 }
 
 func (s *service) GetUserAdmin(ctx context.Context, userID string) (bool, error) {

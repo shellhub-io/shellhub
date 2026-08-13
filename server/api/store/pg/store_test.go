@@ -31,6 +31,7 @@ func TestPgStore(t *testing.T) {
 	runSubSuite(t, "NamespaceStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestNamespaceList(t)
 		suite.TestNamespaceResolve(t)
+		suite.TestNamespaceGetDeviceLimit(t)
 		suite.TestNamespaceGetPreferred(t)
 		suite.TestNamespaceCreate(t)
 		suite.TestNamespaceCreateDuplicate(t)
@@ -109,6 +110,7 @@ func TestPgStore(t *testing.T) {
 
 	runSubSuite(t, "StatsStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestGetStats(t)
+		suite.TestGetStatsOnlineBoundary(t)
 	})
 
 	runSubSuite(t, "PrivateKeyStore", func(suite *storetest.Suite, t *testing.T) {
