@@ -10,6 +10,7 @@ import { updateRecoverPassword } from "@/client";
 import { updatePasswordResolver } from "./setup/updatePasswordResolver";
 import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
 import { FormPasswordField } from "@/components/common/fields/rhf";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function UpdatePassword() {
   const [searchParams] = useSearchParams();
@@ -21,13 +22,12 @@ export default function UpdatePassword() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { control, handleSubmit, formState } = useForm<UpdatePasswordFormValues>(
-    {
+  const { control, handleSubmit, formState } =
+    useForm<UpdatePasswordFormValues>({
       resolver: updatePasswordResolver,
       mode: "onTouched",
       defaultValues: { password: "", confirmPassword: "" },
-    },
-  );
+    });
 
   const onSubmit = async (values: UpdatePasswordFormValues) => {
     setError("");
@@ -56,31 +56,29 @@ export default function UpdatePassword() {
 
   if (!uid || !token) {
     return (
-      <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
-        <div className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 text-center animate-fade-in">
-          <ExclamationCircleIcon
-            className="w-10 h-10 text-accent-red mx-auto mb-4"
-            strokeWidth={1.5}
-          />
-          <p className="text-sm font-semibold text-text-primary mb-2">
-            Invalid reset link
-          </p>
-          <p className="text-xs text-text-muted mb-6">
-            This password reset link is invalid or has expired.
-          </p>
-          <Link
-            to="/forgot-password"
-            className="text-xs text-primary hover:text-primary-400 transition-colors"
-          >
-            Request a new reset link
-          </Link>
-        </div>
-      </div>
+      <LoginLayoutCard className="text-center">
+        <ExclamationCircleIcon
+          className="w-10 h-10 text-accent-red mx-auto mb-4"
+          strokeWidth={1.5}
+        />
+        <p className="text-sm font-semibold text-text-primary mb-2">
+          Invalid reset link
+        </p>
+        <p className="text-xs text-text-muted mb-6">
+          This password reset link is invalid or has expired.
+        </p>
+        <Link
+          to="/forgot-password"
+          className="text-xs text-primary hover:text-primary-400 transition-colors"
+        >
+          Request a new reset link
+        </Link>
+      </LoginLayoutCard>
     );
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -104,10 +102,7 @@ export default function UpdatePassword() {
       </div>
 
       {/* Card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form onSubmit={handleFormSubmit} className="space-y-5">
           {error && (
             <div
@@ -153,10 +148,10 @@ export default function UpdatePassword() {
             {loading ? "Updating..." : "Update Password"}
           </Button>
         </form>
-      </div>
+      </LoginLayoutCard>
 
       {/* Back to login */}
-      <div className="mt-8 animate-fade-in" style={{ animationDelay: "600ms" }}>
+      <div className="mt-8 animate-fade-in">
         <Link
           to="/login"
           className="text-xs text-text-muted hover:text-text-secondary transition-colors"
@@ -164,6 +159,6 @@ export default function UpdatePassword() {
           &larr; Back to login
         </Link>
       </div>
-    </div>
+    </>
   );
 }

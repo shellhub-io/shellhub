@@ -14,6 +14,7 @@ import {
   FormCheckboxField,
 } from "@/components/common/fields/rhf";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 const SERVER_FIELD_MAP: Record<string, keyof SignUpFormValues> = {
   username: "username",
@@ -110,15 +111,11 @@ export default function SignUp() {
   };
 
   if (accountCreated) {
-    return (
-      <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
-        <AccountCreated />
-      </div>
-    );
+    return <AccountCreated />;
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-10 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -141,14 +138,11 @@ export default function SignUp() {
         </p>
       </div>
 
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-md space-y-4">
         <PendingDeviceCallout />
 
         {/* Form card */}
-        <div
-          className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-          style={{ animationDelay: "150ms" }}
-        >
+        <LoginLayoutCard>
           {signUpError && (
             <Callout variant="error" className="mb-5">
               {signUpError}
@@ -253,13 +247,10 @@ export default function SignUp() {
               {signUpLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
-        </div>
+        </LoginLayoutCard>
 
         {/* Footer link */}
-        <div
-          className="flex items-center justify-center gap-1.5 text-xs text-text-muted animate-fade-in"
-          style={{ animationDelay: "400ms" }}
-        >
+        <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted animate-fade-in">
           Already have an account?
           <Link
             to="/login"
@@ -269,6 +260,6 @@ export default function SignUp() {
           </Link>
         </div>
       </div>
-    </div>
+    </>
   );
 }

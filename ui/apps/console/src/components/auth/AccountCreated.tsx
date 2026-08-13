@@ -4,6 +4,7 @@ import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
 import { Button } from "@shellhub/design-system/primitives";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function AccountCreated() {
   const navigate = useNavigate();
@@ -32,32 +33,30 @@ export default function AccountCreated() {
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto animate-fade-in">
-      <div className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-5">
-          <CheckCircleIcon
-            className="w-7 h-7 text-accent-green"
-            strokeWidth={1.5}
-          />
-        </div>
-
-        <h2 className="text-lg font-semibold text-text-primary mb-3">
-          Account Creation Successful
-        </h2>
-
-        <p className="text-sm text-text-secondary leading-relaxed mb-6">
-          Thank you for registering an account on ShellHub. You will be
-          redirected in 5 seconds. If you weren&apos;t redirected, please click
-          the button below.
-        </p>
-
-        <Button
-          iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
-          onClick={handleRedirect}
-        >
-          Redirect
-        </Button>
+    <LoginLayoutCard className="text-center">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-5">
+        <CheckCircleIcon
+          className="w-7 h-7 text-accent-green"
+          strokeWidth={1.5}
+        />
       </div>
-    </div>
+
+      <h2 className="text-lg font-semibold text-text-primary mb-3">
+        Account Creation Successful
+      </h2>
+
+      <p className="text-sm text-text-secondary leading-relaxed mb-6">
+        Thank you for registering an account on ShellHub. You will be redirected
+        in 5 seconds. If you weren&apos;t redirected, please click the button
+        below.
+      </p>
+
+      <Button
+        iconRight={<ArrowRightIcon className="w-4 h-4" strokeWidth={2} />}
+        onClick={handleRedirect}
+      >
+        Redirect
+      </Button>
+    </LoginLayoutCard>
   );
 }

@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 import { setPendingDeviceCode } from "@/utils/navigation";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 /**
  * Full-page accept surface, reached from the URL the agent prints
@@ -15,10 +16,8 @@ export default function AcceptDevice() {
   if (code) setPendingDeviceCode(code);
 
   return (
-    <div className="w-full max-w-md mx-auto animate-fade-in">
-      <div className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm">
-        <AcceptDeviceFlow code={code} />
-      </div>
-    </div>
+    <LoginLayoutCard>
+      <AcceptDeviceFlow code={code} />
+    </LoginLayoutCard>
   );
 }

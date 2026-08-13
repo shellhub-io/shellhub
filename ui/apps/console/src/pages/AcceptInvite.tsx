@@ -23,6 +23,7 @@ import {
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 type Branch =
   | "loading"
@@ -320,8 +321,8 @@ export default function AcceptInvite() {
   const message = messages[branch];
 
   return (
-    <div className="w-full max-w-md mx-auto animate-fade-in">
-      <div className="bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm">
+    <>
+      <LoginLayoutCard>
         {branch === "loading" && (
           <div
             className="flex flex-col items-center gap-3 py-6"
@@ -334,7 +335,7 @@ export default function AcceptInvite() {
         )}
 
         {message && <InvitationMessage {...message} />}
-      </div>
+      </LoginLayoutCard>
 
       <ConfirmDialog
         open={showConfirm}
@@ -349,7 +350,7 @@ export default function AcceptInvite() {
         variant="primary"
         errorMessage={error || null}
       />
-    </div>
+    </>
   );
 }
 
@@ -373,7 +374,10 @@ const toneStyles: Record<Tone, { ring: string; iconColor: string }> = {
     ring: "bg-accent-yellow/10 border-accent-yellow/20",
     iconColor: "text-accent-yellow",
   },
-  primary: { ring: "bg-primary/10 border-primary/20", iconColor: "text-primary" },
+  primary: {
+    ring: "bg-primary/10 border-primary/20",
+    iconColor: "text-primary",
+  },
   success: {
     ring: "bg-accent-green/10 border-accent-green/20",
     iconColor: "text-accent-green",

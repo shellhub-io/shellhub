@@ -7,6 +7,7 @@ import { useAuthStore } from "../stores/authStore";
 import { recoveryDisableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
 import type { MfaRecoverFormValues } from "./setup/mfaRecoverResolver";
 
@@ -75,7 +76,7 @@ export default function MfaRecover() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -100,10 +101,7 @@ export default function MfaRecover() {
       </div>
 
       {/* Form card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form onSubmit={handleFormSubmit} className="space-y-5">
           {error && <Callout variant="error">{error}</Callout>}
 
@@ -151,13 +149,10 @@ export default function MfaRecover() {
             </Link>
           </div>
         </form>
-      </div>
+      </LoginLayoutCard>
 
       {/* Warning note */}
-      <div
-        className="w-full max-w-sm mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in"
-        style={{ animationDelay: "400ms" }}
-      >
+      <div className="w-full max-w-md mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in">
         <p className="text-2xs text-text-muted leading-relaxed">
           <span className="font-semibold text-accent-yellow">Note:</span> After
           using a recovery code, you'll have a 10-minute window to disable MFA
@@ -177,6 +172,6 @@ export default function MfaRecover() {
           onDisable={handleDisableMfa}
         />
       )}
-    </div>
+    </>
   );
 }
