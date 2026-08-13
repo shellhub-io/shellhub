@@ -1,7 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { ClockIcon, TicketIcon } from "@heroicons/react/24/outline";
-import { ExclamationCircleIcon as ExclamationCircleSolidIcon } from "@heroicons/react/24/solid";
+import { TicketIcon } from "@heroicons/react/24/outline";
 import { IconBadge } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import { useInstallKeys } from "@/hooks/useInstallKeys";
@@ -15,12 +14,8 @@ import StatusChip from "./StatusChip";
 import KeyValueChip from "./KeyValueChip";
 import UsageMeter from "./UsageMeter";
 import { modeInfo } from "./constants";
-import {
-  getExpiryInfo,
-  getKeyBlockers,
-  installKeyDisplayName,
-  isPairingKey,
-} from "./helpers";
+import { installKeyDisplayName, isPairingKey } from "./helpers";
+import ExpiryLabel from "./ExpiryLabel";
 
 /** One labelled fact in the key summary strip. */
 function Fact({ label, children }: { label: string; children: ReactNode }) {
@@ -114,25 +109,7 @@ export default function InstallKeyHistoryPage() {
                 </div>
               </Fact>
               <Fact label="Expires">
-                {(() => {
-                  const { expired, revoked, disabled } = getKeyBlockers(key);
-                  const quiet = revoked || disabled;
-                  return (
-                    <span
-                      className="flex items-center gap-1 font-mono"
-                      title={expired ? "Expired" : undefined}
-                    >
-                      {expired ? (
-                        <ExclamationCircleSolidIcon
-                          className={`w-3.5 h-3.5 shrink-0 ${quiet ? "" : "text-accent-red"}`}
-                        />
-                      ) : (
-                        <ClockIcon className="w-3.5 h-3.5 shrink-0" />
-                      )}
-                      {getExpiryInfo(key.expires_at).label}
-                    </span>
-                  );
-                })()}
+                <ExpiryLabel installKey={key} />
               </Fact>
               {key.tags && key.tags.length > 0 && (
                 <Fact label="Tags">
