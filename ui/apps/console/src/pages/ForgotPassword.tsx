@@ -13,16 +13,18 @@ import {
   forgotPasswordResolver,
   type ForgotPasswordFormValues,
 } from "./setup/forgotPasswordResolver";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const { control, handleSubmit, formState } = useForm<ForgotPasswordFormValues>({
-    resolver: forgotPasswordResolver,
-    mode: "onTouched",
-    defaultValues: { account: "" },
-  });
+  const { control, handleSubmit, formState } =
+    useForm<ForgotPasswordFormValues>({
+      resolver: forgotPasswordResolver,
+      mode: "onTouched",
+      defaultValues: { account: "" },
+    });
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
@@ -40,7 +42,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -65,10 +67,7 @@ export default function ForgotPassword() {
       </div>
 
       {/* Card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         {sent ? (
           <div
             role="alert"
@@ -91,7 +90,10 @@ export default function ForgotPassword() {
             </div>
           </div>
         ) : (
-          <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-5">
+          <form
+            onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+            className="space-y-5"
+          >
             <FormInputField<ForgotPasswordFormValues>
               name="account"
               control={control}
@@ -116,10 +118,10 @@ export default function ForgotPassword() {
             </Button>
           </form>
         )}
-      </div>
+      </LoginLayoutCard>
 
       {/* Back to login */}
-      <div className="mt-8 animate-fade-in" style={{ animationDelay: "600ms" }}>
+      <div className="mt-8 animate-fade-in">
         <Link
           to="/login"
           className="text-xs text-text-muted hover:text-text-secondary transition-colors"
@@ -127,6 +129,6 @@ export default function ForgotPassword() {
           &larr; Back to login
         </Link>
       </div>
-    </div>
+    </>
   );
 }

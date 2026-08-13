@@ -6,6 +6,7 @@ import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
@@ -43,7 +44,7 @@ export default function MfaResetRequest() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero Section */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -67,10 +68,7 @@ export default function MfaResetRequest() {
       </div>
 
       {/* Form */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form
           onSubmit={(e) => void handleSubmit(onSubmit)(e)}
           className="space-y-5"
@@ -108,13 +106,10 @@ export default function MfaResetRequest() {
             </Link>
           </div>
         </form>
-      </div>
+      </LoginLayoutCard>
 
       {/* Info Note */}
-      <div
-        className="w-full max-w-sm mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in"
-        style={{ animationDelay: "400ms" }}
-      >
+      <div className="w-full max-w-md mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg animate-fade-in">
         <p className="text-2xs text-text-muted leading-relaxed">
           <span className="font-semibold text-primary">Note:</span> You'll
           receive two separate emails with verification codes. Both codes are
@@ -123,6 +118,6 @@ export default function MfaResetRequest() {
       </div>
 
       <AuthFooterLinks />
-    </div>
+    </>
   );
 }

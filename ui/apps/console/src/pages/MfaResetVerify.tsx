@@ -5,6 +5,7 @@ import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function MfaResetVerify() {
   const {
@@ -50,7 +51,7 @@ export default function MfaResetVerify() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero Section */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -73,10 +74,7 @@ export default function MfaResetVerify() {
         </p>
       </div>
       {/* Form Card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && <Callout variant="error">{error}</Callout>}
 
@@ -167,12 +165,9 @@ export default function MfaResetVerify() {
             </Link>
           </div>
         </form>
-      </div>
+      </LoginLayoutCard>
       {/* Info Note */}
-      <div
-        className="w-full max-w-sm mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in"
-        style={{ animationDelay: "400ms" }}
-      >
+      <div className="w-full max-w-md mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in">
         <p className="text-2xs text-text-muted leading-relaxed">
           <span className="font-semibold text-accent-yellow">Security:</span>{" "}
           Both codes are required to prove ownership of your account's email
@@ -180,6 +175,6 @@ export default function MfaResetVerify() {
         </p>
       </div>
       <AuthFooterLinks />
-    </div>
+    </>
   );
 }

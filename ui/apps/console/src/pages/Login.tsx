@@ -18,6 +18,7 @@ import { isCloud, isEnterpriseOrCloud } from "../env";
 import { getSafeRedirect, resolvePostLoginRedirect } from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 import { getInfo, getSamlAuthUrl } from "../client";
 import {
   FormInputField,
@@ -224,7 +225,7 @@ export default function Login() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -249,7 +250,7 @@ export default function Login() {
       </div>
 
       {/* Alerts — rendered outside the form so they are visible in SSO-only mode too */}
-      <div className="w-full max-w-sm flex flex-col gap-3 mb-4 empty:hidden">
+      <div className="w-full max-w-md flex flex-col gap-3 mb-4 empty:hidden">
         <PendingDeviceCallout />
         {lockoutExpired && (
           <Callout variant="success">
@@ -277,10 +278,7 @@ export default function Login() {
 
       {/* Form card — only shown once we know local auth is enabled */}
       {showLocalForm && (
-        <div
-          className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-          style={{ animationDelay: "200ms" }}
-        >
+        <LoginLayoutCard>
           <form onSubmit={handleFormSubmit} className="space-y-5">
             <FormInputField<LoginFormValues>
               id="username"
@@ -323,15 +321,12 @@ export default function Login() {
               {loading ? "Authenticating..." : "Sign In"}
             </Button>
           </form>
-        </div>
+        </LoginLayoutCard>
       )}
 
       {/* SSO login */}
       {isEnterpriseOrCloudEdition && authentication?.saml && (
-        <div
-          className="w-full max-w-sm animate-slide-up"
-          style={{ animationDelay: ssoOnly ? "200ms" : "300ms" }}
-        >
+        <div className="w-full max-w-md animate-slide-up">
           {!ssoOnly && (
             <div className="flex items-center gap-3 my-4">
               <div className="flex-1 h-px bg-border" />
@@ -358,6 +353,6 @@ export default function Login() {
 
       {/* Footer links */}
       <AuthFooterLinks />
-    </div>
+    </>
   );
 }

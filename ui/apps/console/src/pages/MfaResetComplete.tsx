@@ -9,6 +9,7 @@ import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
@@ -61,7 +62,7 @@ export default function MfaResetComplete() {
 
   if (!userId) {
     return (
-      <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+      <>
         <div className="text-center mb-12 animate-fade-in">
           <div className="animate-float mb-6 inline-block">
             <div className="w-20 h-20 rounded-2xl bg-accent-red/15 border border-accent-red/25 flex items-center justify-center shadow-lg shadow-accent-red/10">
@@ -85,12 +86,12 @@ export default function MfaResetComplete() {
           ← Request a new reset link
         </Link>
         <AuthFooterLinks />
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero Section */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -112,10 +113,7 @@ export default function MfaResetComplete() {
         </p>
       </div>
       {/* Form Card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && <Callout variant="error">{error}</Callout>}
 
@@ -134,7 +132,7 @@ export default function MfaResetComplete() {
                 <input
                   key={index}
                   ref={(el) => {
-                    (otpMain.inputRefs.current[index] = el);
+                    otpMain.inputRefs.current[index] = el;
                   }}
                   type="text"
                   maxLength={1}
@@ -166,7 +164,7 @@ export default function MfaResetComplete() {
                 <input
                   key={index}
                   ref={(el) => {
-                    (otpRecovery.inputRefs.current[index] = el);
+                    otpRecovery.inputRefs.current[index] = el;
                   }}
                   type="text"
                   maxLength={1}
@@ -197,12 +195,9 @@ export default function MfaResetComplete() {
             {loading ? "Verifying..." : "Reset MFA and Login"}
           </Button>
         </form>
-      </div>
+      </LoginLayoutCard>
       {/* Info Note */}
-      <div
-        className="w-full max-w-sm mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in"
-        style={{ animationDelay: "400ms" }}
-      >
+      <div className="w-full max-w-md mt-6 p-4 bg-accent-yellow/5 border border-accent-yellow/20 rounded-lg animate-fade-in">
         <p className="text-2xs text-text-muted leading-relaxed">
           <span className="font-semibold text-accent-yellow">Security:</span>{" "}
           Both codes are required to prove ownership of your account's email
@@ -210,6 +205,6 @@ export default function MfaResetComplete() {
         </p>
       </div>
       <AuthFooterLinks />
-    </div>
+    </>
   );
 }

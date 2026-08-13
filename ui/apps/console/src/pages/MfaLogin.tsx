@@ -7,6 +7,7 @@ import { resolvePostLoginRedirect } from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
 export default function MfaLogin() {
   const otp = useOtpInput(6);
@@ -41,7 +42,7 @@ export default function MfaLogin() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+    <>
       {/* Hero */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
@@ -65,15 +66,12 @@ export default function MfaLogin() {
         </p>
       </div>
 
-      <div className="w-full max-w-sm flex flex-col gap-3 mb-4 empty:hidden">
+      <div className="w-full max-w-md flex flex-col gap-3 mb-4 empty:hidden">
         <PendingDeviceCallout />
       </div>
 
       {/* Form card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
+      <LoginLayoutCard>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && <Callout variant="error">{error}</Callout>}
 
@@ -127,9 +125,9 @@ export default function MfaLogin() {
             </Link>
           </div>
         </form>
-      </div>
+      </LoginLayoutCard>
       {/* Footer links */}
       <AuthFooterLinks />
-    </div>
+    </>
   );
 }
