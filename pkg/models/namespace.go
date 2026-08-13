@@ -22,19 +22,41 @@ type Namespace struct {
 	Type       Type      `json:"type"`
 }
 
-// HasMaxDevices checks if the namespace has a maximum number of devices.
+// NamespaceDeviceLimit is a namespace's device ceiling and the accepted-device count it is
+// measured against, carrying the rule so it stays defined once.
+type NamespaceDeviceLimit struct {
+	MaxDevices           int
+	DevicesAcceptedCount int64
+}
+
+// HasMax reports whether the namespace has a finite device ceiling.
 //
 // Generally, a namespace has a MaxDevices value greater than 0 when the ShellHub is either in community version or
 // the namespace does not have a billing plan enabled, because, in this case, we set this value to -1.
-func (n *Namespace) HasMaxDevices() bool {
-	return n.MaxDevices > 0
+func (l NamespaceDeviceLimit) HasMax() bool {
+	return l.MaxDevices > 0
 }
 
-// HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
+// IsReached reports whether the accepted-device count has caught up with the ceiling.
 // Only counts accepted devices. Removed devices no longer count towards the limit,
 // allowing immediate slot reuse after deletion.
+func (l NamespaceDeviceLimit) IsReached() bool {
+	return l.DevicesAcceptedCount >= int64(l.MaxDevices)
+}
+
+func (n *Namespace) DeviceLimit() NamespaceDeviceLimit {
+	return NamespaceDeviceLimit{
+		MaxDevices:           n.MaxDevices,
+		DevicesAcceptedCount: n.DevicesAcceptedCount,
+	}
+}
+
+func (n *Namespace) HasMaxDevices() bool {
+	return n.DeviceLimit().HasMax()
+}
+
 func (n *Namespace) HasMaxDevicesReached() bool {
-	return n.DevicesAcceptedCount >= int64(n.MaxDevices)
+	return n.DeviceLimit().IsReached()
 }
 
 // FindMember checks if a member with the specified ID exists in the namespace.

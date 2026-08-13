@@ -11,6 +11,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -182,6 +183,13 @@ func WithDeviceRemovedAt(removedAt *time.Time) DeviceOption {
 	}
 }
 
+// WithDeviceLastSeen sets the last_seen timestamp
+func WithDeviceLastSeen(lastSeen time.Time) DeviceOption {
+	return func(d *models.Device) {
+		d.LastSeen = lastSeen
+	}
+}
+
 // WithDeviceStatusUpdatedAt sets the status_updated_at timestamp
 func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
 	return func(d *models.Device) {
@@ -209,6 +217,24 @@ func nextDeviceMAC() string {
 	n := deviceSeq.Add(1)
 
 	return fmt.Sprintf("00:00:%02x:%02x:%02x:%02x", (n>>24)&0xFF, (n>>16)&0xFF, (n>>8)&0xFF, n&0xFF)
+}
+
+// fixedClock pins clock.Now so a test can place a row at an arbitrary point in time.
+type fixedClock struct{ now time.Time }
+
+func (c *fixedClock) Now() time.Time { return c.now }
+
+// pinClock redirects the package clock for the duration of the test and returns the handle the
+// test moves to advance time.
+func pinClock(t *testing.T, at time.Time) *fixedClock {
+	t.Helper()
+
+	clk := &fixedClock{now: at}
+	prev := clock.DefaultBackend
+	t.Cleanup(func() { clock.DefaultBackend = prev })
+	clock.DefaultBackend = clk
+
+	return clk
 }
 
 // CreateDevice creates a device with default or customized values

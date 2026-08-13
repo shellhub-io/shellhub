@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -102,6 +103,16 @@ type DeviceService interface {
 	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
 }
 
+// deviceLimit prefers the limit authentication already read for this request, falling back to
+// the store when it carries none.
+func (s *service) deviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
+	if limit, ok := authctx.NamespaceDeviceLimit(ctx, tenantID); ok {
+		return limit, nil
+	}
+
+	return s.store.NamespaceGetDeviceLimit(ctx, tenantID)
+}
+
 func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
 	opts := []store.QueryOption{}
 
@@ -124,12 +135,12 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 	acceptable := store.DeviceAcceptableIfNotAccepted
 
 	if sc.IsBounded() {
-		ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+		limit, err := s.deviceLimit(ctx, req.TenantID)
 		if err != nil {
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
+		if limit.HasMax() && limit.IsReached() {
 			acceptable = store.DeviceAcceptableAsFalse
 		}
 	}

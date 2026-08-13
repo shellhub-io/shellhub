@@ -19,6 +19,7 @@ func (s *Suite) Run(t *testing.T) {
 	t.Run("NamespaceStore", func(t *testing.T) {
 		s.TestNamespaceList(t)
 		s.TestNamespaceResolve(t)
+		s.TestNamespaceGetDeviceLimit(t)
 		s.TestNamespaceGetPreferred(t)
 		s.TestNamespaceCreate(t)
 		s.TestNamespaceCreateDuplicate(t)
@@ -99,6 +100,7 @@ func (s *Suite) Run(t *testing.T) {
 
 	t.Run("StatsStore", func(t *testing.T) {
 		s.TestGetStats(t)
+		s.TestGetStatsOnlineBoundary(t)
 	})
 
 	t.Run("PrivateKeyStore", func(t *testing.T) {
