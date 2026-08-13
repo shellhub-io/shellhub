@@ -6016,6 +6016,72 @@ func (_c *MockStore_SessionCreate_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// SessionDeleteMany provides a mock function for the type MockStore
+func (_mock *MockStore) SessionDeleteMany(ctx context.Context, uids []string) (int64, error) {
+	ret := _mock.Called(ctx, uids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionDeleteMany")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) (int64, error)); ok {
+		return returnFunc(ctx, uids)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) int64); ok {
+		r0 = returnFunc(ctx, uids)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = returnFunc(ctx, uids)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SessionDeleteMany_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SessionDeleteMany'
+type MockStore_SessionDeleteMany_Call struct {
+	*mock.Call
+}
+
+// SessionDeleteMany is a helper method to define mock.On call
+//   - ctx context.Context
+//   - uids []string
+func (_e *MockStore_Expecter) SessionDeleteMany(ctx any, uids any) *MockStore_SessionDeleteMany_Call {
+	return &MockStore_SessionDeleteMany_Call{Call: _e.mock.On("SessionDeleteMany", ctx, uids)}
+}
+
+func (_c *MockStore_SessionDeleteMany_Call) Run(run func(ctx context.Context, uids []string)) *MockStore_SessionDeleteMany_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []string
+		if args[1] != nil {
+			arg1 = args[1].([]string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SessionDeleteMany_Call) Return(n int64, err error) *MockStore_SessionDeleteMany_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_SessionDeleteMany_Call) RunAndReturn(run func(ctx context.Context, uids []string) (int64, error)) *MockStore_SessionDeleteMany_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SessionEventsCreate provides a mock function for the type MockStore
 func (_mock *MockStore) SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error {
 	ret := _mock.Called(ctx, event)
@@ -6385,6 +6451,80 @@ func (_c *MockStore_SessionList_Call) Return(sessions []models.Session, n int, e
 }
 
 func (_c *MockStore_SessionList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Session, int, error)) *MockStore_SessionList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SessionListExpired provides a mock function for the type MockStore
+func (_mock *MockStore) SessionListExpired(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error) {
+	ret := _mock.Called(ctx, before, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionListExpired")
+	}
+
+	var r0 []store.ExpiredSession
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) ([]store.ExpiredSession, error)); ok {
+		return returnFunc(ctx, before, limit)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int) []store.ExpiredSession); ok {
+		r0 = returnFunc(ctx, before, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]store.ExpiredSession)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time, int) error); ok {
+		r1 = returnFunc(ctx, before, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SessionListExpired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SessionListExpired'
+type MockStore_SessionListExpired_Call struct {
+	*mock.Call
+}
+
+// SessionListExpired is a helper method to define mock.On call
+//   - ctx context.Context
+//   - before time.Time
+//   - limit int
+func (_e *MockStore_Expecter) SessionListExpired(ctx any, before any, limit any) *MockStore_SessionListExpired_Call {
+	return &MockStore_SessionListExpired_Call{Call: _e.mock.On("SessionListExpired", ctx, before, limit)}
+}
+
+func (_c *MockStore_SessionListExpired_Call) Run(run func(ctx context.Context, before time.Time, limit int)) *MockStore_SessionListExpired_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		var arg2 int
+		if args[2] != nil {
+			arg2 = args[2].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SessionListExpired_Call) Return(expiredSessions []store.ExpiredSession, err error) *MockStore_SessionListExpired_Call {
+	_c.Call.Return(expiredSessions, err)
+	return _c
+}
+
+func (_c *MockStore_SessionListExpired_Call) RunAndReturn(run func(ctx context.Context, before time.Time, limit int) ([]store.ExpiredSession, error)) *MockStore_SessionListExpired_Call {
 	_c.Call.Return(run)
 	return _c
 }

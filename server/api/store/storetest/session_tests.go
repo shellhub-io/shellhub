@@ -890,3 +890,193 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		assert.Len(t, events2, 1)
 	})
 }
+
+// TestSessionCleanup tests the SessionListExpired/SessionDeleteMany pair across all
+// implementations. They are exercised together because retention only ever uses them as a pair:
+// list a batch, act on it, delete it.
+//
+// The cases below age sessions through pinClock rather than by setting StartedAt, because
+// SessionCreate stamps started_at from the clock and ignores whatever the caller passed. Pinning
+// the clock is the only way to build the age distribution retention is about.
+func (s *Suite) TestSessionCleanup(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	now := time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
+	cutoff := now.AddDate(0, 0, -180)
+
+	// listUIDs returns every surviving session's UID.
+	listUIDs := func(t *testing.T) []string {
+		t.Helper()
+
+		sessions, _, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
+			st.Options().Match(&query.Filters{}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
+		require.NoError(t, err)
+
+		uids := make([]string, 0, len(sessions))
+		for _, session := range sessions {
+			uids = append(uids, session.UID)
+		}
+
+		return uids
+	}
+
+	// prune runs the pair the way retention does.
+	prune := func(t *testing.T, limit int) int64 {
+		t.Helper()
+
+		expired, err := st.SessionListExpired(ctx, cutoff, limit)
+		require.NoError(t, err)
+
+		uids := make([]string, len(expired))
+		for i, session := range expired {
+			uids[i] = session.UID
+		}
+
+		deleted, err := st.SessionDeleteMany(ctx, uids)
+		require.NoError(t, err)
+
+		return deleted
+	}
+
+	t.Run("finds nothing when every session is newer than the cutoff", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, 1))
+		uid := s.CreateSession(t, WithSessionActive(false))
+		clk.now = now
+
+		assert.Equal(t, int64(0), prune(t, 100))
+		assert.Equal(t, []string{string(uid)}, listUIDs(t))
+	})
+
+	t.Run("deletes only the sessions started before the cutoff", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -10))
+		device := s.CreateDevice(t)
+		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = cutoff.AddDate(0, 0, 10)
+		kept := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = now
+
+		assert.Equal(t, int64(2), prune(t, 100))
+		assert.Equal(t, []string{string(kept)}, listUIDs(t))
+	})
+
+	t.Run("lists the oldest first and stops at the limit", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		device := s.CreateDevice(t)
+		oldest := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = cutoff.AddDate(0, 0, -20)
+		middle := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = cutoff.AddDate(0, 0, -10)
+		newest := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = now
+
+		expired, err := st.SessionListExpired(ctx, cutoff, 2)
+		require.NoError(t, err)
+		assert.Equal(t, []store.ExpiredSession{
+			{UID: string(oldest), Recorded: false},
+			{UID: string(middle), Recorded: false},
+		}, expired)
+
+		deleted, err := st.SessionDeleteMany(ctx, []string{string(oldest), string(middle)})
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), deleted)
+		assert.Equal(t, []string{string(newest)}, listUIDs(t))
+	})
+
+	t.Run("reports whether each expired session was recorded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		device := s.CreateDevice(t)
+		plain := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = cutoff.AddDate(0, 0, -20)
+		recorded := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+		require.NoError(t, st.SessionUpdate(ctx, &models.Session{UID: string(recorded), Recorded: true}))
+
+		clk.now = now
+
+		expired, err := st.SessionListExpired(ctx, cutoff, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []store.ExpiredSession{
+			{UID: string(plain), Recorded: false},
+			{UID: string(recorded), Recorded: true},
+		}, expired)
+	})
+
+	t.Run("leaves an active session in place however old it is", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		device := s.CreateDevice(t)
+		active := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(true))
+		s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+
+		clk.now = now
+
+		assert.Equal(t, int64(1), prune(t, 100))
+		assert.Equal(t, []string{string(active)}, listUIDs(t))
+	})
+
+	t.Run("takes the session's events with it", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		uid := s.CreateSession(t, WithSessionActive(false))
+
+		require.NoError(t, st.SessionEventsCreate(ctx, &models.SessionEvent{
+			Session:   string(uid),
+			Type:      models.SessionEventTypePtyOutput,
+			Timestamp: clk.now,
+			Data:      map[string]interface{}{"output": "test output"},
+			Seat:      1,
+		}))
+
+		clk.now = now
+
+		assert.Equal(t, int64(1), prune(t, 100))
+
+		_, count, err := st.SessionEventsList(ctx, uid, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("lists nothing when the limit is not positive", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		uid := s.CreateSession(t, WithSessionActive(false))
+		clk.now = now
+
+		expired, err := st.SessionListExpired(ctx, cutoff, 0)
+		require.NoError(t, err)
+		assert.Empty(t, expired)
+		assert.Equal(t, []string{string(uid)}, listUIDs(t))
+	})
+
+	t.Run("deleting none is a no-op", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		clk := pinClock(t, cutoff.AddDate(0, 0, -30))
+		uid := s.CreateSession(t, WithSessionActive(false))
+		clk.now = now
+
+		deleted, err := st.SessionDeleteMany(ctx, []string{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), deleted)
+		assert.Equal(t, []string{string(uid)}, listUIDs(t))
+	})
+}

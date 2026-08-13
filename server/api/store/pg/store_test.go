@@ -71,6 +71,7 @@ func TestPgStore(t *testing.T) {
 		suite.TestSessionEventsCreate(t)
 		suite.TestSessionEventsList(t)
 		suite.TestSessionEventsDelete(t)
+		suite.TestSessionCleanup(t)
 	})
 
 	runSubSuite(t, "TagStore", func(suite *storetest.Suite, t *testing.T) {

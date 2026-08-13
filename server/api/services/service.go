@@ -25,6 +25,7 @@ type service struct {
 	billing           BillingProvider
 	licenseEvaluator  LicenseEvaluator
 	firewallEvaluator FirewallEvaluator
+	recordingPruner   SessionRecordingPruner
 }
 
 type Service interface {
@@ -94,6 +95,12 @@ func WithFirewallEvaluator(fe FirewallEvaluator) Option {
 	}
 }
 
+func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
+	return func(service *APIService) {
+		service.recordingPruner = rp
+	}
+}
+
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
@@ -114,6 +121,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			billing:           nil, // injected via WithBilling option
 			licenseEvaluator:  nil, // injected via WithLicenseEvaluator option
 			firewallEvaluator: nil, // injected via WithFirewallEvaluator option
+			recordingPruner:   nil, // injected via WithSessionRecordingPruner option
 		},
 	}
 

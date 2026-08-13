@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -12,6 +13,15 @@ type SessionResolver uint
 const (
 	SessionUIDResolver SessionResolver = iota + 1
 )
+
+// ExpiredSession is a session that has outlived the retention window, reduced to what deleting
+// it needs to know. Recorded travels with the UID because it decides whether the session owns a
+// recording at all: without it, an instance that records nothing still pays a storage lookup per
+// session it deletes.
+type ExpiredSession struct {
+	UID      string
+	Recorded bool
+}
 
 type SessionStore interface {
 	// SessionList retrieves a list of sessions based on the provided filters and pagination settings.
@@ -48,4 +58,17 @@ type SessionStore interface {
 
 	// SessionUpdateDeviceUID updates device UID references across sessions. It returns an error if any.
 	SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error
+
+	// SessionListExpired returns up to limit sessions started before the given time, oldest
+	// first. A session that is still active is never returned, however old it is, and a limit
+	// that is not positive returns nothing.
+	//
+	// Listing is separate from deleting so a caller can act on what a session owns outside the
+	// database while the row that names it still exists.
+	SessionListExpired(ctx context.Context, before time.Time, limit int) ([]ExpiredSession, error)
+
+	// SessionDeleteMany deletes the given sessions, cascading into their events. It returns the
+	// number deleted, which may be lower than the number asked for if a session went away in
+	// between. An empty slice is a no-op.
+	SessionDeleteMany(ctx context.Context, uids []string) (int64, error)
 }
