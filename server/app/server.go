@@ -70,6 +70,15 @@ type Env struct {
 	// AutoSSL reports whether the console is served over HTTPS; it selects the
 	// scheme of that approval URL.
 	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
+
+	// SessionRetentionDays is how long a session and its events are kept after the session
+	// started; 0, the default, keeps them indefinitely.
+	//
+	// The default is off because the deletion is permanent and unattended — session events are
+	// the recording. Choosing a window is a deployment decision, made where the compliance
+	// commitment and the volume are both known, so it is the deployment that sets this rather
+	// than the binary assuming one. docker-compose.enterprise.yml does exactly that.
+	SessionRetentionDays int `env:"SHELLHUB_SESSION_RETENTION_DAYS,default=0"`
 }
 
 // sshEnv is parsed with the SSH_ prefix, keeping the names the ssh service used.
@@ -186,6 +195,13 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, feOpts...)
 
+	rpOpts, err := s.sessionRecordingPrunerOption(ctx, store, cache)
+	if err != nil {
+		return err
+	}
+
+	servicesOptions = append(servicesOptions, rpOpts...)
+
 	routerOptions, err := s.routerOptions()
 	if err != nil {
 		return err
@@ -210,6 +226,13 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronEphemeralCleanup, service.EphemeralCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronEnrollmentCallbackCleanup, service.EnrollmentCallbackCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
+
+	if retention := time.Duration(s.env.SessionRetentionDays) * 24 * time.Hour; retention > 0 {
+		s.worker.HandleCron(services.CronSessionCleanup, service.SessionCleanup(retention), asynq.Unique())
+		log.WithField("days", s.env.SessionRetentionDays).Info("session retention enabled")
+	} else {
+		log.Warn("session retention disabled; sessions and their events are kept indefinitely")
+	}
 
 	// Apply any worker extensions registered by cloud/enterprise packages.
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
@@ -406,6 +429,28 @@ func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c c
 	// is sufficient — no typed-nil interface can occur here.
 	if le != nil {
 		return []services.Option{services.WithLicenseEvaluator(le)}, nil
+	}
+
+	return nil, nil
+}
+
+// sessionRecordingPrunerOption initialises the recording pruner when an enterprise package
+// registered a factory. Its factory also returns nil on an enterprise instance with no object
+// storage configured, where there are no recordings to prune. Same nil guard, same reason as
+// licenseEvaluatorOption.
+func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.SessionRecordingPrunerFactory()
+	if factory == nil {
+		return nil, nil
+	}
+
+	rp, err := factory(ctx, st, c)
+	if err != nil {
+		return nil, errors.Join(errors.New("init session recording pruner"), err)
+	}
+
+	if rp != nil {
+		return []services.Option{services.WithSessionRecordingPruner(rp)}, nil
 	}
 
 	return nil, nil

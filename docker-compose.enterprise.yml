@@ -27,6 +27,7 @@ services:
       # GeoIP (MaxMind) database source, read by the enterprise binary
       - MAXMIND_MIRROR=${SHELLHUB_MAXMIND_MIRROR:-}
       - MAXMIND_LICENSE=${SHELLHUB_MAXMIND_LICENSE:-}
+      - SHELLHUB_SESSION_RETENTION_DAYS=${SHELLHUB_SESSION_RETENTION_DAYS}
     secrets:
       - api_private_key
       - api_public_key
