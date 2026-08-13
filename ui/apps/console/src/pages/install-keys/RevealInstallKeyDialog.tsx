@@ -1,11 +1,15 @@
 import { useId, useState } from "react";
 import {
-  ExclamationCircleIcon,
   ExclamationTriangleIcon,
   EyeIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Card, Spinner } from "@shellhub/design-system/primitives";
+import {
+  Button,
+  Callout,
+  Card,
+  Spinner,
+} from "@shellhub/design-system/primitives";
 import { useRevealInstallKey } from "@/hooks/useRevealInstallKey";
 import { type InstallKey } from "@/client";
 import { installKeyDisplayName } from "./helpers";
@@ -122,18 +126,9 @@ export default function RevealInstallKeyDialog({
                 <Spinner />
               </div>
             ) : error ? (
-              <div
-                role="alert"
-                className="flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red"
-              >
-                <ExclamationCircleIcon
-                  className="w-4 h-4 shrink-0 mt-px"
-                  strokeWidth={2}
-                />
-                <span>
-                  Could not load the key. Check your connection and try again.
-                </span>
-              </div>
+              <Callout variant="error">
+                Could not load the key. Check your connection and try again.
+              </Callout>
             ) : (
               <>
                 <Card
