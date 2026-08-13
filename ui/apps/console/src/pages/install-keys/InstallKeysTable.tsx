@@ -1,14 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import {
   BoltIcon,
-  ClockIcon,
   NoSymbolIcon,
   PauseCircleIcon,
   PlusIcon,
   QrCodeIcon,
   TicketIcon,
 } from "@heroicons/react/24/outline";
-import { ExclamationCircleIcon as ExclamationCircleSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@shellhub/design-system/primitives";
 import { type InstallKey } from "@/client";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -18,12 +16,12 @@ import StatusChip, { DeprecatedBadge } from "./StatusChip";
 import UsageMeter from "./UsageMeter";
 import { modeInfo } from "./constants";
 import {
-  getExpiryInfo,
   getKeyBlockers,
   installKeyDisplayName,
   isPairingKey,
   isSystemKey,
 } from "./helpers";
+import ExpiryLabel from "./ExpiryLabel";
 
 /**
  * The Mode cell: the key's mode identity (icon tile + label). Its secondary line is the mode summary
@@ -192,29 +190,12 @@ export default function InstallKeysTable({
       key: "expiry",
       header: "Expires",
       render: (key) => {
-        const expiry = getExpiryInfo(key.expires_at);
-        const { expired, revoked, disabled } = getKeyBlockers(key);
-        // The date stays muted (never an alarm-red string). An elapsed expiry swaps the clock for a
-        // solid exclamation glyph — shown even on a revoked/disabled key, so the "expired" fact never
-        // hides behind another state. Only the red pip is conditional: a revoked/disabled key mutes
-        // it (that expiry no longer matters), a live one keeps it as the at-a-glance signal.
-        const quiet = revoked || disabled;
-        const dateTitle = expired ? "Expired" : undefined;
         return (
           <div className="flex flex-col gap-1">
-            <span
-              title={dateTitle}
-              className="flex items-center gap-1 text-2xs font-mono text-text-muted whitespace-nowrap"
-            >
-              {expired ? (
-                <ExclamationCircleSolidIcon
-                  className={`w-3.5 h-3.5 shrink-0 ${quiet ? "" : "text-accent-red"}`}
-                />
-              ) : (
-                <ClockIcon className="w-3.5 h-3.5 shrink-0" />
-              )}
-              {expiry.label}
-            </span>
+            <ExpiryLabel
+              installKey={key}
+              className="text-2xs text-text-muted whitespace-nowrap"
+            />
             {key.ephemeral && (
               <span
                 className="flex items-center gap-1 text-2xs text-text-muted whitespace-nowrap"
