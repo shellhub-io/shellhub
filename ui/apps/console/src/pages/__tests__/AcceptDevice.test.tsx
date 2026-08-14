@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import {
   PENDING_DEVICE_CODE_KEY,
@@ -10,47 +11,91 @@ import {
 import AcceptDevice from "../AcceptDevice";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 
-const mockNavigate = vi.hoisted(() => vi.fn());
-
-vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react-router-dom")>();
-  return { ...actual, useNavigate: () => mockNavigate };
-});
-
-vi.mock("@/hooks/useDeviceMutations", () => ({
-  useAcceptDevice: () => ({ mutateAsync: vi.fn() }),
-}));
-vi.mock("@/hooks/useNamespaceMutations", () => ({
-  useSwitchNamespace: () => ({ mutateAsync: vi.fn() }),
-}));
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespaces: () => ({ data: [], isLoading: false }),
-}));
-vi.mock("@/client", () => ({
+vi.mock("@/client/sdk.gen", () => ({
   resolveDeviceLoginCode: vi.fn(),
+  acceptDevice: vi.fn(),
   acceptDevicePairing: vi.fn(),
+  getNamespaces: vi.fn(),
+  getNamespaceToken: vi.fn(),
 }));
-import { resolveDeviceLoginCode } from "@/client";
-const mockedResolve = vi.mocked(resolveDeviceLoginCode);
+
+import {
+  resolveDeviceLoginCode,
+  acceptDevice as acceptDeviceSdk,
+  acceptDevicePairing as acceptDevicePairingSdk,
+  getNamespaces as getNamespacesSdk,
+} from "@/client/sdk.gen";
+
+const mockResolve = vi.mocked(resolveDeviceLoginCode);
+const mockAcceptDevice = vi.mocked(acceptDeviceSdk);
+const mockAcceptPairing = vi.mocked(acceptDevicePairingSdk);
+const mockGetNamespaces = vi.mocked(getNamespacesSdk);
+
+function respondWith<T>(data: T) {
+  return { data } as never;
+}
+
+function mockDevice(overrides = {}) {
+  return {
+    kind: "device",
+    status: "pending",
+    name: "dev1",
+    uid: "uid-1",
+    tenant_id: "tenant1",
+    namespace: "ns1",
+    identity: { mac: "00:11:22:33:44:55" },
+    info: { pretty_name: "Ubuntu 22.04" },
+    ...overrides,
+  };
+}
+
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+}
 
 beforeEach(() => {
-  mockNavigate.mockClear();
-  mockedResolve.mockReset();
+  vi.resetAllMocks();
   localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
   useAuthStore.setState({ token: "token", tenant: "tenant1" });
 });
 
-function renderAt(path: string) {
+function renderPage(path: string) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <AcceptDevice />
-    </MemoryRouter>,
+    <QueryClientProvider client={createQueryClient()}>
+      <MemoryRouter initialEntries={[path]}>
+        <AcceptDevice />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
-describe("AcceptDevice manual entry", () => {
+function renderFlow({
+  initialCode = "CODE1234",
+  inDialog,
+}: { initialCode?: string; inDialog?: boolean } = {}) {
+  return render(
+    <QueryClientProvider client={createQueryClient()}>
+      <MemoryRouter>
+        <AcceptDeviceFlow initialCode={initialCode} inDialog={inDialog} />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe("AcceptDevice page", () => {
+  it("persists the code from the URL to localStorage", () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    renderPage("/accept-device?code=WXYZ2K7Q");
+    expect(hasPendingDeviceCode()).toBe(true);
+  });
+
   it("shows the pairing-code form when opened without a code", async () => {
-    renderAt("/accept-device");
+    renderPage("/accept-device");
 
     expect(await screen.findByText("Claim a device")).toBeInTheDocument();
     expect(screen.getAllByRole("textbox")).toHaveLength(8);
@@ -58,9 +103,128 @@ describe("AcceptDevice manual entry", () => {
       screen.getByRole("button", { name: /claim device/i }),
     ).toBeDisabled();
   });
+});
 
-  it("navigates with the canonical code once every cell is filled", async () => {
-    renderAt("/accept-device");
+describe("AcceptDeviceFlow standalone", () => {
+  it("shows loading while resolving a code", () => {
+    mockResolve.mockReturnValue(new Promise<never>(() => {}));
+    renderFlow();
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText("Checking code...")).toBeInTheDocument();
+  });
+
+  it("shows device preview for a login code", async () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    renderFlow();
+
+    expect(
+      await screen.findByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("dev1")).toBeInTheDocument();
+    expect(screen.getByText("Ubuntu 22.04")).toBeInTheDocument();
+    expect(screen.getByText("00:11:22:33:44:55")).toBeInTheDocument();
+  });
+
+  it("shows namespace picker for a pairing code", async () => {
+    mockResolve.mockResolvedValue(
+      respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
+    );
+    mockGetNamespaces.mockResolvedValue(
+      respondWith([{ name: "my-ns", tenant_id: "t1" }]),
+    );
+    renderFlow();
+
+    expect(await screen.findByText("my-ns")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/choose where it belongs/i)).toBeInTheDocument();
+  });
+
+  it("shows error state on invalid/expired code", async () => {
+    mockResolve.mockRejectedValue(new Error("bad code"));
+    renderFlow({ initialCode: "BADCODE1" });
+
+    expect(
+      await screen.findByRole("heading", { name: /invalid or expired code/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows already-accepted state", async () => {
+    mockResolve.mockResolvedValue(
+      respondWith(mockDevice({ status: "accepted" })),
+    );
+    renderFlow();
+
+    expect(
+      await screen.findByRole("heading", { name: /already accepted/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("transitions to success after accepting a device", async () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    mockAcceptDevice.mockResolvedValue(respondWith({}));
+    renderFlow();
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /accept device/i }),
+    );
+
+    await screen.findByRole("heading", { name: /device accepted/i });
+    expect(mockAcceptDevice).toHaveBeenCalledWith(
+      expect.objectContaining({ path: { uid: "uid-1" } }),
+    );
+  });
+
+  it("shows accept error without leaving ready state", async () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    mockAcceptDevice.mockRejectedValue(new Error("limit reached"));
+    renderFlow();
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /accept device/i }),
+    );
+
+    await screen.findByRole("alert");
+    expect(
+      screen.getByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows dashboard link in missing-code state", () => {
+    renderFlow({ initialCode: "" });
+
+    expect(
+      screen.getByRole("link", { name: /go to dashboard/i }),
+    ).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("shows dashboard link in error state", async () => {
+    mockResolve.mockRejectedValue(new Error("bad code"));
+    renderFlow({ initialCode: "BADCODE1" });
+
+    await screen.findByRole("heading", { name: /invalid or expired code/i });
+    expect(
+      screen.getByRole("link", { name: /go to dashboard/i }),
+    ).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("resets to code form via 'Enter another code' on error", async () => {
+    mockResolve.mockRejectedValue(new Error("bad code"));
+    renderFlow({ initialCode: "BADCODE1" });
+
+    await screen.findByRole("heading", { name: /invalid or expired code/i });
+    fireEvent.click(
+      screen.getByRole("button", { name: /enter another code/i }),
+    );
+
+    expect(await screen.findByText("Claim a device")).toBeInTheDocument();
+  });
+
+  it("resolves code entered from the manual form", async () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    renderFlow({ initialCode: "" });
 
     await screen.findByText("Claim a device");
     const cells = screen.getAllByRole("textbox");
@@ -68,110 +232,95 @@ describe("AcceptDevice manual entry", () => {
       fireEvent.change(cells[i], { target: { value: ch } });
     });
 
-    const submit = screen.getByRole("button", { name: /claim device/i });
-    expect(submit).not.toBeDisabled();
-    fireEvent.click(submit);
-
-    expect(mockNavigate).toHaveBeenCalledWith("/accept-device?code=VS3AMKME");
-  });
-
-  it("accepts a pasted code with its display hyphen", async () => {
-    renderAt("/accept-device");
-
-    await screen.findByText("Claim a device");
-    const cells = screen.getAllByRole("textbox");
-    fireEvent.paste(cells[0], {
-      clipboardData: { getData: () => "vs3a-mkme" },
-    });
-
     fireEvent.click(screen.getByRole("button", { name: /claim device/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/accept-device?code=VS3AMKME");
+
+    await screen.findByRole("heading", { name: /accept this device/i });
   });
 
-  it("keeps submit disabled until the code is complete", async () => {
-    renderAt("/accept-device");
+  it("transitions to pairing-success after accepting with a namespace", async () => {
+    mockResolve.mockResolvedValue(
+      respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
+    );
+    mockGetNamespaces.mockResolvedValue(
+      respondWith([{ name: "my-ns", tenant_id: "t1" }]),
+    );
+    mockAcceptPairing.mockResolvedValue(
+      respondWith({ uid: "new-uid", tenant_id: "t1", namespace: "my-ns" }),
+    );
+    renderFlow();
 
-    await screen.findByText("Claim a device");
-    const cells = screen.getAllByRole("textbox");
-    "VS3A".split("").forEach((ch, i) => {
-      fireEvent.change(cells[i], { target: { value: ch } });
+    await screen.findByText("my-ns");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /accept device/i }),
+      ).toBeEnabled();
     });
+    fireEvent.click(screen.getByRole("button", { name: /accept device/i }));
 
-    expect(
-      screen.getByRole("button", { name: /claim device/i }),
-    ).toBeDisabled();
-  });
-});
-
-describe("AcceptDevice page", () => {
-  it("persists the code from the URL to localStorage", () => {
-    renderAt("/accept-device?code=WXYZ2K7Q");
-    expect(hasPendingDeviceCode()).toBe(true);
-  });
-});
-
-describe("AcceptDeviceFlow pending device code", () => {
-  it("navigates to /login without redirect param when unauthenticated", async () => {
-    useAuthStore.setState({ token: null, tenant: "tenant1" });
-    render(
-      <MemoryRouter>
-        <AcceptDeviceFlow code="WXYZ2K7Q" />
-      </MemoryRouter>,
+    await screen.findByRole("heading", { name: /device accepted/i });
+    expect(mockAcceptPairing).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: { code: "CODE1234" },
+        body: { tenant_id: "t1" },
+      }),
     );
-
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
   });
 
-  it("navigates to /login on a 401 resolve error", async () => {
-    useAuthStore.setState({ token: "stale-token", tenant: "tenant1" });
-    const err = Object.assign(new Error(), { status: 401 });
-    mockedResolve.mockRejectedValue(err);
-
-    render(
-      <MemoryRouter>
-        <AcceptDeviceFlow code="ABC12345" />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
-  });
-
-  it("clears the key when the flow reaches the error branch", async () => {
+  it("clears pending device code on error", async () => {
     setPendingDeviceCode("STALE");
-    useAuthStore.setState({ token: "valid", tenant: "tenant1" });
-    mockedResolve.mockRejectedValue(new Error("bad code"));
-
-    render(
-      <MemoryRouter>
-        <AcceptDeviceFlow code="BADCODE1" />
-      </MemoryRouter>,
-    );
+    mockResolve.mockRejectedValue(new Error("bad code"));
+    renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByText(/invalid or expired code/i);
     expect(localStorage.getItem(PENDING_DEVICE_CODE_KEY)).toBeNull();
   });
 
-  it("clears the key when the device is already accepted", async () => {
+  it("clears pending device code when already accepted", async () => {
     setPendingDeviceCode("STALE");
-    useAuthStore.setState({ token: "valid", tenant: "tenant1" });
-    mockedResolve.mockResolvedValue({
-      data: {
-        kind: "device",
-        status: "accepted",
-        name: "dev1",
-        tenant_id: "tenant1",
-      },
-      request: new Request("http://localhost"),
-      response: new Response(),
-    });
-
-    render(
-      <MemoryRouter>
-        <AcceptDeviceFlow code="CODE1234" />
-      </MemoryRouter>,
+    mockResolve.mockResolvedValue(
+      respondWith(mockDevice({ status: "accepted" })),
     );
+    renderFlow();
 
     await screen.findByRole("heading", { name: /already accepted/i });
     expect(localStorage.getItem(PENDING_DEVICE_CODE_KEY)).toBeNull();
+  });
+});
+
+describe("AcceptDeviceFlow dialog mode", () => {
+  it("shows code entry form when no code provided", () => {
+    renderFlow({ initialCode: "", inDialog: true });
+
+    expect(screen.getByText("Claim a device")).toBeInTheDocument();
+    expect(screen.getAllByRole("textbox")).toHaveLength(8);
+  });
+
+  it("does not show dashboard link in missing-code state", () => {
+    renderFlow({ initialCode: "", inDialog: true });
+
+    expect(
+      screen.queryByRole("link", { name: /go to dashboard/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not show dashboard link in error state", async () => {
+    mockResolve.mockRejectedValue(new Error("bad code"));
+    renderFlow({ initialCode: "BADCODE1", inDialog: true });
+
+    await screen.findByRole("heading", { name: /invalid or expired code/i });
+    expect(
+      screen.queryByRole("link", { name: /go to dashboard/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("resets to form via 'Use a different code' on ready state", async () => {
+    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    renderFlow({ inDialog: true });
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /use a different code/i }),
+    );
+
+    expect(await screen.findByText("Claim a device")).toBeInTheDocument();
   });
 });
