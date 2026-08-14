@@ -21,7 +21,8 @@ import {
   WrenchIcon,
 } from "@heroicons/react/24/outline";
 import CopyButton from "../components/common/CopyButton";
-import PairingCodeDialog from "@/components/common/PairingCodeDialog";
+import BaseDialog from "@/components/common/BaseDialog";
+import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 import CreateInstallKeyDrawer from "@/pages/install-keys/CreateInstallKeyDrawer";
 import { isSystemKey } from "@/pages/install-keys/helpers";
 import { modeInfo } from "@/pages/install-keys/constants";
@@ -656,7 +657,15 @@ export default function AddDevice() {
         <ArrowTopRightOnSquareIcon className="w-3 h-3" strokeWidth={2} />
       </div>
 
-      <PairingCodeDialog open={pairOpen} onClose={() => setPairOpen(false)} />
+      <BaseDialog
+        open={pairOpen}
+        onClose={() => setPairOpen(false)}
+        size="md"
+        className="p-6"
+        aria-label="Claim a device"
+      >
+        <AcceptDeviceFlow inDialog />
+      </BaseDialog>
 
       {/* Create a key without leaving the page; on success it becomes the
           selected key and the command below fills in. */}

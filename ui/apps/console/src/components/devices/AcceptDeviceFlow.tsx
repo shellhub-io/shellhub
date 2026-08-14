@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   CpuChipIcon,
   CheckCircleIcon,
@@ -8,28 +8,32 @@ import {
   CommandLineIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
-import { isSdkError } from "@/api/errors";
+import { Button, Spinner } from "@shellhub/design-system/primitives";
+import type { ResolveDeviceLoginCodeResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
-import { clearPendingDeviceCode } from "@/utils/navigation";
+import {
+  clearPendingDeviceCode,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 import { isEnterpriseOrCloud } from "@/env";
 import {
   NamespaceCreateForm,
   CommunityInstructions,
 } from "@/components/common/CreateNamespace";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
+import {
+  useResolveDeviceCode,
+  useAcceptDevicePairing,
+} from "@/hooks/useDeviceCode";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioCard from "@/components/common/fields/RadioCard";
 import PairingCodeForm from "@/components/common/PairingCodeForm";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
 import { getInitials } from "@/utils/string";
 import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
 
-type DevicePreview = NonNullable<
-  Awaited<ReturnType<typeof resolveDeviceLoginCode>>["data"]
->;
+type DevicePreview = ResolveDeviceLoginCodeResponse;
 
 type Branch =
   | { kind: "loading" }
@@ -48,114 +52,75 @@ type Branch =
       namespace: string;
     };
 
-/**
- * The end-to-end accept flow for a device login/pairing code: resolve the code,
- * preview the device, pick a namespace (for pairing codes), and accept.
- *
- * `code` is owned by the caller — the /accept-device page reads it from the URL;
- * the pairing modal keeps it in state. Passing `onCodeChange` puts the flow in
- * embedded (modal) mode: the no-code state collects the code in place instead of
- * navigating, and "back"/"try again" reset the code instead of leaving the page.
- */
+const LINK_CLASS =
+  "text-xs text-text-muted hover:text-text-secondary transition-colors";
+
 export default function AcceptDeviceFlow({
-  code,
-  onCodeChange,
-}: {
-  code: string;
-  onCodeChange?: (code: string) => void;
+  initialCode = "",
+  inDialog = false,
 }) {
-  const navigate = useNavigate();
-  const authToken = useAuthStore((s) => s.token);
   const authTenant = useAuthStore((s) => s.tenant);
 
-  const embedded = onCodeChange !== undefined;
+  const [code, setCode] = useState(initialCode);
+  const {
+    device,
+    isLoading: isResolving,
+    isError,
+  } = useResolveDeviceCode(code);
 
   const acceptDevice = useAcceptDevice();
+  const acceptPairing = useAcceptDevicePairing();
   const switchNamespace = useSwitchNamespace();
 
-  const [branch, setBranch] = useState<Branch>({ kind: "loading" });
+  const [actionBranch, setActionBranch] = useState<Branch | null>(null);
   const [actionError, setActionError] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
-  const [accepting, setAccepting] = useState(false);
 
   const finish = (b: Branch) => {
     clearPendingDeviceCode();
-    setBranch(b);
+    setActionBranch(b);
   };
 
+  const branch: Branch = (() => {
+    if (actionBranch) return actionBranch;
+    if (!code) return { kind: "missing-code" };
+    if (isResolving) return { kind: "loading" };
+    if (isError) return { kind: "error" };
+    if (!device) return { kind: "loading" };
+    if (device.kind === "pairing") return { kind: "pick-namespace", device };
+    if (device.status === "accepted")
+      return { kind: "already-accepted", device };
+    if (device.tenant_id && device.tenant_id !== authTenant)
+      return { kind: "switching" };
+    return { kind: "ready", device };
+  })();
+
   useEffect(() => {
-    let cancelled = false;
-
-    async function resolve() {
-      if (!code) {
-        if (!cancelled) setBranch({ kind: "missing-code" });
-        return;
-      }
-
-      if (!authToken) {
-        // The modal is only shown to signed-in users; the page sends anonymous
-        // visitors through login and back.
-        if (!embedded) {
-          void navigate("/login");
-        }
-        return;
-      }
-
-      try {
-        const { data } = await resolveDeviceLoginCode({
-          path: { code },
-          throwOnError: true,
-        });
-        if (cancelled) return;
-
-        // A pairing code belongs to a tenant-less agent: the device does not
-        // exist yet and the user picks the namespace here.
-        if (data.kind === "pairing") {
-          setBranch({ kind: "pick-namespace", device: data });
-          return;
-        }
-
-        if (data.status === "accepted") {
-          finish({ kind: "already-accepted", device: data });
-          return;
-        }
-
-        // Accepting requires a session scoped to the device's namespace.
-        // useSwitchNamespace mints a namespace token and hard-navigates to the
-        // accept page, so the resolve re-runs with the right tenant.
-        if (data.tenant_id && data.tenant_id !== authTenant) {
-          setBranch({ kind: "switching" });
-          await switchNamespace.mutateAsync({
-            tenantId: data.tenant_id,
-            redirectTo: `/accept-device?code=${code}`,
-          });
-          return;
-        }
-
-        setBranch({ kind: "ready", device: data });
-      } catch (err) {
-        if (cancelled) return;
-        // A stale session token 401s here; send the user through login and back
-        // instead of mislabeling it as an expired code.
-        if (isSdkError(err) && err.status === 401 && !embedded) {
-          void navigate("/login");
-          return;
-        }
-        finish({ kind: "error" });
-      }
+    if (branch.kind === "error" || branch.kind === "already-accepted") {
+      clearPendingDeviceCode();
     }
+  }, [branch.kind]);
 
-    void resolve();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, authToken, authTenant]);
+  useEffect(() => {
+    if (
+      device?.tenant_id &&
+      device.tenant_id !== authTenant &&
+      !actionBranch &&
+      switchNamespace.isIdle
+    ) {
+      switchNamespace
+        .mutateAsync({
+          tenantId: device.tenant_id,
+          redirectTo: `/accept-device?code=${code}`,
+        })
+        .catch(() => finish({ kind: "error" }));
+    }
+  }, [device?.tenant_id, authTenant, code, actionBranch, switchNamespace]);
 
   const handleAccept = async (device: DevicePreview) => {
-    if (!device.uid) return;
     setActionError("");
     try {
+      if (!device.uid) return;
       await acceptDevice.mutateAsync({ path: { uid: device.uid } });
       finish({ kind: "success", device });
     } catch (err) {
@@ -166,12 +131,10 @@ export default function AcceptDeviceFlow({
   const handleAcceptPairing = async (device: DevicePreview) => {
     if (!selectedTenant) return;
     setActionError("");
-    setAccepting(true);
     try {
-      const { data } = await acceptDevicePairing({
+      const data = await acceptPairing.mutateAsync({
         path: { code },
         body: { tenant_id: selectedTenant },
-        throwOnError: true,
       });
       finish({
         kind: "pairing-success",
@@ -182,8 +145,6 @@ export default function AcceptDeviceFlow({
       });
     } catch (err) {
       setActionError(getAcceptDeviceErrorMessage(err));
-    } finally {
-      setAccepting(false);
     }
   };
 
@@ -196,7 +157,7 @@ export default function AcceptDeviceFlow({
       )}
 
       {branch.kind === "missing-code" && (
-        <div className="animate-fade-in">
+        <div className="motion-safe:animate-fade-in">
           <div className="text-center mb-6">
             <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center">
               <CommandLineIcon
@@ -213,14 +174,21 @@ export default function AcceptDeviceFlow({
             </p>
           </div>
 
-          <PairingCodeForm onSubmit={onCodeChange} submitLabel="Claim device" />
+          <PairingCodeForm
+            onSubmit={(c) => {
+              if (!inDialog) setPendingDeviceCode(c);
+              setCode(c);
+            }}
+            submitLabel="Claim device"
+          />
+          {!inDialog && <DashboardLink />}
         </div>
       )}
 
       {branch.kind === "error" && (
         <ResultMessage
           tone="error"
-          icon={<XCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
+          icon={XCircleIcon}
           title="Invalid or Expired Code"
           description={
             <>
@@ -229,24 +197,19 @@ export default function AcceptDeviceFlow({
             </>
           }
           action={
-            onCodeChange ? (
+            <div className="space-y-3">
               <Button
                 variant="secondary"
                 size="md"
-                onClick={() => onCodeChange("")}
+                onClick={() => {
+                  setActionBranch(null);
+                  setCode("");
+                }}
               >
                 Enter another code
               </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="md"
-                as={Link}
-                to="/accept-device"
-              >
-                Enter another code
-              </Button>
-            )
+              {!inDialog && <DashboardLink />}
+            </div>
           }
         />
       )}
@@ -254,7 +217,7 @@ export default function AcceptDeviceFlow({
       {branch.kind === "already-accepted" && (
         <ResultMessage
           tone="success"
-          icon={<CheckCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
+          icon={CheckCircleIcon}
           title="Device Already Accepted"
           description={
             <>
@@ -271,7 +234,7 @@ export default function AcceptDeviceFlow({
       {branch.kind === "success" && (
         <ResultMessage
           tone="success"
-          icon={<CheckCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
+          icon={CheckCircleIcon}
           title="Device Accepted"
           description={
             <>
@@ -291,146 +254,128 @@ export default function AcceptDeviceFlow({
 
       {branch.kind === "ready" && (
         <div className="text-center">
-          <Reveal delay={0}>
-            <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
-              <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl animate-pulse-subtle" />
-              <CpuChipIcon
-                className="relative w-8 h-8 text-primary"
-                strokeWidth={1.25}
-              />
+          <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
+            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl motion-safe:animate-pulse-subtle" />
+            <CpuChipIcon
+              className="relative w-8 h-8 text-primary"
+              strokeWidth={1.25}
+            />
+          </div>
+
+          <h2 className="text-lg font-semibold text-text-primary mb-2">
+            Accept this device?
+          </h2>
+          <p className="text-sm text-text-secondary leading-relaxed mb-6">
+            A device is asking to join{" "}
+            <span className="text-text-primary font-medium">
+              {branch.device.namespace}
+            </span>
+            . Review its identity before accepting.
+          </p>
+
+          <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
+            <SpecRow label="hostname" value={branch.device.name} />
+            <SpecRow label="os" value={branch.device.info?.pretty_name} />
+            <SpecRow label="mac" value={branch.device.identity?.mac} />
+            <SpecRow label="namespace" value={branch.device.namespace} />
+            <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+              <dt className="font-mono text-2xs uppercase tracking-wider text-text-muted">
+                status
+              </dt>
+              <dd>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-yellow/10 border border-accent-yellow/20 px-2.5 py-0.5 font-mono text-2xs text-accent-yellow">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow motion-safe:animate-pulse-subtle" />
+                  pending
+                </span>
+              </dd>
             </div>
-          </Reveal>
-
-          <Reveal delay={60}>
-            <h2 className="text-lg font-semibold text-text-primary mb-2">
-              Accept this device?
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed mb-6">
-              A device is asking to join{" "}
-              <span className="text-text-primary font-medium">
-                {branch.device.namespace}
-              </span>
-              . Review its identity before accepting.
-            </p>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
-              <SpecRow label="hostname" value={branch.device.name} />
-              <SpecRow label="os" value={branch.device.info?.pretty_name} />
-              <SpecRow label="mac" value={branch.device.identity?.mac} />
-              <SpecRow label="namespace" value={branch.device.namespace} />
-              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
-                <dt className="font-mono text-2xs uppercase tracking-wider text-text-muted">
-                  status
-                </dt>
-                <dd>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-yellow/10 border border-accent-yellow/20 px-2.5 py-0.5 font-mono text-2xs text-accent-yellow">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-yellow animate-pulse-subtle" />
-                    pending
-                  </span>
-                </dd>
-              </div>
-            </dl>
-          </Reveal>
+          </dl>
 
           {actionError && (
             <p
-              className="text-sm text-accent-red mb-4 animate-shake"
+              className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
               role="alert"
             >
               {actionError}
             </p>
           )}
 
-          <Reveal delay={180}>
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              loading={acceptDevice.isPending}
-              icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-              onClick={() => void handleAccept(branch.device)}
-            >
-              Accept device
-            </Button>
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            loading={acceptDevice.isPending}
+            icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+            onClick={() => void handleAccept(branch.device)}
+          >
+            Accept device
+          </Button>
 
-            <CancelRow onReset={onCodeChange} />
-          </Reveal>
+          <CancelRow inDialog={inDialog} onReset={() => setCode("")} />
         </div>
       )}
 
       {branch.kind === "pick-namespace" && (
         <div className="text-center">
-          <Reveal delay={0}>
-            <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
-              <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl animate-pulse-subtle" />
-              <CpuChipIcon
-                className="relative w-8 h-8 text-primary"
-                strokeWidth={1.25}
-              />
-            </div>
-          </Reveal>
+          <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-5">
+            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl motion-safe:animate-pulse-subtle" />
+            <CpuChipIcon
+              className="relative w-8 h-8 text-primary"
+              strokeWidth={1.25}
+            />
+          </div>
 
-          <Reveal delay={60}>
-            <h2 className="text-lg font-semibold text-text-primary mb-2">
-              Accept this device?
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed mb-6">
-              A device is asking to join one of your namespaces. Review its
-              identity and choose where it belongs.
-            </p>
-          </Reveal>
+          <h2 className="text-lg font-semibold text-text-primary mb-2">
+            Accept this device?
+          </h2>
+          <p className="text-sm text-text-secondary leading-relaxed mb-6">
+            A device is asking to join one of your namespaces. Review its
+            identity and choose where it belongs.
+          </p>
 
-          <Reveal delay={120}>
-            <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
-              <SpecRow label="hostname" value={branch.device.name} />
-              <SpecRow label="os" value={branch.device.info?.pretty_name} />
-              <SpecRow label="mac" value={branch.device.identity?.mac} />
-            </dl>
-          </Reveal>
+          <dl className="text-left text-sm bg-surface/60 border border-border rounded-xl divide-y divide-border/70 overflow-hidden mb-6">
+            <SpecRow label="hostname" value={branch.device.name} />
+            <SpecRow label="os" value={branch.device.info?.pretty_name} />
+            <SpecRow label="mac" value={branch.device.identity?.mac} />
+          </dl>
 
-          <Reveal delay={180}>
-            <div className="text-left mb-6">
-              <NamespacePicker
-                value={selectedTenant}
-                onChange={setSelectedTenant}
-                preferredTenant={authTenant ?? ""}
-              />
-            </div>
-          </Reveal>
+          <div className="text-left mb-6">
+            <NamespacePicker
+              value={selectedTenant}
+              onChange={setSelectedTenant}
+              preferredTenant={authTenant ?? ""}
+            />
+          </div>
 
           {actionError && (
             <p
-              className="text-sm text-accent-red mb-4 animate-shake"
+              className="text-sm text-accent-red mb-4 motion-safe:animate-shake"
               role="alert"
             >
               {actionError}
             </p>
           )}
 
-          <Reveal delay={240}>
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              loading={accepting}
-              disabled={!selectedTenant}
-              icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-              onClick={() => void handleAcceptPairing(branch.device)}
-            >
-              Accept device
-            </Button>
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            loading={acceptPairing.isPending}
+            disabled={!selectedTenant}
+            icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+            onClick={() => void handleAcceptPairing(branch.device)}
+          >
+            Accept device
+          </Button>
 
-            <CancelRow onReset={onCodeChange} />
-          </Reveal>
+          <CancelRow inDialog={inDialog} onReset={() => setCode("")} />
         </div>
       )}
 
       {branch.kind === "pairing-success" && (
         <ResultMessage
           tone="success"
-          icon={<CheckCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
+          icon={CheckCircleIcon}
           title="Device Accepted"
           description={
             <>
@@ -470,33 +415,34 @@ export default function AcceptDeviceFlow({
   );
 }
 
-/** Cancel affordance for the ready/pick states: reset to code entry when
- * embedded (modal), otherwise leave to the dashboard. */
-function CancelRow({ onReset }: { onReset?: (code: string) => void }) {
+function DashboardLink() {
+  return (
+    <Link to="/dashboard" className={LINK_CLASS}>
+      Go to dashboard
+    </Link>
+  );
+}
+
+function CancelRow({
+  inDialog,
+  onReset,
+}: {
+  inDialog: boolean;
+  onReset: () => void;
+}) {
   return (
     <div className="text-center mt-4">
-      {onReset ? (
-        <button
-          type="button"
-          onClick={() => onReset("")}
-          className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
-        >
+      {inDialog ? (
+        <button type="button" onClick={onReset} className={LINK_CLASS}>
           Use a different code
         </button>
       ) : (
-        <Link
-          to="/dashboard"
-          className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
-        >
-          Cancel
-        </Link>
+        <DashboardLink />
       )}
     </div>
   );
 }
 
-/** Namespace selector for pairing codes: the device has no namespace yet, so
- * the user picks one of theirs. Preselects the session's namespace. */
 function NamespacePicker({
   value,
   onChange,
@@ -554,24 +500,6 @@ function NamespacePicker({
         />
       ))}
     </RadioGroupField>
-  );
-}
-
-/** Staggered slide-up reveal for the ready-state composition. */
-function Reveal({
-  delay,
-  children,
-}: {
-  delay: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="animate-slide-up [animation-fill-mode:backwards]"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
   );
 }
 
@@ -639,26 +567,26 @@ const TONES = {
 
 function ResultMessage({
   tone,
-  icon,
+  icon: Icon,
   title,
   description,
   action,
 }: {
   tone: keyof typeof TONES;
-  icon: React.ReactNode;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   title: string;
   description: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="text-center animate-slide-up">
+    <div className="text-center motion-safe:animate-slide-up">
       <div
         className={cn(
           "inline-flex items-center justify-center w-14 h-14 rounded-2xl border mb-5",
           TONES[tone].ring,
         )}
       >
-        <span className={TONES[tone].icon}>{icon}</span>
+        <Icon className={cn("w-7 h-7", TONES[tone].icon)} strokeWidth={1.5} />
       </div>
       <h2 className="text-lg font-semibold text-text-primary mb-3">{title}</h2>
       <p className="text-sm text-text-secondary leading-relaxed mb-6">
