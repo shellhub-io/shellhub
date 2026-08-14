@@ -37,8 +37,13 @@ func (rw *capture) WriteHeader(statusCode int) {
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
-// Unwrap lets http.ResponseController reach the underlying writer, which is how
-// echo resolves Hijack and Flush. Without it the SSH WebSocket routes fail here.
+// Unwrap lets http.ResponseController reach the underlying writer, which is how echo resolves
+// Hijack and Flush.
+//
+// It is not enough for the WebSocket routes: both libraries in use assert http.Hijacker on the
+// writer directly and never consult Unwrap, and capture cannot satisfy it because embedding the
+// http.ResponseWriter interface promotes only its three methods. Those routes are excluded from
+// validation instead - see openAPIValidationSkipper in the server package.
 func (rw *capture) Unwrap() http.ResponseWriter {
 	return rw.ResponseWriter
 }

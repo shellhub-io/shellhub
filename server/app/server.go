@@ -432,6 +432,40 @@ func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c 
 	return nil, nil
 }
 
+// openAPIValidationSkipper reports whether a request's response must not be captured for
+// OpenAPI validation.
+//
+// Metrics and internal endpoints are exempt only for now: the schema does not describe them
+// today, and nothing stops them being brought in later.
+//
+// The upgrade routes are exempt permanently. They hijack the connection, so past the handshake
+// there is no HTTP response left to validate, and the validator's response wrapper hides
+// http.Hijacker from the WebSocket libraries. Both assert that interface directly, so wrapping
+// fails every agent tunnel and every web terminal - and with no tunnel there is no heartbeat,
+// so the whole fleet then ages out to offline.
+//
+// They match exactly rather than by prefix: WebSessionRoute sits under WebsocketSSHBridgeRoute
+// and does answer with a JSON body worth validating.
+func openAPIValidationSkipper(ctx *echo.Context) bool {
+	path := ctx.Request().URL.Path
+
+	switch path {
+	case sshhttp.HandleConnectionV1Path,
+		sshhttp.HandleConnectionV2Path,
+		sshhttp.HandleRevdialPath,
+		web.WebsocketSSHBridgeRoute:
+		return true
+	}
+
+	for _, prefix := range []string{"/metrics", "/internal"} {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // routerOptions returns configuration options for the HTTP router.
 func (s *Server) routerOptions() ([]routes.Option, error) {
 	opts := []routes.Option{}
@@ -466,18 +500,7 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		log.Info("Enabling OpenAPI validation in development mode")
 
 		opts = append(opts, routes.WithOpenAPIValidator(&middleware.OpenAPIValidatorConfig{
-			// NOTE: By default, metrics and internal endpoints are skipped from validation for now.
-			Skipper: func(ctx *echo.Context) bool {
-				routes := []string{"/metrics", "/internal"}
-
-				for _, path := range routes {
-					if strings.HasPrefix(ctx.Request().URL.Path, path) {
-						return true
-					}
-				}
-
-				return false
-			},
+			Skipper: openAPIValidationSkipper,
 		}))
 	}
 
