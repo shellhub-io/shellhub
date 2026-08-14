@@ -2,7 +2,7 @@
 # Default build: production multiarch
 # Development: use --target development
 
-ARG GOLANG_VERSION=1.25.12
+ARG GOLANG_VERSION=1.25.13
 ARG ALPINE_VERSION=3.24
 
 # Base stage for both development and production

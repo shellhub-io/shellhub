@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/gateway
 
-go 1.25.12
+go 1.25.13
 
 require (
 	github.com/caddy-dns/acmedns v0.7.0
