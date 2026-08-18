@@ -97,8 +97,8 @@ describe("AdminDeviceDetails", () => {
       vi.mocked(useAdminDevice).mockReturnValue({
         data: undefined,
         isLoading: false,
-        error: new Error("404 Not Found"),
-      } as ReturnType<typeof useAdminDevice>);
+        error: { message: "device not found" },
+      } as unknown as ReturnType<typeof useAdminDevice>);
 
       renderPage();
       expect(screen.getByText("Device not found")).toBeInTheDocument();

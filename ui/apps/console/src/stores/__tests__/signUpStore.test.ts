@@ -91,8 +91,10 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpTenant).toBeNull();
     });
 
-    it("sets signUpServerFields on 400/409 with field array and returns null", async () => {
-      mockedRegisterUser.mockRejectedValue(createSdkError(400, ["username", "email"]));
+    it("sets signUpServerFields on a 400 carrying per-field detail and returns null", async () => {
+      mockedRegisterUser.mockRejectedValue(
+        createSdkError(400, { message: "user invalid", fields: { username: "required", email: "invalid" } }),
+      );
 
       const result = await useSignUpStore.getState().signUp({
         name: "Test", email: "t@t.com", username: "test", password: "pass1", email_marketing: false,
@@ -104,8 +106,10 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpError).toBeNull();
     });
 
-    it("sets signUpServerFields on 409 with field array and returns null", async () => {
-      mockedRegisterUser.mockRejectedValue(createSdkError(409, ["username"]));
+    it("sets signUpServerFields on a 409 carrying per-field detail and returns null", async () => {
+      mockedRegisterUser.mockRejectedValue(
+        createSdkError(409, { message: "user duplicated", fields: { username: "duplicated" } }),
+      );
 
       const result = await useSignUpStore.getState().signUp({
         name: "Test", email: "t@t.com", username: "test", password: "pass1", email_marketing: false,
@@ -116,7 +120,7 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpError).toBeNull();
     });
 
-    it("falls through to generic error when 400 body is not an array", async () => {
+    it("falls through to the status message when the 400 body carries no fields", async () => {
       mockedRegisterUser.mockRejectedValue(createSdkError(400, { message: "validation error" }));
 
       const result = await useSignUpStore.getState().signUp({
@@ -125,7 +129,7 @@ describe("signUpStore", () => {
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
-      expect(useSignUpStore.getState().signUpError).toBe("An error occurred. Please try again.");
+      expect(useSignUpStore.getState().signUpError).toBe("Some values are invalid. Review the form and try again.");
     });
 
     it("sets signUpError on non-field errors and returns null", async () => {
@@ -137,7 +141,7 @@ describe("signUpStore", () => {
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
-      expect(useSignUpStore.getState().signUpError).toBe("An error occurred. Please try again.");
+      expect(useSignUpStore.getState().signUpError).toBe("Something went wrong. Please try again.");
       expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
     });
 

@@ -131,6 +131,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 import React from "react";
 import { useContainers } from "@/hooks/useContainers";
 import Containers from "../index";
+import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -257,10 +258,10 @@ describe("Containers list", () => {
     it("renders an error message when hook returns an error", () => {
       vi.mocked(useContainers).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

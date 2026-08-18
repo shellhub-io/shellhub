@@ -267,16 +267,17 @@ describe("SignUp", () => {
   /* ---------------------------------------------------------------- */
   describe("server field errors", () => {
     /**
-     * Simulate a 400 server response with field errors, matching the shape
-     * that isSdkError accepts: an error with numeric `status` that is also
-     * Array-like (the store checks `Array.isArray(error)`).
+     * Simulate a server error response carrying per-field detail: the parsed body with the
+     * numeric `status` the fetch error interceptor attaches.
      */
     function makeServerFieldError(fields: string[], status = 400) {
-      // The store does: isSdkError(error) && Array.isArray(error)
-      // isSdkError checks for numeric `status` on the object
-      // Array.isArray requires the value to actually be an array
-      const err = Object.assign([...fields], { status }) as unknown as Error;
-      return err;
+      const body = {
+        message: "user invalid",
+        fields: Object.fromEntries(fields.map((field) => [field, "invalid"])),
+        status,
+      };
+
+      return body as unknown as Error;
     }
 
     it("shows server-side username error on the username field and disables submit", async () => {

@@ -14,6 +14,7 @@ import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
 import { Badge, Callout } from "@shellhub/design-system/primitives";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 
@@ -147,7 +148,7 @@ export default function AdminFirewallRules() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 

@@ -19,6 +19,7 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 
@@ -126,7 +127,7 @@ export default function AdminAnnouncements() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 
