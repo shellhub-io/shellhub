@@ -18,8 +18,8 @@ import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import { Callout, IconButton } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
-const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type AdminNamespacesParams = {
@@ -51,7 +51,7 @@ export default function AdminNamespaces() {
     search: debouncedSearch,
   });
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<Namespace>[] = [
     {

@@ -4,14 +4,14 @@ import {
   getDevicesMostUsedOptions,
 } from "../client/@tanstack/react-query.gen";
 import { useInvalidateByIds } from "./useInvalidateQueries";
-import { normalizeDevice, type NormalizedDevice } from "./useDevices";
+import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
 
 export function useSuggestedDevices(enabled = true) {
   const result = useQuery({
     ...getDevicesMostUsedOptions(),
     enabled,
   });
-  const devices: NormalizedDevice[] = (result.data ?? []).map(normalizeDevice);
+  const devices: TaggedDevice[] = (result.data ?? []).map(normalizeDeviceTags);
   return {
     devices,
     isLoading: result.isLoading,

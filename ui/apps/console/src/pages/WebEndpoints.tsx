@@ -45,6 +45,7 @@ import {
   Toggle,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { pageCount } from "@/utils/pagination";
 
 /* ─── Constants ─── */
 
@@ -862,7 +863,7 @@ function WebEndpointsContent() {
     setDrawerOpen(false);
   };
 
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = pageCount(totalCount);
   const isSearching = debouncedSearch.length > 0;
   const isTrulyEmpty = !isLoading && !isSearching && totalCount === 0;
   const isNoResults = !isLoading && isSearching && totalCount === 0;

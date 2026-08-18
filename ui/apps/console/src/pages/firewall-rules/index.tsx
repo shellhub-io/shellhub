@@ -23,8 +23,7 @@ import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import RuleDrawer from "./RuleDrawer";
-
-const PER_PAGE = 10;
+import { pageCount } from "@/utils/pagination";
 
 type FirewallRulesParams = {
   page: number;
@@ -84,7 +83,7 @@ export default function FirewallRules() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const filtered = params.search
     ? rules.filter(

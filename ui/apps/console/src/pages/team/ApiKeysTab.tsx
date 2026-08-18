@@ -19,8 +19,7 @@ import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyDrawer from "./GenerateKeyDrawer";
 import EditKeyDrawer from "./EditKeyDrawer";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-
-const PER_PAGE = 10;
+import { pageCount } from "@/utils/pagination";
 
 type SortField = "name" | "created_at" | "expires_in";
 
@@ -71,7 +70,7 @@ function ApiKeysTab() {
     }
   };
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<ApiKey>[] = [
     {

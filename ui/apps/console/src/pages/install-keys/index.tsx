@@ -12,8 +12,7 @@ import EditInstallKeyDrawer from "./EditInstallKeyDrawer";
 import RevokeInstallKeyDialog from "./RevokeInstallKeyDialog";
 import { isSystemKey } from "./helpers";
 import { useToggleInstallKey } from "./useToggleInstallKey";
-
-const PER_PAGE = 10;
+import { pageCount } from "@/utils/pagination";
 
 type InstallKeyListParams = {
   page: number;
@@ -29,7 +28,7 @@ export default function InstallKeys() {
   const page = params.page;
   const { installKeys, totalCount, isLoading } = useInstallKeys({ page });
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<InstallKey | null>(null);

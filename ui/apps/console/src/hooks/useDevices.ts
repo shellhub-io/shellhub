@@ -9,10 +9,9 @@ import { getDevicesQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import type { Device as GeneratedDevice } from "../client";
 import { toBase64Json } from "@/utils/encoding";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 
-export type NormalizedDevice = Omit<GeneratedDevice, "tags"> & {
-  tags: string[];
-};
+export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
 
 export function buildFilter(search: string, tags: string[]): string {
   const filters: Record<string, unknown>[] = [];
@@ -37,19 +36,6 @@ export function buildFilter(search: string, tags: string[]): string {
     });
   }
   return toBase64Json(filters);
-}
-
-export function normalizeDevice(device: GeneratedDevice): NormalizedDevice {
-  return {
-    ...device,
-    tags: Array.isArray(device.tags)
-      ? device.tags.map((t) =>
-          typeof t === "object" && t !== null && "name" in t
-            ? t.name
-            : String(t),
-        )
-      : [],
-  };
 }
 
 interface UseDevicesParams {
@@ -89,7 +75,7 @@ export function useDevices({
   });
 
   const devices = useMemo(
-    () => result.data?.data.map(normalizeDevice) ?? [],
+    () => result.data?.data.map(normalizeDeviceTags) ?? [],
     [result.data],
   );
 

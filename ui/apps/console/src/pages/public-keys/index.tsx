@@ -27,8 +27,7 @@ import {
 import { PublicKeyResponse as PublicKey } from "@/client";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-
-const PER_PAGE = 10;
+import { pageCount } from "@/utils/pagination";
 
 /* ── scope cell ──────────────────────────────────── */
 
@@ -156,7 +155,7 @@ export default function PublicKeys() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<PublicKey>[] = [
     {

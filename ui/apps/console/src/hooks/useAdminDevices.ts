@@ -14,20 +14,9 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 import { toBase64Json } from "@/utils/encoding";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 
-export type NormalizedDevice = Omit<Device, "tags"> & { tags: string[] };
-
-function normalizeDevice(device: Device): NormalizedDevice {
-  return {
-    ...device,
-    tags: Array.isArray(device.tags)
-      ? device.tags.map((t) => {
-          if (typeof t === "object" && t !== null && "name" in t) return t.name;
-          return String(t);
-        })
-      : [],
-  };
-}
+export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
 
 function buildNameFilter(search: string): string {
   const filter = [
@@ -79,7 +68,7 @@ export function useAdminDevices({
   });
 
   const devices = useMemo(
-    () => result.data?.data.map(normalizeDevice) ?? [],
+    () => result.data?.data.map(normalizeDeviceTags) ?? [],
     [result.data],
   );
 
@@ -102,6 +91,6 @@ export function useAdminDevice(uid: string) {
     retry: (count, err) =>
       isSdkError(err) && err.status === 401 ? false : count < 1,
     refetchOnWindowFocus: false,
-    select: normalizeDevice,
+    select: normalizeDeviceTags,
   });
 }

@@ -30,8 +30,9 @@ import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { pageCount } from "@/utils/pagination";
 
-const PER_PAGE = 5;
+const DEVICES_PER_PAGE = 5;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type TabId = "suggested" | "all";
@@ -97,7 +98,7 @@ export default function DeviceChooserDialog({
     isLoading: allLoading,
   } = useDevices({
     page,
-    perPage: PER_PAGE,
+    perPage: DEVICES_PER_PAGE,
     status: "accepted",
     search: debouncedSearch,
     enabled: tab === "all",
@@ -105,7 +106,7 @@ export default function DeviceChooserDialog({
     orderBy,
   });
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
+  const totalPages = Math.max(1, pageCount(totalCount, DEVICES_PER_PAGE));
 
   const toggleSelected = (device: NormalizedDevice) => {
     if (userTab === null) setUserTab("all");

@@ -20,8 +20,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { apiErrorMessage } from "@/api/errors";
-
-const PER_PAGE = 10;
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
 type AdminAnnouncementsParams = {
   page: number;
@@ -45,7 +44,7 @@ export default function AdminAnnouncements() {
     },
   );
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<AnnouncementShort>[] = [
     {
