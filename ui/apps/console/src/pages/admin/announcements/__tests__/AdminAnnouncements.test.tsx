@@ -45,6 +45,7 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
 
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import AdminAnnouncements from "../index";
+import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -356,7 +357,7 @@ describe("AdminAnnouncements", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminAnnouncements).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -365,10 +366,10 @@ describe("AdminAnnouncements", () => {
     it("renders the error message text", () => {
       vi.mocked(useAdminAnnouncements).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

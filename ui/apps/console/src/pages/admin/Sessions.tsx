@@ -14,6 +14,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import { formatDateFull } from "@/utils/date";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 
@@ -157,7 +158,7 @@ export default function AdminSessions() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 

@@ -21,6 +21,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import { useAdminDevices } from "@/hooks/useAdminDevices";
 import AdminDevices from "../index";
+import { sdkError } from "@/tests/sdkError";
 
 const defaultHookState = {
   devices: [] as NormalizedDevice[],
@@ -162,11 +163,11 @@ describe("AdminDevices", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminDevices).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

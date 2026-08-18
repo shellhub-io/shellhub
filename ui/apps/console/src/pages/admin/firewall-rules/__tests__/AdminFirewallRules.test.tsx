@@ -36,6 +36,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import AdminFirewallRules from "../index";
 import { FirewallRulesResponse } from "@/client";
+import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -246,11 +247,11 @@ describe("AdminFirewallRules", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminFirewallRules).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

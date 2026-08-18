@@ -53,6 +53,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import AdminUsers from "../index";
+import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -169,11 +170,11 @@ describe("AdminUsers", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminUsers).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

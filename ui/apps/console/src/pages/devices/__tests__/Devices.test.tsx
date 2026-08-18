@@ -138,6 +138,7 @@ import React from "react";
 import { useDevices } from "@/hooks/useDevices";
 import { useDeviceActions } from "@/hooks/useDeviceActions";
 import Devices from "../index";
+import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -278,10 +279,10 @@ describe("Devices list", () => {
     it("renders an error message when hook returns an error", () => {
       vi.mocked(useDevices).mockReturnValue({
         ...defaultHookState,
-        error: new Error("Request failed"),
+        error: sdkError(500),
       });
       renderPage();
-      expect(screen.getByText("Request failed")).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
     });
   });
 

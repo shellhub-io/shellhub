@@ -17,6 +17,7 @@ import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import { Callout, IconButton } from "@shellhub/design-system/primitives";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -148,7 +149,7 @@ export default function AdminNamespaces() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 

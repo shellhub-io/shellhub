@@ -20,6 +20,7 @@ vi.mock("@/hooks/useAdminSessionsList", () => ({
 
 import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
 import AdminSessions from "../Sessions";
+import { sdkError } from "@/tests/sdkError";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -107,16 +108,16 @@ describe("AdminSessions", () => {
 
   describe("error state", () => {
     it("renders the error banner with role='alert'", () => {
-      setupHook({ error: new Error("Server error. Please try again later.") });
+      setupHook({ error: sdkError(500) });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
-    it("displays the error message in the banner", () => {
-      setupHook({ error: new Error("You don't have permission to view sessions.") });
+    it("displays the console's own copy for the status in the banner", () => {
+      setupHook({ error: sdkError(403) });
       renderPage();
       expect(screen.getByRole("alert")).toHaveTextContent(
-        "You don't have permission to view sessions.",
+        "You do not have permission to do this.",
       );
     });
 

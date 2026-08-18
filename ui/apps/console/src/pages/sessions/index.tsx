@@ -29,6 +29,7 @@ import {
   Spinner,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 
@@ -329,7 +330,7 @@ export default function Sessions() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 

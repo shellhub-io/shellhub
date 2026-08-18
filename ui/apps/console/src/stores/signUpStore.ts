@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { isSdkError } from "../api/errors";
+import { apiErrorFields, apiErrorMessage, isSdkError } from "../api/errors";
 import {
   registerUser,
   resendEmail as resendEmailSdk,
@@ -66,15 +66,15 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       });
       return response.token ?? null;
     } catch (error: unknown) {
-      if (isSdkError(error) && (error.status === 400 || error.status === 409) && Array.isArray(error)) {
-        const fields = (error as unknown[]).filter((f): f is string => typeof f === "string");
+      const fields = Object.keys(apiErrorFields(error));
+      if (fields.length > 0) {
         set({ signUpLoading: false, signUpServerFields: fields });
         return null;
       }
       if (import.meta.env.DEV && isSdkError(error)) {
         console.warn("Unhandled sign-up error response:", { status: error.status });
       }
-      set({ signUpLoading: false, signUpError: "An error occurred. Please try again." });
+      set({ signUpLoading: false, signUpError: apiErrorMessage(error) });
       return null;
     }
   },

@@ -17,6 +17,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatRelative } from "@/utils/date";
+import { apiErrorMessage } from "@/api/errors";
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -233,7 +234,7 @@ export default function AdminDevices() {
 
       {error && (
         <Callout variant="error" className="mb-4">
-          {error.message}
+          {apiErrorMessage(error)}
         </Callout>
       )}
 
