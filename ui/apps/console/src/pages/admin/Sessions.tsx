@@ -15,8 +15,7 @@ import DeviceChip from "@/components/common/DeviceChip";
 import { formatDateFull } from "@/utils/date";
 import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { apiErrorMessage } from "@/api/errors";
-
-const PER_PAGE = 10;
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
 type AdminSessionsParams = {
   page: number;
@@ -34,7 +33,7 @@ export default function AdminSessions() {
   });
   const navigate = useNavigate();
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<Session>[] = [
     {

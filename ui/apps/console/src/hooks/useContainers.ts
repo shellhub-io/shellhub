@@ -8,8 +8,9 @@ import type { Device, DeviceStatus } from "../client";
 import { getContainersQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { toBase64Json } from "@/utils/encoding";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 
-export type NormalizedContainer = Omit<Device, "tags"> & { tags: string[] };
+export type { TaggedDevice as NormalizedContainer } from "@/utils/deviceTags";
 
 function buildFilter(search: string, tags: string[]): string {
   const filters: Record<string, unknown>[] = [];
@@ -26,19 +27,6 @@ function buildFilter(search: string, tags: string[]): string {
     });
   }
   return toBase64Json(filters);
-}
-
-export function normalizeContainer(container: Device): NormalizedContainer {
-  return {
-    ...container,
-    tags: Array.isArray(container.tags)
-      ? container.tags.map((t) =>
-          typeof t === "object" && t !== null && "name" in t
-            ? t.name
-            : String(t),
-        )
-      : [],
-  };
 }
 
 interface UseContainersParams {
@@ -75,7 +63,7 @@ export function useContainers({
   });
 
   const containers = useMemo(
-    () => result.data?.data.map(normalizeContainer) ?? [],
+    () => result.data?.data.map(normalizeDeviceTags) ?? [],
     [result.data],
   );
 

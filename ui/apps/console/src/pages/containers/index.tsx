@@ -39,8 +39,8 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { apiErrorMessage } from "@/api/errors";
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
-const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 const VALID_STATUSES = ["accepted", "pending", "rejected"] as const;
@@ -121,7 +121,7 @@ export default function Containers() {
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
 
   const handleStatusChange = (newStatus: ValidStatus) => {

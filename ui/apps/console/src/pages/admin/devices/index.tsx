@@ -18,8 +18,8 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import DeviceStatusChip from "./DeviceStatusChip";
 import { formatRelative } from "@/utils/date";
 import { apiErrorMessage } from "@/api/errors";
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
-const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type StatusTab = { label: string; value: DeviceStatus | "" };
@@ -110,7 +110,7 @@ export default function AdminDevices() {
     orderBy: params.sortOrder,
   });
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<NormalizedDevice>[] = [
     {

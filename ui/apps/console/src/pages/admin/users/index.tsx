@@ -29,8 +29,8 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
-const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 type AdminUsersParams = {
@@ -70,7 +70,7 @@ export default function AdminUsers() {
     search: debouncedSearch,
   });
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<UserAdminResponse>[] = [
     {

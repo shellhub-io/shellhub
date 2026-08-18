@@ -30,8 +30,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
-
-const PER_PAGE = 10;
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
 const PLAY_BTN =
   "inline-flex items-center gap-1.5 px-2.5 py-1.5 text-2xs font-semibold text-white bg-primary rounded-md hover:bg-primary-600 transition-colors disabled:opacity-dim disabled:cursor-not-allowed disabled:hover:bg-primary";
@@ -110,7 +109,7 @@ export default function Sessions() {
     [recordings],
   );
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   // Play routing: prefer a local recording (inline read), fall back to the
   // server recording, and on Community pitch the paid feature when a shell

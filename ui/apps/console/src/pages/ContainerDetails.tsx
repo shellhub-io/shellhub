@@ -14,7 +14,7 @@ import {
   useAddContainerTag,
   useRemoveContainerTag,
 } from "../hooks/useContainerMutations";
-import { normalizeContainer } from "../hooks/useContainers";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
@@ -101,7 +101,7 @@ export default function ContainerDetails() {
   const nsName = currentNamespace?.name ?? "";
   const sshid = nsName ? buildSshid(nsName, container.name) : container.uid;
 
-  const tags = normalizeContainer(container).tags;
+  const tags = normalizeDeviceTags(container).tags;
 
   const statusColor =
     container.status === "accepted"

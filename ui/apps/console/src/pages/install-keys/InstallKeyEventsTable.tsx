@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useInstallKeyEvents } from "@/hooks/useInstallKeyEvents";
 import DataTable from "@/components/common/DataTable";
 import { installKeyEventColumns } from "./installKeyEventColumns";
+import { pageCount } from "@/utils/pagination";
 
 const EMPTY_MESSAGE =
   "No registrations yet. Devices that register with this key will appear here.";
@@ -61,7 +62,7 @@ export default function InstallKeyEventsTable({
           ? {}
           : {
               page,
-              totalPages: Math.ceil(totalCount / perPage),
+              totalPages: pageCount(totalCount, perPage),
               totalCount,
               itemLabel: "registration",
               onPageChange: setPage,

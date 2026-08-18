@@ -15,8 +15,7 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { type FirewallRulesResponse as FirewallRule } from "@/client";
 import { Badge, Callout } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
-
-const PER_PAGE = 10;
+import { PER_PAGE, pageCount } from "@/utils/pagination";
 
 type AdminFirewallRulesParams = {
   page: number;
@@ -50,7 +49,7 @@ export default function AdminFirewallRules() {
     );
   }, [rules, params.search]);
 
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
+  const totalPages = pageCount(totalCount);
 
   const columns: Column<FirewallRule>[] = [
     {
