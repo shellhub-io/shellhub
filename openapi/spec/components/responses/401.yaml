@@ -2,10 +2,6 @@ description: Unauthorized
 content:
   application/json:
     schema:
-      type: object
-      properties:
-        message:
-          description: Error message
-          type: string
+      $ref: ../schemas/apiError.yaml
     example:
       message: missing or malformed jwt or API token

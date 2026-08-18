@@ -1,0 +1,14 @@
+type: object
+required:
+  - message
+properties:
+  message:
+    description: A human-readable description of what failed.
+    type: string
+  fields:
+    description: |
+      The request field(s) the error concerns, mapped to the reason each was rejected. Present only
+      when the error carries per-field detail.
+    type: object
+    additionalProperties:
+      type: string

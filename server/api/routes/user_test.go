@@ -86,7 +86,7 @@ func TestUpdateUser(t *testing.T) {
 							RecoveryEmail: "john.doe@test.com",
 						},
 					).
-					Return(nil, svc.ErrUserNotFound).
+					Return(svc.ErrUserNotFound).
 					Once()
 			},
 			expected: Expected{http.StatusNotFound},
@@ -116,7 +116,7 @@ func TestUpdateUser(t *testing.T) {
 							RecoveryEmail: "john.doe@test.com",
 						},
 					).
-					Return(nil, nil).
+					Return(nil).
 					Once()
 			},
 			expected: Expected{http.StatusOK},

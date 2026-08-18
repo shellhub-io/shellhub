@@ -30,8 +30,9 @@ type TagsService interface {
 	// Tags can share the same attributes (e.g. name) if they belong to different tenants.
 	// For example, tenant1 and tenant2 can each have a tag named "production".
 	//
-	// It returns the insertedID, an array of conflicting field names, e.g. `["name"]` and an error if any.
-	CreateTag(ctx context.Context, req *requests.CreateTag) (insertedID string, conflicts []string, err error)
+	// It returns the insertedID and an error if any. A name already taken yields
+	// [ErrDuplicateTagName], carrying the conflicting field name(s).
+	CreateTag(ctx context.Context, req *requests.CreateTag) (insertedID string, err error)
 
 	// PushTagTo adds an existing tag in a namespace to a target document (e.g. Device, PublicKey, FirewallRule).
 	//
@@ -52,8 +53,9 @@ type TagsService interface {
 
 	// UpdateTag updates a tag with the specified name in the specified namespace.
 	//
-	// It returns an array of conflicting field names, e.g. `["name"]` and an error if any.
-	UpdateTag(ctx context.Context, req *requests.UpdateTag) (conflicts []string, err error)
+	// It returns an error if any. A name already taken yields [ErrDuplicateTagName], carrying the
+	// conflicting field name(s).
+	UpdateTag(ctx context.Context, req *requests.UpdateTag) (err error)
 
 	// DeleteTag deletes a tag with the specified name in the specified namespace.
 	//
@@ -61,26 +63,30 @@ type TagsService interface {
 	DeleteTag(ctx context.Context, req *requests.DeleteTag) (err error)
 }
 
-func (s *service) CreateTag(ctx context.Context, req *requests.CreateTag) (string, []string, error) {
+func (s *service) CreateTag(ctx context.Context, req *requests.CreateTag) (string, error) {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
-		return "", []string{}, err
+		return "", err
 	}
 
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return "", []string{}, NewErrNamespaceNotFound(req.TenantID, err)
+		return "", NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
 	if conflicts, has, err := s.store.TagConflicts(ctx, sc, &models.TagConflicts{Name: req.Name}); has || err != nil {
-		return "", conflicts, err
+		if !has {
+			return "", err
+		}
+
+		return "", NewErrTagDuplicated(conflicts, err)
 	}
 
 	insertedID, err := s.store.TagCreate(ctx, &models.Tag{Name: req.Name, TenantID: req.TenantID})
 	if err != nil {
-		return "", []string{}, err
+		return "", err
 	}
 
-	return insertedID, []string{}, nil
+	return insertedID, nil
 }
 
 func (s *service) PushTagTo(ctx context.Context, target store.TagTarget, req *requests.PushTag) (err error) {
@@ -153,19 +159,19 @@ func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]model
 	return tags, totalCount, nil
 }
 
-func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]string, error) {
+func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) error {
 	sc, err := BoundTo(req.TenantID)
 	if err != nil {
-		return []string{}, err
+		return err
 	}
 
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return []string{}, NewErrNamespaceNotFound(req.TenantID, err)
+		return NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
 	tag, err := s.store.TagResolve(ctx, sc, store.TagNameResolver, req.Name)
 	if err != nil {
-		return []string{}, NewErrTagNotFound(req.Name, err)
+		return NewErrTagNotFound(req.Name, err)
 	}
 
 	conflictsAttrs := &models.TagConflicts{}
@@ -174,18 +180,18 @@ func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]str
 	}
 
 	if conflicts, has, err := s.store.TagConflicts(ctx, sc, conflictsAttrs); has || err != nil {
-		return conflicts, NewErrTagDuplicated(req.NewName, err)
+		if !has {
+			return err
+		}
+
+		return NewErrTagDuplicated(conflicts, err)
 	}
 
 	if req.NewName != "" && !strings.EqualFold(req.NewName, tag.Name) {
 		tag.Name = req.NewName
 	}
 
-	if err := s.store.TagUpdate(ctx, tag); err != nil {
-		return nil, err
-	}
-
-	return []string{}, nil
+	return s.store.TagUpdate(ctx, tag)
 }
 
 func (s *service) DeleteTag(ctx context.Context, req *requests.DeleteTag) error {

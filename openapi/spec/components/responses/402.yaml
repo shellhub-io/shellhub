@@ -1,1 +1,7 @@
 description: Payment required
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/apiError.yaml
+    example:
+      message: payment required

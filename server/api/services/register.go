@@ -18,7 +18,7 @@ import (
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
 // account and — if the code resolves — joins the namespace in the same step. Open self-registration
 // is a capability (cloud only); community and enterprise are invite-only.
-func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
+func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
 	// A valid invite code (Sig) is the only way to complete an invited account: it resolves the
 	// invitation server-side and the email comes from it, so the invitee can't retarget it.
 	if req.Sig != "" {
@@ -35,7 +35,7 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 	// An empty Email also refuses: validation only requires Email when Sig is absent, so a
 	// present-but-unresolved Sig reaches here with a blank email that must not create an account.
 	if !openSignupAllowed() || req.Email == "" {
-		return nil, nil, NewErrAuthForbidden()
+		return nil, NewErrAuthForbidden()
 	}
 
 	if invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationEmailResolver, strings.ToLower(req.Email)); err == nil && invitation.Status == models.UserInvitationStatusPending {
@@ -46,10 +46,10 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 }
 
 // createNewUser handles the creation of a new user who was not invited to register.
-func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
+func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	user := &models.User{
@@ -74,13 +74,13 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 	if user.ID, err = s.store.UserCreate(ctx, user); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(err); ok {
-				return nil, []string{field}, NewErrUserDuplicated([]string{field}, err)
+				return nil, NewErrUserDuplicated([]string{field}, err)
 			}
 
-			return nil, []string{}, NewErrUserDuplicated([]string{}, err)
+			return nil, NewErrUserDuplicated([]string{}, err)
 		}
 
-		return nil, nil, NewErrUserCreate(err)
+		return nil, NewErrUserCreate(err)
 	}
 
 	validUntil := clock.Now().Add(24 * time.Hour)
@@ -90,18 +90,18 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
-	return nil, nil, nil
+	return nil, nil
 }
 
 // createInvitedUser handles the creation of a user who was previously invited through user_invitations.
-func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error) {
+func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
 	if invitation.Status != models.UserInvitationStatusPending {
-		return nil, nil, errors.New("invitation already accepted")
+		return nil, errors.New("invitation already accepted")
 	}
 
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	user := &models.User{
@@ -175,19 +175,19 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 	}); txErr != nil {
 		if errors.Is(txErr, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(txErr); ok {
-				return nil, []string{field}, NewErrUserDuplicated([]string{field}, txErr)
+				return nil, NewErrUserDuplicated([]string{field}, txErr)
 			}
 
-			return nil, []string{}, NewErrUserDuplicated([]string{}, txErr)
+			return nil, NewErrUserDuplicated([]string{}, txErr)
 		}
 
-		return nil, nil, NewErrUserCreate(txErr)
+		return nil, NewErrUserCreate(txErr)
 	}
 
 	// An account awaiting approval is inert: minting a session token here would let the invitee
 	// slip past the login gate. Return no token so the UI lands on "waiting for approval".
 	if user.AwaitingApproval {
-		return nil, nil, nil
+		return nil, nil
 	}
 
 	switch user.Status {
@@ -198,18 +198,18 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 				WithField("user_id", invitation.ID).
 				Error("CreateUserToken failed after transaction commit; user exists but registration returned error")
 
-			return nil, nil, NewErrUserGetToken(invitation.ID, err)
+			return nil, NewErrUserGetToken(invitation.ID, err)
 		}
 
-		return res, nil, nil
+		return res, nil
 	case models.UserStatusNotConfirmed:
 		validUntil := clock.Now().Add(24 * time.Hour)
 		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 
-		return nil, nil, nil
+		return nil, nil
 	default:
-		return nil, nil, errors.New("invalid user status")
+		return nil, errors.New("invalid user status")
 	}
 }

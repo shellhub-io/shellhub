@@ -240,7 +240,6 @@ func TestCreateTag(t *testing.T) {
 	type Expected struct {
 		status     int
 		insertedID string
-		conflicts  []string
 	}
 
 	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
@@ -314,7 +313,7 @@ func TestCreateTag(t *testing.T) {
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "production",
 					}).
-					Return("", []string{}, svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
+					Return("", svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
 					Once()
 			},
 			expected: Expected{status: http.StatusNotFound},
@@ -337,7 +336,7 @@ func TestCreateTag(t *testing.T) {
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "production",
 					}).
-					Return("000000000000000000000001", []string{}, nil).
+					Return("000000000000000000000001", nil).
 					Once()
 			},
 			expected: Expected{
@@ -346,7 +345,7 @@ func TestCreateTag(t *testing.T) {
 			},
 		},
 		{
-			description: "returns 409 with conflicts JSON body",
+			description: "returns 409 when the name is already taken",
 			url:         "/api/tags",
 			headers: map[string]string{
 				"Content-Type": "application/json",
@@ -363,13 +362,10 @@ func TestCreateTag(t *testing.T) {
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "production",
 					}).
-					Return("", []string{"name"}, nil).
+					Return("", svc.NewErrTagDuplicated([]string{"name"}, nil)).
 					Once()
 			},
-			expected: Expected{
-				status:    http.StatusConflict,
-				conflicts: []string{"name"},
-			},
+			expected: Expected{status: http.StatusConflict},
 		},
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
@@ -388,7 +384,7 @@ func TestCreateTag(t *testing.T) {
 						TenantID: "00000000-0000-4000-0000-000000000000",
 						Name:     "production",
 					}).
-					Return("000000000000000000000002", []string{}, nil).
+					Return("000000000000000000000002", nil).
 					Once()
 			},
 			expected: Expected{
@@ -423,12 +419,6 @@ func TestCreateTag(t *testing.T) {
 				assert.Equal(t, tc.expected.insertedID, res.Header.Get("X-Inserted-ID"))
 			}
 
-			if tc.expected.conflicts != nil {
-				var body map[string][]string
-				require.NoError(t, json.NewDecoder(res.Body).Decode(&body))
-				assert.Equal(t, tc.expected.conflicts, body["conflicts"])
-			}
-
 			svcMock.AssertExpectations(t)
 		})
 	}
@@ -436,8 +426,7 @@ func TestCreateTag(t *testing.T) {
 
 func TestUpdateTag(t *testing.T) {
 	type Expected struct {
-		status    int
-		conflicts []string
+		status int
 	}
 
 	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
@@ -512,7 +501,7 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return([]string{}, svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
+					Return(svc.NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", nil)).
 					Once()
 			},
 			expected: Expected{status: http.StatusNotFound},
@@ -536,7 +525,7 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return([]string{}, nil).
+					Return(nil).
 					Once()
 			},
 			expected: Expected{status: http.StatusOK},
@@ -559,13 +548,13 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return([]string{}, nil).
+					Return(nil).
 					Once()
 			},
 			expected: Expected{status: http.StatusOK},
 		},
 		{
-			description: "returns 409 with conflicts JSON body",
+			description: "returns 409 when the name is already taken",
 			url:         "/api/tags/production",
 			headers: map[string]string{
 				"Content-Type": "application/json",
@@ -583,13 +572,10 @@ func TestUpdateTag(t *testing.T) {
 						Name:     "production",
 						NewName:  "staging",
 					}).
-					Return([]string{"name"}, nil).
+					Return(svc.NewErrTagDuplicated([]string{"name"}, nil)).
 					Once()
 			},
-			expected: Expected{
-				status:    http.StatusConflict,
-				conflicts: []string{"name"},
-			},
+			expected: Expected{status: http.StatusConflict},
 		},
 	}
 
@@ -613,12 +599,6 @@ func TestUpdateTag(t *testing.T) {
 
 			res := rec.Result()
 			assert.Equal(t, tc.expected.status, res.StatusCode)
-
-			if tc.expected.conflicts != nil {
-				var body map[string][]string
-				require.NoError(t, json.NewDecoder(res.Body).Decode(&body))
-				assert.Equal(t, tc.expected.conflicts, body["conflicts"])
-			}
 
 			svcMock.AssertExpectations(t)
 		})

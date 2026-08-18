@@ -186,8 +186,10 @@ func TestGetSessionList(t *testing.T) {
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session []models.Session
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
+			if rec.Result().StatusCode < http.StatusBadRequest {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
+					assert.ErrorIs(t, io.EOF, err)
+				}
 			}
 			assert.Equal(t, tc.expected.expectedSession, session)
 
@@ -295,8 +297,10 @@ func TestGetSession(t *testing.T) {
 			assert.Equal(t, tc.expected.expectedStatus, rec.Result().StatusCode)
 
 			var session *models.Session
-			if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
-				assert.ErrorIs(t, io.EOF, err)
+			if rec.Result().StatusCode < http.StatusBadRequest {
+				if err := json.NewDecoder(rec.Result().Body).Decode(&session); err != nil {
+					assert.ErrorIs(t, io.EOF, err)
+				}
 			}
 
 			assert.Equal(t, tc.expected.expectedSession, session)

@@ -39,17 +39,14 @@ func (h *Handler) CreateTag(c *gateway.Context) error {
 		return err
 	}
 
-	insertedID, conflicts, err := h.service.CreateTag(c.Ctx(), req)
-	switch {
-	case len(conflicts) > 0:
-		return c.JSON(http.StatusConflict, map[string][]string{"conflicts": conflicts})
-	case err != nil:
+	insertedID, err := h.service.CreateTag(c.Ctx(), req)
+	if err != nil {
 		return err
-	default:
-		c.Response().Header().Add("X-Inserted-ID", insertedID)
-
-		return c.NoContent(http.StatusOK)
 	}
+
+	c.Response().Header().Add("X-Inserted-ID", insertedID)
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) GetTags(c *gateway.Context) error {
@@ -101,15 +98,11 @@ func (h *Handler) UpdateTag(c *gateway.Context) error {
 		return err
 	}
 
-	conflicts, err := h.service.UpdateTag(c.Ctx(), req)
-	switch {
-	case len(conflicts) > 0:
-		return c.JSON(http.StatusConflict, map[string][]string{"conflicts": conflicts})
-	case err != nil:
+	if err := h.service.UpdateTag(c.Ctx(), req); err != nil {
 		return err
-	default:
-		return c.NoContent(http.StatusOK)
 	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) DeleteTag(c *gateway.Context) error {

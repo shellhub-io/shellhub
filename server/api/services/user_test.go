@@ -16,8 +16,7 @@ import (
 
 func TestUpdateUser(t *testing.T) {
 	type Expected struct {
-		conflicts []string
-		err       error
+		err error
 	}
 
 	storeMock := mocks.NewMockStore(t)
@@ -44,8 +43,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       NewErrUserNotFound("000000000000000000000000", nil),
+				err: NewErrUserNotFound("000000000000000000000000", nil),
 			},
 		},
 		{
@@ -75,8 +73,10 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"email", "recovery_email"},
-				err:       NewErrBadRequest(nil),
+				err: NewErrInvalidFields(ErrBadRequest, map[string]string{
+					"email":          "must be different from the recovery email",
+					"recovery_email": "must be different from the email",
+				}),
 			},
 		},
 		{
@@ -106,8 +106,10 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"email", "recovery_email"},
-				err:       NewErrBadRequest(nil),
+				err: NewErrInvalidFields(ErrBadRequest, map[string]string{
+					"email":          "must be different from the recovery email",
+					"recovery_email": "must be different from the email",
+				}),
 			},
 		},
 		{
@@ -137,8 +139,10 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"email", "recovery_email"},
-				err:       NewErrBadRequest(nil),
+				err: NewErrInvalidFields(ErrBadRequest, map[string]string{
+					"email":          "must be different from the recovery email",
+					"recovery_email": "must be different from the email",
+				}),
 			},
 		},
 		{
@@ -168,8 +172,10 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"email", "recovery_email"},
-				err:       NewErrBadRequest(nil),
+				err: NewErrInvalidFields(ErrBadRequest, map[string]string{
+					"email":          "must be different from the recovery email",
+					"recovery_email": "must be different from the email",
+				}),
 			},
 		},
 		{
@@ -208,8 +214,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       NewErrUserPasswordNotMatch(nil),
+				err: NewErrUserPasswordNotMatch(nil),
 			},
 		},
 		{
@@ -251,7 +256,6 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
 				err: NewErrUserUpdate(
 					&models.User{
 						ID: "000000000000000000000000",
@@ -305,8 +309,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"email"},
-				err:       NewErrUserDuplicated([]string{"email"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})),
+				err: NewErrUserDuplicated([]string{"email"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})),
 			},
 		},
 		{
@@ -348,8 +351,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"username"},
-				err:       NewErrUserDuplicated([]string{"username"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})),
+				err: NewErrUserDuplicated([]string{"username"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})),
 			},
 		},
 		{
@@ -391,8 +393,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       NewErrUserUnhandledDuplicate(),
+				err: NewErrUserUnhandledDuplicate(),
 			},
 		},
 		{
@@ -441,8 +442,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       nil,
+				err: nil,
 			},
 		},
 		{
@@ -484,8 +484,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       nil,
+				err: nil,
 			},
 		},
 	}
@@ -497,8 +496,8 @@ func TestUpdateUser(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			conflicts, err := service.UpdateUser(ctx, tc.req)
-			assert.Equal(t, tc.expected, Expected{conflicts, err})
+			err := service.UpdateUser(ctx, tc.req)
+			assert.Equal(t, tc.expected, Expected{err})
 		})
 	}
 
