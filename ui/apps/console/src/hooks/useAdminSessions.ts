@@ -3,23 +3,25 @@ import {
   getSessionsAdmin,
   type GetSessionsAdminData,
   type Session,
-} from "../client";
-import { getSessionsAdminQueryKey } from "../client/@tanstack/react-query.gen";
-import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
-import { useAuthStore } from "../stores/authStore";
-import { isSdkError } from "../api/errors";
+} from "@/client";
+import { getSessionsAdminQueryKey } from "@/client/@tanstack/react-query.gen";
+import { paginatedQueryFn, type PaginatedResult } from "@/api/pagination";
+import { useAuthStore } from "@/stores/authStore";
+import { isSdkError } from "@/api/errors";
 
-const SESSIONS_OPTIONS = { query: { page: 1, per_page: 5 } } satisfies { query: GetSessionsAdminData["query"] };
-
-export function useAdminSessions() {
+export function useAdminSessions({ page = 1, perPage = 5 } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
+  const options = { query: { page, per_page: perPage } } satisfies {
+    query: GetSessionsAdminData["query"];
+  };
 
   const result = useQuery<PaginatedResult<Session>>({
-    queryKey: getSessionsAdminQueryKey(SESSIONS_OPTIONS),
-    queryFn: paginatedQueryFn(getSessionsAdmin, SESSIONS_OPTIONS),
+    queryKey: getSessionsAdminQueryKey(options),
+    queryFn: paginatedQueryFn(getSessionsAdmin, options),
     enabled: isAdmin,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count, err) => isSdkError(err) && err.status === 401 ? false : count < 1,
+    staleTime: 5 * 60 * 1000,
+    retry: (count, err) =>
+      isSdkError(err) && err.status === 401 ? false : count < 1,
     refetchOnWindowFocus: false,
   });
 
