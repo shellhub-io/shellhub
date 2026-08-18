@@ -11,7 +11,7 @@ const mockSetDefault = vi.fn();
 const mockGetCustomerFn = vi.fn();
 const mockGetSubscriptionFn = vi.fn();
 const mockInvalidate = vi.fn();
-const mockAxiosPost = vi.fn();
+const mockGetBillingPortal = vi.fn();
 
 vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getCustomerOptions: vi.fn(() => ({
@@ -37,14 +37,8 @@ vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-vi.mock("@/api/client", () => ({
-  default: {
-    post: (...args: unknown[]) => {
-      mockAxiosPost(...args);
-      return mockAxiosPost.mock.results[mockAxiosPost.mock.results.length - 1]
-        .value as unknown;
-    },
-  },
+vi.mock("@/api/unspeccedRoutes", () => ({
+  getBillingPortal: (): unknown => mockGetBillingPortal(),
 }));
 
 async function importHooks() {
@@ -209,10 +203,10 @@ describe("useSubscription", () => {
 });
 
 describe("useOpenBillingPortal", () => {
-  it("POSTs to /api/billing/portal and opens the returned URL", async () => {
+  it("opens the URL the billing portal route returns", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
-    mockAxiosPost.mockResolvedValue({
-      data: { url: "https://billing.stripe.com/session/abc" },
+    mockGetBillingPortal.mockResolvedValue({
+      url: "https://billing.stripe.com/session/abc",
     });
     const { useOpenBillingPortal } = await importHooks();
 
@@ -222,7 +216,7 @@ describe("useOpenBillingPortal", () => {
 
     await act(() => result.current.mutateAsync());
 
-    expect(mockAxiosPost).toHaveBeenCalledWith("/api/billing/portal");
+    expect(mockGetBillingPortal).toHaveBeenCalled();
     expect(openSpy).toHaveBeenCalledWith(
       "https://billing.stripe.com/session/abc",
       "_blank",
@@ -232,7 +226,7 @@ describe("useOpenBillingPortal", () => {
   });
 
   it("throws when the response is missing a URL", async () => {
-    mockAxiosPost.mockResolvedValue({ data: {} });
+    mockGetBillingPortal.mockResolvedValue({});
     const { useOpenBillingPortal } = await importHooks();
 
     const { result } = renderHook(() => useOpenBillingPortal(), {

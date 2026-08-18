@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSessionRecording } from "../useSessionRecording";
-import apiClient from "@/api/client";
 
-vi.mock("@/api/client", () => ({
-  default: {
-    get: vi.fn(),
-    delete: vi.fn(),
-  },
+const mockGetSessionRecord = vi.fn();
+
+vi.mock("@/client", () => ({
+  getSessionRecord: (...args: unknown[]): unknown => mockGetSessionRecord(...args),
 }));
-
-const mockGet = vi.mocked(apiClient.get);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -25,9 +21,22 @@ describe("useSessionRecording", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("reads the recording of seat 0 as text", async () => {
+    mockGetSessionRecord.mockResolvedValue({ data: "asciicast-content" });
+
+    const { result } = renderHook(() => useSessionRecording());
+    await act(async () => { await result.current.fetchLogs("session-1"); });
+
+    expect(mockGetSessionRecord).toHaveBeenCalledWith({
+      path: { uid: "session-1", seat: 0 },
+      parseAs: "text",
+      throwOnError: true,
+    });
+  });
+
   it("sets isLoading true while fetching and false after", async () => {
     let resolve!: (value: unknown) => void;
-    mockGet.mockReturnValue(new Promise((r) => { resolve = r; }));
+    mockGetSessionRecord.mockReturnValue(new Promise((r) => { resolve = r; }));
 
     const { result } = renderHook(() => useSessionRecording());
 
@@ -39,7 +48,7 @@ describe("useSessionRecording", () => {
   });
 
   it("returns true and stores logs on success", async () => {
-    mockGet.mockResolvedValue({ data: "asciicast-content" });
+    mockGetSessionRecord.mockResolvedValue({ data: "asciicast-content" });
 
     const { result } = renderHook(() => useSessionRecording());
     let ok!: boolean;
@@ -51,7 +60,7 @@ describe("useSessionRecording", () => {
   });
 
   it("returns false and sets error on fetch failure", async () => {
-    mockGet.mockRejectedValue(new Error("Network error"));
+    mockGetSessionRecord.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useSessionRecording());
     let ok!: boolean;
@@ -64,8 +73,8 @@ describe("useSessionRecording", () => {
   });
 
   it("clears logsError at the start of a new fetchLogs call", async () => {
-    mockGet.mockRejectedValueOnce(new Error("first error"));
-    mockGet.mockResolvedValue({ data: "log-data" });
+    mockGetSessionRecord.mockRejectedValueOnce(new Error("first error"));
+    mockGetSessionRecord.mockResolvedValue({ data: "log-data" });
 
     const { result } = renderHook(() => useSessionRecording());
 
@@ -78,7 +87,7 @@ describe("useSessionRecording", () => {
   });
 
   it("clearLogs resets logs and error without affecting other state", async () => {
-    mockGet.mockResolvedValue({ data: "asciicast-content" });
+    mockGetSessionRecord.mockResolvedValue({ data: "asciicast-content" });
 
     const { result } = renderHook(() => useSessionRecording());
     await act(async () => { await result.current.fetchLogs("session-1"); });

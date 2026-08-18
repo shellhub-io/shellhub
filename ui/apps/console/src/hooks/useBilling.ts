@@ -8,7 +8,7 @@ import {
   detachPaymentMethodMutation,
   setDefaultPaymentMethodMutation,
 } from "../client/@tanstack/react-query.gen";
-import apiClient from "../api/client";
+import { getBillingPortal } from "@/api/unspeccedRoutes";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 function useInvalidateBilling() {
@@ -81,16 +81,10 @@ export function useSetDefaultPaymentMethod() {
   });
 }
 
-/**
- * `POST /api/billing/portal` is registered dynamically in the cloud module
- * and not present in the OpenAPI spec, so it is not exposed in the generated
- * SDK. Call it via the shared axios client, matching the Vue UI's behavior.
- */
 export function useOpenBillingPortal() {
   return useMutation({
     mutationFn: async () => {
-      const res = await apiClient.post<{ url: string }>("/api/billing/portal");
-      const url = res.data?.url;
+      const { url } = await getBillingPortal();
       if (!url) throw new Error("Missing billing portal URL");
       window.open(url, "_blank", "noopener,noreferrer");
       return url;
