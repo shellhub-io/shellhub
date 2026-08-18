@@ -3,13 +3,15 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import AdminDashboard from "../Dashboard";
 import { useAdminStats } from "@/hooks/useAdminStats";
-import { useAdminSessions } from "@/hooks/useAdminSessions";
 
 vi.mock("@/hooks/useAdminStats", () => ({
   useAdminStats: vi.fn(),
 }));
-vi.mock("@/hooks/useAdminSessions", () => ({
-  useAdminSessions: vi.fn(),
+
+vi.mock("@/components/sessions/RecentSessionsTable", () => ({
+  default: ({ isAdmin }: { isAdmin?: boolean }) => (
+    <div data-testid="recent-sessions-table" data-admin={isAdmin} />
+  ),
 }));
 
 const fullStats = {
@@ -21,47 +23,15 @@ const fullStats = {
   rejected_devices: 3,
 };
 
-const mockSession = {
-  uid: "session-001",
-  active: true,
-  authenticated: true,
-  username: "root",
-  device_uid: "device-001",
-  device: {
-    uid: "device-001",
-    name: "web-server-01",
-    online: true,
-    info: { id: "ubuntu" },
-  },
-  events: { types: ["shell"] },
-  started_at: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-  tenant_id: "tenant-001",
-  ip_address: "192.168.0.1",
-  last_seen: new Date().toISOString(),
-  recorded: false,
-  type: "term" as const,
-  term: "",
-  position: {},
-};
-
 function setupHooks({
   statsData = fullStats,
   statsLoading = false,
   statsError = false,
-  sessions = [mockSession] as object[],
-  sessionsLoading = false,
-  sessionsError = null as Error | null,
 } = {}) {
   vi.mocked(useAdminStats).mockReturnValue({
     stats: statsData,
     isLoading: statsLoading,
     isError: statsError,
-  } as never);
-  vi.mocked(useAdminSessions).mockReturnValue({
-    sessions,
-    totalCount: sessions.length,
-    isLoading: sessionsLoading,
-    error: sessionsError,
   } as never);
 }
 
@@ -119,10 +89,12 @@ describe("AdminDashboard", () => {
       expect(screen.queryByText("Registered Users")).not.toBeInTheDocument();
     });
 
-    it("does not render sessions section on stats error", () => {
+    it("does not render sessions table on stats error", () => {
       setupHooks({ statsError: true });
       renderPage();
-      expect(screen.queryByText("Recent Sessions")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("recent-sessions-table"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -186,42 +158,12 @@ describe("AdminDashboard", () => {
       });
     });
 
-    it("renders the sessions table", () => {
+    it("renders RecentSessionsTable with isAdmin", () => {
       setupHooks();
       renderPage();
-      expect(screen.getByRole("table")).toBeInTheDocument();
-    });
-
-    it("renders session username in the table", () => {
-      setupHooks();
-      renderPage();
-      expect(screen.getByText("root")).toBeInTheDocument();
-    });
-
-    it("renders session device name in the table", () => {
-      setupHooks();
-      renderPage();
-      expect(screen.getByText("web-server-01")).toBeInTheDocument();
-    });
-
-    it("renders session type badge", () => {
-      setupHooks();
-      renderPage();
-      expect(screen.getByText("shell")).toBeInTheDocument();
-    });
-
-    it("'View all' sessions link in section header points to /admin/sessions", () => {
-      setupHooks();
-      renderPage();
-      const viewAllLink = screen.getByRole("link", { name: /view all →/i });
-      expect(viewAllLink).toHaveAttribute("href", "/admin/sessions");
-    });
-
-    it("DeviceChip in session row renders without a link", () => {
-      setupHooks();
-      renderPage();
-      const chipText = screen.getByText("web-server-01");
-      expect(chipText.closest("a")).toBeNull();
+      const table = screen.getByTestId("recent-sessions-table");
+      expect(table).toBeInTheDocument();
+      expect(table).toHaveAttribute("data-admin", "true");
     });
   });
 
@@ -239,66 +181,6 @@ describe("AdminDashboard", () => {
       renderPage();
       const zeros = screen.getAllByText("0");
       expect(zeros.length).toBeGreaterThanOrEqual(6);
-    });
-  });
-
-  describe("success state — no sessions", () => {
-    it("renders 'No recent sessions' empty state", () => {
-      setupHooks({ sessions: [] });
-      renderPage();
-      expect(screen.getByText("No recent sessions")).toBeInTheDocument();
-    });
-
-    it("does not render session rows when sessions are empty", () => {
-      setupHooks({ sessions: [] });
-      renderPage();
-      // thead row + empty state row = 2, no data rows
-      expect(screen.getAllByRole("row")).toHaveLength(2);
-    });
-
-    it("still renders stat cards when sessions are empty", () => {
-      setupHooks({ sessions: [] });
-      renderPage();
-      expect(screen.getByText("Registered Users")).toBeInTheDocument();
-    });
-  });
-
-  describe("success state — sessions query error", () => {
-    it("hides the sessions section when sessions query fails", () => {
-      setupHooks({ sessionsError: new Error("network failure") });
-      renderPage();
-      expect(screen.queryByText("Recent Sessions")).not.toBeInTheDocument();
-    });
-
-    it("still renders stat cards when sessions fail", () => {
-      setupHooks({ sessionsError: new Error("network failure") });
-      renderPage();
-      expect(screen.getByText("Registered Users")).toBeInTheDocument();
-    });
-  });
-
-  describe("sessions loading state", () => {
-    it("hides the sessions section while sessions are loading", () => {
-      setupHooks({ sessions: [], sessionsLoading: true });
-      renderPage();
-      expect(screen.queryByText("Recent Sessions")).not.toBeInTheDocument();
-      expect(screen.queryByText("No recent sessions")).not.toBeInTheDocument();
-      expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    });
-
-    it("still renders stat cards while sessions load", () => {
-      setupHooks({ sessions: [], sessionsLoading: true });
-      renderPage();
-      expect(screen.getByText("Registered Users")).toBeInTheDocument();
-    });
-  });
-
-  describe("unauthenticated session", () => {
-    it("renders warning icon with title for suspicious sessions", () => {
-      const suspiciousSession = { ...mockSession, authenticated: false };
-      setupHooks({ sessions: [suspiciousSession] });
-      renderPage();
-      expect(screen.getByTitle("Not authenticated")).toBeInTheDocument();
     });
   });
 });
