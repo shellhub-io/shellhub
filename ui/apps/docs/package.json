@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "shots": "./scripts/capture-shots.sh",
     "preview": "astro preview",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
