@@ -14,11 +14,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/hooks/useAdminSessionsList", () => ({
-  useAdminSessionsList: vi.fn(),
+vi.mock("@/hooks/useAdminSessions", () => ({
+  useAdminSessions: vi.fn(),
 }));
 
-import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
+import { useAdminSessions } from "@/hooks/useAdminSessions";
+import type { Device, Session } from "@/client";
 import AdminSessions from "../Sessions";
 import { sdkError } from "@/tests/sdkError";
 
@@ -37,12 +38,16 @@ function LocationProbe({
   return null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeSession(overrides: Record<string, any> = {}) {
+function makeSession(overrides: Partial<Session> = {}): Session {
   return {
     uid: "session-1",
     device_uid: "device-1",
-    device: { uid: "device-1", name: "web-server-01", online: true, info: { id: "ubuntu" } },
+    device: {
+      uid: "device-1",
+      name: "web-server-01",
+      online: true,
+      info: { id: "ubuntu" },
+    } as Device,
     username: "root",
     ip_address: "192.168.0.1",
     started_at: "2024-01-01T00:00:00Z",
@@ -50,12 +55,13 @@ function makeSession(overrides: Record<string, any> = {}) {
     active: false,
     authenticated: true,
     ...overrides,
-  };
+  } as Session;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function setupHook(overrides: Record<string, any> = {}) {
-  vi.mocked(useAdminSessionsList).mockReturnValue({
+function setupHook(
+  overrides: Partial<ReturnType<typeof useAdminSessions>> = {},
+) {
+  vi.mocked(useAdminSessions).mockReturnValue({
     sessions: [],
     totalCount: 0,
     isLoading: false,
@@ -69,7 +75,11 @@ function renderPage(initialEntries: string[] = ["/"]) {
   const result = render(
     <MemoryRouter initialEntries={initialEntries}>
       <AdminSessions />
-      <LocationProbe onLocation={(s) => { lastSearch = s; }} />
+      <LocationProbe
+        onLocation={(s) => {
+          lastSearch = s;
+        }}
+      />
     </MemoryRouter>,
   );
   return { ...result, getSearch: () => lastSearch };
@@ -148,20 +158,29 @@ describe("AdminSessions", () => {
     });
 
     it("renders the truncated session uid", () => {
-      setupHook({ sessions: [makeSession({ uid: "abcdef1234567890" })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ uid: "abcdef1234567890" })],
+        totalCount: 1,
+      });
       renderPage();
       expect(screen.getByText("abcdef1234")).toBeInTheDocument();
     });
 
     it("renders the IP address", () => {
-      setupHook({ sessions: [makeSession({ ip_address: "10.0.0.1" })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ ip_address: "10.0.0.1" })],
+        totalCount: 1,
+      });
       renderPage();
       expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
     });
 
     it("navigates to session detail when a row is clicked", async () => {
       const user = userEvent.setup();
-      setupHook({ sessions: [makeSession({ uid: "session-abc" })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ uid: "session-abc" })],
+        totalCount: 1,
+      });
       renderPage();
 
       await user.click(screen.getByText("root"));
@@ -188,22 +207,35 @@ describe("AdminSessions", () => {
 
   describe("authentication indicator", () => {
     it("renders the 'Authenticated' shield for authenticated sessions", () => {
-      setupHook({ sessions: [makeSession({ authenticated: true })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ authenticated: true })],
+        totalCount: 1,
+      });
       renderPage();
       expect(screen.getByTitle("Authenticated")).toBeInTheDocument();
     });
 
     it("renders the 'Not authenticated' shield for unauthenticated sessions", () => {
-      setupHook({ sessions: [makeSession({ authenticated: false })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ authenticated: false })],
+        totalCount: 1,
+      });
       renderPage();
-      expect(screen.getAllByTitle("Not authenticated").length).toBeGreaterThan(0);
+      expect(screen.getAllByTitle("Not authenticated").length).toBeGreaterThan(
+        0,
+      );
     });
 
     it("shows the warning icon in the username cell for unauthenticated sessions", () => {
-      setupHook({ sessions: [makeSession({ authenticated: false })], totalCount: 1 });
+      setupHook({
+        sessions: [makeSession({ authenticated: false })],
+        totalCount: 1,
+      });
       renderPage();
       // ExclamationTriangleIcon has title "Not authenticated"
-      expect(screen.getAllByTitle("Not authenticated").length).toBeGreaterThanOrEqual(2);
+      expect(
+        screen.getAllByTitle("Not authenticated").length,
+      ).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -232,22 +264,18 @@ describe("AdminSessions", () => {
     });
   });
 
-  // ── URL-driven state (usePaginatedListState adoption) ────────────────────────
-
   describe("URL hydration", () => {
-    it("calls useAdminSessionsList with page hydrated from ?page=3", () => {
+    it("calls useAdminSessions with page hydrated from ?page=3", () => {
       renderPage(["/?page=3"]);
-      expect(vi.mocked(useAdminSessionsList)).toHaveBeenCalledWith(
-        3,
-        10,
+      expect(vi.mocked(useAdminSessions)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3 }),
       );
     });
 
-    it("calls useAdminSessionsList with page=1 when URL has no page param", () => {
+    it("calls useAdminSessions with page=1 when URL has no page param", () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminSessionsList)).toHaveBeenCalledWith(
-        1,
-        10,
+      expect(vi.mocked(useAdminSessions)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 }),
       );
     });
   });
