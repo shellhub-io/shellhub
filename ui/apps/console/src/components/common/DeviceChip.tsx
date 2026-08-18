@@ -12,6 +12,7 @@ interface DeviceChipBaseProps {
 interface DeviceChipLinkProps extends DeviceChipBaseProps {
   uid: string;
   disableLink?: false;
+  isAdmin?: boolean;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -23,27 +24,25 @@ interface DeviceChipNoLinkProps extends DeviceChipBaseProps {
 
 type DeviceChipProps = DeviceChipLinkProps | DeviceChipNoLinkProps;
 
-const BASE
-  = "inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-border rounded-md text-xs font-mono font-medium text-text-secondary";
+const BASE =
+  "inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-border rounded-md text-xs font-mono font-medium text-text-secondary";
 
 export default function DeviceChip(props: DeviceChipProps) {
   const { name, online, osId } = props;
 
   const inner = (
     <>
-      {osId
-        ? (
-          <DistroIcon
-            id={osId}
-            className="text-[0.8rem] leading-none text-text-muted group-hover/chip:text-text-secondary shrink-0 transition-colors"
-          />
-        )
-        : (
-          <CpuChipIcon
-            className="w-3 h-3 text-text-muted group-hover/chip:text-primary shrink-0 transition-colors"
-            strokeWidth={2}
-          />
-        )}
+      {osId ? (
+        <DistroIcon
+          id={osId}
+          className="text-[0.8rem] leading-none text-text-muted group-hover/chip:text-text-secondary shrink-0 transition-colors"
+        />
+      ) : (
+        <CpuChipIcon
+          className="w-3 h-3 text-text-muted group-hover/chip:text-primary shrink-0 transition-colors"
+          strokeWidth={2}
+        />
+      )}
 
       <span className="truncate max-w-[16ch]">{name}</span>
 
@@ -66,9 +65,12 @@ export default function DeviceChip(props: DeviceChipProps) {
 
   return (
     <Link
-      to={`/devices/${props.uid}`}
+      to={`${props.isAdmin ? "/admin" : ""}/devices/${props.uid}`}
       onClick={props.onClick}
-      className={cn(BASE, "hover:text-text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 group/chip")}
+      className={cn(
+        BASE,
+        "hover:text-text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 group/chip",
+      )}
     >
       {inner}
     </Link>
