@@ -434,7 +434,10 @@ export default function TerminalInstance({
             setApprovalCode(null);
             setError(WS_REAUTH_CANCELLED);
           }}
-          onDecided={() => setApprovalCode(null)}
+          onDecided={() => {
+            setApprovalCode(null);
+            requestAnimationFrame(() => termRef.current?.focus());
+          }}
         />
       )}
     </div>
