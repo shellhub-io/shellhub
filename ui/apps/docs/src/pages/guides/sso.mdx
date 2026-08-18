@@ -4,6 +4,8 @@ title: Single Sign-On (SAML)
 description: Let users sign in to ShellHub through an external SAML identity provider
 ---
 
+import Shot from '../../components/Shot.astro';
+
 import EditionBanner from '../../components/EditionBanner.astro';
 
 # Single Sign-On (SAML)
@@ -18,7 +20,7 @@ SSO is configured by an instance **admin** in the **Admin Console**. Once enable
 
 In the **Admin Console**, go to **Settings → Authentication** and toggle **SAML Authentication** on, then configure your IdP.
 
-![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+<Shot id="admin-authentication" route="/admin/settings/authentication" edition="enterprise" alt="The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles" />
 
 You can configure the IdP in one of two ways:
 

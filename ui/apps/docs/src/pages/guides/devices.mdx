@@ -4,17 +4,19 @@ title: Device Management
 description: Monitor and manage your fleet of Linux devices
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Device Management
 
 Devices are Linux machines running the ShellHub agent. Once connected, you can monitor their status, organize them with tags, and open SSH sessions from anywhere.
 
-![ShellHub Devices page listing accepted devices](/img/devices/device-list.png)
+<Shot id="device-list" route="/devices" of={{ role: "table" }} before={[{ click: { role: "button", name: "Sort by Hostname" } }]} alt="ShellHub Devices page listing accepted devices" />
 
 ## Adding a device
 
 Click **Add Device** on the Devices page and choose an installation method — **Auto Detect** (recommended), **Docker**, or **Standalone**. ShellHub generates a one-line install command that already carries your namespace's **Tenant ID** and the **server address**, so all you have to do is run it on the target machine.
 
-![ShellHub Add Device page showing the installation method chooser and the one-line install command](/img/devices/device-add.gif)
+![ShellHub Add Device page showing the installation method chooser and the one-line install command](/img/manual/device-add.gif)
 
 Once the agent starts, the device registers and appears in the **Pending** tab. You must accept it before anyone can connect — see [Accepting and rejecting](#accepting-and-rejecting) below.
 
@@ -68,7 +70,7 @@ From the **Devices** page:
 - **Accepted** tab — View active devices, remove access if needed
 - **Rejected** tab — Re-accept previously rejected devices
 
-![ShellHub Devices page on the Pending tab where new devices await acceptance](/img/devices/device-pending.gif)
+![ShellHub Devices page on the Pending tab where new devices await acceptance](/img/manual/device-pending.gif)
 
 ## Renaming
 

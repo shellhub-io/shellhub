@@ -4,6 +4,8 @@ title: Quick Start
 description: Get ShellHub running and connect your first device in minutes
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Quick Start
 
 This guide gets you from zero to your first SSH session through ShellHub. Pick your path:
@@ -25,7 +27,7 @@ After logging in, you'll be asked to create a **namespace** — this is your wor
 
 Once your namespace is ready, you land on the **dashboard**: an overview of your namespace with device count cards (Accepted, Online, Pending), your Tenant ID, recent sessions, and the left navigation (Dashboard, Devices, Containers, Sessions, Public Keys, Firewall Rules, Secure Vault, Team, Settings).
 
-![ShellHub dashboard](/img/getting-started/dashboard.png)
+<Shot id="dashboard" route="/dashboard" alt="ShellHub dashboard" />
 
 ### 2. Install the agent
 
@@ -63,7 +65,7 @@ For everything you can do from here — searching, tagging, renaming, and removi
 
 Click the green **Connect** button next to any online device on the **Devices** page to open a web SSH session. Enter the device username and password — you're in.
 
-![Device connecting](/img/devices/device-connect.gif)
+![Device connecting](/img/manual/device-connect.gif)
 
 To connect with your own SSH client:
 

@@ -1,0 +1,42 @@
+---
+import { warnMissingShotImageInDev } from "../lib/shots/check";
+import type {
+  ShotEdition,
+  ShotInteraction,
+  ShotSelector,
+  ShotViewport,
+} from "../lib/shots/manifest";
+import { shotImageHref } from "../lib/shots/paths";
+import { recordShot } from "../lib/shots/registry";
+
+interface Props {
+  id: string;
+  route: string;
+  of?: ShotSelector;
+  viewport?: ShotViewport;
+  alt?: string;
+  edition?: ShotEdition;
+  before?: ShotInteraction[];
+}
+
+const { id, route, of, viewport, alt, edition, before } = Astro.props;
+
+recordShot({ id, route, of, viewport, edition, before, page: Astro.url.pathname });
+
+warnMissingShotImageInDev(id);
+---
+<figure class="shot">
+  <img src={shotImageHref(id)} alt={alt ?? id} />
+</figure>
+
+<style>
+  .shot {
+    margin: 1.5rem 0;
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    border-radius: 0.375rem;
+  }
+</style>

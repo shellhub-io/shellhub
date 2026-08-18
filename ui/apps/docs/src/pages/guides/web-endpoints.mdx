@@ -4,6 +4,8 @@ title: Web Endpoints
 description: Expose HTTP services running on remote devices through ShellHub web endpoints
 ---
 
+import Shot from '../../components/Shot.astro';
+
 import EditionBanner from '../../components/EditionBanner.astro';
 
 # Web Endpoints
@@ -14,7 +16,7 @@ Access HTTP services running on your devices through ShellHub — without openin
 
 The **Web Endpoints** page lists every endpoint in your namespace. Each row shows the generated public URL, the local target it forwards to (e.g. `127.0.0.1:5432`), the time remaining before it expires, and a delete action.
 
-![The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining](/img/web-endpoints/web-endpoints.png)
+<Shot id="web-endpoints" route="/web-endpoints" of={{ role: "list", name: "Web endpoints" }} edition="enterprise" alt="The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining" />
 
 ## How it works
 
