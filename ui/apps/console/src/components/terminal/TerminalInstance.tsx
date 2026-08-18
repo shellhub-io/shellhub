@@ -4,7 +4,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Buffer } from "buffer";
-import apiClient from "@/api/client";
+import { createWebSshSession, type WebSshSessionRequest } from "@/api/unspeccedRoutes";
 import { generateSignature } from "@/utils/sshKeys";
 import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -82,7 +82,7 @@ export default function TerminalInstance({
       updateStatus("connecting");
 
       // Build POST body: for private key auth, send fingerprint; for password auth, send password
-      const body: Record<string, string> = {
+      const body: WebSshSessionRequest = {
         device: session.deviceUid,
         username: session.username,
       };
@@ -99,11 +99,7 @@ export default function TerminalInstance({
 
       let token: string;
       try {
-        const res = await apiClient.post<{ token: string }>(
-          "/ws/ssh/session",
-          body,
-        );
-        token = res.data.token;
+        ({ token } = await createWebSshSession(body));
       } catch {
         if (cancelled) return;
         updateStatus("disconnected");
