@@ -2,15 +2,21 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/errors"
+	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,6 +57,18 @@ func (s *spyTransport) reported() int {
 	defer s.mu.Unlock()
 
 	return len(s.events)
+}
+
+// firstMessage returns the message of the first captured event, or "" when none arrived.
+func (s *spyTransport) firstMessage() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(s.events) == 0 {
+		return ""
+	}
+
+	return s.events[0].Message
 }
 
 // waitForEvent blocks until at least one event has been delivered or the
@@ -94,28 +112,160 @@ func TestNewErrors(t *testing.T) {
 		description  string
 		err          error
 		wantStatus   int
+		wantBody     responses.Error
+		wantNoBody   bool
 		wantReported bool
 	}{
 		{
-			// (1) store.ErrInternal must yield 500 AND invoke report().
-			description:  "store.ErrInternal yields 500 and is reported to sentry",
+			// (1) store.ErrInternal must yield 500 AND invoke report(). The response carries the
+			//     generic message; only the reporter sees the real one.
+			description:  "store.ErrInternal yields a generic 500 body and is reported to sentry",
 			err:          errors.Wrap(store.ErrInternal, errors.New("some internal detail", store.ErrLayer, store.ErrCodeInternal)),
 			wantStatus:   http.StatusInternalServerError,
+			wantBody:     responses.Error{Message: "internal server error"},
 			wantReported: true,
 		},
 		{
-			// (2) A plain store-layer error that is NOT ErrInternal yields 500 but
-			//     MUST NOT invoke report().
-			description:  "store.ErrNoDocuments yields 500 without reporting to sentry",
+			// (2) A plain store-layer error that is NOT ErrInternal yields 500 but MUST NOT invoke
+			//     report(), and must not echo its own message either.
+			description:  "store.ErrNoDocuments yields a generic 500 body without reporting to sentry",
 			err:          store.ErrNoDocuments,
 			wantStatus:   http.StatusInternalServerError,
+			wantBody:     responses.Error{Message: "internal server error"},
 			wantReported: false,
 		},
 		{
-			// (3) context.Canceled must NOT be reported.
-			description:  "context.Canceled yields 500 without reporting to sentry",
+			// (3) context.Canceled cannot be classified: generic body, no report.
+			description:  "context.Canceled yields a generic 500 body without reporting to sentry",
 			err:          context.Canceled,
 			wantStatus:   http.StatusInternalServerError,
+			wantBody:     responses.Error{Message: "internal server error"},
+			wantReported: false,
+		},
+		{
+			// (4) An error carrying an HTTP status answers with that status and its own message.
+			description:  "an echo error yields its status and message",
+			err:          echo.ErrNotFound,
+			wantStatus:   http.StatusNotFound,
+			wantBody:     responses.Error{Message: "Not Found"},
+			wantReported: false,
+		},
+		{
+			description:  "an echo HTTPError yields its status and message",
+			err:          echo.NewHTTPError(http.StatusRequestTimeout, "request timeout"),
+			wantStatus:   http.StatusRequestTimeout,
+			wantBody:     responses.Error{Message: "request timeout"},
+			wantReported: false,
+		},
+		{
+			// A binding error reports 400 and reads its own Error() as
+			// "code=400, message=…, err=strconv.ParseInt: …" — the client must not see the cause.
+			description:  "a binding error yields 400 without echoing the underlying cause",
+			err:          echo.NewBindingError("page", []string{"abc"}, "failed to bind field value to int", strconv.ErrSyntax),
+			wantStatus:   http.StatusBadRequest,
+			wantBody:     responses.Error{Message: "failed to bind field value to int"},
+			wantReported: false,
+		},
+		{
+			description:  "a service not-found error yields 404 and its message",
+			err:          services.ErrUserNotFound,
+			wantStatus:   http.StatusNotFound,
+			wantBody:     responses.Error{Message: "user not found"},
+			wantReported: false,
+		},
+		{
+			description:  "a service invalid error yields 400 and its message",
+			err:          services.ErrUserInvalid,
+			wantStatus:   http.StatusBadRequest,
+			wantBody:     responses.Error{Message: "user invalid"},
+			wantReported: false,
+		},
+		{
+			description:  "a service duplicated error yields 409 and its message",
+			err:          services.ErrUserDuplicated,
+			wantStatus:   http.StatusConflict,
+			wantBody:     responses.Error{Message: "user duplicated"},
+			wantReported: false,
+		},
+		{
+			description:  "a service forbidden error yields 403 and its message",
+			err:          services.ErrUserNotConfirmed,
+			wantStatus:   http.StatusForbidden,
+			wantBody:     responses.Error{Message: "user not confirmed"},
+			wantReported: false,
+		},
+		{
+			description:  "a service locked error yields 423 and its message",
+			err:          services.ErrUserAwaitingApproval,
+			wantStatus:   http.StatusLocked,
+			wantBody:     responses.Error{Message: "user awaiting approval"},
+			wantReported: false,
+		},
+		{
+			description:  "a service payment error yields 402 and its message",
+			err:          services.ErrPaymentRequired,
+			wantStatus:   http.StatusPaymentRequired,
+			wantBody:     responses.Error{Message: "payment required"},
+			wantReported: false,
+		},
+		{
+			description:  "a service limit error yields 403 and its message",
+			err:          services.ErrMaxTagReached,
+			wantStatus:   http.StatusForbidden,
+			wantBody:     responses.Error{Message: "tag limit reached"},
+			wantReported: false,
+		},
+		{
+			// A service code with no HTTP mapping falls back to 500, so it must not echo either.
+			description:  "a service store error yields a generic 500 body",
+			err:          services.ErrUserUpdate,
+			wantStatus:   http.StatusInternalServerError,
+			wantBody:     responses.Error{Message: "internal server error"},
+			wantReported: false,
+		},
+		{
+			description:  "a service error carrying field detail yields 400 with the fields",
+			err:          services.NewErrInstallKeyInvalidField(map[string]string{"usage_limit": "must be greater than zero"}),
+			wantStatus:   http.StatusBadRequest,
+			wantBody:     responses.Error{Message: "install key field is invalid", Fields: map[string]string{"usage_limit": "must be greater than zero"}},
+			wantReported: false,
+		},
+		{
+			description:  "a route invalid-entity error yields 400 with the fields",
+			err:          routes.NewErrInvalidEntity(map[string]string{"username": "required"}),
+			wantStatus:   http.StatusBadRequest,
+			wantBody:     responses.Error{Message: "invalid entity", Fields: map[string]string{"username": "required"}},
+			wantReported: false,
+		},
+		{
+			description:  "a route unauthorized error yields 401 and its message",
+			err:          routes.NewErrUnauthorized(nil),
+			wantStatus:   http.StatusUnauthorized,
+			wantBody:     responses.Error{Message: "unauthorized"},
+			wantReported: false,
+		},
+		{
+			description:  "a route unprocessable-entity error yields 422 and its message",
+			err:          routes.NewErrUnprocessableEntity(nil),
+			wantStatus:   http.StatusUnprocessableEntity,
+			wantBody:     responses.Error{Message: "unprocessable entity"},
+			wantReported: false,
+		},
+		{
+			// 204 forbids a body, so this code keeps its bare status.
+			description:  "a service no-content-change error yields a bare 204",
+			err:          services.ErrNoContentChange,
+			wantStatus:   http.StatusNoContent,
+			wantNoBody:   true,
+			wantReported: false,
+		},
+		{
+			// The scope package declares a layer the switch does not name, so the default arm is
+			// reachable and must answer 500 rather than status zero.
+			description:  "an error from an unrecognised layer yields a generic 500 body",
+			err:          scope.ErrEmptyTenantID,
+			wantStatus:   http.StatusInternalServerError,
+			wantBody:     responses.Error{Message: "internal server error"},
 			wantReported: false,
 		},
 	}
@@ -130,11 +280,20 @@ func TestNewErrors(t *testing.T) {
 
 			assert.Equal(t, tc.wantStatus, rec.Code, "unexpected HTTP status code")
 
+			if tc.wantNoBody {
+				assert.Empty(t, rec.Body.Bytes(), "expected no response body")
+			} else {
+				body := responses.Error{} //nolint:exhaustruct
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "response body is not a JSON error")
+				assert.Equal(t, tc.wantBody, body, "unexpected response body")
+			}
+
 			if tc.wantReported {
 				// report() fires a goroutine; wait for the event to arrive.
 				got := spy.waitForEvent(500 * time.Millisecond)
 				require.True(t, got, "expected exactly one sentry event, got none within 500ms")
 				assert.Equal(t, 1, spy.reported(), "expected exactly one sentry event")
+				assert.Contains(t, spy.firstMessage(), "some internal detail", "the reporter must receive the real message")
 			} else {
 				// Give any (erroneous) async report a chance to arrive, then assert silence.
 				time.Sleep(50 * time.Millisecond)

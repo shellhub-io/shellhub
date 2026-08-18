@@ -6,9 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
-	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 )
 
 const (
@@ -36,15 +34,6 @@ func (h *Handler) CreateInstallKey(c *gateway.Context) error {
 
 	res, err := h.service.CreateInstallKey(c.Ctx(), req)
 	if err != nil {
-		// Surface an invalid mode field (webhook/allowlist config) with its per-field body instead of a
-		// bare 400, mirroring the update handler.
-		var e errors.Error
-		if errors.As(err, &e) {
-			if data, ok := e.Data.(services.ErrDataInvalidFields); ok {
-				return c.JSON(http.StatusBadRequest, data)
-			}
-		}
-
 		return err
 	}
 
@@ -94,15 +83,6 @@ func (h *Handler) UpdateInstallKey(c *gateway.Context) error {
 	}
 
 	if err := h.service.UpdateInstallKey(c.Ctx(), req); err != nil {
-		// The global error handler answers with a bare status. For an invalid field we escape it and
-		// return the offending field(s) and why, so a caller learns what to fix instead of a raw 400.
-		var e errors.Error
-		if errors.As(err, &e) {
-			if data, ok := e.Data.(services.ErrDataInvalidFields); ok {
-				return c.JSON(http.StatusBadRequest, data)
-			}
-		}
-
 		return err
 	}
 

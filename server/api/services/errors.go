@@ -50,12 +50,6 @@ type ErrDataNotFound struct {
 	ID string
 }
 
-// ErrDataDuplicated structure should be used to add errors.Data to an error when the resource is duplicated.
-type ErrDataDuplicated struct {
-	// Values is used to identify the duplicated resource.
-	Values []string
-}
-
 // ErrDataLimit structure should be used to add errors.Data to an error when the resource is reached the limit.
 type ErrDataLimit struct {
 	// Limit is the max number of resources.
@@ -185,9 +179,15 @@ func NewErrInvalid(err error, data map[string]interface{}, next error) error {
 	return errors.Wrap(errors.WithData(err, ErrDataInvalid{Data: data}), next)
 }
 
-// NewErrDuplicated returns an error with the ErrDataDuplicated and wrap an error.
-func NewErrDuplicated(err error, values []string, next error) error {
-	return errors.Wrap(errors.WithData(err, ErrDataDuplicated{Values: values}), next)
+// NewErrDuplicated returns an error naming the already-taken request field(s), e.g. ["email"], and
+// wrap an error.
+func NewErrDuplicated(err error, conflicts []string, next error) error {
+	fields := make(map[string]string, len(conflicts))
+	for _, field := range conflicts {
+		fields[field] = "duplicated"
+	}
+
+	return errors.Wrap(errors.WithData(err, ErrDataInvalidFields{Fields: fields}), next)
 }
 
 // NewErrLimit returns an error with the ErrDataLimit and wrap an error.
@@ -260,10 +260,16 @@ type ErrDataInvalidFields struct {
 	Fields map[string]string `json:"fields"`
 }
 
+// NewErrInvalidFields tags an error with the offending request field(s) and why each was rejected,
+// so the HTTP error handler can answer with a per-field body.
+func NewErrInvalidFields(err error, fields map[string]string) error {
+	return errors.WithData(err, ErrDataInvalidFields{Fields: fields})
+}
+
 // NewErrInstallKeyInvalidField returns a bad-request error tagging install key field(s) with a
 // human-readable reason, retrievable by the route from the error's Data.
 func NewErrInstallKeyInvalidField(fields map[string]string) error {
-	return errors.WithData(ErrInstallKeyInvalidField, ErrDataInvalidFields{Fields: fields})
+	return NewErrInvalidFields(ErrInstallKeyInvalidField, fields)
 }
 
 // NewErrTagInvalid returns an error when the tag is invalid.
@@ -286,9 +292,10 @@ func NewErrTagNotFound(tag string, next error) error {
 	return NewErrNotFound(ErrTagNameNotFound, tag, next)
 }
 
-// NewErrTagDuplicated returns an error when the tag is duplicated.
-func NewErrTagDuplicated(tag string, next error) error {
-	return NewErrDuplicated(ErrDuplicateTagName, []string{tag}, next)
+// NewErrTagDuplicated returns an error when the tag is duplicated. conflicts names the request
+// field(s) already taken, e.g. ["name"].
+func NewErrTagDuplicated(conflicts []string, next error) error {
+	return NewErrDuplicated(ErrDuplicateTagName, conflicts, next)
 }
 
 // NewErrUserNotFound returns an error when the user is not found.

@@ -29,9 +29,8 @@ func TestService_RegisterUser(t *testing.T) {
 	runTx := func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }
 
 	type Expected struct {
-		hasToken  bool
-		conflicts []string
-		err       error
+		hasToken bool
+		err      error
 	}
 
 	cases := []struct {
@@ -49,7 +48,7 @@ func TestService_RegisterUser(t *testing.T) {
 				Name: "Alice", Username: "alice", Email: "alice@test.com", Password: "secret123",
 			},
 			requiredMocks: func(_ *storemock.MockStore) {},
-			expected:      Expected{false, nil, NewErrAuthForbidden()},
+			expected:      Expected{false, NewErrAuthForbidden()},
 		},
 		{
 			// A non-resolving Sig with an empty email must not fall through to createNewUser:
@@ -64,7 +63,7 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "STALECODE123").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: Expected{false, nil, NewErrAuthForbidden()},
+			expected: Expected{false, NewErrAuthForbidden()},
 		},
 		{
 			description: "completes an invited account by email match when open signup is on",
@@ -84,7 +83,7 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("UserInvitationUpdate", ctx, mock.AnythingOfType("*models.UserInvitation")).
 					Return(nil).Once()
 			},
-			expected: Expected{false, nil, nil},
+			expected: Expected{false, nil},
 		},
 		{
 			description: "completes an invited account with a sig, joining the namespace and returning a token",
@@ -118,7 +117,7 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("NamespaceGetPreferred", ctx, "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: Expected{true, nil, nil},
+			expected: Expected{true, nil},
 		},
 		{
 			description:          "sets awaiting-approval for a sig registration invited by a non-admin (enterprise)",
@@ -149,7 +148,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
 			},
-			expected: Expected{false, nil, nil},
+			expected: Expected{false, nil},
 		},
 		{
 			description: "returns the conflicting field when the invited user's username is duplicated",
@@ -174,7 +173,6 @@ func TestService_RegisterUser(t *testing.T) {
 			},
 			expected: Expected{
 				false,
-				[]string{"username"},
 				NewErrUserDuplicated([]string{"username"}, errors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})),
 			},
 		},
@@ -195,8 +193,7 @@ func TestService_RegisterUser(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-			res, conflicts, err := s.RegisterUser(ctx, tc.req, "shellhub.test", "")
-			assert.Equal(t, tc.expected.conflicts, conflicts)
+			res, err := s.RegisterUser(ctx, tc.req, "shellhub.test", "")
 			assert.Equal(t, tc.expected.err, err)
 			if tc.expected.hasToken {
 				assert.NotNil(t, res)

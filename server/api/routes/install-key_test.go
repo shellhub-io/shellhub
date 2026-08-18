@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/mock"
@@ -15,7 +16,7 @@ import (
 
 func TestUpdateInstallKey(t *testing.T) {
 	type Expected struct {
-		fields map[string]string
+		body   *responses.Error
 		status int
 	}
 
@@ -44,15 +45,10 @@ func TestUpdateInstallKey(t *testing.T) {
 					})).
 					Once()
 			},
-			expected: Expected{
-				status: http.StatusBadRequest,
-				fields: map[string]string{
-					"usage_limit": "cannot be lower than the number of times the key was already used",
-				},
-			},
+			expected: Expected{status: http.StatusBadRequest},
 		},
 		{
-			description: "answers a bare status for a non-field error",
+			description: "answers a message-only body for a non-field error",
 			headers: map[string]string{
 				"Content-Type": "application/json",
 				"X-ID":         "000000000000000000000000",
@@ -65,7 +61,10 @@ func TestUpdateInstallKey(t *testing.T) {
 					Return(services.NewErrInstallKeyForbidden()).
 					Once()
 			},
-			expected: Expected{status: http.StatusForbidden},
+			expected: Expected{
+				status: http.StatusForbidden,
+				body:   &responses.Error{Message: "the legacy install key cannot be modified"},
+			},
 		},
 		{
 			description: "succeeds",
@@ -103,12 +102,10 @@ func TestUpdateInstallKey(t *testing.T) {
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
 
-			if tc.expected.fields != nil {
-				var body struct {
-					Fields map[string]string `json:"fields"`
-				}
+			if tc.expected.body != nil {
+				body := responses.Error{} //nolint:exhaustruct
 				require.NoError(t, json.NewDecoder(rec.Body).Decode(&body))
-				require.Equal(t, tc.expected.fields, body.Fields)
+				require.Equal(t, *tc.expected.body, body)
 			}
 		})
 	}

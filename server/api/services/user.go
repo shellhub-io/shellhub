@@ -14,50 +14,49 @@ type UserService interface {
 	// RegisterUser creates a user account. When the registration carries a valid invitation (an
 	// invite code or a pending user_invitation for the email), it completes the invited account
 	// and joins the namespace. Open self-registration is cloud-only; community and enterprise are
-	// invite-only. Returns the auth response (when the account goes live), conflicting fields, and
-	// an error if any.
-	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, []string, error)
+	// invite-only. Returns the auth response (when the account goes live) and an error if any. A
+	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s).
+	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error)
 
-	// UpdateUser updates the user's data, such as email and username. Since some attributes must be unique per user,
-	// it returns a list of duplicated unique values and an error if any.
-	//
-	// FIX:
-	// When `req.RecoveryEmail` is equal to `user.Email` or `req.Email`, return a bad request status
-	// with an error object like `{"error": "recovery_email must be different from email"}` instead of setting
-	// conflicts to `["email", "recovery_email"]`.
-	UpdateUser(ctx context.Context, req *requests.UpdateUser) (conflicts []string, err error)
+	// UpdateUser updates the user's data, such as email and username. Since some attributes must be
+	// unique per user, a value already taken yields [ErrUserDuplicated], carrying the conflicting
+	// field name(s).
+	UpdateUser(ctx context.Context, req *requests.UpdateUser) (err error)
 
 	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
 }
 
-func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
+func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) error {
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil {
-		return []string{}, NewErrUserNotFound(req.UserID, nil)
+		return NewErrUserNotFound(req.UserID, nil)
 	}
 
 	if req.RecoveryEmail != "" && (strings.EqualFold(req.RecoveryEmail, user.Email) || strings.EqualFold(req.RecoveryEmail, req.Email)) {
-		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
+		return NewErrInvalidFields(ErrBadRequest, map[string]string{
+			"email":          "must be different from the recovery email",
+			"recovery_email": "must be different from the email",
+		})
 	}
 
 	updatedUser, err := applyUserChanges(user, req)
 	if err != nil {
-		return []string{}, err
+		return err
 	}
 
 	if err := s.store.UserUpdate(ctx, updatedUser); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(err); ok {
-				return []string{field}, NewErrUserDuplicated([]string{field}, err)
+				return NewErrUserDuplicated([]string{field}, err)
 			}
 
-			return []string{}, NewErrUserUnhandledDuplicate()
+			return NewErrUserUnhandledDuplicate()
 		}
 
-		return []string{}, NewErrUserUpdate(user, err)
+		return NewErrUserUpdate(user, err)
 	}
 
-	return []string{}, nil
+	return nil
 }
 
 // UpdatePasswordUser updates a user's password.

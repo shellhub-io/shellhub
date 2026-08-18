@@ -1845,7 +1845,7 @@ func (_c *MockService_CreateSession_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // CreateTag provides a mock function for the type MockService
-func (_mock *MockService) CreateTag(ctx context.Context, req *requests.CreateTag) (string, []string, error) {
+func (_mock *MockService) CreateTag(ctx context.Context, req *requests.CreateTag) (string, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -1853,9 +1853,8 @@ func (_mock *MockService) CreateTag(ctx context.Context, req *requests.CreateTag
 	}
 
 	var r0 string
-	var r1 []string
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateTag) (string, []string, error)); ok {
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateTag) (string, error)); ok {
 		return returnFunc(ctx, req)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateTag) string); ok {
@@ -1863,19 +1862,12 @@ func (_mock *MockService) CreateTag(ctx context.Context, req *requests.CreateTag
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateTag) []string); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateTag) error); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]string)
-		}
+		r1 = ret.Error(1)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.CreateTag) error); ok {
-		r2 = returnFunc(ctx, req)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
+	return r0, r1
 }
 
 // MockService_CreateTag_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateTag'
@@ -1908,12 +1900,12 @@ func (_c *MockService_CreateTag_Call) Run(run func(ctx context.Context, req *req
 	return _c
 }
 
-func (_c *MockService_CreateTag_Call) Return(insertedID string, conflicts []string, err error) *MockService_CreateTag_Call {
-	_c.Call.Return(insertedID, conflicts, err)
+func (_c *MockService_CreateTag_Call) Return(insertedID string, err error) *MockService_CreateTag_Call {
+	_c.Call.Return(insertedID, err)
 	return _c
 }
 
-func (_c *MockService_CreateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateTag) (string, []string, error)) *MockService_CreateTag_Call {
+func (_c *MockService_CreateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateTag) (string, error)) *MockService_CreateTag_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5489,7 +5481,7 @@ func (_c *MockService_PushTagTo_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // RegisterUser provides a mock function for the type MockService
-func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, []string, error) {
+func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, error) {
 	ret := _mock.Called(ctx, req, forwardedHost, forwardedProto)
 
 	if len(ret) == 0 {
@@ -5497,9 +5489,8 @@ func (_mock *MockService) RegisterUser(ctx context.Context, req requests.Registe
 	}
 
 	var r0 *models.UserAuthResponse
-	var r1 []string
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string, string) (*models.UserAuthResponse, []string, error)); ok {
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string, string) (*models.UserAuthResponse, error)); ok {
 		return returnFunc(ctx, req, forwardedHost, forwardedProto)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.RegisterUser, string, string) *models.UserAuthResponse); ok {
@@ -5509,19 +5500,12 @@ func (_mock *MockService) RegisterUser(ctx context.Context, req requests.Registe
 			r0 = ret.Get(0).(*models.UserAuthResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.RegisterUser, string, string) []string); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.RegisterUser, string, string) error); ok {
 		r1 = returnFunc(ctx, req, forwardedHost, forwardedProto)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]string)
-		}
+		r1 = ret.Error(1)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, requests.RegisterUser, string, string) error); ok {
-		r2 = returnFunc(ctx, req, forwardedHost, forwardedProto)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
+	return r0, r1
 }
 
 // MockService_RegisterUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterUser'
@@ -5566,12 +5550,12 @@ func (_c *MockService_RegisterUser_Call) Run(run func(ctx context.Context, req r
 	return _c
 }
 
-func (_c *MockService_RegisterUser_Call) Return(userAuthResponse *models.UserAuthResponse, strings []string, err error) *MockService_RegisterUser_Call {
-	_c.Call.Return(userAuthResponse, strings, err)
+func (_c *MockService_RegisterUser_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_RegisterUser_Call {
+	_c.Call.Return(userAuthResponse, err)
 	return _c
 }
 
-func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, []string, error)) *MockService_RegisterUser_Call {
+func (_c *MockService_RegisterUser_Call) RunAndReturn(run func(ctx context.Context, req requests.RegisterUser, forwardedHost string, forwardedProto string) (*models.UserAuthResponse, error)) *MockService_RegisterUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7203,31 +7187,20 @@ func (_c *MockService_UpdateSession_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // UpdateTag provides a mock function for the type MockService
-func (_mock *MockService) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]string, error) {
+func (_mock *MockService) UpdateTag(ctx context.Context, req *requests.UpdateTag) error {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateTag")
 	}
 
-	var r0 []string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) ([]string, error)); ok {
-		return returnFunc(ctx, req)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) []string); ok {
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateTag) error); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
+		r0 = ret.Error(0)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.UpdateTag) error); ok {
-		r1 = returnFunc(ctx, req)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
+	return r0
 }
 
 // MockService_UpdateTag_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateTag'
@@ -7260,42 +7233,31 @@ func (_c *MockService_UpdateTag_Call) Run(run func(ctx context.Context, req *req
 	return _c
 }
 
-func (_c *MockService_UpdateTag_Call) Return(conflicts []string, err error) *MockService_UpdateTag_Call {
-	_c.Call.Return(conflicts, err)
+func (_c *MockService_UpdateTag_Call) Return(err error) *MockService_UpdateTag_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockService_UpdateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateTag) ([]string, error)) *MockService_UpdateTag_Call {
+func (_c *MockService_UpdateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateTag) error) *MockService_UpdateTag_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateUser provides a mock function for the type MockService
-func (_mock *MockService) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]string, error) {
+func (_mock *MockService) UpdateUser(ctx context.Context, req *requests.UpdateUser) error {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateUser")
 	}
 
-	var r0 []string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateUser) ([]string, error)); ok {
-		return returnFunc(ctx, req)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateUser) []string); ok {
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateUser) error); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
+		r0 = ret.Error(0)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.UpdateUser) error); ok {
-		r1 = returnFunc(ctx, req)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
+	return r0
 }
 
 // MockService_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
@@ -7328,12 +7290,12 @@ func (_c *MockService_UpdateUser_Call) Run(run func(ctx context.Context, req *re
 	return _c
 }
 
-func (_c *MockService_UpdateUser_Call) Return(conflicts []string, err error) *MockService_UpdateUser_Call {
-	_c.Call.Return(conflicts, err)
+func (_c *MockService_UpdateUser_Call) Return(err error) *MockService_UpdateUser_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateUser) ([]string, error)) *MockService_UpdateUser_Call {
+func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateUser) error) *MockService_UpdateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

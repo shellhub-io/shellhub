@@ -6,12 +6,17 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers/pkg/converter"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
+
+// genericMessage is the message every 5xx answers with. An internal error's own text describes the
+// server's internals, so only the reporter sees it.
+const genericMessage = "internal server error"
 
 func report(reporter *sentry.Client, err error, request *http.Request) {
 	go func() {
@@ -28,6 +33,63 @@ func report(reporter *sentry.Client, err error, request *http.Request) {
 	}()
 }
 
+// respond writes the error body. A 5xx never echoes the error's own message, and a status that
+// forbids a body keeps its bare status.
+func respond(ctx *echo.Context, status int, message string, fields map[string]string) {
+	if status >= http.StatusInternalServerError {
+		message, fields = genericMessage, nil
+	}
+
+	if status == http.StatusNoContent {
+		ctx.NoContent(status) //nolint:errcheck
+
+		return
+	}
+
+	ctx.JSON(status, responses.Error{Message: message, Fields: fields}) //nolint:errcheck
+}
+
+// echoMessage returns the client-safe message an error carrying an HTTP status describes itself
+// with. It never falls back to Error(): those texts embed the internal cause, e.g.
+// "code=400, message=failed to bind field value to int, err=strconv.ParseInt: …".
+func echoMessage(err error, code int) string {
+	// A *echo.BindingError unwraps to its cause rather than to the *echo.HTTPError it embeds, so
+	// errors.As misses it on the check below. Match it first.
+	var binding *echo.BindingError
+	if errors.As(err, &binding) && binding.HTTPError != nil && binding.Message != "" {
+		return binding.Message
+	}
+
+	var httpErr *echo.HTTPError
+	if errors.As(err, &httpErr) && httpErr.Message != "" {
+		return httpErr.Message
+	}
+
+	return statusText(code)
+}
+
+// statusText names a status for a client, falling back to the generic message for a code net/http
+// does not name.
+func statusText(code int) string {
+	if text := http.StatusText(code); text != "" {
+		return text
+	}
+
+	return genericMessage
+}
+
+// fieldsOf returns the per-field detail an error carries, or nil when it carries none.
+func fieldsOf(e errors.Error) map[string]string {
+	switch data := e.Data.(type) {
+	case routes.ErrDataInvalidEntity:
+		return data.Fields
+	case services.ErrDataInvalidFields:
+		return data.Fields
+	default:
+		return nil
+	}
+}
+
 // NewErrors returns a custom echo's error handler.
 func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 	return func(ctx *echo.Context, err error) {
@@ -40,7 +102,7 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 		// must also be reported to Sentry, so it needs its own early branch.
 		if errors.Is(err, store.ErrInternal) {
 			report(reporter, err, ctx.Request())
-			ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
+			respond(ctx, http.StatusInternalServerError, "", nil)
 
 			return
 		}
@@ -49,7 +111,7 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 		// Ask Echo for the status rather than matching on *echo.HTTPError: its own sentinels
 		// (echo.ErrNotFound and friends) are a different unexported type that a type match misses.
 		if code := echo.StatusCode(err); code != 0 {
-			ctx.NoContent(code) //nolint:errcheck
+			respond(ctx, code, echoMessage(err, code), nil)
 
 			return
 		}
@@ -59,7 +121,7 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 		// Mongo, not even from HTTP, indicating that is something unknown by the API
 		var e errors.Error
 		if ok := errors.As(err, &e); !ok {
-			ctx.NoContent(http.StatusInternalServerError) //nolint:errcheck
+			respond(ctx, http.StatusInternalServerError, "", nil)
 
 			return
 		}
@@ -74,7 +136,12 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 			// What happens when an error is returned directly from the store's layer, which means it doesn't have a
 			// service error affecting it, which requires fixing.
 			status = http.StatusInternalServerError
+		default:
+			// Layers this switch does not name, such as the scope package's, would otherwise
+			// produce status zero.
+			status = http.StatusInternalServerError
 		}
-		ctx.NoContent(status) //nolint:errcheck
+
+		respond(ctx, status, e.Message, fieldsOf(e))
 	}
 }

@@ -5,9 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,22 +32,9 @@ func (h *Handler) RegisterUser(c *gateway.Context) error {
 		return err
 	}
 
-	authInfo, conflictFields, err := h.service.RegisterUser(c.Ctx(), req, c.Request().Header.Get("X-Forwarded-Host"), c.Request().Header.Get("X-Forwarded-Proto"))
+	authInfo, err := h.service.RegisterUser(c.Ctx(), req, c.Request().Header.Get("X-Forwarded-Host"), c.Request().Header.Get("X-Forwarded-Proto"))
 	if err != nil {
-		// The UI uses the conflicting fields to tell invalid from duplicated.
-		var e errors.Error
-		if ok := errors.As(err, &e); !ok {
-			return err
-		}
-
-		switch e.Code {
-		case services.ErrCodeInvalid:
-			return c.JSON(http.StatusBadRequest, conflictFields)
-		case services.ErrCodeDuplicated:
-			return c.JSON(http.StatusConflict, conflictFields)
-		default:
-			return err
-		}
+		return err
 	}
 
 	if authInfo != nil {

@@ -22,7 +22,6 @@ func TestService_CreateTag(t *testing.T) {
 
 	type Expected struct {
 		insertedID string
-		conflicts  []string
 		err        error
 	}
 
@@ -46,7 +45,6 @@ func TestService_CreateTag(t *testing.T) {
 			},
 			expected: Expected{
 				insertedID: "",
-				conflicts:  []string{},
 				err:        NewErrNamespaceNotFound("tenant1", errors.New("error")),
 			},
 		},
@@ -68,8 +66,7 @@ func TestService_CreateTag(t *testing.T) {
 			},
 			expected: Expected{
 				insertedID: "",
-				conflicts:  []string{"name"},
-				err:        nil,
+				err:        NewErrTagDuplicated([]string{"name"}, nil),
 			},
 		},
 		{
@@ -94,7 +91,6 @@ func TestService_CreateTag(t *testing.T) {
 			},
 			expected: Expected{
 				insertedID: "",
-				conflicts:  []string{},
 				err:        errors.New("error"),
 			},
 		},
@@ -120,7 +116,6 @@ func TestService_CreateTag(t *testing.T) {
 			},
 			expected: Expected{
 				insertedID: "000000000000000000000000",
-				conflicts:  []string{},
 				err:        nil,
 			},
 		},
@@ -132,8 +127,8 @@ func TestService_CreateTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			insertedID, conflicts, err := service.CreateTag(ctx, tc.req)
-			require.Equal(t, tc.expected, Expected{insertedID, conflicts, err})
+			insertedID, err := service.CreateTag(ctx, tc.req)
+			require.Equal(t, tc.expected, Expected{insertedID, err})
 		})
 	}
 
@@ -503,8 +498,7 @@ func TestService_UpdateTag(t *testing.T) {
 	ctx := context.TODO()
 
 	type Expected struct {
-		conflicts []string
-		err       error
+		err error
 	}
 
 	cases := []struct {
@@ -527,8 +521,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       NewErrNamespaceNotFound("tenant1", errors.New("error")),
+				err: NewErrNamespaceNotFound("tenant1", errors.New("error")),
 			},
 		},
 		{
@@ -549,8 +542,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       NewErrTagNotFound("production", errors.New("error")),
+				err: NewErrTagNotFound("production", errors.New("error")),
 			},
 		},
 		{
@@ -575,8 +567,32 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{"name"},
-				err:       NewErrTagDuplicated("staging", nil),
+				err: NewErrTagDuplicated([]string{"name"}, nil),
+			},
+		},
+		{
+			description: "reports a conflict lookup failure as itself, not as a conflict",
+			req: &requests.UpdateTag{
+				Name:     "production",
+				NewName:  "staging",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
+					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}, nil).
+					Once()
+				storeMock.
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
+					Return(nil, false, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				err: errors.New("error"),
 			},
 		},
 		{
@@ -608,8 +624,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: nil,
-				err:       errors.New("error"),
+				err: errors.New("error"),
 			},
 		},
 		{
@@ -644,8 +659,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				conflicts: []string{},
-				err:       nil,
+				err: nil,
 			},
 		},
 	}
@@ -656,8 +670,8 @@ func TestService_UpdateTag(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			conflicts, err := service.UpdateTag(ctx, tc.req)
-			require.Equal(t, tc.expected, Expected{conflicts, err})
+			err := service.UpdateTag(ctx, tc.req)
+			require.Equal(t, tc.expected, Expected{err})
 		})
 	}
 

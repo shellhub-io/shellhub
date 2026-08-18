@@ -1,1 +1,9 @@
 description: Conflict
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/apiError.yaml
+    example:
+      message: tag duplicated
+      fields:
+        name: duplicated
