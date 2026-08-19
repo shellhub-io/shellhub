@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Setup from "../Setup";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -27,24 +28,6 @@ import { getConfig, defaultConfig } from "@/env";
 
 const mockedSetup = vi.mocked(setupSdk);
 const mockedGetConfig = vi.mocked(getConfig);
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
-
-function makeSdkError(status: number) {
-  return Object.assign(new Error("Request failed"), { status });
-}
 
 function renderSetup() {
   return render(

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useMfaResetStore } from "../mfaResetStore";
 import { useAuthStore } from "../authStore";
 import type { UserAuth } from "@/client";
+import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   requestResetMfa: vi.fn(),
@@ -19,20 +20,6 @@ import { requestResetMfa, resetMfa } from "@/client";
 
 const mockedRequestResetMfa = vi.mocked(requestResetMfa);
 const mockedResetMfa = vi.mocked(resetMfa);
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {

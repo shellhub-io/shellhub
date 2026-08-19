@@ -18,10 +18,7 @@ import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTags";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import TagsSection from "../TagsSection";
-
-function makeSdkError(status: number) {
-  return { status };
-}
+import { makeSdkError } from "@/tests/sdk";
 
 beforeEach(() => {
   vi.clearAllMocks();

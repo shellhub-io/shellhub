@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import UpdatePassword from "../UpdatePassword";
+import { mockSdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -17,14 +18,6 @@ vi.mock("@/client", () => ({
 
 import { updateRecoverPassword } from "@/client";
 const mockedUpdate = vi.mocked(updateRecoverPassword);
-
-function mockSdkResponse<T>(data: T) {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 function renderWithParams(search = "?id=uid123&token=tok456") {
   return render(
@@ -74,9 +67,7 @@ describe("UpdatePassword", () => {
     it("shows no password error on initial render", () => {
       renderWithParams();
 
-      expect(
-        screen.queryByText(/password must be/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/password must be/i)).not.toBeInTheDocument();
     });
 
     it("shows no mismatch error on initial render", () => {
@@ -96,9 +87,7 @@ describe("UpdatePassword", () => {
       await user.type(screen.getByLabelText(/^new password$/i), "abc");
       await user.tab();
 
-      expect(
-        await screen.findByText(/password must be/i),
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/password must be/i)).toBeInTheDocument();
     });
 
     it("shows a mismatch error after confirmPassword is blurred with a non-matching value", async () => {
@@ -106,7 +95,10 @@ describe("UpdatePassword", () => {
       renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Different1");
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Different1",
+      );
       await user.tab();
 
       expect(
@@ -129,7 +121,10 @@ describe("UpdatePassword", () => {
       renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Secret123",
+      );
 
       expect(
         screen.getByRole("button", { name: /update password/i }),
@@ -155,8 +150,13 @@ describe("UpdatePassword", () => {
       renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
-      await user.click(screen.getByRole("button", { name: /update password/i }));
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Secret123",
+      );
+      await user.click(
+        screen.getByRole("button", { name: /update password/i }),
+      );
 
       await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1));
       expect(mockedUpdate).toHaveBeenCalledWith(
@@ -175,8 +175,13 @@ describe("UpdatePassword", () => {
       renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
-      await user.click(screen.getByRole("button", { name: /update password/i }));
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Secret123",
+      );
+      await user.click(
+        screen.getByRole("button", { name: /update password/i }),
+      );
 
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -196,8 +201,13 @@ describe("UpdatePassword", () => {
       renderWithParams();
 
       await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(screen.getByLabelText(/^confirm password$/i), "Secret123");
-      await user.click(screen.getByRole("button", { name: /update password/i }));
+      await user.type(
+        screen.getByLabelText(/^confirm password$/i),
+        "Secret123",
+      );
+      await user.click(
+        screen.getByRole("button", { name: /update password/i }),
+      );
 
       expect(await screen.findByRole("alert")).toBeInTheDocument();
     });

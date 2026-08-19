@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import ForgotPassword from "../ForgotPassword";
+import { mockSdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   recoverPassword: vi.fn(),
@@ -11,16 +12,6 @@ vi.mock("@/client", () => ({
 import { recoverPassword as recoverPasswordSdk } from "@/client";
 
 const mockedRecoverPassword = vi.mocked(recoverPasswordSdk);
-
-type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 function renderForgotPassword() {
   return render(
@@ -37,13 +28,17 @@ describe("ForgotPassword", () => {
   describe("initial state", () => {
     it("does not show an account error before the field is touched", () => {
       renderForgotPassword();
-      expect(screen.queryByText(/enter a valid username or email/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/enter a valid username or email/i),
+      ).not.toBeInTheDocument();
       expect(screen.queryByText(/is required/i)).not.toBeInTheDocument();
     });
 
     it("disables the submit button when the form is empty", () => {
       renderForgotPassword();
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeDisabled();
     });
   });
 
@@ -56,7 +51,9 @@ describe("ForgotPassword", () => {
       await user.type(input, "!!");
       await user.tab();
 
-      expect(await screen.findByText(/enter a valid username or email/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/enter a valid username or email/i),
+      ).toBeInTheDocument();
     });
 
     it("keeps the submit button disabled when the account is invalid", async () => {
@@ -67,7 +64,9 @@ describe("ForgotPassword", () => {
       await user.tab();
 
       await screen.findByText(/enter a valid username or email/i);
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeDisabled();
     });
   });
 
@@ -78,7 +77,9 @@ describe("ForgotPassword", () => {
 
       await user.type(screen.getByLabelText(/username or email/i), "alice");
 
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeEnabled();
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeEnabled();
     });
 
     it("calls recoverPassword with the trimmed username on valid submit", async () => {
@@ -89,7 +90,9 @@ describe("ForgotPassword", () => {
       await user.type(screen.getByLabelText(/username or email/i), "  alice  ");
       await user.click(screen.getByRole("button", { name: /reset password/i }));
 
-      await waitFor(() => expect(mockedRecoverPassword).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(mockedRecoverPassword).toHaveBeenCalledTimes(1),
+      );
       expect(mockedRecoverPassword).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ username: "alice" }),

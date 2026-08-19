@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useAuthStore } from "../authStore";
 import type { UserAuth } from "@/client";
+import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   login: vi.fn(),
@@ -18,12 +19,6 @@ const mockedGetUserInfo = vi.mocked(getUserInfo);
 const mockedAuthMfa = vi.mocked(authMfa);
 const mockedMfaRecover = vi.mocked(mfaRecover);
 
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
 function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
     token: "jwt-token",
@@ -39,17 +34,6 @@ function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
     admin: false,
     max_namespaces: -1,
     ...overrides,
-  };
-}
-
-function mockSdkResponse<T>(
-  data: T,
-  headers: HeadersInit = {},
-): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(null, { headers }),
   };
 }
 

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaEnableDrawer from "../MfaEnableDrawer";
+import { mockSdkResponse } from "@/tests/sdk";
 
 vi.mock("qrcode");
 
@@ -17,16 +18,6 @@ import type { MfaGenerate } from "@/client";
 const mockedGenerateMfa = vi.mocked(generateMfa);
 const mockedEnableMfa = vi.mocked(enableMfa);
 const mockedUpdateUser = vi.mocked(updateUser);
-
-type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 const mockMfaData: MfaGenerate = {
   link: "otpauth://totp/ShellHub:user@example.com?secret=ABCD1234&issuer=ShellHub",
@@ -59,7 +50,9 @@ describe("MfaEnableDrawer", () => {
       // Heading contains "Recovery Email"
       expect(screen.getByText(/Set Recovery Email/i)).toBeInTheDocument();
       // Input placeholder is "recovery@example.com"
-      expect(screen.getByPlaceholderText(/recovery@example\.com/i)).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText(/recovery@example\.com/i),
+      ).toBeInTheDocument();
     });
 
     it("shows confirmation when recovery email already exists", () => {
@@ -74,7 +67,9 @@ describe("MfaEnableDrawer", () => {
 
       expect(screen.getByText(/recovery@example.com/)).toBeInTheDocument();
       // Use role-based selector to avoid matching the description text "Continue enabling MFA..."
-      expect(screen.getByRole("button", { name: /continue/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /continue/i }),
+      ).toBeInTheDocument();
     });
 
     it("saves new recovery email and proceeds to step 2", async () => {
@@ -234,7 +229,9 @@ describe("MfaEnableDrawer", () => {
     it("displays secret for manual entry", async () => {
       // Secret is in a readOnly input; use getByDisplayValue instead of getByText
       await waitFor(() => {
-        expect(screen.getByDisplayValue(mockMfaData.secret)).toBeInTheDocument();
+        expect(
+          screen.getByDisplayValue(mockMfaData.secret),
+        ).toBeInTheDocument();
       });
     });
 
@@ -247,8 +244,8 @@ describe("MfaEnableDrawer", () => {
 
       // Find OTP inputs and enter code
       const inputs = screen.getAllByRole("textbox");
-      const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1",
+      const otpInputs = inputs.filter(
+        (input) => input.getAttribute("maxLength") === "1",
       );
 
       // Type 6-digit code
@@ -284,8 +281,8 @@ describe("MfaEnableDrawer", () => {
 
       // Enter OTP
       const inputs = screen.getAllByRole("textbox");
-      const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1",
+      const otpInputs = inputs.filter(
+        (input) => input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "9");
@@ -299,7 +296,9 @@ describe("MfaEnableDrawer", () => {
       await user.click(verifyButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/invalid verification code/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/invalid verification code/i),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -332,8 +331,8 @@ describe("MfaEnableDrawer", () => {
 
       // Enter OTP
       const inputs = screen.getAllByRole("textbox");
-      const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1",
+      const otpInputs = inputs.filter(
+        (input) => input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "1");
@@ -348,7 +347,9 @@ describe("MfaEnableDrawer", () => {
 
       await waitFor(() => {
         // Component shows "MFA Enabled Successfully!"
-        expect(screen.getByText(/MFA Enabled Successfully/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/MFA Enabled Successfully/i),
+        ).toBeInTheDocument();
       });
 
       const doneButton = screen.getByText(/done/i);

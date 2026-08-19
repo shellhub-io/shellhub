@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
+import { makeSdkError } from "@/tests/sdk";
 import AddMemberDrawer from "../AddMemberDrawer";
 import { defaultConfig, getConfig } from "@/env";
-import type { SdkHttpError } from "@/api/errors";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -54,13 +54,6 @@ async function submit(
 ) {
   await user.type(screen.getByPlaceholderText(/user@example.com/i), email);
   await user.click(screen.getByRole("button", { name: /add member/i }));
-}
-
-function makeSdkError(status: number): SdkHttpError {
-  return Object.assign(new Error("request failed"), {
-    status,
-    headers: new Headers(),
-  });
 }
 
 /* ------------------------------------------------------------------ */

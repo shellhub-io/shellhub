@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SamlConfigDrawer from "../SamlConfigDrawer";
+import { mockSdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   configureSamlAuthentication: vi.fn(),
@@ -16,20 +17,6 @@ const VALID_METADATA_URL = "https://idp.example.com/metadata.xml";
 const VALID_ENTITY_ID = "https://idp.example.com/entity";
 const VALID_CERT =
   "-----BEGIN CERTIFICATE-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END CERTIFICATE-----";
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 const defaultProps = {
   open: true,
