@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -40,4 +41,30 @@ type UserStore interface {
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)
 
 	UserDelete(ctx context.Context, user *models.User) error
+}
+
+// UserResolveByAuthIdentifier resolves the user behind a login identifier.
+//
+// An email-shaped identifier is looked up as an email first and as a username afterwards,
+// because usernames may legally contain "@" (see the username rule in pkg/validator).
+// Resolving such an identifier only by email locks those accounts out of their own username.
+//
+// It returns the error of the last attempted resolver when no user matches.
+func UserResolveByAuthIdentifier(ctx context.Context, s UserStore, identifier models.UserAuthIdentifier) (*models.User, error) {
+	resolvers := []UserResolver{UserUsernameResolver}
+	if identifier.IsEmail() {
+		resolvers = []UserResolver{UserEmailResolver, UserUsernameResolver}
+	}
+
+	value := strings.ToLower(string(identifier))
+
+	var err error
+	for _, resolver := range resolvers {
+		var user *models.User
+		if user, err = s.UserResolve(ctx, resolver, value); err == nil {
+			return user, nil
+		}
+	}
+
+	return nil, err
 }

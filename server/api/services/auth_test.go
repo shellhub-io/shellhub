@@ -1256,6 +1256,10 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
 					Once()
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john.doe@test.com").
+					Return(nil, store.ErrNoDocuments).
+					Once()
 			},
 			expected: Expected{
 				res:      nil,
@@ -1798,6 +1802,109 @@ func TestService_AuthLocalUser(t *testing.T) {
 					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					Name:        "john doe",
 					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      "",
+					Token:       "must ignore",
+				},
+				lockout:  0,
+				mfaToken: "",
+				err:      nil,
+			},
+		},
+		{
+			description: "succeeds to authenticate an email-shaped username that is not the account email",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john.doe@personal.test",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john.doe@personal.test",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+				updatedUser := *user
+
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				mock.
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@personal.test").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john.doe@personal.test").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				mock.
+					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
+					Return(nil, errors.New("error", "layer", 0)).
+					Once()
+
+				clockMock := clockmock.NewMockClock(t)
+				clock.DefaultBackend = clockMock
+				clockMock.On("Now").Return(now)
+
+				cacheMock.
+					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
+					Return(nil).
+					Once()
+
+				mock.
+					On("UserUpdate", ctx, &updatedUser).
+					Return(nil).
+					Once()
+				mock.
+					On("UserUpdatePreferredNamespace", ctx, "65fdd16b5f62f93184ec8a39", "").
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.UserAuthResponse{
+					ID:          "65fdd16b5f62f93184ec8a39",
+					Origin:      models.UserOriginLocal.String(),
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					Name:        "john doe",
+					User:        "john.doe@personal.test",
 					Email:       "john.doe@test.com",
 					Tenant:      "",
 					Token:       "must ignore",
