@@ -11,7 +11,7 @@ const mockSetDefault = vi.fn();
 const mockGetCustomerFn = vi.fn();
 const mockGetSubscriptionFn = vi.fn();
 const mockInvalidate = vi.fn();
-const mockGetBillingPortal = vi.fn();
+const mockCreateBillingPortalSession = vi.fn();
 
 vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getCustomerOptions: vi.fn(() => ({
@@ -37,8 +37,8 @@ vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-vi.mock("@/api/unspeccedRoutes", () => ({
-  getBillingPortal: (): unknown => mockGetBillingPortal(),
+vi.mock("@/client", () => ({
+  createBillingPortalSession: (): unknown => mockCreateBillingPortalSession(),
 }));
 
 async function importHooks() {
@@ -205,8 +205,8 @@ describe("useSubscription", () => {
 describe("useOpenBillingPortal", () => {
   it("opens the URL the billing portal route returns", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
-    mockGetBillingPortal.mockResolvedValue({
-      url: "https://billing.stripe.com/session/abc",
+    mockCreateBillingPortalSession.mockResolvedValue({
+      data: { url: "https://billing.stripe.com/session/abc" },
     });
     const { useOpenBillingPortal } = await importHooks();
 
@@ -216,7 +216,7 @@ describe("useOpenBillingPortal", () => {
 
     await act(() => result.current.mutateAsync());
 
-    expect(mockGetBillingPortal).toHaveBeenCalled();
+    expect(mockCreateBillingPortalSession).toHaveBeenCalled();
     expect(openSpy).toHaveBeenCalledWith(
       "https://billing.stripe.com/session/abc",
       "_blank",
@@ -226,7 +226,7 @@ describe("useOpenBillingPortal", () => {
   });
 
   it("throws when the response is missing a URL", async () => {
-    mockGetBillingPortal.mockResolvedValue({});
+    mockCreateBillingPortalSession.mockResolvedValue({ data: {} });
     const { useOpenBillingPortal } = await importHooks();
 
     const { result } = renderHook(() => useOpenBillingPortal(), {

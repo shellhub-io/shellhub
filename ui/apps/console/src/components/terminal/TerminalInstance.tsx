@@ -4,7 +4,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Buffer } from "buffer";
-import { createWebSshSession, type WebSshSessionRequest } from "@/api/unspeccedRoutes";
+import { createWebSshSession, type CreateWebSshSessionData } from "@/client";
 import { generateSignature } from "@/utils/sshKeys";
 import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -81,25 +81,22 @@ export default function TerminalInstance({
     async function connect() {
       updateStatus("connecting");
 
-      // Build POST body: for private key auth, send fingerprint; for password auth, send password
-      const body: WebSshSessionRequest = {
-        device: session.deviceUid,
-        username: session.username,
-      };
-      if (session.fingerprint) {
-        body.fingerprint = session.fingerprint;
-        // Browser-held identity: also send the public key so the gateway resolves
-        // the presented key to the enrolled ssh_identity (native identity path).
-        if (session.publicKeyLine) {
-          body.public_key = session.publicKeyLine;
-        }
-      } else {
-        body.password = session.password;
-      }
+      const shared = { device: session.deviceUid, username: session.username };
+      const body: CreateWebSshSessionData["body"] = session.fingerprint
+        ? {
+            ...shared,
+            fingerprint: session.fingerprint,
+            public_key: session.publicKeyLine,
+          }
+        : { ...shared, password: session.password ?? "" };
 
       let token: string;
       try {
-        ({ token } = await createWebSshSession(body));
+        const { data } = await createWebSshSession({
+          body,
+          throwOnError: true,
+        });
+        token = data.token;
       } catch {
         if (cancelled) return;
         updateStatus("disconnected");

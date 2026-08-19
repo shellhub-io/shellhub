@@ -19,9 +19,8 @@ import {
 import { Button, Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 import InputField from "@/components/common/fields/InputField";
-import { getSamlReauthUrl } from "@/api/unspeccedRoutes";
 import { isSdkError } from "@/api/errors";
-import { webTerminalReauth } from "@/client";
+import { webTerminalReauth, getSamlReauthUrl } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useSSHApproval, ApprovalDetails } from "@/hooks/useSSHApproval";
 import { useAuthStore } from "@/stores/authStore";
@@ -468,8 +467,11 @@ function ReauthFactor({
     if (submitting) return;
     setSubmitting(true);
     setError(null);
-    getSamlReauthUrl({ fingerprint, approval_code: approvalCode })
-      .then(({ url }) => {
+    getSamlReauthUrl({
+      query: { fingerprint, approval_code: approvalCode },
+      throwOnError: true,
+    })
+      .then(({ data: { url } }) => {
         if (!window.open(url, "sso-reauth", "width=520,height=680")) {
           setError(
             "Pop-up blocked. Allow pop-ups for this site and try again.",

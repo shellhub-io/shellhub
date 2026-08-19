@@ -1,0 +1,43 @@
+get:
+  operationId: getSamlReauthUrl
+  summary: Get SAML re-authentication URL
+  description: |
+    Returns a ForceAuthn Identity Provider URL for re-authenticating the
+    logged-in SSO user during a web-terminal step-up approval.
+
+    Requires an active JWT session; API keys are rejected.
+  security:
+    - jwt: []
+  tags:
+    - cloud
+    - users
+  parameters:
+    - name: fingerprint
+      in: query
+      required: true
+      schema:
+        type: string
+      description: The browser identity fingerprint
+    - name: approval_code
+      in: query
+      required: true
+      schema:
+        type: string
+      description: The SSH approval code for the step-up flow
+  responses:
+    '200':
+      description: Successfully retrieved the SAML re-authentication URL
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                description: The complete URL to the Identity Provider's ForceAuthn login page
+    '401':
+      $ref: '../components/responses/401.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'

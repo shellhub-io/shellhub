@@ -8,7 +8,7 @@ import {
   detachPaymentMethodMutation,
   setDefaultPaymentMethodMutation,
 } from "../client/@tanstack/react-query.gen";
-import { getBillingPortal } from "@/api/unspeccedRoutes";
+import { createBillingPortalSession } from "@/client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 function useInvalidateBilling() {
@@ -84,10 +84,10 @@ export function useSetDefaultPaymentMethod() {
 export function useOpenBillingPortal() {
   return useMutation({
     mutationFn: async () => {
-      const { url } = await getBillingPortal();
-      if (!url) throw new Error("Missing billing portal URL");
-      window.open(url, "_blank", "noopener,noreferrer");
-      return url;
+      const { data } = await createBillingPortalSession({ throwOnError: true });
+      if (!data.url) throw new Error("Missing billing portal URL");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+      return data.url;
     },
   });
 }

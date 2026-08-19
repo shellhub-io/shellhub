@@ -1,0 +1,30 @@
+post:
+  operationId: createBillingPortalSession
+  summary: Create billing portal session
+  description: Create a Stripe billing portal session and return its URL.
+  security:
+    - jwt: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Successfully created a billing portal session.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                description: The URL of the Stripe billing portal session
+    '400':
+      $ref: ../components/schemas/billingError.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
