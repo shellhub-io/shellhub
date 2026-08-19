@@ -10,6 +10,7 @@ import {
 } from "@/utils/navigation";
 import type { Info, UserAuth } from "@/client";
 import { mockUserAuth } from "@/tests/userAuth";
+import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
 
@@ -390,6 +391,25 @@ describe("Login", () => {
       expect(
         screen.queryByText(/too many failed login attempts/i),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("under a browser-translated DOM", () => {
+    it("keeps updating the lockout countdown", async () => {
+      const epoch = Math.floor(Date.now() / 1000) + 30;
+      mockedLogin.mockRejectedValue(
+        makeSdkError(429, { "x-account-lockout": String(epoch) }),
+      );
+
+      const { container } = renderLogin();
+      await fillAndSubmit();
+      await screen.findByText(/too many failed login attempts/i);
+      simulateBrowserTranslation(container);
+
+      await waitFor(
+        () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
+        { timeout: 2000 },
+      );
     });
   });
 

@@ -190,11 +190,13 @@ export default function AcceptInvite() {
       title: "Different Account Signed In",
       description: (
         <>
-          You're signed in as{" "}
+          <span>You're signed in as </span>
           <span className="font-medium text-text-primary font-mono">
             {authEmail ?? "another account"}
           </span>
-          . Sign out and use the account this invitation was sent to.
+          <span>
+            . Sign out and use the account this invitation was sent to.
+          </span>
         </>
       ),
       action: { label: "Sign Out", onClick: handleSignOut },
@@ -206,11 +208,11 @@ export default function AcceptInvite() {
       descriptionId: "invite-email-hint",
       description: (
         <>
-          Set up your account to join. You're joining as{" "}
+          <span>Set up your account to join. You're joining as </span>
           <span className="font-medium text-text-primary font-mono">
             {inviteEmail || "your email"}
           </span>
-          .
+          <span>.</span>
         </>
       ),
       children: (
@@ -275,17 +277,16 @@ export default function AcceptInvite() {
       title: "You're in",
       description: (
         <>
-          Your account is now a member of the namespace
+          <span>Your account is now a member of the namespace</span>
           {inviteEmail ? (
             <>
-              {" "}
-              as{" "}
+              <span> as </span>
               <span className="font-medium text-text-primary font-mono">
                 {inviteEmail}
               </span>
             </>
           ) : null}
-          .
+          <span>.</span>
         </>
       ),
       action: {

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { useAuthStore } from "@/stores/authStore";
+import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import AcceptInvite from "../AcceptInvite";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -376,6 +377,50 @@ describe("AcceptInvite", () => {
           expect.stringMatching(/^\/login\?redirect=/),
         ),
       );
+    });
+  });
+
+  describe("under a browser-translated DOM", () => {
+    it("still reaches the joined confirmation after signing up", async () => {
+      setResolved("invited");
+      mockSignUp.mockResolvedValue("tok");
+      const user = userEvent.setup();
+      const { container } = renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /you've been invited/i });
+
+      simulateBrowserTranslation(container);
+      await user.type(screen.getByLabelText(/^name$/i), "Alice");
+      await user.type(screen.getByLabelText(/^username$/i), "alice");
+      await user.type(screen.getByLabelText(/^password$/i), "Secret123");
+      await user.type(screen.getByLabelText(/confirm password/i), "Secret123");
+      await user.click(screen.getByRole("button", { name: /join namespace/i }));
+
+      expect(
+        await screen.findByRole("heading", { name: /you're in/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("still reaches the joined confirmation after accepting", async () => {
+      useAuthStore.setState({
+        token: "jwt-token",
+        userId: "u1",
+        email: "alice@example.com",
+        loading: false,
+      });
+      const user = userEvent.setup();
+      const { container } = renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /namespace invitation/i });
+
+      simulateBrowserTranslation(container);
+      await user.click(screen.getByRole("button", { name: /^accept$/i }));
+      const dialog = screen.getByRole("dialog");
+      await user.click(
+        within(dialog).getByRole("button", { name: /^accept$/i }),
+      );
+
+      expect(
+        await screen.findByRole("heading", { name: /you're in/i }),
+      ).toBeInTheDocument();
     });
   });
 });

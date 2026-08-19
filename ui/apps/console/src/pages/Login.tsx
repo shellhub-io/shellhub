@@ -267,10 +267,10 @@ export default function Login() {
         {error && !lockoutExpired && (
           <Callout variant="error">
             <span>
-              {error}
-              {countdownDisplay && (
+              <span>{error}</span>
+              {countdownDisplay ? (
                 <span className="font-semibold"> ({countdownDisplay})</span>
-              )}
+              ) : null}
             </span>
           </Callout>
         )}
