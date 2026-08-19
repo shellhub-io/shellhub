@@ -1,23 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import Sessions from "../index";
-
-/** Exposes the current search string from inside the MemoryRouter. */
-function LocationProbe({
-  onLocation,
-}: {
-  onLocation: (search: string) => void;
-}) {
-  const loc = useLocation();
-  onLocation(loc.search);
-  return null;
-}
-
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
+import { LocationProbe } from "@/tests/LocationProbe";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 

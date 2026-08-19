@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useLocation } from "react-router-dom";
 import { createTestWrapper } from "@/tests/wrapper";
+import { LocationProbe } from "@/tests/LocationProbe";
 import type { ApiKey } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -81,19 +81,6 @@ beforeEach(() => {
     mutateAsync: mockMutateAsync,
   } as never);
 });
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Exposes the current search string from inside the MemoryRouter. */
-function LocationProbe({
-  onLocation,
-}: {
-  onLocation: (search: string) => void;
-}) {
-  const loc = useLocation();
-  onLocation(loc.search);
-  return null;
-}
 
 function renderTab(initialEntries: string[] = ["/"]) {
   let lastSearch = "";
