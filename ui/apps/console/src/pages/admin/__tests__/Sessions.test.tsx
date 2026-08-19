@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -22,21 +22,7 @@ import { useAdminSessions } from "@/hooks/useAdminSessions";
 import type { Device, Session } from "@/client";
 import AdminSessions from "../Sessions";
 import { sdkError } from "@/tests/sdkError";
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
-/** Exposes the current search string from inside the MemoryRouter. */
-function LocationProbe({
-  onLocation,
-}: {
-  onLocation: (search: string) => void;
-}) {
-  const loc = useLocation();
-  onLocation(loc.search);
-  return null;
-}
+import { LocationProbe } from "@/tests/LocationProbe";
 
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
