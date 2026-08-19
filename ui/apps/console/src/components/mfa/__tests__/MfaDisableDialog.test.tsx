@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaDisableDialog from "../MfaDisableDialog";
+import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   disableMfa: vi.fn(),
@@ -13,20 +14,6 @@ import { useAuthStore } from "@/stores/authStore";
 
 const mockedDisableMfa = vi.mocked(disableMfa);
 const mockedRequestResetMfa = vi.mocked(requestResetMfa);
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 describe("MfaDisableDialog", () => {
   const onClose = vi.fn();

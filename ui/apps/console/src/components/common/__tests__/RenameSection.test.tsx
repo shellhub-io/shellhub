@@ -3,13 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import RenameSection, { type RenameSectionProps } from "../RenameSection";
-
-function makeSdkError(status: number) {
-  return Object.assign(new Error("Request failed"), {
-    status,
-    headers: new Headers(),
-  });
-}
+import { makeSdkError } from "@/tests/sdk";
 
 const mockRename = vi
   .fn<RenameSectionProps["rename"]>()
@@ -40,9 +34,7 @@ async function typeAndSave(
   const input = screen.getByRole("textbox");
   await user.clear(input);
   await user.type(input, name);
-  await user.click(
-    screen.getByRole("button", { name: /save device name/i }),
-  );
+  await user.click(screen.getByRole("button", { name: /save device name/i }));
 }
 
 beforeEach(() => {
@@ -191,9 +183,7 @@ describe("RenameSection", () => {
     it("uses entityLabel in error messages", async () => {
       mockRename.mockRejectedValue(makeSdkError(409));
       const user = userEvent.setup();
-      render(
-        <RenameSection {...defaultProps} entityLabel="container" />,
-      );
+      render(<RenameSection {...defaultProps} entityLabel="container" />);
       await user.click(
         screen.getByRole("button", { name: /rename container/i }),
       );

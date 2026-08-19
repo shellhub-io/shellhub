@@ -10,6 +10,7 @@ import {
 } from "@/utils/navigation";
 import type { UserAuth, Info } from "@/client";
 import Login from "../Login";
+import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -43,12 +44,6 @@ const mockedGetInfo = vi.mocked(getInfoSdk);
 const mockedGetSamlAuthUrl = vi.mocked(getSamlAuthUrlSdk);
 const mockedGetConfig = vi.mocked(getConfig);
 
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
 function mockInfo(overrides: Partial<Info> = {}): Info {
   return {
     version: "0.0.0",
@@ -75,25 +70,6 @@ function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
     max_namespaces: -1,
     ...overrides,
   };
-}
-
-function mockSdkResponse<T>(
-  data: T,
-  headers: HeadersInit = {},
-): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(null, { headers }),
-  };
-}
-
-function makeSdkError(status: number, headers?: Record<string, string>) {
-  const headerObj = new Headers(headers);
-  return Object.assign(new Error("Request failed"), {
-    status,
-    headers: headerObj,
-  });
 }
 
 function renderLogin() {

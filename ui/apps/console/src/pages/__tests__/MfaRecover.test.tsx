@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import MfaRecover from "../MfaRecover";
+import { mockSdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   recoveryDisableMfa: vi.fn(),
@@ -11,20 +12,6 @@ vi.mock("@/client", () => ({
 
 import { recoveryDisableMfa } from "@/client";
 const mockedRecoveryDisableMfa = vi.mocked(recoveryDisableMfa);
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 function renderRecover() {
   return render(

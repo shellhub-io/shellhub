@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AdminAuthentication from "../Authentication";
+import { mockSdkResponse } from "@/tests/sdk";
 
 vi.mock("@/client", () => ({
   getAuthenticationSettings: vi.fn(),
@@ -19,24 +20,7 @@ const mockedGetSettings = vi.mocked(getAuthenticationSettings);
 const mockedConfigureLocal = vi.mocked(configureLocalAuthentication);
 const mockedConfigureSaml = vi.mocked(configureSamlAuthentication);
 
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
-
-function mockSettings({
-  localEnabled = true,
-  samlEnabled = false,
-} = {}) {
+function mockSettings({ localEnabled = true, samlEnabled = false } = {}) {
   return {
     local: { enabled: localEnabled },
     saml: { enabled: samlEnabled },
@@ -64,9 +48,7 @@ beforeEach(() => {
 describe("AdminAuthentication", () => {
   describe("DS Toggle usage", () => {
     it("renders the local-auth and SAML rows as role='switch' toggles", async () => {
-      mockedGetSettings.mockResolvedValue(
-        mockSdkResponse(mockSettings()),
-      );
+      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
 
       renderPage();
       await settlePendingLoad();
@@ -81,9 +63,7 @@ describe("AdminAuthentication", () => {
 
     it("clicking the local-auth toggle fires configureLocalAuthentication with the flipped value", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(
-        mockSdkResponse(mockSettings()),
-      );
+      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
 
       renderPage();
       await settlePendingLoad();
@@ -119,9 +99,7 @@ describe("AdminAuthentication", () => {
 
     it("disables the local-auth toggle while togglingLocal is true", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(
-        mockSdkResponse(mockSettings()),
-      );
+      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
       let resolveConfigure: (() => void) | undefined;
       mockedConfigureLocal.mockReturnValue(
         new Promise((resolve) => {

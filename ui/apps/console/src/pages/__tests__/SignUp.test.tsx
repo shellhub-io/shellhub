@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useSignUpStore } from "@/stores/signUpStore";
 import SignUp from "../SignUp";
+import { mockSdkResponse } from "@/tests/sdk";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -25,20 +26,6 @@ vi.mock("@/client", () => ({
 import { registerUser as registerUserSdk } from "@/client";
 
 const mockedRegisterUser = vi.mocked(registerUserSdk);
-
-type SdkResponse<T = unknown> = {
-  data: T;
-  request: Request;
-  response: Response;
-};
-
-function mockSdkResponse<T>(data: T): SdkResponse<T> {
-  return {
-    data,
-    request: new Request("http://localhost"),
-    response: new Response(),
-  };
-}
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
