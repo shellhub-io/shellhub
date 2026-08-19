@@ -8,7 +8,8 @@ import {
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import type { UserAuth, Info } from "@/client";
+import type { Info, UserAuth } from "@/client";
+import { mockUserAuth } from "@/tests/userAuth";
 import Login from "../Login";
 import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
 
@@ -50,24 +51,6 @@ function mockInfo(overrides: Partial<Info> = {}): Info {
     endpoints: null,
     setup: true,
     authentication: { local: true, saml: false },
-    ...overrides,
-  };
-}
-
-function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
-  return {
-    token: "jwt-token",
-    id: "uid",
-    origin: "local",
-    user: "admin",
-    name: "Admin",
-    email: "admin@test.com",
-    recovery_email: "recovery@test.com",
-    tenant: "tenant-1",
-    role: "owner",
-    mfa: false,
-    admin: false,
-    max_namespaces: -1,
     ...overrides,
   };
 }
