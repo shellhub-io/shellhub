@@ -485,12 +485,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
 
-	resolver := store.UserUsernameResolver
-	if req.Identifier.IsEmail() {
-		resolver = store.UserEmailResolver
-	}
-
-	user, err := s.store.UserResolve(ctx, resolver, strings.ToLower(string(req.Identifier)))
+	user, err := store.UserResolveByAuthIdentifier(ctx, s.store, req.Identifier)
 	if err != nil {
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
