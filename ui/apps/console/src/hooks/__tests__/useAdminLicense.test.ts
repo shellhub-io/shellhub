@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -29,17 +28,6 @@ const mockGetConfig = vi.mocked(getConfig);
 const mockGetLicense = vi.mocked(getLicense);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
 
 function makeLicense(overrides: Record<string, unknown> = {}) {
   return {
@@ -71,9 +59,7 @@ describe("useAdminLicense", () => {
       const license = makeLicense();
       mockGetLicense.mockResolvedValue({ data: license } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -86,9 +72,7 @@ describe("useAdminLicense", () => {
         data: makeLicense({ expired: false }),
       } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.isExpired).toBe(false);
@@ -99,9 +83,7 @@ describe("useAdminLicense", () => {
     it("normalizes 400 to installedLicense null", async () => {
       mockGetLicense.mockRejectedValue({ status: 400 });
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.installedLicense).toBeNull();
@@ -110,9 +92,7 @@ describe("useAdminLicense", () => {
     it("sets isExpired to true when no license is installed", async () => {
       mockGetLicense.mockRejectedValue({ status: 400 });
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.isExpired).toBe(true);
@@ -125,9 +105,7 @@ describe("useAdminLicense", () => {
         data: makeLicense({ expired: true }),
       } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.isExpired).toBe(true);
@@ -138,9 +116,7 @@ describe("useAdminLicense", () => {
         data: makeLicense({ expired: false, grace_period: true }),
       } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.isExpired).toBe(false);
@@ -151,9 +127,7 @@ describe("useAdminLicense", () => {
     it("does NOT call getLicense on cloud deployments", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       // Give React Query a chance to fire (it should not)
       await new Promise((r) => setTimeout(r, 20));
@@ -165,9 +139,7 @@ describe("useAdminLicense", () => {
     it("returns isExpired false on cloud deployments", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await new Promise((r) => setTimeout(r, 20));
       expect(result.current.isExpired).toBe(false);
@@ -178,9 +150,7 @@ describe("useAdminLicense", () => {
     it("does NOT call getLicense when user is not admin", async () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await new Promise((r) => setTimeout(r, 20));
 
@@ -191,9 +161,7 @@ describe("useAdminLicense", () => {
     it("returns isExpired false when user is not admin", async () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminLicense());
 
       await new Promise((r) => setTimeout(r, 20));
       expect(result.current.isExpired).toBe(false);

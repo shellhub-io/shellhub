@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import AddMemberDrawer from "../AddMemberDrawer";
 import { defaultConfig, getConfig } from "@/env";
 import type { SdkHttpError } from "@/api/errors";
@@ -43,21 +41,10 @@ const mockGetConfig = vi.mocked(getConfig);
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </MemoryRouter>
-  );
-}
-
 function renderDrawer(open = true, onClose = vi.fn(), tenantId = "t1") {
   return render(
     <AddMemberDrawer open={open} onClose={onClose} tenantId={tenantId} />,
-    { wrapper: createWrapper() },
+    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
   );
 }
 

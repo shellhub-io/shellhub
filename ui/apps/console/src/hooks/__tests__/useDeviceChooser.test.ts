@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor, act } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 
 // ── SDK mocks ────────────────────────────────────────────────────────────────
 
@@ -30,17 +29,6 @@ import { useInvalidateByIds } from "../useInvalidateQueries";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-      mutations: { retry: false },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -56,9 +44,7 @@ describe("useSuggestedDevices", () => {
       ];
       mockMostUsedQueryFn.mockResolvedValue(devices);
 
-      const { result } = renderHook(() => useSuggestedDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useSuggestedDevices());
 
       await waitFor(() =>
         expect(result.current.devices).toEqual([
@@ -72,9 +58,7 @@ describe("useSuggestedDevices", () => {
       // Don't resolve yet — keep the query pending
       mockMostUsedQueryFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useSuggestedDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useSuggestedDevices());
 
       expect(result.current.devices).toEqual([]);
     });
@@ -82,9 +66,7 @@ describe("useSuggestedDevices", () => {
     it("exposes isLoading=true while the query is in flight", () => {
       mockMostUsedQueryFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useSuggestedDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useSuggestedDevices());
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -92,17 +74,13 @@ describe("useSuggestedDevices", () => {
 
   describe("when enabled=false", () => {
     it("does not call the queryFn", () => {
-      renderHook(() => useSuggestedDevices(false), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useSuggestedDevices(false));
 
       expect(mockMostUsedQueryFn).not.toHaveBeenCalled();
     });
 
     it("returns an empty devices array", () => {
-      const { result } = renderHook(() => useSuggestedDevices(false), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useSuggestedDevices(false));
 
       expect(result.current.devices).toEqual([]);
     });
@@ -113,9 +91,7 @@ describe("useSuggestedDevices", () => {
       const err = new Error("network failure");
       mockMostUsedQueryFn.mockRejectedValue(err);
 
-      const { result } = renderHook(() => useSuggestedDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useSuggestedDevices());
 
       await waitFor(() => expect(result.current.error).toBe(err));
     });
@@ -129,9 +105,7 @@ describe("useChoiceDevices", () => {
     it("calls the mutationFn with the choices body", async () => {
       mockChoiceMutationFn.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useChoiceDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useChoiceDevices());
 
       const vars = { body: { choices: ["uid1", "uid2"] } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -147,9 +121,7 @@ describe("useChoiceDevices", () => {
     it("calls invalidate once after the mutation succeeds", async () => {
       mockChoiceMutationFn.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useChoiceDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useChoiceDevices());
 
       await act(() =>
         result.current.mutateAsync({ body: { choices: ["uid1"] } }),
@@ -159,7 +131,7 @@ describe("useChoiceDevices", () => {
     });
 
     it("registers invalidate using useInvalidateByIds with the correct query ids", () => {
-      renderHook(() => useChoiceDevices(), { wrapper: createWrapper() });
+      renderHookWithClient(() => useChoiceDevices());
 
       expect(useInvalidateByIds).toHaveBeenCalledWith(
         "getDevices",
@@ -174,9 +146,7 @@ describe("useChoiceDevices", () => {
       const err = new Error("server error");
       mockChoiceMutationFn.mockRejectedValue(err);
 
-      const { result } = renderHook(() => useChoiceDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useChoiceDevices());
 
       act(() => result.current.mutate({ body: { choices: ["uid1"] } }));
 
@@ -187,9 +157,7 @@ describe("useChoiceDevices", () => {
     it("does not call invalidate when the mutation fails", async () => {
       mockChoiceMutationFn.mockRejectedValue(new Error("server error"));
 
-      const { result } = renderHook(() => useChoiceDevices(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useChoiceDevices());
 
       act(() => result.current.mutate({ body: { choices: ["uid1"] } }));
 

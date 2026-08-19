@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 
 vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: vi.fn(),
@@ -49,16 +49,6 @@ const mockGetConfig = vi.mocked(getConfig);
 const mockUseHasPermission = vi.mocked(useHasPermission);
 const mockUseStats = vi.mocked(useStats);
 const mockUseNamespace = vi.mocked(useNamespace);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
 
 function makeStats(registeredDevices: number) {
   return {
@@ -115,7 +105,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   setupHooks();
 });
-// ── Tests ─────────────────────────────────────────────────────────────────────
+
+function renderTrigger() {
+  return render(<DeviceChooserTrigger />, { wrapper: createTestWrapper() });
+}
 
 describe("DeviceChooserTrigger", () => {
   describe("when edition isn't cloud", () => {
@@ -123,7 +116,7 @@ describe("DeviceChooserTrigger", () => {
       "renders nothing without mounting the inner component for edition=%s",
       (edition) => {
         setupHooks({ edition });
-        render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+        renderTrigger();
         expect(
           screen.queryByTestId("device-chooser-dialog"),
         ).not.toBeInTheDocument();
@@ -135,7 +128,7 @@ describe("DeviceChooserTrigger", () => {
   describe("when edition=cloud but user lacks device:choose permission", () => {
     it("renders nothing", async () => {
       setupHooks({ canChoose: false });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       await waitFor(() =>
         expect(
           screen.queryByTestId("device-chooser-dialog"),
@@ -147,7 +140,7 @@ describe("DeviceChooserTrigger", () => {
   describe("when edition=cloud, owner, billing is active", () => {
     it("renders nothing", async () => {
       setupHooks({ billingActive: true });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       await waitFor(() =>
         expect(
           screen.queryByTestId("device-chooser-dialog"),
@@ -159,7 +152,7 @@ describe("DeviceChooserTrigger", () => {
   describe("when edition=cloud, owner, billing inactive, registered_devices=3 (boundary)", () => {
     it("renders nothing — limit is strictly greater than 3", async () => {
       setupHooks({ registeredDevices: 3 });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       await waitFor(() =>
         expect(
           screen.queryByTestId("device-chooser-dialog"),
@@ -170,14 +163,12 @@ describe("DeviceChooserTrigger", () => {
 
   describe("when all conditions are met (cloud, owner, billing inactive, >3 devices)", () => {
     it("auto-opens the dialog on mount", async () => {
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       await waitFor(() =>
         expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
       );
     });
   });
-
-  // ── C1 regression: don't render while loading or namespace undefined ─────────
 
   describe("when namespace is still loading", () => {
     it("renders nothing even if stats indicate over-limit", () => {
@@ -186,7 +177,7 @@ describe("DeviceChooserTrigger", () => {
         registeredDevices: 4,
         billingActive: false,
       });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
@@ -196,7 +187,7 @@ describe("DeviceChooserTrigger", () => {
   describe("when stats are still loading", () => {
     it("renders nothing", () => {
       setupHooks({ statsLoading: true, billingActive: false });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
@@ -206,7 +197,7 @@ describe("DeviceChooserTrigger", () => {
   describe("when namespace returned is undefined", () => {
     it("renders nothing — billing is unknown until namespace resolves", () => {
       setupHooks({ namespace: null, registeredDevices: 4 });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
@@ -222,19 +213,17 @@ describe("DeviceChooserTrigger", () => {
         error: new Error("network failure"),
         refetch: vi.fn(),
       });
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
     });
   });
 
-  // ── Dismissal behaviour ──────────────────────────────────────────────────────
-
   describe("dismissal", () => {
     it("hides the dialog after dismissal", async () => {
       const user = userEvent.setup();
-      render(<DeviceChooserTrigger />, { wrapper: createWrapper() });
+      renderTrigger();
       await waitFor(() =>
         expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
       );
@@ -248,9 +237,7 @@ describe("DeviceChooserTrigger", () => {
 
     it("does not re-open the dialog after dismissal within the same mount", async () => {
       const user = userEvent.setup();
-      const { rerender } = render(<DeviceChooserTrigger />, {
-        wrapper: createWrapper(),
-      });
+      const { rerender } = renderTrigger();
       await waitFor(() =>
         expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
       );
@@ -261,7 +248,6 @@ describe("DeviceChooserTrigger", () => {
         ).not.toBeInTheDocument(),
       );
 
-      // Trigger a re-render with the same conditions — dialog must NOT reopen
       rerender(<DeviceChooserTrigger />);
       expect(
         screen.queryByTestId("device-chooser-dialog"),
@@ -270,7 +256,7 @@ describe("DeviceChooserTrigger", () => {
 
     it("reopens the dialog on a fresh remount after conditions are still true", async () => {
       const user = userEvent.setup();
-      const wrapper = createWrapper();
+      const wrapper = createTestWrapper();
 
       render(<DeviceChooserTrigger />, { wrapper });
       await waitFor(() =>
@@ -283,7 +269,6 @@ describe("DeviceChooserTrigger", () => {
         ).not.toBeInTheDocument(),
       );
 
-      // Unmount and remount — fresh component state, so dialog reopens
       cleanup();
 
       render(<DeviceChooserTrigger />, { wrapper });

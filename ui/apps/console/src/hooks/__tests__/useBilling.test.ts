@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper, renderHookWithClient } from "@/tests/wrapper";
 
 const mockCreateCustomer = vi.fn();
 const mockCreateSubscription = vi.fn();
@@ -45,17 +44,6 @@ async function importHooks() {
   return await import("../useBilling");
 }
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      mutations: { retry: false },
-      queries: { retry: false },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -65,9 +53,7 @@ describe("useBilling mutations", () => {
     mockCreateCustomer.mockResolvedValue(undefined);
     const { useCreateCustomer } = await importHooks();
 
-    const { result } = renderHook(() => useCreateCustomer(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useCreateCustomer());
 
     await act(() => result.current.mutateAsync({}));
 
@@ -79,9 +65,7 @@ describe("useBilling mutations", () => {
     mockCreateSubscription.mockResolvedValue(undefined);
     const { useCreateSubscription } = await importHooks();
 
-    const { result } = renderHook(() => useCreateSubscription(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useCreateSubscription());
 
     await act(() => result.current.mutateAsync({}));
 
@@ -96,9 +80,7 @@ describe("useBilling mutations", () => {
     mockCreateSubscription.mockRejectedValue(err);
     const { useCreateSubscription } = await importHooks();
 
-    const { result } = renderHook(() => useCreateSubscription(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useCreateSubscription());
 
     await expect(result.current.mutateAsync({})).rejects.toBe(err);
     expect(mockInvalidate).not.toHaveBeenCalled();
@@ -114,7 +96,7 @@ describe("useBilling mutations", () => {
       useSetDefaultPaymentMethod,
     } = await importHooks();
 
-    const wrapper = createWrapper();
+    const wrapper = createTestWrapper();
     const attachHook = renderHook(() => useAttachPaymentMethod(), { wrapper });
     await act(() =>
       attachHook.result.current.mutateAsync({ body: { id: "pm_1" } }),
@@ -141,9 +123,7 @@ describe("useCreateSubscription (query key coverage)", () => {
     mockCreateSubscription.mockResolvedValue(undefined);
     const { useCreateSubscription } = await importHooks();
 
-    const { result } = renderHook(() => useCreateSubscription(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useCreateSubscription());
 
     await act(() => result.current.mutateAsync({}));
 
@@ -156,7 +136,7 @@ describe("useCustomer", () => {
   it("does not call the queryFn when enabled=false", async () => {
     const { useCustomer } = await importHooks();
 
-    renderHook(() => useCustomer(false), { wrapper: createWrapper() });
+    renderHookWithClient(() => useCustomer(false));
 
     expect(mockGetCustomerFn).not.toHaveBeenCalled();
   });
@@ -164,9 +144,7 @@ describe("useCustomer", () => {
   it("returns undefined customer when the query has no data", async () => {
     const { useCustomer } = await importHooks();
 
-    const { result } = renderHook(() => useCustomer(false), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useCustomer(false));
 
     expect(result.current.customer).toBeUndefined();
   });
@@ -176,7 +154,7 @@ describe("useSubscription", () => {
   it("does not call the queryFn when enabled=false", async () => {
     const { useSubscription } = await importHooks();
 
-    renderHook(() => useSubscription(false), { wrapper: createWrapper() });
+    renderHookWithClient(() => useSubscription(false));
 
     expect(mockGetSubscriptionFn).not.toHaveBeenCalled();
   });
@@ -184,9 +162,7 @@ describe("useSubscription", () => {
   it("exposes a refetch function even when disabled", async () => {
     const { useSubscription } = await importHooks();
 
-    const { result } = renderHook(() => useSubscription(false), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useSubscription(false));
 
     expect(typeof result.current.refetch).toBe("function");
   });
@@ -194,9 +170,7 @@ describe("useSubscription", () => {
   it("returns undefined subscription when query has no data", async () => {
     const { useSubscription } = await importHooks();
 
-    const { result } = renderHook(() => useSubscription(false), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useSubscription(false));
 
     expect(result.current.subscription).toBeUndefined();
   });
@@ -210,9 +184,7 @@ describe("useOpenBillingPortal", () => {
     });
     const { useOpenBillingPortal } = await importHooks();
 
-    const { result } = renderHook(() => useOpenBillingPortal(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useOpenBillingPortal());
 
     await act(() => result.current.mutateAsync());
 
@@ -229,9 +201,7 @@ describe("useOpenBillingPortal", () => {
     mockCreateBillingPortalSession.mockResolvedValue({ data: {} });
     const { useOpenBillingPortal } = await importHooks();
 
-    const { result } = renderHook(() => useOpenBillingPortal(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useOpenBillingPortal());
 
     await expect(result.current.mutateAsync()).rejects.toThrow(/portal URL/i);
   });

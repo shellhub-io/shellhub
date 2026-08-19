@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import {
   PENDING_DEVICE_CODE_KEY,
@@ -49,15 +48,6 @@ function mockDevice(overrides = {}) {
   };
 }
 
-function createQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, gcTime: 0 },
-      mutations: { retry: false },
-    },
-  });
-}
-
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
@@ -65,13 +55,9 @@ beforeEach(() => {
 });
 
 function renderPage(path: string) {
-  return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={[path]}>
-        <AcceptDevice />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
+  return render(<AcceptDevice />, {
+    wrapper: createTestWrapper({ initialEntries: [path] }),
+  });
 }
 
 function renderFlow({
@@ -79,11 +65,8 @@ function renderFlow({
   inDialog,
 }: { initialCode?: string; inDialog?: boolean } = {}) {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter>
-        <AcceptDeviceFlow initialCode={initialCode} inDialog={inDialog} />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <AcceptDeviceFlow initialCode={initialCode} inDialog={inDialog} />,
+    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
   );
 }
 

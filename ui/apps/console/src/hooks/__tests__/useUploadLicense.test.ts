@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor, act } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import { useUploadLicense } from "../useUploadLicense";
 
 const mockMutationFn = vi.fn();
@@ -15,14 +14,6 @@ vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -31,9 +22,7 @@ describe("useUploadLicense", () => {
   describe("mutation call", () => {
     it("calls sendLicense with the provided body", async () => {
       mockMutationFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useUploadLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUploadLicense());
 
       const body = { body: "license-data" };
       await act(() => result.current.mutateAsync(body as never));
@@ -45,9 +34,7 @@ describe("useUploadLicense", () => {
   describe("on success", () => {
     it("invalidates getLicense queries after a successful mutation", async () => {
       mockMutationFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useUploadLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUploadLicense());
 
       await act(() => result.current.mutateAsync({}));
 
@@ -59,9 +46,7 @@ describe("useUploadLicense", () => {
     it("rejects and exposes the error when sendLicense fails", async () => {
       const error = new Error("upload failed");
       mockMutationFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useUploadLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUploadLicense());
 
       act(() => result.current.mutate({}));
 
@@ -71,9 +56,7 @@ describe("useUploadLicense", () => {
 
     it("does not call invalidate when sendLicense fails", async () => {
       mockMutationFn.mockRejectedValue(new Error("upload failed"));
-      const { result } = renderHook(() => useUploadLicense(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUploadLicense());
 
       act(() => result.current.mutate({}));
 

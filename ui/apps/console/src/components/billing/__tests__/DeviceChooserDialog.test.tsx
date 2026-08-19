@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 
 vi.mock("@/components/common/BaseDialog", async () => ({
   default: (await import("@/tests/mocks")).MockBaseDialog,
@@ -73,18 +71,6 @@ const ALL_DEVICES = [
 
 // ── Setup helpers ─────────────────────────────────────────────────────────────
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      React.createElement(MemoryRouter, null, children),
-    );
-}
-
 function setupHooks({
   suggested = SUGGESTED_DEVICES,
   suggestedLoading = false,
@@ -131,7 +117,7 @@ function renderDialog(props: { open?: boolean; onClose?: () => void } = {}) {
     onClose,
     ...render(
       <DeviceChooserDialog open={props.open ?? true} onClose={onClose} />,
-      { wrapper: createWrapper() },
+      { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
     ),
   };
 }
@@ -316,7 +302,7 @@ describe("DeviceChooserDialog", () => {
       setupHooks({ suggested: SUGGESTED_DEVICES });
       const { rerender } = render(
         <DeviceChooserDialog open onClose={vi.fn()} />,
-        { wrapper: createWrapper() },
+        { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
       );
       // User sees Suggested tab selected initially.
       expect(screen.getByRole("tab", { name: "Suggested" })).toHaveAttribute(
@@ -345,7 +331,7 @@ describe("DeviceChooserDialog", () => {
       const user = userEvent.setup();
       const { rerender } = render(
         <DeviceChooserDialog open onClose={vi.fn()} />,
-        { wrapper: createWrapper() },
+        { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
       );
       // Forced to All because suggested is empty.
       expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
@@ -573,7 +559,7 @@ describe("DeviceChooserDialog", () => {
 
     it("Home key moves to the first enabled tab", () => {
       render(<DeviceChooserDialog open onClose={vi.fn()} />, {
-        wrapper: createWrapper(),
+        wrapper: createTestWrapper({ initialEntries: ["/"] }),
       });
       const allTab = screen.getByRole("tab", { name: "All" });
       fireEvent.click(allTab);

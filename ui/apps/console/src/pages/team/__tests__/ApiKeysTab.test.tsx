@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
+import { createTestWrapper } from "@/tests/wrapper";
 import type { ApiKey } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -96,22 +96,18 @@ function LocationProbe({
 }
 
 function renderTab(initialEntries: string[] = ["/"]) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
   let lastSearch = "";
 
   const result = render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <QueryClientProvider client={queryClient}>
-        <ApiKeysTab />
-        <LocationProbe
-          onLocation={(s) => {
-            lastSearch = s;
-          }}
-        />
-      </QueryClientProvider>
-    </MemoryRouter>,
+    <>
+      <ApiKeysTab />
+      <LocationProbe
+        onLocation={(s) => {
+          lastSearch = s;
+        }}
+      />
+    </>,
+    { wrapper: createTestWrapper({ initialEntries }) },
   );
 
   return { ...result, getSearch: () => lastSearch };

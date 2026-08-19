@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 
 const mockLocation = { hash: "", pathname: "/settings", search: "" };
 
@@ -100,23 +99,12 @@ vi.mock("@/components/billing/BillingSuccessful", () => ({
 
 import BillingSection from "../BillingSection";
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </MemoryRouter>
-  );
-}
-
 function renderSection() {
   return render(
     <React.Suspense fallback={null}>
       <BillingSection sectionId="billing" />
     </React.Suspense>,
-    { wrapper: createWrapper() },
+    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
   );
 }
 

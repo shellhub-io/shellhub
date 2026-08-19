@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
 import {
   useAdminFirewallRules,
   useAdminFirewallRule,
 } from "../useAdminFirewallRules";
 import { useAuthStore } from "@/stores/authStore";
+import { renderHookWithClient } from "@/tests/wrapper";
 
 // Mock the SDK functions used by the generated options/queryFn helpers.
 vi.mock("@/client", () => ({
@@ -35,16 +34,6 @@ vi.mock("@/api/pagination", () => ({
 
 const mockGetFirewallRulesAdminFn = vi.fn();
 const mockGetFirewallRuleAdminFn = vi.fn();
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -82,9 +71,7 @@ describe("useAdminFirewallRules", () => {
         totalCount: 2,
       });
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.rules).toHaveLength(2);
@@ -98,9 +85,7 @@ describe("useAdminFirewallRules", () => {
         totalCount: 42,
       });
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalCount).toBe(42);
@@ -110,9 +95,7 @@ describe("useAdminFirewallRules", () => {
       // Never resolves — stays in loading state
       mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       expect(result.current.rules).toEqual([]);
     });
@@ -120,9 +103,7 @@ describe("useAdminFirewallRules", () => {
     it("defaults totalCount to 0 while loading", () => {
       mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       expect(result.current.totalCount).toBe(0);
     });
@@ -130,9 +111,7 @@ describe("useAdminFirewallRules", () => {
     it("returns isLoading true initially", () => {
       mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -141,9 +120,7 @@ describe("useAdminFirewallRules", () => {
       const networkError = new Error("network failure");
       mockGetFirewallRulesAdminFn.mockRejectedValue(networkError);
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       await waitFor(() => expect(result.current.error).toBeTruthy());
       expect(result.current.error).toBe(networkError);
@@ -154,9 +131,7 @@ describe("useAdminFirewallRules", () => {
     it("does not execute the query", async () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
       // Query is disabled — stays in non-loading state with empty data
       expect(result.current.isLoading).toBe(false);
@@ -172,7 +147,7 @@ describe("useAdminFirewallRules", () => {
         totalCount: 0,
       });
 
-      renderHook(() => useAdminFirewallRules(), { wrapper: createWrapper() });
+      renderHookWithClient(() => useAdminFirewallRules());
 
       await waitFor(() =>
         expect(mockGetFirewallRulesAdminFn).toHaveBeenCalled(),
@@ -190,9 +165,9 @@ describe("useAdminFirewallRules", () => {
         totalCount: 0,
       });
 
-      renderHook(() => useAdminFirewallRules({ page: 3, perPage: 25 }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() =>
+        useAdminFirewallRules({ page: 3, perPage: 25 }),
+      );
 
       await waitFor(() =>
         expect(mockGetFirewallRulesAdminFn).toHaveBeenCalled(),
@@ -221,9 +196,9 @@ describe("useAdminFirewallRule", () => {
       };
       mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
 
-      const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminFirewallRule("rule-1"),
+      );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.data?.id).toBe("rule-1");
@@ -242,9 +217,9 @@ describe("useAdminFirewallRule", () => {
       };
       mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
 
-      const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminFirewallRule("rule-1"),
+      );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.data?.filter).toEqual({
@@ -256,9 +231,9 @@ describe("useAdminFirewallRule", () => {
     it("is loading initially when id is provided", () => {
       mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminFirewallRule("rule-1"),
+      );
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -267,9 +242,9 @@ describe("useAdminFirewallRule", () => {
       const err = new Error("not found");
       mockGetFirewallRuleAdminFn.mockRejectedValue(err);
 
-      const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminFirewallRule("rule-1"),
+      );
 
       await waitFor(() => expect(result.current.isError).toBe(true));
     });
@@ -277,9 +252,7 @@ describe("useAdminFirewallRule", () => {
 
   describe("when id is empty", () => {
     it("does not execute the query", () => {
-      const { result } = renderHook(() => useAdminFirewallRule(""), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminFirewallRule(""));
 
       expect(result.current.isLoading).toBe(false);
       expect(mockGetFirewallRuleAdminFn).not.toHaveBeenCalled();
@@ -290,9 +263,9 @@ describe("useAdminFirewallRule", () => {
     it("does not execute the query even when id is provided", () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminFirewallRule("rule-1"),
+      );
 
       expect(result.current.isLoading).toBe(false);
       expect(mockGetFirewallRuleAdminFn).not.toHaveBeenCalled();
