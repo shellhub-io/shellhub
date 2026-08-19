@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"regexp"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -81,7 +82,19 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
-	return s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
+	publicKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
+	if err != nil {
+		// The store matches by fingerprint *and* namespace, so a key owned by another namespace is
+		// indistinguishable from one that does not exist — and must stay so, to avoid disclosing
+		// keys across namespaces.
+		if errors.Is(err, store.ErrNoDocuments) {
+			return nil, NewErrPublicKeyNotFound(fingerprint, err)
+		}
+
+		return nil, err
+	}
+
+	return publicKey, nil
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
