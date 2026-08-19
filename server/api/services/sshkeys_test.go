@@ -312,6 +312,19 @@ func TestGetPublicKeys(t *testing.T) {
 			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
+			description: "fails when the key belongs to another namespace",
+			ctx:         ctx,
+			fingerprint: "fingerprint",
+			tenantID:    "tenant1",
+			requiredMocks: func() {
+				namespace := models.Namespace{TenantID: "tenant1"}
+
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(&namespace, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(nil, store.ErrNoDocuments).Once()
+			},
+			expected: Expected{nil, NewErrPublicKeyNotFound("fingerprint", store.ErrNoDocuments)},
+		},
+		{
 			description: "Successful get the key",
 			ctx:         ctx,
 			fingerprint: "fingerprint",
