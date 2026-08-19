@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useMfaResetStore } from "../mfaResetStore";
 import { useAuthStore } from "../authStore";
-import type { UserAuth } from "@/client";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
+import { mockUserAuth } from "@/tests/userAuth";
 
 vi.mock("@/client", () => ({
   requestResetMfa: vi.fn(),
@@ -20,24 +20,6 @@ import { requestResetMfa, resetMfa } from "@/client";
 
 const mockedRequestResetMfa = vi.mocked(requestResetMfa);
 const mockedResetMfa = vi.mocked(resetMfa);
-
-function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
-  return {
-    token: "jwt-token",
-    id: "user-123",
-    origin: "local",
-    user: "admin",
-    name: "Admin User",
-    email: "admin@test.com",
-    recovery_email: "recovery@test.com",
-    tenant: "tenant-456",
-    role: "owner",
-    mfa: false,
-    admin: false,
-    max_namespaces: -1,
-    ...overrides,
-  };
-}
 
 beforeEach(() => {
   useMfaResetStore.setState({
