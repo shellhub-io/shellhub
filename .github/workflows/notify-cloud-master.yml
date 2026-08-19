@@ -1,0 +1,53 @@
+name: Notify Cloud (master)
+
+# Cloud builds against this repository through the replace directives in its go.mod, and its
+# own master QA resolves the shellhub source by branch name, falling back to master. A change
+# that spans both repositories therefore races: whichever side merges first, cloud master runs
+# QA against a sibling that does not carry the other half yet, and stays red until some later
+# push happens to re-run it. This dispatch re-validates cloud master whenever the Go trees it
+# consumes move, so the second merge of a pair repairs the first.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      # The two modules cloud replaces, and nothing else. The ui, docs, gateway and agent trees
+      # are not on its build path.
+      - 'pkg/**'
+      - 'server/**'
+      - 'go.mod'
+      - 'go.sum'
+
+concurrency:
+  group: notify-cloud-master
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Dispatch enterprise re-validation to cloud
+
+    runs-on: ubuntu-24.04
+
+    permissions: {}
+
+    steps:
+      - name: Generate token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+
+      - name: Dispatch to cloud
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'shellhub-io',
+              repo: 'cloud',
+              event_type: 'shellhub-master',
+              client_payload: { sha: context.sha },
+            });
