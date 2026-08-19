@@ -1,9 +1,7 @@
-import { type ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import RecentSessionsTable from "../RecentSessionsTable";
 import type { Device, Session } from "@/client";
 
@@ -39,7 +37,12 @@ function makeSession(overrides: Partial<Session> = {}): Session {
   return {
     uid: "session-1",
     device_uid: "device-1",
-    device: { uid: "device-1", name: "my-device", online: true, info: { id: "ubuntu" } } as Device,
+    device: {
+      uid: "device-1",
+      name: "my-device",
+      online: true,
+      info: { id: "ubuntu" },
+    } as Device,
     tenant_id: "tenant-1",
     username: "root",
     ip_address: "192.168.1.1",
@@ -61,25 +64,17 @@ function mockSdkResponse(sessions: Session[] = [], totalCount?: number) {
   return {
     data: sessions,
     response: {
-      headers: new Headers({ "X-Total-Count": String(totalCount ?? sessions.length) }),
+      headers: new Headers({
+        "X-Total-Count": String(totalCount ?? sessions.length),
+      }),
     },
   } as never;
 }
 
 function renderTable(isAdmin = false) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+  return render(<RecentSessionsTable isAdmin={isAdmin} />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
-
-  function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>{children}</MemoryRouter>
-      </QueryClientProvider>
-    );
-  }
-
-  return render(<RecentSessionsTable isAdmin={isAdmin} />, { wrapper: Wrapper });
 }
 
 describe("RecentSessionsTable", () => {
@@ -93,7 +88,10 @@ describe("RecentSessionsTable", () => {
     it("renders 'View all' link to /sessions", async () => {
       renderTable();
       await waitFor(() => {
-        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute("href", "/sessions");
+        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
+          "href",
+          "/sessions",
+        );
       });
     });
 
@@ -129,7 +127,10 @@ describe("RecentSessionsTable", () => {
     it("renders 'View all' link to /admin/sessions", async () => {
       renderTable(true);
       await waitFor(() => {
-        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute("href", "/admin/sessions");
+        expect(screen.getByRole("link", { name: /view all/i })).toHaveAttribute(
+          "href",
+          "/admin/sessions",
+        );
       });
     });
 
@@ -215,7 +216,9 @@ describe("RecentSessionsTable", () => {
 
     it("renders session type badge", async () => {
       vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession({ events: { types: ["shell"], seats: [] } })]),
+        mockSdkResponse([
+          makeSession({ events: { types: ["shell"], seats: [] } }),
+        ]),
       );
       renderTable();
       await waitFor(() => {

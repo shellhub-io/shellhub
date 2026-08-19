@@ -1,21 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import {
   useNamespaceInvitations,
   useResolveInvitation,
 } from "../useInvitations";
-import type { MembershipInvitation } from "../../client";
+import type { MembershipInvitation } from "@/client";
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   getMembershipInvitationList: vi.fn(),
   getNamespaceMembershipInvitationList: vi.fn(),
 }));
 
 const mockResolveFn = vi.fn();
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getMembershipInvitationListQueryKey: vi.fn((opts: unknown) => [
     { _id: "getMembershipInvitationList" },
     opts,
@@ -30,7 +29,7 @@ vi.mock("../../client/@tanstack/react-query.gen", () => ({
   })),
 }));
 
-vi.mock("../../api/pagination", () => ({
+vi.mock("@/api/pagination", () => ({
   paginatedQueryFn: vi.fn(
     (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
       return () => mockFetchFn(opts) as unknown;
@@ -39,16 +38,6 @@ vi.mock("../../api/pagination", () => ({
 }));
 
 const mockFetchFn = vi.fn();
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
 
 function makeInvitation(
   overrides: Partial<MembershipInvitation> = {},
@@ -77,9 +66,8 @@ describe("useNamespaceInvitations", () => {
       const inv = makeInvitation({ status: "pending" });
       mockFetchFn.mockResolvedValue({ data: [inv], totalCount: 1 });
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useNamespaceInvitations({ tenantId: "t1" }),
-        { wrapper: createWrapper() },
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -89,9 +77,8 @@ describe("useNamespaceInvitations", () => {
     it("returns totalCount from the paginated result", async () => {
       mockFetchFn.mockResolvedValue({ data: [], totalCount: 7 });
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useNamespaceInvitations({ tenantId: "t1" }),
-        { wrapper: createWrapper() },
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -101,9 +88,8 @@ describe("useNamespaceInvitations", () => {
     it("defaults invitations to empty array while loading", () => {
       mockFetchFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useNamespaceInvitations({ tenantId: "t1" }),
-        { wrapper: createWrapper() },
       );
 
       expect(result.current.invitations).toEqual([]);
@@ -113,9 +99,8 @@ describe("useNamespaceInvitations", () => {
       const err = new Error("fetch failed");
       mockFetchFn.mockRejectedValue(err);
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useNamespaceInvitations({ tenantId: "t1" }),
-        { wrapper: createWrapper() },
       );
 
       await waitFor(() => expect(result.current.error).toBeTruthy());
@@ -127,11 +112,8 @@ describe("useNamespaceInvitations", () => {
     it("does not fetch when enabled is false", () => {
       mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(
+      renderHookWithClient(
         () => useNamespaceInvitations({ tenantId: "t1", enabled: false }),
-        {
-          wrapper: createWrapper(),
-        },
       );
 
       expect(mockFetchFn).not.toHaveBeenCalled();
@@ -140,9 +122,7 @@ describe("useNamespaceInvitations", () => {
     it("does not fetch when tenantId is empty", () => {
       mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useNamespaceInvitations({ tenantId: "" }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useNamespaceInvitations({ tenantId: "" }));
 
       expect(mockFetchFn).not.toHaveBeenCalled();
     });
@@ -152,9 +132,7 @@ describe("useNamespaceInvitations", () => {
     it("uses page 1 and perPage 10 as defaults", async () => {
       mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useNamespaceInvitations({ tenantId: "t1" }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useNamespaceInvitations({ tenantId: "t1" }));
 
       await waitFor(() => expect(mockFetchFn).toHaveBeenCalled());
       const [opts] = mockFetchFn.mock.calls[0] as [
@@ -175,9 +153,7 @@ describe("useResolveInvitation", () => {
       status: "confirmed",
     });
 
-    const { result } = renderHook(() => useResolveInvitation("CODE"), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useResolveInvitation("CODE"));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.resolved).toEqual({
@@ -200,9 +176,9 @@ describe("useResolveInvitation", () => {
       };
       mockResolveFn.mockResolvedValue(data);
 
-      const { result } = renderHook(() => useResolveInvitation("CODE"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useResolveInvitation("CODE"),
+      );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.resolved).toBeNull();
@@ -217,18 +193,14 @@ describe("useResolveInvitation", () => {
       status: "invited",
     });
 
-    const { result } = renderHook(() => useResolveInvitation("CODE"), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useResolveInvitation("CODE"));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.resolved?.email).toBe("");
   });
 
   it("does not fetch when invite is empty", () => {
-    const { result } = renderHook(() => useResolveInvitation(""), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHookWithClient(() => useResolveInvitation(""));
 
     expect(result.current.resolved).toBeNull();
     expect(result.current.isLoading).toBe(false);

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import { decodeB64url } from "@/tests/decodeB64url";
 import { useAdminUsers, useAdminUser } from "../useAdminUsers";
 import { useAuthStore } from "@/stores/authStore";
@@ -31,16 +30,6 @@ vi.mock("@/api/pagination", () => ({
 const mockGetUsersFn = vi.fn();
 const mockGetUserFn = vi.fn();
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   // Default: authenticated admin
@@ -56,9 +45,7 @@ describe("useAdminUsers", () => {
       ];
       mockGetUsersFn.mockResolvedValue({ data: users, totalCount: 2 });
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.users).toEqual(users);
@@ -67,9 +54,7 @@ describe("useAdminUsers", () => {
     it("returns totalCount from the paginated query result", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 99 });
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalCount).toBe(99);
@@ -79,9 +64,7 @@ describe("useAdminUsers", () => {
       // Never resolves — stays in loading state
       mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       expect(result.current.users).toEqual([]);
     });
@@ -89,9 +72,7 @@ describe("useAdminUsers", () => {
     it("defaults totalCount to 0 while loading", () => {
       mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       expect(result.current.totalCount).toBe(0);
     });
@@ -99,9 +80,7 @@ describe("useAdminUsers", () => {
     it("returns isLoading true initially", () => {
       mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -110,9 +89,7 @@ describe("useAdminUsers", () => {
       const networkError = new Error("network failure");
       mockGetUsersFn.mockRejectedValue(networkError);
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       await waitFor(() => expect(result.current.error).toBeTruthy());
       expect(result.current.error).toBe(networkError);
@@ -121,9 +98,7 @@ describe("useAdminUsers", () => {
     it("exposes refetch function", () => {
       mockGetUsersFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       expect(typeof result.current.refetch).toBe("function");
     });
@@ -133,9 +108,7 @@ describe("useAdminUsers", () => {
     it("does not execute the query", async () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminUsers(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUsers());
 
       // Query is disabled — stays in non-loading state with empty data
       expect(result.current.isLoading).toBe(false);
@@ -148,9 +121,9 @@ describe("useAdminUsers", () => {
     it("passes search parameter to the query options", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      const { result } = renderHook(() => useAdminUsers({ search: "alice" }), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useAdminUsers({ search: "alice" }),
+      );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       // Query ran — the mock was called
@@ -160,9 +133,7 @@ describe("useAdminUsers", () => {
     it("does not pass filter when search is empty", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useAdminUsers({ search: "" }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useAdminUsers({ search: "" }));
 
       await waitFor(() => expect(mockGetUsersFn).toHaveBeenCalled());
       // paginatedQueryFn receives options without a filter key when search is empty
@@ -178,9 +149,7 @@ describe("useAdminUsers", () => {
       // " >" (space + greater-than) encodes to base64url with a "-" character,
       // which atob() cannot decode — only Buffer.from(b64url.replace(/-/g,'+')
       // .replace(/_/g,'/'), 'base64') handles it correctly.
-      renderHook(() => useAdminUsers({ search: " >" }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useAdminUsers({ search: " >" }));
 
       await waitFor(() => expect(mockGetUsersFn).toHaveBeenCalled());
       const [opts] = mockGetUsersFn.mock.calls[0] as [
@@ -199,7 +168,7 @@ describe("useAdminUsers", () => {
     it("uses page 1 and perPage 10 as defaults", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useAdminUsers(), { wrapper: createWrapper() });
+      renderHookWithClient(() => useAdminUsers());
 
       await waitFor(() => expect(mockGetUsersFn).toHaveBeenCalled());
       const [opts] = mockGetUsersFn.mock.calls[0] as [
@@ -212,9 +181,7 @@ describe("useAdminUsers", () => {
     it("forwards custom page and perPage", async () => {
       mockGetUsersFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => useAdminUsers({ page: 3, perPage: 25 }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useAdminUsers({ page: 3, perPage: 25 }));
 
       await waitFor(() => expect(mockGetUsersFn).toHaveBeenCalled());
       const [opts] = mockGetUsersFn.mock.calls[0] as [
@@ -232,9 +199,7 @@ describe("useAdminUser", () => {
       const user = { id: "u1", username: "alice" };
       mockGetUserFn.mockResolvedValue(user);
 
-      const { result } = renderHook(() => useAdminUser("u1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUser("u1"));
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.data).toEqual(user);
@@ -243,9 +208,7 @@ describe("useAdminUser", () => {
     it("is loading initially when id is provided", () => {
       mockGetUserFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => useAdminUser("u1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUser("u1"));
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -254,9 +217,7 @@ describe("useAdminUser", () => {
       const err = new Error("not found");
       mockGetUserFn.mockRejectedValue(err);
 
-      const { result } = renderHook(() => useAdminUser("u1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUser("u1"));
 
       await waitFor(() => expect(result.current.isError).toBe(true));
     });
@@ -264,9 +225,7 @@ describe("useAdminUser", () => {
 
   describe("when id is empty", () => {
     it("does not execute the query", () => {
-      const { result } = renderHook(() => useAdminUser(""), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUser(""));
 
       expect(result.current.isLoading).toBe(false);
       expect(mockGetUserFn).not.toHaveBeenCalled();
@@ -277,9 +236,7 @@ describe("useAdminUser", () => {
     it("does not execute the query even when id is provided", () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
-      const { result } = renderHook(() => useAdminUser("u1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAdminUser("u1"));
 
       expect(result.current.isLoading).toBe(false);
       expect(mockGetUserFn).not.toHaveBeenCalled();

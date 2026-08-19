@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor, act } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import {
   useAcceptInvite,
   useGenerateInvitationLink,
@@ -27,14 +26,6 @@ vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -43,9 +34,7 @@ describe("useAcceptInvite", () => {
   describe("mutation call", () => {
     it("calls acceptInvite with the provided path", async () => {
       mockAcceptFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useAcceptInvite(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAcceptInvite());
 
       const vars = { path: { tenant: "t1" } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -57,9 +46,7 @@ describe("useAcceptInvite", () => {
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
       mockAcceptFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useAcceptInvite(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAcceptInvite());
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -71,9 +58,7 @@ describe("useAcceptInvite", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("accept failed");
       mockAcceptFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useAcceptInvite(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAcceptInvite());
 
       act(() => result.current.mutate({} as never));
 
@@ -83,9 +68,7 @@ describe("useAcceptInvite", () => {
 
     it("does not call invalidate when mutation fails", async () => {
       mockAcceptFn.mockRejectedValue(new Error("accept failed"));
-      const { result } = renderHook(() => useAcceptInvite(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useAcceptInvite());
 
       act(() => result.current.mutate({} as never));
 
@@ -101,9 +84,9 @@ describe("useGenerateInvitationLink", () => {
       mockGenerateLinkFn.mockResolvedValue({
         link: "https://example.com/invite/abc",
       });
-      const { result } = renderHook(() => useGenerateInvitationLink(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useGenerateInvitationLink(),
+      );
 
       const vars = {
         path: { tenant: "t1" },
@@ -117,9 +100,9 @@ describe("useGenerateInvitationLink", () => {
     it("returns the generated link from the mutation", async () => {
       const link = "https://example.com/invite/xyz";
       mockGenerateLinkFn.mockResolvedValue({ link });
-      const { result } = renderHook(() => useGenerateInvitationLink(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useGenerateInvitationLink(),
+      );
 
       const data = await act(() => result.current.mutateAsync({} as never));
 
@@ -132,9 +115,9 @@ describe("useGenerateInvitationLink", () => {
       mockGenerateLinkFn.mockResolvedValue({
         link: "https://example.com/invite/abc",
       });
-      const { result } = renderHook(() => useGenerateInvitationLink(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useGenerateInvitationLink(),
+      );
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -146,9 +129,9 @@ describe("useGenerateInvitationLink", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("generate link failed");
       mockGenerateLinkFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useGenerateInvitationLink(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useGenerateInvitationLink(),
+      );
 
       act(() => result.current.mutate({} as never));
 
@@ -158,9 +141,9 @@ describe("useGenerateInvitationLink", () => {
 
     it("does not call invalidate when mutation fails", async () => {
       mockGenerateLinkFn.mockRejectedValue(new Error("generate link failed"));
-      const { result } = renderHook(() => useGenerateInvitationLink(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useGenerateInvitationLink(),
+      );
 
       act(() => result.current.mutate({} as never));
 
@@ -174,9 +157,9 @@ describe("useCancelMembershipInvitation", () => {
   describe("mutation call", () => {
     it("calls cancelMembershipInvitation with path", async () => {
       mockCancelFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useCancelMembershipInvitation(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useCancelMembershipInvitation(),
+      );
 
       const vars = { path: { tenant: "t1", "user-id": "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -188,9 +171,9 @@ describe("useCancelMembershipInvitation", () => {
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
       mockCancelFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useCancelMembershipInvitation(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useCancelMembershipInvitation(),
+      );
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -202,9 +185,9 @@ describe("useCancelMembershipInvitation", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("cancel failed");
       mockCancelFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useCancelMembershipInvitation(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useCancelMembershipInvitation(),
+      );
 
       act(() => result.current.mutate({} as never));
 
@@ -214,9 +197,9 @@ describe("useCancelMembershipInvitation", () => {
 
     it("does not call invalidate when mutation fails", async () => {
       mockCancelFn.mockRejectedValue(new Error("cancel failed"));
-      const { result } = renderHook(() => useCancelMembershipInvitation(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useCancelMembershipInvitation(),
+      );
 
       act(() => result.current.mutate({} as never));
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 
 const mockGetNamespaceSupportFn = vi.fn();
 
@@ -11,16 +10,6 @@ vi.mock("@/client/@tanstack/react-query.gen", () => ({
     queryFn: mockGetNamespaceSupportFn,
   })),
 }));
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -35,9 +24,8 @@ describe("useSupportIdentifier", () => {
     it("never fires the query and returns null identifier", async () => {
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHook(
-        () => useSupportIdentifier("tenant-123", false),
-        { wrapper: createWrapper() },
+      const { result } = renderHookWithClient(() =>
+        useSupportIdentifier("tenant-123", false),
       );
 
       expect(mockGetNamespaceSupportFn).not.toHaveBeenCalled();
@@ -51,9 +39,7 @@ describe("useSupportIdentifier", () => {
     it("does not fire the query when tenantId is empty string", async () => {
       const { useSupportIdentifier } = await importHook();
 
-      renderHook(() => useSupportIdentifier("", true), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useSupportIdentifier("", true));
 
       expect(mockGetNamespaceSupportFn).not.toHaveBeenCalled();
     });
@@ -61,9 +47,7 @@ describe("useSupportIdentifier", () => {
     it("does not fire the query when tenantId is null", async () => {
       const { useSupportIdentifier } = await importHook();
 
-      renderHook(() => useSupportIdentifier(null, true), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => useSupportIdentifier(null, true));
 
       expect(mockGetNamespaceSupportFn).not.toHaveBeenCalled();
     });
@@ -71,9 +55,9 @@ describe("useSupportIdentifier", () => {
     it("returns null identifier when disabled by empty tenantId", async () => {
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHook(() => useSupportIdentifier("", true), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() =>
+        useSupportIdentifier("", true),
+      );
 
       expect(result.current.identifier).toBeNull();
       expect(result.current.isLoading).toBe(false);
@@ -85,9 +69,8 @@ describe("useSupportIdentifier", () => {
       mockGetNamespaceSupportFn.mockResolvedValue({ identifier: "abc123" });
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useSupportIdentifier("tenant-123", true),
-        { wrapper: createWrapper() },
       );
 
       await waitFor(() => expect(result.current.identifier).toBe("abc123"));
@@ -101,9 +84,8 @@ describe("useSupportIdentifier", () => {
       mockGetNamespaceSupportFn.mockRejectedValue(new Error("network error"));
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHook(
+      const { result } = renderHookWithClient(
         () => useSupportIdentifier("tenant-123", true),
-        { wrapper: createWrapper() },
       );
 
       await waitFor(() => expect(result.current.isError).toBe(true));

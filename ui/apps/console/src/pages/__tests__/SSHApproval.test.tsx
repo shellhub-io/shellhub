@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Routes, Route } from "react-router-dom";
+import { createTestWrapper } from "@/tests/wrapper";
 import SSHApproval from "../SSHApproval";
 import { getSshApproval, webTerminalReauth } from "@/client";
 
@@ -63,24 +63,18 @@ const approval = (overrides: Record<string, unknown> = {}) => ({
 });
 
 function renderAt(path: string) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route
-            path="/ssh-identities/new/:code"
-            element={<SSHApproval flow="new" />}
-          />
-          <Route
-            path="/ssh-identities/confirm/:code"
-            element={<SSHApproval flow="confirm" />}
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <Routes>
+      <Route
+        path="/ssh-identities/new/:code"
+        element={<SSHApproval flow="new" />}
+      />
+      <Route
+        path="/ssh-identities/confirm/:code"
+        element={<SSHApproval flow="confirm" />}
+      />
+    </Routes>,
+    { wrapper: createTestWrapper({ initialEntries: [path] }) },
   );
 }
 
@@ -203,20 +197,28 @@ describe("SSHApproval", () => {
   // invites typing past the check, so it only appears once the check is done.
   it("keeps the factor out of sight until the login has been reviewed", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth" }) as never,
+    );
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);
 
-    expect(screen.queryByLabelText(/account password/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/account password/i),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /continue/i }));
-    expect(await screen.findByLabelText(/account password/i)).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText(/account password/i),
+    ).toBeInTheDocument();
   });
 
   it("goes back to the details without deciding anything", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth" }) as never,
+    );
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);
@@ -227,7 +229,9 @@ describe("SSHApproval", () => {
     expect(
       await screen.findByText(/re-authenticate to continue/i),
     ).toBeInTheDocument();
-    expect(screen.queryByLabelText(/account password/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/account password/i),
+    ).not.toBeInTheDocument();
     expect(webTerminalReauth).not.toHaveBeenCalled();
   });
 
@@ -235,8 +239,12 @@ describe("SSHApproval", () => {
   // the code and the key it was asked for.
   it("proves the password and reports the login released", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(approval({ kind: "reauth" }) as never);
-    vi.mocked(webTerminalReauth).mockResolvedValue({ data: undefined } as never);
+    vi.mocked(getSshApproval).mockResolvedValue(
+      approval({ kind: "reauth" }) as never,
+    );
+    vi.mocked(webTerminalReauth).mockResolvedValue({
+      data: undefined,
+    } as never);
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);

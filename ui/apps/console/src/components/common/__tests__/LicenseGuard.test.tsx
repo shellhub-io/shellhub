@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import type { GetLicenseResponse } from "@/client/types.gen";
@@ -84,14 +84,6 @@ function makeHookReturn(
     installedLicense: null,
     ...overrides,
   } as unknown as HookReturn;
-}
-
-function createQueryWrapper() {
-  const qc = new QueryClient({
-    defaultOptions: { queries: { retry: false, retryDelay: 0 } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: qc }, children);
 }
 
 function renderGuard(
@@ -192,7 +184,7 @@ describe("LicenseGuard", () => {
       // getLicense must never fire on cloud deployments.
       mockGetLicense.mockRejectedValue({ status: 400 });
 
-      renderGuard(createQueryWrapper());
+      renderGuard(createTestWrapper());
 
       await waitFor(() => {
         expect(screen.getByText("protected content")).toBeInTheDocument();

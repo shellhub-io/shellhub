@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 
 const mockIsSdkError = vi.fn();
 vi.mock("@/api/errors", () => ({
@@ -75,15 +75,6 @@ vi.mock("@/components/common/BaseDialog", async () => ({
 
 import BillingDialog from "../BillingDialog";
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   mockIsPending.value = false;
@@ -96,7 +87,7 @@ function renderDialog(onClose = vi.fn(), onSuccess = vi.fn()) {
     onSuccess,
     ...render(
       <BillingDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
-      { wrapper: createWrapper() },
+      { wrapper: createTestWrapper() },
     ),
   };
 }

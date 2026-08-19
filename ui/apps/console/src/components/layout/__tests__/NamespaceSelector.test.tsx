@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { defaultConfig, getConfig } from "@/env";
 import NamespaceSelector from "../NamespaceSelector";
@@ -47,24 +45,9 @@ vi.mock("@/components/common/CreateNamespaceDialog", () => ({
   default: () => null,
 }));
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </MemoryRouter>
-  );
-}
-
 function renderSelector(isAdminContext = false) {
   return render(<NamespaceSelector isAdminContext={isAdminContext} />, {
-    wrapper: createWrapper(),
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
 }
 

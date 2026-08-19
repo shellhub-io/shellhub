@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { createTestWrapper } from "@/tests/wrapper";
 import AdminLayout from "../AdminLayout";
 
 vi.mock("@/hooks/useSidebarLayout", () => ({
@@ -40,16 +39,9 @@ vi.mock("../SidebarShell", () => ({
   ),
 }));
 function renderLayout() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+  return render(<AdminLayout />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <AdminLayout />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
 }
 
 describe("AdminLayout", () => {

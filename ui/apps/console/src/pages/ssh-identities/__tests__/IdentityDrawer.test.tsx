@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import IdentityDrawer from "../IdentityDrawer";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
@@ -59,16 +58,9 @@ const mockUseHasPermission = vi.mocked(useHasPermission);
 /* ------------------------------------------------------------------ */
 
 function renderDrawer() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+  return render(<IdentityDrawer open editIdentity={null} onClose={vi.fn()} />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
-  return render(
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>
-        <IdentityDrawer open editIdentity={null} onClose={vi.fn()} />
-      </QueryClientProvider>
-    </MemoryRouter>,
-  );
 }
 
 const KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqk test@host";

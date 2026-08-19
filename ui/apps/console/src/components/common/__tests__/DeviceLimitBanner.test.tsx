@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTestWrapper } from "@/tests/wrapper";
 import type { GetLicenseResponse } from "@/client/types.gen";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
@@ -324,17 +324,7 @@ describe("DeviceLimitBanner", () => {
       // useAdminStats is still mocked from beforeEach; stats are irrelevant here
       // because the license guard (license != null) will suppress the banner first.
 
-      render(
-        <QueryClientProvider
-          client={
-            new QueryClient({
-              defaultOptions: { queries: { retry: false, retryDelay: 0 } },
-            })
-          }
-        >
-          <DeviceLimitBanner />
-        </QueryClientProvider>,
-      );
+      render(<DeviceLimitBanner />, { wrapper: createTestWrapper() });
 
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();

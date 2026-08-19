@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import { usePublicKeys } from "../usePublicKeys";
 import type { PublicKeyResponse } from "@/client";
 
@@ -10,7 +9,10 @@ vi.mock("@/client", () => ({
 }));
 
 vi.mock("@/client/@tanstack/react-query.gen", () => ({
-  getPublicKeysQueryKey: vi.fn((opts: unknown) => [{ _id: "getPublicKeys" }, opts]),
+  getPublicKeysQueryKey: vi.fn((opts: unknown) => [
+    { _id: "getPublicKeys" },
+    opts,
+  ]),
 }));
 
 vi.mock("@/api/pagination", () => ({
@@ -23,17 +25,9 @@ vi.mock("@/api/pagination", () => ({
 
 const mockGetPublicKeysFn = vi.fn();
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
-function makeKey(overrides: Partial<PublicKeyResponse> = {}): PublicKeyResponse {
+function makeKey(
+  overrides: Partial<PublicKeyResponse> = {},
+): PublicKeyResponse {
   return {
     name: "test-key",
     fingerprint: "aa:bb:cc",
@@ -68,9 +62,7 @@ describe("usePublicKeys", () => {
       ];
       mockGetPublicKeysFn.mockResolvedValue({ data: keys, totalCount: 2 });
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.publicKeys).toHaveLength(2);
@@ -81,40 +73,32 @@ describe("usePublicKeys", () => {
     it("returns totalCount from the paginated result", async () => {
       mockGetPublicKeysFn.mockResolvedValue({ data: [], totalCount: 42 });
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalCount).toBe(42);
     });
 
     it("defaults publicKeys to empty array while loading", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       expect(result.current.publicKeys).toEqual([]);
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       expect(result.current.totalCount).toBe(0);
     });
 
     it("returns isLoading true initially", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -123,9 +107,7 @@ describe("usePublicKeys", () => {
       const networkError = new Error("network failure");
       mockGetPublicKeysFn.mockRejectedValue(networkError);
 
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => usePublicKeys());
 
       await waitFor(() => expect(result.current.error).toBeTruthy());
       expect(result.current.error).toBe(networkError);
@@ -136,7 +118,7 @@ describe("usePublicKeys", () => {
     it("uses page 1 and perPage 10 as defaults", async () => {
       mockGetPublicKeysFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => usePublicKeys(), { wrapper: createWrapper() });
+      renderHookWithClient(() => usePublicKeys());
 
       await waitFor(() => expect(mockGetPublicKeysFn).toHaveBeenCalled());
       const [opts] = mockGetPublicKeysFn.mock.calls[0] as [
@@ -149,9 +131,7 @@ describe("usePublicKeys", () => {
     it("forwards custom page and perPage", async () => {
       mockGetPublicKeysFn.mockResolvedValue({ data: [], totalCount: 0 });
 
-      renderHook(() => usePublicKeys({ page: 3, perPage: 25 }), {
-        wrapper: createWrapper(),
-      });
+      renderHookWithClient(() => usePublicKeys({ page: 3, perPage: 25 }));
 
       await waitFor(() => expect(mockGetPublicKeysFn).toHaveBeenCalled());
       const [opts] = mockGetPublicKeysFn.mock.calls[0] as [

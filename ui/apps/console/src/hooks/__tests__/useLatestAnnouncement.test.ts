@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import { useLatestAnnouncement } from "../useLatestAnnouncement";
 import type { Announcement } from "@/client";
 
@@ -48,16 +47,6 @@ function makeDetailOptions(uuid: string, fn: () => unknown) {
   };
 }
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, retryDelay: 0 },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 // ── Setup ─────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -84,17 +73,13 @@ describe("useLatestAnnouncement", () => {
     });
 
     it("returns null announcement immediately", () => {
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       expect(result.current.announcement).toBeNull();
     });
 
     it("returns isLoading false", () => {
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       expect(result.current.isLoading).toBe(false);
     });
@@ -105,7 +90,7 @@ describe("useLatestAnnouncement", () => {
         makeListOptions(listFn) as never,
       );
 
-      renderHook(() => useLatestAnnouncement(), { wrapper: createWrapper() });
+      renderHookWithClient(() => useLatestAnnouncement());
 
       expect(listFn).not.toHaveBeenCalled();
     });
@@ -117,17 +102,13 @@ describe("useLatestAnnouncement", () => {
         makeListOptions(() => new Promise(() => {})) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       expect(result.current.isLoading).toBe(true);
     });
 
     it("returns null announcement while queries are loading", () => {
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       expect(result.current.announcement).toBeNull();
     });
@@ -139,9 +120,7 @@ describe("useLatestAnnouncement", () => {
         makeListOptions(() => Promise.resolve([])) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.announcement).toBeNull();
@@ -156,9 +135,7 @@ describe("useLatestAnnouncement", () => {
         makeDetailOptions("", detailFn) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -177,9 +154,7 @@ describe("useLatestAnnouncement", () => {
         makeDetailOptions("ann-abc", () => Promise.resolve(ann)) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       await waitFor(() => expect(result.current.announcement).not.toBeNull());
       expect(result.current.announcement).toEqual(ann);
@@ -197,9 +172,7 @@ describe("useLatestAnnouncement", () => {
         makeDetailOptions("ann-uuid-1", () => Promise.resolve(ann)) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.announcement).toEqual(ann);
@@ -218,9 +191,7 @@ describe("useLatestAnnouncement", () => {
         makeDetailOptions("ann-uuid-1", () => new Promise(() => {})) as never,
       );
 
-      const { result } = renderHook(() => useLatestAnnouncement(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       // Let the list query settle so latestUuid is set and the detail query is enabled
       await waitFor(() =>

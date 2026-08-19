@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createElement, type ReactNode } from "react";
+import { waitFor } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: vi.fn(),
@@ -23,14 +22,6 @@ import { useAuthStore } from "@/stores/authStore";
 import { paginatedQueryFn } from "@/api/pagination";
 import { useAdminSessions } from "../useAdminSessions";
 
-function makeWrapper() {
-  const qc = new QueryClient({
-    defaultOptions: { queries: { retryDelay: 0 } },
-  });
-  return ({ children }: { children: ReactNode }) =>
-    createElement(QueryClientProvider, { client: qc }, children);
-}
-
 const mockSession = {
   uid: "session-1",
   device_uid: "device-1",
@@ -43,10 +34,7 @@ const mockSession = {
 };
 
 function renderAdminSessions() {
-  return renderHook(
-    () => useAdminSessions({ page: 1, perPage: 10 }),
-    { wrapper: makeWrapper() },
-  );
+  return renderHookWithClient(() => useAdminSessions({ page: 1, perPage: 10 }));
 }
 
 describe("useAdminSessions", () => {
@@ -58,7 +46,9 @@ describe("useAdminSessions", () => {
     it("returns empty sessions and zero totalCount without fetching", () => {
       vi.mocked(useAuthStore).mockReturnValue(false);
       // paginatedQueryFn should not be called (query is disabled)
-      vi.mocked(paginatedQueryFn).mockReturnValue(() => Promise.resolve({ data: [], totalCount: 0 }));
+      vi.mocked(paginatedQueryFn).mockReturnValue(() =>
+        Promise.resolve({ data: [], totalCount: 0 }),
+      );
 
       const { result } = renderAdminSessions();
 
@@ -103,7 +93,10 @@ describe("useAdminSessions", () => {
 
     it("is loading while the query is in-flight", () => {
       vi.mocked(paginatedQueryFn).mockReturnValue(
-        () => new Promise(() => { /* never resolves */ }),
+        () =>
+          new Promise(() => {
+            /* never resolves */
+          }),
       );
 
       const { result } = renderAdminSessions();

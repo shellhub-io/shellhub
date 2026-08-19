@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor, act } from "@testing-library/react";
+import { renderHookWithClient } from "@/tests/wrapper";
 import {
   useCreateUser,
   useUpdateUser,
@@ -28,14 +27,6 @@ vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -44,9 +35,7 @@ describe("useCreateUser", () => {
   describe("mutation call", () => {
     it("calls createUserAdmin with the provided body", async () => {
       mockCreateFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useCreateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useCreateUser());
 
       const body = {
         body: {
@@ -65,9 +54,7 @@ describe("useCreateUser", () => {
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
       mockCreateFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useCreateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useCreateUser());
 
       await act(() => result.current.mutateAsync({}));
 
@@ -79,9 +66,7 @@ describe("useCreateUser", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("create failed");
       mockCreateFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useCreateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useCreateUser());
 
       act(() => result.current.mutate({}));
 
@@ -91,9 +76,7 @@ describe("useCreateUser", () => {
 
     it("does not call invalidate when mutation fails", async () => {
       mockCreateFn.mockRejectedValue(new Error("create failed"));
-      const { result } = renderHook(() => useCreateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useCreateUser());
 
       act(() => result.current.mutate({}));
 
@@ -107,9 +90,7 @@ describe("useUpdateUser", () => {
   describe("mutation call", () => {
     it("calls adminUpdateUser with path and body", async () => {
       mockUpdateFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useUpdateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUpdateUser());
 
       const vars = { path: { id: "u1" }, body: { name: "Bob" } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -121,9 +102,7 @@ describe("useUpdateUser", () => {
   describe("on success", () => {
     it("calls invalidate after successful update", async () => {
       mockUpdateFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useUpdateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUpdateUser());
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -135,9 +114,7 @@ describe("useUpdateUser", () => {
     it("exposes error when update fails", async () => {
       const error = new Error("update failed");
       mockUpdateFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useUpdateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUpdateUser());
 
       act(() => result.current.mutate({} as never));
 
@@ -147,9 +124,7 @@ describe("useUpdateUser", () => {
 
     it("does not call invalidate when update fails", async () => {
       mockUpdateFn.mockRejectedValue(new Error("update failed"));
-      const { result } = renderHook(() => useUpdateUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useUpdateUser());
 
       act(() => result.current.mutate({} as never));
 
@@ -163,9 +138,7 @@ describe("useDeleteUser", () => {
   describe("mutation call", () => {
     it("calls adminDeleteUser with the path", async () => {
       mockDeleteFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useDeleteUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useDeleteUser());
 
       const vars = { path: { id: "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -177,9 +150,7 @@ describe("useDeleteUser", () => {
   describe("on success", () => {
     it("calls invalidate after successful delete", async () => {
       mockDeleteFn.mockResolvedValue(undefined);
-      const { result } = renderHook(() => useDeleteUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useDeleteUser());
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -191,9 +162,7 @@ describe("useDeleteUser", () => {
     it("exposes error when delete fails", async () => {
       const error = new Error("delete failed");
       mockDeleteFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useDeleteUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useDeleteUser());
 
       act(() => result.current.mutate({} as never));
 
@@ -203,9 +172,7 @@ describe("useDeleteUser", () => {
 
     it("does not call invalidate when delete fails", async () => {
       mockDeleteFn.mockRejectedValue(new Error("delete failed"));
-      const { result } = renderHook(() => useDeleteUser(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useDeleteUser());
 
       act(() => result.current.mutate({} as never));
 
@@ -219,9 +186,7 @@ describe("useResetUserPassword", () => {
   describe("mutation call", () => {
     it("calls adminResetUserPassword with the path", async () => {
       mockResetPasswordFn.mockResolvedValue({ password: "generated-pw" });
-      const { result } = renderHook(() => useResetUserPassword(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useResetUserPassword());
 
       const vars = { path: { id: "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
@@ -231,9 +196,7 @@ describe("useResetUserPassword", () => {
 
     it("returns the generated password from the mutation", async () => {
       mockResetPasswordFn.mockResolvedValue({ password: "s3cr3t-pass" });
-      const { result } = renderHook(() => useResetUserPassword(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useResetUserPassword());
 
       const data = await act(() => result.current.mutateAsync({} as never));
 
@@ -244,9 +207,7 @@ describe("useResetUserPassword", () => {
   describe("on success", () => {
     it("calls invalidate after successful password reset", async () => {
       mockResetPasswordFn.mockResolvedValue({ password: "pw" });
-      const { result } = renderHook(() => useResetUserPassword(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useResetUserPassword());
 
       await act(() => result.current.mutateAsync({} as never));
 
@@ -258,9 +219,7 @@ describe("useResetUserPassword", () => {
     it("exposes error when reset fails", async () => {
       const error = new Error("reset failed");
       mockResetPasswordFn.mockRejectedValue(error);
-      const { result } = renderHook(() => useResetUserPassword(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useResetUserPassword());
 
       act(() => result.current.mutate({} as never));
 
@@ -270,9 +229,7 @@ describe("useResetUserPassword", () => {
 
     it("does not call invalidate when reset fails", async () => {
       mockResetPasswordFn.mockRejectedValue(new Error("reset failed"));
-      const { result } = renderHook(() => useResetUserPassword(), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHookWithClient(() => useResetUserPassword());
 
       act(() => result.current.mutate({} as never));
 
