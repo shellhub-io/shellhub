@@ -277,8 +277,12 @@ paths:
     $ref: paths/api@billing@report.yaml
   /api/billing/evaluate:
     $ref: paths/api@billing@evaluate.yaml
+  /api/billing/portal:
+    $ref: paths/api@billing@portal.yaml
   /api/user/saml/auth:
     $ref: paths/api@user@saml@auth.yaml
+  /api/user/saml/reauth:
+    $ref: paths/api@user@saml@reauth.yaml
   /api/user/mfa/auth:
     $ref: paths/api@user@mfa@auth.yaml
   /api/user/mfa/recover:
@@ -372,3 +376,5 @@ paths:
     $ref: paths/admin@api@announcements.yaml
   /admin/api/announcements/{uuid}:
     $ref: paths/admin@api@announcements@{uuid}.yaml
+  /ws/ssh/session:
+    $ref: paths/ws@ssh@session.yaml

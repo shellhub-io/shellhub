@@ -110,6 +110,10 @@ paths:
     $ref: paths/api@billing@report.yaml
   /api/billing/evaluate:
     $ref: paths/api@billing@evaluate.yaml
+  /api/billing/portal:
+    $ref: paths/api@billing@portal.yaml
+  /api/user/saml/reauth:
+    $ref: paths/api@user@saml@reauth.yaml
   /api/user/mfa/auth:
     $ref: paths/api@user@mfa@auth.yaml
   /api/user/mfa/recover:

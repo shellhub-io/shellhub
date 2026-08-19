@@ -205,3 +205,5 @@ paths:
     $ref: paths/api@containers@{uid}@{status}.yaml
   /api/setup:
     $ref: paths/api@setup.yaml
+  /ws/ssh/session:
+    $ref: paths/ws@ssh@session.yaml

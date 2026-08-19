@@ -1,0 +1,70 @@
+post:
+  operationId: createWebSshSession
+  summary: Create web SSH session token
+  description: |
+    Authenticate credentials for a web-terminal session and return a
+    single-use token that the WebSocket bridge (`/ws/ssh`) accepts.
+  security:
+    - jwt: []
+  tags:
+    - community
+    - sessions
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - device
+            - username
+          properties:
+            device:
+              type: string
+              description: The UID of the target device
+            username:
+              type: string
+              description: The username on the device's OS
+          oneOf:
+            - required:
+                - password
+              properties:
+                password:
+                  type: string
+                  description: The password on the device's OS
+            - required:
+                - fingerprint
+              properties:
+                fingerprint:
+                  type: string
+                  description: The fingerprint of the public key used for authentication
+                public_key:
+                  type: string
+                  description: The browser's enrolled SSH public key line (identity access mode)
+  responses:
+    '200':
+      description: Successfully created a web SSH session token
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+                description: Single-use token for the WebSocket bridge
+    '401':
+      $ref: '../components/responses/401.yaml'
+    '400':
+      description: Invalid request body or credential error
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
+                description: Error description
