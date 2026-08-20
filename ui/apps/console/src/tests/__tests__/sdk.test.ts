@@ -5,6 +5,7 @@ describe("mockSdkResponse", () => {
   it("wraps data with request and response", () => {
     const res = mockSdkResponse({ id: 1 });
     expect(res.data).toEqual({ id: 1 });
+    expect(res.error).toBeUndefined();
     expect(res.request).toBeInstanceOf(Request);
     expect(res.response).toBeInstanceOf(Response);
   });

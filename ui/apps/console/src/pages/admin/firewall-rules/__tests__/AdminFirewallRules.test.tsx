@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { makeSdkError } from "@/tests/sdk";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -19,7 +20,9 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
     default: (props: Record<string, unknown>) => {
       capturedDataTableProps.push({ ...props });
       // Render the real DataTable so existing tests keep working.
-      return actual.default(props as unknown as Parameters<typeof actual.default>[0]);
+      return actual.default(
+        props as unknown as Parameters<typeof actual.default>[0],
+      );
     },
   };
 });
@@ -36,7 +39,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import AdminFirewallRules from "../index";
 import { FirewallRulesResponse } from "@/client";
-import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -247,11 +249,13 @@ describe("AdminFirewallRules", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminFirewallRules).mockReturnValue({
         ...defaultHookState,
-        error: sdkError(500),
+        error: makeSdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Something went wrong on our side. Try again."),
+      ).toBeInTheDocument();
     });
   });
 

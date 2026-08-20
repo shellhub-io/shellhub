@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { NormalizedDevice } from "@/hooks/useAdminDevices";
+import { makeSdkError } from "@/tests/sdk";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -21,7 +22,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import { useAdminDevices } from "@/hooks/useAdminDevices";
 import AdminDevices from "../index";
-import { sdkError } from "@/tests/sdkError";
 
 const defaultHookState = {
   devices: [] as NormalizedDevice[],
@@ -163,11 +163,13 @@ describe("AdminDevices", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminDevices).mockReturnValue({
         ...defaultHookState,
-        error: sdkError(500),
+        error: makeSdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Something went wrong on our side. Try again."),
+      ).toBeInTheDocument();
     });
   });
 
@@ -262,7 +264,9 @@ describe("AdminDevices", () => {
       renderPage(["/?page=3"]);
 
       // Click the "Sort by Hostname" sort button (maps to "name" field)
-      await user.click(screen.getByRole("button", { name: /sort by hostname/i }));
+      await user.click(
+        screen.getByRole("button", { name: /sort by hostname/i }),
+      );
 
       // name has initialOrder=asc, so switching to it uses asc
       expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
@@ -275,7 +279,9 @@ describe("AdminDevices", () => {
       // Start already sorted by name asc
       renderPage(["/?sortField=name&sortOrder=asc"]);
 
-      await user.click(screen.getByRole("button", { name: /sort by hostname/i }));
+      await user.click(
+        screen.getByRole("button", { name: /sort by hostname/i }),
+      );
 
       expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
         expect.objectContaining({ sortBy: "name", orderBy: "desc" }),

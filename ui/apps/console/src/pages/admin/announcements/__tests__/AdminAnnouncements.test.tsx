@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { AnnouncementShort } from "@/client";
+import { makeSdkError } from "@/tests/sdk";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -34,8 +35,18 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
     if (!open || !announcement) return null;
     return (
       <div role="dialog" aria-label={`Delete ${announcement.title}`}>
-        <button type="button" onClick={onClose}>Cancel delete</button>
-        <button type="button" onClick={() => { onClose(); onDeleted?.(); }}>Confirm delete</button>
+        <button type="button" onClick={onClose}>
+          Cancel delete
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onDeleted?.();
+          }}
+        >
+          Confirm delete
+        </button>
       </div>
     );
   },
@@ -45,7 +56,6 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
 
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import AdminAnnouncements from "../index";
-import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -357,7 +367,7 @@ describe("AdminAnnouncements", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminAnnouncements).mockReturnValue({
         ...defaultHookState,
-        error: sdkError(500),
+        error: makeSdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
@@ -366,10 +376,12 @@ describe("AdminAnnouncements", () => {
     it("renders the error message text", () => {
       vi.mocked(useAdminAnnouncements).mockReturnValue({
         ...defaultHookState,
-        error: sdkError(500),
+        error: makeSdkError(500),
       });
       renderPage();
-      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Something went wrong on our side. Try again."),
+      ).toBeInTheDocument();
     });
   });
 
