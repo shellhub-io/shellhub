@@ -1,6 +1,8 @@
 import type { UserAuth } from "@/client";
 
-export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
+export function mockUserAuth(
+  overrides: Partial<UserAuth> = {},
+): UserAuth {
   return {
     token: "jwt-token",
     id: "user-123",

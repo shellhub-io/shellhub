@@ -9,7 +9,7 @@ import {
   setPendingDeviceCode,
 } from "@/utils/navigation";
 import type { Info, UserAuth } from "@/client";
-import { mockUserAuth } from "@/tests/userAuth";
+import { mockUserAuth } from "@/tests/factories";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
