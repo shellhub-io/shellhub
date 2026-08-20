@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useMfaResetStore } from "../mfaResetStore";
 import { useAuthStore } from "../authStore";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
-import { mockUserAuth } from "@/tests/userAuth";
+import { mockUserAuth } from "@/tests/factories";
 
 vi.mock("@/client", () => ({
   requestResetMfa: vi.fn(),
