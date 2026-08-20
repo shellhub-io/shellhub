@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   listWebEndpoints as listWebEndpointsSdk,
+  listWebEndpointsQueryKey,
   type ListWebEndpointsData,
   type Webendpoint,
 } from "../client";
-import { listWebEndpointsQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { toBase64Json } from "@/utils/encoding";
 

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getSessionAdminOptions } from "../client/@tanstack/react-query.gen";
+import { getSessionAdminOptions } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 

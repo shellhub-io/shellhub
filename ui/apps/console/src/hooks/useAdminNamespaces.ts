@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getNamespacesAdmin as getNamespacesAdminSdk,
+  getNamespacesAdminQueryKey,
+  getNamespaceAdminOptions,
   type GetNamespacesAdminData,
   type Namespace,
 } from "../client";
-import {
-  getNamespacesAdminQueryKey,
-  getNamespaceAdminOptions,
-} from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";

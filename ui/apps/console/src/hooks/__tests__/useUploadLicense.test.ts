@@ -6,7 +6,7 @@ import { useUploadLicense } from "../useUploadLicense";
 const mockMutationFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   sendLicenseMutation: vi.fn(() => ({ mutationFn: mockMutationFn })),
 }));
 

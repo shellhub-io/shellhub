@@ -9,9 +9,6 @@ import { useAuthStore } from "@/stores/authStore";
 vi.mock("@/client", () => ({
   getUsers: vi.fn(),
   getUser: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getUsersQueryKey: vi.fn((opts: unknown) => [{ _id: "getUsers" }, opts]),
   getUserOptions: vi.fn((opts: unknown) => ({
     queryKey: [{ _id: "getUser" }, opts],

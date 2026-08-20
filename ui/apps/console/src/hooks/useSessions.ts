@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getSessions as getSessionsSdk,
+  getSessionsQueryKey,
   type GetSessionsData,
   type Session,
 } from "../client";
-import { getSessionsQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseSessionsParams {

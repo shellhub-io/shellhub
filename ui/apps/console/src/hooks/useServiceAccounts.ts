@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listServiceAccountsOptions } from "../client/@tanstack/react-query.gen";
-import type { ServiceAccount } from "../client";
+import { listServiceAccountsOptions, type ServiceAccount } from "../client";
 
 export function useServiceAccounts() {
   const result = useQuery(listServiceAccountsOptions());

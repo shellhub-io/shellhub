@@ -8,8 +8,9 @@ import {
   pullTagFromDeviceMutation,
   setDeviceCustomFieldMutation,
   deleteDeviceCustomFieldMutation,
-} from "../client/@tanstack/react-query.gen";
-import { createTag, pushTagToDevice } from "../client";
+  createTag,
+  pushTagToDevice,
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useAcceptDevice() {

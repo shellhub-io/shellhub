@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { Webendpoint } from "@/client/types.gen";
+import type { Webendpoint } from "@/client";
 import WebEndpoints from "../WebEndpoints";
 
 vi.mock("@/hooks/useWebEndpoints");

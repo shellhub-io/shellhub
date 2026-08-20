@@ -2,13 +2,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getFirewallRulesAdmin,
+  getFirewallRulesAdminQueryKey,
+  getFirewallRuleAdminOptions,
   type GetFirewallRulesAdminData,
   type FirewallRulesResponse,
 } from "../client";
-import {
-  getFirewallRulesAdminQueryKey,
-  getFirewallRuleAdminOptions,
-} from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";

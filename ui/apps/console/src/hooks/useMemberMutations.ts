@@ -4,7 +4,7 @@ import {
   approveUserMutation,
   removeNamespaceMemberMutation,
   updateNamespaceMemberMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useAddMember() {

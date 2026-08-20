@@ -2,8 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import {
   editNamespaceMutation,
   setSshAccessModeMutation,
-} from "../client/@tanstack/react-query.gen";
-import {
   getNamespaceToken,
   createNamespace as createNamespaceSdk,
   deleteNamespace as deleteNamespaceSdk,

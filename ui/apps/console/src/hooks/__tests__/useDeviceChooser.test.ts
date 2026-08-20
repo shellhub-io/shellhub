@@ -8,7 +8,7 @@ const mockMostUsedQueryFn = vi.fn();
 const mockChoiceMutationFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   getDevicesMostUsedOptions: vi.fn(() => ({
     queryKey: [{ _id: "getDevicesMostUsed" }],
     queryFn: mockMostUsedQueryFn,

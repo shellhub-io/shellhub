@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getContainerOptions } from "../client/@tanstack/react-query.gen";
+import { getContainerOptions } from "../client";
 
 export function useContainer(uid: string) {
   const result = useQuery({

@@ -3,7 +3,7 @@ import {
   createPublicKeyMutation,
   updatePublicKeyMutation,
   deletePublicKeyMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreatePublicKey() {

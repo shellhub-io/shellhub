@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createTestWrapper } from "@/tests/wrapper";
-import type { GetLicenseResponse } from "@/client/types.gen";
+import type { GetLicenseResponse } from "@/client";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -12,9 +12,6 @@ vi.mock("@/hooks/useAdminLicense", () => ({
 }));
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getLicenseQueryKey: vi.fn(() => ["getLicense"]),
 }));
 

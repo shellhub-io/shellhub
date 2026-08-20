@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   resolveDeviceLoginCodeOptions,
   acceptDevicePairingMutation,
-} from "@/client/@tanstack/react-query.gen";
+} from "@/client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useResolveDeviceCode(code: string) {

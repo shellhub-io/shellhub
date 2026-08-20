@@ -25,7 +25,7 @@ import {
 import { BROWSER_KEY_QUERY_KEY } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
 import { isAlreadyEnrolled } from "../utils/sshIdentity";
-import { listSshIdentitiesOptions } from "../client/@tanstack/react-query.gen";
+import { listSshIdentitiesOptions } from "../client";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";

@@ -3,7 +3,7 @@ import { getConfig } from "@/env";
 import {
   listAnnouncementsOptions,
   getAnnouncementOptions,
-} from "@/client/@tanstack/react-query.gen";
+} from "@/client";
 
 export function useLatestAnnouncement() {
   const enabled = getConfig().announcements;

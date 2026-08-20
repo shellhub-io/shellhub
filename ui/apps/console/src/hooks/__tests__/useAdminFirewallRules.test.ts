@@ -11,9 +11,6 @@ import { renderHookWithClient } from "@/tests/wrapper";
 vi.mock("@/client", () => ({
   getFirewallRulesAdmin: vi.fn(),
   getFirewallRuleAdmin: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getFirewallRulesAdminQueryKey: vi.fn((opts: unknown) => [
     { _id: "getFirewallRulesAdmin" },
     opts,

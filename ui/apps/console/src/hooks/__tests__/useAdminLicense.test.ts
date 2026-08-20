@@ -7,9 +7,6 @@ import { useAuthStore } from "@/stores/authStore";
 // ── Dependency mocks ──────────────────────────────────────────────────────────
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getLicenseQueryKey: vi.fn(() => ["getLicense"]),
 }));
 

@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getPublicKeys as getPublicKeysSdk,
+  getPublicKeysQueryKey,
   type GetPublicKeysData,
   type PublicKeyResponse,
 } from "../client";
-import { getPublicKeysQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { toBase64Json } from "@/utils/encoding";
 

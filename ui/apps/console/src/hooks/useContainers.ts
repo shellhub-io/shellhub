@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getContainers as getContainersSdk,
+  getContainersQueryKey,
   type GetContainersData,
+  type Device,
+  type DeviceStatus,
 } from "../client";
-import type { Device, DeviceStatus } from "../client";
-import { getContainersQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { toBase64Json } from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";

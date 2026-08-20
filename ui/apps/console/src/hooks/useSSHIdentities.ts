@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listSshIdentitiesOptions } from "../client/@tanstack/react-query.gen";
-import type { SshIdentity } from "../client";
+import { listSshIdentitiesOptions, type SshIdentity } from "../client";
 
 export function useSSHIdentities(all = false) {
   const options = all ? { query: { all: true } } : {};

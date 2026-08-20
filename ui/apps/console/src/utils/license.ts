@@ -1,5 +1,5 @@
 import { formatExpiry } from "./date";
-import type { GetLicenseResponse } from "../client/types.gen";
+import type { GetLicenseResponse } from "../client";
 
 export function formatLicenseTimestamp(value: number): string {
   if (value === -1) return "Now";

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getNamespaceSupportOptions } from "@/client/@tanstack/react-query.gen";
+import { getNamespaceSupportOptions } from "@/client";
 
 export function useSupportIdentifier(
   tenantId: string | null | undefined,

@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { clsoeSessionMutation } from "../client/@tanstack/react-query.gen";
-import { deleteSessionRecord } from "@/client";
+import { clsoeSessionMutation, deleteSessionRecord } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCloseSession() {

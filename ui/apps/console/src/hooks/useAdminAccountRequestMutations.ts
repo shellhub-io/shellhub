@@ -1,8 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  approveUserMutation,
-  adminDeleteUserMutation,
-} from "../client/@tanstack/react-query.gen";
+import { approveUserMutation, adminDeleteUserMutation } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 // Approving clears the awaiting_approval flag; the account stays not-confirmed until the

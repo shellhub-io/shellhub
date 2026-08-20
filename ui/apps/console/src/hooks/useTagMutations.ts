@@ -3,7 +3,7 @@ import {
   createTagMutation,
   deleteTagMutation,
   updateTagMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateTag() {

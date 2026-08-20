@@ -7,8 +7,8 @@ import {
   attachPaymentMethodMutation,
   detachPaymentMethodMutation,
   setDefaultPaymentMethodMutation,
-} from "../client/@tanstack/react-query.gen";
-import { createBillingPortalSession } from "@/client";
+  createBillingPortalSession,
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 function useInvalidateBilling() {

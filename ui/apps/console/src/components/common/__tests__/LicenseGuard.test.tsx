@@ -5,7 +5,7 @@ import React from "react";
 import { createTestWrapper } from "@/tests/wrapper";
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import type { GetLicenseResponse } from "@/client/types.gen";
+import type { GetLicenseResponse } from "@/client";
 
 // ── Dependency mocks ──────────────────────────────────────────────────────────
 
@@ -14,9 +14,6 @@ vi.mock("@/hooks/useAdminLicense", () => ({
 }));
 vi.mock("@/client", () => ({
   getLicense: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getLicenseQueryKey: vi.fn(() => ["getLicense"]),
 }));
 
