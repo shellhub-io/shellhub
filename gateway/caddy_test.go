@@ -94,6 +94,30 @@ func TestCaddyfileServesTheEditionsRoutes(t *testing.T) {
 	assert.Contains(t, string(endpoints), "/admin/api")
 }
 
+// TestCaddyfileServesTheDevelopmentMailInbox pins the Mailpit vhost to the one
+// stack that has a Mailpit to reach: the mail code lives in the cloud repository,
+// so a community stack has nothing behind the hostname even in development.
+func TestCaddyfileServesTheDevelopmentMailInbox(t *testing.T) {
+	configs := configurations()
+
+	development, err := Caddyfile(configs["development"])
+	require.NoError(t, err)
+
+	assert.Contains(t, string(development), "http://mail.shellhub.example")
+
+	devCommunity, err := Caddyfile(configs["dev community"])
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(devCommunity), "mail.shellhub.example",
+		"the mail inbox is enterprise-only")
+
+	enterprise, err := Caddyfile(configs["enterprise"])
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(enterprise), "mail.shellhub.example",
+		"the mail inbox is development-only")
+}
+
 // TestEveryUpstreamReceivesTheClientAddress restores what the deleted nginx
 // headers test guarded. X-Real-IP is what the login lockout and the GeoIP rules
 // are keyed on, and it now reaches an upstream only because each route asks for
