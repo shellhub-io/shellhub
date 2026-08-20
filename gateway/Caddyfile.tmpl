@@ -255,5 +255,14 @@ http://idp.{{ $cfg.Domain }} {
 		import forwarded
 	}
 }
+
+# Mailpit catches every email the stack sends and shows it rendered. Its
+# container ships with the cloud repository's compose files, so a community
+# stack has no upstream here and this would only ever 502.
+http://mail.{{ $cfg.Domain }} {
+	reverse_proxy mailpit:8025 {
+		import forwarded
+	}
+}
 {{- end }}
 {{- end }}
