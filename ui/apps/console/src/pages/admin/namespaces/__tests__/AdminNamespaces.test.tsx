@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { Namespace } from "@/client";
+import { makeSdkError } from "@/tests/sdk";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -41,7 +42,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
 import AdminNamespaces from "../index";
-import { sdkError } from "@/tests/sdkError";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -158,11 +158,13 @@ describe("AdminNamespaces", () => {
     it("renders an error alert when the hook returns an error", () => {
       vi.mocked(useAdminNamespaces).mockReturnValue({
         ...defaultHookState,
-        error: sdkError(500),
+        error: makeSdkError(500),
       });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText("Something went wrong on our side. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Something went wrong on our side. Try again."),
+      ).toBeInTheDocument();
     });
   });
 

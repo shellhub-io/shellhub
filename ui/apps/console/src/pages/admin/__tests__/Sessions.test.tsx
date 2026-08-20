@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { makeSdkError } from "@/tests/sdk";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
@@ -21,7 +22,6 @@ vi.mock("@/hooks/useAdminSessions", () => ({
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import type { Device, Session } from "@/client";
 import AdminSessions from "../Sessions";
-import { sdkError } from "@/tests/sdkError";
 import { LocationProbe } from "@/tests/LocationProbe";
 
 function makeSession(overrides: Partial<Session> = {}): Session {
@@ -104,13 +104,13 @@ describe("AdminSessions", () => {
 
   describe("error state", () => {
     it("renders the error banner with role='alert'", () => {
-      setupHook({ error: sdkError(500) });
+      setupHook({ error: makeSdkError(500) });
       renderPage();
       expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
     it("displays the console's own copy for the status in the banner", () => {
-      setupHook({ error: sdkError(403) });
+      setupHook({ error: makeSdkError(403) });
       renderPage();
       expect(screen.getByRole("alert")).toHaveTextContent(
         "You do not have permission to do this.",
