@@ -3,7 +3,7 @@ import {
   apiKeyCreateMutation,
   apiKeyUpdateMutation,
   apiKeyDeleteMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateApiKey() {

@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getUsers as getUsersSdk,
+  getUsersQueryKey,
+  getUserOptions,
   type GetUsersData,
   type UserAdminResponse,
 } from "../client";
-import {
-  getUsersQueryKey,
-  getUserOptions,
-} from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";

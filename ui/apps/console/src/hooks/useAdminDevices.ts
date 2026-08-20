@@ -2,14 +2,12 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getDevicesAdmin,
+  getDevicesAdminQueryKey,
+  getDeviceAdminOptions,
   type GetDevicesAdminData,
   type Device,
   type DeviceStatus,
 } from "../client";
-import {
-  getDevicesAdminQueryKey,
-  getDeviceAdminOptions,
-} from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";

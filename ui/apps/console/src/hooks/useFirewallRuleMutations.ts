@@ -3,7 +3,7 @@ import {
   createFirewallRuleMutation,
   updateFirewallRuleMutation,
   deleteFirewallRuleMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateFirewallRule() {

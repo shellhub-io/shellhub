@@ -10,12 +10,9 @@ vi.mock("@/api/pagination", () => ({
   paginatedQueryFn: vi.fn(),
 }));
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
-  getSessionsAdminQueryKey: vi.fn(() => ["sessions-admin"]),
-}));
-
 vi.mock("@/client", () => ({
   getSessionsAdmin: vi.fn(),
+  getSessionsAdminQueryKey: vi.fn(() => ["sessions-admin"]),
 }));
 
 import { useAuthStore } from "@/stores/authStore";

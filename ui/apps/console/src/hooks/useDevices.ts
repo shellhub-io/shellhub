@@ -2,12 +2,12 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getDevices as getDevicesSdk,
+  getDevicesQueryKey,
   type GetDevicesData,
   type DeviceStatus,
+  type Device as GeneratedDevice,
 } from "../client";
-import { getDevicesQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
-import type { Device as GeneratedDevice } from "../client";
 import { toBase64Json } from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 

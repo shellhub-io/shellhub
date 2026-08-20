@@ -4,7 +4,7 @@ import { renderHookWithClient } from "@/tests/wrapper";
 
 const mockGetNamespaceSupportFn = vi.fn();
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   getNamespaceSupportOptions: vi.fn(() => ({
     queryKey: [{ _id: "getNamespaceSupport" }],
     queryFn: mockGetNamespaceSupportFn,
@@ -69,8 +69,8 @@ describe("useSupportIdentifier", () => {
       mockGetNamespaceSupportFn.mockResolvedValue({ identifier: "abc123" });
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHookWithClient(
-        () => useSupportIdentifier("tenant-123", true),
+      const { result } = renderHookWithClient(() =>
+        useSupportIdentifier("tenant-123", true),
       );
 
       await waitFor(() => expect(result.current.identifier).toBe("abc123"));
@@ -84,8 +84,8 @@ describe("useSupportIdentifier", () => {
       mockGetNamespaceSupportFn.mockRejectedValue(new Error("network error"));
       const { useSupportIdentifier } = await importHook();
 
-      const { result } = renderHookWithClient(
-        () => useSupportIdentifier("tenant-123", true),
+      const { result } = renderHookWithClient(() =>
+        useSupportIdentifier("tenant-123", true),
       );
 
       await waitFor(() => expect(result.current.isError).toBe(true));

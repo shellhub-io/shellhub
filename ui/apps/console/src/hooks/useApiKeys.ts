@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   apiKeyList,
+  apiKeyListQueryKey,
   type ApiKeyListData,
   type ApiKey,
 } from "../client";
-import { apiKeyListQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseApiKeysParams {

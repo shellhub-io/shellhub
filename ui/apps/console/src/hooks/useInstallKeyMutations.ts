@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   installKeyCreateMutation,
   installKeyUpdateMutation,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateInstallKey() {

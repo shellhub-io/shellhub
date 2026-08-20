@@ -12,7 +12,7 @@ const mockGenerateLinkFn = vi.fn();
 const mockCancelFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   acceptInviteMutation: vi.fn(() => ({ mutationFn: mockAcceptFn })),
   generateInvitationLinkMutation: vi.fn(() => ({
     mutationFn: mockGenerateLinkFn,

@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { installKeyList, type InstallKeyListData, type InstallKey } from "../client";
-import { installKeyListQueryKey } from "../client/@tanstack/react-query.gen";
+import {
+  installKeyList,
+  installKeyListQueryKey,
+  type InstallKeyListData,
+  type InstallKey,
+} from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseInstallKeysParams {

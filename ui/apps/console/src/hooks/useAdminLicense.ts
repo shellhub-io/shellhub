@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { getLicenseQueryKey } from "../client/@tanstack/react-query.gen";
-import { getLicense } from "../client";
+import {
+  getLicense,
+  getLicenseQueryKey,
+  type GetLicenseResponse,
+} from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 import { isCloud } from "../env";
-import type { GetLicenseResponse } from "../client/types.gen";
 
 export { getLicenseQueryKey };
 

@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   listAnnouncementsAdmin as listAnnouncementsAdminSdk,
+  listAnnouncementsAdminQueryKey,
+  getAnnouncementAdminOptions,
   type ListAnnouncementsAdminData,
   type AnnouncementShort,
 } from "../client";
-import {
-  listAnnouncementsAdminQueryKey,
-  getAnnouncementAdminOptions,
-} from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";

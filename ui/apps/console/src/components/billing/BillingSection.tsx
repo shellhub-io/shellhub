@@ -14,7 +14,7 @@ import { useNamespace } from "@/hooks/useNamespaces";
 import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
-import type { BillingStatus } from "@/client/types.gen";
+import type { BillingStatus } from "@/client";
 import { cn } from "@shellhub/design-system/cn";
 import { Button } from "@shellhub/design-system/primitives";
 
@@ -157,7 +157,10 @@ function SectionRow({
 function StatusBadge({ status }: { status: BillingStatus }) {
   return (
     <span
-      className={cn("inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border", STATUS_CHIP[status])}
+      className={cn(
+        "inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border",
+        STATUS_CHIP[status],
+      )}
     >
       {STATUS_LABEL[status]}
     </span>
@@ -277,7 +280,10 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
           <div
             role="status"
             aria-live="polite"
-            className={cn("flex items-start gap-3 px-5 py-3 border-b", BANNER_CLASSES[banner.tone])}
+            className={cn(
+              "flex items-start gap-3 px-5 py-3 border-b",
+              BANNER_CLASSES[banner.tone],
+            )}
           >
             <banner.Icon
               aria-hidden="true"

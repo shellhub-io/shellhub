@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   choiceDevicesMutation,
   getDevicesMostUsedOptions,
-} from "../client/@tanstack/react-query.gen";
+} from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
 

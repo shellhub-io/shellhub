@@ -5,16 +5,13 @@ import { useLatestAnnouncement } from "../useLatestAnnouncement";
 import type { Announcement } from "@/client";
 
 // Mock the generated query-option factories so we control what queryFn runs
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   listAnnouncementsOptions: vi.fn(),
   getAnnouncementOptions: vi.fn(),
 }));
 
 import { getConfig, defaultConfig } from "@/env";
-import {
-  listAnnouncementsOptions,
-  getAnnouncementOptions,
-} from "@/client/@tanstack/react-query.gen";
+import { listAnnouncementsOptions, getAnnouncementOptions } from "@/client";
 
 const mockGetConfig = vi.mocked(getConfig);
 const mockListAnnouncementsOptions = vi.mocked(listAnnouncementsOptions);

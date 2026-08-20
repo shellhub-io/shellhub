@@ -6,9 +6,6 @@ import type { PublicKeyResponse } from "@/client";
 
 vi.mock("@/client", () => ({
   getPublicKeys: vi.fn(),
-}));
-
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getPublicKeysQueryKey: vi.fn((opts: unknown) => [
     { _id: "getPublicKeys" },
     opts,

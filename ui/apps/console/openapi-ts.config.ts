@@ -6,7 +6,9 @@ if (!input) {
   // generating from its URL produces a client missing the other editions'
   // schemas. Use `npm run generate -w @shellhub/console`, which bundles the
   // combined spec before invoking openapi-ts.
-  throw new Error("OPENAPI_SPEC_PATH is not set; run `npm run generate -w @shellhub/console`.");
+  throw new Error(
+    "OPENAPI_SPEC_PATH is not set; run `npm run generate -w @shellhub/console`.",
+  );
 }
 
 export default defineConfig({
@@ -23,6 +25,7 @@ export default defineConfig({
       name: "@tanstack/react-query",
       queryOptions: true,
       mutationOptions: true,
+      includeInEntry: true,
     },
   ],
 });

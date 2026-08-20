@@ -12,7 +12,7 @@ const mockGetSubscriptionFn = vi.fn();
 const mockInvalidate = vi.fn();
 const mockCreateBillingPortalSession = vi.fn();
 
-vi.mock("@/client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client", () => ({
   getCustomerOptions: vi.fn(() => ({
     queryKey: [{ _id: "getCustomer" }],
     queryFn: mockGetCustomerFn,
@@ -30,14 +30,11 @@ vi.mock("@/client/@tanstack/react-query.gen", () => ({
   setDefaultPaymentMethodMutation: vi.fn(() => ({
     mutationFn: mockSetDefault,
   })),
+  createBillingPortalSession: (): unknown => mockCreateBillingPortalSession(),
 }));
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
-}));
-
-vi.mock("@/client", () => ({
-  createBillingPortalSession: (): unknown => mockCreateBillingPortalSession(),
 }));
 
 async function importHooks() {

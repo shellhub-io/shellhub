@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getTags as getTagsSdk,
+  getTagsQueryKey,
   type GetTagsData,
   type Tag,
 } from "../client";
-import { getTagsQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseTagsParams {

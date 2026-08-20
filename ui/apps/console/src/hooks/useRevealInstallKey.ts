@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { installKeyRevealOptions } from "../client/@tanstack/react-query.gen";
+import { installKeyRevealOptions } from "../client";
 
 /**
  * Reveal a install key's plaintext on demand. The secret is never preloaded for

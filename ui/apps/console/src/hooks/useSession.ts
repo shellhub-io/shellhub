@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getSessionOptions } from "../client/@tanstack/react-query.gen";
+import { getSessionOptions } from "../client";
 
 export function useSession(uid: string) {
   const result = useQuery({

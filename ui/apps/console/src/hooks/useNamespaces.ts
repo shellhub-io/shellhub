@@ -1,15 +1,13 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  type Namespace as GeneratedNamespace,
+  type NamespaceMemberRole,
+  type MemberView,
   getNamespacesOptions,
   getNamespaceOptions,
   getNamespaceTokenOptions,
   listNamespaceMembersOptions,
-} from "../client/@tanstack/react-query.gen";
-import type {
-  Namespace as GeneratedNamespace,
-  NamespaceMemberRole,
-  MemberView,
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
 

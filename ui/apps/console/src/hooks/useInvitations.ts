@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getNamespaceMembershipInvitationList,
+  getNamespaceMembershipInvitationListQueryKey,
+  resolveInvitationOptions,
   type GetNamespaceMembershipInvitationListData,
   type MembershipInvitation,
 } from "@/client";
-import {
-  getNamespaceMembershipInvitationListQueryKey,
-  resolveInvitationOptions,
-} from "@/client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "@/api/pagination";
 import {
   invitationStatusFilter,

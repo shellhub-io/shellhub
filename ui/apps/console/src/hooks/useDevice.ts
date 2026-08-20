@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDeviceOptions } from "../client/@tanstack/react-query.gen";
+import { getDeviceOptions } from "../client";
 
 export function useDevice(uid: string) {
   const result = useQuery({

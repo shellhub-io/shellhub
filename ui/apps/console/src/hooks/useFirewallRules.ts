@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getFirewallRules as getFirewallRulesSdk,
+  getFirewallRulesQueryKey,
   type GetFirewallRulesData,
   type FirewallRulesResponse,
 } from "../client";
-import { getFirewallRulesQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseFirewallRulesParams {

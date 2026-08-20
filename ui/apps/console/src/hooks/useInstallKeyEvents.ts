@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   installKeyHistory,
+  installKeyHistoryQueryKey,
   type InstallKeyHistoryData,
   type InstallKeyEvent,
 } from "../client";
-import { installKeyHistoryQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseInstallKeyEventsParams {
