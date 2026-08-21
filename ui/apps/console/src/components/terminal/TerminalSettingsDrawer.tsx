@@ -5,6 +5,8 @@ import { IconButton } from "@shellhub/design-system/primitives";
 import {
   useTerminalThemeStore,
   TERMINAL_FONTS,
+  MIN_FONT_SIZE,
+  MAX_FONT_SIZE,
   type TerminalTheme,
 } from "@/stores/terminalThemeStore";
 import Drawer from "../common/Drawer";
@@ -88,10 +90,18 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
               type="button"
               key={font}
               onClick={() => setFontFamily(font)}
-              className={cn("flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150", font === fontFamily ? "bg-primary/10 border border-primary/20" : "hover:bg-hover-subtle border border-transparent")}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 transition-all duration-150",
+                font === fontFamily
+                  ? "bg-primary/10 border border-primary/20"
+                  : "hover:bg-hover-subtle border border-transparent",
+              )}
             >
               <span
-                className={cn("text-[13px]", font === fontFamily ? "text-primary" : "text-text-secondary")}
+                className={cn(
+                  "text-[13px]",
+                  font === fontFamily ? "text-primary" : "text-text-secondary",
+                )}
                 style={{ fontFamily: `"${font}", monospace` }}
               >
                 {font}
@@ -115,7 +125,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         <div className="flex items-center gap-3">
           <IconButton
             aria-label="Decrease font size"
-            disabled={fontSize <= 8}
+            disabled={fontSize <= MIN_FONT_SIZE}
             onClick={() => setFontSize(fontSize - 1)}
             className="border border-border bg-hover-subtle"
           >
@@ -124,8 +134,8 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
           <div className="flex-1">
             <input
               type="range"
-              min={8}
-              max={24}
+              min={MIN_FONT_SIZE}
+              max={MAX_FONT_SIZE}
               value={fontSize}
               onChange={(e) => setFontSize(parseInt(e.target.value))}
               className="w-full accent-primary h-1"
@@ -133,7 +143,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
           </div>
           <IconButton
             aria-label="Increase font size"
-            disabled={fontSize >= 24}
+            disabled={fontSize >= MAX_FONT_SIZE}
             onClick={() => setFontSize(fontSize + 1)}
             className="border border-border bg-hover-subtle"
           >
@@ -216,7 +226,12 @@ function ThemeCard({
     <button
       type="button"
       onClick={onClick}
-      className={cn("relative rounded-lg border p-2 text-left transition-all duration-150", selected ? "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10" : "border-border hover:border-border-light bg-hover-subtle")}
+      className={cn(
+        "relative rounded-lg border p-2 text-left transition-all duration-150",
+        selected
+          ? "border-primary/40 bg-primary/[0.06] ring-1 ring-primary/10"
+          : "border-border hover:border-border-light bg-hover-subtle",
+      )}
     >
       {/* Color preview */}
       <div

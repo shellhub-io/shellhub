@@ -9,6 +9,7 @@ import { generateSignature } from "@/utils/sshKeys";
 import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
+import { nextFontSize } from "./fontSizeShortcut";
 import type { TerminalError } from "./terminalErrors";
 import TerminalErrorBanner from "./TerminalErrorBanner";
 import {
@@ -114,6 +115,25 @@ export default function TerminalInstance({
         allowProposedApi: true,
       });
       termRef.current = term;
+
+      // Read the size off the store rather than the render-time binding: this
+      // handler is registered once and would otherwise always step from the
+      // size the terminal was created with.
+      term.attachCustomKeyEventHandler((event) => {
+        if (event.type !== "keydown") return true;
+
+        const { fontSize, setFontSize } = useTerminalThemeStore.getState();
+        const next = nextFontSize(fontSize, event);
+        if (next === null) return true;
+
+        setFontSize(next);
+
+        // Returning false only stops xterm forwarding the key to the shell;
+        // suppressing the browser's own zoom needs this.
+        event.preventDefault();
+
+        return false;
+      });
 
       const fitAddon = new FitAddon();
       fitRef.current = fitAddon;

@@ -52,6 +52,13 @@ export const TERMINAL_FONTS = [
 
 export type TerminalFont = (typeof TERMINAL_FONTS)[number];
 
+export const MIN_FONT_SIZE = 8;
+export const MAX_FONT_SIZE = 24;
+export const DEFAULT_FONT_SIZE = 14;
+
+export const clampFontSize = (size: number) =>
+  Math.min(Math.max(size, MIN_FONT_SIZE), MAX_FONT_SIZE);
+
 const STORAGE_KEYS = {
   theme: "terminalTheme",
   fontFamily: "terminalFontFamily",
@@ -91,7 +98,8 @@ const FALLBACK_THEME: TerminalTheme = {
 // its auth pipeline entirely.
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Failed to fetch ${url}: ${response.status}`);
   return (await response.json()) as T;
 }
 
@@ -124,7 +132,10 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
 
   const initialThemeName = savedTheme || "ShellHub Dark";
   const initialFont = (savedFont as TerminalFont) || "IBM Plex Mono";
-  const initialSize = savedSize ? parseInt(savedSize, 10) : 14;
+  const parsedSize = savedSize ? parseInt(savedSize, 10) : NaN;
+  const initialSize = Number.isNaN(parsedSize)
+    ? DEFAULT_FONT_SIZE
+    : clampFontSize(parsedSize);
 
   return {
     themes: [FALLBACK_THEME],
@@ -139,12 +150,16 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
       if (get().loaded) return;
 
       try {
-        const metadata = await fetchJson<ThemeMetadata[]>("/xterm-themes/metadata.json");
+        const metadata = await fetchJson<ThemeMetadata[]>(
+          "/xterm-themes/metadata.json",
+        );
 
         const results = await Promise.all(
           metadata.map(async (meta) => {
             try {
-              const raw = await fetchJson<Record<string, string>>(`/xterm-themes/${meta.file}`);
+              const raw = await fetchJson<Record<string, string>>(
+                `/xterm-themes/${meta.file}`,
+              );
               return {
                 name: meta.name,
                 dark: meta.dark,
@@ -158,7 +173,10 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
         );
 
         const themes = results.filter(Boolean) as TerminalTheme[];
-        const current = themes.find((t) => t.name === get().themeName) || themes[0] || FALLBACK_THEME;
+        const current =
+          themes.find((t) => t.name === get().themeName) ||
+          themes[0] ||
+          FALLBACK_THEME;
         set({ themes, theme: current, loaded: true });
       } catch {
         set({ loaded: true });
@@ -179,7 +197,7 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
     },
 
     setFontSize: (size) => {
-      const clamped = Math.min(Math.max(size, 8), 24);
+      const clamped = clampFontSize(size);
       localStorage.setItem(STORAGE_KEYS.fontSize, clamped.toString());
       set({ fontSize: clamped });
     },
