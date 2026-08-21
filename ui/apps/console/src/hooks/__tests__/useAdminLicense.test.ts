@@ -1,30 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
-import { defaultConfig } from "@/env";
+import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-vi.mock("@/client", () => ({
-  getLicense: vi.fn(),
-  getLicenseQueryKey: vi.fn(() => ["getLicense"]),
-}));
+const mockGetLicense = vi.hoisted(() => vi.fn());
 
-vi.mock("@/api/errors", () => ({
-  isSdkError: vi.fn(
-    (err: unknown): err is { status: number } =>
-      typeof err === "object" && err !== null && "status" in err,
-  ),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getLicense: mockGetLicense };
+});
 
-import { getConfig } from "@/env";
-import { getLicense } from "@/client";
 import { useAdminLicense } from "../useAdminLicense";
 
 const mockGetConfig = vi.mocked(getConfig);
-const mockGetLicense = vi.mocked(getLicense);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makeLicense(overrides: Record<string, unknown> = {}) {
   return {
@@ -43,18 +33,15 @@ function makeLicense(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: enterprise admin, non-cloud
-  useAuthStore.setState({ isAdmin: true } as never);
+  useAuthStore.setState({ isAdmin: true });
   mockGetConfig.mockReturnValue({ ...defaultConfig });
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("useAdminLicense", () => {
   describe("enterprise admin — valid license", () => {
     it("calls getLicense and returns installedLicense", async () => {
       const license = makeLicense();
-      mockGetLicense.mockResolvedValue({ data: license } as never);
+      mockGetLicense.mockResolvedValue(mockSdkResponse(license));
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -65,9 +52,9 @@ describe("useAdminLicense", () => {
     });
 
     it("sets isExpired to false when license is not expired", async () => {
-      mockGetLicense.mockResolvedValue({
-        data: makeLicense({ expired: false }),
-      } as never);
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: false })),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -78,7 +65,7 @@ describe("useAdminLicense", () => {
 
   describe("enterprise admin — 400 (no license stored)", () => {
     it("normalizes 400 to installedLicense null", async () => {
-      mockGetLicense.mockRejectedValue({ status: 400 });
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -87,7 +74,7 @@ describe("useAdminLicense", () => {
     });
 
     it("sets isExpired to true when no license is installed", async () => {
-      mockGetLicense.mockRejectedValue({ status: 400 });
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -98,9 +85,9 @@ describe("useAdminLicense", () => {
 
   describe("enterprise admin — expired license", () => {
     it("sets isExpired to true when license.expired is true", async () => {
-      mockGetLicense.mockResolvedValue({
-        data: makeLicense({ expired: true }),
-      } as never);
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true })),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -109,9 +96,9 @@ describe("useAdminLicense", () => {
     });
 
     it("keeps isExpired false for a non-expired license still in its grace period", async () => {
-      mockGetLicense.mockResolvedValue({
-        data: makeLicense({ expired: false, grace_period: true }),
-      } as never);
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: false, grace_period: true })),
+      );
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
@@ -126,7 +113,6 @@ describe("useAdminLicense", () => {
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      // Give React Query a chance to fire (it should not)
       await new Promise((r) => setTimeout(r, 20));
 
       expect(mockGetLicense).not.toHaveBeenCalled();

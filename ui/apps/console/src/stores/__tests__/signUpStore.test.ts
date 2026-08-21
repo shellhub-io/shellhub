@@ -2,21 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useSignUpStore } from "../signUpStore";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  registerUser: vi.fn(),
-  resendEmail: vi.fn(),
-  getValidateAccount: vi.fn(),
-}));
+const mockRegisterUser = vi.hoisted(() => vi.fn());
+const mockResendEmail = vi.hoisted(() => vi.fn());
+const mockGetValidateAccount = vi.hoisted(() => vi.fn());
 
-import {
-  registerUser as apiRegisterUser,
-  resendEmail as apiResendEmail,
-  getValidateAccount as apiGetValidateAccount,
-} from "@/client";
-
-const mockedRegisterUser = vi.mocked(apiRegisterUser);
-const mockedResendEmail = vi.mocked(apiResendEmail);
-const mockedGetValidateAccount = vi.mocked(apiGetValidateAccount);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    registerUser: mockRegisterUser,
+    resendEmail: mockResendEmail,
+    getValidateAccount: mockGetValidateAccount,
+  };
+});
 
 beforeEach(() => {
   useSignUpStore.setState({
@@ -44,7 +42,7 @@ describe("signUpStore", () => {
 
     it("sets loading during request", async () => {
       let resolve: (v: SdkResponse<{ token: string; tenant: string }>) => void;
-      mockedRegisterUser.mockReturnValue(
+      mockRegisterUser.mockReturnValue(
         new Promise<SdkResponse<{ token: string; tenant: string }>>((r) => {
           resolve = r;
         }),
@@ -67,7 +65,7 @@ describe("signUpStore", () => {
     });
 
     it("stores token and tenant on success and returns token", async () => {
-      mockedRegisterUser.mockResolvedValue(
+      mockRegisterUser.mockResolvedValue(
         mockSdkResponse({ token: "jwt-token", tenant: "tenant-abc" }),
       );
 
@@ -85,7 +83,7 @@ describe("signUpStore", () => {
     });
 
     it("returns null and stores null token when response has no token (normal flow)", async () => {
-      mockedRegisterUser.mockResolvedValue(mockSdkResponse({}));
+      mockRegisterUser.mockResolvedValue(mockSdkResponse({}));
 
       const result = await useSignUpStore.getState().signUp({
         name: "Test",
@@ -101,7 +99,7 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpServerFields on a 400 carrying per-field detail and returns null", async () => {
-      mockedRegisterUser.mockRejectedValue(
+      mockRegisterUser.mockRejectedValue(
         createSdkError(400, {
           message: "user invalid",
           fields: { username: "required", email: "invalid" },
@@ -126,7 +124,7 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpServerFields on a 409 carrying per-field detail and returns null", async () => {
-      mockedRegisterUser.mockRejectedValue(
+      mockRegisterUser.mockRejectedValue(
         createSdkError(409, {
           message: "user duplicated",
           fields: { username: "duplicated" },
@@ -149,7 +147,7 @@ describe("signUpStore", () => {
     });
 
     it("falls through to the status message when the 400 body carries no fields", async () => {
-      mockedRegisterUser.mockRejectedValue(
+      mockRegisterUser.mockRejectedValue(
         createSdkError(400, { message: "validation error" }),
       );
 
@@ -169,7 +167,7 @@ describe("signUpStore", () => {
     });
 
     it("sets signUpError on non-field errors and returns null", async () => {
-      mockedRegisterUser.mockRejectedValue(new Error("network error"));
+      mockRegisterUser.mockRejectedValue(new Error("network error"));
 
       const result = await useSignUpStore.getState().signUp({
         name: "Test",
@@ -192,7 +190,7 @@ describe("signUpStore", () => {
         signUpToken: "old-token",
         signUpTenant: "old-tenant",
       });
-      mockedRegisterUser.mockRejectedValue(new Error("network error"));
+      mockRegisterUser.mockRejectedValue(new Error("network error"));
 
       await useSignUpStore.getState().signUp({
         name: "Test",
@@ -233,7 +231,7 @@ describe("signUpStore", () => {
 
   describe("resendEmail", () => {
     it("returns true on success", async () => {
-      mockedResendEmail.mockResolvedValue(mockSdkResponse(undefined));
+      mockResendEmail.mockResolvedValue(mockSdkResponse(undefined));
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
@@ -243,7 +241,7 @@ describe("signUpStore", () => {
     });
 
     it("returns false and sets resendError on failure", async () => {
-      mockedResendEmail.mockRejectedValue(new Error("server error"));
+      mockResendEmail.mockRejectedValue(new Error("server error"));
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
@@ -256,7 +254,7 @@ describe("signUpStore", () => {
 
     it("sets loading during request", async () => {
       let resolve: (v: SdkResponse) => void;
-      mockedResendEmail.mockReturnValue(
+      mockResendEmail.mockReturnValue(
         new Promise<SdkResponse>((r) => {
           resolve = r;
         }),
@@ -274,7 +272,7 @@ describe("signUpStore", () => {
 
   describe("validateAccount", () => {
     it("transitions to success on 200", async () => {
-      mockedGetValidateAccount.mockResolvedValue(mockSdkResponse(undefined));
+      mockGetValidateAccount.mockResolvedValue(mockSdkResponse(undefined));
 
       await useSignUpStore.getState().validateAccount("t@t.com", "valid-token");
 
@@ -282,7 +280,7 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed-token on 400 (expired token)", async () => {
-      mockedGetValidateAccount.mockRejectedValue(createSdkError(400));
+      mockGetValidateAccount.mockRejectedValue(createSdkError(400));
 
       await useSignUpStore
         .getState()
@@ -292,7 +290,7 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed-token on 401 (wrong token)", async () => {
-      mockedGetValidateAccount.mockRejectedValue(createSdkError(401));
+      mockGetValidateAccount.mockRejectedValue(createSdkError(401));
 
       await useSignUpStore.getState().validateAccount("t@t.com", "wrong-token");
 
@@ -300,7 +298,7 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed on 404 (user not found)", async () => {
-      mockedGetValidateAccount.mockRejectedValue(createSdkError(404));
+      mockGetValidateAccount.mockRejectedValue(createSdkError(404));
 
       await useSignUpStore
         .getState()
@@ -310,7 +308,7 @@ describe("signUpStore", () => {
     });
 
     it("transitions to failed on other errors", async () => {
-      mockedGetValidateAccount.mockRejectedValue(createSdkError(500));
+      mockGetValidateAccount.mockRejectedValue(createSdkError(500));
 
       await useSignUpStore.getState().validateAccount("t@t.com", "bad-token");
 
@@ -318,7 +316,7 @@ describe("signUpStore", () => {
     });
 
     it("does not update state when the request is aborted", async () => {
-      mockedGetValidateAccount.mockRejectedValue(new Error("aborted"));
+      mockGetValidateAccount.mockRejectedValue(new Error("aborted"));
 
       const controller = new AbortController();
       controller.abort();
@@ -333,7 +331,7 @@ describe("signUpStore", () => {
 
     it("sets processing during request", async () => {
       let resolve: (v: SdkResponse) => void;
-      mockedGetValidateAccount.mockReturnValue(
+      mockGetValidateAccount.mockReturnValue(
         new Promise<SdkResponse>((r) => {
           resolve = r;
         }),

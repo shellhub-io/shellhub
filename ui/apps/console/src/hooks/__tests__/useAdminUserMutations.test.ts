@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor, act } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import {
   useCreateUser,
   useUpdateUser,
@@ -8,20 +9,22 @@ import {
   useResetUserPassword,
 } from "../useAdminUserMutations";
 
-const mockCreateFn = vi.fn();
-const mockUpdateFn = vi.fn();
-const mockDeleteFn = vi.fn();
-const mockResetPasswordFn = vi.fn();
+const mockCreateUserAdmin = vi.hoisted(() => vi.fn());
+const mockAdminUpdateUser = vi.hoisted(() => vi.fn());
+const mockAdminDeleteUser = vi.hoisted(() => vi.fn());
+const mockAdminResetUserPassword = vi.hoisted(() => vi.fn());
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client", () => ({
-  createUserAdminMutation: vi.fn(() => ({ mutationFn: mockCreateFn })),
-  adminUpdateUserMutation: vi.fn(() => ({ mutationFn: mockUpdateFn })),
-  adminDeleteUserMutation: vi.fn(() => ({ mutationFn: mockDeleteFn })),
-  adminResetUserPasswordMutation: vi.fn(() => ({
-    mutationFn: mockResetPasswordFn,
-  })),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    createUserAdmin: mockCreateUserAdmin,
+    adminUpdateUser: mockAdminUpdateUser,
+    adminDeleteUser: mockAdminDeleteUser,
+    adminResetUserPassword: mockAdminResetUserPassword,
+  };
+});
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
@@ -34,7 +37,7 @@ beforeEach(() => {
 describe("useCreateUser", () => {
   describe("mutation call", () => {
     it("calls createUserAdmin with the provided body", async () => {
-      mockCreateFn.mockResolvedValue(undefined);
+      mockCreateUserAdmin.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useCreateUser());
 
       const body = {
@@ -47,13 +50,15 @@ describe("useCreateUser", () => {
       };
       await act(() => result.current.mutateAsync(body as never));
 
-      expect(mockCreateFn).toHaveBeenCalledWith(body, expect.anything());
+      expect(mockCreateUserAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({ ...body, throwOnError: true }),
+      );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
-      mockCreateFn.mockResolvedValue(undefined);
+      mockCreateUserAdmin.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useCreateUser());
 
       await act(() => result.current.mutateAsync({}));
@@ -65,7 +70,7 @@ describe("useCreateUser", () => {
   describe("on failure", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("create failed");
-      mockCreateFn.mockRejectedValue(error);
+      mockCreateUserAdmin.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useCreateUser());
 
       act(() => result.current.mutate({}));
@@ -75,7 +80,7 @@ describe("useCreateUser", () => {
     });
 
     it("does not call invalidate when mutation fails", async () => {
-      mockCreateFn.mockRejectedValue(new Error("create failed"));
+      mockCreateUserAdmin.mockRejectedValue(new Error("create failed"));
       const { result } = renderHookWithClient(() => useCreateUser());
 
       act(() => result.current.mutate({}));
@@ -89,19 +94,21 @@ describe("useCreateUser", () => {
 describe("useUpdateUser", () => {
   describe("mutation call", () => {
     it("calls adminUpdateUser with path and body", async () => {
-      mockUpdateFn.mockResolvedValue(undefined);
+      mockAdminUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useUpdateUser());
 
       const vars = { path: { id: "u1" }, body: { name: "Bob" } };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockUpdateFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockAdminUpdateUser).toHaveBeenCalledWith(
+        expect.objectContaining({ ...vars, throwOnError: true }),
+      );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate after successful update", async () => {
-      mockUpdateFn.mockResolvedValue(undefined);
+      mockAdminUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useUpdateUser());
 
       await act(() => result.current.mutateAsync({} as never));
@@ -113,7 +120,7 @@ describe("useUpdateUser", () => {
   describe("on failure", () => {
     it("exposes error when update fails", async () => {
       const error = new Error("update failed");
-      mockUpdateFn.mockRejectedValue(error);
+      mockAdminUpdateUser.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useUpdateUser());
 
       act(() => result.current.mutate({} as never));
@@ -123,7 +130,7 @@ describe("useUpdateUser", () => {
     });
 
     it("does not call invalidate when update fails", async () => {
-      mockUpdateFn.mockRejectedValue(new Error("update failed"));
+      mockAdminUpdateUser.mockRejectedValue(new Error("update failed"));
       const { result } = renderHookWithClient(() => useUpdateUser());
 
       act(() => result.current.mutate({} as never));
@@ -137,19 +144,21 @@ describe("useUpdateUser", () => {
 describe("useDeleteUser", () => {
   describe("mutation call", () => {
     it("calls adminDeleteUser with the path", async () => {
-      mockDeleteFn.mockResolvedValue(undefined);
+      mockAdminDeleteUser.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useDeleteUser());
 
       const vars = { path: { id: "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockDeleteFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockAdminDeleteUser).toHaveBeenCalledWith(
+        expect.objectContaining({ ...vars, throwOnError: true }),
+      );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate after successful delete", async () => {
-      mockDeleteFn.mockResolvedValue(undefined);
+      mockAdminDeleteUser.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useDeleteUser());
 
       await act(() => result.current.mutateAsync({} as never));
@@ -161,7 +170,7 @@ describe("useDeleteUser", () => {
   describe("on failure", () => {
     it("exposes error when delete fails", async () => {
       const error = new Error("delete failed");
-      mockDeleteFn.mockRejectedValue(error);
+      mockAdminDeleteUser.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useDeleteUser());
 
       act(() => result.current.mutate({} as never));
@@ -171,7 +180,7 @@ describe("useDeleteUser", () => {
     });
 
     it("does not call invalidate when delete fails", async () => {
-      mockDeleteFn.mockRejectedValue(new Error("delete failed"));
+      mockAdminDeleteUser.mockRejectedValue(new Error("delete failed"));
       const { result } = renderHookWithClient(() => useDeleteUser());
 
       act(() => result.current.mutate({} as never));
@@ -185,17 +194,23 @@ describe("useDeleteUser", () => {
 describe("useResetUserPassword", () => {
   describe("mutation call", () => {
     it("calls adminResetUserPassword with the path", async () => {
-      mockResetPasswordFn.mockResolvedValue({ password: "generated-pw" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "generated-pw" }),
+      );
       const { result } = renderHookWithClient(() => useResetUserPassword());
 
       const vars = { path: { id: "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockResetPasswordFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockAdminResetUserPassword).toHaveBeenCalledWith(
+        expect.objectContaining({ ...vars, throwOnError: true }),
+      );
     });
 
     it("returns the generated password from the mutation", async () => {
-      mockResetPasswordFn.mockResolvedValue({ password: "s3cr3t-pass" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "s3cr3t-pass" }),
+      );
       const { result } = renderHookWithClient(() => useResetUserPassword());
 
       const data = await act(() => result.current.mutateAsync({} as never));
@@ -206,7 +221,9 @@ describe("useResetUserPassword", () => {
 
   describe("on success", () => {
     it("calls invalidate after successful password reset", async () => {
-      mockResetPasswordFn.mockResolvedValue({ password: "pw" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "pw" }),
+      );
       const { result } = renderHookWithClient(() => useResetUserPassword());
 
       await act(() => result.current.mutateAsync({} as never));
@@ -218,7 +235,7 @@ describe("useResetUserPassword", () => {
   describe("on failure", () => {
     it("exposes error when reset fails", async () => {
       const error = new Error("reset failed");
-      mockResetPasswordFn.mockRejectedValue(error);
+      mockAdminResetUserPassword.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useResetUserPassword());
 
       act(() => result.current.mutate({} as never));
@@ -228,7 +245,7 @@ describe("useResetUserPassword", () => {
     });
 
     it("does not call invalidate when reset fails", async () => {
-      mockResetPasswordFn.mockRejectedValue(new Error("reset failed"));
+      mockAdminResetUserPassword.mockRejectedValue(new Error("reset failed"));
       const { result } = renderHookWithClient(() => useResetUserPassword());
 
       act(() => result.current.mutate({} as never));

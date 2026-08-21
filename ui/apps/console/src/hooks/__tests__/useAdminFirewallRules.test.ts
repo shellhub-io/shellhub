@@ -6,35 +6,22 @@ import {
 } from "../useAdminFirewallRules";
 import { useAuthStore } from "@/stores/authStore";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 
-// Mock the SDK functions used by the generated options/queryFn helpers.
-vi.mock("@/client", () => ({
-  getFirewallRulesAdmin: vi.fn(),
-  getFirewallRuleAdmin: vi.fn(),
-  getFirewallRulesAdminQueryKey: vi.fn((opts: unknown) => [
-    { _id: "getFirewallRulesAdmin" },
-    opts,
-  ]),
-  getFirewallRuleAdminOptions: vi.fn((opts: unknown) => ({
-    queryKey: [{ _id: "getFirewallRuleAdmin" }, opts],
-    queryFn: mockGetFirewallRuleAdminFn,
-  })),
-}));
+const mockGetFirewallRulesAdmin = vi.hoisted(() => vi.fn());
+const mockGetFirewallRuleAdmin = vi.hoisted(() => vi.fn());
 
-vi.mock("@/api/pagination", () => ({
-  paginatedQueryFn: vi.fn(
-    (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
-      return () => mockGetFirewallRulesAdminFn(opts) as unknown;
-    },
-  ),
-}));
-
-const mockGetFirewallRulesAdminFn = vi.fn();
-const mockGetFirewallRuleAdminFn = vi.fn();
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    getFirewallRulesAdmin: mockGetFirewallRulesAdmin,
+    getFirewallRuleAdmin: mockGetFirewallRuleAdmin,
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: authenticated admin
   useAuthStore.setState({ isAdmin: true } as never);
 });
 
@@ -63,10 +50,9 @@ describe("useAdminFirewallRules", () => {
           filter: { hostname: "my-host", tags: [] },
         },
       ];
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: rules,
-        totalCount: 2,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        mockSdkResponse(rules, { "X-Total-Count": "2" }),
+      );
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -76,11 +62,10 @@ describe("useAdminFirewallRules", () => {
       expect(result.current.rules[1].id).toBe("rule-2");
     });
 
-    it("returns totalCount from the paginated query result", async () => {
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: [],
-        totalCount: 42,
-      });
+    it("returns totalCount from the X-Total-Count header", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "42" }),
+      );
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -89,8 +74,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("defaults rules to empty array while loading", () => {
-      // Never resolves — stays in loading state
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdmin.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -98,7 +82,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdmin.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -106,7 +90,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdmin.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -115,7 +99,7 @@ describe("useAdminFirewallRules", () => {
 
     it("exposes error when query fails", async () => {
       const networkError = new Error("network failure");
-      mockGetFirewallRulesAdminFn.mockRejectedValue(networkError);
+      mockGetFirewallRulesAdmin.mockRejectedValue(networkError);
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
@@ -125,53 +109,42 @@ describe("useAdminFirewallRules", () => {
   });
 
   describe("when user is not admin", () => {
-    it("does not execute the query", async () => {
+    it("does not execute the query", () => {
       useAuthStore.setState({ isAdmin: false } as never);
 
       const { result } = renderHookWithClient(() => useAdminFirewallRules());
 
-      // Query is disabled — stays in non-loading state with empty data
       expect(result.current.isLoading).toBe(false);
       expect(result.current.rules).toEqual([]);
-      expect(mockGetFirewallRulesAdminFn).not.toHaveBeenCalled();
+      expect(mockGetFirewallRulesAdmin).not.toHaveBeenCalled();
     });
   });
 
   describe("pagination defaults", () => {
     it("uses page 1 and perPage 10 as defaults", async () => {
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: [],
-        totalCount: 0,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
+      );
 
       renderHookWithClient(() => useAdminFirewallRules());
 
-      await waitFor(() =>
-        expect(mockGetFirewallRulesAdminFn).toHaveBeenCalled(),
-      );
-      const [opts] = mockGetFirewallRulesAdminFn.mock.calls[0] as [
-        { query: Record<string, unknown> },
-      ];
+      await waitFor(() => expect(mockGetFirewallRulesAdmin).toHaveBeenCalled());
+      const [opts] = mockGetFirewallRulesAdmin.mock.calls[0];
       expect(opts.query.page).toBe(1);
       expect(opts.query.per_page).toBe(10);
     });
 
     it("forwards custom page and perPage", async () => {
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: [],
-        totalCount: 0,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
+      );
 
       renderHookWithClient(() =>
         useAdminFirewallRules({ page: 3, perPage: 25 }),
       );
 
-      await waitFor(() =>
-        expect(mockGetFirewallRulesAdminFn).toHaveBeenCalled(),
-      );
-      const [opts] = mockGetFirewallRulesAdminFn.mock.calls[0] as [
-        { query: Record<string, unknown> },
-      ];
+      await waitFor(() => expect(mockGetFirewallRulesAdmin).toHaveBeenCalled());
+      const [opts] = mockGetFirewallRulesAdmin.mock.calls[0];
       expect(opts.query.page).toBe(3);
       expect(opts.query.per_page).toBe(25);
     });
@@ -191,7 +164,7 @@ describe("useAdminFirewallRule", () => {
         username: ".*",
         filter: { hostname: ".*", tags: [] },
       };
-      mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
+      mockGetFirewallRuleAdmin.mockResolvedValue(mockSdkResponse(rawRule));
 
       const { result } = renderHookWithClient(() =>
         useAdminFirewallRule("rule-1"),
@@ -212,7 +185,7 @@ describe("useAdminFirewallRule", () => {
         username: ".*",
         filter: { hostname: "my-host", tags: [] },
       };
-      mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
+      mockGetFirewallRuleAdmin.mockResolvedValue(mockSdkResponse(rawRule));
 
       const { result } = renderHookWithClient(() =>
         useAdminFirewallRule("rule-1"),
@@ -226,7 +199,7 @@ describe("useAdminFirewallRule", () => {
     });
 
     it("is loading initially when id is provided", () => {
-      mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRuleAdmin.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() =>
         useAdminFirewallRule("rule-1"),
@@ -237,7 +210,7 @@ describe("useAdminFirewallRule", () => {
 
     it("exposes error when query fails", async () => {
       const err = new Error("not found");
-      mockGetFirewallRuleAdminFn.mockRejectedValue(err);
+      mockGetFirewallRuleAdmin.mockRejectedValue(err);
 
       const { result } = renderHookWithClient(() =>
         useAdminFirewallRule("rule-1"),
@@ -252,7 +225,7 @@ describe("useAdminFirewallRule", () => {
       const { result } = renderHookWithClient(() => useAdminFirewallRule(""));
 
       expect(result.current.isLoading).toBe(false);
-      expect(mockGetFirewallRuleAdminFn).not.toHaveBeenCalled();
+      expect(mockGetFirewallRuleAdmin).not.toHaveBeenCalled();
     });
   });
 
@@ -265,7 +238,7 @@ describe("useAdminFirewallRule", () => {
       );
 
       expect(result.current.isLoading).toBe(false);
-      expect(mockGetFirewallRuleAdminFn).not.toHaveBeenCalled();
+      expect(mockGetFirewallRuleAdmin).not.toHaveBeenCalled();
     });
   });
 });
