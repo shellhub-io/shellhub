@@ -9,7 +9,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -146,29 +145,14 @@ func (f *fakeChannel) quiet() {
 	f.stderrIn.close()
 }
 
-func newPipeSession(t *testing.T) *session.Session {
+func newPipeSession(t *testing.T) *fakeSession {
 	t.Helper()
 
 	// Recording is a separate concern from the data path; the community edition
 	// keeps the recorder out of the writer set.
 	envstest.SetEdition(t, envs.Community)
 
-	sess := &session.Session{ //nolint:exhaustruct
-		UID:   "session-uid",
-		Seats: session.NewSeats(),
-		Data: session.Data{ //nolint:exhaustruct
-			SSHID: "user@namespace.device",
-			Device: &models.Device{ //nolint:exhaustruct
-				UID:  "device-uid",
-				Info: &models.DeviceInfo{Version: "latest"}, //nolint:exhaustruct
-			},
-		},
-	}
-
-	_, err := sess.Seats.NewSeat()
-	require.NoError(t, err)
-
-	return sess
+	return new(fakeSession)
 }
 
 // captureLogs collects what pipe logs on the standard logger, at debug level so
@@ -188,8 +172,10 @@ func captureLogs(t *testing.T) *test.Hook {
 	return hook
 }
 
-func runPipe(t *testing.T, sess *session.Session, client, agent gossh.Channel) chan struct{} {
+func runPipe(t *testing.T, sess *fakeSession, client, agent gossh.Channel) chan struct{} {
 	t.Helper()
+
+	sess.agentChannel = agent
 
 	done := make(chan bool, 1)
 	finished := make(chan struct{})
@@ -220,18 +206,15 @@ func waitFor(t *testing.T, finished chan struct{}) {
 func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 	tests := []struct {
 		description string
-		record      bool
-		pty         bool
+		recordedErr error
 	}{
 		{
 			description: "recording disabled for the namespace",
-			record:      false,
-			pty:         true,
+			recordedErr: session.ErrRecordingDisabled,
 		},
 		{
 			description: "seat has no pty to record",
-			record:      true,
-			pty:         false,
+			recordedErr: session.ErrRecordingNoPty,
 		},
 	}
 
@@ -243,10 +226,7 @@ func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 			// The recorder is only wired in on the editions that record.
 			envstest.SetEdition(t, envs.Enterprise)
 
-			sess.Namespace = &models.Namespace{ //nolint:exhaustruct
-				Settings: &models.NamespaceSettings{SessionRecord: tt.record}, //nolint:exhaustruct
-			}
-			sess.Seats.SetPty(0, tt.pty)
+			sess.recordedErr = tt.recordedErr
 
 			client, agent := newFakeChannel(), newFakeChannel()
 

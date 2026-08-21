@@ -95,7 +95,7 @@ func startsDataPipe(requestType string) bool {
 func DefaultSessionHandler() gliderssh.ChannelHandler {
 	return func(_ *gliderssh.Server, _ *gossh.ServerConn, newChan gossh.NewChannel, ctx gliderssh.Context) {
 		sess, state := session.ObtainSession(ctx)
-		if sess == nil || state < session.StateFinished {
+		if sess == nil || !state.Established() {
 			// Unreachable today: a channel only opens once authentication has
 			// completed, and that is what advances the session to StateFinished.
 			// Kept so a change to the auth ordering fails the channel instead of
@@ -108,262 +108,260 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 			return
 		}
 
-		logger := log.WithFields(
-			log.Fields{
-				"uid":      sess.UID,
-				"sshid":    sess.SSHID,
-				"device":   sess.Device.UID,
-				"username": sess.Target.Username,
-				"ip":       sess.IPAddress,
-			})
-
-		// Only usable before the channel is accepted: Reject on a channel that has
-		// already been decided returns an error that nothing can act on, so the
-		// client would be left with no explanation at all.
-		reject := func(err error, msg string) {
-			logger.WithError(err).Error(msg)
-
-			newChan.Reject(openFailureReason(err), msg) //nolint:errcheck
-		}
-
-		logger.Info("session channel started")
-		defer logger.Info("session channel done")
-
-		seat, err := sess.NewSeat()
-		if err != nil {
-			reject(err, "failed to create a new seat on the SSH session")
-
-			return
-		}
-
-		// The agent channel is opened first so its failure can still be reported:
-		// accepting the client's channel commits to it, and a rejection after that
-		// reaches nobody. The device dropping between the banner-handler dial and
-		// this point is the common case, and it used to close in silence.
-		agent, err := sess.NewAgentChannel(SessionChannel, seat)
-		if err != nil {
-			reject(err, openFailureMessage(err))
-
-			return
-		}
-
-		defer agent.Close()
-
-		client, err := sess.NewClientChannel(newChan, seat)
-		if err != nil {
-			reject(err, "failed to accept the channel opening")
-			sess.DropAgentChannel(seat)
-
-			return
-		}
-
-		defer client.Close()
-
-		var wg sync.WaitGroup
-
-		// Buffered so pipe's completion signal never blocks the sender, even if
-		// this goroutine is still looping on agent.Requests.
-		done := make(chan bool, 1)
-
-		oncePipe := sync.OnceFunc(func() {
-			go pipe(sess, client.Channel, agent.Channel, seat, done)
-		})
-
-		wg.Add(2)
-
-		go func() {
-			defer wg.Done()
-			defer func() {
-				logger.Debug("agent waiting for data done to close client")
-
-				<-done
-				client.Close()
-			}()
-
-			for {
-				select {
-				case <-ctx.Done():
-					logger.Info("context has done (agent requests)")
-
-					return
-				case req, ok := <-agent.Requests:
-					if !ok {
-						logger.Trace("agent requests is closed")
-
-						return
-					}
-
-					switch req.Type {
-					case ExitStatusRequest:
-						session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
-					case ExitSignalRequest:
-						session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
-					default:
-						sess.Event(req.Type, req.Payload, seat)
-					}
-
-					logger.Debugf("request from agent to client: %s", req.Type)
-
-					ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-					if err != nil {
-						logger.WithError(err).Error("failed to send the request from agent to client")
-
-						continue
-					}
-
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error(err)
-						}
-					}
-				}
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-
-			// Carries a parsed pty-req from its case down to the tail, which is
-			// where the agent's answer arrives.
-			var ptyRequested *models.SSHPty
-
-			for {
-				select {
-				case <-ctx.Done():
-					logger.Info("context has done (client requests)")
-
-					return
-				case req, ok := <-client.Requests:
-					if !ok {
-						logger.Trace("client requests is closed")
-
-						return
-					}
-
-					switch req.Type {
-					case ShellRequestType:
-						if seat, ok := sess.Seats.Get(seat); ok && seat.HasPty {
-							if err := sess.Announce(client.Channel); err != nil {
-								logger.WithError(err).Warn("failed to get the namespace announcement")
-							}
-						}
-
-						sess.Event(req.Type, req.Payload, seat)
-					case ExecRequestType, SubsystemRequestType:
-						session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
-
-						sess.Seats.SetType(seat, ExecRequestType)
-					case PtyRequestType:
-						var pty models.SSHPty
-
-						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-							logger.WithError(err).Error("failed to recover the session dimensions")
-							denyRequest(logger, req)
-
-							continue
-						}
-
-						// The seat is only marked once the agent says it allocated
-						// one, below. A device can refuse a pty-req — no /dev/ptmx
-						// in a restricted container — and a seat that claims a pty
-						// it does not have sends the announcement into a stdout
-						// that is a pipe, and records a session with no terminal.
-						ptyRequested = &pty
-					case WindowChangeRequestType:
-						var dimensions models.SSHWindowChange
-
-						if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-							logger.WithError(err).Error("failed to recover the new window dimensions")
-							denyRequest(logger, req)
-
-							continue
-						}
-
-						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
-					case AuthRequestOpenSSHRequest:
-						gliderssh.SetAgentRequested(ctx)
-
-						sess.Event(req.Type, req.Payload, seat)
-						go func() {
-							clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
-							agentChannels := sess.Agent.Client.HandleChannelOpen(AuthRequestOpenSSHChannel)
-
-							for {
-								newAgentChannel, ok := <-agentChannels
-								if !ok {
-									logger.Trace("channel for agent forwarding done")
-
-									return
-								}
-
-								agentChannel, agentReqs, err := newAgentChannel.Accept()
-								if err != nil {
-									logger.WithError(err).Error("failed to accept the chanel request from agent on auth request")
-
-									return
-								}
-
-								defer agentChannel.Close()
-								go gossh.DiscardRequests(agentReqs)
-
-								clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
-								if err != nil {
-									logger.WithError(err).Error("failed to open the auth request channel from agent to client")
-
-									return
-								}
-
-								defer clientChannel.Close()
-								go gossh.DiscardRequests(clientReqs)
-
-								hose(sess, agentChannel, clientChannel)
-
-								logger.WithError(err).Trace("auth request channel piping done")
-							}
-						}()
-					default:
-						sess.Event(req.Type, req.Payload, seat)
-					}
-
-					logger.Debugf("request from client to agent: %s", req.Type)
-
-					ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-					if err != nil {
-						logger.WithError(err).Error("failed to send the request from client to agent")
-						ptyRequested = nil
-
-						continue
-					}
-
-					if req.WantReply {
-						if err := req.Reply(ok, nil); err != nil {
-							logger.WithError(err).Error(err)
-						}
-					}
-
-					if ptyRequested != nil {
-						// SendRequest reports false when the client asked for no
-						// reply, so only a client that wanted one tells us
-						// anything about the device's answer.
-						if ok || !req.WantReply {
-							sess.Seats.SetPty(seat, true)
-							sess.Event(PtyRequestType, *ptyRequested, seat) //nolint:errcheck
-						} else {
-							logger.Warn("the device refused the pty; the session continues without one")
-						}
-
-						ptyRequested = nil
-					}
-
-					if startsDataPipe(req.Type) {
-						oncePipe()
-					}
-				}
-			}
-		}()
-
-		wg.Wait()
-
-		logger.Debug("session done after waiting")
+		sessionChannel(ctx, sess, newChan)
 	}
+}
+
+// sessionChannel runs one session channel over an established session.
+func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChannel) {
+	logger := log.WithFields(sess.LogFields())
+
+	// Only usable before the channel is accepted: Reject on a channel that has
+	// already been decided returns an error that nothing can act on, so the
+	// client would be left with no explanation at all.
+	reject := func(err error, msg string) {
+		logger.WithError(err).Error(msg)
+
+		newChan.Reject(openFailureReason(err), msg) //nolint:errcheck
+	}
+
+	logger.Info("session channel started")
+	defer logger.Info("session channel done")
+
+	seat, err := sess.NewSeat()
+	if err != nil {
+		reject(err, "failed to create a new seat on the SSH session")
+
+		return
+	}
+
+	// The agent channel is opened first so its failure can still be reported:
+	// accepting the client's channel commits to it, and a rejection after that
+	// reaches nobody. The device dropping between the banner-handler dial and
+	// this point is the common case, and it used to close in silence.
+	agent, err := sess.NewAgentChannel(SessionChannel, seat)
+	if err != nil {
+		reject(err, openFailureMessage(err))
+
+		return
+	}
+
+	defer agent.Close()
+
+	client, err := sess.NewClientChannel(newChan, seat)
+	if err != nil {
+		reject(err, "failed to accept the channel opening")
+		sess.DropAgentChannel(seat)
+
+		return
+	}
+
+	defer client.Close()
+
+	var wg sync.WaitGroup
+
+	// Buffered so pipe's completion signal never blocks the sender, even if
+	// this goroutine is still looping on agent.Requests.
+	done := make(chan bool, 1)
+
+	oncePipe := sync.OnceFunc(func() {
+		go pipe(sess, client.Channel, agent.Channel, seat, done)
+	})
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		defer func() {
+			logger.Debug("agent waiting for data done to close client")
+
+			<-done
+			client.Close()
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("context has done (agent requests)")
+
+				return
+			case req, ok := <-agent.Requests:
+				if !ok {
+					logger.Trace("agent requests is closed")
+
+					return
+				}
+
+				switch req.Type {
+				case ExitStatusRequest:
+					session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
+				case ExitSignalRequest:
+					session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
+				default:
+					sess.Event(req.Type, req.Payload, seat)
+				}
+
+				logger.Debugf("request from agent to client: %s", req.Type)
+
+				ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
+					logger.WithError(err).Error("failed to send the request from agent to client")
+
+					continue
+				}
+
+				if req.WantReply {
+					if err := req.Reply(ok, nil); err != nil {
+						logger.WithError(err).Error(err)
+					}
+				}
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		// Carries a parsed pty-req from its case down to the tail, which is
+		// where the agent's answer arrives.
+		var ptyRequested *models.SSHPty
+
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("context has done (client requests)")
+
+				return
+			case req, ok := <-client.Requests:
+				if !ok {
+					logger.Trace("client requests is closed")
+
+					return
+				}
+
+				switch req.Type {
+				case ShellRequestType:
+					if seat, ok := sess.Seat(seat); ok && seat.HasPty {
+						if err := sess.Announce(client.Channel); err != nil {
+							logger.WithError(err).Warn("failed to get the namespace announcement")
+						}
+					}
+
+					sess.Event(req.Type, req.Payload, seat)
+				case ExecRequestType, SubsystemRequestType:
+					session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
+
+					sess.SetSeatType(seat, session.SeatTypeExec)
+				case PtyRequestType:
+					var pty models.SSHPty
+
+					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+						logger.WithError(err).Error("failed to recover the session dimensions")
+						denyRequest(logger, req)
+
+						continue
+					}
+
+					// The seat is only marked once the agent says it allocated
+					// one, below. A device can refuse a pty-req — no /dev/ptmx
+					// in a restricted container — and a seat that claims a pty
+					// it does not have sends the announcement into a stdout
+					// that is a pipe, and records a session with no terminal.
+					ptyRequested = &pty
+				case WindowChangeRequestType:
+					var dimensions models.SSHWindowChange
+
+					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+						logger.WithError(err).Error("failed to recover the new window dimensions")
+						denyRequest(logger, req)
+
+						continue
+					}
+
+					sess.Event(req.Type, dimensions, seat) //nolint:errcheck
+				case AuthRequestOpenSSHRequest:
+					gliderssh.SetAgentRequested(ctx)
+
+					sess.Event(req.Type, req.Payload, seat)
+					go func() {
+						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+						agentChannels := sess.OpenAgentForwards(AuthRequestOpenSSHChannel)
+
+						for {
+							newAgentChannel, ok := <-agentChannels
+							if !ok {
+								logger.Trace("channel for agent forwarding done")
+
+								return
+							}
+
+							agentChannel, agentReqs, err := newAgentChannel.Accept()
+							if err != nil {
+								logger.WithError(err).Error("failed to accept the chanel request from agent on auth request")
+
+								return
+							}
+
+							defer agentChannel.Close()
+							go gossh.DiscardRequests(agentReqs)
+
+							clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
+							if err != nil {
+								logger.WithError(err).Error("failed to open the auth request channel from agent to client")
+
+								return
+							}
+
+							defer clientChannel.Close()
+							go gossh.DiscardRequests(clientReqs)
+
+							hose(logger, agentChannel, clientChannel)
+
+							logger.WithError(err).Trace("auth request channel piping done")
+						}
+					}()
+				default:
+					sess.Event(req.Type, req.Payload, seat)
+				}
+
+				logger.Debugf("request from client to agent: %s", req.Type)
+
+				ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+				if err != nil {
+					logger.WithError(err).Error("failed to send the request from client to agent")
+					ptyRequested = nil
+
+					continue
+				}
+
+				if req.WantReply {
+					if err := req.Reply(ok, nil); err != nil {
+						logger.WithError(err).Error(err)
+					}
+				}
+
+				if ptyRequested != nil {
+					// SendRequest reports false when the client asked for no
+					// reply, so only a client that wanted one tells us
+					// anything about the device's answer.
+					if ok || !req.WantReply {
+						sess.SetSeatPty(seat, true)
+						sess.Event(PtyRequestType, *ptyRequested, seat) //nolint:errcheck
+					} else {
+						logger.Warn("the device refused the pty; the session continues without one")
+					}
+
+					ptyRequested = nil
+				}
+
+				if startsDataPipe(req.Type) {
+					oncePipe()
+				}
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	logger.Debug("session done after waiting")
 }
