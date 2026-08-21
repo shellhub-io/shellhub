@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"net"
-
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
@@ -18,15 +16,8 @@ func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
 
 	logger.Trace("trying to use password authentication")
 
-	sess, state := session.ObtainSession(ctx)
-	if state < session.StateEvaluated {
-		logger.Trace("failed to get the session from context on password handler")
-
-		conn, ok := ctx.Value("conn").(net.Conn)
-		if ok {
-			conn.Close()
-		}
-
+	sess, ok := session.AuthenticableSessionOrDrop(ctx)
+	if !ok {
 		return false
 	}
 

@@ -61,10 +61,10 @@ func TestNewClientChannelConcurrent(t *testing.T) {
 
 	wg.Wait()
 
-	assert.Len(t, sess.Client.Channels, seats)
+	assert.Len(t, sess.client.channels, seats)
 
 	for seat := range seats {
-		assert.NotNil(t, sess.Client.Channels[seat], "seat %d lost its channel", seat)
+		assert.NotNil(t, sess.client.channels[seat], "seat %d lost its channel", seat)
 	}
 }
 
@@ -87,7 +87,7 @@ func TestDropAgentChannelConcurrent(t *testing.T) {
 	sess := newTestSession(servicemocks.NewMockService(t))
 
 	for seat := range seats {
-		sess.Agent.Channels[seat] = &AgentChannel{Channel: &fakeChannel{}, Requests: nil}
+		sess.agent.channels[seat] = &AgentChannel{Channel: &fakeChannel{}, Requests: nil}
 	}
 
 	wg := new(sync.WaitGroup)
@@ -103,7 +103,7 @@ func TestDropAgentChannelConcurrent(t *testing.T) {
 
 	wg.Wait()
 
-	assert.Empty(t, sess.Agent.Channels)
+	assert.Empty(t, sess.agent.channels)
 }
 
 // TestSeatsConcurrentAccess covers the seat fields themselves: they are written
@@ -117,7 +117,7 @@ func TestSeatsConcurrentAccess(t *testing.T) {
 	ids := make([]int, 0, seats)
 
 	for range seats {
-		id, err := sess.Seats.NewSeat()
+		id, err := sess.seats.NewSeat()
 		require.NoError(t, err)
 
 		ids = append(ids, id)
@@ -131,26 +131,26 @@ func TestSeatsConcurrentAccess(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			sess.Seats.SetPty(id, true)
+			sess.seats.SetPty(id, true)
 		}()
 
 		go func() {
 			defer wg.Done()
 
-			sess.Seats.SetType(id, "exec")
+			sess.seats.SetType(id, "exec")
 		}()
 
 		go func() {
 			defer wg.Done()
 
-			sess.Seats.Get(id)
+			sess.seats.Get(id)
 		}()
 	}
 
 	wg.Wait()
 
 	for _, id := range ids {
-		seat, ok := sess.Seats.Get(id)
+		seat, ok := sess.seats.Get(id)
 		assert.True(t, ok)
 		assert.True(t, seat.HasPty)
 		assert.Equal(t, "exec", seat.Type)
@@ -163,18 +163,18 @@ func TestSeatsConcurrentAccess(t *testing.T) {
 func TestSeatsGetReturnsCopy(t *testing.T) {
 	sess := newTestSession(servicemocks.NewMockService(t))
 
-	id, err := sess.Seats.NewSeat()
+	id, err := sess.seats.NewSeat()
 	require.NoError(t, err)
 
-	seat, ok := sess.Seats.Get(id)
+	seat, ok := sess.seats.Get(id)
 	require.True(t, ok)
 	require.False(t, seat.HasPty)
 
-	sess.Seats.SetPty(id, true)
+	sess.seats.SetPty(id, true)
 
 	assert.False(t, seat.HasPty)
 
-	seat, ok = sess.Seats.Get(id)
+	seat, ok = sess.seats.Get(id)
 	require.True(t, ok)
 	assert.True(t, seat.HasPty)
 }

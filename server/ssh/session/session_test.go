@@ -79,10 +79,10 @@ func newTestSession(service services.Service) *Session {
 			},
 		},
 		once:  new(sync.Once),
-		Seats: NewSeats(),
-		Agent: &Agent{Channels: make(map[int]*AgentChannel)},
-		Client: &Client{
-			Channels: make(map[int]*ClientChannel),
+		seats: newSeats(),
+		agent: &Agent{channels: make(map[int]*AgentChannel)},
+		client: &Client{
+			channels: make(map[int]*ClientChannel),
 		},
 	}
 }
@@ -152,9 +152,9 @@ func TestRecorded(t *testing.T) {
 			sess := newTestSession(serviceMock)
 			sess.Namespace.Settings = &models.NamespaceSettings{SessionRecord: tt.record}
 
-			seat, err := sess.Seats.NewSeat()
+			seat, err := sess.seats.NewSeat()
 			require.NoError(t, err)
-			sess.Seats.SetPty(seat, tt.pty)
+			sess.seats.SetPty(seat, tt.pty)
 
 			err = sess.Recorded(seat)
 
