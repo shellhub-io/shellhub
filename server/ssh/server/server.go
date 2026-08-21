@@ -224,7 +224,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 		},
 		NoClientAuthCallback: func(gossh.ConnMetadata) (*gossh.Permissions, error) {
 			sess, state := session.ObtainSession(ctx)
-			if state < session.StateEvaluated || sess.Web || !sess.IsIdentityMode() {
+			if !state.Evaluated() || sess.Web || !sess.IsIdentityMode() {
 				return nil, errNoneAuthUnsupported
 			}
 
@@ -271,7 +271,7 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 
 			// Stored wrapped as well: the auth handlers close this on a failed
 			// guard, and that has to finish the session too.
-			ctx.SetValue("conn", net.Conn(wrapped))
+			session.StoreConn(ctx, wrapped)
 
 			return wrapped
 		},

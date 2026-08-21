@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"net"
-
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
@@ -28,24 +26,6 @@ func resolveKeyAuth(ctx gliderssh.Context, sess *session.Session, publicKey glid
 	return sess.ResolveKeyAuth(ctx, publicKey)
 }
 
-// obtain returns the session for a connection that has got far enough to
-// authenticate, dropping the connection otherwise.
-func obtain(ctx gliderssh.Context, logger *log.Entry) (*session.Session, bool) {
-	sess, state := session.ObtainSession(ctx)
-	if state < session.StateEvaluated {
-		logger.Trace("failed to get the session from context on public key handler")
-
-		conn, ok := ctx.Value("conn").(net.Conn)
-		if ok {
-			conn.Close()
-		}
-
-		return nil, false
-	}
-
-	return sess, true
-}
-
 // PublicKeyOffer decides whether a public key is acceptable.
 //
 // The SSH protocol lets a client ask about a key without signing anything, and
@@ -65,7 +45,7 @@ func PublicKeyOffer(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool {
 
 	logger.Trace("trying to use public key authentication")
 
-	sess, ok := obtain(ctx, logger)
+	sess, ok := session.AuthenticableSessionOrDrop(ctx)
 	if !ok {
 		return false
 	}
@@ -100,7 +80,7 @@ func PublicKeyVerified(ctx gliderssh.Context, publicKey gliderssh.PublicKey) boo
 			"key":   ssh.MarshalAuthorizedKey(publicKey),
 		})
 
-	sess, ok := obtain(ctx, logger)
+	sess, ok := session.AuthenticableSessionOrDrop(ctx)
 	if !ok {
 		return false
 	}

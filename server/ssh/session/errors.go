@@ -15,6 +15,7 @@ var (
 	ErrUnexpectedAuthMethod    = fmt.Errorf("failed to authenticate the session due to a unexpected method")
 	ErrEvaluatePublicKey       = fmt.Errorf("failed to evaluate the provided public key")
 	ErrSeatAlreadySet          = fmt.Errorf("this seat was already set")
+	ErrSeatNotFound            = fmt.Errorf("this seat has no agent channel")
 	ErrWebData                 = fmt.Errorf("failed to parse the web session data")
 	ErrLicenseBlock            = fmt.Errorf("Connection blocked: your ShellHub instance has exceeded the maximum number of devices allowed by your license. Please contact support or remove unused devices.") //nolint:all
 )

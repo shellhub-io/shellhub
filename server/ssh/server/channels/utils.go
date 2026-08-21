@@ -5,7 +5,6 @@ import (
 	"io"
 	"sync"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
@@ -15,12 +14,12 @@ import (
 
 type Recorder struct {
 	// session is the session between Agent and Client.
-	session *session.Session
+	session session.EventWriter
 	// seat is the current identifier of session's.
 	seat int
 }
 
-func NewRecorder(session *session.Session, seat int) (io.Writer, error) {
+func NewRecorder(session session.EventWriter, seat int) (io.Writer, error) {
 	return &Recorder{
 		session: session,
 		seat:    seat,
@@ -70,9 +69,9 @@ func (c *Recorder) Write(output []byte) (int, error) {
 
 // pipe function pipes data between client and agent, and vice versa, recording each frame when ShellHub instance are
 // Cloud or Enterprise.
-func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat int, done chan bool) {
+func pipe(sess Session, client gossh.Channel, agent gossh.Channel, seat int, done chan bool) {
 	defer log.
-		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+		WithFields(sess.LogFields()).
 		Trace("data pipe between client and agent has done")
 
 	wg := new(sync.WaitGroup)
@@ -95,13 +94,13 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 			recorder, err := NewRecorder(sess, seat)
 			if err != nil {
 				log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
+					WithFields(sess.LogFields()).
 					Warning("failed to connect to session record endpoint")
 			}
 
 			if err := sess.Recorded(seat); err != nil {
 				entry := log.WithError(err).
-					WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID})
+					WithFields(sess.LogFields())
 
 				if errors.Is(err, session.ErrRecordingSkipped) {
 					entry.Debug("session will not be recorded")
@@ -156,20 +155,7 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 	go func() {
 		defer wg.Done()
 		defer func() {
-			// NOTE: When request is [ExecRequestType] and agent's version is less than v0.9.2, we should close the agent
-			// connection to avoid it be hanged after data flow ends.
-			if ver, err := semver.NewVersion(sess.Device.Info.Version); ver != nil && err == nil {
-				item, _ := sess.Seats.Get(seat)
-
-				// NOTE: We indicate here v0.9.3, but it is not included due the assertion `less than`.
-				if ver.LessThan(semver.MustParse("v0.9.3")) && item.Type == ExecRequestType {
-					agent.Close()
-				} else {
-					agent.CloseWrite() //nolint:errcheck
-				}
-			} else {
-				agent.CloseWrite() //nolint:errcheck
-			}
+			sess.CloseAgentWrite(seat) //nolint:errcheck
 		}()
 
 		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
@@ -190,10 +176,8 @@ func pipe(sess *session.Session, client gossh.Channel, agent gossh.Channel, seat
 //
 // It carries the ssh-agent forwarding channel, which is plain data in both
 // directions: neither side ever sends extended data over it.
-func hose(sess *session.Session, agent gossh.Channel, client gossh.Channel) {
-	defer log.
-		WithFields(log.Fields{"session": sess.UID, "sshid": sess.SSHID}).
-		Trace("data pipe between client and agent has done")
+func hose(logger *log.Entry, agent gossh.Channel, client gossh.Channel) {
+	defer logger.Trace("data pipe between client and agent has done")
 
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
