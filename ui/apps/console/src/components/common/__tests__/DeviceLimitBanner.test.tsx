@@ -1,81 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createTestWrapper } from "@/tests/wrapper";
+import { getConfig, defaultConfig } from "@/env";
 import type { GetLicenseResponse } from "@/client";
-import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useAdminLicense", () => ({
-  useAdminLicense: vi.fn(),
-}));
-
-vi.mock("@/hooks/useAdminStats", () => ({
-  useAdminStats: vi.fn(),
-}));
-vi.mock("@/client", () => ({
-  getLicense: vi.fn(),
-  getLicenseQueryKey: vi.fn(() => ["getLicense"]),
-}));
-
-vi.mock("@/api/errors", () => ({
-  isSdkError: vi.fn(
-    (err: unknown): err is { status: number } =>
-      typeof err === "object" && err !== null && "status" in err,
-  ),
-}));
-
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { useAdminStats } from "@/hooks/useAdminStats";
-import { getConfig } from "@/env";
-import { getLicense } from "@/client";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import DeviceLimitBanner from "../DeviceLimitBanner";
 
-// ── Typed mocks ───────────────────────────────────────────────────────────────
+const mockGetLicense = vi.hoisted(() => vi.fn());
+const mockGetStats = vi.hoisted(() => vi.fn());
 
-const mockUseAdminLicense = vi.mocked(useAdminLicense);
-const mockUseAdminStats = vi.mocked(useAdminStats);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getLicense: mockGetLicense, getStats: mockGetStats };
+});
+
 const mockGetConfig = vi.mocked(getConfig);
-const mockGetLicense = vi.mocked(getLicense);
-
-type LicenseData = GetLicenseResponse | null;
-
-function makeLicenseQueryResult(
-  overrides: {
-    data?: LicenseData;
-    isLoading?: boolean;
-    isError?: boolean;
-    dataUpdatedAt?: number;
-  } = {},
-) {
-  return {
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    isExpired: false,
-    installedLicense: null,
-    dataUpdatedAt: Date.now(),
-    ...overrides,
-  } as unknown as ReturnType<typeof useAdminLicense>;
-}
-
-function makeStatsResult(
-  overrides: {
-    stats?: { registered_devices?: number } | undefined;
-    isLoading?: boolean;
-    isError?: boolean;
-    error?: Error | null;
-  } = {},
-) {
-  return {
-    stats: undefined,
-    isLoading: false,
-    isError: false,
-    error: null,
-    ...overrides,
-  };
-}
 
 function makeLicense(
   devicesLimit: number,
@@ -102,226 +42,208 @@ function makeLicense(
   } as GetLicenseResponse;
 }
 
-// ── Setup / teardown ──────────────────────────────────────────────────────────
+function renderBanner() {
+  return render(<DeviceLimitBanner />, { wrapper: createTestWrapper() });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default: enterprise non-cloud config
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  // Default: admin with a license allowing 100 devices
-  mockUseAdminLicense.mockReturnValue(
-    makeLicenseQueryResult({ data: makeLicense(100) }),
-  );
-  mockUseAdminStats.mockReturnValue(
-    makeStatsResult({ stats: { registered_devices: 50 } }),
-  );
+  useAuthStore.setState({ isAdmin: true });
+  mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+  mockGetStats.mockResolvedValue(mockSdkResponse({ registered_devices: 50 }));
 });
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+async function waitForQueries() {
+  await waitFor(() => {
+    expect(mockGetLicense).toHaveBeenCalled();
+    expect(mockGetStats).toHaveBeenCalled();
+  });
+}
 
 describe("DeviceLimitBanner", () => {
   describe("severity: over limit", () => {
-    it("shows alert (role=alert) with over-limit copy when registered >= cap", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100) }),
+    it("shows alert (role=alert) with over-limit copy when registered >= cap", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 100 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 100 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(
-        screen.getByText(/you've reached your licensed device limit/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/contact the ShellHub team/i),
-      ).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(
+          screen.getByText(/you've reached your licensed device limit/i),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(/contact the ShellHub team/i),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("shows RED (role=alert) when cap=10 and registered=10", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(10) }),
+    it("shows RED (role=alert) when cap=10 and registered=10", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(10)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 10 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 10 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("shows RED (role=alert) when cap=0 and registered=0 (cap===0 -> over)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(0) }),
+    it("shows RED (role=alert) when cap=0 and registered=0 (cap===0 -> over)", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(0)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 0 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 0 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
     });
   });
 
   describe("severity: approaching limit", () => {
-    it("shows status (role=status) with approaching copy when at 90% but under cap", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100) }),
+    it("shows status (role=status) with approaching copy when at 90% but under cap", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 90 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 90 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(
-        screen.getByText(/you're approaching your licensed device limit/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/contact the ShellHub team/i),
-      ).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(
+          screen.getByText(/you're approaching your licensed device limit/i),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(/contact the ShellHub team/i),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("shows YELLOW (role=status) when cap=10 and registered=9 (90% boundary)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(10) }),
+    it("shows YELLOW (role=status) when cap=10 and registered=9 (90% boundary)", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(10)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 9 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 9 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 
   describe("visibility guards", () => {
-    it("is absent when cap=10 and registered=8 (80% — below threshold)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(10) }),
+    it("is absent when cap=10 and registered=8 (80% — below threshold)", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(10)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 8 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 8 } }),
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is absent when features.devices === -1 (unlimited)", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(-1)));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 9999 }),
       );
-      render(<DeviceLimitBanner />);
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is absent when registered_devices is undefined", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+      mockGetStats.mockResolvedValue(mockSdkResponse({}));
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is absent when non-admin (queries disabled)", async () => {
+      useAuthStore.setState({ isAdmin: false } as never);
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+      expect(mockGetLicense).not.toHaveBeenCalled();
+      expect(mockGetStats).not.toHaveBeenCalled();
+    });
+
+    it("is absent while license is loading", () => {
+      mockGetLicense.mockReturnValue(new Promise(() => {}));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 100 }),
+      );
+      renderBanner();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is absent when features.devices === -1 (unlimited)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(-1) }),
-      );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 9999 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    it("is absent when no license is installed", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
     });
 
-    it("is absent when registered_devices is undefined", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100) }),
-      );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: undefined } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("is absent when non-admin (hooks return undefined data)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: undefined }),
-      );
-      mockUseAdminStats.mockReturnValue(makeStatsResult({ stats: undefined }));
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("is absent while license is loading (even when over-limit data is present)", () => {
-      // data present + over-limit would normally show the banner; isLoading must suppress it.
-      // Using data: undefined would hide the banner via the license != null guard, not the
-      // licenseLoading guard — so the guard under test would never actually be exercised.
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100), isLoading: true }),
-      );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 100 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("is absent when license is null (no license installed)", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: null }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("is absent when useAdminStats isError is true", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100) }),
-      );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 100 }, isError: true }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    it("is absent when useAdminStats errors", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+      mockGetStats.mockRejectedValue(makeSdkError(500));
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
     });
 
     it("is absent while stats are loading", () => {
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({
-          stats: { registered_devices: 100 },
-          isLoading: true,
-        }),
-      );
-      render(<DeviceLimitBanner />);
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense(100)));
+      mockGetStats.mockReturnValue(new Promise(() => {}));
+      renderBanner();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is absent when the license query errored", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeLicenseQueryResult({ data: makeLicense(100), isError: true }),
+    it("is absent when the license query errored", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(500));
+      mockGetStats.mockResolvedValue(
+        mockSdkResponse({ registered_devices: 100 }),
       );
-      mockUseAdminStats.mockReturnValue(
-        makeStatsResult({ stats: { registered_devices: 100 } }),
-      );
-      render(<DeviceLimitBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      renderBanner();
+      await waitForQueries();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
     });
   });
 
   describe("cloud deployment", () => {
-    it("is hidden when cloud=true and admin=true (banner suppressed, getLicense never fires)", async () => {
-      // Do NOT mock useAdminLicense for this test: restore the real implementation
-      // to verify the cloud bypass path end-to-end through DeviceLimitBanner.
-      // When cloud=true the query is disabled, data stays undefined, and the banner
-      // must stay hidden regardless of getLicense responses.
-      const { useAdminLicense: real } = await vi.importActual<
-        typeof import("@/hooks/useAdminLicense")
-      >("@/hooks/useAdminLicense");
-      mockUseAdminLicense.mockImplementation(real);
-
+    it("is hidden when cloud=true and admin=true (getLicense never fires)", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      useAuthStore.setState({ isAdmin: true } as never);
-      // getLicense must never fire on cloud deployments.
-      mockGetLicense.mockRejectedValue({ status: 400 });
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
 
-      // useAdminStats is still mocked from beforeEach; stats are irrelevant here
-      // because the license guard (license != null) will suppress the banner first.
-
-      render(<DeviceLimitBanner />, { wrapper: createTestWrapper() });
+      renderBanner();
 
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();

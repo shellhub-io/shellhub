@@ -1,37 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { createTestWrapper, renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 
-const mockCreateCustomer = vi.fn();
-const mockCreateSubscription = vi.fn();
-const mockAttach = vi.fn();
-const mockDetach = vi.fn();
-const mockSetDefault = vi.fn();
-const mockGetCustomerFn = vi.fn();
-const mockGetSubscriptionFn = vi.fn();
+const mockGetCustomer = vi.hoisted(() => vi.fn());
+const mockGetSubscription = vi.hoisted(() => vi.fn());
+const mockCreateCustomer = vi.hoisted(() => vi.fn());
+const mockCreateSubscription = vi.hoisted(() => vi.fn());
+const mockAttachPaymentMethod = vi.hoisted(() => vi.fn());
+const mockDetachPaymentMethod = vi.hoisted(() => vi.fn());
+const mockSetDefaultPaymentMethod = vi.hoisted(() => vi.fn());
+const mockCreateBillingPortalSession = vi.hoisted(() => vi.fn());
 const mockInvalidate = vi.fn();
-const mockCreateBillingPortalSession = vi.fn();
 
-vi.mock("@/client", () => ({
-  getCustomerOptions: vi.fn(() => ({
-    queryKey: [{ _id: "getCustomer" }],
-    queryFn: mockGetCustomerFn,
-  })),
-  getSubscriptionOptions: vi.fn(() => ({
-    queryKey: [{ _id: "getSubscription" }],
-    queryFn: mockGetSubscriptionFn,
-  })),
-  createCustomerMutation: vi.fn(() => ({ mutationFn: mockCreateCustomer })),
-  createSubscriptionMutation: vi.fn(() => ({
-    mutationFn: mockCreateSubscription,
-  })),
-  attachPaymentMethodMutation: vi.fn(() => ({ mutationFn: mockAttach })),
-  detachPaymentMethodMutation: vi.fn(() => ({ mutationFn: mockDetach })),
-  setDefaultPaymentMethodMutation: vi.fn(() => ({
-    mutationFn: mockSetDefault,
-  })),
-  createBillingPortalSession: (): unknown => mockCreateBillingPortalSession(),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    getCustomer: mockGetCustomer,
+    getSubscription: mockGetSubscription,
+    createCustomer: mockCreateCustomer,
+    createSubscription: mockCreateSubscription,
+    attachPaymentMethod: mockAttachPaymentMethod,
+    detachPaymentMethod: mockDetachPaymentMethod,
+    setDefaultPaymentMethod: mockSetDefaultPaymentMethod,
+    createBillingPortalSession: mockCreateBillingPortalSession,
+  };
+});
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
@@ -47,7 +42,7 @@ beforeEach(() => {
 
 describe("useBilling mutations", () => {
   it("invalidates billing queries on customer creation", async () => {
-    mockCreateCustomer.mockResolvedValue(undefined);
+    mockCreateCustomer.mockResolvedValue(mockSdkResponse(undefined));
     const { useCreateCustomer } = await importHooks();
 
     const { result } = renderHookWithClient(() => useCreateCustomer());
@@ -59,7 +54,7 @@ describe("useBilling mutations", () => {
   });
 
   it("invalidates billing queries on subscription creation", async () => {
-    mockCreateSubscription.mockResolvedValue(undefined);
+    mockCreateSubscription.mockResolvedValue(mockSdkResponse(undefined));
     const { useCreateSubscription } = await importHooks();
 
     const { result } = renderHookWithClient(() => useCreateSubscription());
@@ -84,9 +79,9 @@ describe("useBilling mutations", () => {
   });
 
   it("attach/detach/default run through the SDK mutations", async () => {
-    mockAttach.mockResolvedValue(undefined);
-    mockDetach.mockResolvedValue(undefined);
-    mockSetDefault.mockResolvedValue(undefined);
+    mockAttachPaymentMethod.mockResolvedValue(mockSdkResponse(undefined));
+    mockDetachPaymentMethod.mockResolvedValue(mockSdkResponse(undefined));
+    mockSetDefaultPaymentMethod.mockResolvedValue(mockSdkResponse(undefined));
     const {
       useAttachPaymentMethod,
       useDetachPaymentMethod,
@@ -109,15 +104,15 @@ describe("useBilling mutations", () => {
       defHook.result.current.mutateAsync({ body: { id: "pm_1" } }),
     );
 
-    expect(mockAttach).toHaveBeenCalled();
-    expect(mockDetach).toHaveBeenCalled();
-    expect(mockSetDefault).toHaveBeenCalled();
+    expect(mockAttachPaymentMethod).toHaveBeenCalled();
+    expect(mockDetachPaymentMethod).toHaveBeenCalled();
+    expect(mockSetDefaultPaymentMethod).toHaveBeenCalled();
   });
 });
 
 describe("useCreateSubscription (query key coverage)", () => {
   it("calls the mutation fn and then invalidates on success", async () => {
-    mockCreateSubscription.mockResolvedValue(undefined);
+    mockCreateSubscription.mockResolvedValue(mockSdkResponse(undefined));
     const { useCreateSubscription } = await importHooks();
 
     const { result } = renderHookWithClient(() => useCreateSubscription());
@@ -130,12 +125,12 @@ describe("useCreateSubscription (query key coverage)", () => {
 });
 
 describe("useCustomer", () => {
-  it("does not call the queryFn when enabled=false", async () => {
+  it("does not call the SDK when enabled=false", async () => {
     const { useCustomer } = await importHooks();
 
     renderHookWithClient(() => useCustomer(false));
 
-    expect(mockGetCustomerFn).not.toHaveBeenCalled();
+    expect(mockGetCustomer).not.toHaveBeenCalled();
   });
 
   it("returns undefined customer when the query has no data", async () => {
@@ -148,12 +143,12 @@ describe("useCustomer", () => {
 });
 
 describe("useSubscription", () => {
-  it("does not call the queryFn when enabled=false", async () => {
+  it("does not call the SDK when enabled=false", async () => {
     const { useSubscription } = await importHooks();
 
     renderHookWithClient(() => useSubscription(false));
 
-    expect(mockGetSubscriptionFn).not.toHaveBeenCalled();
+    expect(mockGetSubscription).not.toHaveBeenCalled();
   });
 
   it("exposes a refetch function even when disabled", async () => {
@@ -176,9 +171,9 @@ describe("useSubscription", () => {
 describe("useOpenBillingPortal", () => {
   it("opens the URL the billing portal route returns", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
-    mockCreateBillingPortalSession.mockResolvedValue({
-      data: { url: "https://billing.stripe.com/session/abc" },
-    });
+    mockCreateBillingPortalSession.mockResolvedValue(
+      mockSdkResponse({ url: "https://billing.stripe.com/session/abc" }),
+    );
     const { useOpenBillingPortal } = await importHooks();
 
     const { result } = renderHookWithClient(() => useOpenBillingPortal());
@@ -195,7 +190,7 @@ describe("useOpenBillingPortal", () => {
   });
 
   it("throws when the response is missing a URL", async () => {
-    mockCreateBillingPortalSession.mockResolvedValue({ data: {} });
+    mockCreateBillingPortalSession.mockResolvedValue(mockSdkResponse({}));
     const { useOpenBillingPortal } = await importHooks();
 
     const { result } = renderHookWithClient(() => useOpenBillingPortal());

@@ -1,43 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import React from "react";
+import type { ComponentType, ReactNode } from "react";
 import { createTestWrapper } from "@/tests/wrapper";
-import { defaultConfig } from "@/env";
+import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import type { GetLicenseResponse } from "@/client";
-
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useAdminLicense", () => ({
-  useAdminLicense: vi.fn(),
-}));
-vi.mock("@/client", () => ({
-  getLicense: vi.fn(),
-  getLicenseQueryKey: vi.fn(() => ["getLicense"]),
-}));
-
-vi.mock("@/api/errors", () => ({
-  isSdkError: vi.fn(
-    (err: unknown): err is { status: number } =>
-      typeof err === "object" && err !== null && "status" in err,
-  ),
-}));
-
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { getConfig } from "@/env";
-import { getLicense } from "@/client";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import LicenseGuard from "../LicenseGuard";
 
-// ── Typed mocks ───────────────────────────────────────────────────────────────
+const mockGetLicense = vi.hoisted(() => vi.fn());
 
-const mockUseAdminLicense = vi.mocked(useAdminLicense);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getLicense: mockGetLicense };
+});
+
 const mockGetConfig = vi.mocked(getConfig);
-const mockGetLicense = vi.mocked(getLicense);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-type LicenseData = GetLicenseResponse | null;
 
 function makeLicense(
   overrides: Partial<GetLicenseResponse> = {},
@@ -63,29 +42,7 @@ function makeLicense(
   } as GetLicenseResponse;
 }
 
-type HookReturn = ReturnType<typeof useAdminLicense>;
-
-function makeHookReturn(
-  overrides: {
-    isLoading?: boolean;
-    isError?: boolean;
-    isExpired?: boolean;
-    data?: LicenseData;
-  } = {},
-): HookReturn {
-  return {
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    isExpired: false,
-    installedLicense: null,
-    ...overrides,
-  } as unknown as HookReturn;
-}
-
-function renderGuard(
-  Wrapper?: React.ComponentType<{ children: React.ReactNode }>,
-) {
+function renderGuard(Wrapper?: ComponentType<{ children: ReactNode }>) {
   const ui = (
     <MemoryRouter initialEntries={["/admin/dashboard"]}>
       <Routes>
@@ -102,84 +59,78 @@ function renderGuard(
   return render(Wrapper ? <Wrapper>{ui}</Wrapper> : ui);
 }
 
-// ── Setup / teardown ──────────────────────────────────────────────────────────
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  mockUseAdminLicense.mockReturnValue(makeHookReturn());
+  useAuthStore.setState({ isAdmin: true });
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("LicenseGuard", () => {
   describe("isLoading — shows PageLoader", () => {
     it("renders a loading indicator while the license check is in progress", () => {
-      mockUseAdminLicense.mockReturnValue(makeHookReturn({ isLoading: true }));
-      renderGuard();
+      mockGetLicense.mockReturnValue(new Promise(() => {}));
+      renderGuard(createTestWrapper());
       expect(screen.getByText("Checking license...")).toBeInTheDocument();
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
 
     it("does not render the Outlet while loading", () => {
-      mockUseAdminLicense.mockReturnValue(makeHookReturn({ isLoading: true }));
-      renderGuard();
+      mockGetLicense.mockReturnValue(new Promise(() => {}));
+      renderGuard(createTestWrapper());
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
   });
 
   describe("isError — redirects to /admin/license", () => {
-    it("navigates to the license page when the query errors", () => {
-      mockUseAdminLicense.mockReturnValue(makeHookReturn({ isError: true }));
-      renderGuard();
-      expect(screen.getByText("license page")).toBeInTheDocument();
+    it("navigates to the license page when the query errors", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(500));
+      renderGuard(createTestWrapper());
+      await waitFor(() => {
+        expect(screen.getByText("license page")).toBeInTheDocument();
+      });
+      expect(screen.queryByText("protected content")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("no license — redirects to /admin/license", () => {
+    it("navigates to the license page when no license is installed", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderGuard(createTestWrapper());
+      await waitFor(() => {
+        expect(screen.getByText("license page")).toBeInTheDocument();
+      });
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
   });
 
   describe("isExpired — redirects to /admin/license", () => {
-    it("navigates to the license page when the hook reports the license is expired", () => {
-      // data contains a technically valid (unexpired) license, but the hook has
-      // already derived isExpired=true (e.g. grace_period scenario).
-      // The current component re-derives expiry locally from data and renders
-      // the Outlet instead of redirecting — this test documents the desired behavior.
-      mockUseAdminLicense.mockReturnValue(
-        makeHookReturn({
-          isExpired: true,
-          data: makeLicense({ expired: false, grace_period: false }),
-        }),
+    it("navigates to the license page when the license is expired", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true })),
       );
-      renderGuard();
-      expect(screen.getByText("license page")).toBeInTheDocument();
+      renderGuard(createTestWrapper());
+      await waitFor(() => {
+        expect(screen.getByText("license page")).toBeInTheDocument();
+      });
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
   });
 
   describe("valid license — renders Outlet", () => {
-    it("renders the child route when all flags are false", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeHookReturn({ data: makeLicense() }),
-      );
-      renderGuard();
-      expect(screen.getByText("protected content")).toBeInTheDocument();
+    it("renders the child route when the license is valid", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      renderGuard(createTestWrapper());
+      await waitFor(() => {
+        expect(screen.getByText("protected content")).toBeInTheDocument();
+      });
       expect(screen.queryByText("license page")).not.toBeInTheDocument();
     });
   });
 
-  describe("cloud real-hook path", () => {
-    it("renders the Outlet without calling getLicense when cloud=true and admin=true", async () => {
-      // Do NOT mock useAdminLicense for this test: restore the real implementation
-      // to verify the cloud bypass path end-to-end through LicenseGuard.
-      // When cloud=true the query is disabled, so getLicense must never fire,
-      // isExpired stays false, and the guard must pass through to the Outlet.
-      const { useAdminLicense: real } = await vi.importActual<
-        typeof import("@/hooks/useAdminLicense")
-      >("@/hooks/useAdminLicense");
-      mockUseAdminLicense.mockImplementation(real);
-
+  describe("cloud deployment", () => {
+    it("renders the Outlet without calling getLicense when cloud=true", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      useAuthStore.setState({ isAdmin: true } as never);
-      // getLicense must never fire on cloud deployments.
-      mockGetLicense.mockRejectedValue({ status: 400 });
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
 
       renderGuard(createTestWrapper());
 

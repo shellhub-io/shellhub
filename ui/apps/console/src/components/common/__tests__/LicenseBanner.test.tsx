@@ -1,58 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createTestWrapper } from "@/tests/wrapper";
+import { getConfig, defaultConfig } from "@/env";
 import type { GetLicenseResponse } from "@/client";
-import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-
-// ── Dependency mocks ──────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useAdminLicense", () => ({
-  useAdminLicense: vi.fn(),
-}));
-vi.mock("@/client", () => ({
-  getLicense: vi.fn(),
-  getLicenseQueryKey: vi.fn(() => ["getLicense"]),
-}));
-
-vi.mock("@/api/errors", () => ({
-  isSdkError: vi.fn(
-    (err: unknown): err is { status: number } =>
-      typeof err === "object" && err !== null && "status" in err,
-  ),
-}));
-
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import { getConfig } from "@/env";
-import { getLicense } from "@/client";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import LicenseBanner from "../LicenseBanner";
 
-// ── Typed mocks ───────────────────────────────────────────────────────────────
+const mockGetLicense = vi.hoisted(() => vi.fn());
 
-const mockUseAdminLicense = vi.mocked(useAdminLicense);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getLicense: mockGetLicense };
+});
+
 const mockGetConfig = vi.mocked(getConfig);
-const mockGetLicense = vi.mocked(getLicense);
-
-type LicenseData = GetLicenseResponse | null;
-
-function makeQueryResult(
-  overrides: {
-    data?: LicenseData;
-    isLoading?: boolean;
-    isError?: boolean;
-    dataUpdatedAt?: number;
-  } = {},
-) {
-  return {
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    isExpired: false,
-    installedLicense: null,
-    dataUpdatedAt: Date.now(),
-    ...overrides,
-  } as unknown as ReturnType<typeof useAdminLicense>;
-}
 
 function makeLicense(
   overrides: Partial<GetLicenseResponse> = {},
@@ -78,276 +40,295 @@ function makeLicense(
   } as GetLicenseResponse;
 }
 
-// ── Setup / teardown ──────────────────────────────────────────────────────────
+function renderBanner() {
+  return render(<LicenseBanner />, { wrapper: createTestWrapper() });
+}
+
+async function waitForQuery() {
+  await waitFor(() => {
+    expect(mockGetLicense).toHaveBeenCalled();
+  });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  mockUseAdminLicense.mockReturnValue(makeQueryResult({ data: null }));
+  useAuthStore.setState({ isAdmin: true });
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("LicenseBanner", () => {
   describe("visibility", () => {
     it("is hidden while the license check is in progress", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({ data: null, isLoading: true }),
-      );
-      render(<LicenseBanner />);
-      // Both roles must be absent — checking only one would miss regressions that
-      // make the banner visible but switch it from error to warning severity.
+      mockGetLicense.mockReturnValue(new Promise(() => {}));
+      renderBanner();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("is hidden when the query is not enabled (non-admin, data is undefined)", () => {
-      mockUseAdminLicense.mockReturnValue(makeQueryResult({ data: undefined }));
-      render(<LicenseBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    it("is hidden when the query is not enabled (non-admin)", async () => {
+      useAuthStore.setState({ isAdmin: false } as never);
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      });
+      expect(mockGetLicense).not.toHaveBeenCalled();
     });
 
-    it("is hidden when the query fails unexpectedly", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({ data: null, isError: true }),
+    it("is hidden when the query fails unexpectedly", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(500));
+      renderBanner();
+      await waitForQuery();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is hidden when license is valid", async () => {
+      mockGetLicense.mockResolvedValue(mockSdkResponse(makeLicense()));
+      renderBanner();
+      await waitForQuery();
+      await waitFor(() => {
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is shown when no license is installed", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
+    });
+
+    it("is shown when license is expired", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
       );
-      render(<LicenseBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(
+          screen.getByText(/your license has expired\./i),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
     });
 
-    it("is hidden when license is valid", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({ data: makeLicense() }),
+    it("is shown when license is in the grace period", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
       );
-      render(<LicenseBanner />);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByText(/grace period/i)).toBeInTheDocument();
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
     });
 
-    it("is shown when no license is installed", () => {
-      render(<LicenseBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-    });
-
-    it("is shown when license is expired", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: false }),
-        }),
+    it("is shown when license is about to expire", async () => {
+      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+        ),
       );
-      render(<LicenseBanner />);
-      expect(
-        screen.getByText(/your license has expired\./i),
-      ).toBeInTheDocument();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-    });
-
-    it("is shown when license is in the grace period", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: true }),
-        }),
-      );
-      render(<LicenseBanner />);
-      expect(screen.getByText(/grace period/i)).toBeInTheDocument();
-      expect(screen.getByRole("status")).toBeInTheDocument();
-    });
-
-    it("is shown when license is about to expire", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true }),
-        }),
-      );
-      render(<LicenseBanner />);
-      expect(
-        screen.getByText(/about to expire|expires in/i),
-      ).toBeInTheDocument();
-      expect(screen.getByRole("status")).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(
+          screen.getByText(/about to expire|expires in/i),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
     });
   });
 
   describe("severity", () => {
-    it("uses error (role=alert) when no license is installed", () => {
-      render(<LicenseBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+    it("uses error (role=alert) when no license is installed", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("uses error (role=alert) when license is expired", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: false }),
-        }),
+    it("uses error (role=alert) when license is expired", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("uses warning (role=status) when license is in the grace period", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: true }),
-        }),
+    it("uses warning (role=status) when license is in the grace period", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
       );
-      render(<LicenseBanner />);
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.getByRole("status")).toBeInTheDocument();
     });
 
-    it("uses warning (role=status) when license is about to expire", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true }),
-        }),
+    it("uses warning (role=status) when license is about to expire", async () => {
+      const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+        ),
       );
-      render(<LicenseBanner />);
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.getByRole("status")).toBeInTheDocument();
     });
   });
 
   describe("messages", () => {
-    it("shows the no-license message", () => {
-      render(<LicenseBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText(/no license installed/i)).toBeInTheDocument();
+    it("shows the no-license message", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(screen.getByText(/no license installed/i)).toBeInTheDocument();
+      });
     });
 
-    it("shows the expired message", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: false }),
-        }),
+    it("shows the expired message", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: false })),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          /your license has expired\. this instance won't function/i,
-        ),
-      ).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /your license has expired\. this instance won't function/i,
+          ),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("shows the grace period message", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ expired: true, grace_period: true }),
-        }),
+    it("shows the grace period message", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ expired: true, grace_period: true })),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/grace period/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.getByText(/grace period/i)).toBeInTheDocument();
+      });
     });
 
-    it("shows days remaining when about to expire and days are known", () => {
+    it("shows days remaining when about to expire and days are known", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 1 * 86400;
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-        }),
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+        ),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/expires in 1 day\b/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.getByText(/expires in 1 day\b/i)).toBeInTheDocument();
+      });
     });
 
-    it("uses the plural form when more than one day remains", () => {
+    it("uses the plural form when more than one day remains", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-        }),
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+        ),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/expires in 5 days/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.getByText(/expires in 5 days/i)).toBeInTheDocument();
+      });
     });
 
-    it("shows the fallback about-to-expire message when expires_at is not set", () => {
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: -1 }),
-        }),
+    it("shows the fallback about-to-expire message when expires_at is not set", async () => {
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(makeLicense({ about_to_expire: true, expires_at: -1 })),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      });
     });
 
-    it("shows fallback about-to-expire copy when expires_at is in the past and about_to_expire is true (negative days)", () => {
-      // expires_at is in the past: daysUntilExpiration will be < 0
+    it("shows fallback about-to-expire copy when expires_at is in the past", async () => {
       const expiredAt = Math.floor(Date.now() / 1000) - 1;
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: expiredAt }),
-        }),
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiredAt }),
+        ),
       );
-      render(<LicenseBanner />);
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      });
     });
 
-    it("shows fallback about-to-expire copy when Math.ceil yields exactly 0 (days===0 boundary)", () => {
-      // expires_at exactly equal to dataUpdatedAt/1000 → Math.ceil(0/86400) = 0
-      // The guard `days > 0 ? days : null` must return null so the fallback is shown.
-      const now = Date.now();
-      const nowSeconds = Math.floor(now / 1000);
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: nowSeconds }),
-          dataUpdatedAt: now,
-        }),
+    it("shows fallback about-to-expire copy when days would be zero", async () => {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: nowSeconds }),
+        ),
       );
-      render(<LicenseBanner />);
-      // days = Math.ceil((nowSeconds - now/1000) / 86400) = Math.ceil(0) = 0
-      // → null → fallback copy shown, NOT "expires in 0 days"
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.queryByText(/expires in 0 day/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+        expect(screen.queryByText(/expires in 0 day/i)).not.toBeInTheDocument();
+        expect(screen.getByText(/is about to expire/i)).toBeInTheDocument();
+      });
     });
   });
 
   describe("no CTA link", () => {
-    it("never renders any link when no license is installed (error state)", () => {
-      render(<LicenseBanner />);
+    it("never renders any link when no license is installed (error state)", async () => {
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("link")).not.toBeInTheDocument();
       expect(screen.queryByText(/upload license/i)).not.toBeInTheDocument();
     });
 
-    it("never renders any link when license is about to expire (warning state)", () => {
+    it("never renders any link when license is about to expire (warning state)", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 5 * 86400;
-      mockUseAdminLicense.mockReturnValue(
-        makeQueryResult({
-          data: makeLicense({ about_to_expire: true, expires_at: expiresAt }),
-        }),
+      mockGetLicense.mockResolvedValue(
+        mockSdkResponse(
+          makeLicense({ about_to_expire: true, expires_at: expiresAt }),
+        ),
       );
-      render(<LicenseBanner />);
+      renderBanner();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toBeInTheDocument();
+      });
       expect(screen.queryByRole("link")).not.toBeInTheDocument();
       expect(screen.queryByText(/upload license/i)).not.toBeInTheDocument();
     });
   });
 
   describe("cloud deployment", () => {
-    it("is hidden when cloud=true and admin=true (banner suppressed, getLicense never fires)", async () => {
-      // Do NOT mock useAdminLicense for this test: restore the real implementation
-      // to verify the cloud bypass path end-to-end through LicenseBanner.
-      // When cloud=true the query is disabled, data stays undefined, and the banner
-      // must stay hidden regardless of getLicense responses.
-      const { useAdminLicense: real } = await vi.importActual<
-        typeof import("@/hooks/useAdminLicense")
-      >("@/hooks/useAdminLicense");
-      mockUseAdminLicense.mockImplementation(real);
-
+    it("is hidden when cloud=true and admin=true (getLicense never fires)", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-      useAuthStore.setState({ isAdmin: true } as never);
-      // getLicense must never fire on cloud deployments.
-      mockGetLicense.mockRejectedValue({ status: 400 });
+      mockGetLicense.mockRejectedValue(makeSdkError(400));
 
-      render(<LicenseBanner />, { wrapper: createTestWrapper() });
+      renderBanner();
 
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();

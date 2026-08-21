@@ -1,26 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor, act } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import {
   useAcceptInvite,
   useGenerateInvitationLink,
   useCancelMembershipInvitation,
 } from "../useInvitationMutations";
 
-const mockAcceptFn = vi.fn();
-const mockGenerateLinkFn = vi.fn();
-const mockCancelFn = vi.fn();
+const mockAcceptInvite = vi.hoisted(() => vi.fn());
+const mockGenerateInvitationLink = vi.hoisted(() => vi.fn());
+const mockCancelMembershipInvitation = vi.hoisted(() => vi.fn());
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client", () => ({
-  acceptInviteMutation: vi.fn(() => ({ mutationFn: mockAcceptFn })),
-  generateInvitationLinkMutation: vi.fn(() => ({
-    mutationFn: mockGenerateLinkFn,
-  })),
-  cancelMembershipInvitationMutation: vi.fn(() => ({
-    mutationFn: mockCancelFn,
-  })),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    acceptInvite: mockAcceptInvite,
+    generateInvitationLink: mockGenerateInvitationLink,
+    cancelMembershipInvitation: mockCancelMembershipInvitation,
+  };
+});
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
@@ -33,19 +34,21 @@ beforeEach(() => {
 describe("useAcceptInvite", () => {
   describe("mutation call", () => {
     it("calls acceptInvite with the provided path", async () => {
-      mockAcceptFn.mockResolvedValue(undefined);
+      mockAcceptInvite.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useAcceptInvite());
 
       const vars = { path: { tenant: "t1" } };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockAcceptFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockAcceptInvite).toHaveBeenCalledWith(
+        expect.objectContaining({ path: { tenant: "t1" }, throwOnError: true }),
+      );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
-      mockAcceptFn.mockResolvedValue(undefined);
+      mockAcceptInvite.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useAcceptInvite());
 
       await act(() => result.current.mutateAsync({} as never));
@@ -57,7 +60,7 @@ describe("useAcceptInvite", () => {
   describe("on failure", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("accept failed");
-      mockAcceptFn.mockRejectedValue(error);
+      mockAcceptInvite.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useAcceptInvite());
 
       act(() => result.current.mutate({} as never));
@@ -67,7 +70,7 @@ describe("useAcceptInvite", () => {
     });
 
     it("does not call invalidate when mutation fails", async () => {
-      mockAcceptFn.mockRejectedValue(new Error("accept failed"));
+      mockAcceptInvite.mockRejectedValue(new Error("accept failed"));
       const { result } = renderHookWithClient(() => useAcceptInvite());
 
       act(() => result.current.mutate({} as never));
@@ -81,9 +84,9 @@ describe("useAcceptInvite", () => {
 describe("useGenerateInvitationLink", () => {
   describe("mutation call", () => {
     it("calls generateInvitationLink with path and body", async () => {
-      mockGenerateLinkFn.mockResolvedValue({
-        link: "https://example.com/invite/abc",
-      });
+      mockGenerateInvitationLink.mockResolvedValue(
+        mockSdkResponse({ link: "https://example.com/invite/abc" }),
+      );
       const { result } = renderHookWithClient(() =>
         useGenerateInvitationLink(),
       );
@@ -94,12 +97,18 @@ describe("useGenerateInvitationLink", () => {
       };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockGenerateLinkFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockGenerateInvitationLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenant: "t1" },
+          body: { email: "bob@example.com", role: "operator" },
+          throwOnError: true,
+        }),
+      );
     });
 
     it("returns the generated link from the mutation", async () => {
       const link = "https://example.com/invite/xyz";
-      mockGenerateLinkFn.mockResolvedValue({ link });
+      mockGenerateInvitationLink.mockResolvedValue(mockSdkResponse({ link }));
       const { result } = renderHookWithClient(() =>
         useGenerateInvitationLink(),
       );
@@ -112,9 +121,9 @@ describe("useGenerateInvitationLink", () => {
 
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
-      mockGenerateLinkFn.mockResolvedValue({
-        link: "https://example.com/invite/abc",
-      });
+      mockGenerateInvitationLink.mockResolvedValue(
+        mockSdkResponse({ link: "https://example.com/invite/abc" }),
+      );
       const { result } = renderHookWithClient(() =>
         useGenerateInvitationLink(),
       );
@@ -128,7 +137,7 @@ describe("useGenerateInvitationLink", () => {
   describe("on failure", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("generate link failed");
-      mockGenerateLinkFn.mockRejectedValue(error);
+      mockGenerateInvitationLink.mockRejectedValue(error);
       const { result } = renderHookWithClient(() =>
         useGenerateInvitationLink(),
       );
@@ -140,7 +149,9 @@ describe("useGenerateInvitationLink", () => {
     });
 
     it("does not call invalidate when mutation fails", async () => {
-      mockGenerateLinkFn.mockRejectedValue(new Error("generate link failed"));
+      mockGenerateInvitationLink.mockRejectedValue(
+        new Error("generate link failed"),
+      );
       const { result } = renderHookWithClient(() =>
         useGenerateInvitationLink(),
       );
@@ -156,7 +167,9 @@ describe("useGenerateInvitationLink", () => {
 describe("useCancelMembershipInvitation", () => {
   describe("mutation call", () => {
     it("calls cancelMembershipInvitation with path", async () => {
-      mockCancelFn.mockResolvedValue(undefined);
+      mockCancelMembershipInvitation.mockResolvedValue(
+        mockSdkResponse(undefined),
+      );
       const { result } = renderHookWithClient(() =>
         useCancelMembershipInvitation(),
       );
@@ -164,13 +177,20 @@ describe("useCancelMembershipInvitation", () => {
       const vars = { path: { tenant: "t1", "user-id": "u1" } };
       await act(() => result.current.mutateAsync(vars as never));
 
-      expect(mockCancelFn).toHaveBeenCalledWith(vars, expect.anything());
+      expect(mockCancelMembershipInvitation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { tenant: "t1", "user-id": "u1" },
+          throwOnError: true,
+        }),
+      );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate after successful mutation", async () => {
-      mockCancelFn.mockResolvedValue(undefined);
+      mockCancelMembershipInvitation.mockResolvedValue(
+        mockSdkResponse(undefined),
+      );
       const { result } = renderHookWithClient(() =>
         useCancelMembershipInvitation(),
       );
@@ -184,7 +204,7 @@ describe("useCancelMembershipInvitation", () => {
   describe("on failure", () => {
     it("exposes error when mutation fails", async () => {
       const error = new Error("cancel failed");
-      mockCancelFn.mockRejectedValue(error);
+      mockCancelMembershipInvitation.mockRejectedValue(error);
       const { result } = renderHookWithClient(() =>
         useCancelMembershipInvitation(),
       );
@@ -196,7 +216,9 @@ describe("useCancelMembershipInvitation", () => {
     });
 
     it("does not call invalidate when mutation fails", async () => {
-      mockCancelFn.mockRejectedValue(new Error("cancel failed"));
+      mockCancelMembershipInvitation.mockRejectedValue(
+        new Error("cancel failed"),
+      );
       const { result } = renderHookWithClient(() =>
         useCancelMembershipInvitation(),
       );

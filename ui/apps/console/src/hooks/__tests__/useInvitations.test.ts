@@ -1,40 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import {
   useNamespaceInvitations,
   useResolveInvitation,
 } from "../useInvitations";
 import type { MembershipInvitation } from "@/client";
 
-const mockResolveFn = vi.fn();
+const mockGetNamespaceMembershipInvitationList = vi.hoisted(() => vi.fn());
+const mockResolveInvitation = vi.hoisted(() => vi.fn());
 
-vi.mock("@/client", () => ({
-  getMembershipInvitationList: vi.fn(),
-  getNamespaceMembershipInvitationList: vi.fn(),
-  getMembershipInvitationListQueryKey: vi.fn((opts: unknown) => [
-    { _id: "getMembershipInvitationList" },
-    opts,
-  ]),
-  getNamespaceMembershipInvitationListQueryKey: vi.fn((opts: unknown) => [
-    { _id: "getNamespaceMembershipInvitationList" },
-    opts,
-  ]),
-  resolveInvitationOptions: vi.fn((opts: unknown) => ({
-    queryKey: [{ _id: "resolveInvitation" }, opts],
-    queryFn: () => mockResolveFn() as unknown,
-  })),
-}));
-
-vi.mock("@/api/pagination", () => ({
-  paginatedQueryFn: vi.fn(
-    (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
-      return () => mockFetchFn(opts) as unknown;
-    },
-  ),
-}));
-
-const mockFetchFn = vi.fn();
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    getNamespaceMembershipInvitationList:
+      mockGetNamespaceMembershipInvitationList,
+    resolveInvitation: mockResolveInvitation,
+  };
+});
 
 function makeInvitation(
   overrides: Partial<MembershipInvitation> = {},
@@ -61,7 +46,9 @@ describe("useNamespaceInvitations", () => {
   describe("returns", () => {
     it("returns invitations for the given tenant", async () => {
       const inv = makeInvitation({ status: "pending" });
-      mockFetchFn.mockResolvedValue({ data: [inv], totalCount: 1 });
+      mockGetNamespaceMembershipInvitationList.mockResolvedValue(
+        mockSdkResponse([inv], { "X-Total-Count": "1" }),
+      );
 
       const { result } = renderHookWithClient(() =>
         useNamespaceInvitations({ tenantId: "t1" }),
@@ -71,8 +58,10 @@ describe("useNamespaceInvitations", () => {
       expect(result.current.invitations).toHaveLength(1);
     });
 
-    it("returns totalCount from the paginated result", async () => {
-      mockFetchFn.mockResolvedValue({ data: [], totalCount: 7 });
+    it("returns totalCount from the X-Total-Count header", async () => {
+      mockGetNamespaceMembershipInvitationList.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "7" }),
+      );
 
       const { result } = renderHookWithClient(() =>
         useNamespaceInvitations({ tenantId: "t1" }),
@@ -83,7 +72,9 @@ describe("useNamespaceInvitations", () => {
     });
 
     it("defaults invitations to empty array while loading", () => {
-      mockFetchFn.mockReturnValue(new Promise(() => {}));
+      mockGetNamespaceMembershipInvitationList.mockReturnValue(
+        new Promise(() => {}),
+      );
 
       const { result } = renderHookWithClient(() =>
         useNamespaceInvitations({ tenantId: "t1" }),
@@ -94,7 +85,7 @@ describe("useNamespaceInvitations", () => {
 
     it("exposes error when query fails", async () => {
       const err = new Error("fetch failed");
-      mockFetchFn.mockRejectedValue(err);
+      mockGetNamespaceMembershipInvitationList.mockRejectedValue(err);
 
       const { result } = renderHookWithClient(() =>
         useNamespaceInvitations({ tenantId: "t1" }),
@@ -107,34 +98,40 @@ describe("useNamespaceInvitations", () => {
 
   describe("enabled flag", () => {
     it("does not fetch when enabled is false", () => {
-      mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
+      mockGetNamespaceMembershipInvitationList.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
+      );
 
       renderHookWithClient(() =>
         useNamespaceInvitations({ tenantId: "t1", enabled: false }),
       );
 
-      expect(mockFetchFn).not.toHaveBeenCalled();
+      expect(mockGetNamespaceMembershipInvitationList).not.toHaveBeenCalled();
     });
 
     it("does not fetch when tenantId is empty", () => {
-      mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
+      mockGetNamespaceMembershipInvitationList.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
+      );
 
       renderHookWithClient(() => useNamespaceInvitations({ tenantId: "" }));
 
-      expect(mockFetchFn).not.toHaveBeenCalled();
+      expect(mockGetNamespaceMembershipInvitationList).not.toHaveBeenCalled();
     });
   });
 
   describe("pagination", () => {
     it("uses page 1 and perPage 10 as defaults", async () => {
-      mockFetchFn.mockResolvedValue({ data: [], totalCount: 0 });
+      mockGetNamespaceMembershipInvitationList.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
+      );
 
       renderHookWithClient(() => useNamespaceInvitations({ tenantId: "t1" }));
 
-      await waitFor(() => expect(mockFetchFn).toHaveBeenCalled());
-      const [opts] = mockFetchFn.mock.calls[0] as [
-        { query: Record<string, unknown> },
-      ];
+      await waitFor(() =>
+        expect(mockGetNamespaceMembershipInvitationList).toHaveBeenCalled(),
+      );
+      const [opts] = mockGetNamespaceMembershipInvitationList.mock.calls[0];
       expect(opts.query.page).toBe(1);
       expect(opts.query.per_page).toBe(10);
     });
@@ -143,12 +140,14 @@ describe("useNamespaceInvitations", () => {
 
 describe("useResolveInvitation", () => {
   it("normalizes wire fields to camelCase", async () => {
-    mockResolveFn.mockResolvedValue({
-      tenant_id: "t1",
-      user_id: "u1",
-      email: "alice@example.com",
-      status: "confirmed",
-    });
+    mockResolveInvitation.mockResolvedValue(
+      mockSdkResponse({
+        tenant_id: "t1",
+        user_id: "u1",
+        email: "alice@example.com",
+        status: "confirmed",
+      }),
+    );
 
     const { result } = renderHookWithClient(() => useResolveInvitation("CODE"));
 
@@ -171,7 +170,7 @@ describe("useResolveInvitation", () => {
         status: "confirmed",
         [field]: null,
       };
-      mockResolveFn.mockResolvedValue(data);
+      mockResolveInvitation.mockResolvedValue(mockSdkResponse(data));
 
       const { result } = renderHookWithClient(() =>
         useResolveInvitation("CODE"),
@@ -183,12 +182,14 @@ describe("useResolveInvitation", () => {
   );
 
   it("falls back to empty string when email is null", async () => {
-    mockResolveFn.mockResolvedValue({
-      tenant_id: "t1",
-      user_id: "u1",
-      email: null,
-      status: "invited",
-    });
+    mockResolveInvitation.mockResolvedValue(
+      mockSdkResponse({
+        tenant_id: "t1",
+        user_id: "u1",
+        email: null,
+        status: "invited",
+      }),
+    );
 
     const { result } = renderHookWithClient(() => useResolveInvitation("CODE"));
 
@@ -201,6 +202,6 @@ describe("useResolveInvitation", () => {
 
     expect(result.current.resolved).toBeNull();
     expect(result.current.isLoading).toBe(false);
-    expect(mockResolveFn).not.toHaveBeenCalled();
+    expect(mockResolveInvitation).not.toHaveBeenCalled();
   });
 });

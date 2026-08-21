@@ -12,39 +12,30 @@ import type { Info, UserAuth } from "@/client";
 import { mockUserAuth } from "@/tests/factories";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
+import { getConfig, defaultConfig } from "@/env";
 import { mockSdkResponse, makeSdkError, type SdkResponse } from "@/tests/sdk";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
+const mockLogin = vi.hoisted(() => vi.fn());
+const mockGetInfo = vi.hoisted(() => vi.fn());
+const mockGetSamlAuthUrl = vi.hoisted(() => vi.fn());
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/client", () => ({
-  login: vi.fn(),
-  getUserInfo: vi.fn(),
-  updateUser: vi.fn(),
-  deleteUser: vi.fn(),
-  authMfa: vi.fn(),
-  mfaRecover: vi.fn(),
-  requestResetMfa: vi.fn(),
-  resetMfa: vi.fn(),
-  resendEmail: vi.fn(),
-  getInfo: vi.fn(),
-  getSamlAuthUrl: vi.fn(),
-}));
-import {
-  login as loginSdk,
-  getInfo as getInfoSdk,
-  getSamlAuthUrl as getSamlAuthUrlSdk,
-} from "@/client";
-import { getConfig, defaultConfig } from "@/env";
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    login: mockLogin,
+    getInfo: mockGetInfo,
+    getSamlAuthUrl: mockGetSamlAuthUrl,
+  };
+});
 
-const mockedLogin = vi.mocked(loginSdk);
-const mockedGetInfo = vi.mocked(getInfoSdk);
-const mockedGetSamlAuthUrl = vi.mocked(getSamlAuthUrlSdk);
-const mockedGetConfig = vi.mocked(getConfig);
+const mockGetConfig = vi.mocked(getConfig);
 
 function mockInfo(overrides: Partial<Info> = {}): Info {
   return {
@@ -81,14 +72,14 @@ async function fillAndSubmit(
 describe("Login", () => {
   beforeEach(() => {
     mockNavigate.mockReset();
-    mockedLogin.mockReset();
-    mockedGetSamlAuthUrl.mockReset();
-    mockedGetInfo.mockResolvedValue(
+    mockLogin.mockReset();
+    mockGetSamlAuthUrl.mockReset();
+    mockGetInfo.mockResolvedValue(
       mockSdkResponse(
         mockInfo({ authentication: { local: true, saml: false } }),
       ),
     );
-    mockedGetConfig.mockReturnValue({ ...defaultConfig });
+    mockGetConfig.mockReturnValue({ ...defaultConfig });
     localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
     useAuthStore.setState({
       token: null,
@@ -127,7 +118,7 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
 
-      expect(mockedLogin).toHaveBeenCalledWith(
+      expect(mockLogin).toHaveBeenCalledWith(
         expect.objectContaining({
           body: { username: "admin", password: "secret" },
         }),
@@ -138,7 +129,7 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit("admin", "  secret  ");
 
-      expect(mockedLogin).toHaveBeenCalledWith(
+      expect(mockLogin).toHaveBeenCalledWith(
         expect.objectContaining({
           body: { username: "admin", password: "  secret  " },
         }),
@@ -186,7 +177,7 @@ describe("Login", () => {
 
   describe("successful login", () => {
     it("navigates to /dashboard on success", async () => {
-      mockedLogin.mockResolvedValue(
+      mockLogin.mockResolvedValue(
         mockSdkResponse(mockUserAuth({ token: "jwt" })),
       );
 
@@ -200,7 +191,7 @@ describe("Login", () => {
   describe("loading state", () => {
     it("shows Authenticating... and disables the button while the request is in flight", async () => {
       let resolveLogin!: () => void;
-      mockedLogin.mockReturnValue(
+      mockLogin.mockReturnValue(
         new Promise<SdkResponse<UserAuth>>((resolve) => {
           resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
         }),
@@ -229,7 +220,7 @@ describe("Login", () => {
 
     it("marks the submit button aria-busy while the request is in flight (DS Button loading prop)", async () => {
       let resolveLogin!: () => void;
-      mockedLogin.mockReturnValue(
+      mockLogin.mockReturnValue(
         new Promise<SdkResponse<UserAuth>>((resolve) => {
           resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
         }),
@@ -261,7 +252,7 @@ describe("Login", () => {
 
   describe("error handling", () => {
     it("shows invalid credentials error on 401", async () => {
-      mockedLogin.mockRejectedValue(makeSdkError(401));
+      mockLogin.mockRejectedValue(makeSdkError(401));
 
       renderLogin();
       await fillAndSubmit();
@@ -273,7 +264,7 @@ describe("Login", () => {
     });
 
     it("redirects to confirm-account with the trimmed username on 403", async () => {
-      mockedLogin.mockRejectedValue(makeSdkError(403));
+      mockLogin.mockRejectedValue(makeSdkError(403));
 
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
@@ -285,7 +276,7 @@ describe("Login", () => {
 
     it("shows rate-limit error on 429", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 60;
-      mockedLogin.mockRejectedValue(
+      mockLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -299,7 +290,7 @@ describe("Login", () => {
     });
 
     it("shows generic server error on unexpected status codes", async () => {
-      mockedLogin.mockRejectedValue(makeSdkError(500));
+      mockLogin.mockRejectedValue(makeSdkError(500));
 
       renderLogin();
       await fillAndSubmit();
@@ -311,7 +302,7 @@ describe("Login", () => {
     });
 
     it("shows generic error on non-axios errors", async () => {
-      mockedLogin.mockRejectedValue(new Error("Network error"));
+      mockLogin.mockRejectedValue(new Error("Network error"));
 
       renderLogin();
       await fillAndSubmit();
@@ -321,8 +312,8 @@ describe("Login", () => {
     });
 
     it("clears the error when a new submit is attempted", async () => {
-      mockedLogin.mockRejectedValueOnce(makeSdkError(401));
-      mockedLogin.mockResolvedValueOnce(
+      mockLogin.mockRejectedValueOnce(makeSdkError(401));
+      mockLogin.mockResolvedValueOnce(
         mockSdkResponse(mockUserAuth({ token: "jwt" })),
       );
 
@@ -346,7 +337,7 @@ describe("Login", () => {
 
     it("displays the remaining lockout time after the first interval tick", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      mockedLogin.mockRejectedValue(
+      mockLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -367,7 +358,7 @@ describe("Login", () => {
 
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 1;
-      mockedLogin.mockRejectedValue(
+      mockLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -397,7 +388,7 @@ describe("Login", () => {
   describe("under a browser-translated DOM", () => {
     it("keeps updating the lockout countdown", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      mockedLogin.mockRejectedValue(
+      mockLogin.mockRejectedValue(
         makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -415,8 +406,8 @@ describe("Login", () => {
 
   describe("SSO / SAML button", () => {
     it("does not show SSO button on community edition", async () => {
-      mockedGetConfig.mockReturnValue({ ...defaultConfig });
-      mockedGetInfo.mockResolvedValue(
+      mockGetConfig.mockReturnValue({ ...defaultConfig });
+      mockGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: true } }),
         ),
@@ -424,17 +415,17 @@ describe("Login", () => {
 
       renderLogin();
 
-      await waitFor(() => expect(mockedGetInfo).toHaveBeenCalled());
+      await waitFor(() => expect(mockGetInfo).toHaveBeenCalled());
 
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
     });
 
     it("does not show SSO button when saml is false", async () => {
-      mockedGetConfig.mockReturnValue({
+      mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockedGetInfo.mockResolvedValue(
+      mockGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: false } }),
         ),
@@ -442,7 +433,7 @@ describe("Login", () => {
 
       renderLogin();
 
-      await waitFor(() => expect(mockedGetInfo).toHaveBeenCalled());
+      await waitFor(() => expect(mockGetInfo).toHaveBeenCalled());
 
       expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
     });
@@ -450,8 +441,8 @@ describe("Login", () => {
     it.each(["enterprise", "cloud"] as const)(
       "shows SSO button when edition=%s and saml is true",
       async (edition) => {
-        mockedGetConfig.mockReturnValue({ ...defaultConfig, edition });
-        mockedGetInfo.mockResolvedValue(
+        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        mockGetInfo.mockResolvedValue(
           mockSdkResponse(
             mockInfo({ authentication: { local: true, saml: true } }),
           ),
@@ -473,16 +464,16 @@ describe("Login", () => {
       });
 
       try {
-        mockedGetConfig.mockReturnValue({
+        mockGetConfig.mockReturnValue({
           ...defaultConfig,
           edition: "enterprise",
         });
-        mockedGetInfo.mockResolvedValue(
+        mockGetInfo.mockResolvedValue(
           mockSdkResponse(
             mockInfo({ authentication: { local: true, saml: true } }),
           ),
         );
-        mockedGetSamlAuthUrl.mockResolvedValue(
+        mockGetSamlAuthUrl.mockResolvedValue(
           mockSdkResponse({ url: "https://idp.example.com/sso" }),
         );
 
@@ -505,16 +496,16 @@ describe("Login", () => {
     });
 
     it("shows error when SSO URL fetch fails", async () => {
-      mockedGetConfig.mockReturnValue({
+      mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockedGetInfo.mockResolvedValue(
+      mockGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: true } }),
         ),
       );
-      mockedGetSamlAuthUrl.mockRejectedValue(new Error("Network error"));
+      mockGetSamlAuthUrl.mockRejectedValue(new Error("Network error"));
 
       renderLogin();
 
@@ -529,11 +520,11 @@ describe("Login", () => {
     });
 
     it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {
-      mockedGetConfig.mockReturnValue({
+      mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockedGetInfo.mockResolvedValue(
+      mockGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: false, saml: true } }),
         ),
@@ -555,7 +546,7 @@ describe("Login", () => {
 
   describe("pending device code", () => {
     it("redirects to /accept-device when a pending code exists and no explicit redirect", async () => {
-      mockedLogin.mockResolvedValue(
+      mockLogin.mockResolvedValue(
         mockSdkResponse(mockUserAuth({ token: "jwt" })),
       );
       setPendingDeviceCode("WXYZ2K7Q");
@@ -568,7 +559,7 @@ describe("Login", () => {
     });
 
     it("prefers an explicit redirect over the pending code", async () => {
-      mockedLogin.mockResolvedValue(
+      mockLogin.mockResolvedValue(
         mockSdkResponse(mockUserAuth({ token: "jwt" })),
       );
       setPendingDeviceCode("WXYZ2K7Q");
@@ -585,7 +576,7 @@ describe("Login", () => {
     });
 
     it("does not consume the code when MFA is required", async () => {
-      mockedLogin.mockImplementation(async () => {
+      mockLogin.mockImplementation(async () => {
         useAuthStore.setState({ mfaToken: "mfa-temp" });
         return mockSdkResponse(mockUserAuth({ token: "jwt" }));
       });

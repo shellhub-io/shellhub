@@ -1,19 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import MfaDisableDialog from "../MfaDisableDialog";
-import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
-
-vi.mock("@/client", () => ({
-  disableMfa: vi.fn(),
-  requestResetMfa: vi.fn(),
-}));
-
-import { disableMfa, requestResetMfa } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
+import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
+import MfaDisableDialog from "../MfaDisableDialog";
 
-const mockedDisableMfa = vi.mocked(disableMfa);
-const mockedRequestResetMfa = vi.mocked(requestResetMfa);
+const mockDisableMfa = vi.hoisted(() => vi.fn());
+const mockRequestResetMfa = vi.hoisted(() => vi.fn());
+
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    disableMfa: mockDisableMfa,
+    requestResetMfa: mockRequestResetMfa,
+  };
+});
 
 describe("MfaDisableDialog", () => {
   const onClose = vi.fn();
@@ -42,7 +44,7 @@ describe("MfaDisableDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
+    mockDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("Mode Switching", () => {
@@ -95,7 +97,7 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(mockedDisableMfa).toHaveBeenCalledWith({
+        expect(mockDisableMfa).toHaveBeenCalledWith({
           body: { code: "123456" },
           throwOnError: true,
         });
@@ -105,7 +107,7 @@ describe("MfaDisableDialog", () => {
     });
 
     it("shows error on invalid TOTP", async () => {
-      mockedDisableMfa.mockRejectedValue(new Error("Invalid code"));
+      mockDisableMfa.mockRejectedValue(new Error("Invalid code"));
       const user = renderDialog();
 
       await fillTotpCode(user, "999999");
@@ -152,7 +154,7 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(mockedDisableMfa).toHaveBeenCalledWith({
+        expect(mockDisableMfa).toHaveBeenCalledWith({
           body: { recovery_code: "valid-recovery-code" },
           throwOnError: true,
         });
@@ -162,7 +164,7 @@ describe("MfaDisableDialog", () => {
     });
 
     it("shows error on invalid recovery code", async () => {
-      mockedDisableMfa.mockRejectedValue(new Error("Invalid recovery code"));
+      mockDisableMfa.mockRejectedValue(new Error("Invalid recovery code"));
       const user = renderDialog();
 
       await user.click(screen.getByText(/use recovery code/i));
@@ -215,7 +217,7 @@ describe("MfaDisableDialog", () => {
   describe("Loading State", () => {
     it("disables submit button while submitting", async () => {
       let resolveDisable: (v: SdkResponse) => void;
-      mockedDisableMfa.mockReturnValue(
+      mockDisableMfa.mockReturnValue(
         new Promise<SdkResponse>((resolve) => {
           resolveDisable = resolve;
         }),
@@ -242,7 +244,7 @@ describe("MfaDisableDialog", () => {
 
   describe("Error Handling", () => {
     it("shows error after failed TOTP submit and switches to recovery mode", async () => {
-      mockedDisableMfa.mockRejectedValue(new Error("Invalid code"));
+      mockDisableMfa.mockRejectedValue(new Error("Invalid code"));
       const user = renderDialog();
 
       await fillTotpCode(user, "999999");
@@ -264,7 +266,7 @@ describe("MfaDisableDialog", () => {
   describe("Email-Reset Mode", () => {
     beforeEach(() => {
       useAuthStore.setState({ user: "admin" });
-      mockedRequestResetMfa.mockResolvedValue(
+      mockRequestResetMfa.mockResolvedValue(
         mockSdkResponse({ token: "reset-token" }),
       );
     });
@@ -328,7 +330,7 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
       await waitFor(() => {
-        expect(mockedDisableMfa).toHaveBeenCalledWith({
+        expect(mockDisableMfa).toHaveBeenCalledWith({
           body: { main_email_code: "ABCDE", recovery_email_code: "12345" },
           throwOnError: true,
         });
@@ -338,7 +340,7 @@ describe("MfaDisableDialog", () => {
     });
 
     it("shows error and resets OTP inputs on failure", async () => {
-      mockedDisableMfa.mockRejectedValue(new Error("Invalid codes"));
+      mockDisableMfa.mockRejectedValue(new Error("Invalid codes"));
       const user = renderDialog();
 
       await navigateToEmailReset(user);

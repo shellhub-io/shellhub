@@ -4,12 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("@/client", () => ({
-  getNamespace: vi.fn(),
-  editNamespace: vi.fn(),
-  deleteNamespace: vi.fn(),
-  leaveNamespace: vi.fn(),
-}));
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespace: vi.fn(() => ({
     namespace: {

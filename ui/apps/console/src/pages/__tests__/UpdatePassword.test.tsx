@@ -12,12 +12,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/client", () => ({
-  updateRecoverPassword: vi.fn(),
-}));
+const mockUpdateRecoverPassword = vi.hoisted(() => vi.fn());
 
-import { updateRecoverPassword } from "@/client";
-const mockedUpdate = vi.mocked(updateRecoverPassword);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, updateRecoverPassword: mockUpdateRecoverPassword };
+});
 
 function renderWithParams(search = "?id=uid123&token=tok456") {
   return render(
@@ -32,8 +32,8 @@ function renderWithParams(search = "?id=uid123&token=tok456") {
 
 beforeEach(() => {
   mockNavigate.mockReset();
-  mockedUpdate.mockReset();
-  mockedUpdate.mockResolvedValue(mockSdkResponse(undefined));
+  mockUpdateRecoverPassword.mockReset();
+  mockUpdateRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("UpdatePassword", () => {
@@ -158,8 +158,10 @@ describe("UpdatePassword", () => {
         screen.getByRole("button", { name: /update password/i }),
       );
 
-      await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1));
-      expect(mockedUpdate).toHaveBeenCalledWith(
+      await waitFor(() =>
+        expect(mockUpdateRecoverPassword).toHaveBeenCalledTimes(1),
+      );
+      expect(mockUpdateRecoverPassword).toHaveBeenCalledWith(
         expect.objectContaining({
           path: { uid: "uid123" },
           body: expect.objectContaining({
@@ -196,7 +198,7 @@ describe("UpdatePassword", () => {
 
   describe("API failure", () => {
     it("shows a generic error message when the API call fails", async () => {
-      mockedUpdate.mockRejectedValue(new Error("network error"));
+      mockUpdateRecoverPassword.mockRejectedValue(new Error("network error"));
       const user = userEvent.setup();
       renderWithParams();
 

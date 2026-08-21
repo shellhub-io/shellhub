@@ -19,6 +19,10 @@ export function mockSdkResponse<T>(
   };
 }
 
+export function paginatedResponse<T>(data: T[], total = data.length) {
+  return mockSdkResponse(data, { "X-Total-Count": String(total) });
+}
+
 export function makeSdkError(
   status: number,
   headers?: HeadersInit,
