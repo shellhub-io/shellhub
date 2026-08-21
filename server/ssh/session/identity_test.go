@@ -38,9 +38,9 @@ func newIdentitySession(service services.Service, mode string) *Session {
 			},
 		},
 		once:   new(sync.Once),
-		Seats:  NewSeats(),
-		Agent:  &Agent{Channels: make(map[int]*AgentChannel)},
-		Client: &Client{Channels: make(map[int]*ClientChannel)},
+		seats:  newSeats(),
+		agent:  &Agent{channels: make(map[int]*AgentChannel)},
+		client: &Client{channels: make(map[int]*ClientChannel)},
 	}
 }
 

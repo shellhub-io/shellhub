@@ -50,7 +50,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	defer Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 
 	sess := newTestSession(nil)
-	sess.Agent.Conn = peer
+	sess.agent.conn = peer
 
 	noAuth := func(*Session, *gossh.ClientConfig) error { return nil }
 
@@ -99,7 +99,7 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 
 	sess := newTestSession(nil)
-	sess.Agent.Conn = peer
+	sess.agent.conn = peer
 
 	noAuth := func(*Session, *gossh.ClientConfig) error { return nil }
 

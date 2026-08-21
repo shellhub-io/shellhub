@@ -78,27 +78,27 @@ func (a *AgentChannel) Close() error {
 
 // Agent represents a connection to an agent.
 type Agent struct {
-	// Conn is the connection between the Server and Agent.
-	Conn net.Conn
-	// Client is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
-	Client *gossh.Client
-	// mu guards Channels. Channel handlers run one goroutine per channel open on
+	// conn is the connection between the Server and Agent.
+	conn net.Conn
+	// client is a [gossh.Client] connected and authenticated to the agent, waiting for an open session request.
+	client *gossh.Client
+	// mu guards channels. Channel handlers run one goroutine per channel open on
 	// a shared connection, so an unguarded map here is a runtime fatal error that
 	// recover cannot contain — and the HTTP API shares this process.
 	mu sync.Mutex
-	// Channels store the channels to agent, and its seat.
-	Channels map[int]*AgentChannel
+	// channels store the channels to agent, and its seat.
+	channels map[int]*AgentChannel
 }
 
 // Close closes the underlying ssh client connection.
 func (a *Agent) Close() error {
 	a.mu.Lock()
-	for _, channel := range a.Channels {
+	for _, channel := range a.channels {
 		channel.Close() //nolint:errcheck
 	}
 	a.mu.Unlock()
 
-	return a.Client.Close()
+	return a.client.Close()
 }
 
 // ClientChannel represents a channel open between client and server.
@@ -116,10 +116,10 @@ func (c *ClientChannel) Close() error {
 
 // Client represents a connection to a client.
 type Client struct {
-	// mu guards Channels, for the same reason as [Agent.mu].
+	// mu guards channels, for the same reason as [Agent.mu].
 	mu sync.Mutex
-	// Channels store the channels to client, and its seat.
-	Channels map[int]*ClientChannel
+	// channels store the channels to client, and its seat.
+	channels map[int]*ClientChannel
 }
 
 // Close closes a connection to client and all its channels.
@@ -127,7 +127,7 @@ func (c *Client) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	for _, channel := range c.Channels {
+	for _, channel := range c.channels {
 		if err := channel.Close(); err != nil {
 			return err
 		}
@@ -141,10 +141,10 @@ type Session struct {
 	// UID is the session's UID.
 	UID string
 
-	// Agent represents a connection to an Agent.
-	Agent *Agent
-	// Client represents a connection to a Client.
-	Client *Client
+	// agent represents a connection to an Agent.
+	agent *Agent
+	// client represents a connection to a Client.
+	client *Client
 
 	// service is the API's service layer, reached in process: both halves run in
 	// the same binary.
@@ -155,11 +155,11 @@ type Session struct {
 
 	once *sync.Once
 
-	// Seats represents passengers a session.
+	// seats represents passengers a session.
 	//
 	// A passenger is, in a multiplexed SSH session, the subsequent SSH sessions that connect to the same server using
 	// the already established master connection.
-	Seats Seats
+	seats seats
 
 	Data
 }
@@ -174,32 +174,32 @@ type Seat struct {
 	Type string
 }
 
-type Seats struct {
+type seats struct {
 	mu *sync.Mutex
 	// counter count atomically seats of a session.
 	counter *atomic.Int32
-	// Items represents the individual seat of a session.
-	Items *sync.Map
+	// items represents the individual seat of a session.
+	items *sync.Map
 }
 
-// NewSeats creates a new [Seats] defining initial values for internal properties.
-func NewSeats() Seats {
-	return Seats{
+// newSeats creates a new [seats] defining initial values for internal properties.
+func newSeats() seats {
+	return seats{
 		mu:      new(sync.Mutex),
 		counter: new(atomic.Int32),
-		Items:   new(sync.Map),
+		items:   new(sync.Map),
 	}
 }
 
 // NewSeat creates a new seat inside seats.
-func (s *Seats) NewSeat() (int, error) {
+func (s *seats) NewSeat() (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	id := int(s.counter.Load())
 	defer s.counter.Add(1)
 
-	s.Items.Store(id, &Seat{
+	s.items.Store(id, &Seat{
 		HasPty: false,
 		Type:   "",
 	})
@@ -212,7 +212,7 @@ func (s *Seats) NewSeat() (int, error) {
 // It is a copy because the stored value is mutated in place by the setters: a
 // caller holding the pointer would read fields without synchronization, and the
 // pipe goroutine does exactly that.
-func (s *Seats) Get(seat int) (Seat, bool) {
+func (s *seats) Get(seat int) (Seat, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -224,8 +224,8 @@ func (s *Seats) Get(seat int) (Seat, bool) {
 	return *item, true
 }
 
-func (s *Seats) load(seat int) (*Seat, bool) {
-	loaded, ok := s.Items.Load(seat)
+func (s *seats) load(seat int) (*Seat, bool) {
+	loaded, ok := s.items.Load(seat)
 	if !ok {
 		return nil, false
 	}
@@ -239,7 +239,7 @@ func (s *Seats) load(seat int) (*Seat, bool) {
 }
 
 // SetPty sets a pty status to a seat from their id.
-func (s *Seats) SetPty(seat int, status bool) {
+func (s *seats) SetPty(seat int, status bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -252,11 +252,11 @@ func (s *Seats) SetPty(seat int, status bool) {
 
 	item.HasPty = status
 
-	s.Items.Store(seat, item)
+	s.items.Store(seat, item)
 }
 
 // SetType sets the connection type on a seat from their id.
-func (s *Seats) SetType(seat int, kind string) {
+func (s *seats) SetType(seat int, kind string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -269,7 +269,7 @@ func (s *Seats) SetType(seat int, kind string) {
 
 	item.Type = kind
 
-	s.Items.Store(seat, item)
+	s.items.Store(seat, item)
 }
 
 // NewSession creates a new Session but differs from [New] as it only creates
@@ -277,8 +277,6 @@ func (s *Seats) SetType(seat int, kind string) {
 //
 // It's designed to be used within New.
 func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.Service, handoff *webhandoff.Store) (*Session, error) {
-	snap := getSnapshot(ctx)
-
 	sshid := ctx.User()
 
 	hos, err := host.NewHost(ctx.RemoteAddr().String())
@@ -364,26 +362,26 @@ func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, service services.S
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
-		Seats: NewSeats(),
-		Agent: &Agent{
-			Channels: make(map[int]*AgentChannel),
+		seats: newSeats(),
+		agent: &Agent{
+			channels: make(map[int]*AgentChannel),
 		},
-		Client: &Client{
-			Channels: make(map[int]*ClientChannel),
+		client: &Client{
+			channels: make(map[int]*ClientChannel),
 		},
 	}
 
-	snap.save(session, StateCreated)
+	advance(ctx, session, StateCreated)
 
 	return session, nil
 }
 
 // NewClientChannel accepts a new channel from a client and set a seat for it.
 func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*ClientChannel, error) {
-	s.Client.mu.Lock()
-	defer s.Client.mu.Unlock()
+	s.client.mu.Lock()
+	defer s.client.mu.Unlock()
 
-	if _, ok := s.Client.Channels[seat]; ok {
+	if _, ok := s.client.channels[seat]; ok {
 		return nil, ErrSeatAlreadySet
 	}
 
@@ -397,21 +395,21 @@ func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*Clie
 		Requests: requests,
 	}
 
-	s.Client.Channels[seat] = c
+	s.client.channels[seat] = c
 
 	return c, nil
 }
 
 // NewAgentChannel opens a new channel to agent and set a seat for it.
 func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) {
-	s.Agent.mu.Lock()
-	defer s.Agent.mu.Unlock()
+	s.agent.mu.Lock()
+	defer s.agent.mu.Unlock()
 
-	if _, ok := s.Agent.Channels[seat]; ok {
+	if _, ok := s.agent.channels[seat]; ok {
 		return nil, ErrSeatAlreadySet
 	}
 
-	channel, requests, err := s.Agent.Client.OpenChannel(name, nil)
+	channel, requests, err := s.agent.client.OpenChannel(name, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -421,7 +419,7 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 		Requests: requests,
 	}
 
-	s.Agent.Channels[seat] = a
+	s.agent.channels[seat] = a
 
 	return a, nil
 }
@@ -429,16 +427,16 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 // DropAgentChannel closes the agent channel on a seat and forgets it, so a seat
 // whose client side failed to open does not keep a live channel behind it.
 func (s *Session) DropAgentChannel(seat int) {
-	s.Agent.mu.Lock()
-	defer s.Agent.mu.Unlock()
+	s.agent.mu.Lock()
+	defer s.agent.mu.Unlock()
 
-	channel, ok := s.Agent.Channels[seat]
+	channel, ok := s.agent.channels[seat]
 	if !ok {
 		return
 	}
 
 	channel.Close() //nolint:errcheck
-	delete(s.Agent.Channels, seat)
+	delete(s.agent.channels, seat)
 }
 
 func (s *Session) checkFirewall(ctx context.Context) error {
@@ -528,7 +526,7 @@ func (s *Session) Recorded(seat int) error {
 		return ErrRecordingDisabled
 	}
 
-	if seat, ok := s.Seats.Get(seat); !ok || !seat.HasPty {
+	if seat, ok := s.seats.Get(seat); !ok || !seat.HasPty {
 		return ErrRecordingNoPty
 	}
 
@@ -558,7 +556,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	const Addr = "tcp"
 
 	// NOTICE: When the agent connection is closed, we should redial this connection before trying to authenticate.
-	if s.Agent.Conn == nil {
+	if s.agent.conn == nil {
 		if err := s.Dial(ctx); err != nil {
 			return err
 		}
@@ -567,7 +565,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	if config.Timeout > 0 {
 		// Both directions: an agent that accepts the stream and never drains it
 		// blocks the write just as surely as a silent one blocks the read.
-		if err := s.Agent.Conn.SetDeadline(clock.Now().Add(config.Timeout)); err != nil {
+		if err := s.agent.conn.SetDeadline(clock.Now().Add(config.Timeout)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
@@ -576,7 +574,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
-	conn, chans, reqs, err := gossh.NewClientConn(s.Agent.Conn, Addr, config)
+	conn, chans, reqs, err := gossh.NewClientConn(s.agent.conn, Addr, config)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID}).
@@ -584,13 +582,13 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 			// NOTICE: To help to identify when the Agent's connection is closed, we set it to nil when an
 			// authentication error happens.
-		s.Agent.Conn = nil
+		s.agent.conn = nil
 
 		return err
 	}
 
 	if config.Timeout > 0 {
-		if err := s.Agent.Conn.SetDeadline(time.Time{}); err != nil {
+		if err := s.agent.conn.SetDeadline(time.Time{}); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
@@ -602,7 +600,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	ch := make(chan *gossh.Request)
 	close(ch)
 
-	s.Agent.Client = gossh.NewClient(conn, chans, ch)
+	s.agent.client = gossh.NewClient(conn, chans, ch)
 
 	go s.drainAgentRequests(ctx, reqs)
 
@@ -673,7 +671,7 @@ var ErrDialUnknown = errors.New("unknown protocol version")
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
 // V2 transports a multistream protocol selection is performed using the
 // ProtoSSHOpen identifier followed by a JSON envelope with the session
-// id. After this method returns s.Agent.Conn is a raw channel ready for
+// id. After this method returns s.agent.conn is a raw channel ready for
 // SSH key exchange and channel opens.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
@@ -688,7 +686,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 		return errors.Join(ErrDial, err)
 	}
 
-	s.Agent.Conn = conn
+	s.agent.conn = conn
 
 	return nil
 }
@@ -703,8 +701,6 @@ func (s *Session) checkLicense(ctx context.Context) error {
 }
 
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
-	snap := getSnapshot(ctx)
-
 	if envs.IsEnterprise() {
 		if err := s.checkLicense(ctx); err != nil {
 			return err
@@ -740,7 +736,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 		}
 	}
 
-	snap.save(s, StateEvaluated)
+	advance(ctx, s, StateEvaluated)
 
 	return nil
 }
@@ -871,12 +867,10 @@ func buildReauthBanner(domain string, autoSSL bool, code string) string {
 // Next steps can use the context's snapshot to retrieve the created session. An error is
 // returned if any occurs.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
-	snap := getSnapshot(ctx)
-
 	// The following code is structured to be read from top to bottom, disregarding the
 	// switch and case statements. These statements serve as a "cache" for handling
 	// different states efficiently.
-	sess, state := snap.retrieve()
+	sess, state := ObtainSession(ctx)
 	switch state {
 	case StateEvaluated:
 		if err := auth.Evaluate(sess); err != nil {
@@ -887,7 +881,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		snap.save(sess, StateRegistered)
+		advance(ctx, sess, StateRegistered)
 
 		fallthrough
 	case StateRegistered:
@@ -918,13 +912,51 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 		return errors.New("invalid session state")
 	}
 
-	snap.save(sess, StateFinished)
+	advance(ctx, sess, StateFinished)
 
 	return nil
 }
 
 func (s *Session) NewSeat() (int, error) {
-	return s.Seats.NewSeat()
+	return s.seats.NewSeat()
+}
+
+// Seat returns a copy of the seat with the given id.
+func (s *Session) Seat(seat int) (Seat, bool) {
+	return s.seats.Get(seat)
+}
+
+// SetSeatPty records whether the seat has a pty.
+func (s *Session) SetSeatPty(seat int, status bool) {
+	s.seats.SetPty(seat, status)
+}
+
+// SetSeatType records the connection type requested on the seat, such as
+// [SeatTypeExec].
+func (s *Session) SetSeatType(seat int, kind string) {
+	s.seats.SetType(seat, kind)
+}
+
+// LogFields returns the fields that identify this session in a log line.
+//
+// It tolerates a partially built session: log calls sit on failure paths, where
+// the session may not have got far enough to have a device.
+func (s *Session) LogFields() log.Fields {
+	fields := log.Fields{
+		"session": s.UID,
+		"sshid":   s.SSHID,
+		"ip":      s.IPAddress,
+	}
+
+	if s.Device != nil {
+		fields["device"] = s.Device.UID
+	}
+
+	if s.Target != nil {
+		fields["username"] = s.Target.Username
+	}
+
+	return fields
 }
 
 // Event registers an event to the session.
@@ -938,20 +970,20 @@ func (s *Session) Event(t string, data any, seat int) {
 	})
 }
 
+// EventWriter registers events against a session. [Session] implements it; it
+// exists so the channel handlers can record events through a fake.
+type EventWriter interface {
+	Event(t string, data any, seat int)
+}
+
 // Event registers an event whose payload is an SSH request body, decoded into D.
-func Event[D any](sess *Session, t string, data []byte, seat int) {
+func Event[D any](sess EventWriter, t string, data []byte, seat int) {
 	d := new(D)
 	if err := gossh.Unmarshal(data, d); err != nil {
 		return
 	}
 
-	sess.Events.Write(models.SessionEvent{
-		Session:   sess.UID,
-		Type:      models.SessionEventType(t),
-		Timestamp: clock.Now(),
-		Data:      d,
-		Seat:      seat,
-	})
+	sess.Event(t, d, seat)
 }
 
 func (s *Session) KeepAlive(ctx context.Context) error {
@@ -1008,10 +1040,10 @@ func (s *Session) Finish() (err error) {
 		// would ever read it again.
 		s.Events.Close() //nolint:errcheck
 
-		if s.Agent.Conn != nil {
+		if s.agent.conn != nil {
 			request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/ssh/close/%s", s.UID), nil)
 
-			if err = request.Write(s.Agent.Conn); err != nil {
+			if err = request.Write(s.agent.conn); err != nil {
 				log.WithError(err).
 					WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 					Warning("Error when trying write the request to /ssh/close")
