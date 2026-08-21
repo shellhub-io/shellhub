@@ -5,26 +5,19 @@ import { MemoryRouter } from "react-router-dom";
 import SSHIdentities from "../index";
 import type { SshIdentity } from "@/client";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
+import { mockSdkResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
+const mockListSshIdentities = vi.hoisted(() => vi.fn());
 
-const mockIdentities =
-  vi.fn<() => { identities: SshIdentity[]; isLoading: boolean }>();
-
-vi.mock("@/hooks/useSSHIdentities", () => ({
-  useSSHIdentities: () => mockIdentities(),
-}));
-
-vi.mock("@/hooks/useSSHIdentityMutations", () => ({
-  useDeleteSSHIdentity: () => ({ mutateAsync: vi.fn() }),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (selector: (s: { userId: string }) => unknown) =>
-    selector({ userId: "user1" }),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    listSshIdentities: mockListSshIdentities,
+  };
+});
 
 vi.mock("../IdentityDrawer", () => ({ default: () => null }));
 
@@ -33,10 +26,6 @@ const mockBrowserKeyFingerprint = vi.fn<() => string | null>();
 vi.mock("@/hooks/useBrowserKey", () => ({
   useBrowserKeyFingerprint: () => mockBrowserKeyFingerprint(),
 }));
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
 
 const FINGERPRINT = "SHA256:hHmU2OTPQjhAKm3ecpf4iw3lqWNCWaFbG1kBje0kn0";
 
@@ -58,7 +47,7 @@ function identity(overrides: Partial<SshIdentity> = {}): SshIdentity {
 }
 
 function renderList(identities: SshIdentity[]) {
-  mockIdentities.mockReturnValue({ identities, isLoading: false });
+  mockListSshIdentities.mockResolvedValue(mockSdkResponse(identities));
 
   return render(
     <MemoryRouter>
@@ -66,6 +55,7 @@ function renderList(identities: SshIdentity[]) {
         <SSHIdentities />
       </ClipboardProvider>
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
@@ -73,7 +63,6 @@ function rowFor(name: string) {
   return screen.getByText(name).closest("tr") as HTMLElement;
 }
 
-/** Open a row's overflow menu and choose Revoke, the way a person would. */
 async function openRevoke(user: UserEvent, name: string) {
   await user.click(
     within(rowFor(name)).getByRole("button", { name: /actions for/i }),
@@ -84,22 +73,19 @@ async function openRevoke(user: UserEvent, name: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   mockBrowserKeyFingerprint.mockReturnValue(null);
+  useAuthStore.setState({ userId: "user1" });
+  mockListSshIdentities.mockResolvedValue(mockSdkResponse([]));
 });
 
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
-
 describe("SSHIdentities", () => {
-  // The origin is drawn as a glyph, so the words only survive as the icon's
-  // accessible name. That is exactly what a screen reader reads out, which
-  // makes it the right thing to assert on.
-  it("says where each key came from", () => {
+  it("says where each key came from", async () => {
     renderList([
       identity({ id: "a", name: "chrome", source: "browser" }),
       identity({ id: "b", name: "laptop", source: "manual" }),
       identity({ id: "c", name: "workstation", source: "approval" }),
     ]);
+
+    await screen.findByText("chrome");
 
     expect(
       within(rowFor("chrome")).getByRole("img", { name: "Browser" }),
@@ -112,9 +98,7 @@ describe("SSHIdentities", () => {
     ).toBeInTheDocument();
   });
 
-  // Among several browser keys, the only one a person can act on without going
-  // to another machine is the one this browser holds.
-  it("picks out the key held by the browser in use", () => {
+  it("picks out the key held by the browser in use", async () => {
     mockBrowserKeyFingerprint.mockReturnValue(FINGERPRINT);
     renderList([
       identity({ id: "a", name: "here", source: "browser" }),
@@ -126,6 +110,8 @@ describe("SSHIdentities", () => {
       }),
     ]);
 
+    await screen.findByText("here");
+
     expect(
       within(rowFor("here")).getByRole("img", { name: "This browser" }),
     ).toBeInTheDocument();
@@ -134,10 +120,10 @@ describe("SSHIdentities", () => {
     ).toBeInTheDocument();
   });
 
-  // The cell shows a shortened fingerprint, so the full one has to stay
-  // reachable — a truncated fingerprint pasted somewhere matches nothing.
-  it("shows a shortened fingerprint but keeps the full one available", () => {
+  it("shows a shortened fingerprint but keeps the full one available", async () => {
     renderList([identity({ name: "chrome" })]);
+
+    await screen.findByText("chrome");
 
     const row = rowFor("chrome");
     expect(within(row).queryByText(FINGERPRINT)).not.toBeInTheDocument();
@@ -149,6 +135,7 @@ describe("SSHIdentities", () => {
     const user = userEvent.setup();
     renderList([identity({ name: "chrome", source: "browser" })]);
 
+    await screen.findByText("chrome");
     await openRevoke(user, "chrome");
 
     const dialog = screen.getByRole("dialog");
@@ -156,13 +143,12 @@ describe("SSHIdentities", () => {
     expect(dialog).not.toHaveTextContent(/needs approval again/i);
   });
 
-  // Revoking the key of the browser you are looking at logs that terminal out,
-  // so the warning has to be about you, not about some other browser.
   it("warns in the first person when revoking this browser's own key", async () => {
     const user = userEvent.setup();
     mockBrowserKeyFingerprint.mockReturnValue(FINGERPRINT);
     renderList([identity({ name: "here", source: "browser" })]);
 
+    await screen.findByText("here");
     await openRevoke(user, "here");
 
     expect(screen.getByRole("dialog")).toHaveTextContent(
@@ -174,6 +160,7 @@ describe("SSHIdentities", () => {
     const user = userEvent.setup();
     renderList([identity({ name: "laptop", source: "manual" })]);
 
+    await screen.findByText("laptop");
     await openRevoke(user, "laptop");
 
     expect(screen.getByRole("dialog")).toHaveTextContent(

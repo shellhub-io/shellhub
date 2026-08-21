@@ -5,13 +5,12 @@ import { MemoryRouter } from "react-router-dom";
 import ForgotPassword from "../ForgotPassword";
 import { mockSdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  recoverPassword: vi.fn(),
-}));
+const mockRecoverPassword = vi.hoisted(() => vi.fn());
 
-import { recoverPassword as recoverPasswordSdk } from "@/client";
-
-const mockedRecoverPassword = vi.mocked(recoverPasswordSdk);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, recoverPassword: mockRecoverPassword };
+});
 
 function renderForgotPassword() {
   return render(
@@ -21,7 +20,7 @@ function renderForgotPassword() {
   );
 }
 beforeEach(() => {
-  mockedRecoverPassword.mockReset();
+  mockRecoverPassword.mockReset();
 });
 
 describe("ForgotPassword", () => {
@@ -83,17 +82,15 @@ describe("ForgotPassword", () => {
     });
 
     it("calls recoverPassword with the trimmed username on valid submit", async () => {
-      mockedRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
+      mockRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
       const user = userEvent.setup();
       renderForgotPassword();
 
       await user.type(screen.getByLabelText(/username or email/i), "  alice  ");
       await user.click(screen.getByRole("button", { name: /reset password/i }));
 
-      await waitFor(() =>
-        expect(mockedRecoverPassword).toHaveBeenCalledTimes(1),
-      );
-      expect(mockedRecoverPassword).toHaveBeenCalledWith(
+      await waitFor(() => expect(mockRecoverPassword).toHaveBeenCalledTimes(1));
+      expect(mockRecoverPassword).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ username: "alice" }),
           throwOnError: true,
@@ -102,7 +99,7 @@ describe("ForgotPassword", () => {
     });
 
     it("shows the sent view after a successful submission", async () => {
-      mockedRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
+      mockRecoverPassword.mockResolvedValue(mockSdkResponse(undefined));
       const user = userEvent.setup();
       renderForgotPassword();
 
@@ -114,7 +111,7 @@ describe("ForgotPassword", () => {
     });
 
     it("shows the sent view even when the API call fails (anti-enumeration)", async () => {
-      mockedRecoverPassword.mockRejectedValue(new Error("Not Found"));
+      mockRecoverPassword.mockRejectedValue(new Error("Not Found"));
       const user = userEvent.setup();
       renderForgotPassword();
 

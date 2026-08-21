@@ -2,15 +2,25 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { makeSdkError } from "@/tests/sdk";
+import AdminFirewallRules from "../index";
+import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockFirewallRule } from "@/tests/factories";
+import { useAuthStore } from "@/stores/authStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const mockNavigate = vi.hoisted(() => vi.fn());
+const mockGetFirewallRulesAdmin = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/useAdminFirewallRules", () => ({
-  useAdminFirewallRules: vi.fn(),
-}));
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 
-// Capture DataTable props on every render so we can assert pagination suppression.
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getFirewallRulesAdmin: mockGetFirewallRulesAdmin };
+});
+
 const capturedDataTableProps: Record<string, unknown>[] = [];
 vi.mock("@/components/common/DataTable", async (importOriginal) => {
   const actual =
@@ -19,7 +29,6 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
     ...actual,
     default: (props: Record<string, unknown>) => {
       capturedDataTableProps.push({ ...props });
-      // Render the real DataTable so existing tests keep working.
       return actual.default(
         props as unknown as Parameters<typeof actual.default>[0],
       );
@@ -27,59 +36,21 @@ vi.mock("@/components/common/DataTable", async (importOriginal) => {
   };
 });
 
-// useNavigate is used by the page — mock at the module level.
-const mockNavigate = vi.fn();
-vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react-router-dom")>();
-  return { ...actual, useNavigate: () => mockNavigate };
-});
-
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
-import AdminFirewallRules from "../index";
-import { FirewallRulesResponse } from "@/client";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const defaultHookState = {
-  rules: [],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-};
-
-function makeRule(
-  overrides: Partial<FirewallRulesResponse> = {},
-): FirewallRulesResponse {
-  return {
-    id: "rule-1",
-    tenant_id: "tenant-abc",
-    priority: 1,
-    action: "allow" as const,
-    active: true,
-    source_ip: ".*",
-    username: ".*",
-    filter: { hostname: ".*", tags: [] },
-    ...overrides,
-  };
-}
-
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <AdminFirewallRules />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe("AdminFirewallRules", () => {
   beforeEach(() => {
-    vi.mocked(useAdminFirewallRules).mockReturnValue(defaultHookState);
-    mockNavigate.mockReset();
+    vi.clearAllMocks();
     capturedDataTableProps.length = 0;
+    useAuthStore.setState({ isAdmin: true });
+    mockGetFirewallRulesAdmin.mockResolvedValue(paginatedResponse([]));
   });
 
   describe("rendering", () => {
@@ -102,11 +73,7 @@ describe("AdminFirewallRules", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading firewall rules..." text', () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-        rules: [],
-      });
+      mockGetFirewallRulesAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading firewall rules...")).toBeInTheDocument();
@@ -114,145 +81,123 @@ describe("AdminFirewallRules", () => {
   });
 
   describe("empty state", () => {
-    it('renders "No firewall rules found" when the list is empty', () => {
+    it('renders "No firewall rules found" when the list is empty', async () => {
       renderPage();
-      expect(screen.getByText("No firewall rules found")).toBeInTheDocument();
+      expect(
+        await screen.findByText("No firewall rules found"),
+      ).toBeInTheDocument();
     });
   });
 
   describe("rule rows", () => {
-    it("renders a row for each returned rule", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [
-          makeRule({ id: "r1", priority: 1 }),
-          makeRule({ id: "r2", priority: 2 }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each returned rule", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockFirewallRule({ id: "r1", priority: 1 }),
+            mockFirewallRule({ id: "r2", priority: 2 }),
+          ],
+          2,
+        ),
+      );
       renderPage();
-      // Both priority values appear in the table
+      await waitFor(() => expect(screen.getAllByText("Allow").length).toBe(2));
       expect(screen.getAllByText("1")[0]).toBeInTheDocument();
       expect(screen.getAllByText("2")[0]).toBeInTheDocument();
     });
 
-    it('shows "Allow" with accent-green for an allow rule', () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ action: "allow" })],
-        totalCount: 1,
-      });
+    it('shows "Allow" with accent-green for an allow rule', async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ action: "allow" })]),
+      );
       renderPage();
-      expect(screen.getByText("Allow")).toBeInTheDocument();
+      expect(await screen.findByText("Allow")).toBeInTheDocument();
     });
 
-    it('shows "Deny" for a deny rule', () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ action: "deny" })],
-        totalCount: 1,
-      });
+    it('shows "Deny" for a deny rule', async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ action: "deny" })]),
+      );
       renderPage();
-      expect(screen.getByText("Deny")).toBeInTheDocument();
+      expect(await screen.findByText("Deny")).toBeInTheDocument();
     });
 
-    it('shows "Any IP" when source_ip is ".*"', () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ source_ip: ".*" })],
-        totalCount: 1,
-      });
+    it('shows "Any IP" when source_ip is ".*"', async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ source_ip: ".*" })]),
+      );
       renderPage();
-      expect(screen.getByText("Any IP")).toBeInTheDocument();
+      expect(await screen.findByText("Any IP")).toBeInTheDocument();
     });
 
-    it("shows specific IP when source_ip is not wildcard", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ source_ip: "192.168.1.0/24" })],
-        totalCount: 1,
-      });
+    it("shows specific IP when source_ip is not wildcard", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ source_ip: "192.168.1.0/24" })]),
+      );
       renderPage();
-      expect(screen.getByText("192.168.1.0/24")).toBeInTheDocument();
+      expect(await screen.findByText("192.168.1.0/24")).toBeInTheDocument();
     });
 
-    it('shows "All users" when username is ".*"', () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ username: ".*" })],
-        totalCount: 1,
-      });
+    it('shows "All users" when username is ".*"', async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ username: ".*" })]),
+      );
       renderPage();
-      expect(screen.getByText("All users")).toBeInTheDocument();
+      expect(await screen.findByText("All users")).toBeInTheDocument();
     });
 
-    it("shows specific username when not wildcard", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ username: "alice" })],
-        totalCount: 1,
-      });
+    it("shows specific username when not wildcard", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ username: "alice" })]),
+      );
       renderPage();
-      expect(screen.getByText("alice")).toBeInTheDocument();
+      expect(await screen.findByText("alice")).toBeInTheDocument();
     });
 
-    it("renders an Active badge for an active rule", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ active: true })],
-        totalCount: 1,
-      });
+    it("renders an Active badge for an active rule", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ active: true })]),
+      );
       renderPage();
-      expect(screen.getByText("Active")).toBeInTheDocument();
+      expect(await screen.findByText("Active")).toBeInTheDocument();
     });
 
-    it("renders an Inactive badge for an inactive rule", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ active: false })],
-        totalCount: 1,
-      });
+    it("renders an Inactive badge for an inactive rule", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ active: false })]),
+      );
       renderPage();
-      expect(screen.getByText("Inactive")).toBeInTheDocument();
+      expect(await screen.findByText("Inactive")).toBeInTheDocument();
     });
 
     it("navigates to the detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ id: "rule-abc", priority: 99 })],
-        totalCount: 1,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ id: "rule-abc", priority: 99 })]),
+      );
       renderPage();
 
-      // Click any cell in the row — use the priority text
-      await user.click(screen.getByText("99"));
+      await user.click(await screen.findByText("99"));
       expect(mockNavigate).toHaveBeenCalledWith(
         "/admin/firewall-rules/rule-abc",
       );
     });
 
-    it("renders the tenant_id as a namespace link", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ tenant_id: "tenant-xyz" })],
-        totalCount: 1,
-      });
+    it("renders the tenant_id as a namespace link", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ tenant_id: "tenant-xyz" })]),
+      );
       renderPage();
-      const link = screen.getByRole("link", { name: "tenant-xyz" });
-      expect(link).toBeInTheDocument();
+      const link = await screen.findByRole("link", { name: "tenant-xyz" });
       expect(link).toHaveAttribute("href", "/admin/namespaces/tenant-xyz");
     });
   });
 
   describe("error state", () => {
-    it("renders an error alert when the hook returns an error", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error alert when the SDK returns an error", async () => {
+      mockGetFirewallRulesAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
         screen.getByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
@@ -260,37 +205,32 @@ describe("AdminFirewallRules", () => {
   });
 
   describe("client-side search", () => {
-    // Rules are designed so each field is unique and non-overlapping with
-    // other fields, ensuring search terms match exactly one rule at a time.
-    const allowRule = makeRule({
+    const allowRule = mockFirewallRule({
       id: "r1",
       action: "allow",
       priority: 5,
-      // Distinct IP that does not appear in any field of the deny rule.
       source_ip: "172.16.0.1",
       username: ".*",
     });
-    const denyRule = makeRule({
+    const denyRule = mockFirewallRule({
       id: "r2",
       action: "deny",
-      // Priority chosen so it does not appear in any other field of either rule.
       priority: 777,
       source_ip: ".*",
       username: "zara",
     });
-    const searchRules = [allowRule, denyRule];
 
     beforeEach(() => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: searchRules,
-        totalCount: 2,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([allowRule, denyRule]),
+      );
     });
 
     it("filters rules by action text", async () => {
       const user = userEvent.setup();
       renderPage();
+
+      await screen.findByText("Allow");
 
       await user.type(
         screen.getByRole("searchbox", {
@@ -309,6 +249,8 @@ describe("AdminFirewallRules", () => {
       const user = userEvent.setup();
       renderPage();
 
+      await screen.findByText("172.16.0.1");
+
       await user.type(
         screen.getByRole("searchbox", {
           name: "Search firewall rules by action, priority, IP, or username",
@@ -325,6 +267,8 @@ describe("AdminFirewallRules", () => {
     it("filters rules by username text", async () => {
       const user = userEvent.setup();
       renderPage();
+
+      await screen.findByText("zara");
 
       await user.type(
         screen.getByRole("searchbox", {
@@ -343,6 +287,8 @@ describe("AdminFirewallRules", () => {
       const user = userEvent.setup();
       renderPage();
 
+      await screen.findByText("777");
+
       await user.type(
         screen.getByRole("searchbox", {
           name: "Search firewall rules by action, priority, IP, or username",
@@ -360,6 +306,8 @@ describe("AdminFirewallRules", () => {
       const user = userEvent.setup();
       renderPage();
 
+      await screen.findByText("Allow");
+
       await user.type(
         screen.getByRole("searchbox", {
           name: "Search firewall rules by action, priority, IP, or username",
@@ -371,19 +319,19 @@ describe("AdminFirewallRules", () => {
     });
   });
 
-  // ── usePaginatedListState adoption ───────────────────────────────────────────
-
   describe("pagination suppressed while searching", () => {
     beforeEach(() => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ id: "r1", action: "allow", priority: 1 })],
-        totalCount: 1,
-      });
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse(
+          [mockFirewallRule({ id: "r1", action: "allow", priority: 1 })],
+          1,
+        ),
+      );
     });
 
-    it("passes page/totalPages/onPageChange to DataTable when search is empty", () => {
+    it("passes page/totalPages/onPageChange to DataTable when search is empty", async () => {
       renderPage();
+      await screen.findByText("Allow");
       const last = capturedDataTableProps.at(-1);
       expect(last).toBeDefined();
       expect(last).toHaveProperty("page");
@@ -394,6 +342,8 @@ describe("AdminFirewallRules", () => {
     it("omits page/totalPages/onPageChange from DataTable while search is non-empty", async () => {
       const user = userEvent.setup();
       renderPage();
+
+      await screen.findByText("Allow");
 
       await user.type(
         screen.getByRole("searchbox", {
@@ -413,12 +363,10 @@ describe("AdminFirewallRules", () => {
   });
 
   describe("URL round-trips", () => {
-    it("hydrates search from URL on mount", () => {
-      vi.mocked(useAdminFirewallRules).mockReturnValue({
-        ...defaultHookState,
-        rules: [makeRule({ id: "r1", action: "allow" })],
-        totalCount: 1,
-      });
+    it("hydrates search from URL on mount", async () => {
+      mockGetFirewallRulesAdmin.mockResolvedValue(
+        paginatedResponse([mockFirewallRule({ id: "r1", action: "allow" })]),
+      );
       renderPage(["/?search=allow"]);
       expect(
         screen.getByRole("searchbox", {
@@ -427,17 +375,23 @@ describe("AdminFirewallRules", () => {
       ).toHaveValue("allow");
     });
 
-    it("hydrates page from URL and passes it to the hook", () => {
+    it("hydrates page from URL and passes it to the SDK", async () => {
       renderPage(["/?page=3"]);
-      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
+      await screen.findByText("No firewall rules found");
+      expect(mockGetFirewallRulesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 3 }),
+        }),
       );
     });
 
-    it("calls useAdminFirewallRules with page=1 when URL has no params", () => {
+    it("passes page=1 to the SDK when URL has no params", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
+      await screen.findByText("No firewall rules found");
+      expect(mockGetFirewallRulesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 1 }),
+        }),
       );
     });
 
@@ -445,9 +399,12 @@ describe("AdminFirewallRules", () => {
       const user = userEvent.setup();
       renderPage(["/?page=3"]);
 
-      // Confirm page=3 was hydrated
-      expect(vi.mocked(useAdminFirewallRules)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
+      await screen.findByText("No firewall rules found");
+
+      expect(mockGetFirewallRulesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 3 }),
+        }),
       );
 
       await user.type(
@@ -458,10 +415,10 @@ describe("AdminFirewallRules", () => {
       );
 
       await waitFor(() => {
-        const calls = vi.mocked(useAdminFirewallRules).mock.calls;
+        const calls = mockGetFirewallRulesAdmin.mock.calls;
         const lastCall = calls.at(-1)![0];
         expect(lastCall).toBeDefined();
-        expect(lastCall?.page).toBe(1);
+        expect(lastCall?.query?.page).toBe(1);
       });
     });
   });

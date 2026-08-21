@@ -6,12 +6,12 @@ import { useAuthStore } from "@/stores/authStore";
 import MfaRecover from "../MfaRecover";
 import { mockSdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  recoveryDisableMfa: vi.fn(),
-}));
+const mockRecoveryDisableMfa = vi.hoisted(() => vi.fn());
 
-import { recoveryDisableMfa } from "@/client";
-const mockedRecoveryDisableMfa = vi.mocked(recoveryDisableMfa);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, recoveryDisableMfa: mockRecoveryDisableMfa };
+});
 
 function renderRecover() {
   return render(
@@ -27,7 +27,7 @@ async function typeRecoveryCode(code: string, user = userEvent.setup()) {
 }
 
 beforeEach(() => {
-  mockedRecoveryDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
+  mockRecoveryDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
   useAuthStore.setState({
     user: "admin",
     loading: false,
@@ -258,7 +258,7 @@ describe("MfaRecover", () => {
     await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
     await waitFor(() => {
-      expect(mockedRecoveryDisableMfa).toHaveBeenCalledWith({
+      expect(mockRecoveryDisableMfa).toHaveBeenCalledWith({
         throwOnError: true,
       });
     });

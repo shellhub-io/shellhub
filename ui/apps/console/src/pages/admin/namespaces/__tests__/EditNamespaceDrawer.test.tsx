@@ -1,19 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import EditNamespaceDrawer from "../EditNamespaceDrawer";
-import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import type { Namespace } from "@/client";
+import EditNamespaceDrawer from "../EditNamespaceDrawer";
 
-vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
-  useAdminEditNamespace: vi.fn(),
-}));
+const mockEditNamespaceAdmin = vi.hoisted(() => vi.fn());
+
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, editNamespaceAdmin: mockEditNamespaceAdmin };
+});
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
-const mockMutateAsync = vi.fn();
+const Wrapper = createTestWrapper();
 
 const mockNamespace: Namespace = {
   name: "my-namespace",
@@ -45,17 +49,14 @@ function renderDrawer(
   const props = { ...defaults, ...overrides };
   return {
     onClose: props.onClose,
-    ...render(<EditNamespaceDrawer {...props} />),
+    ...render(<EditNamespaceDrawer {...props} />, { wrapper: Wrapper }),
   };
 }
 
 describe("EditNamespaceDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAdminEditNamespace).mockReturnValue({
-      mutateAsync: mockMutateAsync,
-      isPending: false,
-    } as never);
+    mockEditNamespaceAdmin.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("rendering — closed", () => {
@@ -167,8 +168,7 @@ describe("EditNamespaceDrawer", () => {
   });
 
   describe("submit — success", () => {
-    it("calls mutateAsync with the correct payload", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("calls editNamespaceAdmin with the correct payload", async () => {
       renderDrawer();
 
       const nameInput = screen.getByLabelText("Namespace Name");
@@ -180,21 +180,22 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { tenantID: "tenant-abc" },
-          body: expect.objectContaining({
-            name: "updated-namespace",
-            max_devices: 10,
-            settings: expect.objectContaining({
-              session_record: true,
+        expect(mockEditNamespaceAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { tenantID: "tenant-abc" },
+            body: expect.objectContaining({
+              name: "updated-namespace",
+              max_devices: 10,
+              settings: expect.objectContaining({
+                session_record: true,
+              }),
             }),
           }),
-        });
+        );
       });
     });
 
     it("spreads the original namespace fields into the body", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
 
       await userEvent.click(
@@ -202,7 +203,7 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect(mockEditNamespaceAdmin).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({
               owner: "owner-1",
@@ -214,7 +215,6 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("passes the updated session_record value when checkbox is toggled", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
 
       await userEvent.click(screen.getByLabelText(/session recording/i));
@@ -224,7 +224,7 @@ describe("EditNamespaceDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect(mockEditNamespaceAdmin).toHaveBeenCalledWith(
           expect.objectContaining({
             body: expect.objectContaining({
               settings: expect.objectContaining({ session_record: false }),
@@ -235,7 +235,6 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("calls onClose after successful submit", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -248,7 +247,7 @@ describe("EditNamespaceDrawer", () => {
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 409 });
+      mockEditNamespaceAdmin.mockRejectedValue({ status: 409 });
       renderDrawer();
 
       await userEvent.click(
@@ -263,7 +262,7 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("shows generic error for non-409 SDK errors", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      mockEditNamespaceAdmin.mockRejectedValue({ status: 500 });
       renderDrawer();
 
       await userEvent.click(
@@ -278,7 +277,7 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("shows generic error for non-SDK errors", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      mockEditNamespaceAdmin.mockRejectedValue(new Error("network error"));
       renderDrawer();
 
       await userEvent.click(
@@ -293,7 +292,7 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      mockEditNamespaceAdmin.mockRejectedValue(new Error("network error"));
       renderDrawer();
 
       await userEvent.click(
@@ -306,7 +305,7 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("does not call onClose when update fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      mockEditNamespaceAdmin.mockRejectedValue(new Error("network error"));
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -325,10 +324,10 @@ describe("EditNamespaceDrawer", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call editNamespaceAdmin when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(mockEditNamespaceAdmin).not.toHaveBeenCalled();
     });
   });
 
@@ -361,7 +360,7 @@ describe("EditNamespaceDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("fail"));
+      mockEditNamespaceAdmin.mockRejectedValue(new Error("fail"));
       const { rerender } = renderDrawer({ namespace: mockNamespace });
 
       await userEvent.click(

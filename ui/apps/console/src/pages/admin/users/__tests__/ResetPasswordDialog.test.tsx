@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import ResetPasswordDialog from "../ResetPasswordDialog";
-import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
 
-vi.mock("@/hooks/useAdminUserMutations", () => ({
-  useResetUserPassword: vi.fn(),
-}));
+const mockAdminResetUserPassword = vi.hoisted(() => vi.fn());
+
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, adminResetUserPassword: mockAdminResetUserPassword };
+});
 
 vi.mock("@/components/common/BaseDialog", async () => ({
   default: (await import("@/tests/mocks")).MockBaseDialog,
@@ -16,13 +20,13 @@ vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
-const mockMutateAsync = vi.fn();
+const Wrapper = createTestWrapper();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useResetUserPassword).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
+  mockAdminResetUserPassword.mockResolvedValue(
+    mockSdkResponse({ password: "default-pw" }),
+  );
 });
 
 function renderDialog(
@@ -36,7 +40,7 @@ function renderDialog(
   const props = { ...defaults, ...overrides };
   return {
     onClose: props.onClose,
-    ...render(<ResetPasswordDialog {...props} />),
+    ...render(<ResetPasswordDialog {...props} />, { wrapper: Wrapper }),
   };
 }
 
@@ -93,29 +97,35 @@ describe("ResetPasswordDialog", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call adminResetUserPassword when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(mockAdminResetUserPassword).not.toHaveBeenCalled();
     });
   });
 
   describe("enable flow — success", () => {
-    it("calls mutateAsync with the correct userId when Enable is clicked", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "gen-pass-123" });
+    it("calls adminResetUserPassword with the correct userId when Enable is clicked", async () => {
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "gen-pass-123" }),
+      );
       renderDialog({ userId: "user-abc" });
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
 
       await waitFor(() =>
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { id: "user-abc" },
-        }),
+        expect(mockAdminResetUserPassword).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { id: "user-abc" },
+          }),
+        ),
       );
     });
 
     it("transitions to the result step after successful reset", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "gen-pass-123" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "gen-pass-123" }),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -126,7 +136,9 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("displays the generated password in an input field", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "s3cr3t-pw" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "s3cr3t-pw" }),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -137,7 +149,9 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders the 'Generated password' labelled input", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "abc" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "abc" }),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -150,7 +164,9 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders a Copy button on the result step", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "abc" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "abc" }),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -163,7 +179,9 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders a Close button on the result step", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "abc" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "abc" }),
+      );
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -176,7 +194,9 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("calls onClose when Close is clicked on result step", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "abc" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "abc" }),
+      );
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -189,7 +209,7 @@ describe("ResetPasswordDialog", () => {
 
   describe("enable flow — error states", () => {
     it("shows specific error message for status 400 (user already has password)", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 400 });
+      mockAdminResetUserPassword.mockRejectedValue({ status: 400 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -202,7 +222,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("shows generic error message for non-400 errors", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      mockAdminResetUserPassword.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -213,7 +233,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("shows generic error for non-SDK errors", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      mockAdminResetUserPassword.mockRejectedValue(new Error("network error"));
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -224,7 +244,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      mockAdminResetUserPassword.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -235,7 +255,7 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("stays on the confirm step when there is an error", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      mockAdminResetUserPassword.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
@@ -247,13 +267,12 @@ describe("ResetPasswordDialog", () => {
     });
 
     it("clears error and stays on confirm step — Enable button is still visible", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      mockAdminResetUserPassword.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
 
       await waitFor(() => screen.getByRole("alert"));
-      // The Enable button should still be present so the user can retry
       expect(
         screen.getByRole("button", { name: /enable/i }),
       ).toBeInTheDocument();
@@ -262,14 +281,14 @@ describe("ResetPasswordDialog", () => {
 
   describe("state reset on reopen", () => {
     it("resets to confirm step when dialog is closed then reopened", async () => {
-      mockMutateAsync.mockResolvedValue({ password: "pw" });
+      mockAdminResetUserPassword.mockResolvedValue(
+        mockSdkResponse({ password: "pw" }),
+      );
       const { rerender } = renderDialog({ userId: "u1" });
 
-      // Move to result step
       await userEvent.click(screen.getByRole("button", { name: /enable/i }));
       await waitFor(() => screen.getByText("Password Generated"));
 
-      // Close and reopen
       rerender(
         <ResetPasswordDialog open={false} onClose={vi.fn()} userId="u1" />,
       );
@@ -277,7 +296,6 @@ describe("ResetPasswordDialog", () => {
         <ResetPasswordDialog open={true} onClose={vi.fn()} userId="u1" />,
       );
 
-      // Should be back on confirm step
       expect(
         screen.getByText("Enable Local Authentication"),
       ).toBeInTheDocument();

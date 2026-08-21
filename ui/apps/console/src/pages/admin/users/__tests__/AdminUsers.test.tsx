@@ -1,33 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import AdminUsers from "../index";
 import type { UserAdminResponse } from "@/client";
-import { makeSdkError } from "@/tests/sdk";
+import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const mockGetUsers = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/useAdminUsers", () => ({
-  useAdminUsers: vi.fn(),
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getUsers: mockGetUsers };
+});
 
-vi.mock("@/hooks/useLoginAsUser", () => ({
-  useLoginAsUser: vi.fn(),
-}));
-
-vi.mock("@/hooks/useAdminAccountRequests", () => ({
-  useAdminAccountRequests: () => ({ totalCount: 0 }),
-}));
-
-vi.mock("@/hooks/useAdminAccountRequestMutations", () => ({
-  useApproveAccountRequest: () => ({ mutateAsync: vi.fn(), isPending: false }),
-  useRejectAccountRequest: () => ({ mutateAsync: vi.fn(), isPending: false }),
-}));
 vi.mock("../AccountRequestsTab", () => ({
   default: () => null,
 }));
 
-// Drawer/Dialog mocks — keep tests fast and focused
 vi.mock("../CreateUserDrawer", () => ({
   default: ({ open }: { open: boolean }) =>
     open ? <div data-testid="create-drawer" /> : null,
@@ -43,35 +40,14 @@ vi.mock("../DeleteUserDialog", () => ({
     open ? <div data-testid="delete-dialog" /> : null,
 }));
 
-const mockNavigate = vi.fn();
+const mockNavigate = vi.hoisted(() => vi.fn());
+
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// ── Imports ───────────────────────────────────────────────────────────────────
-
-import { useAdminUsers } from "@/hooks/useAdminUsers";
-import { useLoginAsUser } from "@/hooks/useLoginAsUser";
-import AdminUsers from "../index";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const defaultHookState = {
-  users: [] as UserAdminResponse[],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-  refetch: vi.fn(),
-};
-
-const defaultLoginAsState = {
-  loginAs: vi.fn(),
-  loadingId: null as string | null,
-  errorId: null as string | null,
-};
-
-function makeUser(
+function mockAdminUser(
   overrides: Partial<UserAdminResponse> = {},
 ): UserAdminResponse {
   return {
@@ -81,8 +57,10 @@ function makeUser(
     username: "alice",
     status: "confirmed",
     admin: false,
+    created_at: "2024-01-01T00:00:00Z",
+    last_login: "2024-06-01T00:00:00Z",
     ...overrides,
-  } as UserAdminResponse;
+  };
 }
 
 function renderPage(initialEntries: string[] = ["/"]) {
@@ -90,16 +68,15 @@ function renderPage(initialEntries: string[] = ["/"]) {
     <MemoryRouter initialEntries={initialEntries}>
       <AdminUsers />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("AdminUsers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAdminUsers).mockReturnValue(defaultHookState);
-    vi.mocked(useLoginAsUser).mockReturnValue(defaultLoginAsState);
+    useAuthStore.setState({ isAdmin: true });
+    mockGetUsers.mockResolvedValue(paginatedResponse([]));
   });
 
   describe("rendering", () => {
@@ -120,11 +97,7 @@ describe("AdminUsers", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading users..." text', () => {
-      vi.mocked(useAdminUsers).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-        users: [],
-      });
+      mockGetUsers.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading users...")).toBeInTheDocument();
@@ -132,80 +105,79 @@ describe("AdminUsers", () => {
   });
 
   describe("empty state", () => {
-    it('renders "No users found" when the user list is empty', () => {
+    it('renders "No users found" when the user list is empty', async () => {
       renderPage();
-      expect(screen.getByText("No users found")).toBeInTheDocument();
+      expect(await screen.findByText("No users found")).toBeInTheDocument();
     });
   });
 
   describe("user rows", () => {
-    it("renders a row for each returned user", () => {
-      vi.mocked(useAdminUsers).mockReturnValue({
-        ...defaultHookState,
-        users: [
-          makeUser({ id: "id-1", name: "Alice Smith" }),
-          makeUser({ id: "id-2", name: "Bob Jones" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each returned user", async () => {
+      mockGetUsers.mockResolvedValue(
+        paginatedResponse([
+          mockAdminUser({ id: "id-1", name: "Alice Smith" }),
+          mockAdminUser({ id: "id-2", name: "Bob Jones" }),
+        ]),
+      );
       renderPage();
-      expect(screen.getByText("Alice Smith")).toBeInTheDocument();
+      expect(await screen.findByText("Alice Smith")).toBeInTheDocument();
       expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     });
 
     it("navigates to user detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminUsers).mockReturnValue({
-        ...defaultHookState,
-        users: [makeUser({ id: "uid-abc", name: "Clickable User" })],
-        totalCount: 1,
-      });
+      mockGetUsers.mockResolvedValue(
+        paginatedResponse([
+          mockAdminUser({ id: "uid-abc", name: "Clickable User" }),
+        ]),
+      );
       renderPage();
-      await user.click(screen.getByText("Clickable User"));
+      await user.click(await screen.findByText("Clickable User"));
       expect(mockNavigate).toHaveBeenCalledWith("/admin/users/uid-abc");
     });
   });
 
   describe("error state", () => {
-    it("renders an error alert when the hook returns an error", () => {
-      vi.mocked(useAdminUsers).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error alert when the SDK returns an error", async () => {
+      mockGetUsers.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
         screen.getByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
     });
   });
 
-  // ── URL-driven state (usePaginatedListState adoption) ─────────────────────────
-
   describe("URL hydration — controls reflect URL params on mount", () => {
-    it("calls useAdminUsers with search and page hydrated from URL params", () => {
+    it("passes search and page hydrated from URL to the SDK", async () => {
       renderPage(["/?search=foo&page=2"]);
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
-      // The search field should reflect the URL value
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
       expect(
         screen.getByRole("searchbox", { name: "Search users by username" }),
       ).toHaveValue("foo");
     });
 
-    it("calls useAdminUsers with page=1 and search='' when URL has no params", () => {
+    it("passes page=1 to the SDK when URL has no params", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
     });
   });
 
   describe("URL writes — clearing search resets page to 1 and omits both params", () => {
     it("omits search and page from the URL after clearing a prefilled search", async () => {
       const user = userEvent.setup();
-      // Start with ?search=foo&page=2 in the URL
       renderPage(["/?search=foo&page=2"]);
 
       const searchbox = screen.getByRole("searchbox", {
@@ -213,101 +185,99 @@ describe("AdminUsers", () => {
       });
       expect(searchbox).toHaveValue("foo");
 
-      // Clear the search field
       await user.clear(searchbox);
 
-      // After clearing, useAdminUsers must be called with page=1 (default)
-      // and search='' (default), meaning neither is in the URL any more.
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
     });
   });
 
-  // ── Exact URL params from unit spec ──────────────────────────────────────────
-
   describe("URL hydration — ?page=3&search=alice hydrates controls", () => {
-    it("hydrates the search field to 'alice' and calls useAdminUsers with page=3", () => {
+    it("hydrates the search field to 'alice' and passes page=3 to the SDK", async () => {
       renderPage(["/?page=3&search=alice"]);
 
-      // SearchField must reflect the URL value
       expect(
         screen.getByRole("searchbox", { name: "Search users by username" }),
       ).toHaveValue("alice");
 
-      // Hook must be called with the URL values (both page and search)
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
-      );
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 3 }),
+          }),
+        );
+      });
     });
   });
 
   describe("URL writes — typing in SearchField resets page to 1", () => {
     it("resets page to 1 and reflects new search value after typing", async () => {
       const user = userEvent.setup();
-      // Start on page 3
       renderPage(["/?page=3"]);
 
-      // Confirm initial page
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
-      );
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 3 }),
+          }),
+        );
+      });
 
       const searchbox = screen.getByRole("searchbox", {
         name: "Search users by username",
       });
 
-      // Type a search term — this should reset page to 1
       await user.type(searchbox, "bob");
 
-      // Hook must now be called with page=1 (reset) and the searchbox shows new value
-      expect(vi.mocked(useAdminUsers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(mockGetUsers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
       expect(searchbox).toHaveValue("bob");
     });
   });
 
   describe("debounce — search is debounced before reaching the query hook", () => {
     beforeEach(() => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
     });
 
     afterEach(() => {
       vi.useRealTimers();
     });
 
-    it("does not pass the new search to useAdminUsers until the debounce delay elapses", () => {
+    it("does not pass the new search to the SDK until the debounce delay elapses", async () => {
       renderPage(["/"]);
 
       const searchbox = screen.getByRole("searchbox", {
         name: "Search users by username",
       });
 
-      // Fire a change event — before the 300 ms debounce fires the hook should
-      // NOT have been called with search: "alice".
       act(() => {
         fireEvent.change(searchbox, { target: { value: "alice" } });
       });
 
-      // Immediately after the change, the debounced value hasn't settled yet.
-      const callsBeforeDebounce = vi.mocked(useAdminUsers).mock.calls;
-      const hadAliceBefore = callsBeforeDebounce.some(
-        ([args]) => (args as { search?: string }).search === "alice",
-      );
-      expect(hadAliceBefore).toBe(false);
+      const hasFilter = (calls: unknown[][]) =>
+        calls.some(
+          ([args]) => (args as { query?: { filter?: string } })?.query?.filter,
+        );
+      expect(hasFilter(mockGetUsers.mock.calls)).toBe(false);
 
-      // Advance timers past the debounce window (300 ms)
       act(() => {
         vi.advanceTimersByTime(350);
       });
 
-      // Now the debounced search should have fired and the hook called with "alice"
-      const callsAfterDebounce = vi.mocked(useAdminUsers).mock.calls;
-      const hadAliceAfter = callsAfterDebounce.some(
-        ([args]) => (args as { search?: string }).search === "alice",
-      );
-      expect(hadAliceAfter).toBe(true);
+      await waitFor(() => {
+        expect(hasFilter(mockGetUsers.mock.calls)).toBe(true);
+      });
     });
   });
 });

@@ -4,21 +4,19 @@ import userEvent from "@testing-library/user-event";
 import AdminAuthentication from "../Authentication";
 import { mockSdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  getAuthenticationSettings: vi.fn(),
-  configureLocalAuthentication: vi.fn(),
-  configureSamlAuthentication: vi.fn(),
-}));
+const mockGetSettings = vi.hoisted(() => vi.fn());
+const mockConfigureLocal = vi.hoisted(() => vi.fn());
+const mockConfigureSaml = vi.hoisted(() => vi.fn());
 
-import {
-  getAuthenticationSettings,
-  configureLocalAuthentication,
-  configureSamlAuthentication,
-} from "@/client";
-
-const mockedGetSettings = vi.mocked(getAuthenticationSettings);
-const mockedConfigureLocal = vi.mocked(configureLocalAuthentication);
-const mockedConfigureSaml = vi.mocked(configureSamlAuthentication);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    getAuthenticationSettings: mockGetSettings,
+    configureLocalAuthentication: mockConfigureLocal,
+    configureSamlAuthentication: mockConfigureSaml,
+  };
+});
 
 function mockSettings({ localEnabled = true, samlEnabled = false } = {}) {
   return {
@@ -38,17 +36,17 @@ async function settlePendingLoad() {
 }
 
 beforeEach(() => {
-  mockedGetSettings.mockReset();
-  mockedConfigureLocal.mockReset();
-  mockedConfigureSaml.mockReset();
-  mockedConfigureLocal.mockResolvedValue(mockSdkResponse(undefined));
-  mockedConfigureSaml.mockResolvedValue(mockSdkResponse(undefined));
+  mockGetSettings.mockReset();
+  mockConfigureLocal.mockReset();
+  mockConfigureSaml.mockReset();
+  mockConfigureLocal.mockResolvedValue(mockSdkResponse(undefined));
+  mockConfigureSaml.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("AdminAuthentication", () => {
   describe("DS Toggle usage", () => {
     it("renders the local-auth and SAML rows as role='switch' toggles", async () => {
-      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
+      mockGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
 
       renderPage();
       await settlePendingLoad();
@@ -63,7 +61,7 @@ describe("AdminAuthentication", () => {
 
     it("clicking the local-auth toggle fires configureLocalAuthentication with the flipped value", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
+      mockGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
 
       renderPage();
       await settlePendingLoad();
@@ -72,14 +70,14 @@ describe("AdminAuthentication", () => {
         screen.getByRole("switch", { name: "Toggle local authentication" }),
       );
 
-      expect(mockedConfigureLocal).toHaveBeenCalledWith(
+      expect(mockConfigureLocal).toHaveBeenCalledWith(
         expect.objectContaining({ body: { enable: false } }),
       );
     });
 
     it("clicking the SAML toggle to turn it off fires configureSamlAuthentication with enable: false", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(
+      mockGetSettings.mockResolvedValue(
         mockSdkResponse(mockSettings({ samlEnabled: true })),
       );
 
@@ -90,7 +88,7 @@ describe("AdminAuthentication", () => {
         screen.getByRole("switch", { name: "Toggle SAML authentication" }),
       );
 
-      expect(mockedConfigureSaml).toHaveBeenCalledWith(
+      expect(mockConfigureSaml).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ enable: false }),
         }),
@@ -99,12 +97,12 @@ describe("AdminAuthentication", () => {
 
     it("disables the local-auth toggle while togglingLocal is true", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
+      mockGetSettings.mockResolvedValue(mockSdkResponse(mockSettings()));
       let resolveConfigure: (() => void) | undefined;
-      mockedConfigureLocal.mockReturnValue(
+      mockConfigureLocal.mockReturnValue(
         new Promise((resolve) => {
           resolveConfigure = () => resolve(mockSdkResponse(undefined));
-        }) as never,
+        }),
       );
 
       renderPage();
@@ -126,14 +124,14 @@ describe("AdminAuthentication", () => {
 
     it("disables the SAML toggle while togglingSaml is true", async () => {
       const user = userEvent.setup();
-      mockedGetSettings.mockResolvedValue(
+      mockGetSettings.mockResolvedValue(
         mockSdkResponse(mockSettings({ samlEnabled: true })),
       );
       let resolveConfigure: (() => void) | undefined;
-      mockedConfigureSaml.mockReturnValue(
+      mockConfigureSaml.mockReturnValue(
         new Promise((resolve) => {
           resolveConfigure = () => resolve(mockSdkResponse(undefined));
-        }) as never,
+        }),
       );
 
       renderPage();

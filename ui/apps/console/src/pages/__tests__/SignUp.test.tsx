@@ -6,10 +6,6 @@ import { useSignUpStore } from "@/stores/signUpStore";
 import SignUp from "../SignUp";
 import { mockSdkResponse } from "@/tests/sdk";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
 const mockNavigate = vi.hoisted(() => vi.fn());
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -17,19 +13,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/client", () => ({
-  registerUser: vi.fn(),
-  resendEmail: vi.fn(),
-  getValidateAccount: vi.fn(),
-}));
+const mockRegisterUser = vi.hoisted(() => vi.fn());
 
-import { registerUser as registerUserSdk } from "@/client";
-
-const mockedRegisterUser = vi.mocked(registerUserSdk);
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, registerUser: mockRegisterUser };
+});
 
 function renderSignUp(search = "") {
   return render(
@@ -39,10 +28,6 @@ function renderSignUp(search = "") {
   );
 }
 
-/**
- * Fill all required fields with valid data and check privacy policy.
- * Does NOT submit.
- */
 async function fillValidForm(
   user: ReturnType<typeof userEvent.setup>,
   overrides: {
@@ -80,12 +65,9 @@ async function fillValidForm(
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Setup / teardown                                                    */
-/* ------------------------------------------------------------------ */
 beforeEach(() => {
   mockNavigate.mockReset();
-  mockedRegisterUser.mockReset();
+  mockRegisterUser.mockReset();
   useSignUpStore.setState({
     signUpLoading: false,
     signUpError: null,
@@ -95,14 +77,7 @@ beforeEach(() => {
   });
 });
 
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
-
 describe("SignUp", () => {
-  /* ---------------------------------------------------------------- */
-  /* 1. Submit button disabled on initial render with empty defaults   */
-  /* ---------------------------------------------------------------- */
   describe("initial render", () => {
     it("disables the submit button when all fields are empty", () => {
       renderSignUp();
@@ -112,21 +87,17 @@ describe("SignUp", () => {
     });
   });
 
-  /* ---------------------------------------------------------------- */
-  /* 2. Filling valid data + checking privacy policy calls signUp     */
-  /*    with correct payload including email_marketing                 */
-  /* ---------------------------------------------------------------- */
   describe("successful submission", () => {
     it("calls signUp with correct payload including email_marketing when form is valid", async () => {
-      mockedRegisterUser.mockResolvedValue(mockSdkResponse({}));
+      mockRegisterUser.mockResolvedValue(mockSdkResponse({}));
       const user = userEvent.setup();
       renderSignUp();
 
       await fillValidForm(user, { acceptMarketing: true });
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      await waitFor(() => expect(mockedRegisterUser).toHaveBeenCalledTimes(1));
-      expect(mockedRegisterUser).toHaveBeenCalledWith(
+      await waitFor(() => expect(mockRegisterUser).toHaveBeenCalledTimes(1));
+      expect(mockRegisterUser).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({
             name: "Alice Smith",
@@ -140,15 +111,15 @@ describe("SignUp", () => {
     });
 
     it("calls signUp with email_marketing: false when marketing checkbox is unchecked", async () => {
-      mockedRegisterUser.mockResolvedValue(mockSdkResponse({}));
+      mockRegisterUser.mockResolvedValue(mockSdkResponse({}));
       const user = userEvent.setup();
       renderSignUp();
 
       await fillValidForm(user, { acceptMarketing: false });
       await user.click(screen.getByRole("button", { name: /create account/i }));
 
-      await waitFor(() => expect(mockedRegisterUser).toHaveBeenCalledTimes(1));
-      expect(mockedRegisterUser).toHaveBeenCalledWith(
+      await waitFor(() => expect(mockRegisterUser).toHaveBeenCalledTimes(1));
+      expect(mockRegisterUser).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ email_marketing: false }),
         }),
@@ -156,9 +127,6 @@ describe("SignUp", () => {
     });
   });
 
-  /* ---------------------------------------------------------------- */
-  /* 3. Field errors appear after blur not before                     */
-  /* ---------------------------------------------------------------- */
   describe("field validation on blur", () => {
     it("does not show a name error before the field is touched", () => {
       renderSignUp();
@@ -192,9 +160,6 @@ describe("SignUp", () => {
     });
   });
 
-  /* ---------------------------------------------------------------- */
-  /* 4. Privacy unchecked keeps submit disabled                       */
-  /* ---------------------------------------------------------------- */
   describe("privacy policy gate", () => {
     it("keeps submit disabled when all text fields are valid but privacy policy is unchecked", async () => {
       const user = userEvent.setup();
@@ -215,9 +180,6 @@ describe("SignUp", () => {
     });
   });
 
-  /* ---------------------------------------------------------------- */
-  /* 5. Password mismatch shows 'Passwords do not match'              */
-  /* ---------------------------------------------------------------- */
   describe("password mismatch", () => {
     it("shows 'Passwords do not match' when confirmPassword differs from password", async () => {
       const user = userEvent.setup();
@@ -248,15 +210,7 @@ describe("SignUp", () => {
     });
   });
 
-  /* ---------------------------------------------------------------- */
-  /* 6. Server field errors render on correct fields, disable submit,  */
-  /*    and clear after field edit                                      */
-  /* ---------------------------------------------------------------- */
   describe("server field errors", () => {
-    /**
-     * Simulate a server error response carrying per-field detail: the parsed body with the
-     * numeric `status` the fetch error interceptor attaches.
-     */
     function makeServerFieldError(fields: string[], status = 400) {
       const body = {
         message: "user invalid",
@@ -268,7 +222,7 @@ describe("SignUp", () => {
     }
 
     it("shows server-side username error on the username field and disables submit", async () => {
-      mockedRegisterUser.mockRejectedValue(makeServerFieldError(["username"]));
+      mockRegisterUser.mockRejectedValue(makeServerFieldError(["username"]));
       const user = userEvent.setup();
       renderSignUp();
 
@@ -287,7 +241,7 @@ describe("SignUp", () => {
     });
 
     it("shows server-side email error on the email field", async () => {
-      mockedRegisterUser.mockRejectedValue(makeServerFieldError(["email"]));
+      mockRegisterUser.mockRejectedValue(makeServerFieldError(["email"]));
       const user = userEvent.setup();
       renderSignUp();
 
@@ -300,7 +254,7 @@ describe("SignUp", () => {
     });
 
     it("clears the server field error after the user edits that field", async () => {
-      mockedRegisterUser.mockRejectedValue(makeServerFieldError(["username"]));
+      mockRegisterUser.mockRejectedValue(makeServerFieldError(["username"]));
       const user = userEvent.setup();
       renderSignUp();
 

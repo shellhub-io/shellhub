@@ -12,9 +12,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/client", () => ({
-  setup: vi.fn(),
-}));
+const mockSetup = vi.hoisted(() => vi.fn());
+
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, setup: mockSetup };
+});
 
 const mockLoginWithToken = vi.hoisted(() => vi.fn());
 
@@ -23,11 +26,9 @@ vi.mock("@/stores/authStore", () => ({
     selector: (s: { loginWithToken: typeof mockLoginWithToken }) => unknown,
   ) => selector({ loginWithToken: mockLoginWithToken }),
 }));
-import { setup as setupSdk } from "@/client";
 import { getConfig, defaultConfig } from "@/env";
 
-const mockedSetup = vi.mocked(setupSdk);
-const mockedGetConfig = vi.mocked(getConfig);
+const mockGetConfig = vi.mocked(getConfig);
 
 function renderSetup() {
   return render(
@@ -37,9 +38,6 @@ function renderSetup() {
   );
 }
 
-/**
- * Fill all account fields with valid values. Does NOT submit.
- */
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^name$/i), "Alice Smith");
   await user.type(screen.getByLabelText(/^username$/i), "alice");
@@ -49,10 +47,10 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 }
 beforeEach(() => {
   mockNavigate.mockReset();
-  mockedSetup.mockReset();
+  mockSetup.mockReset();
   mockLoginWithToken.mockReset();
   mockLoginWithToken.mockResolvedValue(undefined);
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
 });
 
 describe("Setup", () => {
@@ -176,21 +174,18 @@ describe("Setup", () => {
   describe("successful submission", () => {
     // Setup responds with an authenticated session (auto-login); the token is what
     // the page hands to loginWithToken before redirecting into the app.
-    const setupSuccess = () =>
-      mockSdkResponse({ token: "jwt-token" }) as Awaited<
-        ReturnType<typeof setupSdk>
-      >;
+    const setupSuccess = () => mockSdkResponse({ token: "jwt-token" });
 
     it("calls setup() with the correct payload and shows the success screen", async () => {
-      mockedSetup.mockResolvedValue(setupSuccess());
+      mockSetup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup();
       renderSetup();
 
       await fillValidForm(user);
       await user.click(screen.getByRole("button", { name: /complete setup/i }));
 
-      await waitFor(() => expect(mockedSetup).toHaveBeenCalledTimes(1));
-      expect(mockedSetup).toHaveBeenCalledWith(
+      await waitFor(() => expect(mockSetup).toHaveBeenCalledTimes(1));
+      expect(mockSetup).toHaveBeenCalledWith(
         expect.objectContaining({
           body: {
             name: "Alice Smith",
@@ -208,7 +203,7 @@ describe("Setup", () => {
     });
 
     it("logs in with the returned token", async () => {
-      mockedSetup.mockResolvedValue(setupSuccess());
+      mockSetup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup();
       renderSetup();
 
@@ -223,7 +218,7 @@ describe("Setup", () => {
     it("redirects to the app after 3 seconds on success", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
 
-      mockedSetup.mockResolvedValue(setupSuccess());
+      mockSetup.mockResolvedValue(setupSuccess());
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderSetup();
 
@@ -244,7 +239,7 @@ describe("Setup", () => {
     });
 
     it("routes to login with a notice when auto-login fails after setup", async () => {
-      mockedSetup.mockResolvedValue(setupSuccess());
+      mockSetup.mockResolvedValue(setupSuccess());
       mockLoginWithToken.mockRejectedValue(new Error("token login failed"));
       const user = userEvent.setup();
       renderSetup();
@@ -263,9 +258,7 @@ describe("Setup", () => {
     });
 
     it("routes to login when setup issues no token", async () => {
-      mockedSetup.mockResolvedValue(
-        mockSdkResponse({ token: "" }) as Awaited<ReturnType<typeof setupSdk>>,
-      );
+      mockSetup.mockResolvedValue(mockSdkResponse({ token: "" }));
       const user = userEvent.setup();
       renderSetup();
 
@@ -284,7 +277,7 @@ describe("Setup", () => {
 
   describe("error handling", () => {
     it("shows 'Setup has already been completed' on 409", async () => {
-      mockedSetup.mockRejectedValue(makeSdkError(409));
+      mockSetup.mockRejectedValue(makeSdkError(409));
       const user = userEvent.setup();
       renderSetup();
 
@@ -297,7 +290,7 @@ describe("Setup", () => {
     });
 
     it("shows a generic error on unexpected server errors", async () => {
-      mockedSetup.mockRejectedValue(makeSdkError(500));
+      mockSetup.mockRejectedValue(makeSdkError(500));
       const user = userEvent.setup();
       renderSetup();
 
@@ -310,7 +303,7 @@ describe("Setup", () => {
 
   describe("two-step onboarding flow (when onboardingUrl is set)", () => {
     beforeEach(() => {
-      mockedGetConfig.mockReturnValue({
+      mockGetConfig.mockReturnValue({
         ...defaultConfig,
         onboardingUrl: "https://onboarding.example.com/survey",
       });

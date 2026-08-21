@@ -4,20 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 
-vi.mock("@/client", () => ({
-  login: vi.fn(),
-  getUserInfo: vi.fn(),
-  updateUser: vi.fn(),
-  deleteUser: vi.fn(),
-  authMfa: vi.fn(),
-  mfaRecover: vi.fn(),
-  requestResetMfa: vi.fn(),
-  resetMfa: vi.fn(),
-  resendEmail: vi.fn(),
-  getInfo: vi.fn(),
-  getSamlAuthUrl: vi.fn(),
-  listNamespaces: vi.fn(),
-}));
+const mockUpdateUser = vi.hoisted(() => vi.fn());
+
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, updateUser: mockUpdateUser };
+});
 vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: vi.fn(() => ({ namespaces: [] })),
 }));
@@ -26,9 +18,8 @@ import Profile from "../Profile";
 import * as SettingsCardModule from "@/components/common/SettingsCard";
 import * as SettingsRowModule from "@/components/common/SettingsRow";
 import { getConfig, defaultConfig } from "@/env";
-import { updateUser as mockedUpdateUser } from "@/client";
 
-const mockedGetConfig = vi.mocked(getConfig);
+const mockGetConfig = vi.mocked(getConfig);
 
 function renderProfile() {
   return render(
@@ -66,7 +57,7 @@ function seedAuthStore(
 }
 
 beforeEach(() => {
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
   seedAuthStore();
 });
 
@@ -217,7 +208,7 @@ describe("Profile", () => {
     });
 
     it("shows 'Current password is incorrect.' on 403", async () => {
-      vi.mocked(mockedUpdateUser).mockRejectedValueOnce({
+      mockUpdateUser.mockRejectedValueOnce({
         status: 403,
         errors: {},
         message: "Forbidden",
@@ -238,10 +229,10 @@ describe("Profile", () => {
     });
 
     it("shows success message after a successful password change", async () => {
-      vi.mocked(mockedUpdateUser).mockResolvedValueOnce({
+      mockUpdateUser.mockResolvedValueOnce({
         data: undefined,
         error: undefined,
-      } as never);
+      });
       const user = await openChangePasswordDrawer();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");

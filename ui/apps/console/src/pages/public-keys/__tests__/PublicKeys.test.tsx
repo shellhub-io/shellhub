@@ -2,21 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { PublicKeyResponse as PublicKey } from "@/client";
+import PublicKeys from "../index";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockPublicKey } from "@/tests/factories";
+import { useAuthStore } from "@/stores/authStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const mockGetPublicKeys = vi.hoisted(() => vi.fn());
+const mockDeletePublicKey = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/usePublicKeys", () => ({
-  usePublicKeys: vi.fn(),
-}));
-
-vi.mock("@/hooks/usePublicKeyMutations", () => ({
-  useDeletePublicKey: vi.fn(),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: () => true,
-}));
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return {
+    ...actual,
+    getPublicKeys: mockGetPublicKeys,
+    deletePublicKey: mockDeletePublicKey,
+  };
+});
 
 vi.mock("../KeyDrawer", () => ({
   default: () => null,
@@ -30,61 +32,31 @@ vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
-// Return the debounced value immediately so tests don't need fake timers.
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
-
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import { usePublicKeys } from "@/hooks/usePublicKeys";
-import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
-import PublicKeys from "../index";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function makeKey(overrides: Partial<PublicKey> = {}): PublicKey {
-  return {
-    data: "ssh-rsa AAAA...",
-    fingerprint: "aa:bb:cc:dd",
-    created_at: "2024-01-01T00:00:00Z",
-    tenant_id: "tenant-abc",
-    name: "my-key",
-    filter: { hostname: ".*", tags: [] },
-    username: ".*",
-    ...overrides,
-  };
-}
-
-const mockMutateAsync = vi.fn();
 
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <PublicKeys />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(usePublicKeys).mockReturnValue({
-    publicKeys: [makeKey()],
-    totalCount: 1,
-    isLoading: false,
-    error: null,
-  });
-  vi.mocked(useDeletePublicKey).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
+  useAuthStore.setState({ role: "owner" });
+  mockGetPublicKeys.mockResolvedValue(paginatedResponse([mockPublicKey()]));
+  mockDeletePublicKey.mockResolvedValue(mockSdkResponse(undefined));
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("PublicKeys — delete error handling", () => {
   async function openDeleteDialog() {
     const user = userEvent.setup();
     renderPage();
+    await screen.findByText("my-key");
     await user.click(screen.getByRole("button", { name: /^delete/i }));
     return user;
   }
@@ -94,7 +66,7 @@ describe("PublicKeys — delete error handling", () => {
   }
 
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
-    mockMutateAsync.mockRejectedValue(new Error("Fingerprint in use"));
+    mockDeletePublicKey.mockRejectedValue(new Error("Fingerprint in use"));
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -109,7 +81,7 @@ describe("PublicKeys — delete error handling", () => {
   });
 
   it("shows a generic fallback message when the rejection is not an Error", async () => {
-    mockMutateAsync.mockRejectedValue({ status: 500 });
+    mockDeletePublicKey.mockRejectedValue({ status: 500 });
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -123,7 +95,6 @@ describe("PublicKeys — delete error handling", () => {
   });
 
   it("closes the dialog and does not show an error on successful deletion", async () => {
-    mockMutateAsync.mockResolvedValue(undefined);
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
@@ -137,73 +108,94 @@ describe("PublicKeys — delete error handling", () => {
   });
 });
 
-// ── URL hydration (usePaginatedListState adoption) ────────────────────────────
-
 describe("PublicKeys — URL hydration", () => {
-  it("calls usePublicKeys with page hydrated from ?page=3", () => {
+  it("passes page=3 to the SDK when URL has ?page=3", async () => {
     renderPage(["/?page=3"]);
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 3 }),
-    );
+    await waitFor(() => {
+      expect(mockGetPublicKeys).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 3 }),
+        }),
+      );
+    });
   });
 
-  it("calls usePublicKeys with page=1 when URL has no page param", () => {
+  it("passes page=1 to the SDK when URL has no page param", async () => {
     renderPage(["/"]);
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1 }),
-    );
+    await waitFor(() => {
+      expect(mockGetPublicKeys).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 1 }),
+        }),
+      );
+    });
   });
 
-  it("calls usePublicKeys with search hydrated from ?search=mykey", () => {
+  it("passes a filter containing the search term when URL has ?search=mykey", async () => {
     renderPage(["/?search=mykey"]);
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ search: "mykey" }),
-    );
+    await waitFor(() => {
+      const call = mockGetPublicKeys.mock.calls.at(-1)?.[0] as {
+        query?: { filter?: string };
+      };
+      const decoded = atob(call?.query?.filter ?? "");
+      expect(decoded).toContain("mykey");
+    });
   });
 
-  it("calls usePublicKeys with empty search when URL has no search param", () => {
+  it("passes no filter to the SDK when URL has no search param", async () => {
     renderPage(["/"]);
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ search: "" }),
-    );
+    await waitFor(() => {
+      const call = mockGetPublicKeys.mock.calls[0]?.[0] as {
+        query?: { filter?: string };
+      };
+      expect(call?.query?.filter).toBeUndefined();
+    });
   });
 });
 
-// ── URL writes (usePaginatedListState adoption) ───────────────────────────────
-
 describe("PublicKeys — URL writes", () => {
-  it("writes ?page=2 to the URL when the user navigates to page 2", async () => {
+  it("passes page=2 to the SDK when the user navigates to page 2", async () => {
     const user = userEvent.setup();
-    vi.mocked(usePublicKeys).mockReturnValue({
-      publicKeys: Array.from({ length: 10 }, (_, i) =>
-        makeKey({ fingerprint: `fp-${i}`, name: `key-${i}` }),
+    mockGetPublicKeys.mockResolvedValue(
+      paginatedResponse(
+        Array.from({ length: 10 }, (_, i) =>
+          mockPublicKey({ fingerprint: `fp-${i}`, name: `key-${i}` }),
+        ),
+        25,
       ),
-      totalCount: 25,
-      isLoading: false,
-      error: null,
-    });
+    );
     renderPage();
+
+    await screen.findByText("key-0");
 
     await user.click(screen.getByRole("button", { name: "Next page" }));
 
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 2 }),
-    );
+    await waitFor(() => {
+      expect(mockGetPublicKeys).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 2 }),
+        }),
+      );
+    });
   });
 
   it("resets page to 1 when the user types in the search field", async () => {
     const user = userEvent.setup();
-    // Start on page 2
     renderPage(["/?page=2"]);
+
+    await screen.findByText("my-key");
 
     const searchInput = screen.getByPlaceholderText(
       /search by name or fingerprint/i,
     );
     await user.type(searchInput, "a");
 
-    // After typing, hook must be called with page=1
-    expect(vi.mocked(usePublicKeys)).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1 }),
-    );
+    await waitFor(() => {
+      expect(mockGetPublicKeys).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 1 }),
+        }),
+      );
+    });
   });
 });
