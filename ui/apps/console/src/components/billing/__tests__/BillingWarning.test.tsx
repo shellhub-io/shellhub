@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
 import "@/components/common/__tests__/helpers/setup-dialog";
 import BillingWarning from "../BillingWarning";
 
 const mockNavigate = vi.fn();
-const mockHasPermission = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual =
@@ -18,21 +18,17 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: (perm: string) => Boolean(mockHasPermission(perm)),
-}));
-
 function renderWithRouter(ui: React.ReactNode) {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
 describe("BillingWarning", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAuthStore.setState({ role: "owner" });
+  });
+
   it("navigates to /settings#billing when the owner confirms", () => {
-    mockHasPermission.mockReturnValue(true);
     const onClose = vi.fn();
     renderWithRouter(<BillingWarning open onClose={onClose} />);
 
@@ -43,11 +39,10 @@ describe("BillingWarning", () => {
   });
 
   it("does not navigate for non-owners and just closes", () => {
-    mockHasPermission.mockReturnValue(false);
+    useAuthStore.setState({ role: "observer" });
     const onClose = vi.fn();
     renderWithRouter(<BillingWarning open onClose={onClose} />);
 
-    // For non-owners the confirm button reads "Close".
     fireEvent.click(screen.getByRole("button", { name: /^close$/i }));
 
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -55,7 +50,6 @@ describe("BillingWarning", () => {
   });
 
   it("shows an owner-scoped description for owners", () => {
-    mockHasPermission.mockReturnValue(true);
     renderWithRouter(<BillingWarning open onClose={() => {}} />);
     expect(
       screen.getByText(/subscribe to shellhub cloud/i),
@@ -63,7 +57,7 @@ describe("BillingWarning", () => {
   });
 
   it("shows a non-owner description for members", () => {
-    mockHasPermission.mockReturnValue(false);
+    useAuthStore.setState({ role: "observer" });
     renderWithRouter(<BillingWarning open onClose={() => {}} />);
     expect(screen.getByText(/ask the namespace owner/i)).toBeInTheDocument();
   });

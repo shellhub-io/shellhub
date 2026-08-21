@@ -1,36 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
-vi.mock("@/api/errors", () => ({
-  isSdkError: vi.fn(),
-}));
-
-vi.mock("@/hooks/useTags", () => ({
-  useTags: vi.fn(),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: vi.fn(),
-}));
-
-import { isSdkError } from "@/api/errors";
-import { useTags } from "@/hooks/useTags";
-import { useHasPermission } from "@/hooks/useHasPermission";
-import TagsSection from "../TagsSection";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
 import { makeSdkError } from "@/tests/sdk";
+import { mockTags } from "@/tests/mockTags";
+import TagsSection from "../TagsSection";
 
-beforeEach(() => {
-  vi.clearAllMocks();
-
-  vi.mocked(useHasPermission).mockReturnValue(true);
-  vi.mocked(useTags).mockReturnValue({
-    tags: [{ name: "existing" }, { name: "shared" }, { name: "deploy" }],
-    totalCount: 3,
-    isLoading: false,
-    error: null,
-  } as never);
-  vi.mocked(isSdkError).mockReturnValue(false);
+vi.mock("@/client/sdk.gen", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/client/sdk.gen")>();
+  return { ...actual, getTags: vi.fn() };
 });
 
 function renderTagsSection({
@@ -47,7 +26,13 @@ function renderTagsSection({
   }) => Promise<unknown>;
 }> = {}) {
   const finalProps = { uid, tags, addTag, removeTag };
-  return { addTag, removeTag, ...render(<TagsSection {...finalProps} />) };
+  return {
+    addTag,
+    removeTag,
+    ...render(<TagsSection {...finalProps} />, {
+      wrapper: createTestWrapper(),
+    }),
+  };
 }
 
 async function typeAndSubmit(input: string) {
@@ -58,6 +43,12 @@ async function typeAndSubmit(input: string) {
 }
 
 describe("TagsSection", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAuthStore.setState({ role: "owner" });
+    mockTags(["existing", "shared", "deploy"]);
+  });
+
   describe("rendering", () => {
     it("displays tag pills for each provided tag", () => {
       renderTagsSection({ tags: ["web", "prod"] });
@@ -76,7 +67,7 @@ describe("TagsSection", () => {
 
   describe("permission gating", () => {
     it("hides editing controls when user lacks tag:edit permission", () => {
-      vi.mocked(useHasPermission).mockReturnValue(false);
+      useAuthStore.setState({ role: "observer" });
       renderTagsSection({ tags: ["web"] });
       expect(
         screen.queryByRole("button", { name: /remove tag/i }),
@@ -151,7 +142,6 @@ describe("TagsSection", () => {
       { status: 403, message: "You don't have permission to add tags." },
       { status: 400, message: /not a valid tag name/ },
     ])("shows API error for status $status", async ({ status, message }) => {
-      vi.mocked(isSdkError).mockReturnValue(true);
       renderTagsSection({
         addTag: vi.fn().mockRejectedValue(makeSdkError(status)),
       });
@@ -195,7 +185,6 @@ describe("TagsSection", () => {
     });
 
     it("shows permission error on 403", async () => {
-      vi.mocked(isSdkError).mockReturnValue(true);
       const user = userEvent.setup();
       renderTagsSection({
         tags: ["prod"],
@@ -292,7 +281,6 @@ describe("TagsSection", () => {
       for (let i = 0; i < optionCount; i++) {
         await user.keyboard("{ArrowDown}");
       }
-      // One more wraps back to first
       await user.keyboard("{ArrowDown}");
 
       const firstOption = screen.getAllByRole("option")[0];
