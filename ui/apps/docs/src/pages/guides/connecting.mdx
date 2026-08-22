@@ -4,6 +4,8 @@ title: Connecting via SSH
 description: Access devices using the web terminal or native SSH clients
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Connecting via SSH
 
 ShellHub gives you two ways to reach your devices: a web terminal in the dashboard and native SSH client support.
@@ -14,7 +16,7 @@ From the **Devices** page, click the terminal icon next to any online device. A 
 
 Supports copy/paste, terminal resizing, and multiple simultaneous tabs.
 
-![Device connecting](/img/devices/device-connect.gif)
+![Device connecting](/img/manual/device-connect.gif)
 
 ## Native SSH
 
@@ -26,7 +28,7 @@ Connect with any standard SSH client (anything supporting SSH 2.0 or later) usin
 
 Open the device from the [Devices](/guides/devices) page. Its SSHID is shown at the top of the device details page, with a copy button next to it.
 
-![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+<Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
 
 ### SSHID format
 

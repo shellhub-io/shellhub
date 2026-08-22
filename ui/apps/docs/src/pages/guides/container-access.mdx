@@ -4,6 +4,8 @@ title: Container Access
 description: SSH into Docker containers running on your devices through ShellHub
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Container Access
 
 ShellHub lets you SSH directly into Docker containers running on a host. The **ShellHub Connector** runs on the Docker host, connects to the Docker API, and exposes the running containers as accessible targets — you connect to a container the same way you connect to a [device](/guides/devices).
@@ -24,7 +26,7 @@ No SSH server needs to run inside the container. The Connector bridges the SSH s
 
 To add Docker containers to ShellHub, install the ShellHub Connector on the Docker host. Open the **Containers** page and click **Add Container** to open the *Registering a Docker Host* drawer.
 
-![ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command](/img/containers/add-docker-host.png)
+<Shot id="add-docker-host" route="/containers" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Docker Host" } }]} alt="ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command" />
 
 The easiest way is the one-line install script. It installs and starts the Connector, which connects to the Docker API and exposes the running containers within ShellHub:
 

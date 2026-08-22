@@ -4,6 +4,8 @@ title: Local Authentication
 description: Manage built-in username and password sign-in for your ShellHub instance
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Local Authentication
 
 Local authentication is ShellHub's built-in sign-in method: users authenticate with an email and password stored securely in ShellHub's own database, with no external identity provider required. It is enabled by default, so users can register and sign in immediately after installation.
@@ -12,7 +14,7 @@ Local authentication is ShellHub's built-in sign-in method: users authenticate w
 
 An instance **admin** controls local authentication from the **Admin Console** under **Settings → Authentication**, using the **Local Authentication** toggle.
 
-![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+<Shot id="admin-authentication" route="/admin/settings/authentication" edition="enterprise" alt="The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles" />
 
 When local authentication is **disabled**, the email-and-password login is turned off and users sign in through [SSO](/guides/sso) instead.
 

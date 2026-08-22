@@ -4,6 +4,8 @@ title: Team
 description: Manage namespace members, roles, and API keys
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Team
 
 The Team page is where you manage who has access to your namespace and what they can do. It has two sections: **Members** and **API Keys**.
@@ -12,7 +14,7 @@ The Team page is where you manage who has access to your namespace and what they
 
 Members are users who have access to the current namespace. Each member has a role that determines their permissions.
 
-![The Team page showing the Members tab with members and their roles](/img/team/members.png)
+<Shot id="members" route="/team" of={{ role: "table" }} alt="The Team page showing the Members tab with members and their roles" />
 
 ### Adding a member
 
