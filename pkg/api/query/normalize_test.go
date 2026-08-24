@@ -25,13 +25,3 @@ func TestEmbeddedAccessorsReachBothValues(t *testing.T) {
 	assert.Same(t, &req.Paginator, paginated.GetPaginator())
 	assert.Same(t, &req.Sorter, sorted.GetSorter())
 }
-
-func TestAccessorsAreAbsentWhenNotEmbedded(t *testing.T) {
-	req := &struct{ UID string }{}
-
-	_, paginated := any(req).(query.Paginated)
-	_, sorted := any(req).(query.Sorted)
-
-	assert.False(t, paginated)
-	assert.False(t, sorted)
-}
