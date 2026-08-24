@@ -10,6 +10,7 @@ import { getConfig, isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useSupportIdentifier } from "@/hooks/useSupportIdentifier";
+import { hasActiveSubscription } from "@/utils/billing";
 import {
   falseSnapshot,
   getBootstrapFailedSnapshot,
@@ -48,7 +49,7 @@ export function useChatwoot(): ChatwootHandle {
 
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceName = namespace?.name ?? "";
-  const hasActiveBilling = namespace?.billing?.active === true;
+  const hasActiveBilling = hasActiveSubscription(namespace?.billing);
 
   const isCloudEdition = isCloud();
   const hasCloudConfig =

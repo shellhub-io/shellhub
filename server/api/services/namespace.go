@@ -224,7 +224,7 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 	}
 
 	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
-		return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
+		return !ns.Billing.IsNil() && ns.Billing.HasCustomer() && ns.Billing.HasSubscription()
 	}
 
 	if envs.IsCloud() && ableToReportDeleteNamespace(n) {

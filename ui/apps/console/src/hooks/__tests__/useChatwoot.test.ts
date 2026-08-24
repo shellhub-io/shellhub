@@ -50,7 +50,13 @@ describe("useChatwoot", () => {
       tenant: "tenant-abc",
     });
     sdk.getNamespace.mockResolvedValue(
-      mockSdkResponse({ name: "my-ns", billing: { active: true } }),
+      mockSdkResponse({
+        name: "my-ns",
+        billing: {
+          customer_id: "cus_123",
+          subscription: { id: "sub_123", status: "active", current_period_end: 0 },
+        },
+      }),
     );
     sdk.getNamespaceSupport.mockResolvedValue(
       mockSdkResponse({ identifier: "abc123" }),
@@ -122,9 +128,9 @@ describe("useChatwoot", () => {
   });
 
   describe("status: no-subscription", () => {
-    it("returns 'no-subscription' when billing.active !== true", async () => {
+    it("returns 'no-subscription' when the namespace has no subscription", async () => {
       sdk.getNamespace.mockResolvedValue(
-        mockSdkResponse({ name: "my-ns", billing: { active: false } }),
+        mockSdkResponse({ name: "my-ns", billing: { customer_id: "cus_123" } }),
       );
 
       const { result } = renderHook(() => useChatwoot(), {

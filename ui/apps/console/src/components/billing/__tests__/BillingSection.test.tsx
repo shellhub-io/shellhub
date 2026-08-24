@@ -59,13 +59,12 @@ function renderSection() {
   );
 }
 
-function billingRecord(active: boolean) {
+function billingRecord(subscribed: boolean) {
   return {
-    active,
-    status: "active" as const,
     customer_id: "cus_123",
-    subscription_id: "sub_123",
-    current_period_end: 0,
+    subscription: subscribed
+      ? { id: "sub_123", status: "active" as const, current_period_end: 0 }
+      : undefined,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
   };

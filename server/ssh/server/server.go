@@ -161,7 +161,21 @@ func newBannerHandlerWithDeps(d *dialer.Dialer, service services.Service, handof
 		}
 
 		if err := deps.evaluate(sess, ctx); err != nil {
-			logger.WithError(err).Error("destination device has a firewall to blocked it or a billing issue")
+			// Firewall and billing denials look the same to the user but need different
+			// answers from us, so they must not share a log message.
+			evaluated := logger.WithError(err)
+			if sess.Device != nil {
+				evaluated = evaluated.WithField("tenant", sess.Device.TenantID)
+			}
+
+			switch {
+			case errors.Is(err, session.ErrBillingBlock):
+				evaluated.Error("destination device is blocked by the namespace's billing state")
+			case errors.Is(err, session.ErrFirewallBlock), errors.Is(err, session.ErrFirewallUnknown):
+				evaluated.Error("destination device is blocked by a firewall rule")
+			default:
+				evaluated.Error("destination device did not pass the connection evaluation")
+			}
 
 			return banner.Message(banner.KindAccessDenied)
 		}

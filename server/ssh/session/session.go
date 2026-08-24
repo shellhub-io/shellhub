@@ -453,8 +453,9 @@ func (s *Session) checkFirewall(ctx context.Context) error {
 	}
 
 	log.WithError(err).WithFields(log.Fields{
-		"uid":   s.UID,
-		"sshid": s.SSHID,
+		"uid":    s.UID,
+		"sshid":  s.SSHID,
+		"tenant": s.Namespace.TenantID,
 	}).Info("an error or a firewall rule block this connection")
 
 	if errors.Is(err, services.ErrFirewallBlocked) {
