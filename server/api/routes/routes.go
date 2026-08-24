@@ -253,7 +253,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	router.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
-		"/api/containers?*": "/api/devices?$1&connector=true",
+		"/api/containers?*": "/api/devices?connector=true&$1",
 		"/api/containers/*": "/api/devices/$1",
 	}))
 

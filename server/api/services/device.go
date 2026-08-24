@@ -111,7 +111,44 @@ func (s *service) deviceLimit(ctx context.Context, tenantID string) (models.Name
 	return s.store.NamespaceGetDeviceLimit(ctx, tenantID)
 }
 
+const connectorPlatform = "connector"
+
+func connectorFilters(filters query.Filters, connector bool) (query.Filters, error) {
+	operator := "ne"
+	if connector {
+		operator = "eq"
+	}
+
+	narrowed := query.Filters{
+		Raw:  filters.Raw,
+		Data: make([]query.Filter, 0, len(filters.Data)+2),
+	}
+
+	narrowed.Data = append(narrowed.Data, filters.Data...)
+	narrowed.Data = append(narrowed.Data,
+		query.Filter{
+			Type:   query.FilterTypeOperator,
+			Params: &query.FilterOperator{Name: "and"},
+		},
+		query.Filter{
+			Type:   query.FilterTypeProperty,
+			Params: &query.FilterProperty{Name: "platform", Operator: operator, Value: connectorPlatform},
+		},
+	)
+
+	if len(narrowed.Data) > query.MaxFilterItems {
+		return query.Filters{}, NewErrDeviceFilterInvalid(query.ErrFilterPropertyInvalid)
+	}
+
+	return narrowed, nil
+}
+
 func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int, error) {
+	filters, err := connectorFilters(req.Filters, req.Connector)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	opts := []store.QueryOption{}
 
 	if req.DeviceStatus != "" {
@@ -124,7 +161,7 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 
 	req.Sorter.Tiebreak = "id"
 
-	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
+	opts = append(opts, s.store.Options().Match(&filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
 
 	if req.DeviceStatus == models.DeviceStatusRemoved {
 		return s.store.DeviceList(ctx, sc, store.DeviceAcceptableFromRemoved, opts...)
