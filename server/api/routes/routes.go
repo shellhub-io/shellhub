@@ -118,7 +118,10 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	}
 
 	publicAPI := router.Group("/api")
-	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+	publicAPI.GET(HealthCheckURL,
+		gateway.None(handler.EvaluateHealth,
+			gateway.Unbounded("the health check reports on the instance, which belongs to no namespace"),
+			gateway.Anonymous("the health check is what a load balancer asks before any credential exists")))
 
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
