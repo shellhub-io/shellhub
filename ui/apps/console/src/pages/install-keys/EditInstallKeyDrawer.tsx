@@ -37,7 +37,7 @@ function EditInstallKeyDrawer({
   const [allowedMacs, setAllowedMacs] = useState("");
   const [webhookTimeout, setWebhookTimeout] = useState(5);
   const [webhookCallbackTtl, setWebhookCallbackTtl] = useState(3600);
-  const [usageLimit, setUsageLimit] = useState(1);
+  const [usageLimit, setUsageLimit] = useState(0);
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
   const [expiresIn, setExpiresIn] = useState("-1");
@@ -81,7 +81,7 @@ function EditInstallKeyDrawer({
     setAllowedMacs((installKey?.allowed_macs ?? []).join("\n"));
     setWebhookTimeout(installKey?.webhook_timeout || 5);
     setWebhookCallbackTtl(installKey?.webhook_callback_ttl || 3600);
-    setUsageLimit(installKey?.usage_limit ?? 1);
+    setUsageLimit(installKey?.usage_limit ?? 0);
     setEphemeral(installKey?.ephemeral ?? false);
     setEphemeralTimeout(installKey?.ephemeral_timeout || 10);
     const { days, expired } = getRemainingDays(installKey?.expires_at);
