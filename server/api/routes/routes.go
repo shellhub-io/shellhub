@@ -155,8 +155,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
 	publicAPI.DELETE(URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
 
-	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDevice)))
+	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.List(handler.GetDeviceList)))
+	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.One(handler.GetDevice)))
 	publicAPI.GET(ResolveDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.ResolveDevice)))
 	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
 	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))

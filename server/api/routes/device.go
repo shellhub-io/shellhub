@@ -1,13 +1,15 @@
 package routes
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -33,71 +35,31 @@ const (
 )
 
 // GetDeviceList serves the namespace's devices, filtered, sorted and paginated as requested.
-func (h *Handler) GetDeviceList(c *gateway.Context) error {
-	req := new(requests.DeviceList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-	req.Sorter.Normalize()
-
+func (h *Handler) GetDeviceList(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceList) ([]models.Device, int, error) {
 	if err := query.ValidateSorter(&req.Sorter, services.DeviceSortFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		log.WithError(err).WithField("sort_by", req.Sorter.By).Warn("failed to validate device list sorter")
+
+		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"sort_by": req.Sorter.By})
 	}
 
 	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode device list filter")
 
-		return c.NoContent(http.StatusBadRequest)
+		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"filter": "cannot be decoded"})
 	}
 
 	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to validate device list filter")
+
+		return nil, 0, errs.NewErrInvalidEntity(map[string]string{"filter": "is not valid"})
 	}
 
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	sc, err := c.AdminOrScope()
-	if err != nil {
-		return err
-	}
-
-	res, count, err := h.service.ListDevices(c.Ctx(), sc, req)
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, res)
+	return h.service.ListDevices(ctx, sc, req)
 }
 
 // GetDevice serves a single device by UID.
-func (h *Handler) GetDevice(c *gateway.Context) error {
-	var req requests.DeviceGet
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	sc, err := c.AdminOrScope()
-	if err != nil {
-		return err
-	}
-
-	device, err := h.service.GetDevice(c.Ctx(), sc, models.UID(req.UID))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, device)
+func (h *Handler) GetDevice(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceGet) (*models.Device, error) {
+	return h.service.GetDevice(ctx, sc, models.UID(req.UID))
 }
 
 // ResolveDevice serves the device matching a name or SSHID, for callers that have a name
