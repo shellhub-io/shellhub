@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
+import { paginatedResponse } from "@/tests/sdk";
 import RecentSessionsTable from "../RecentSessionsTable";
 import type { Device, Session } from "@/client";
 
@@ -12,14 +13,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/client")>();
-  return {
-    ...actual,
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
     getSessions: vi.fn(),
     getSessionsAdmin: vi.fn(),
-  };
-});
+  }),
+);
 
 vi.mock("@/stores/authStore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/stores/authStore")>();
@@ -30,8 +29,6 @@ vi.mock("@/stores/authStore", async (importOriginal) => {
     ),
   };
 });
-
-import { getSessions, getSessionsAdmin } from "@/client";
 
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
@@ -60,15 +57,8 @@ function makeSession(overrides: Partial<Session> = {}): Session {
   };
 }
 
-function mockSdkResponse(sessions: Session[] = [], totalCount?: number) {
-  return {
-    data: sessions,
-    response: {
-      headers: new Headers({
-        "X-Total-Count": String(totalCount ?? sessions.length),
-      }),
-    },
-  } as never;
+function mockSessionsResponse(sessions: Session[] = [], totalCount?: number) {
+  return paginatedResponse(sessions, totalCount);
 }
 
 function renderTable(isAdmin = false) {
@@ -80,8 +70,8 @@ function renderTable(isAdmin = false) {
 describe("RecentSessionsTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getSessions).mockResolvedValue(mockSdkResponse());
-    vi.mocked(getSessionsAdmin).mockResolvedValue(mockSdkResponse());
+    sdk.getSessions.mockResolvedValue(mockSessionsResponse());
+    sdk.getSessionsAdmin.mockResolvedValue(mockSessionsResponse());
   });
 
   describe("default (non-admin)", () => {
@@ -97,8 +87,8 @@ describe("RecentSessionsTable", () => {
 
     it("navigates to /sessions/:uid on row click", async () => {
       const user = userEvent.setup();
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession({ uid: "s-1" })]),
+      sdk.getSessions.mockResolvedValue(
+        mockSessionsResponse([makeSession({ uid: "s-1" })]),
       );
       renderTable();
 
@@ -110,9 +100,7 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device chip with link to /devices/:uid", async () => {
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession()]),
-      );
+      sdk.getSessions.mockResolvedValue(mockSessionsResponse([makeSession()]));
       renderTable();
 
       await waitFor(() => {
@@ -136,8 +124,8 @@ describe("RecentSessionsTable", () => {
 
     it("navigates to /admin/sessions/:uid on row click", async () => {
       const user = userEvent.setup();
-      vi.mocked(getSessionsAdmin).mockResolvedValue(
-        mockSdkResponse([makeSession({ uid: "s-2" })]),
+      sdk.getSessionsAdmin.mockResolvedValue(
+        mockSessionsResponse([makeSession({ uid: "s-2" })]),
       );
       renderTable(true);
 
@@ -149,8 +137,8 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device chip with link to /admin/devices/:uid", async () => {
-      vi.mocked(getSessionsAdmin).mockResolvedValue(
-        mockSdkResponse([makeSession()]),
+      sdk.getSessionsAdmin.mockResolvedValue(
+        mockSessionsResponse([makeSession()]),
       );
       renderTable(true);
 
@@ -164,7 +152,7 @@ describe("RecentSessionsTable", () => {
 
   describe("loading state", () => {
     it("shows loading message while fetching", () => {
-      vi.mocked(getSessions).mockReturnValue(new Promise(() => {}) as never);
+      sdk.getSessions.mockReturnValue(new Promise(() => {}));
       renderTable();
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
@@ -172,7 +160,7 @@ describe("RecentSessionsTable", () => {
 
   describe("error state", () => {
     it("renders error callout on fetch failure", async () => {
-      vi.mocked(getSessions).mockRejectedValue(
+      sdk.getSessions.mockRejectedValue(
         Object.assign(new Error(), { status: 500, headers: new Headers() }),
       );
       renderTable();
@@ -193,8 +181,8 @@ describe("RecentSessionsTable", () => {
 
   describe("unauthenticated session", () => {
     it("renders warning icon for unauthenticated sessions", async () => {
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession({ authenticated: false })]),
+      sdk.getSessions.mockResolvedValue(
+        mockSessionsResponse([makeSession({ authenticated: false })]),
       );
       renderTable();
       await waitFor(() => {
@@ -205,8 +193,8 @@ describe("RecentSessionsTable", () => {
 
   describe("session data rendering", () => {
     it("renders session username", async () => {
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession({ username: "admin" })]),
+      sdk.getSessions.mockResolvedValue(
+        mockSessionsResponse([makeSession({ username: "admin" })]),
       );
       renderTable();
       await waitFor(() => {
@@ -215,8 +203,8 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders session type badge", async () => {
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([
+      sdk.getSessions.mockResolvedValue(
+        mockSessionsResponse([
           makeSession({ events: { types: ["shell"], seats: [] } }),
         ]),
       );
@@ -227,9 +215,7 @@ describe("RecentSessionsTable", () => {
     });
 
     it("renders device name", async () => {
-      vi.mocked(getSessions).mockResolvedValue(
-        mockSdkResponse([makeSession()]),
-      );
+      sdk.getSessions.mockResolvedValue(mockSessionsResponse([makeSession()]));
       renderTable();
       await waitFor(() => {
         expect(screen.getByText("my-device")).toBeInTheDocument();

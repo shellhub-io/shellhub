@@ -1,25 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { createTestWrapper } from "@/tests/wrapper";
-import AppLayout from "../AppLayout";
+import { paginatedResponse, mockSdkResponse } from "@/tests/sdk";
+import { mockNamespace } from "@/tests/factories";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
+import AppLayout from "../AppLayout";
 
-const mockGetConfig = vi.mocked(getConfig);
-
-const mockUseNamespaces = vi.fn<
-  () => {
-    namespaces: Array<{ tenant_id: string; name: string }>;
-    isLoading: boolean;
-    error: Error | null;
-    refetch: () => void;
-  }
->();
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespaces: () => mockUseNamespaces(),
-  useNamespace: () => ({ tenant_id: "t1", name: "ns1" }),
-  useInitRole: () => {},
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getNamespaces: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+  }),
+);
 
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
@@ -64,14 +59,18 @@ vi.mock("@/components/common/DeviceLimitBanner", () => ({
 vi.mock("@/components/common/LicenseBanner", () => ({
   default: () => <div data-testid="license-banner" />,
 }));
+
+const mockGetConfig = vi.mocked(getConfig);
+
 beforeEach(() => {
+  vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig });
-  mockUseNamespaces.mockReturnValue({
-    namespaces: [],
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
-  });
+  seedAuthStore();
+  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
+  sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
 });
 
 function renderLayout() {
@@ -85,115 +84,105 @@ function renderLayout() {
 
 describe("AppLayout", () => {
   describe("Sidebar", () => {
-    it("renders when namespaces exist", () => {
-      mockUseNamespaces.mockReturnValue({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }],
-        isLoading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+    it("renders when namespaces exist", async () => {
+      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
       renderLayout();
-      expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+      expect(await screen.findByTestId("sidebar")).toBeInTheDocument();
     });
 
-    it("is hidden when there are no namespaces", () => {
+    it("is hidden when there are no namespaces", async () => {
       renderLayout();
+      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
       expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
     });
   });
 
   describe("AppBar", () => {
-    it("renders regardless of namespaces", () => {
+    it("renders regardless of namespaces", async () => {
       renderLayout();
-      expect(screen.getByTestId("app-bar")).toBeInTheDocument();
+      expect(await screen.findByTestId("app-bar")).toBeInTheDocument();
     });
 
-    it("renders alongside the sidebar when namespaces exist", () => {
-      mockUseNamespaces.mockReturnValue({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }],
-        isLoading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+    it("renders alongside the sidebar when namespaces exist", async () => {
+      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
       renderLayout();
+      expect(await screen.findByTestId("sidebar")).toBeInTheDocument();
       expect(screen.getByTestId("app-bar")).toBeInTheDocument();
-      expect(screen.getByTestId("sidebar")).toBeInTheDocument();
     });
   });
 
   describe("ConnectivityBanner", () => {
-    it("is always mounted", () => {
+    it("is always mounted", async () => {
       renderLayout();
-      expect(screen.getByTestId("connectivity-banner")).toBeInTheDocument();
+      expect(
+        await screen.findByTestId("connectivity-banner"),
+      ).toBeInTheDocument();
     });
   });
 
   describe("skip link", () => {
-    it("renders the skip link pointing at main content", () => {
+    it("renders the skip link pointing at main content", async () => {
       renderLayout();
-      const link = screen.getByRole("link", { name: /skip to main content/i });
-      expect(link).toBeInTheDocument();
+      const link = await screen.findByRole("link", {
+        name: /skip to main content/i,
+      });
       expect(link).toHaveAttribute("href", "#main-content");
     });
 
-    it("exposes the main landmark with id and tabindex", () => {
+    it("exposes the main landmark with id and tabindex", async () => {
       renderLayout();
+      await screen.findByRole("link", { name: /skip to main content/i });
       const main = screen.getByRole("main");
       expect(main).toHaveAttribute("id", "main-content");
       expect(main).toHaveAttribute("tabindex", "-1");
     });
 
-    it("renders the skip link before the main content in the DOM", () => {
+    it("renders the skip link before the main content in the DOM", async () => {
       renderLayout();
-      const link = screen.getByRole("link", { name: /skip to main content/i });
+      const link = await screen.findByRole("link", {
+        name: /skip to main content/i,
+      });
       const main = screen.getByRole("main");
       expect(
         link.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     });
 
-    it("renders the skip link when the sidebar is visible", () => {
-      mockUseNamespaces.mockReturnValue({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }],
-        isLoading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+    it("renders the skip link when the sidebar is visible", async () => {
+      sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
       renderLayout();
       expect(
-        screen.getByRole("link", { name: /skip to main content/i }),
+        await screen.findByRole("link", { name: /skip to main content/i }),
       ).toBeInTheDocument();
     });
   });
 
   describe("enterprise banners", () => {
-    it("mounts LicenseBanner and DeviceLimitBanner in an enterprise instance", () => {
+    it("mounts LicenseBanner and DeviceLimitBanner in an enterprise instance", async () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
       renderLayout();
-      expect(screen.getByTestId("device-limit-banner")).toBeInTheDocument();
+      expect(
+        await screen.findByTestId("device-limit-banner"),
+      ).toBeInTheDocument();
       expect(screen.getByTestId("license-banner")).toBeInTheDocument();
     });
 
-    it("does not mount the enterprise banners on a community instance", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-      });
+    it("does not mount the enterprise banners on a community instance", async () => {
       renderLayout();
+      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
       expect(
         screen.queryByTestId("device-limit-banner"),
       ).not.toBeInTheDocument();
       expect(screen.queryByTestId("license-banner")).not.toBeInTheDocument();
     });
 
-    it("does not mount the enterprise banners in a cloud instance", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+    it("does not mount the enterprise banners in a cloud instance", async () => {
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
       renderLayout();
+      await waitFor(() => expect(sdk.getNamespaces).toHaveBeenCalled());
       expect(
         screen.queryByTestId("device-limit-banner"),
       ).not.toBeInTheDocument();

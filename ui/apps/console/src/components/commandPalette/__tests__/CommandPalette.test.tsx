@@ -1,55 +1,53 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { NormalizedDevice } from "@/hooks/useDevices";
+import type { Device } from "@/client";
+import { createTestWrapper } from "@/tests/wrapper";
+import {
+  mockDevice as mockDeviceFactory,
+  mockNamespace,
+} from "@/tests/factories";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import { useAuthStore } from "@/stores/authStore";
+import type { TerminalSession } from "@/stores/terminalStore";
 
 const { copyMock } = vi.hoisted(() => ({ copyMock: vi.fn() }));
 
-vi.mock("@/hooks/useDevices", () => ({
-  useDevices: vi.fn(),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (sel: (s: { logout: () => void; tenant: string }) => unknown) =>
-    sel({ logout: vi.fn(), tenant: "tenant-1" }),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: vi.fn(),
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: () => ({
-    namespace: { name: "dev" },
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getDevices: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
   }),
-}));
+);
 
 vi.mock("@/hooks/useCopy", () => ({
   useCopy: () => ({ copy: copyMock, copied: false }),
 }));
 
 import CommandPalette from "@/components/commandPalette/CommandPalette";
-import { useDevices } from "@/hooks/useDevices";
-import { useHasPermission } from "@/hooks/useHasPermission";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
-import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
+import { useTerminalStore } from "@/stores/terminalStore";
 import { useRecentDevicesStore } from "@/stores/recentDevicesStore";
+import { useLocation } from "react-router-dom";
 
-const device = {
+const device = mockDeviceFactory({
   uid: "dev-1",
   name: "web-01",
   status: "accepted",
   online: true,
   identity: { mac: "00:11:22:33:44:55" },
   tags: [],
-} as unknown as NormalizedDevice;
+});
 
-/** A minimized, connected terminal session for `device` (`dev-1`). Store
- *  actions never mutate sessions in place, so this fixture is safe to reuse. */
+const device2: Device = {
+  ...device,
+  uid: "dev-2",
+  name: "db-01",
+  identity: { mac: "aa:bb:cc:dd:ee:ff" },
+};
+
 const session = {
   id: "s1",
   deviceUid: "dev-1",
@@ -60,53 +58,47 @@ const session = {
   connectionStatus: "connected",
 } satisfies TerminalSession;
 
-/** A second device, used to populate the Recent section without colliding with
- *  `device` (`dev-1`). */
-const device2 = {
-  ...device,
-  uid: "dev-2",
-  name: "db-01",
-  identity: { mac: "aa:bb:cc:dd:ee:ff" },
-} as unknown as NormalizedDevice;
-
-/** A fixed past timestamp so the Recent sublabel renders a stable "1 hour ago". */
 const HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-/** Reflects the router location so navigation can be asserted. */
 function LocationProbe() {
   const location = useLocation();
   return <div data-testid="location">{location.pathname}</div>;
 }
 
+const logoutSpy = vi.fn();
+
 function renderPalette() {
   return render(
-    <MemoryRouter>
+    <>
       <CommandPalette />
       <LocationProbe />
-    </MemoryRouter>,
+    </>,
+    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
   );
 }
 
 describe("CommandPalette", () => {
   beforeEach(() => {
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device],
-      totalCount: 1,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-    vi.mocked(useHasPermission).mockReturnValue(true);
+    vi.clearAllMocks();
+    seedAuthStore();
+    useAuthStore.setState({ logout: logoutSpy });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device]));
+    sdk.getNamespace.mockResolvedValue(
+      mockSdkResponse(mockNamespace({ name: "dev" })),
+    );
+    sdk.getNamespaceToken.mockResolvedValue(
+      mockSdkResponse({ token: "jwt-token", role: "owner" }),
+    );
     copyMock.mockClear();
     useTerminalStore.setState({ sessions: [], reconnectTarget: null });
     useRecentDevicesStore.setState({ byTenant: {} });
     useCommandPaletteStore.setState({ open: true });
   });
 
-  it("shows devices and hides navigation by default", () => {
+  it("shows devices and hides navigation by default", async () => {
     renderPalette();
 
-    expect(screen.getByText("web-01")).toBeInTheDocument();
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
   });
 
@@ -114,7 +106,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), ">");
+    await user.type(await screen.findByRole("combobox"), ">");
 
     expect(screen.getByText("Commands")).toBeInTheDocument();
     expect(screen.getByText("Settings")).toBeInTheDocument();
@@ -126,7 +118,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), ">set");
+    await user.type(await screen.findByRole("combobox"), ">set");
 
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
@@ -136,7 +128,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toEqual({
       deviceUid: "dev-1",
@@ -163,7 +155,7 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
@@ -188,13 +180,12 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toEqual({
       deviceUid: "dev-1",
       deviceName: "web-01",
     });
-    // the unrelated session is left untouched
     expect(useTerminalStore.getState().sessions[0].state).toBe("minimized");
   });
 
@@ -202,7 +193,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), ">");
+    await user.type(await screen.findByRole("combobox"), ">");
     await user.click(screen.getByText("Logout"));
 
     expect(useCommandPaletteStore.getState().open).toBe(false);
@@ -210,16 +201,12 @@ describe("CommandPalette", () => {
 
   it("rejects connecting to an offline device and keeps the palette open", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [{ ...device, online: false }],
-      totalCount: 1,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(
+      paginatedResponse([{ ...device, online: false }]),
+    );
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(useCommandPaletteStore.getState().open).toBe(true);
@@ -228,13 +215,9 @@ describe("CommandPalette", () => {
 
   it("restores an existing session even when the device is offline", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [{ ...device, online: false }],
-      totalCount: 1,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(
+      paginatedResponse([{ ...device, online: false }]),
+    );
     useTerminalStore.setState({
       sessions: [
         {
@@ -251,9 +234,8 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
-    // the offline guard only blocks a fresh connect — an open session still restores
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -262,10 +244,10 @@ describe("CommandPalette", () => {
 
   it("rejects connecting without the device:connect permission", async () => {
     const user = userEvent.setup();
-    vi.mocked(useHasPermission).mockReturnValue(false);
+    useAuthStore.setState({ role: null });
     renderPalette();
 
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(useCommandPaletteStore.getState().open).toBe(true);
@@ -274,7 +256,7 @@ describe("CommandPalette", () => {
 
   it("rejects restoring a session without the device:connect permission", async () => {
     const user = userEvent.setup();
-    vi.mocked(useHasPermission).mockReturnValue(false);
+    useAuthStore.setState({ role: null });
     useTerminalStore.setState({
       sessions: [
         {
@@ -291,8 +273,7 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    // the gate mirrors the Devices page: it covers restore, not just fresh connects
-    await user.click(screen.getByText("web-01"));
+    await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("minimized");
     expect(useCommandPaletteStore.getState().open).toBe(true);
@@ -301,12 +282,12 @@ describe("CommandPalette", () => {
 
   // ─── Phase 5: open terminal sessions lead the default view ─────────────────
 
-  it("lists open terminal sessions above devices", () => {
+  it("lists open terminal sessions above devices", async () => {
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     renderPalette();
 
-    expect(screen.getByText("Terminal Sessions")).toBeInTheDocument();
-    // the session row leads; the device row (its MAC sublabel) follows
+    expect(await screen.findByText("Terminal Sessions")).toBeInTheDocument();
+    await screen.findByText("00:11:22:33:44:55");
     const options = screen.getAllByRole("option");
     expect(options[0]).toHaveTextContent("root@web-01");
     expect(options[1]).toHaveTextContent("00:11:22:33:44:55");
@@ -317,7 +298,7 @@ describe("CommandPalette", () => {
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     renderPalette();
 
-    await user.click(screen.getByText("root@web-01"));
+    await user.click(await screen.findByText("root@web-01"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
     expect(useCommandPaletteStore.getState().open).toBe(false);
@@ -328,90 +309,79 @@ describe("CommandPalette", () => {
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     renderPalette();
 
-    // no arrowing: the promoted session is the default highlight (index 0)
-    await user.type(screen.getByRole("combobox"), "{Enter}");
+    await user.type(await screen.findByRole("combobox"), "{Enter}");
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
-  it("omits the Terminal Sessions section when none are open", () => {
+  it("omits the Terminal Sessions section when none are open", async () => {
     renderPalette();
 
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Terminal Sessions")).not.toBeInTheDocument();
-    expect(screen.getByText("web-01")).toBeInTheDocument();
   });
 
   // ─── Phase 6: recent devices section ───────────────────────────────────────
 
-  it("lists recent devices between sessions and the full device list", () => {
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+  it("lists recent devices between sessions and the full device list", async () => {
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+        "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
       },
     });
     renderPalette();
 
-    expect(screen.getByText("Recent")).toBeInTheDocument();
-    // order: Terminal Sessions → Recent → Devices
+    expect(await screen.findByText("Recent")).toBeInTheDocument();
     const options = screen.getAllByRole("option");
-    expect(options[0]).toHaveTextContent("root@web-01"); // open session
-    expect(options[1]).toHaveTextContent("db-01"); // recent
-    // the recent row carries a relative-time sublabel
+    expect(options[0]).toHaveTextContent("root@web-01");
+    expect(options[1]).toHaveTextContent("db-01");
     expect(screen.getByText(/1 hour ago/)).toBeInTheDocument();
   });
 
-  it("hides a device with an open session from the Recent section", () => {
-    // dev-1 is both recent and currently open — it belongs only to Sessions
+  it("hides a device with an open session from the Recent section", async () => {
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "dev-1", name: "web-01", connectedAt: HOUR_AGO }],
+        "tenant-456": [{ uid: "dev-1", name: "web-01", connectedAt: HOUR_AGO }],
       },
     });
     renderPalette();
 
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Recent")).not.toBeInTheDocument();
   });
 
-  it("drops a recent device that is no longer in the device list", () => {
+  it("drops a recent device that is no longer in the device list", async () => {
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "ghost", name: "old-box", connectedAt: HOUR_AGO }],
+        "tenant-456": [
+          { uid: "ghost", name: "old-box", connectedAt: HOUR_AGO },
+        ],
       },
     });
     renderPalette();
 
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Recent")).not.toBeInTheDocument();
     expect(screen.queryByText("old-box")).not.toBeInTheDocument();
   });
 
   it("connects from a recent device row", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+        "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
       },
     });
     renderPalette();
 
-    // target the recent row via its unique relative-time sublabel
-    const recentRow = screen.getByText(/1 hour ago/).closest('[role="option"]');
+    const recentRow = (await screen.findByText(/1 hour ago/)).closest(
+      '[role="option"]',
+    );
     expect(recentRow).not.toBeNull();
     await user.click(recentRow as HTMLElement);
 
@@ -422,34 +392,31 @@ describe("CommandPalette", () => {
     expect(useCommandPaletteStore.getState().open).toBe(false);
   });
 
-  it("omits the Recent section when there are no recent devices", () => {
+  it("omits the Recent section when there are no recent devices", async () => {
     renderPalette();
 
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(screen.queryByText("Recent")).not.toBeInTheDocument();
   });
 
   it("shakes the clicked recent row, not its device duplicate, when offline", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, { ...device2, online: false }],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(
+      paginatedResponse([device, { ...device2, online: false }]),
+    );
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+        "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
       },
     });
     renderPalette();
 
-    const recentRow = screen.getByText(/1 hour ago/).closest('[role="option"]');
+    const recentRow = (await screen.findByText(/1 hour ago/)).closest(
+      '[role="option"]',
+    );
     await user.click(recentRow as HTMLElement);
 
-    // the offline reject shakes the recent row the user clicked …
     expect(recentRow?.className).toContain("animate-shake");
-    // … not the same device's duplicate row in the Devices section
     const deviceRow = screen
       .getByText("aa:bb:cc:dd:ee:ff")
       .closest('[role="option"]');
@@ -461,23 +428,16 @@ describe("CommandPalette", () => {
 
   it("moves the highlight down across sections, tracking aria-activedescendant", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
     useRecentDevicesStore.setState({
       byTenant: {
-        "tenant-1": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+        "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
       },
     });
     renderPalette();
 
-    const input = screen.getByRole("combobox");
-    // default highlight: the leading session (Sessions → Recent → Devices)
+    const input = await screen.findByRole("combobox");
     expect(input).toHaveAttribute("aria-activedescendant", "cmdk-opt-term-s1");
     await user.type(input, "{ArrowDown}");
     expect(input).toHaveAttribute(
@@ -493,26 +453,22 @@ describe("CommandPalette", () => {
 
   it("wraps around at the list ends with ArrowUp/ArrowDown", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     renderPalette();
 
-    const input = screen.getByRole("combobox");
-    expect(input).toHaveAttribute(
-      "aria-activedescendant",
-      "cmdk-opt-device-dev-1",
-    );
-    await user.type(input, "{ArrowUp}"); // wrap to the last option
+    const input = await screen.findByRole("combobox");
+    await waitFor(() => {
+      expect(input).toHaveAttribute(
+        "aria-activedescendant",
+        "cmdk-opt-device-dev-1",
+      );
+    });
+    await user.type(input, "{ArrowUp}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
       "cmdk-opt-device-dev-2",
     );
-    await user.type(input, "{ArrowDown}"); // wrap back to the first
+    await user.type(input, "{ArrowDown}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
       "cmdk-opt-device-dev-1",
@@ -521,16 +477,16 @@ describe("CommandPalette", () => {
 
   it("jumps to the first and last option with Home and End", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     renderPalette();
 
-    const input = screen.getByRole("combobox");
+    const input = await screen.findByRole("combobox");
+    await waitFor(() => {
+      expect(input).toHaveAttribute(
+        "aria-activedescendant",
+        "cmdk-opt-device-dev-1",
+      );
+    });
     await user.type(input, "{End}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
@@ -545,17 +501,17 @@ describe("CommandPalette", () => {
 
   it("selects the highlighted option after navigating", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [device, device2],
-      totalCount: 2,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(paginatedResponse([device, device2]));
     renderPalette();
 
-    const input = screen.getByRole("combobox");
-    await user.type(input, "{ArrowDown}"); // highlight the second device (dev-2)
+    const input = await screen.findByRole("combobox");
+    await waitFor(() => {
+      expect(input).toHaveAttribute(
+        "aria-activedescendant",
+        "cmdk-opt-device-dev-1",
+      );
+    });
+    await user.type(input, "{ArrowDown}");
     await user.type(input, "{Enter}");
 
     expect(useTerminalStore.getState().reconnectTarget).toEqual({
@@ -571,7 +527,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
 
     expect(screen.getByText("Connect")).toBeInTheDocument();
     expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
@@ -580,9 +536,7 @@ describe("CommandPalette", () => {
     expect(
       screen.getByRole("button", { name: "Back to devices" }),
     ).toBeInTheDocument();
-    // → opens the menu; it must not connect
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
-    // the device list is gone (its MAC sublabel no longer rendered)
     expect(screen.queryByText("00:11:22:33:44:55")).not.toBeInTheDocument();
   });
 
@@ -590,7 +544,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.type(screen.getByRole("combobox"), "copy");
 
     expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
@@ -603,9 +557,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    // with the caret away from the trailing edge, → must edit text (move the
-    // caret), not open the action menu
-    const input = screen.getByRole<HTMLInputElement>("combobox");
+    const input = await screen.findByRole<HTMLInputElement>("combobox");
     await user.type(input, "web");
     input.setSelectionRange(1, 1);
     fireEvent.keyDown(input, { key: "ArrowRight" });
@@ -618,7 +570,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
 
     await user.type(screen.getByRole("combobox"), "{ArrowLeft}");
@@ -631,11 +583,10 @@ describe("CommandPalette", () => {
     renderPalette();
 
     await user.click(
-      screen.getByRole("button", { name: "Show actions for web-01" }),
+      await screen.findByRole("button", { name: "Show actions for web-01" }),
     );
 
     expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
-    // clicking the chevron drills in; it must not connect
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
   });
 
@@ -643,7 +594,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.click(screen.getByText("Copy SSHID"));
 
     expect(copyMock).toHaveBeenCalledWith("dev.web-01@localhost");
@@ -655,7 +606,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.click(screen.getByText("Copy ssh command"));
 
     expect(copyMock).toHaveBeenCalledWith(
@@ -667,7 +618,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.click(screen.getByText("View details"));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/devices/dev-1");
@@ -678,7 +629,7 @@ describe("CommandPalette", () => {
     const user = userEvent.setup();
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
     await user.click(screen.getByText("Connect"));
 
     expect(useTerminalStore.getState().reconnectTarget).toEqual({
@@ -690,16 +641,15 @@ describe("CommandPalette", () => {
 
   it("disables the menu Connect action without permission", async () => {
     const user = userEvent.setup();
-    vi.mocked(useHasPermission).mockReturnValue(false);
+    useAuthStore.setState({ role: null });
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
 
     const connect = screen.getByText("Connect").closest('[role="option"]');
     expect(connect).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByText("Requires connect permission")).toBeInTheDocument();
 
-    // inert: clicking it neither connects nor raises a rejection banner
     await user.click(screen.getByText("Connect"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
@@ -709,16 +659,12 @@ describe("CommandPalette", () => {
 
   it("disables the menu Connect action for an offline device with no session", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [{ ...device, online: false }],
-      totalCount: 1,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(
+      paginatedResponse([{ ...device, online: false }]),
+    );
     renderPalette();
 
-    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    await user.type(await screen.findByRole("combobox"), "{ArrowRight}");
 
     const connect = screen.getByText("Connect").closest('[role="option"]');
     expect(connect).toHaveAttribute("aria-disabled", "true");
@@ -732,13 +678,9 @@ describe("CommandPalette", () => {
 
   it("keeps the menu Connect enabled for an offline device with an open session", async () => {
     const user = userEvent.setup();
-    vi.mocked(useDevices).mockReturnValue({
-      devices: [{ ...device, online: false }],
-      totalCount: 1,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    sdk.getDevices.mockResolvedValue(
+      paginatedResponse([{ ...device, online: false }]),
+    );
     useTerminalStore.setState({
       sessions: [
         {
@@ -755,16 +697,13 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    // the session now leads the list, so {ArrowRight} would target it (no
-    // drill-in); reach the device's menu via its chevron instead
     await user.click(
-      screen.getByRole("button", { name: "Show actions for web-01" }),
+      await screen.findByRole("button", { name: "Show actions for web-01" }),
     );
 
     const connect = screen.getByText("Connect").closest('[role="option"]');
     expect(connect).not.toHaveAttribute("aria-disabled");
 
-    // an offline device with a live session still restores
     await user.click(screen.getByText("Connect"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("docked");

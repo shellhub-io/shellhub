@@ -2,13 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
-
 import { defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import { mockLicense } from "@/tests/factories";
+import { makeSdkError } from "@/tests/sdk";
+import { getConfig } from "@/env";
+import AdminSidebar from "../AdminSidebar";
 
-vi.mock("@/hooks/useAdminLicense", () => ({
-  useAdminLicense: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getLicense: vi.fn(),
+  }),
+);
 
 vi.mock("../SidebarShell", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -32,36 +39,28 @@ vi.mock("../SidebarShell", () => ({
   navIcon: "",
 }));
 
-import { getConfig } from "@/env";
-import { useAdminLicense } from "@/hooks/useAdminLicense";
-import AdminSidebar from "../AdminSidebar";
-
 const mockGetConfig = vi.mocked(getConfig);
-const mockUseAdminLicense = vi.mocked(useAdminLicense);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function renderSidebar() {
   return render(
     <MemoryRouter>
       <AdminSidebar expanded={true} pinned={true} onToggle={vi.fn()} />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-function openSettingsGroup() {
-  fireEvent.click(screen.getByRole("button", { name: /settings/i }));
+async function openSettingsGroup() {
+  fireEvent.click(await screen.findByRole("button", { name: /settings/i }));
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
 describe("AdminSidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({ isAdmin: true } as never);
-    mockUseAdminLicense.mockReturnValue({
-      isLoading: false,
-      isExpired: false,
-    } as never);
+    useAuthStore.setState({ isAdmin: true });
+    sdk.getLicense.mockResolvedValue(
+      mockSdkResponse(mockLicense({ expired: false })),
+    );
     mockGetConfig.mockReturnValue({ ...defaultConfig });
   });
 
@@ -70,9 +69,9 @@ describe("AdminSidebar", () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
     });
 
-    it("shows the core nav entries", () => {
+    it("shows the core nav entries", async () => {
       renderSidebar();
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      expect(await screen.findByText("Dashboard")).toBeInTheDocument();
       expect(screen.getByText("Users")).toBeInTheDocument();
       expect(screen.getByText("Devices")).toBeInTheDocument();
       expect(screen.getByText("Sessions")).toBeInTheDocument();
@@ -80,18 +79,18 @@ describe("AdminSidebar", () => {
       expect(screen.getByText("Namespaces")).toBeInTheDocument();
     });
 
-    it("shows Authentication but NOT License in the Settings group", () => {
+    it("shows Authentication but NOT License in the Settings group", async () => {
       renderSidebar();
-      openSettingsGroup();
+      await openSettingsGroup();
       expect(screen.getByText("Authentication")).toBeInTheDocument();
       expect(screen.queryByText("License")).not.toBeInTheDocument();
     });
   });
 
   describe("enterprise admin with valid license (cloud=false, isExpired=false)", () => {
-    it("shows the core nav entries", () => {
+    it("shows the core nav entries", async () => {
       renderSidebar();
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      expect(await screen.findByText("Dashboard")).toBeInTheDocument();
       expect(screen.getByText("Users")).toBeInTheDocument();
       expect(screen.getByText("Devices")).toBeInTheDocument();
       expect(screen.getByText("Sessions")).toBeInTheDocument();
@@ -99,9 +98,9 @@ describe("AdminSidebar", () => {
       expect(screen.getByText("Namespaces")).toBeInTheDocument();
     });
 
-    it("shows both Authentication and License in the Settings group", () => {
+    it("shows both Authentication and License in the Settings group", async () => {
       renderSidebar();
-      openSettingsGroup();
+      await openSettingsGroup();
       expect(screen.getByText("Authentication")).toBeInTheDocument();
       expect(screen.getByText("License")).toBeInTheDocument();
     });
@@ -109,15 +108,12 @@ describe("AdminSidebar", () => {
 
   describe("enterprise admin with expired/no license (cloud=false, isExpired=true)", () => {
     beforeEach(() => {
-      mockUseAdminLicense.mockReturnValue({
-        isLoading: false,
-        isExpired: true,
-      } as never);
+      sdk.getLicense.mockRejectedValue(makeSdkError(400));
     });
 
-    it("shows the restricted nav with only the License entry", () => {
+    it("shows the restricted nav with only the License entry", async () => {
       renderSidebar();
-      openSettingsGroup();
+      await openSettingsGroup();
       expect(screen.getByText("License")).toBeInTheDocument();
       expect(screen.queryByText("Authentication")).not.toBeInTheDocument();
       expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();

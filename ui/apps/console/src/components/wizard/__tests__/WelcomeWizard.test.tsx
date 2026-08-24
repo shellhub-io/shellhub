@@ -2,11 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
-// Mock the step sub-components to keep tests focused on the orchestrator. The
-// install and code faces are presentational markers; the link-path watcher
-// (mounted across both faces of step 1) exposes onConnected so a test can
-// simulate the device being accepted via the link from either face.
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    resolveDeviceLoginCode: vi.fn(),
+    acceptDevicePairing: vi.fn(),
+    acceptDevice: vi.fn(),
+  }),
+);
+
 vi.mock("../WizardStepInstall", () => ({
   default: () => <div data-testid="step-install">Install step</div>,
 }));
@@ -35,8 +42,6 @@ vi.mock("../WizardStepComplete", () => ({
   default: () => <div data-testid="step-complete">Complete content</div>,
 }));
 
-// The code face's Accept button is footer-driven off these two hooks (owned by
-// the orchestrator). Stub them: a complete code and a submit that accepts.
 vi.mock("@/hooks/useOtpInput", () => ({
   useOtpInput: () => ({
     code: Array(8).fill("A"),
@@ -50,19 +55,18 @@ vi.mock("@/hooks/useOtpInput", () => ({
   }),
 }));
 
-vi.mock("@/hooks/useAcceptDeviceByCode", () => ({
-  useAcceptDeviceByCode: () => ({
-    submit: vi.fn().mockResolvedValue({ uid: "code-uid", name: "code-device" }),
-    isPending: false,
-    error: "",
-    clearError: vi.fn(),
-  }),
-}));
-
 import WelcomeWizard from "../WelcomeWizard";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  seedAuthStore();
+  sdk.resolveDeviceLoginCode.mockResolvedValue(
+    mockSdkResponse({ kind: "pairing", name: "code-device" }),
+  );
+  sdk.acceptDevicePairing.mockResolvedValue(
+    mockSdkResponse({ uid: "code-uid" }),
+  );
+  sdk.acceptDevice.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
@@ -73,6 +77,7 @@ function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
       <MemoryRouter>
         <WelcomeWizard open={open} onClose={onClose} onDismiss={onDismiss} />
       </MemoryRouter>,
+      { wrapper: createTestWrapper() },
     ),
   };
 }
@@ -80,11 +85,7 @@ function renderWizard(open = true, onClose = vi.fn(), onDismiss = vi.fn()) {
 describe("WelcomeWizard", () => {
   describe("when open=false", () => {
     it("renders nothing", () => {
-      render(
-        <MemoryRouter>
-          <WelcomeWizard open={false} onClose={vi.fn()} onDismiss={vi.fn()} />
-        </MemoryRouter>,
-      );
+      renderWizard(false);
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
@@ -190,8 +191,6 @@ describe("WelcomeWizard", () => {
       renderWizard();
 
       await user.click(screen.getByRole("button", { name: /next/i }));
-      // The watcher stays mounted on the code face, so a link acceptance here
-      // must still drive the wizard forward.
       await user.click(screen.getByTestId("simulate-connected"));
 
       expect(screen.getByTestId("step-complete")).toBeInTheDocument();
@@ -211,8 +210,6 @@ describe("WelcomeWizard", () => {
       expect(
         screen.getByRole("button", { name: /finish/i }),
       ).toBeInTheDocument();
-      // The X stays available on the final step (onboarding is done, so it
-      // dismisses for good rather than deferring).
       expect(
         screen.getByRole("button", { name: /close wizard/i }),
       ).toBeInTheDocument();

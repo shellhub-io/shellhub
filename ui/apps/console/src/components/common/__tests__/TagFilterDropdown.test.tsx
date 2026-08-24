@@ -2,31 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
-
-// ── Module mocks ──────────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useTags", () => ({
-  useTags: vi.fn(),
-}));
-
-import { useTags } from "@/hooks/useTags";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockTags } from "@/tests/mockTags";
 import TagFilterDropdown from "../TagFilterDropdown";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function defaultTagObjects(names: string[]) {
-  return names.map((name) => ({ name }));
-}
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useTags).mockReturnValue({
-    tags: defaultTagObjects(["alpha", "beta", "gamma"]),
-    totalCount: 3,
-    isLoading: false,
-    error: null,
-  } as never);
-});
+vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 function renderDropdown(
   overrides: Partial<{
@@ -50,13 +30,18 @@ function renderDropdown(
     onRemove: props.onRemove,
     onClearAll: props.onClearAll,
     onManageTags: props.onManageTags,
-    ...render(<TagFilterDropdown {...props} />),
+    ...render(<TagFilterDropdown {...props} />, {
+      wrapper: createTestWrapper(),
+    }),
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe("TagFilterDropdown", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockTags(["alpha", "beta", "gamma"]);
+  });
+
   describe("trigger button", () => {
     it("renders the Tags trigger button", () => {
       renderDropdown();
@@ -65,14 +50,12 @@ describe("TagFilterDropdown", () => {
 
     it("does not show a count badge when no tags are active", () => {
       renderDropdown({ filterTags: [] });
-      // The badge would show a number; no digits should be in the button text
       const btn = screen.getByRole("button", { name: /tags/i });
       expect(btn.textContent?.match(/\d/)).toBeNull();
     });
 
     it("shows a count badge with the number of active filter tags", () => {
       renderDropdown({ filterTags: ["alpha", "beta"] });
-      // The badge renders the count as text inside the button
       const btn = screen.getByRole("button", { name: /tags/i });
       expect(btn.textContent).toContain("2");
     });
@@ -88,15 +71,13 @@ describe("TagFilterDropdown", () => {
     it("opens the popover when the trigger is clicked", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      expect(screen.getByPlaceholderText("Search tags...")).toBeInTheDocument();
+      await screen.findByPlaceholderText("Search tags...");
     });
 
     it("renders all available tags in the list when opened", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      expect(
-        screen.getByRole("button", { name: /^alpha$/i }),
-      ).toBeInTheDocument();
+      await screen.findByRole("button", { name: /^alpha$/i });
       expect(
         screen.getByRole("button", { name: /^beta$/i }),
       ).toBeInTheDocument();
@@ -109,18 +90,14 @@ describe("TagFilterDropdown", () => {
       renderDropdown();
       const trigger = screen.getByRole("button", { name: /tags/i });
 
-      // Open and type
       await userEvent.click(trigger);
-      const input = screen.getByPlaceholderText("Search tags...");
+      const input = await screen.findByPlaceholderText("Search tags...");
       await userEvent.type(input, "alp");
       expect(input).toHaveValue("alp");
 
-      // Close by clicking trigger again
       await userEvent.click(trigger);
-      // Reopen
       await userEvent.click(trigger);
 
-      // Search should be cleared
       expect(screen.getByPlaceholderText("Search tags...")).toHaveValue("");
     });
   });
@@ -129,7 +106,7 @@ describe("TagFilterDropdown", () => {
     it("closes the popover on Escape key", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      expect(screen.getByPlaceholderText("Search tags...")).toBeInTheDocument();
+      await screen.findByPlaceholderText("Search tags...");
 
       fireEvent.keyDown(document, { key: "Escape" });
 
@@ -145,7 +122,7 @@ describe("TagFilterDropdown", () => {
       const trigger = screen.getByRole("button", { name: /tags/i });
 
       await userEvent.click(trigger);
-      expect(screen.getByPlaceholderText("Search tags...")).toBeInTheDocument();
+      await screen.findByPlaceholderText("Search tags...");
 
       await userEvent.click(trigger);
       expect(
@@ -158,6 +135,7 @@ describe("TagFilterDropdown", () => {
     it("filters the tag list as the user types in the search input", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByRole("button", { name: /^alpha$/i });
 
       await userEvent.type(
         screen.getByPlaceholderText("Search tags..."),
@@ -178,6 +156,7 @@ describe("TagFilterDropdown", () => {
     it("shows 'No tags found' when search matches nothing", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByRole("button", { name: /^alpha$/i });
 
       await userEvent.type(
         screen.getByPlaceholderText("Search tags..."),
@@ -190,6 +169,7 @@ describe("TagFilterDropdown", () => {
     it("is case-insensitive when filtering", async () => {
       renderDropdown();
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByRole("button", { name: /^alpha$/i });
 
       await userEvent.type(
         screen.getByPlaceholderText("Search tags..."),
@@ -208,7 +188,9 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: [], onAdd });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(screen.getByRole("button", { name: /^alpha$/i }));
+      await userEvent.click(
+        await screen.findByRole("button", { name: /^alpha$/i }),
+      );
 
       expect(onAdd).toHaveBeenCalledWith("alpha");
     });
@@ -218,7 +200,9 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: [], onRemove });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(screen.getByRole("button", { name: /^alpha$/i }));
+      await userEvent.click(
+        await screen.findByRole("button", { name: /^alpha$/i }),
+      );
 
       expect(onRemove).not.toHaveBeenCalled();
     });
@@ -230,7 +214,9 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: ["alpha"], onRemove });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(screen.getByRole("button", { name: /^alpha$/i }));
+      await userEvent.click(
+        await screen.findByRole("button", { name: /^alpha$/i }),
+      );
 
       expect(onRemove).toHaveBeenCalledWith("alpha");
     });
@@ -240,7 +226,9 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: ["alpha"], onAdd });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
-      await userEvent.click(screen.getByRole("button", { name: /^alpha$/i }));
+      await userEvent.click(
+        await screen.findByRole("button", { name: /^alpha$/i }),
+      );
 
       expect(onAdd).not.toHaveBeenCalled();
     });
@@ -250,6 +238,7 @@ describe("TagFilterDropdown", () => {
     it("is not rendered when no tags are active", async () => {
       renderDropdown({ filterTags: [] });
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       expect(
         screen.queryByRole("button", { name: /clear all/i }),
       ).not.toBeInTheDocument();
@@ -258,6 +247,7 @@ describe("TagFilterDropdown", () => {
     it("is rendered when at least one tag is active", async () => {
       renderDropdown({ filterTags: ["alpha"] });
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       expect(
         screen.getByRole("button", { name: /clear all/i }),
       ).toBeInTheDocument();
@@ -268,6 +258,7 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: ["alpha"], onClearAll });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       await userEvent.click(screen.getByRole("button", { name: /clear all/i }));
 
       expect(onClearAll).toHaveBeenCalledTimes(1);
@@ -278,6 +269,7 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ filterTags: ["alpha"], onClearAll });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       await userEvent.click(screen.getByRole("button", { name: /clear all/i }));
 
       await waitFor(() => {
@@ -292,6 +284,7 @@ describe("TagFilterDropdown", () => {
     it("is NOT rendered when onManageTags is not provided", async () => {
       renderDropdown({ onManageTags: undefined });
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       expect(
         screen.queryByRole("button", { name: /manage tags/i }),
       ).not.toBeInTheDocument();
@@ -302,6 +295,7 @@ describe("TagFilterDropdown", () => {
     it("IS rendered when onManageTags is provided", async () => {
       renderDropdown({ onManageTags: vi.fn() });
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       expect(
         screen.getByRole("button", { name: /manage tags/i }),
       ).toBeInTheDocument();
@@ -312,6 +306,7 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ onManageTags });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       await userEvent.click(
         screen.getByRole("button", { name: /manage tags/i }),
       );
@@ -324,6 +319,7 @@ describe("TagFilterDropdown", () => {
       renderDropdown({ onManageTags });
 
       await userEvent.click(screen.getByRole("button", { name: /tags/i }));
+      await screen.findByPlaceholderText("Search tags...");
       await userEvent.click(
         screen.getByRole("button", { name: /manage tags/i }),
       );

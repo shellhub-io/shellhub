@@ -3,25 +3,21 @@ import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import { mockStats, mockNamespace } from "@/tests/factories";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import type { Edition } from "@/env";
+import { getConfig } from "@/env";
+import DeviceChooserTrigger from "../DeviceChooserTrigger";
 
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getStatusDevices: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+  }),
+);
 
-vi.mock("@/hooks/useStats", () => ({
-  useStats: vi.fn(),
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: vi.fn(),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (sel: (s: { tenant: string }) => unknown) =>
-    sel({ tenant: "tenant-abc" }),
-}));
-
-// ── Stub out DeviceChooserDialog so no real dialog logic runs ─────────────────
 vi.mock("../DeviceChooserDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open
@@ -37,73 +33,67 @@ vi.mock("../DeviceChooserDialog", () => ({
       : null,
 }));
 
-// ── Post-mock imports ─────────────────────────────────────────────────────────
-
-import { Edition, getConfig } from "@/env";
-import { useHasPermission } from "@/hooks/useHasPermission";
-import { useStats } from "@/hooks/useStats";
-import { useNamespace } from "@/hooks/useNamespaces";
-import DeviceChooserTrigger from "../DeviceChooserTrigger";
-
 const mockGetConfig = vi.mocked(getConfig);
-const mockUseHasPermission = vi.mocked(useHasPermission);
-const mockUseStats = vi.mocked(useStats);
-const mockUseNamespace = vi.mocked(useNamespace);
 
-function makeStats(registeredDevices: number) {
-  return {
-    registered_devices: registeredDevices,
-    online_devices: 0,
-    active_sessions: 0,
-    pending_devices: 0,
-    rejected_devices: 0,
-  };
-}
-
-function makeNamespace(billingActive: boolean) {
-  return {
-    billing: { active: billingActive },
-  };
-}
-
-/** Sets up all hooks for the fully-open scenario and then overrides. */
-function setupHooks({
+function setupMocks({
   edition = "cloud",
-  canChoose = true,
+  role = "owner",
   billingActive = false,
   registeredDevices = 4,
   nsLoading = false,
   statsLoading = false,
-  namespace,
+  namespaceNull = false,
 }: {
   edition?: Edition;
-  canChoose?: boolean;
+  role?: "owner" | "observer";
   billingActive?: boolean;
   registeredDevices?: number;
   nsLoading?: boolean;
   statsLoading?: boolean;
-  namespace?: ReturnType<typeof makeNamespace> | null;
+  namespaceNull?: boolean;
 } = {}) {
   mockGetConfig.mockReturnValue({ edition } as ReturnType<typeof getConfig>);
-  mockUseHasPermission.mockReturnValue(canChoose);
-  mockUseStats.mockReturnValue({
-    stats: statsLoading ? null : makeStats(registeredDevices),
-    isLoading: statsLoading,
-    error: null,
-    refetch: vi.fn(),
-  });
-  const ns = namespace === undefined ? makeNamespace(billingActive) : namespace;
-  mockUseNamespace.mockReturnValue({
-    namespace: nsLoading ? null : (ns as never),
-    isLoading: nsLoading,
-    error: null,
-    refetch: vi.fn(),
-  });
+  seedAuthStore({ role, isAdmin: role === "owner" });
+
+  if (statsLoading) {
+    sdk.getStatusDevices.mockReturnValue(new Promise(() => {}));
+  } else {
+    sdk.getStatusDevices.mockResolvedValue(
+      mockSdkResponse(mockStats({ registered_devices: registeredDevices })),
+    );
+  }
+
+  if (nsLoading) {
+    sdk.getNamespace.mockReturnValue(new Promise(() => {}));
+  } else if (namespaceNull) {
+    sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
+  } else {
+    sdk.getNamespace.mockResolvedValue(
+      mockSdkResponse(
+        mockNamespace({
+          billing: billingActive
+            ? {
+                active: true,
+                status: "active" as const,
+                customer_id: "cus_123",
+                subscription_id: "sub_123",
+                current_period_end: 0,
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
+              }
+            : null,
+        }),
+      ),
+    );
+  }
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  setupHooks();
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
+  setupMocks();
 });
 
 function renderTrigger() {
@@ -115,68 +105,60 @@ describe("DeviceChooserTrigger", () => {
     it.each(["community", "enterprise"] as const)(
       "renders nothing without mounting the inner component for edition=%s",
       (edition) => {
-        setupHooks({ edition });
+        setupMocks({ edition });
         renderTrigger();
         expect(
           screen.queryByTestId("device-chooser-dialog"),
         ).not.toBeInTheDocument();
-        expect(mockUseHasPermission).not.toHaveBeenCalled();
       },
     );
   });
 
   describe("when edition=cloud but user lacks device:choose permission", () => {
     it("renders nothing", async () => {
-      setupHooks({ canChoose: false });
+      setupMocks({ role: "observer" });
       renderTrigger();
-      await waitFor(() =>
-        expect(
-          screen.queryByTestId("device-chooser-dialog"),
-        ).not.toBeInTheDocument(),
-      );
+      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
+      expect(
+        screen.queryByTestId("device-chooser-dialog"),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe("when edition=cloud, owner, billing is active", () => {
     it("renders nothing", async () => {
-      setupHooks({ billingActive: true });
+      setupMocks({ billingActive: true });
       renderTrigger();
-      await waitFor(() =>
-        expect(
-          screen.queryByTestId("device-chooser-dialog"),
-        ).not.toBeInTheDocument(),
-      );
+      await waitFor(() => expect(sdk.getNamespace).toHaveBeenCalled());
+      expect(
+        screen.queryByTestId("device-chooser-dialog"),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe("when edition=cloud, owner, billing inactive, registered_devices=3 (boundary)", () => {
     it("renders nothing — limit is strictly greater than 3", async () => {
-      setupHooks({ registeredDevices: 3 });
+      setupMocks({ registeredDevices: 3 });
       renderTrigger();
-      await waitFor(() =>
-        expect(
-          screen.queryByTestId("device-chooser-dialog"),
-        ).not.toBeInTheDocument(),
-      );
+      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
+      expect(
+        screen.queryByTestId("device-chooser-dialog"),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe("when all conditions are met (cloud, owner, billing inactive, >3 devices)", () => {
     it("auto-opens the dialog on mount", async () => {
       renderTrigger();
-      await waitFor(() =>
-        expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByTestId("device-chooser-dialog"),
+      ).toBeInTheDocument();
     });
   });
 
   describe("when namespace is still loading", () => {
     it("renders nothing even if stats indicate over-limit", () => {
-      setupHooks({
-        nsLoading: true,
-        registeredDevices: 4,
-        billingActive: false,
-      });
+      setupMocks({ nsLoading: true, registeredDevices: 4 });
       renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
@@ -186,7 +168,7 @@ describe("DeviceChooserTrigger", () => {
 
   describe("when stats are still loading", () => {
     it("renders nothing", () => {
-      setupHooks({ statsLoading: true, billingActive: false });
+      setupMocks({ statsLoading: true });
       renderTrigger();
       expect(
         screen.queryByTestId("device-chooser-dialog"),
@@ -195,9 +177,10 @@ describe("DeviceChooserTrigger", () => {
   });
 
   describe("when namespace returned is undefined", () => {
-    it("renders nothing — billing is unknown until namespace resolves", () => {
-      setupHooks({ namespace: null, registeredDevices: 4 });
+    it("renders nothing — billing is unknown until namespace resolves", async () => {
+      setupMocks({ namespaceNull: true, registeredDevices: 4 });
       renderTrigger();
+      await waitFor(() => expect(sdk.getNamespace).toHaveBeenCalled());
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
@@ -205,15 +188,10 @@ describe("DeviceChooserTrigger", () => {
   });
 
   describe("when the stats query settled with an error", () => {
-    it("renders nothing — overLimit cannot be evaluated without stats", () => {
-      setupHooks();
-      mockUseStats.mockReturnValue({
-        stats: null,
-        isLoading: false,
-        error: new Error("network failure"),
-        refetch: vi.fn(),
-      });
+    it("renders nothing — overLimit cannot be evaluated without stats", async () => {
+      sdk.getStatusDevices.mockRejectedValue({ status: 500 });
       renderTrigger();
+      await waitFor(() => expect(sdk.getStatusDevices).toHaveBeenCalled());
       expect(
         screen.queryByTestId("device-chooser-dialog"),
       ).not.toBeInTheDocument();
@@ -224,9 +202,9 @@ describe("DeviceChooserTrigger", () => {
     it("hides the dialog after dismissal", async () => {
       const user = userEvent.setup();
       renderTrigger();
-      await waitFor(() =>
-        expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByTestId("device-chooser-dialog"),
+      ).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /dismiss/i }));
       await waitFor(() =>
         expect(
@@ -238,9 +216,9 @@ describe("DeviceChooserTrigger", () => {
     it("does not re-open the dialog after dismissal within the same mount", async () => {
       const user = userEvent.setup();
       const { rerender } = renderTrigger();
-      await waitFor(() =>
-        expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByTestId("device-chooser-dialog"),
+      ).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /dismiss/i }));
       await waitFor(() =>
         expect(
@@ -259,9 +237,9 @@ describe("DeviceChooserTrigger", () => {
       const wrapper = createTestWrapper();
 
       render(<DeviceChooserTrigger />, { wrapper });
-      await waitFor(() =>
-        expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByTestId("device-chooser-dialog"),
+      ).toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: /dismiss/i }));
       await waitFor(() =>
         expect(
@@ -272,9 +250,9 @@ describe("DeviceChooserTrigger", () => {
       cleanup();
 
       render(<DeviceChooserTrigger />, { wrapper });
-      await waitFor(() =>
-        expect(screen.getByTestId("device-chooser-dialog")).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByTestId("device-chooser-dialog"),
+      ).toBeInTheDocument();
     });
   });
 });

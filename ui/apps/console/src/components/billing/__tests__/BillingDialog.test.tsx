@@ -3,24 +3,19 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 
 const mockIsSdkError = vi.fn();
 vi.mock("@/api/errors", () => ({
   isSdkError: (err: unknown): boolean => mockIsSdkError(err) as boolean,
 }));
 
-const mockMutateAsync = vi.fn();
-const mockRefetchSubscription = vi.fn();
-const mockIsPending = { value: false };
-
-vi.mock("@/hooks/useBilling", () => ({
-  useCreateSubscription: () => ({
-    mutateAsync: (...args: unknown[]): Promise<unknown> =>
-      mockMutateAsync(...args) as Promise<unknown>,
-    isPending: mockIsPending.value,
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    createSubscription: vi.fn(),
+    getSubscription: vi.fn(),
   }),
-  useSubscription: () => ({ refetch: mockRefetchSubscription }),
-}));
+);
 
 vi.mock("../BillingPayment", () => ({
   default: ({
@@ -77,10 +72,11 @@ import BillingDialog from "../BillingDialog";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockIsPending.value = false;
-  mockRefetchSubscription.mockResolvedValue({ data: { status: "active" } });
+  sdk.createSubscription.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.getSubscription.mockResolvedValue(mockSdkResponse({ status: "active" }));
   mockIsSdkError.mockReturnValue(false);
 });
+
 function renderDialog(onClose = vi.fn(), onSuccess = vi.fn()) {
   return {
     onClose,
@@ -197,20 +193,21 @@ describe("BillingDialog", () => {
       ).toBeInTheDocument();
     });
 
-    it("'Confirm subscription' calls createSubscription.mutateAsync", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("'Confirm subscription' calls createSubscription", async () => {
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
       await user.click(
         screen.getByRole("button", { name: /confirm subscription/i }),
       );
-      await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({}));
+      await waitFor(() =>
+        expect(sdk.createSubscription).toHaveBeenCalledWith(
+          expect.objectContaining({ throwOnError: true }),
+        ),
+      );
     });
 
     it("advances to step 4 after subscription is active", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({ data: { status: "active" } });
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -223,10 +220,9 @@ describe("BillingDialog", () => {
     });
 
     it("advances to step 4 when subscription status is 'trialing'", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({
-        data: { status: "trialing" },
-      });
+      sdk.getSubscription.mockResolvedValue(
+        mockSdkResponse({ status: "trialing" }),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -239,10 +235,9 @@ describe("BillingDialog", () => {
     });
 
     it("shows error and stays on step 3 when status is 'incomplete'", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({
-        data: { status: "incomplete" },
-      });
+      sdk.getSubscription.mockResolvedValue(
+        mockSdkResponse({ status: "incomplete" }),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -258,10 +253,9 @@ describe("BillingDialog", () => {
     });
 
     it("shows 'wasn't fully activated' error for non-active non-incomplete statuses", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({
-        data: { status: "past_due" },
-      });
+      sdk.getSubscription.mockResolvedValue(
+        mockSdkResponse({ status: "past_due" }),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
@@ -277,7 +271,7 @@ describe("BillingDialog", () => {
 
     it("shows 'unpaid invoices' error on 402 response", async () => {
       const err = { status: 402 };
-      mockMutateAsync.mockRejectedValue(err);
+      sdk.createSubscription.mockRejectedValue(err);
       mockIsSdkError.mockImplementation((e: unknown) => e === err);
       const user = userEvent.setup();
       renderDialog();
@@ -291,7 +285,7 @@ describe("BillingDialog", () => {
     });
 
     it("shows generic error on non-402 failure", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network failure"));
+      sdk.createSubscription.mockRejectedValue(new Error("network failure"));
       mockIsSdkError.mockReturnValue(false);
       const user = userEvent.setup();
       renderDialog();
@@ -307,12 +301,18 @@ describe("BillingDialog", () => {
     });
 
     it("disables 'Confirm subscription' and shows 'Subscribing…' while pending", async () => {
-      mockIsPending.value = true;
+      sdk.createSubscription.mockReturnValue(new Promise(() => {}));
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
-      const btn = screen.getByRole("button", { name: /subscribing/i });
-      expect(btn).toBeDisabled();
+      await user.click(
+        screen.getByRole("button", { name: /confirm subscription/i }),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: /subscribing/i }),
+        ).toBeDisabled(),
+      );
     });
 
     it("announces step 3 in the sr-only live region", async () => {
@@ -327,8 +327,6 @@ describe("BillingDialog", () => {
 
   describe("Step 4 — Success", () => {
     async function goToStep4(user: ReturnType<typeof userEvent.setup>) {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({ data: { status: "active" } });
       await goToStep3(user);
       await user.click(
         screen.getByRole("button", { name: /confirm subscription/i }),
@@ -382,10 +380,9 @@ describe("BillingDialog", () => {
     });
 
     it("'Back' clears any existing error message", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-      mockRefetchSubscription.mockResolvedValue({
-        data: { status: "past_due" },
-      });
+      sdk.getSubscription.mockResolvedValue(
+        mockSdkResponse({ status: "past_due" }),
+      );
       const user = userEvent.setup();
       renderDialog();
       await goToStep3(user);
