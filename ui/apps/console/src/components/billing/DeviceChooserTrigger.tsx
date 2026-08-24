@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { isCloud } from "@/env";
 import { useStats } from "@/hooks/useStats";
+import { hasActiveSubscription } from "@/utils/billing";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useAuthStore } from "@/stores/authStore";
@@ -31,7 +32,7 @@ function DeviceChooserTriggerInner() {
     return null;
 
   const overLimit = (stats?.registered_devices ?? 0) > FREE_TIER_DEVICE_LIMIT;
-  const noActiveSubscription = !namespace.billing?.active;
+  const noActiveSubscription = !hasActiveSubscription(namespace.billing);
   const shouldShow = canChoose && noActiveSubscription && overLimit;
 
   if (!shouldShow || dismissed) return null;

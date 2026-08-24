@@ -194,7 +194,7 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   // Gating only on customer_id causes a retry cascade after customer bootstrap
   // — and every billing mutation's invalidate() then awaits those 400 retries,
   // making Save card / Set default hang for ~7s on each click.
-  const hasSubscription = !!billing?.customer_id && !!billing?.subscription_id;
+  const hasSubscription = !!billing?.customer_id && !!billing?.subscription?.id;
   const { subscription, isLoading } = useSubscription(hasSubscription);
   const openPortal = useOpenBillingPortal();
   const invalidate = useInvalidateByIds(

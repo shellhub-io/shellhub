@@ -1,23 +1,24 @@
 package models
 
-import "time"
-
-// BillingStatus represents the status of a subscription.
+// BillingStatus represents the status of a subscription on the payment gateway.
 //
 // https://stripe.com/docs/api/subscriptions/object#subscription_object-status
 // https://stripe.com/docs/billing/subscriptions/overview#subscription-lifecycle
 type BillingStatus string
 
-// IsActive returns true if the subscription is active.
-// It is active if its status is `active`, `past_due`, `trailing` or `to_cancel_at_end_of_period`.
+// IsActive returns true if the subscription grants full service.
+//
+// `past_due` counts as active because Stripe is still retrying the payment, and
+// `to_cancel_at_end_of_period` still has a paid period left to run.
 func (s BillingStatus) IsActive() bool {
 	return s == BillingStatusActive || s == BillingStatusPastDue || s == BillingStatusTrialing || s == BillingStatusToCancelAtEndOfPeriod
 }
 
 // Represents the possible statuses of a subscription.
+//
+// There is no "no subscription" status: a namespace that never completed checkout carries a
+// Billing with a nil Subscription instead.
 const (
-	// BillingStatusInactive represents inactive status.
-	BillingStatusInactive BillingStatus = "inactive"
 	// BillingStatusActive represents active status without any issues.
 	BillingStatusActive BillingStatus = "active"
 	// BillingStatusTrialing represents active status without any issues, but the subscription is in trial period.
@@ -47,88 +48,103 @@ const (
 	BillingStatusToCancelAtEndOfPeriod BillingStatus = "to_cancel_at_end_of_period"
 )
 
-// Billing contains information about the ShellHub's subscription.
-type Billing struct {
-	// Active indicates if the subscription is active.
-	// IT IS THE SOURCE OF TRUTH THAT DEFINES WHETHER A SUBSCRIPTION IS ACTIVE OR NOT and change due to the status of
-	// the subscription.
-	//
-	// A subscription is active if its status is `active`, `trailing`, `past_due` or `to_cancel_at_end_of_period`.
-	// `past_due` is a temporary status that occurs when a payment to renew the subscription fails, but the subscription
-	// has not been canceled yet.
-	// `to_cancel_at_end_of_period` is a custom status used by this package to indicate that the subscription is set to
-	// cancel at the end of the period.
-	// A subscription is not active if its status is `incomplete`, `incomplete_expired`, `canceled`, `unpaid` or `paused`.
-	// TODO: evaluate if `paused` should be considered active.
-	Active bool `json:"active"`
+// BillingSubscription is the namespace's subscription on the payment gateway.
+type BillingSubscription struct {
+	// ID is the ID of the subscription on the payment gateway.
+	ID string `json:"id"`
 	// Status is the current status of the subscription.
 	Status BillingStatus `json:"status"`
-	// Customer is the ID of the customer the subscription belongs to.
-	// Customer string `json:"customer"`
-	CustomerID string `json:"customer_id"`
-	// SubscriptionID is the ID of the subscription.
-	SubscriptionID string `json:"subscription_id"`
 	// CurrentPeriodEnd is the end of the current period.
 	CurrentPeriodEnd int64 `json:"current_period_end"`
-	// CreatedAt is the time at which this billing was created.
-	// It must follow the RFC 3339 format.
-	CreatedAt string `json:"created_at"`
-	// UpdatedAt is the time at which this billing was last updated.
-	// It must follow the RFC 3339 format.
-	UpdatedAt string `json:"updated_at"`
 }
 
-func NewBilling(status BillingStatus, customer, subscription string, currentPeridoEnd int64) *Billing {
-	return &Billing{
-		Active:           status.IsActive(),
-		Status:           status,
-		CustomerID:       customer,
-		SubscriptionID:   subscription,
-		CurrentPeriodEnd: currentPeridoEnd,
-		CreatedAt:        time.Now().Format(time.RFC3339),
-		UpdatedAt:        time.Now().Format(time.RFC3339),
+// Billing contains information about the ShellHub's subscription.
+type Billing struct {
+	// CustomerID is the ID of the customer on the payment gateway.
+	CustomerID string `json:"customer_id"`
+	// Subscription is the namespace's subscription, or nil when the namespace has a customer but
+	// never completed checkout. A nil Subscription is not a failed subscription: the namespace
+	// keeps the free tier, exactly as a namespace with no Billing at all does.
+	Subscription *BillingSubscription `json:"subscription,omitempty"`
+	// CreatedAt is the time at which this billing was created.
+	// It follows the RFC 3339 format, and it is empty on records written before the store began
+	// to maintain it.
+	CreatedAt string `json:"created_at,omitempty"`
+	// UpdatedAt is the time at which this billing was last updated.
+	// It follows the RFC 3339 format, and it is empty on records written before the store began
+	// to maintain it.
+	UpdatedAt string `json:"updated_at,omitempty"`
+}
+
+// NewBilling returns a billing record for a namespace that has a customer on the payment gateway
+// but no subscription yet. The store stamps CreatedAt and UpdatedAt when it writes the record.
+func NewBilling(customerID string) *Billing {
+	return &Billing{ //nolint:exhaustruct
+		CustomerID: customerID,
 	}
+}
+
+// Clone returns a deep copy, so that a caller can build the next billing state without touching
+// the one the namespace still holds.
+func (b *Billing) Clone() *Billing {
+	if b == nil {
+		return nil
+	}
+
+	clone := *b
+
+	if b.Subscription != nil {
+		subscription := *b.Subscription
+		clone.Subscription = &subscription
+	}
+
+	return &clone
 }
 
 func (b *Billing) IsNil() bool {
 	return b == nil
 }
 
-// IsActive indicates if the subscription is active.
+// IsActive indicates whether the namespace has a subscription that grants full service.
 func (b *Billing) IsActive() bool {
-	return b != nil && b.Active
+	return b.HasSubscription() && b.Subscription.Status.IsActive()
 }
 
-func (b *Billing) HasCutomer() bool {
+func (b *Billing) HasCustomer() bool {
 	return b != nil && b.CustomerID != ""
 }
 
 func (b *Billing) HasSubscription() bool {
-	return b != nil && b.SubscriptionID != ""
-}
-
-func (b *Billing) HasCurrentPeriodEnd() bool {
-	return b != nil && b.CurrentPeriodEnd != 0
-}
-
-// UpdateBillingStatus updates the status of the billing.
-func (b *Billing) UpdateBillingStatus(status BillingStatus) {
-	b.Active = status.IsActive()
-	b.Status = status
+	return b != nil && b.Subscription != nil
 }
 
 func (b *Billing) SetCustomer(id string) {
 	b.CustomerID = id
 }
 
-func (b *Billing) SetSubscription(id string, status BillingStatus) {
-	b.Active = status.IsActive()
-	b.Status = status
-	b.SubscriptionID = id
+// SetSubscription attaches a subscription to the billing, replacing any subscription already
+// there.
+func (b *Billing) SetSubscription(id string, status BillingStatus, currentPeriodEnd int64) {
+	b.Subscription = &BillingSubscription{
+		ID:               id,
+		Status:           status,
+		CurrentPeriodEnd: currentPeriodEnd,
+	}
 }
 
-func (b *Billing) SetCurrentPeriodEnd(end int64) {
-	b.CurrentPeriodEnd = end
+// SetSubscriptionStatus updates the status of the subscription, and does nothing when the billing
+// has no subscription.
+func (b *Billing) SetSubscriptionStatus(status BillingStatus) {
+	if !b.HasSubscription() {
+		return
+	}
+
+	b.Subscription.Status = status
+}
+
+// ClearSubscription detaches the subscription, returning the namespace to the free tier.
+func (b *Billing) ClearSubscription() {
+	b.Subscription = nil
 }
 
 // BillingEvaluation contains information about the billing evaluation of acceptance and connection.
