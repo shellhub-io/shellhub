@@ -497,88 +497,71 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 	}
 }
 
-func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
-	cases := []struct {
-		description string
-		connector   string
-		userFilter  []query.Filter
-	}{
-		{
-			description: "connector filter has AND before property when user filter is present",
-			connector:   "",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
-		},
-		{
-			description: "connector=true filter has AND before property when user filter is present",
-			connector:   "true",
-			userFilter: []query.Filter{
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
-				},
-			},
-		},
+// TestContainerAliasCarriesTheConnectorIntent pins the two behaviours the /api/containers rewrite
+// depends on: the container list is the device list carrying the connector intent, and a single
+// container is the plain device route carrying none.
+//
+// Which comparison that intent becomes is the service's decision, and is asserted there.
+func TestContainerAliasCarriesTheConnectorIntent(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	get := func(t *testing.T, mock *mocks.MockService, target string) int {
+		t.Helper()
+
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
+		req.Header.Set("X-Role", authorizer.RoleOwner.String())
+		req.Header.Set("X-ID", "000000000000000000000000")
+		req.Header.Set("X-Tenant-ID", tenantID)
+
+		rec := httptest.NewRecorder()
+		NewRouter(mock).ServeHTTP(rec, req)
+
+		return rec.Result().StatusCode
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			mock := mocks.NewMockService(t)
+	listExpecting := func(t *testing.T, connector bool) *mocks.MockService {
+		t.Helper()
 
-			var captured *requests.DeviceList
-			mock.
-				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
-				Run(func(args gomock.Arguments) {
-					list, ok := args.Get(2).(*requests.DeviceList)
-					require.True(t, ok)
-					captured = list
-				}).
-				Return([]models.Device{}, 0, nil).
-				Once()
+		mock := mocks.NewMockService(t)
+		mock.
+			On("ListDevices", gomock.Anything, scope.MustBounded(tenantID), gomock.MatchedBy(func(req *requests.DeviceList) bool {
+				return req.Connector == connector
+			})).
+			Return([]models.Device{}, 0, nil).
+			Once()
 
-			filterJSON, err := json.Marshal(tc.userFilter)
-			require.NoError(t, err)
-
-			filterB64 := base64.StdEncoding.EncodeToString(filterJSON)
-
-			urlVal := &url.Values{}
-			urlVal.Set("page", "1")
-			urlVal.Set("per_page", "10")
-			urlVal.Set("sort_by", "name")
-			urlVal.Set("order_by", "asc")
-			urlVal.Set("status", "accepted")
-			urlVal.Set("filter", filterB64)
-			if tc.connector != "" {
-				urlVal.Set("connector", tc.connector)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-
-			rec := httptest.NewRecorder()
-			e := NewRouter(mock)
-			e.ServeHTTP(rec, req)
-
-			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
-			require.NotNil(t, captured)
-
-			data := captured.Data
-			require.GreaterOrEqual(t, len(data), 3)
-
-			lastTwo := data[len(data)-2:]
-			require.Equal(t, query.FilterTypeOperator, lastTwo[0].Type, "AND operator must precede the platform property filter")
-			require.Equal(t, query.FilterTypeProperty, lastTwo[1].Type, "platform property filter must follow the AND operator")
-
-			op, ok := lastTwo[0].Params.(*query.FilterOperator)
-			require.True(t, ok)
-			require.Equal(t, "and", op.Name)
-		})
+		return mock
 	}
+
+	t.Run("the container list asks for connector devices", func(t *testing.T) {
+		mock := listExpecting(t, true)
+		require.Equal(t, http.StatusOK, get(t, mock, "/api/containers"))
+	})
+
+	t.Run("the container list keeps the intent alongside a query string", func(t *testing.T) {
+		mock := listExpecting(t, true)
+		require.Equal(t, http.StatusOK, get(t, mock, "/api/containers?status=accepted"))
+	})
+
+	t.Run("the container list keeps its intent against a connector the caller sent", func(t *testing.T) {
+		mock := listExpecting(t, true)
+		require.Equal(t, http.StatusOK, get(t, mock, "/api/containers?connector=false"))
+	})
+
+	t.Run("the device list asks for none", func(t *testing.T) {
+		mock := listExpecting(t, false)
+		require.Equal(t, http.StatusOK, get(t, mock, "/api/devices"))
+	})
+
+	t.Run("a single container resolves to the plain device route", func(t *testing.T) {
+		mock := mocks.NewMockService(t)
+		mock.
+			On("GetDevice", gomock.Anything, scope.MustBounded(tenantID), models.UID("uid1")).
+			Return(&models.Device{UID: "uid1"}, nil).
+			Once()
+
+		require.Equal(t, http.StatusOK, get(t, mock, "/api/containers/uid1"))
+	})
 }
 
 func TestUpdateDevice(t *testing.T) {

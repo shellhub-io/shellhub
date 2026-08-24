@@ -57,46 +57,6 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	if c.QueryParam("connector") != "" {
-		filter := []query.Filter{
-			{
-				Type: query.FilterTypeOperator,
-				Params: &query.FilterOperator{
-					Name: "and",
-				},
-			},
-			{
-				Type: query.FilterTypeProperty,
-				Params: &query.FilterProperty{
-					Name:     "platform",
-					Operator: "eq",
-					Value:    "connector",
-				},
-			},
-		}
-
-		req.Filters.Data = append(req.Filters.Data, filter...)
-	} else {
-		filter := []query.Filter{
-			{
-				Type: query.FilterTypeOperator,
-				Params: &query.FilterOperator{
-					Name: "and",
-				},
-			},
-			{
-				Type: query.FilterTypeProperty,
-				Params: &query.FilterProperty{
-					Name:     "platform",
-					Operator: "ne",
-					Value:    "connector",
-				},
-			},
-		}
-
-		req.Filters.Data = append(req.Filters.Data, filter...)
-	}
-
 	if err := c.Validate(req); err != nil {
 		return err
 	}
