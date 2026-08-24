@@ -1,32 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
-// ── Module mocks ──────────────────────────────────────────────────────────────
-const mockMutateAsync = vi.fn();
-
-vi.mock("@/hooks/useDeviceMutations", () => ({
-  useAcceptDevice: () => ({ mutateAsync: mockMutateAsync }),
-  useRejectDevice: () => ({
-    mutateAsync: vi.fn().mockRejectedValue({ status: 500 }),
-  }),
-  useRemoveDevice: () => ({
-    mutateAsync: vi.fn().mockRejectedValue({ status: 500 }),
-  }),
-}));
-
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
+import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
+import { mockSdkResponse } from "@/tests/sdk";
 import DeviceActionDialog from "../DeviceActionDialog";
 
-// ── Typed mocks ───────────────────────────────────────────────────────────────
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    acceptDevice: vi.fn(),
+    updateDeviceStatus: vi.fn(),
+    deleteDevice: vi.fn(),
+  }),
+);
 
 const mockGetConfig = vi.mocked(getConfig);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 const testDevice = { uid: "device-uid-1", name: "my-device" };
+
+const Wrapper = createTestWrapper();
 
 function renderDialog({
   action,
@@ -42,14 +34,16 @@ function renderDialog({
   const onSuccess = vi.fn();
 
   render(
-    <DeviceActionDialog
-      device={testDevice}
-      action={action}
-      onClose={onClose}
-      onSuccess={onSuccess}
-      onBillingWarning={onBillingWarning}
-      open={open}
-    />,
+    <Wrapper>
+      <DeviceActionDialog
+        device={testDevice}
+        action={action}
+        onClose={onClose}
+        onSuccess={onSuccess}
+        onBillingWarning={onBillingWarning}
+        open={open}
+      />
+    </Wrapper>,
   );
 
   return { onClose, onSuccess };
@@ -67,22 +61,22 @@ async function clickConfirm(label: string) {
   await user.click(btn);
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  sdk.acceptDevice.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.updateDeviceStatus.mockRejectedValue({ status: 500 });
+  sdk.deleteDevice.mockRejectedValue({ status: 500 });
+});
 
 describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockGetConfig.mockReturnValue({ ...defaultConfig });
-  });
-
   describe("accept action — 402 error", () => {
     it("enterprise (no onBillingWarning): shows license copy, NOT cloud billing copy", async () => {
-      // Set enterprise config BEFORE triggering action
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockMutateAsync.mockRejectedValue({ status: 402 });
+      sdk.acceptDevice.mockRejectedValue({ status: 402 });
 
       renderDialog({ action: "accept" });
 
@@ -102,7 +96,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
         ...defaultConfig,
         edition: "cloud",
       });
-      mockMutateAsync.mockRejectedValue({ status: 402 });
+      sdk.acceptDevice.mockRejectedValue({ status: 402 });
 
       const onBillingWarning = vi.fn();
       renderDialog({ action: "accept", onBillingWarning });
@@ -120,7 +114,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
       mockGetConfig.mockReturnValue({
         ...defaultConfig,
       });
-      mockMutateAsync.mockRejectedValue({ status: 402 });
+      sdk.acceptDevice.mockRejectedValue({ status: 402 });
 
       renderDialog({ action: "accept" });
 
@@ -131,9 +125,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
       });
 
       const alertText = screen.getByRole("alert").textContent ?? "";
-      // Must NOT show cloud billing copy
       expect(alertText).not.toMatch(/billing|subscription|plan/i);
-      // Must NOT show enterprise license copy
       expect(alertText).not.toMatch(/license/i);
     });
   });
@@ -141,7 +133,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
   describe("accept action — other error statuses", () => {
     it("shows a namespace/permission message on 403", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig });
-      mockMutateAsync.mockRejectedValue({ status: 403 });
+      sdk.acceptDevice.mockRejectedValue({ status: 403 });
 
       renderDialog({ action: "accept" });
 
@@ -157,7 +149,7 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
 
     it("shows a rename message on 409", async () => {
       mockGetConfig.mockReturnValue({ ...defaultConfig });
-      mockMutateAsync.mockRejectedValue({ status: 409 });
+      sdk.acceptDevice.mockRejectedValue({ status: 409 });
 
       renderDialog({ action: "accept" });
 
@@ -174,8 +166,6 @@ describe("DeviceActionDialog — error messages via getAcceptDeviceErrorMessage"
 
   describe("accept action — success", () => {
     it("calls onSuccess and onClose when accept succeeds", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
-
       const { onSuccess, onClose } = renderDialog({ action: "accept" });
 
       await clickAccept();

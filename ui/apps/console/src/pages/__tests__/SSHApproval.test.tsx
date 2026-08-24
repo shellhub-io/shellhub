@@ -3,60 +3,34 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Routes, Route } from "react-router-dom";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { mockNamespace } from "@/tests/factories";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import SSHApproval from "../SSHApproval";
-import { getSshApproval, webTerminalReauth } from "@/client";
 
-vi.mock("@/client", () => ({
-  getSshApproval: vi.fn(),
-  webTerminalReauth: vi.fn(),
-}));
-
-const mockConfirmMutateAsync = vi.fn();
-const mockRejectMutateAsync = vi.fn();
-
-vi.mock("@/hooks/useSSHIdentityMutations", () => ({
-  useConfirmSSHApproval: () => ({ mutateAsync: mockConfirmMutateAsync }),
-  useRejectSSHApproval: () => ({ mutateAsync: mockRejectMutateAsync }),
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespaces: () => ({
-    namespaces: [{ name: "dev", tenant_id: "tenant1" }],
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getSshApproval: vi.fn(),
+    webTerminalReauth: vi.fn(),
+    confirmSshApproval: vi.fn(),
+    rejectSshApproval: vi.fn(),
+    getNamespaces: vi.fn(),
+    getNamespaceToken: vi.fn(),
   }),
-}));
-
-vi.mock("@/hooks/useNamespaceMutations", () => ({
-  useSwitchNamespace: () => ({ mutateAsync: vi.fn(), isPending: false }),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: Object.assign(
-    (selector?: (s: unknown) => unknown) => {
-      const state = {
-        tenant: "tenant1",
-        name: "Gustavo",
-        email: "gustavo@example.com",
-        user: "gustavo",
-        logout: vi.fn(),
-      };
-      return selector ? selector(state) : state;
-    },
-    { getState: () => ({}) },
-  ),
-}));
+);
 
 const approval = (overrides: Record<string, unknown> = {}) => ({
   data: {
     code: "WXYZ2K7Q",
     kind: "identity",
     fingerprint: "SHA256:abc",
-    sshid: "root@dev.device",
+    sshid: "root@my-namespace.device",
     device_name: "device",
     username: "root",
     ip_address: "10.0.0.1",
     requested_at: "2026-07-27T12:00:00Z",
     expires_in_seconds: 90,
-    namespace: "dev",
+    namespace: "my-namespace",
     state: "pending",
     ...overrides,
   },
@@ -80,28 +54,30 @@ function renderAt(path: string) {
 
 describe("SSHApproval", () => {
   beforeEach(() => {
-    vi.mocked(getSshApproval).mockReset();
-    vi.mocked(webTerminalReauth).mockReset();
-    mockConfirmMutateAsync.mockReset();
-    mockRejectMutateAsync.mockReset();
+    vi.clearAllMocks();
+    seedAuthStore();
+    sdk.getNamespaces.mockResolvedValue(paginatedResponse([mockNamespace()]));
+    sdk.getNamespaceToken.mockResolvedValue(
+      mockSdkResponse({ token: "jwt-token" }),
+    );
   });
 
   it("asks to add the key, and names the account and namespace it lands in", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+    sdk.getSshApproval.mockResolvedValue(approval());
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
     expect(
       await screen.findByText(/add this ssh key to your identities/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("Gustavo")).toBeInTheDocument();
-    expect(screen.getByText("dev")).toBeInTheDocument();
+    expect(screen.getByText("Admin User")).toBeInTheDocument();
+    expect(screen.getByText("my-namespace")).toBeInTheDocument();
     expect(screen.getByText("SHA256:abc")).toBeInTheDocument();
   });
 
   it("asks to re-authenticate, and says the window covers more than this login", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth", reauth_period: 43200 }) as never,
+    sdk.getSshApproval.mockResolvedValue(
+      approval({ kind: "reauth", reauth_period: 43200 }),
     );
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
@@ -112,13 +88,12 @@ describe("SSHApproval", () => {
     expect(
       screen.getByText(/won't ask for the next 12 hours/i),
     ).toBeInTheDocument();
-    // Nothing is being bound, so the key-to-account card must not appear.
     expect(screen.queryByText(/added to/i)).not.toBeInTheDocument();
   });
 
   it("says nothing about a window when the policy asks every time", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth", reauth_period: 0 }) as never,
+    sdk.getSshApproval.mockResolvedValue(
+      approval({ kind: "reauth", reauth_period: 0 }),
     );
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
@@ -132,9 +107,7 @@ describe("SSHApproval", () => {
   });
 
   it("redirects a reauth code opened on the add route", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth" }) as never,
-    );
+    sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -144,7 +117,7 @@ describe("SSHApproval", () => {
   });
 
   it("redirects an identity code opened on the reauth route", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+    sdk.getSshApproval.mockResolvedValue(approval());
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
 
@@ -154,8 +127,8 @@ describe("SSHApproval", () => {
   });
 
   it("confirms the request and reports the outcome", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
-    mockConfirmMutateAsync.mockResolvedValue({});
+    sdk.getSshApproval.mockResolvedValue(approval());
+    sdk.confirmSshApproval.mockResolvedValue(mockSdkResponse(undefined));
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -164,16 +137,19 @@ describe("SSHApproval", () => {
     );
 
     await waitFor(() =>
-      expect(mockConfirmMutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ path: { code: "WXYZ2K7Q" } }),
+      expect(sdk.confirmSshApproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { code: "WXYZ2K7Q" },
+          throwOnError: true,
+        }),
       ),
     );
     expect(await screen.findByText("Key added")).toBeInTheDocument();
   });
 
   it("rejects the request and reports the outcome", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
-    mockRejectMutateAsync.mockResolvedValue({});
+    sdk.getSshApproval.mockResolvedValue(approval());
+    sdk.rejectSshApproval.mockResolvedValue(mockSdkResponse(undefined));
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -181,12 +157,12 @@ describe("SSHApproval", () => {
       await screen.findByRole("button", { name: /reject/i }),
     );
 
-    await waitFor(() => expect(mockRejectMutateAsync).toHaveBeenCalled());
+    await waitFor(() => expect(sdk.rejectSshApproval).toHaveBeenCalled());
     expect(await screen.findByText("Rejected")).toBeInTheDocument();
   });
 
   it("reads a 404 as an expired request", async () => {
-    vi.mocked(getSshApproval).mockRejectedValue({ status: 404 });
+    sdk.getSshApproval.mockRejectedValue({ status: 404 });
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
 
@@ -197,9 +173,7 @@ describe("SSHApproval", () => {
   // invites typing past the check, so it only appears once the check is done.
   it("keeps the factor out of sight until the login has been reviewed", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth" }) as never,
-    );
+    sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);
@@ -216,9 +190,7 @@ describe("SSHApproval", () => {
 
   it("goes back to the details without deciding anything", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth" }) as never,
-    );
+    sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);
@@ -232,19 +204,17 @@ describe("SSHApproval", () => {
     expect(
       screen.queryByLabelText(/account password/i),
     ).not.toBeInTheDocument();
-    expect(webTerminalReauth).not.toHaveBeenCalled();
+    expect(sdk.webTerminalReauth).not.toHaveBeenCalled();
   });
 
   // Proving the factor is what releases the held login, so the call has to carry
   // the code and the key it was asked for.
   it("proves the password and reports the login released", async () => {
     const user = userEvent.setup();
-    vi.mocked(getSshApproval).mockResolvedValue(
-      approval({ kind: "reauth" }) as never,
-    );
-    vi.mocked(webTerminalReauth).mockResolvedValue({
+    sdk.getSshApproval.mockResolvedValue(approval({ kind: "reauth" }));
+    sdk.webTerminalReauth.mockResolvedValue({
       data: undefined,
-    } as never);
+    });
 
     renderAt("/ssh-identities/confirm/WXYZ2K7Q");
     await screen.findByText(/re-authenticate to continue/i);
@@ -257,7 +227,7 @@ describe("SSHApproval", () => {
     await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
 
     await waitFor(() =>
-      expect(webTerminalReauth).toHaveBeenCalledWith(
+      expect(sdk.webTerminalReauth).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({
             password: "hunter2",
@@ -272,7 +242,7 @@ describe("SSHApproval", () => {
 
   // Adding a key asks for no factor, so it must not have grown a step.
   it("leaves the add-key flow at a single step", async () => {
-    vi.mocked(getSshApproval).mockResolvedValue(approval() as never);
+    sdk.getSshApproval.mockResolvedValue(approval());
 
     renderAt("/ssh-identities/new/WXYZ2K7Q");
     await screen.findByText(/add this ssh key/i);

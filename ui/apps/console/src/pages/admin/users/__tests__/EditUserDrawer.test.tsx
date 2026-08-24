@@ -1,19 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import EditUserDrawer from "../EditUserDrawer";
-import { useUpdateUser } from "@/hooks/useAdminUserMutations";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import { useAuthStore } from "@/stores/authStore";
 import type { UserAdminResponse } from "@/client";
-vi.mock("@/hooks/useAdminUserMutations", () => ({
-  useUpdateUser: vi.fn(),
-}));
+import EditUserDrawer from "../EditUserDrawer";
+
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    adminUpdateUser: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
-const mockMutateAsync = vi.fn();
+const Wrapper = createTestWrapper();
 
 const mockUser: UserAdminResponse = {
   id: "u1",
@@ -40,16 +44,17 @@ function renderDrawer(
 ) {
   const defaults = { open: true, onClose: vi.fn(), user: mockUser };
   const props = { ...defaults, ...overrides };
-  return { onClose: props.onClose, ...render(<EditUserDrawer {...props} />) };
+  return {
+    onClose: props.onClose,
+    ...render(<EditUserDrawer {...props} />, { wrapper: Wrapper }),
+  };
 }
 
 describe("EditUserDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useUpdateUser).mockReturnValue({
-      mutateAsync: mockMutateAsync,
-    } as never);
-    useAuthStore.setState({ userId: "u2" } as never);
+    sdk.adminUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
+    useAuthStore.setState({ userId: "u2" });
   });
 
   describe("rendering — closed", () => {
@@ -193,21 +198,21 @@ describe("EditUserDrawer", () => {
 
   describe("admin checkbox — self-demotion constraint", () => {
     it("admin checkbox is disabled when editing your own admin account", () => {
-      useAuthStore.setState({ userId: "u1" } as never);
+      useAuthStore.setState({ userId: "u1" });
       const selfAdmin: UserAdminResponse = { ...mockUser, admin: true };
       renderDrawer({ user: selfAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).toBeDisabled();
     });
 
     it("admin checkbox is enabled when editing another admin", () => {
-      useAuthStore.setState({ userId: "u2" } as never);
+      useAuthStore.setState({ userId: "u2" });
       const otherAdmin: UserAdminResponse = { ...mockUser, admin: true };
       renderDrawer({ user: otherAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).not.toBeDisabled();
     });
 
     it("admin checkbox is enabled for a non-admin self user", () => {
-      useAuthStore.setState({ userId: "u1" } as never);
+      useAuthStore.setState({ userId: "u1" });
       const selfNonAdmin: UserAdminResponse = { ...mockUser, admin: false };
       renderDrawer({ user: selfNonAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).not.toBeDisabled();
@@ -273,8 +278,7 @@ describe("EditUserDrawer", () => {
   });
 
   describe("submit — success", () => {
-    it("calls mutateAsync with the correct payload", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("calls adminUpdateUser with the correct payload", async () => {
       renderDrawer();
 
       const nameInput = screen.getByLabelText(/^name$/i);
@@ -286,19 +290,20 @@ describe("EditUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { id: "u1" },
-          body: expect.objectContaining({
-            name: "Alice Updated",
-            username: "alice",
-            email: "alice@example.com",
+        expect(sdk.adminUpdateUser).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { id: "u1" },
+            body: expect.objectContaining({
+              name: "Alice Updated",
+              username: "alice",
+              email: "alice@example.com",
+            }),
           }),
-        });
+        );
       });
     });
 
     it("calls onClose after successful update", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -309,7 +314,6 @@ describe("EditUserDrawer", () => {
     });
 
     it("sends max_namespaces as undefined when limit is not enabled", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer({ user: { ...mockUser, max_namespaces: undefined } });
 
       await userEvent.click(
@@ -317,17 +321,19 @@ describe("EditUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { id: "u1" },
-          body: expect.objectContaining({ max_namespaces: undefined }),
-        });
+        expect(sdk.adminUpdateUser).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { id: "u1" },
+            body: expect.objectContaining({ max_namespaces: undefined }),
+          }),
+        );
       });
     });
   });
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 409 });
+      sdk.adminUpdateUser.mockRejectedValue({ status: 409 });
       renderDrawer();
 
       await userEvent.click(
@@ -340,7 +346,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("shows generic error for 400 responses", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 400 });
+      sdk.adminUpdateUser.mockRejectedValue({ status: 400 });
       renderDrawer();
 
       await userEvent.click(
@@ -353,7 +359,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("shows generic error for unexpected failures", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
       renderDrawer();
 
       await userEvent.click(
@@ -366,7 +372,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
       renderDrawer();
 
       await userEvent.click(
@@ -379,7 +385,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("does not call onClose when update fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.adminUpdateUser.mockRejectedValue(new Error("server error"));
       const { onClose } = renderDrawer();
 
       await userEvent.click(
@@ -393,17 +399,14 @@ describe("EditUserDrawer", () => {
 
   describe("client-side validation", () => {
     it("allows submit with a blank password (password kept as-is)", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
-      // Default state: pre-filled valid mockUser with empty password.
       await userEvent.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
-      await waitFor(() => expect(mockMutateAsync).toHaveBeenCalled());
+      await waitFor(() => expect(sdk.adminUpdateUser).toHaveBeenCalled());
     });
 
     it("rejects a too-short password on edit when the user is changing it", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
       const passwordInput = screen.getByLabelText(/^password$/i);
       await userEvent.type(passwordInput, "abc");
@@ -411,12 +414,11 @@ describe("EditUserDrawer", () => {
         screen.getByRole("button", { name: /save changes/i }),
       );
 
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
       expect(passwordInput).toHaveAttribute("aria-invalid", "true");
     });
 
     it("blocks submit when an existing field is edited to an invalid value", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
       const usernameInput = screen.getByLabelText(/^username$/i);
       await userEvent.clear(usernameInput);
@@ -425,7 +427,7 @@ describe("EditUserDrawer", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
     });
   });
@@ -437,10 +439,10 @@ describe("EditUserDrawer", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call adminUpdateUser when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.adminUpdateUser).not.toHaveBeenCalled();
     });
   });
 
@@ -463,7 +465,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("fail"));
+      sdk.adminUpdateUser.mockRejectedValue(new Error("fail"));
       const { rerender } = renderDrawer({ user: mockUser });
 
       await userEvent.click(

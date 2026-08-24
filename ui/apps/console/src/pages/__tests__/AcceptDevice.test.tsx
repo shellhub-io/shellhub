@@ -10,25 +10,15 @@ import {
 import AcceptDevice from "../AcceptDevice";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
 
-vi.mock("@/client/sdk.gen", () => ({
-  resolveDeviceLoginCode: vi.fn(),
-  acceptDevice: vi.fn(),
-  acceptDevicePairing: vi.fn(),
-  getNamespaces: vi.fn(),
-  getNamespaceToken: vi.fn(),
-}));
-
-import {
-  resolveDeviceLoginCode,
-  acceptDevice as acceptDeviceSdk,
-  acceptDevicePairing as acceptDevicePairingSdk,
-  getNamespaces as getNamespacesSdk,
-} from "@/client/sdk.gen";
-
-const mockResolve = vi.mocked(resolveDeviceLoginCode);
-const mockAcceptDevice = vi.mocked(acceptDeviceSdk);
-const mockAcceptPairing = vi.mocked(acceptDevicePairingSdk);
-const mockGetNamespaces = vi.mocked(getNamespacesSdk);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    resolveDeviceLoginCode: vi.fn(),
+    acceptDevice: vi.fn(),
+    acceptDevicePairing: vi.fn(),
+    getNamespaces: vi.fn(),
+    getNamespaceToken: vi.fn(),
+  }),
+);
 
 function respondWith<T>(data: T) {
   return { data } as never;
@@ -72,7 +62,7 @@ function renderFlow({
 
 describe("AcceptDevice page", () => {
   it("persists the code from the URL to localStorage", () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderPage("/accept-device?code=WXYZ2K7Q");
     expect(hasPendingDeviceCode()).toBe(true);
   });
@@ -90,7 +80,7 @@ describe("AcceptDevice page", () => {
 
 describe("AcceptDeviceFlow standalone", () => {
   it("shows loading while resolving a code", () => {
-    mockResolve.mockReturnValue(new Promise<never>(() => {}));
+    sdk.resolveDeviceLoginCode.mockReturnValue(new Promise<never>(() => {}));
     renderFlow();
 
     expect(screen.getByRole("status")).toBeInTheDocument();
@@ -98,7 +88,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows device preview for a login code", async () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow();
 
     expect(
@@ -110,10 +100,10 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows namespace picker for a pairing code", async () => {
-    mockResolve.mockResolvedValue(
+    sdk.resolveDeviceLoginCode.mockResolvedValue(
       respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
     );
-    mockGetNamespaces.mockResolvedValue(
+    sdk.getNamespaces.mockResolvedValue(
       respondWith([{ name: "my-ns", tenant_id: "t1" }]),
     );
     renderFlow();
@@ -126,7 +116,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows error state on invalid/expired code", async () => {
-    mockResolve.mockRejectedValue(new Error("bad code"));
+    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
     renderFlow({ initialCode: "BADCODE1" });
 
     expect(
@@ -135,7 +125,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows already-accepted state", async () => {
-    mockResolve.mockResolvedValue(
+    sdk.resolveDeviceLoginCode.mockResolvedValue(
       respondWith(mockDevice({ status: "accepted" })),
     );
     renderFlow();
@@ -146,8 +136,8 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("transitions to success after accepting a device", async () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
-    mockAcceptDevice.mockResolvedValue(respondWith({}));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
+    sdk.acceptDevice.mockResolvedValue(respondWith({}));
     renderFlow();
 
     fireEvent.click(
@@ -155,14 +145,14 @@ describe("AcceptDeviceFlow standalone", () => {
     );
 
     await screen.findByRole("heading", { name: /device accepted/i });
-    expect(mockAcceptDevice).toHaveBeenCalledWith(
+    expect(sdk.acceptDevice).toHaveBeenCalledWith(
       expect.objectContaining({ path: { uid: "uid-1" } }),
     );
   });
 
   it("shows accept error without leaving ready state", async () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
-    mockAcceptDevice.mockRejectedValue(new Error("limit reached"));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
+    sdk.acceptDevice.mockRejectedValue(new Error("limit reached"));
     renderFlow();
 
     fireEvent.click(
@@ -184,7 +174,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("shows dashboard link in error state", async () => {
-    mockResolve.mockRejectedValue(new Error("bad code"));
+    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -194,7 +184,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("resets to code form via 'Enter another code' on error", async () => {
-    mockResolve.mockRejectedValue(new Error("bad code"));
+    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -206,7 +196,7 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("resolves code entered from the manual form", async () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow({ initialCode: "" });
 
     await screen.findByText("Claim a device");
@@ -221,13 +211,13 @@ describe("AcceptDeviceFlow standalone", () => {
   });
 
   it("transitions to pairing-success after accepting with a namespace", async () => {
-    mockResolve.mockResolvedValue(
+    sdk.resolveDeviceLoginCode.mockResolvedValue(
       respondWith(mockDevice({ kind: "pairing", tenant_id: null })),
     );
-    mockGetNamespaces.mockResolvedValue(
+    sdk.getNamespaces.mockResolvedValue(
       respondWith([{ name: "my-ns", tenant_id: "t1" }]),
     );
-    mockAcceptPairing.mockResolvedValue(
+    sdk.acceptDevicePairing.mockResolvedValue(
       respondWith({ uid: "new-uid", tenant_id: "t1", namespace: "my-ns" }),
     );
     renderFlow();
@@ -241,7 +231,7 @@ describe("AcceptDeviceFlow standalone", () => {
     fireEvent.click(screen.getByRole("button", { name: /accept device/i }));
 
     await screen.findByRole("heading", { name: /device accepted/i });
-    expect(mockAcceptPairing).toHaveBeenCalledWith(
+    expect(sdk.acceptDevicePairing).toHaveBeenCalledWith(
       expect.objectContaining({
         path: { code: "CODE1234" },
         body: { tenant_id: "t1" },
@@ -251,7 +241,7 @@ describe("AcceptDeviceFlow standalone", () => {
 
   it("clears pending device code on error", async () => {
     setPendingDeviceCode("STALE");
-    mockResolve.mockRejectedValue(new Error("bad code"));
+    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
     renderFlow({ initialCode: "BADCODE1" });
 
     await screen.findByText(/invalid or expired code/i);
@@ -260,7 +250,7 @@ describe("AcceptDeviceFlow standalone", () => {
 
   it("clears pending device code when already accepted", async () => {
     setPendingDeviceCode("STALE");
-    mockResolve.mockResolvedValue(
+    sdk.resolveDeviceLoginCode.mockResolvedValue(
       respondWith(mockDevice({ status: "accepted" })),
     );
     renderFlow();
@@ -287,7 +277,7 @@ describe("AcceptDeviceFlow dialog mode", () => {
   });
 
   it("does not show dashboard link in error state", async () => {
-    mockResolve.mockRejectedValue(new Error("bad code"));
+    sdk.resolveDeviceLoginCode.mockRejectedValue(new Error("bad code"));
     renderFlow({ initialCode: "BADCODE1", inDialog: true });
 
     await screen.findByRole("heading", { name: /invalid or expired code/i });
@@ -297,7 +287,7 @@ describe("AcceptDeviceFlow dialog mode", () => {
   });
 
   it("resets to form via 'Use a different code' on ready state", async () => {
-    mockResolve.mockResolvedValue(respondWith(mockDevice()));
+    sdk.resolveDeviceLoginCode.mockResolvedValue(respondWith(mockDevice()));
     renderFlow({ inDialog: true });
 
     fireEvent.click(

@@ -2,76 +2,39 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "@/hooks/useAdminDevices";
-import { makeSdkError } from "@/tests/sdk";
+import AdminDevices from "../index";
+import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockDevice } from "@/tests/factories";
+import { useAuthStore } from "@/stores/authStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const mockNavigate = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/useAdminDevices", () => ({
-  useAdminDevices: vi.fn(),
-}));
-
-// useNavigate is used by the page — mock at the module level.
-const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-import { useAdminDevices } from "@/hooks/useAdminDevices";
-import AdminDevices from "../index";
-
-const defaultHookState = {
-  devices: [] as NormalizedDevice[],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-  refetch: vi.fn(),
-};
-
-function makeDevice(
-  overrides: Partial<NormalizedDevice> = {},
-): NormalizedDevice {
-  return {
-    uid: "device-uid-1",
-    name: "my-device",
-    status: "accepted",
-    online: true,
-    namespace: "my-namespace",
-    tenant_id: "tenant-1",
-    tags: [],
-    last_seen: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    identity: { mac: "aa:bb:cc:dd:ee:ff" },
-    info: {
-      id: "ubuntu",
-      pretty_name: "Ubuntu 22.04",
-      arch: "x86_64",
-      platform: "linux",
-      version: "0.14.0",
-    },
-    remote_addr: "1.2.3.4",
-    public_key: null,
-    ...overrides,
-  } as NormalizedDevice;
-}
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getDevicesAdmin: vi.fn(),
+  }),
+);
 
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <AdminDevices />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("AdminDevices", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAdminDevices).mockReturnValue(defaultHookState);
+    useAuthStore.setState({ isAdmin: true });
+    sdk.getDevicesAdmin.mockResolvedValue(paginatedResponse([]));
   });
 
   describe("rendering", () => {
@@ -100,11 +63,7 @@ describe("AdminDevices", () => {
 
   describe("loading state", () => {
     it('renders the loading spinner with "Loading devices..." text', () => {
-      vi.mocked(useAdminDevices).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-        devices: [],
-      });
+      sdk.getDevicesAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
@@ -112,61 +71,53 @@ describe("AdminDevices", () => {
   });
 
   describe("empty state", () => {
-    it('renders "No devices found" when the device list is empty', () => {
+    it('renders "No devices found" when the device list is empty', async () => {
       renderPage();
-      expect(screen.getByText("No devices found")).toBeInTheDocument();
+      expect(await screen.findByText("No devices found")).toBeInTheDocument();
     });
   });
 
   describe("device rows", () => {
-    it("renders a row for each returned device", () => {
-      vi.mocked(useAdminDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [
-          makeDevice({ uid: "uid-1", name: "device-alpha" }),
-          makeDevice({ uid: "uid-2", name: "device-beta" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each returned device", async () => {
+      sdk.getDevicesAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockDevice({ uid: "uid-1", name: "device-alpha" }),
+          mockDevice({ uid: "uid-2", name: "device-beta" }),
+        ]),
+      );
       renderPage();
-      expect(screen.getByText("device-alpha")).toBeInTheDocument();
+      expect(await screen.findByText("device-alpha")).toBeInTheDocument();
       expect(screen.getByText("device-beta")).toBeInTheDocument();
     });
 
-    it("renders the status chip for each device", () => {
-      vi.mocked(useAdminDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ status: "pending" })],
-        totalCount: 1,
-      });
+    it("renders the status chip for each device", async () => {
+      sdk.getDevicesAdmin.mockResolvedValue(
+        paginatedResponse([mockDevice({ status: "pending" })]),
+      );
       renderPage();
-      // "Pending" appears in both the filter tab button and the status chip span.
-      // Assert that at least two elements carry the text — one tab + one chip.
+      await screen.findByText("my-device");
       expect(screen.getAllByText("Pending").length).toBeGreaterThanOrEqual(2);
     });
 
     it("navigates to the device detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ uid: "uid-abc", name: "clickable-device" })],
-        totalCount: 1,
-      });
+      sdk.getDevicesAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockDevice({ uid: "uid-abc", name: "clickable-device" }),
+        ]),
+      );
       renderPage();
 
-      await user.click(screen.getByText("clickable-device"));
+      await user.click(await screen.findByText("clickable-device"));
       expect(mockNavigate).toHaveBeenCalledWith("/admin/devices/uid-abc");
     });
   });
 
   describe("error state", () => {
-    it("renders an error alert when the hook returns an error", () => {
-      vi.mocked(useAdminDevices).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error alert when the SDK returns an error", async () => {
+      sdk.getDevicesAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(
         screen.getByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
@@ -174,31 +125,37 @@ describe("AdminDevices", () => {
   });
 
   describe("status tab interaction", () => {
-    it("calls useAdminDevices — status tab click re-renders without crashing", async () => {
+    it("calls SDK — status tab click re-renders without crashing", async () => {
       const user = userEvent.setup();
       renderPage();
       await user.click(screen.getByRole("tab", { name: "Accepted" }));
-      // After clicking a tab the hook is still called; the page should still render
       expect(
         screen.getByRole("searchbox", { name: "Search devices by hostname" }),
       ).toBeInTheDocument();
     });
   });
 
-  // ── URL-driven state (usePaginatedListState adoption) ─────────────────────────
-
   describe("URL hydration — controls reflect URL params on mount", () => {
-    it("calls useAdminDevices with sortBy/orderBy hydrated from URL sortField/sortOrder params", () => {
+    it("passes sortBy/orderBy hydrated from URL to the SDK", async () => {
       renderPage(["/?sortField=name&sortOrder=asc"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "name", orderBy: "asc" }),
+      await screen.findByText("No devices found");
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            sort_by: "name",
+            order_by: "asc",
+          }),
+        }),
       );
     });
 
-    it("calls useAdminDevices with status hydrated from URL status param", () => {
+    it("passes status hydrated from URL to the SDK", async () => {
       renderPage(["/?status=accepted"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted" }),
+      await screen.findByText("No devices found");
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ status: "accepted" }),
+        }),
       );
     });
 
@@ -210,30 +167,35 @@ describe("AdminDevices", () => {
       );
     });
 
-    it("calls useAdminDevices with page hydrated from URL page param", () => {
+    it("passes page hydrated from URL to the SDK", async () => {
       renderPage(["/?page=3"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
-      );
-    });
-
-    it("uses defaults when URL params are absent (last_seen/desc, page 1, empty status)", () => {
-      renderPage(["/"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
+      await screen.findByText("No devices found");
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
         expect.objectContaining({
-          sortBy: "last_seen",
-          orderBy: "desc",
-          page: 1,
-          status: "",
+          query: expect.objectContaining({ page: 3 }),
         }),
       );
     });
 
-    it("rejects an invalid status value and falls back to empty string (All tab selected)", () => {
-      renderPage(["/?status=invalid-status"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "" }),
+    it("uses defaults when URL params are absent (last_seen/desc, page 1, no status)", async () => {
+      renderPage(["/"]);
+      await screen.findByText("No devices found");
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            sort_by: "last_seen",
+            order_by: "desc",
+            page: 1,
+          }),
+        }),
       );
+    });
+
+    it("rejects an invalid status value and falls back to no status filter (All tab selected)", async () => {
+      renderPage(["/?status=invalid-status"]);
+      await screen.findByText("No devices found");
+      const call = sdk.getDevicesAdmin.mock.calls[0]?.[0];
+      expect(call?.query?.status).toBeUndefined();
       expect(screen.getByRole("tab", { name: "All" })).toHaveAttribute(
         "aria-selected",
         "true",
@@ -244,66 +206,80 @@ describe("AdminDevices", () => {
   describe("URL writes — interactions update URL and reset page", () => {
     it("clicking a status tab writes status to URL and resets page to 1", async () => {
       const user = userEvent.setup();
-      // Start on page 2 with no status
       renderPage(["/?page=2"]);
-      // Confirm we start on page 2
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
+      await screen.findByText("No devices found");
+
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 2 }),
+        }),
       );
 
       await user.click(screen.getByRole("tab", { name: "Accepted" }));
 
-      // After clicking, useAdminDevices should be called with status=accepted and page=1
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted", page: 1 }),
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ status: "accepted", page: 1 }),
+        }),
       );
     });
 
-    it("clicking a sort column header writes sortField/sortOrder to URL and resets page", async () => {
+    it("clicking a sort column header writes sort to SDK and resets page", async () => {
       const user = userEvent.setup();
       renderPage(["/?page=3"]);
+      await screen.findByText("No devices found");
 
-      // Click the "Sort by Hostname" sort button (maps to "name" field)
       await user.click(
         screen.getByRole("button", { name: /sort by hostname/i }),
       );
 
-      // name has initialOrder=asc, so switching to it uses asc
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "name", orderBy: "asc", page: 1 }),
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            sort_by: "name",
+            order_by: "asc",
+            page: 1,
+          }),
+        }),
       );
     });
 
     it("clicking the same sort column again toggles order from asc to desc", async () => {
       const user = userEvent.setup();
-      // Start already sorted by name asc
       renderPage(["/?sortField=name&sortOrder=asc"]);
+      await screen.findByText("No devices found");
 
       await user.click(
         screen.getByRole("button", { name: /sort by hostname/i }),
       );
 
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "name", orderBy: "desc" }),
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            sort_by: "name",
+            order_by: "desc",
+          }),
+        }),
       );
     });
   });
 
   describe("URL writes — default params are omitted from the URL", () => {
-    it("does not include page in the URL when on page 1 (the default)", () => {
-      // We can't easily inspect the URL from a plain render test, so we verify
-      // that useAdminDevices receives page=1 after navigating back to default
+    it("SDK receives page=1 when on the default page", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
+      await screen.findByText("No devices found");
+      expect(sdk.getDevicesAdmin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({ page: 1 }),
+        }),
       );
     });
 
-    it("does not pass status to useAdminDevices when All tab is selected (default empty)", () => {
+    it("SDK receives no status when All tab is selected (default)", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "" }),
-      );
+      await screen.findByText("No devices found");
+      const call = sdk.getDevicesAdmin.mock.calls[0]?.[0];
+      expect(call?.query?.status).toBeUndefined();
     });
   });
 });

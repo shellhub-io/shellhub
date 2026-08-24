@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { makeSdkError } from "@/tests/sdk";
-
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
+import AdminSessions from "../Sessions";
+import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSession } from "@/tests/factories";
+import { LocationProbe } from "@/tests/LocationProbe";
+import { useAuthStore } from "@/stores/authStore";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -15,46 +16,11 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/hooks/useAdminSessions", () => ({
-  useAdminSessions: vi.fn(),
-}));
-
-import { useAdminSessions } from "@/hooks/useAdminSessions";
-import type { Device, Session } from "@/client";
-import AdminSessions from "../Sessions";
-import { LocationProbe } from "@/tests/LocationProbe";
-
-function makeSession(overrides: Partial<Session> = {}): Session {
-  return {
-    uid: "session-1",
-    device_uid: "device-1",
-    device: {
-      uid: "device-1",
-      name: "web-server-01",
-      online: true,
-      info: { id: "ubuntu" },
-    } as Device,
-    username: "root",
-    ip_address: "192.168.0.1",
-    started_at: "2024-01-01T00:00:00Z",
-    last_seen: "2024-01-01T01:00:00Z",
-    active: false,
-    authenticated: true,
-    ...overrides,
-  } as Session;
-}
-
-function setupHook(
-  overrides: Partial<ReturnType<typeof useAdminSessions>> = {},
-) {
-  vi.mocked(useAdminSessions).mockReturnValue({
-    sessions: [],
-    totalCount: 0,
-    isLoading: false,
-    error: null,
-    ...overrides,
-  });
-}
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getSessionsAdmin: vi.fn(),
+  }),
+);
 
 function renderPage(initialEntries: string[] = ["/"]) {
   let lastSearch = "";
@@ -67,158 +33,158 @@ function renderPage(initialEntries: string[] = ["/"]) {
         }}
       />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
   return { ...result, getSearch: () => lastSearch };
 }
 
-/* ------------------------------------------------------------------ */
-/* Tests                                                               */
-/* ------------------------------------------------------------------ */
-
 beforeEach(() => {
   vi.clearAllMocks();
-  setupHook();
+  useAuthStore.setState({ isAdmin: true });
+  sdk.getSessionsAdmin.mockResolvedValue(paginatedResponse([]));
 });
 
 describe("AdminSessions", () => {
   describe("loading state", () => {
     it("shows a loading spinner while fetching", () => {
-      setupHook({ isLoading: true });
+      sdk.getSessionsAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
 
     it("does not render session rows while loading", () => {
-      setupHook({ isLoading: true });
+      sdk.getSessionsAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.queryByText("root")).not.toBeInTheDocument();
     });
   });
 
   describe("empty state", () => {
-    it("shows 'No sessions found' when there are no sessions", () => {
+    it("shows 'No sessions found' when there are no sessions", async () => {
       renderPage();
-      expect(screen.getByText("No sessions found")).toBeInTheDocument();
+      expect(await screen.findByText("No sessions found")).toBeInTheDocument();
     });
   });
 
   describe("error state", () => {
-    it("renders the error banner with role='alert'", () => {
-      setupHook({ error: makeSdkError(500) });
+    it("renders the error banner with role='alert'", async () => {
+      sdk.getSessionsAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
     });
 
-    it("displays the console's own copy for the status in the banner", () => {
-      setupHook({ error: makeSdkError(403) });
+    it("displays the console's own copy for the status in the banner", async () => {
+      sdk.getSessionsAdmin.mockRejectedValue(makeSdkError(403));
       renderPage();
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "You do not have permission to do this.",
-      );
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent("You do not have permission to do this.");
     });
 
-    it("does not show the error banner when there is no error", () => {
+    it("does not show the error banner when there is no error", async () => {
       renderPage();
+      await screen.findByText("No sessions found");
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 
   describe("session rows", () => {
-    it("renders one row per session", () => {
-      setupHook({
-        sessions: [
-          makeSession({ uid: "session-1", username: "root" }),
-          makeSession({ uid: "session-2", username: "admin" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders one row per session", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockSession({ uid: "session-1", username: "root" }),
+          mockSession({ uid: "session-2", username: "admin" }),
+        ]),
+      );
       renderPage();
-      expect(screen.getByText("root")).toBeInTheDocument();
+      expect(await screen.findByText("root")).toBeInTheDocument();
       expect(screen.getByText("admin")).toBeInTheDocument();
     });
 
-    it("renders the device name via DeviceChip", () => {
-      setupHook({ sessions: [makeSession()], totalCount: 1 });
+    it("renders the device name via DeviceChip", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession()]),
+      );
       renderPage();
-      expect(screen.getByText("web-server-01")).toBeInTheDocument();
+      expect(await screen.findByText("my-device")).toBeInTheDocument();
     });
 
-    it("renders the truncated session uid", () => {
-      setupHook({
-        sessions: [makeSession({ uid: "abcdef1234567890" })],
-        totalCount: 1,
-      });
+    it("renders the truncated session uid", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "abcdef1234567890" })]),
+      );
       renderPage();
-      expect(screen.getByText("abcdef1234")).toBeInTheDocument();
+      expect(await screen.findByText("abcdef1234")).toBeInTheDocument();
     });
 
-    it("renders the IP address", () => {
-      setupHook({
-        sessions: [makeSession({ ip_address: "10.0.0.1" })],
-        totalCount: 1,
-      });
+    it("renders the IP address", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ ip_address: "10.0.0.1" })]),
+      );
       renderPage();
-      expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
+      expect(await screen.findByText("10.0.0.1")).toBeInTheDocument();
     });
 
     it("navigates to session detail when a row is clicked", async () => {
       const user = userEvent.setup();
-      setupHook({
-        sessions: [makeSession({ uid: "session-abc" })],
-        totalCount: 1,
-      });
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-abc" })]),
+      );
       renderPage();
 
-      await user.click(screen.getByText("root"));
+      await user.click(await screen.findByText("root"));
 
       expect(mockNavigate).toHaveBeenCalledWith("/admin/sessions/session-abc");
     });
   });
 
   describe("active indicator", () => {
-    it("renders a green dot for active sessions", () => {
-      setupHook({ sessions: [makeSession({ active: true })], totalCount: 1 });
+    it("renders a green dot for active sessions", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ active: true })]),
+      );
       renderPage();
+      await screen.findByText("root");
       const dot = document.querySelector(".bg-accent-green");
       expect(dot).toBeInTheDocument();
     });
 
-    it("renders a muted dot for inactive sessions", () => {
-      setupHook({ sessions: [makeSession({ active: false })], totalCount: 1 });
+    it("renders a muted dot for inactive sessions", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ active: false })]),
+      );
       renderPage();
+      await screen.findByText("root");
       const dot = document.querySelector(".bg-text-muted\\/40");
       expect(dot).toBeInTheDocument();
     });
   });
 
   describe("authentication indicator", () => {
-    it("renders the 'Authenticated' shield for authenticated sessions", () => {
-      setupHook({
-        sessions: [makeSession({ authenticated: true })],
-        totalCount: 1,
-      });
+    it("renders the 'Authenticated' shield for authenticated sessions", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ authenticated: true })]),
+      );
       renderPage();
-      expect(screen.getByTitle("Authenticated")).toBeInTheDocument();
+      expect(await screen.findByTitle("Authenticated")).toBeInTheDocument();
     });
 
-    it("renders the 'Not authenticated' shield for unauthenticated sessions", () => {
-      setupHook({
-        sessions: [makeSession({ authenticated: false })],
-        totalCount: 1,
-      });
+    it("renders the 'Not authenticated' shield for unauthenticated sessions", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ authenticated: false })]),
+      );
       renderPage();
+      await screen.findByText("root");
       expect(screen.getAllByTitle("Not authenticated").length).toBeGreaterThan(
         0,
       );
     });
 
-    it("shows the warning icon in the username cell for unauthenticated sessions", () => {
-      setupHook({
-        sessions: [makeSession({ authenticated: false })],
-        totalCount: 1,
-      });
+    it("shows the warning icon in the username cell for unauthenticated sessions", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([mockSession({ authenticated: false })]),
+      );
       renderPage();
-      // ExclamationTriangleIcon has title "Not authenticated"
+      await screen.findByText("root");
       expect(
         screen.getAllByTitle("Not authenticated").length,
       ).toBeGreaterThanOrEqual(2);
@@ -226,56 +192,70 @@ describe("AdminSessions", () => {
   });
 
   describe("device fallback", () => {
-    it("shows the truncated device_uid when device object is missing", () => {
-      setupHook({
-        sessions: [makeSession({ device: null, device_uid: "abcd1234efgh" })],
-        totalCount: 1,
-      });
+    it("shows the truncated device_uid when device object is missing", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockSession({ device: null, device_uid: "abcd1234efgh" }),
+        ]),
+      );
       renderPage();
-      expect(screen.getByText("abcd1234")).toBeInTheDocument();
+      expect(await screen.findByText("abcd1234")).toBeInTheDocument();
     });
   });
 
   describe("pagination", () => {
-    it("renders pagination when totalCount > perPage", () => {
-      setupHook({
-        sessions: Array.from({ length: 10 }, (_, i) =>
-          makeSession({ uid: `session-${i}`, username: `user-${i}` }),
+    it("renders pagination when totalCount > perPage", async () => {
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse(
+          Array.from({ length: 10 }, (_, i) =>
+            mockSession({ uid: `session-${i}`, username: `user-${i}` }),
+          ),
+          25,
         ),
-        totalCount: 25,
-      });
+      );
       renderPage();
-      // Pagination renders page info
-      expect(screen.getByText(/25/)).toBeInTheDocument();
+      expect(await screen.findByText(/25/)).toBeInTheDocument();
     });
   });
 
   describe("URL hydration", () => {
-    it("calls useAdminSessions with page hydrated from ?page=3", () => {
+    it("passes page=3 to the SDK when URL has ?page=3", async () => {
       renderPage(["/?page=3"]);
-      expect(vi.mocked(useAdminSessions)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getSessionsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 3 }),
+          }),
+        );
+      });
     });
 
-    it("calls useAdminSessions with page=1 when URL has no page param", () => {
+    it("passes page=1 to the SDK when URL has no page param", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminSessions)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getSessionsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
     });
   });
 
   describe("URL writes", () => {
     it("writes ?page=2 to the URL when the user clicks Next page", async () => {
       const user = userEvent.setup();
-      setupHook({
-        sessions: Array.from({ length: 10 }, (_, i) =>
-          makeSession({ uid: `s-${i}`, username: `u-${i}` }),
+      sdk.getSessionsAdmin.mockResolvedValue(
+        paginatedResponse(
+          Array.from({ length: 10 }, (_, i) =>
+            mockSession({ uid: `s-${i}`, username: `u-${i}` }),
+          ),
+          30,
         ),
-        totalCount: 30,
-      });
+      );
       const { getSearch } = renderPage();
+
+      await screen.findByText("u-0");
 
       await user.click(screen.getByRole("button", { name: "Next page" }));
 
@@ -287,7 +267,6 @@ describe("AdminSessions", () => {
 
     it("omits ?page from the URL when on the default page 1", () => {
       const { getSearch } = renderPage(["/"]);
-      // The URL must not contain a 'page' param when on the default first page.
       const sp = new URLSearchParams(getSearch());
       expect(sp.get("page")).toBeNull();
     });

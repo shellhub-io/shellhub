@@ -1,29 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import DeleteAnnouncementDialog from "../DeleteAnnouncementDialog";
-import { useAdminDeleteAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 
-vi.mock("@/hooks/useAdminAnnouncementMutations", () => ({
-  useAdminDeleteAnnouncement: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    deleteAnnouncement: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
-
-const mockMutateAsync = vi.fn();
 
 const mockAnnouncement = {
   uuid: "ann-uuid-1234",
   title: "Test Announcement",
 };
 
+const Wrapper = createTestWrapper();
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useAdminDeleteAnnouncement).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
+  sdk.deleteAnnouncement.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderDialog(
@@ -44,7 +45,11 @@ function renderDialog(
   return {
     onClose: props.onClose,
     onDeleted: props.onDeleted,
-    ...render(<DeleteAnnouncementDialog {...props} />),
+    ...render(
+      <Wrapper>
+        <DeleteAnnouncementDialog {...props} />
+      </Wrapper>,
+    ),
   };
 }
 
@@ -95,21 +100,21 @@ describe("DeleteAnnouncementDialog", () => {
   });
 
   describe("confirm — success", () => {
-    it("calls mutateAsync with the correct uuid", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("calls deleteAnnouncement with the correct uuid", async () => {
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { uuid: "ann-uuid-1234" },
-        });
+        expect(sdk.deleteAnnouncement).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { uuid: "ann-uuid-1234" },
+          }),
+        );
       });
     });
 
     it("calls onDeleted callback after successful deletion", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -118,7 +123,6 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("calls onClose after successful deletion", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -127,17 +131,18 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("calls onClose before onDeleted", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const callOrder: string[] = [];
       const onClose = vi.fn(() => callOrder.push("onClose"));
       const onDeleted = vi.fn(() => callOrder.push("onDeleted"));
       render(
-        <DeleteAnnouncementDialog
-          open={true}
-          onClose={onClose}
-          announcement={mockAnnouncement}
-          onDeleted={onDeleted}
-        />,
+        <Wrapper>
+          <DeleteAnnouncementDialog
+            open={true}
+            onClose={onClose}
+            announcement={mockAnnouncement}
+            onDeleted={onDeleted}
+          />
+        </Wrapper>,
       );
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -149,7 +154,7 @@ describe("DeleteAnnouncementDialog", () => {
 
   describe("confirm — error handling", () => {
     it("shows generic error message on failure", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -162,7 +167,7 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("shows error for SDK errors", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      sdk.deleteAnnouncement.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -175,7 +180,7 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("does not call onDeleted when deletion fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -185,7 +190,7 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("does not call onClose when deletion fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -195,14 +200,12 @@ describe("DeleteAnnouncementDialog", () => {
     });
 
     it("clears the error message on subsequent close after failure", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteAnnouncement.mockRejectedValue(new Error("server error"));
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
       await waitFor(() => screen.getByText(/failed to delete announcement/i));
 
-      // The ConfirmDialog's onClose callback wraps our onClose to clear error;
-      // clicking Cancel triggers that path.
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -215,10 +218,10 @@ describe("DeleteAnnouncementDialog", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call deleteAnnouncement when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.deleteAnnouncement).not.toHaveBeenCalled();
     });
 
     it("does not call onDeleted when Cancel is clicked", async () => {
@@ -234,16 +237,17 @@ describe("DeleteAnnouncementDialog", () => {
       expect(screen.queryByText("Test Announcement")).not.toBeInTheDocument();
     });
 
-    it("does not call mutateAsync when confirmed with null announcement", async () => {
+    it("does not call deleteAnnouncement when confirmed with null announcement", async () => {
       renderDialog({ announcement: null });
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-      await waitFor(() => expect(mockMutateAsync).not.toHaveBeenCalled());
+      await waitFor(() =>
+        expect(sdk.deleteAnnouncement).not.toHaveBeenCalled(),
+      );
     });
   });
 
   describe("optional onDeleted callback", () => {
     it("does not throw when onDeleted is not provided and deletion succeeds", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({ onDeleted: undefined });
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));

@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
+import type { FirewallRulesResponse } from "@/client";
+import AdminFirewallRuleDetails from "../AdminFirewallRuleDetails";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useAdminFirewallRules", () => ({
-  useAdminFirewallRule: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getFirewallRuleAdmin: vi.fn(),
+  }),
+);
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -16,14 +21,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
-
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
-import AdminFirewallRuleDetails from "../AdminFirewallRuleDetails";
-import { FirewallRulesResponse } from "@/client";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makeTag(name: string) {
   return {
@@ -55,30 +52,21 @@ function renderPage() {
     <MemoryRouter>
       <AdminFirewallRuleDetails />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  useAuthStore.setState({ isAdmin: true });
+  sdk.getFirewallRuleAdmin.mockResolvedValue(mockSdkResponse(makeRule()));
+});
 
 describe("AdminFirewallRuleDetails", () => {
-  beforeEach(() => {
-    vi.mocked(useAdminFirewallRule).mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useAdminFirewallRule>);
-  });
-
   describe("loading state", () => {
     it('announces "Loading firewall rule details" while loading', () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: undefined,
-        isLoading: true,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+      sdk.getFirewallRuleAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
-
       expect(
         screen.getByRole("status", { name: "Loading firewall rule details" }),
       ).toBeInTheDocument();
@@ -86,169 +74,181 @@ describe("AdminFirewallRuleDetails", () => {
   });
 
   describe("not-found / error state", () => {
-    it('renders "Firewall rule not found" when no data and no loading', () => {
+    it('renders "Firewall rule not found" when no data and no loading', async () => {
+      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(404));
       renderPage();
-      expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
+      });
     });
 
-    it('renders "Firewall rule not found" when the hook returns an error', () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        error: new Error("404 Not Found"),
-      } as never);
-
+    it('renders "Firewall rule not found" when the query returns an error', async () => {
+      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Firewall rule not found")).toBeInTheDocument();
+      });
     });
 
-    it('renders a "Back to firewall rules" link in the not-found state', () => {
+    it('renders a "Back to firewall rules" link in the not-found state', async () => {
+      sdk.getFirewallRuleAdmin.mockRejectedValue(makeSdkError(404));
       renderPage();
-      expect(
-        screen.getByRole("link", { name: "Back to firewall rules" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("link", { name: "Back to firewall rules" }),
+        ).toBeInTheDocument();
+      });
     });
   });
 
   describe("rule data — allow rule", () => {
-    beforeEach(() => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule(),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
+    it('renders "Allow Rule" as the main heading', async () => {
+      renderPage();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("heading", { name: "Allow Rule" }),
+        ).toBeInTheDocument();
+      });
     });
 
-    it('renders "Allow Rule" as the main heading', () => {
+    it("renders the rule ID", async () => {
       renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Allow Rule" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getAllByText("rule-1").length).toBeGreaterThanOrEqual(1);
+      });
     });
 
-    it("renders the rule ID", () => {
+    it("renders the namespace as a link to the admin namespace page", async () => {
       renderPage();
-      expect(screen.getAllByText("rule-1").length).toBeGreaterThanOrEqual(1);
+      await waitFor(() => {
+        expect(
+          screen.getByRole("link", { name: "tenant-abc" }),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByRole("link", { name: "tenant-abc" })).toHaveAttribute(
+        "href",
+        "/admin/namespaces/tenant-abc",
+      );
     });
 
-    it("renders the namespace as a link to the admin namespace page", () => {
+    it("renders the priority number", async () => {
       renderPage();
-      const link = screen.getByRole("link", { name: "tenant-abc" });
-      expect(link).toBeInTheDocument();
-      expect(link).toHaveAttribute("href", "/admin/namespaces/tenant-abc");
+      await waitFor(() => {
+        expect(screen.getByText("1")).toBeInTheDocument();
+      });
     });
 
-    it("renders the priority number", () => {
+    it('renders "Allow" in the action field', async () => {
       renderPage();
-      // Priority appears as both "Priority 1" badge and as the value in the card
-      expect(screen.getByText("1")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getAllByText("Allow").length).toBeGreaterThanOrEqual(1);
+      });
     });
 
-    it('renders "Allow" in the action field', () => {
+    it("renders the Active badge", async () => {
       renderPage();
-      // The action label appears at least in the connection criteria card
-      expect(screen.getAllByText("Allow").length).toBeGreaterThanOrEqual(1);
+      await waitFor(() => {
+        expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(1);
+      });
     });
 
-    it("renders the Active badge", () => {
+    it('renders "Any IP" when source_ip is ".*"', async () => {
       renderPage();
-      // "Active" appears in both the header badge and the properties card.
-      expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(1);
+      await waitFor(() => {
+        expect(screen.getByText("Any IP")).toBeInTheDocument();
+      });
     });
 
-    it('renders "Any IP" when source_ip is ".*"', () => {
+    it('renders "All users" when username is ".*"', async () => {
       renderPage();
-      expect(screen.getByText("Any IP")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("All users")).toBeInTheDocument();
+      });
     });
 
-    it('renders "All users" when username is ".*"', () => {
+    it('renders "All devices" FilterBadge when filter hostname is ".*"', async () => {
       renderPage();
-      expect(screen.getByText("All users")).toBeInTheDocument();
-    });
-
-    it('renders "All devices" FilterBadge when filter hostname is ".*"', () => {
-      renderPage();
-      expect(screen.getByText("All devices")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("All devices")).toBeInTheDocument();
+      });
     });
   });
 
   describe("rule data — deny rule", () => {
-    it('renders "Deny Rule" as the main heading', () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ action: "deny" }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it('renders "Deny Rule" as the main heading', async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(makeRule({ action: "deny" })),
+      );
       renderPage();
-      expect(
-        screen.getByRole("heading", { name: "Deny Rule" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("heading", { name: "Deny Rule" }),
+        ).toBeInTheDocument();
+      });
     });
   });
 
   describe("rule data — inactive rule", () => {
-    it("renders the Inactive badge", () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ active: false }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it("renders the Inactive badge", async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(makeRule({ active: false })),
+      );
       renderPage();
-      // The component renders "Inactive" in both the header badge and the
-      // properties card — assert at least one is present.
-      expect(screen.getAllByText("Inactive").length).toBeGreaterThanOrEqual(1);
+      await waitFor(() => {
+        expect(screen.getAllByText("Inactive").length).toBeGreaterThanOrEqual(
+          1,
+        );
+      });
     });
   });
 
   describe("rule data — specific IP and username", () => {
-    it("renders a specific source IP when not wildcard", () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ source_ip: "10.0.0.5" }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it("renders a specific source IP when not wildcard", async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(makeRule({ source_ip: "10.0.0.5" })),
+      );
       renderPage();
-      expect(screen.getByText("10.0.0.5")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("10.0.0.5")).toBeInTheDocument();
+      });
     });
 
-    it("renders a specific username when not wildcard", () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ username: "alice" }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it("renders a specific username when not wildcard", async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(makeRule({ username: "alice" })),
+      );
       renderPage();
-      expect(screen.getByText("alice")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("alice")).toBeInTheDocument();
+      });
     });
   });
 
   describe("rule data — device filter", () => {
-    it("renders hostname FilterBadge when filter has a specific hostname", () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ filter: { hostname: "my-server", tags: [] } }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it("renders hostname FilterBadge when filter has a specific hostname", async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(
+          makeRule({ filter: { hostname: "my-server", tags: [] } }),
+        ),
+      );
       renderPage();
-      expect(screen.getByText("my-server")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("my-server")).toBeInTheDocument();
+      });
     });
 
-    it("renders tag FilterBadge when filter has tags", () => {
-      vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({
-          filter: { tags: [makeTag("production"), makeTag("web")] },
-        }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminFirewallRule>);
-
+    it("renders tag FilterBadge when filter has tags", async () => {
+      sdk.getFirewallRuleAdmin.mockResolvedValue(
+        mockSdkResponse(
+          makeRule({
+            filter: { tags: [makeTag("production"), makeTag("web")] },
+          }),
+        ),
+      );
       renderPage();
-      expect(screen.getByText("production")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("production")).toBeInTheDocument();
+      });
       expect(screen.getByText("web")).toBeInTheDocument();
     });
   });

@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
 import ConnectDrawer from "@/components/ConnectDrawer";
@@ -50,17 +52,13 @@ vi.mock("@/utils/sshKeys", () => ({
   getFingerprint: vi.fn(() => "fp"),
 }));
 
-// ConnectDrawer reads the namespace to show the session-record status; stub it
-// so the drawer renders without a QueryClient in these isolated tests.
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: () => ({ namespace: undefined }),
-}));
-
-// The identity-mode connect enrolls the browser key via this mutation hook, which
-// needs a QueryClient; stub it so the drawer renders in isolation.
-vi.mock("@/hooks/useSSHIdentityMutations", () => ({
-  useCreateSSHIdentity: () => ({ mutateAsync: vi.fn() }),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+    createSshIdentity: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -304,6 +302,12 @@ function getState() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  seedAuthStore();
+  sdk.getNamespace.mockResolvedValue(mockSdkResponse(null));
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
+  sdk.createSshIdentity.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 describe("SecureVault", () => {

@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "@/hooks/useAdminDevices";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
+import AdminDeviceDetails from "../AdminDeviceDetails";
+import type { Device } from "@/client";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useAdminDevices", () => ({
-  useAdminDevice: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getDeviceAdmin: vi.fn(),
+  }),
+);
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
@@ -18,16 +22,7 @@ vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import { useAdminDevice } from "@/hooks/useAdminDevices";
-import AdminDeviceDetails from "../AdminDeviceDetails";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function makeDevice(
-  overrides: Partial<NormalizedDevice> = {},
-): NormalizedDevice {
+function makeDevice(overrides: Partial<Device> = {}): Device {
   return {
     uid: "test-uid",
     name: "my-device",
@@ -49,7 +44,7 @@ function makeDevice(
     remote_addr: "192.168.1.100",
     public_key: null,
     ...overrides,
-  } as NormalizedDevice;
+  } as Device;
 }
 
 function renderPage() {
@@ -57,30 +52,21 @@ function renderPage() {
     <MemoryRouter>
       <AdminDeviceDetails />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  useAuthStore.setState({ isAdmin: true });
+  sdk.getDeviceAdmin.mockResolvedValue(mockSdkResponse(makeDevice()));
+});
 
 describe("AdminDeviceDetails", () => {
-  beforeEach(() => {
-    vi.mocked(useAdminDevice).mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useAdminDevice>);
-  });
-
   describe("loading state", () => {
     it('announces "Loading device details" while loading', () => {
-      vi.mocked(useAdminDevice).mockReturnValue({
-        data: undefined,
-        isLoading: true,
-        error: null,
-      } as ReturnType<typeof useAdminDevice>);
-
+      sdk.getDeviceAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
-
       expect(
         screen.getByRole("status", { name: "Loading device details" }),
       ).toBeInTheDocument();
@@ -88,112 +74,127 @@ describe("AdminDeviceDetails", () => {
   });
 
   describe("not-found / error state", () => {
-    it('renders "Device not found" when no data and no loading', () => {
+    it('renders "Device not found" when no data and no loading', async () => {
+      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(404));
       renderPage();
-      expect(screen.getByText("Device not found")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Device not found")).toBeInTheDocument();
+      });
     });
 
-    it('renders "Device not found" when the hook returns an error', () => {
-      vi.mocked(useAdminDevice).mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        error: { message: "device not found" },
-      } as unknown as ReturnType<typeof useAdminDevice>);
-
+    it('renders "Device not found" when the query returns an error', async () => {
+      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByText("Device not found")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Device not found")).toBeInTheDocument();
+      });
     });
 
-    it('renders a "Back to devices" link in the not-found state', () => {
+    it('renders a "Back to devices" link in the not-found state', async () => {
+      sdk.getDeviceAdmin.mockRejectedValue(makeSdkError(404));
       renderPage();
-      expect(
-        screen.getByRole("link", { name: "Back to devices" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("link", { name: "Back to devices" }),
+        ).toBeInTheDocument();
+      });
     });
   });
 
   describe("device data", () => {
-    beforeEach(() => {
-      vi.mocked(useAdminDevice).mockReturnValue({
-        data: makeDevice(),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminDevice>);
+    it("renders the device name as the main heading", async () => {
+      renderPage();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("heading", { name: "my-device" }),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("renders the device name as the main heading", () => {
+    it("renders the device UID", async () => {
       renderPage();
-      expect(
-        screen.getByRole("heading", { name: "my-device" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("test-uid")).toBeInTheDocument();
+      });
     });
 
-    it("renders the device UID", () => {
+    it("renders the MAC address", async () => {
       renderPage();
-      expect(screen.getByText("test-uid")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      });
     });
 
-    it("renders the MAC address", () => {
+    it("renders the operating system name", async () => {
       renderPage();
-      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
+      });
     });
 
-    it("renders the operating system name", () => {
+    it("renders the tenant ID", async () => {
       renderPage();
-      expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("tenant-abc")).toBeInTheDocument();
+      });
     });
 
-    it("renders the tenant ID", () => {
+    it("renders the status chip", async () => {
       renderPage();
-      expect(screen.getByText("tenant-abc")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Accepted")).toBeInTheDocument();
+      });
     });
 
-    it("renders the status chip", () => {
+    it("renders device tags", async () => {
       renderPage();
-      // DeviceStatusChip renders the label text
-      expect(screen.getByText("Accepted")).toBeInTheDocument();
-    });
-
-    it("renders device tags", () => {
-      renderPage();
-      expect(screen.getByText("production")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("production")).toBeInTheDocument();
+      });
       expect(screen.getByText("web")).toBeInTheDocument();
     });
 
-    it('renders "No tags" when device has no tags', () => {
-      vi.mocked(useAdminDevice).mockReturnValue({
-        data: makeDevice({ tags: [] }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminDevice>);
-
+    it('renders "No tags" when device has no tags', async () => {
+      sdk.getDeviceAdmin.mockResolvedValue(
+        mockSdkResponse(makeDevice({ tags: [] })),
+      );
       renderPage();
-      expect(screen.getByText("No tags")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("No tags")).toBeInTheDocument();
+      });
     });
 
-    it("renders the public key section when present", () => {
-      vi.mocked(useAdminDevice).mockReturnValue({
-        data: makeDevice({ public_key: "ssh-rsa AAAAB3NzaC1yc2E..." }),
-        isLoading: false,
-        error: null,
-      } as ReturnType<typeof useAdminDevice>);
-
+    it("renders the public key section when present", async () => {
+      sdk.getDeviceAdmin.mockResolvedValue(
+        mockSdkResponse(
+          makeDevice({ public_key: "ssh-rsa AAAAB3NzaC1yc2E..." }),
+        ),
+      );
       renderPage();
-      expect(
-        screen.getByText("ssh-rsa AAAAB3NzaC1yc2E..."),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText("ssh-rsa AAAAB3NzaC1yc2E..."),
+        ).toBeInTheDocument();
+      });
     });
 
-    it("does not render the public key section when absent", () => {
+    it("does not render the public key section when absent", async () => {
       renderPage();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("heading", { name: "my-device" }),
+        ).toBeInTheDocument();
+      });
       expect(screen.queryByText(/ssh-rsa/)).not.toBeInTheDocument();
     });
 
-    it("renders the namespace link", () => {
+    it("renders the namespace link", async () => {
       renderPage();
-      expect(
-        screen.getByRole("link", { name: "my-namespace" }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByRole("link", { name: "my-namespace" }),
+        ).toBeInTheDocument();
+      });
     });
   });
 });

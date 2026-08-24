@@ -2,22 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestWrapper } from "@/tests/wrapper";
-import { makeSdkError } from "@/tests/sdk";
-import AddMemberDrawer from "../AddMemberDrawer";
+import { mockSdkResponse, makeSdkError } from "@/tests/sdk";
 import { defaultConfig, getConfig } from "@/env";
+import AddMemberDrawer from "../AddMemberDrawer";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
-const mockGenerateLinkMutateAsync = vi.fn();
-
-vi.mock("@/hooks/useInvitationMutations", () => ({
-  useGenerateInvitationLink: () => ({
-    mutateAsync: mockGenerateLinkMutateAsync,
-    isPending: false,
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    generateInvitationLink: vi.fn(),
   }),
-}));
+);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
@@ -35,11 +28,8 @@ vi.mock("@/utils/styles", () => ({
   INPUT_MONO: "input-mono",
   INPUT_MONO_ERROR: "input-mono-error",
 }));
-const mockGetConfig = vi.mocked(getConfig);
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
+const mockGetConfig = vi.mocked(getConfig);
 
 function renderDrawer(open = true, onClose = vi.fn(), tenantId = "t1") {
   return render(
@@ -56,19 +46,11 @@ async function submit(
   await user.click(screen.getByRole("button", { name: /add member/i }));
 }
 
-/* ------------------------------------------------------------------ */
-/* Setup                                                               */
-/* ------------------------------------------------------------------ */
-
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
-  mockGenerateLinkMutateAsync.mockResolvedValue({ link: null });
+  sdk.generateInvitationLink.mockResolvedValue(mockSdkResponse({ link: null }));
 });
-
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
 
 describe("AddMemberDrawer", () => {
   describe("rendering", () => {
@@ -102,23 +84,29 @@ describe("AddMemberDrawer", () => {
   describe("submit", () => {
     it("always generates the invitation link (single channel)", async () => {
       const user = userEvent.setup();
-      mockGenerateLinkMutateAsync.mockResolvedValue({
-        link: "https://shellhub.example/accept-invite?invite=abc",
-      });
+      sdk.generateInvitationLink.mockResolvedValue(
+        mockSdkResponse({
+          link: "https://shellhub.example/accept-invite?invite=abc",
+        }),
+      );
       renderDrawer(true, vi.fn(), "t1");
       await submit(user, "bob@example.com");
 
       await waitFor(() =>
-        expect(mockGenerateLinkMutateAsync).toHaveBeenCalledWith({
-          path: { tenant: "t1" },
-          body: { email: "bob@example.com", role: "operator" },
-        }),
+        expect(sdk.generateInvitationLink).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { tenant: "t1" },
+            body: { email: "bob@example.com", role: "operator" },
+          }),
+        ),
       );
     });
 
     it("shows the invitation link and copy button after generation", async () => {
       const generatedLink = "https://shellhub.example.com/invite/abc123";
-      mockGenerateLinkMutateAsync.mockResolvedValue({ link: generatedLink });
+      sdk.generateInvitationLink.mockResolvedValue(
+        mockSdkResponse({ link: generatedLink }),
+      );
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -133,9 +121,11 @@ describe("AddMemberDrawer", () => {
     });
 
     it("mentions the email on cloud", async () => {
-      mockGenerateLinkMutateAsync.mockResolvedValue({
-        link: "https://shellhub.example.com/invite/abc123",
-      });
+      sdk.generateInvitationLink.mockResolvedValue(
+        mockSdkResponse({
+          link: "https://shellhub.example.com/invite/abc123",
+        }),
+      );
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -152,9 +142,11 @@ describe("AddMemberDrawer", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockGenerateLinkMutateAsync.mockResolvedValue({
-        link: "https://shellhub.example.com/invite/abc123",
-      });
+      sdk.generateInvitationLink.mockResolvedValue(
+        mockSdkResponse({
+          link: "https://shellhub.example.com/invite/abc123",
+        }),
+      );
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -171,7 +163,6 @@ describe("AddMemberDrawer", () => {
 
     it("shows 'Member Added' when an existing account is added directly (no link)", async () => {
       const user = userEvent.setup();
-      mockGenerateLinkMutateAsync.mockResolvedValue({ link: null });
       renderDrawer();
       await submit(user, "bob@example.com");
 
@@ -186,9 +177,11 @@ describe("AddMemberDrawer", () => {
     });
 
     it("does not close on success — the result screen stays until 'Done'", async () => {
-      mockGenerateLinkMutateAsync.mockResolvedValue({
-        link: "https://shellhub.example.com/invite/abc123",
-      });
+      sdk.generateInvitationLink.mockResolvedValue(
+        mockSdkResponse({
+          link: "https://shellhub.example.com/invite/abc123",
+        }),
+      );
       const onClose = vi.fn();
       const user = userEvent.setup();
       renderDrawer(true, onClose, "t1");
@@ -209,7 +202,7 @@ describe("AddMemberDrawer", () => {
       renderDrawer();
       await user.type(screen.getByPlaceholderText(/user@example.com/i), "bad");
       await user.keyboard("{Enter}");
-      expect(mockGenerateLinkMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.generateInvitationLink).not.toHaveBeenCalled();
     });
 
     it("disables the submit button when email field is empty", () => {
@@ -234,7 +227,7 @@ describe("AddMemberDrawer", () => {
 
   describe("error handling", () => {
     it("shows 400 error as invalid email/role message", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(makeSdkError(400));
+      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(400));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -245,7 +238,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 403 error as permission denied message", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(makeSdkError(403));
+      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(403));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -258,7 +251,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 404 error as no account message", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(makeSdkError(404));
+      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(404));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -271,7 +264,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows 409 error as already member message", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(makeSdkError(409));
+      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(409));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -284,7 +277,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows generic error for unexpected status codes", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(makeSdkError(500));
+      sdk.generateInvitationLink.mockRejectedValue(makeSdkError(500));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);
@@ -297,7 +290,7 @@ describe("AddMemberDrawer", () => {
     });
 
     it("shows generic error for non-SDK errors", async () => {
-      mockGenerateLinkMutateAsync.mockRejectedValue(new Error("network error"));
+      sdk.generateInvitationLink.mockRejectedValue(new Error("network error"));
       const user = userEvent.setup();
       renderDrawer();
       await submit(user);

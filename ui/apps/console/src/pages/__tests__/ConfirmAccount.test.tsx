@@ -6,27 +6,11 @@ import { useSignUpStore } from "@/stores/signUpStore";
 import ConfirmAccount from "../ConfirmAccount";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-
-vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react-router-dom")>();
-  return { ...actual };
-});
-
-vi.mock("@/client", () => ({
-  registerUser: vi.fn(),
-  resendEmail: vi.fn(),
-  getValidateAccount: vi.fn(),
-}));
-
-import { resendEmail as apiResendEmail } from "@/client";
-const mockedResendEmail = vi.mocked(apiResendEmail);
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    resendEmail: vi.fn(),
+  }),
+);
 
 function renderConfirmAccount(username?: string) {
   const search =
@@ -38,17 +22,10 @@ function renderConfirmAccount(username?: string) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Setup / teardown                                                    */
-/* ------------------------------------------------------------------ */
 beforeEach(() => {
-  mockedResendEmail.mockReset();
+  sdk.resendEmail.mockReset();
   useSignUpStore.setState({ resendLoading: false, resendError: null });
 });
-
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
 
 describe("ConfirmAccount", () => {
   describe("rendering", () => {
@@ -84,14 +61,14 @@ describe("ConfirmAccount", () => {
 
   describe("resend email", () => {
     it("calls resendEmail with the username and shows success message", async () => {
-      mockedResendEmail.mockResolvedValue(mockSdkResponse(undefined));
+      sdk.resendEmail.mockResolvedValue(mockSdkResponse(undefined));
 
       renderConfirmAccount("admin");
       await userEvent.click(
         screen.getByRole("button", { name: /resend email/i }),
       );
 
-      expect(mockedResendEmail).toHaveBeenCalledWith({
+      expect(sdk.resendEmail).toHaveBeenCalledWith({
         body: { username: "admin" },
         throwOnError: true,
       });
@@ -103,7 +80,7 @@ describe("ConfirmAccount", () => {
     });
 
     it("shows an error message on failure", async () => {
-      mockedResendEmail.mockRejectedValue(new Error("500"));
+      sdk.resendEmail.mockRejectedValue(new Error("500"));
 
       renderConfirmAccount("admin");
       await userEvent.click(
@@ -117,7 +94,7 @@ describe("ConfirmAccount", () => {
 
     it("shows Sending... and disables the button while the request is in flight", async () => {
       let resolveResend!: () => void;
-      mockedResendEmail.mockReturnValue(
+      sdk.resendEmail.mockReturnValue(
         new Promise<SdkResponse>((resolve) => {
           resolveResend = () => resolve(mockSdkResponse(undefined));
         }),

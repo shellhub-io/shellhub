@@ -1,44 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "@/hooks/useDevices";
+import React from "react";
 import type { UseDeviceActionsResult } from "@/hooks/useDeviceActions";
-import { makeSdkError } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockDevice, mockNamespace } from "@/tests/factories";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { seedAuthStore } from "@/tests/seedAuthStore";
+import Devices from "../index";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getDevices: vi.fn(),
+    createTag: vi.fn(),
+    pushTagToDevice: vi.fn(),
+    pullTagFromDevice: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+  }),
+);
 
-vi.mock("@/hooks/useDevices", () => ({
-  useDevices: vi.fn(),
-  buildFilter: vi.fn(),
-}));
-
-vi.mock("@/hooks/useDeviceMutations", () => ({
-  useAddDeviceTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
-  useRemoveDeviceTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
-}));
-
-// Return the value immediately (no timer) so tests don't need fake timers.
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: () => ({ namespace: { name: "my-ns" } }),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (sel: (s: { tenant: string }) => unknown) =>
-    sel({ tenant: "tenant-1" }),
 }));
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (sel: (s: { sessions: [] }) => unknown) =>
     sel({ sessions: [] }),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: () => true,
 }));
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -133,86 +121,46 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import React from "react";
-import { useDevices } from "@/hooks/useDevices";
-import { useDeviceActions } from "@/hooks/useDeviceActions";
-import Devices from "../index";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const defaultHookState = {
-  devices: [] as NormalizedDevice[],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-  refetch: vi.fn(),
-};
-
-function makeDevice(
-  overrides: Partial<NormalizedDevice> = {},
-): NormalizedDevice {
-  return {
-    uid: "device-uid-1",
-    name: "my-device",
-    status: "accepted",
-    online: true,
-    tags: [],
-    last_seen: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    identity: { mac: "aa:bb:cc:dd:ee:ff" },
-    info: {
-      id: "ubuntu",
-      pretty_name: "Ubuntu 22.04 LTS",
-      arch: "x86_64",
-      platform: "linux",
-      version: "0.14.0",
-    },
-    remote_addr: "1.2.3.4",
-    custom_fields: {},
-    ...overrides,
-  } as NormalizedDevice;
-}
-
 function renderPage(initialEntries: string[] = ["/"]) {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Devices />
-    </MemoryRouter>,
-  );
+  return render(<Devices />, {
+    wrapper: createTestWrapper({ initialEntries }),
+  });
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  seedAuthStore();
+  sdk.getDevices.mockResolvedValue(paginatedResponse([]));
+  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
+  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pushTagToDevice.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pullTagFromDevice.mockResolvedValue(mockSdkResponse(undefined));
+  mockNavigate.mockReset();
+  mockManageTagsDrawer.mockReset();
+  mockDeviceActionsPortal.mockReset();
+  mockRequestAction.mockReset();
+});
 
 describe("Devices list", () => {
-  beforeEach(() => {
-    vi.mocked(useDevices).mockReturnValue(defaultHookState);
-    vi.mocked(useDeviceActions).mockReturnValue(mockDeviceActionsController);
-    mockNavigate.mockReset();
-    mockManageTagsDrawer.mockReset();
-    mockDeviceActionsPortal.mockReset();
-    mockRequestAction.mockReset();
-  });
-
   describe("rendering", () => {
-    it("renders the page heading", () => {
+    it("renders the page heading", async () => {
       renderPage();
       expect(
-        screen.getByRole("heading", { name: "Devices" }),
+        await screen.findByRole("heading", { name: "Devices" }),
       ).toBeInTheDocument();
     });
 
-    it("renders the Accepted tab and the Install Keys link, not the pending/rejected tabs", () => {
+    it("renders the Accepted tab and the Install Keys link, not the pending/rejected tabs", async () => {
       renderPage();
       expect(
-        screen.getByRole("button", { name: "Accepted" }),
+        await screen.findByRole("button", { name: "Accepted" }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("link", { name: "Install Keys" }),
       ).toBeInTheDocument();
-      // Pending/rejected devices are managed from the install-keys area now, so the list is
-      // accepted-only and no longer offers those tabs.
       expect(
         screen.queryByRole("button", { name: "Pending" }),
       ).not.toBeInTheDocument();
@@ -221,217 +169,246 @@ describe("Devices list", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("renders the search input", () => {
+    it("renders the search input", async () => {
       renderPage();
       expect(
-        screen.getByPlaceholderText("Search by hostname..."),
+        await screen.findByPlaceholderText("Search by hostname..."),
       ).toBeInTheDocument();
     });
   });
 
   describe("loading state", () => {
     it("renders the loading message", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-      });
+      sdk.getDevices.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByText("Loading devices...")).toBeInTheDocument();
     });
   });
 
   describe("empty state", () => {
-    it('renders "No devices found" when list is empty', () => {
+    it('renders "No devices found" when list is empty', async () => {
       renderPage();
-      expect(screen.getByText("No devices found")).toBeInTheDocument();
+      expect(await screen.findByText("No devices found")).toBeInTheDocument();
     });
   });
 
   describe("device rows", () => {
-    it("renders a row for each device", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [
-          makeDevice({ uid: "uid-1", name: "alpha" }),
-          makeDevice({ uid: "uid-2", name: "beta" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each device", async () => {
+      sdk.getDevices.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockDevice({ uid: "uid-1", name: "alpha" }),
+            mockDevice({ uid: "uid-2", name: "beta" }),
+          ],
+          2,
+        ),
+      );
       renderPage();
-      expect(screen.getByText("alpha")).toBeInTheDocument();
+      expect(await screen.findByText("alpha")).toBeInTheDocument();
       expect(screen.getByText("beta")).toBeInTheDocument();
     });
 
     it("navigates to device detail on row click", async () => {
       const user = userEvent.setup();
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ uid: "uid-abc", name: "clickable" })],
-        totalCount: 1,
-      });
+      sdk.getDevices.mockResolvedValue(
+        paginatedResponse(
+          [mockDevice({ uid: "uid-abc", name: "clickable" })],
+          1,
+        ),
+      );
       renderPage();
-      await user.click(screen.getByText("clickable"));
+      await user.click(await screen.findByText("clickable"));
       expect(mockNavigate).toHaveBeenCalledWith("/devices/uid-abc");
     });
   });
 
   describe("error state", () => {
-    it("renders an error message when hook returns an error", () => {
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error message when the query fails", async () => {
+      sdk.getDevices.mockRejectedValue({ status: 500 });
       renderPage();
       expect(
-        screen.getByText("Something went wrong on our side. Try again."),
+        await screen.findByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
     });
   });
 
   describe("sorting", () => {
-    it("requests last_seen/desc sort by default", () => {
+    it("requests last_seen/desc sort by default", async () => {
       renderPage();
-      expect(useDevices).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "last_seen", orderBy: "desc" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "last_seen",
+              order_by: "desc",
+            }),
+          }),
+        );
+      });
     });
 
     it("toggles sort when the Hostname header is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useDevices).mockReturnValue({
-        ...defaultHookState,
-        devices: [makeDevice({ uid: "uid-1", name: "alpha" })],
-        totalCount: 1,
-      });
+      sdk.getDevices.mockResolvedValue(
+        paginatedResponse([mockDevice({ uid: "uid-1", name: "alpha" })], 1),
+      );
       renderPage();
+      await screen.findByText("alpha");
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
-      let calls = vi.mocked(useDevices).mock.calls;
-      let last = calls[calls.length - 1][0];
-      expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "name",
+              order_by: "asc",
+            }),
+          }),
+        );
+      });
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
-      calls = vi.mocked(useDevices).mock.calls;
-      last = calls[calls.length - 1][0];
-      expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "name",
+              order_by: "desc",
+            }),
+          }),
+        );
+      });
     });
   });
-
-  // ── URL hydration (usePaginatedListState adoption) ────────────────────────────
 
   describe("URL hydration — URL params seed page state on mount", () => {
-    it("passes status=pending from URL to useDevices", () => {
+    it("passes status from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "pending" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "pending" }),
+          }),
+        );
+      });
     });
 
-    it("passes tags array from URL to useDevices", () => {
+    it("passes tags from URL as a filter to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["a", "b"] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain('"a"');
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("passes page=2 from URL to useDevices", () => {
+    it("passes page=2 from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
     });
 
-    it("falls back to status=accepted and page=1 when URL has no params", () => {
+    it("falls back to status=accepted and page=1 when URL has no params", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted", page: 1 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "accepted", page: 1 }),
+          }),
+        );
+      });
     });
 
-    it("falls back to status=accepted for an invalid status value", () => {
+    it("falls back to status=accepted for an invalid status value", async () => {
       renderPage(["/?status=invalid"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getDevices).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "accepted" }),
+          }),
+        );
+      });
     });
 
-    it("passes empty filterTags when no tags param is present", () => {
+    it("passes no tag filter when no tags param is present", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: [] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls[0]?.[0] as {
+          query?: { filter?: string };
+        };
+        expect(call?.query?.filter).toBeUndefined();
+      });
     });
   });
 
-  // ── Search trimming ───────────────────────────────────────────────────────────
-
-  describe("search — whitespace is trimmed before passing to useDevices", () => {
-    it("passes trimmed search to useDevices when input has surrounding spaces", async () => {
-      // useDebouncedValue is mocked to return its input immediately, so we can
-      // verify the trim happens before the debounce without needing fake timers.
+  describe("search — whitespace is trimmed before passing to the SDK", () => {
+    it("passes trimmed search when input has surrounding spaces", async () => {
       const user = userEvent.setup();
       renderPage();
-      const searchInput = screen.getByPlaceholderText("Search by hostname...");
-      await user.type(searchInput, "  myhost  ");
-      // The hook must have been called with the trimmed string "myhost".
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ search: "myhost" }),
+      await screen.findByPlaceholderText("Search by hostname...");
+      await user.type(
+        screen.getByPlaceholderText("Search by hostname..."),
+        "  myhost  ",
       );
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("myhost");
+      });
     });
   });
 
-  // ── DeviceActionsPortal integration ──────────────────────────────────────────
-
-  describe("DeviceActionsPortal integration — useDeviceActions + portal replace inline state", () => {
-    beforeEach(() => {
-      mockRequestAction.mockReset();
-      mockDeviceActionsPortal.mockReset();
-      vi.mocked(useDeviceActions).mockReturnValue(mockDeviceActionsController);
-    });
-
-    it("mounts DeviceActionsPortal with the controller returned by useDeviceActions", () => {
+  describe("DeviceActionsPortal integration", () => {
+    it("mounts DeviceActionsPortal with the controller returned by useDeviceActions", async () => {
       renderPage();
+      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
       expect(mockDeviceActionsPortal).toHaveBeenCalledWith(
         expect.objectContaining({ controller: mockDeviceActionsController }),
       );
     });
-
-    // Accept/reject/remove of pending and rejected devices moved to the install-keys area; the list is
-    // accepted-only (status is forced to accepted), so those inline actions are no longer reachable here.
   });
 
-  // ── Tag mutation callbacks ────────────────────────────────────────────────────
-
   describe("tag mutation — onTagRenamed/onTagDeleted update URL tags array", () => {
-    it("renames a tag in filterTags when onTagRenamed is called from ManageTagsDrawer", async () => {
-      // Start with tags=a&tags=b in the URL
+    it("renames a tag in filter when onTagRenamed is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
+      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
 
-      // Grab the onTagRenamed callback passed to ManageTagsDrawer
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagRenamed?: (oldName: string, newName: string) => void;
       };
       expect(lastCall?.onTagRenamed).toBeDefined();
 
-      // Invoke the callback inside act() so React flushes the URL update.
       await act(async () => {
         lastCall.onTagRenamed!("a", "alpha");
       });
 
-      // useDevices should now be called with filterTags exactly ["alpha", "b"] (no stale "a")
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          filterTags: ["alpha", "b"],
-        }),
-      );
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("alpha");
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("removes a tag from filterTags when onTagDeleted is called from ManageTagsDrawer", async () => {
+    it("removes a tag from filter when onTagDeleted is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
+      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagDeleted?: (name: string) => void;
@@ -442,22 +419,25 @@ describe("Devices list", () => {
         lastCall.onTagDeleted!("a");
       });
 
-      // useDevices should now be called with only tag "b"
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["b"] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).not.toContain('"a"');
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("adds a tag to URL array when setArrayFilter is called via addFilterTag", () => {
-      // TagFilterDropdown and TagsPopover are mocked away; verify URL array
-      // hydration indirectly: render with an existing tag in the URL and confirm
-      // useDevices receives it.
+    it("hydrates tags from URL into the SDK filter", async () => {
       renderPage(["/?tags=existing"]);
-      // The tags=existing param must arrive at useDevices
-      expect(vi.mocked(useDevices)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["existing"] }),
-      );
-      // The filter bar is still visible and the tags array remains stable
+      await waitFor(() => {
+        const call = sdk.getDevices.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("existing");
+      });
       expect(
         screen.getByPlaceholderText("Search by hostname..."),
       ).toBeInTheDocument();

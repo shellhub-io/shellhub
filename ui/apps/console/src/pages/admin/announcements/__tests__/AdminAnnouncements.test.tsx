@@ -2,24 +2,26 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import AdminAnnouncements from "../index";
 import type { AnnouncementShort } from "@/client";
-import { makeSdkError } from "@/tests/sdk";
+import { makeSdkError, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockAnnouncement } from "@/tests/factories";
+import { useAuthStore } from "@/stores/authStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const mockNavigate = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/useAdminAnnouncements", () => ({
-  useAdminAnnouncements: vi.fn(),
-}));
-
-// useNavigate is used by the page — mock at the module level.
-const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// DeleteAnnouncementDialog pulls in the mutation hook and ConfirmDialog.
-// Mock the whole component so list-page tests stay focused on rendering/nav.
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    listAnnouncementsAdmin: vi.fn(),
+  }),
+);
+
 vi.mock("../DeleteAnnouncementDialog", () => ({
   default: ({
     open,
@@ -52,65 +54,41 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
   },
 }));
 
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
-import AdminAnnouncements from "../index";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const defaultHookState = {
-  announcements: [] as AnnouncementShort[],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-  refetch: vi.fn(),
-};
-
-function makeAnnouncement(
-  overrides: Partial<AnnouncementShort> = {},
-): AnnouncementShort {
-  return {
-    uuid: "uuid-0001",
-    title: "Welcome to ShellHub",
-    date: "2024-06-01T10:00:00.000Z",
-    ...overrides,
-  };
-}
-
 function renderPage(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <AdminAnnouncements />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe("AdminAnnouncements", () => {
   beforeEach(() => {
-    vi.mocked(useAdminAnnouncements).mockReturnValue(defaultHookState);
-    mockNavigate.mockReset();
+    vi.clearAllMocks();
+    useAuthStore.setState({ isAdmin: true });
+    sdk.listAnnouncementsAdmin.mockResolvedValue(paginatedResponse([]));
   });
 
   describe("rendering", () => {
-    it('renders the page heading "Announcements"', () => {
+    it('renders the page heading "Announcements"', async () => {
       renderPage();
       expect(
         screen.getByRole("heading", { name: "Announcements" }),
       ).toBeInTheDocument();
     });
 
-    it("renders the Announcements table", () => {
+    it("renders the Announcements table", async () => {
       renderPage();
+      await screen.findByText("No announcements found");
       expect(
         screen.getByRole("table", { name: "Announcements" }),
       ).toBeInTheDocument();
     });
 
-    it("renders the column headers", () => {
+    it("renders the column headers", async () => {
       renderPage();
+      await screen.findByText("No announcements found");
       expect(
         screen.getByRole("columnheader", { name: "UUID" }),
       ).toBeInTheDocument();
@@ -133,34 +111,29 @@ describe("AdminAnnouncements", () => {
 
   describe("loading state", () => {
     it("renders the loading spinner with role='status'", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-        announcements: [],
-      });
+      sdk.listAnnouncementsAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByRole("status")).toBeInTheDocument();
     });
 
     it("renders 'Loading announcements...' text while loading", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-        announcements: [],
-      });
+      sdk.listAnnouncementsAdmin.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByText("Loading announcements...")).toBeInTheDocument();
     });
   });
 
   describe("empty state", () => {
-    it("renders 'No announcements found' when the list is empty", () => {
+    it("renders 'No announcements found' when the list is empty", async () => {
       renderPage();
-      expect(screen.getByText("No announcements found")).toBeInTheDocument();
+      expect(
+        await screen.findByText("No announcements found"),
+      ).toBeInTheDocument();
     });
 
-    it("does not render announcement rows when the list is empty", () => {
+    it("does not render announcement rows when the list is empty", async () => {
       renderPage();
+      await screen.findByText("No announcements found");
       expect(
         screen.queryByRole("button", { name: /edit/i }),
       ).not.toBeInTheDocument();
@@ -168,67 +141,67 @@ describe("AdminAnnouncements", () => {
   });
 
   describe("announcement rows", () => {
-    it("renders a row for each returned announcement", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [
-          makeAnnouncement({ uuid: "uuid-a1b2", title: "Alpha Announcement" }),
-          makeAnnouncement({ uuid: "uuid-c3d4", title: "Beta Announcement" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each returned announcement", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockAnnouncement({
+            uuid: "uuid-a1b2",
+            title: "Alpha Announcement",
+          }),
+          mockAnnouncement({
+            uuid: "uuid-c3d4",
+            title: "Beta Announcement",
+          }),
+        ]),
+      );
       renderPage();
-      expect(screen.getByText("Alpha Announcement")).toBeInTheDocument();
+      expect(await screen.findByText("Alpha Announcement")).toBeInTheDocument();
       expect(screen.getByText("Beta Announcement")).toBeInTheDocument();
     });
 
-    it("renders a truncated UUID chip for each row", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [
-          makeAnnouncement({ uuid: "abcdef12-0000-0000-0000-000000000000" }),
-        ],
-        totalCount: 1,
-      });
+    it("renders a truncated UUID chip for each row", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockAnnouncement({
+              uuid: "abcdef12-0000-0000-0000-000000000000",
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage();
-      // The page renders the first 8 chars of the UUID
-      expect(screen.getByText("abcdef12")).toBeInTheDocument();
+      expect(await screen.findByText("abcdef12")).toBeInTheDocument();
     });
 
-    it("renders a formatted date for each row", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ date: "2024-06-01T10:00:00.000Z" })],
-        totalCount: 1,
-      });
+    it("renders a formatted date for each row", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockAnnouncement({ date: "2024-06-01T10:00:00.000Z" }),
+        ]),
+      );
       renderPage();
-      // The date is formatted via toLocaleDateString — just check it's a non-empty
-      // string that appears somewhere in the row (exact format is locale-dependent)
-      const dateCell = screen.getByText(/\d{4}/);
+      const dateCell = await screen.findByText(/\d{4}/);
       expect(dateCell).toBeInTheDocument();
     });
 
-    it("renders an edit button for each row", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "My Announcement" })],
-        totalCount: 1,
-      });
+    it("renders an edit button for each row", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "My Announcement" })]),
+      );
       renderPage();
       expect(
-        screen.getByRole("button", { name: "Edit My Announcement" }),
+        await screen.findByRole("button", { name: "Edit My Announcement" }),
       ).toBeInTheDocument();
     });
 
-    it("renders a delete button for each row", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "My Announcement" })],
-        totalCount: 1,
-      });
+    it("renders a delete button for each row", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "My Announcement" })]),
+      );
       renderPage();
       expect(
-        screen.getByRole("button", { name: "Delete My Announcement" }),
+        await screen.findByRole("button", { name: "Delete My Announcement" }),
       ).toBeInTheDocument();
     });
   });
@@ -236,19 +209,20 @@ describe("AdminAnnouncements", () => {
   describe("navigation", () => {
     it("navigates to the announcement detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [
-          makeAnnouncement({
-            uuid: "uuid-nav1",
-            title: "Clickable Announcement",
-          }),
-        ],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockAnnouncement({
+              uuid: "uuid-nav1",
+              title: "Clickable Announcement",
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage();
 
-      await user.click(screen.getByText("Clickable Announcement"));
+      await user.click(await screen.findByText("Clickable Announcement"));
       expect(mockNavigate).toHaveBeenCalledWith(
         "/admin/announcements/uuid-nav1",
       );
@@ -256,20 +230,23 @@ describe("AdminAnnouncements", () => {
 
     it("navigates to the edit page when the edit button is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [
-          makeAnnouncement({
-            uuid: "uuid-edit1",
-            title: "Editable Announcement",
-          }),
-        ],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockAnnouncement({
+              uuid: "uuid-edit1",
+              title: "Editable Announcement",
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage();
 
       await user.click(
-        screen.getByRole("button", { name: "Edit Editable Announcement" }),
+        await screen.findByRole("button", {
+          name: "Edit Editable Announcement",
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         "/admin/announcements/uuid-edit1/edit",
@@ -278,18 +255,17 @@ describe("AdminAnnouncements", () => {
 
     it("does not navigate to the detail page when edit button is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [
-          makeAnnouncement({ uuid: "uuid-edit2", title: "Edit Only" }),
-        ],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([
+          mockAnnouncement({ uuid: "uuid-edit2", title: "Edit Only" }),
+        ]),
+      );
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: "Edit Edit Only" }));
+      await user.click(
+        await screen.findByRole("button", { name: "Edit Edit Only" }),
+      );
 
-      // Only the /edit path should be called — not the bare detail path
       expect(mockNavigate).not.toHaveBeenCalledWith(
         "/admin/announcements/uuid-edit2",
       );
@@ -307,17 +283,17 @@ describe("AdminAnnouncements", () => {
   describe("delete action", () => {
     it("opens the DeleteAnnouncementDialog when delete button is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "Target Announcement" })],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "Target Announcement" })]),
+      );
       renderPage();
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
       await user.click(
-        screen.getByRole("button", { name: "Delete Target Announcement" }),
+        await screen.findByRole("button", {
+          name: "Delete Target Announcement",
+        }),
       );
 
       await waitFor(() =>
@@ -327,15 +303,15 @@ describe("AdminAnnouncements", () => {
 
     it("closes the DeleteAnnouncementDialog when cancel is clicked inside it", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "Target Announcement" })],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "Target Announcement" })]),
+      );
       renderPage();
 
       await user.click(
-        screen.getByRole("button", { name: "Delete Target Announcement" }),
+        await screen.findByRole("button", {
+          name: "Delete Target Announcement",
+        }),
       );
       await waitFor(() => screen.getByRole("dialog"));
 
@@ -348,15 +324,15 @@ describe("AdminAnnouncements", () => {
 
     it("does not navigate when delete button is clicked (stopPropagation)", async () => {
       const user = userEvent.setup();
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "No Nav Announcement" })],
-        totalCount: 1,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "No Nav Announcement" })]),
+      );
       renderPage();
 
       await user.click(
-        screen.getByRole("button", { name: "Delete No Nav Announcement" }),
+        await screen.findByRole("button", {
+          name: "Delete No Nav Announcement",
+        }),
       );
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -364,35 +340,28 @@ describe("AdminAnnouncements", () => {
   });
 
   describe("error state", () => {
-    it("renders an error alert when the hook returns an error", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error alert when the SDK returns an error", async () => {
+      sdk.listAnnouncementsAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
-      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
     });
 
-    it("renders the error message text", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders the error message text", async () => {
+      sdk.listAnnouncementsAdmin.mockRejectedValue(makeSdkError(500));
       renderPage();
       expect(
-        screen.getByText("Something went wrong on our side. Try again."),
+        await screen.findByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
     });
   });
 
   describe("pagination", () => {
-    it("does not render pagination when there is only one page", () => {
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement()],
-        totalCount: 1,
-      });
+    it("does not render pagination when there is only one page", async () => {
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement()]),
+      );
       renderPage();
+      await screen.findByText("Welcome to ShellHub");
       expect(
         screen.queryByRole("button", { name: "Previous page" }),
       ).not.toBeInTheDocument();
@@ -401,73 +370,80 @@ describe("AdminAnnouncements", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("renders pagination controls when there are multiple pages", () => {
-      // PER_PAGE is 10 — need more than 10 items to get >1 page
+    it("renders pagination controls when there are multiple pages", async () => {
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
-        makeAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
+        mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: manyAnnouncements,
-        totalCount: 25,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(manyAnnouncements, 25),
+      );
       renderPage();
       expect(
-        screen.getByRole("button", { name: "Previous page" }),
+        await screen.findByRole("button", { name: "Previous page" }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Next page" }),
       ).toBeInTheDocument();
     });
 
-    it("renders the item count label in the pagination area", () => {
+    it("renders the item count label in the pagination area", async () => {
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
-        makeAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
+        mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: manyAnnouncements,
-        totalCount: 25,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(manyAnnouncements, 25),
+      );
       renderPage();
-      expect(screen.getByText("25 announcements")).toBeInTheDocument();
+      expect(await screen.findByText("25 announcements")).toBeInTheDocument();
     });
   });
 
   describe("URL hydration (usePaginatedListState)", () => {
-    it("calls useAdminAnnouncements with page hydrated from ?page=2", () => {
+    it("passes page=2 to the SDK when URL has ?page=2", async () => {
       renderPage(["/?page=2"]);
-      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
     });
 
-    it("calls useAdminAnnouncements with page=1 when URL has no page param", () => {
+    it("passes page=1 to the SDK when URL has no page param", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
     });
   });
 
   describe("URL writes (usePaginatedListState)", () => {
-    it("calls useAdminAnnouncements with page=2 when the user clicks Next page", async () => {
+    it("passes page=2 to the SDK when the user clicks Next page", async () => {
       const user = userEvent.setup();
       const manyAnnouncements = Array.from({ length: 10 }, (_, i) =>
-        makeAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
+        mockAnnouncement({ uuid: `uuid-${i}`, title: `Ann ${i}` }),
       );
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: manyAnnouncements,
-        totalCount: 30,
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse(manyAnnouncements, 30),
+      );
       renderPage();
+
+      await screen.findByText("Ann 0");
 
       await user.click(screen.getByRole("button", { name: "Next page" }));
 
-      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
     });
   });
 
@@ -475,38 +451,34 @@ describe("AdminAnnouncements", () => {
     it("decrements page from 2 to 1 via URL when deleting the last item on a page", async () => {
       const user = userEvent.setup();
 
-      // Mount at page=2 with exactly 1 item (last item on that page)
-      vi.mocked(useAdminAnnouncements).mockReturnValue({
-        ...defaultHookState,
-        announcements: [makeAnnouncement({ title: "Last Item" })],
-        totalCount: 11, // enough for page 2 to exist
-      });
+      sdk.listAnnouncementsAdmin.mockResolvedValue(
+        paginatedResponse([mockAnnouncement({ title: "Last Item" })], 11),
+      );
 
       renderPage(["/?page=2"]);
 
-      // Sanity: hook was called with page=2
-      expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
 
-      // Open the delete dialog
       await user.click(
-        screen.getByRole("button", { name: "Delete Last Item" }),
+        await screen.findByRole("button", { name: "Delete Last Item" }),
       );
       await waitFor(() => screen.getByRole("dialog"));
 
-      // Clear prior call history so the post-delete assertion can only match a
-      // call produced by the page decrement — not the page=1 calls from the
-      // initial mount/hydration. Without this the assertion passes vacuously.
-      vi.mocked(useAdminAnnouncements).mockClear();
+      sdk.listAnnouncementsAdmin.mockClear();
 
-      // Confirm the delete (fires onDeleted which should decrement the page)
       await user.click(screen.getByRole("button", { name: "Confirm delete" }));
 
-      // After deletion, the hook must be called with page=1
       await waitFor(() => {
-        expect(vi.mocked(useAdminAnnouncements)).toHaveBeenCalledWith(
-          expect.objectContaining({ page: 1 }),
+        expect(sdk.listAnnouncementsAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
         );
       });
     });

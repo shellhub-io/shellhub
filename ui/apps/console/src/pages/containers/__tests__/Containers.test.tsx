@@ -1,42 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
-import type { NormalizedContainer } from "@/hooks/useContainers";
-import { makeSdkError } from "@/tests/sdk";
+import React from "react";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockContainer, mockNamespace } from "@/tests/factories";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getContainers: vi.fn(),
+    createTag: vi.fn(),
+    pushTagToContainer: vi.fn(),
+    pullTagFromContainer: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+  }),
+);
 
-vi.mock("@/hooks/useContainers", () => ({
-  useContainers: vi.fn(),
-}));
-
-vi.mock("@/hooks/useContainerMutations", () => ({
-  useAddContainerTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
-  useRemoveContainerTag: vi.fn(() => ({ mutateAsync: vi.fn() })),
-}));
-
-// Return the value immediately (no timer) so tests don't need fake timers.
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: () => ({ namespace: { name: "my-ns" } }),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (sel: (s: { tenant: string }) => unknown) =>
-    sel({ tenant: "tenant-1" }),
 }));
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (sel: (s: { sessions: [] }) => unknown) =>
     sel({ sessions: [] }),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: () => true,
 }));
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -107,6 +95,7 @@ vi.mock("@/components/common/RestrictedAction", () => ({
 vi.mock("@/components/billing/BillingWarning", () => ({
   default: () => <div />,
 }));
+
 const mockRequestAction = vi.fn();
 vi.mock("@/hooks/useContainerActions", () => ({
   useContainerActions: () => ({
@@ -127,270 +116,280 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import React from "react";
-import { useContainers } from "@/hooks/useContainers";
 import Containers from "../index";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const defaultHookState = {
-  containers: [] as NormalizedContainer[],
-  totalCount: 0,
-  isLoading: false,
-  error: null,
-  refetch: vi.fn(),
-};
-
-function makeContainer(
-  overrides: Partial<NormalizedContainer> = {},
-): NormalizedContainer {
-  return {
-    uid: "container-uid-1",
-    name: "my-container",
-    status: "accepted",
-    online: true,
-    tags: [],
-    last_seen: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    identity: { mac: "aa:bb:cc:dd:ee:ff" },
-    info: {
-      id: "alpine",
-      pretty_name: "Alpine Linux",
-      arch: "x86_64",
-      platform: "linux",
-      version: "0.14.0",
-    },
-    remote_addr: "1.2.3.4",
-    ...overrides,
-  } as NormalizedContainer;
-}
-
 function renderPage(initialEntries: string[] = ["/"]) {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Containers />
-    </MemoryRouter>,
-  );
+  return render(<Containers />, {
+    wrapper: createTestWrapper({ initialEntries }),
+  });
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+beforeEach(() => {
+  vi.clearAllMocks();
+  seedAuthStore();
+  sdk.getContainers.mockResolvedValue(paginatedResponse([]));
+  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
+  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pushTagToContainer.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pullTagFromContainer.mockResolvedValue(mockSdkResponse(undefined));
+  mockNavigate.mockReset();
+  mockManageTagsDrawer.mockReset();
+  mockRequestAction.mockReset();
+});
 
 describe("Containers list", () => {
-  beforeEach(() => {
-    vi.mocked(useContainers).mockReturnValue(defaultHookState);
-    mockNavigate.mockReset();
-    mockManageTagsDrawer.mockReset();
-    mockRequestAction.mockReset();
-  });
-
   describe("rendering", () => {
-    it("renders the page heading", () => {
+    it("renders the page heading", async () => {
       renderPage();
       expect(
-        screen.getByRole("heading", { name: "Containers" }),
+        await screen.findByRole("heading", { name: "Containers" }),
       ).toBeInTheDocument();
     });
 
-    it("renders all status filter tabs", () => {
+    it("renders all status filter tabs", async () => {
       renderPage();
-      expect(screen.getByRole("tab", { name: "Accepted" })).toBeInTheDocument();
+      expect(
+        await screen.findByRole("tab", { name: "Accepted" }),
+      ).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: "Pending" })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: "Rejected" })).toBeInTheDocument();
     });
 
-    it("renders the search input", () => {
+    it("renders the search input", async () => {
       renderPage();
       expect(
-        screen.getByPlaceholderText("Search by hostname..."),
+        await screen.findByPlaceholderText("Search by hostname..."),
       ).toBeInTheDocument();
     });
   });
 
   describe("loading state", () => {
     it("renders the loading message", () => {
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        isLoading: true,
-      });
+      sdk.getContainers.mockReturnValue(new Promise(() => {}));
       renderPage();
       expect(screen.getByText("Loading containers...")).toBeInTheDocument();
     });
   });
 
   describe("empty state", () => {
-    it('renders "No containers found" when list is empty', () => {
+    it('renders "No containers found" when list is empty', async () => {
       renderPage();
-      expect(screen.getByText("No containers found")).toBeInTheDocument();
+      expect(
+        await screen.findByText("No containers found"),
+      ).toBeInTheDocument();
     });
   });
 
   describe("container rows", () => {
-    it("renders a row for each container", () => {
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [
-          makeContainer({ uid: "uid-1", name: "alpha" }),
-          makeContainer({ uid: "uid-2", name: "beta" }),
-        ],
-        totalCount: 2,
-      });
+    it("renders a row for each container", async () => {
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockContainer({ uid: "uid-1", name: "alpha" }),
+            mockContainer({ uid: "uid-2", name: "beta" }),
+          ],
+          2,
+        ),
+      );
       renderPage();
-      expect(screen.getByText("alpha")).toBeInTheDocument();
+      expect(await screen.findByText("alpha")).toBeInTheDocument();
       expect(screen.getByText("beta")).toBeInTheDocument();
     });
 
     it("navigates to container detail on row click", async () => {
       const user = userEvent.setup();
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [makeContainer({ uid: "uid-abc", name: "clickable" })],
-        totalCount: 1,
-      });
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse(
+          [mockContainer({ uid: "uid-abc", name: "clickable" })],
+          1,
+        ),
+      );
       renderPage();
-      await user.click(screen.getByText("clickable"));
+      await user.click(await screen.findByText("clickable"));
       expect(mockNavigate).toHaveBeenCalledWith("/containers/uid-abc");
     });
   });
 
   describe("error state", () => {
-    it("renders an error message when hook returns an error", () => {
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        error: makeSdkError(500),
-      });
+    it("renders an error message when the query fails", async () => {
+      sdk.getContainers.mockRejectedValue({ status: 500 });
       renderPage();
       expect(
-        screen.getByText("Something went wrong on our side. Try again."),
+        await screen.findByText("Something went wrong on our side. Try again."),
       ).toBeInTheDocument();
     });
   });
 
   describe("sorting", () => {
-    it("requests last_seen/desc sort by default", () => {
+    it("requests last_seen/desc sort by default", async () => {
       renderPage();
-      expect(useContainers).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "last_seen", orderBy: "desc" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "last_seen",
+              order_by: "desc",
+            }),
+          }),
+        );
+      });
     });
 
     it("toggles sort when the Hostname header is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [makeContainer({ uid: "uid-1", name: "alpha" })],
-        totalCount: 1,
-      });
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse([mockContainer({ uid: "uid-1", name: "alpha" })], 1),
+      );
       renderPage();
+      await screen.findByText("alpha");
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
-      let calls = vi.mocked(useContainers).mock.calls;
-      let last = calls[calls.length - 1][0];
-      expect(last).toMatchObject({ sortBy: "name", orderBy: "asc" });
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "name",
+              order_by: "asc",
+            }),
+          }),
+        );
+      });
 
       await user.click(
         screen.getByRole("button", { name: "Sort by Hostname" }),
       );
-      calls = vi.mocked(useContainers).mock.calls;
-      last = calls[calls.length - 1][0];
-      expect(last).toMatchObject({ sortBy: "name", orderBy: "desc" });
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              sort_by: "name",
+              order_by: "desc",
+            }),
+          }),
+        );
+      });
     });
   });
-
-  // ── URL hydration (usePaginatedListState adoption) ────────────────────────────
 
   describe("URL hydration — URL params seed page state on mount", () => {
-    it("passes status=pending from URL to useContainers", () => {
+    it("passes status=pending from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "pending" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "pending" }),
+          }),
+        );
+      });
     });
 
-    it("passes tags array from URL to useContainers", () => {
+    it("passes tags from URL as a filter to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["a", "b"] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain('"a"');
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("passes page=2 from URL to useContainers", () => {
+    it("passes page=2 from URL to the SDK", async () => {
       renderPage(["/?status=pending&tags=a&tags=b&page=2"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
     });
 
-    it("falls back to status=accepted and page=1 when URL has no params", () => {
+    it("falls back to status=accepted and page=1 when URL has no params", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted", page: 1 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "accepted", page: 1 }),
+          }),
+        );
+      });
     });
 
-    it("falls back to status=accepted for an invalid status value", () => {
+    it("falls back to status=accepted for an invalid status value", async () => {
       renderPage(["/?status=invalid"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "accepted" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ status: "accepted" }),
+          }),
+        );
+      });
     });
 
-    it("passes empty filterTags when no tags param is present", () => {
+    it("passes no tag filter when no tags param is present", async () => {
       renderPage(["/"]);
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: [] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls[0]?.[0] as {
+          query?: { filter?: string };
+        };
+        expect(call?.query?.filter).toBeUndefined();
+      });
     });
   });
 
-  // ── Search trimming ───────────────────────────────────────────────────────────
-
-  describe("search — whitespace is trimmed before passing to useContainers", () => {
-    it("passes trimmed search to useContainers when input has surrounding spaces", async () => {
-      // useDebouncedValue is mocked to return its input immediately, so we can
-      // verify the trim happens before the debounce without needing fake timers.
+  describe("search — whitespace is trimmed before passing to the SDK", () => {
+    it("passes trimmed search when input has surrounding spaces", async () => {
       const user = userEvent.setup();
       renderPage();
-      const searchInput = screen.getByPlaceholderText("Search by hostname...");
-      await user.type(searchInput, "  myhost  ");
-      // The hook must have been called with the trimmed string "myhost".
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ search: "myhost" }),
+      await screen.findByPlaceholderText("Search by hostname...");
+      await user.type(
+        screen.getByPlaceholderText("Search by hostname..."),
+        "  myhost  ",
       );
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("myhost");
+      });
     });
   });
 
-  // ── Tag mutation callbacks ────────────────────────────────────────────────────
-
   describe("tag mutation — onTagRenamed/onTagDeleted update URL tags array", () => {
-    it("renames a tag in filterTags when onTagRenamed is called from ManageTagsDrawer", async () => {
-      // Start with tags=a&tags=b in the URL
+    it("renames a tag in filter when onTagRenamed is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
+      await waitFor(() => expect(sdk.getContainers).toHaveBeenCalled());
 
-      // Grab the onTagRenamed callback passed to ManageTagsDrawer
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagRenamed?: (oldName: string, newName: string) => void;
       };
       expect(lastCall?.onTagRenamed).toBeDefined();
 
-      // Invoke the callback inside await act(async) so React flushes the URL update.
       await act(async () => {
         lastCall.onTagRenamed!("a", "alpha");
       });
 
-      // useContainers should now be called with filterTags exactly ["alpha", "b"] (no stale "a")
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          filterTags: ["alpha", "b"],
-        }),
-      );
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("alpha");
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("removes a tag from filterTags when onTagDeleted is called from ManageTagsDrawer", async () => {
+    it("removes a tag from filter when onTagDeleted is called from ManageTagsDrawer", async () => {
       renderPage(["/?tags=a&tags=b"]);
+      await waitFor(() => expect(sdk.getContainers).toHaveBeenCalled());
 
       const lastCall = mockManageTagsDrawer.mock.calls.at(-1)?.[0] as {
         onTagDeleted?: (name: string) => void;
@@ -401,113 +400,127 @@ describe("Containers list", () => {
         lastCall.onTagDeleted!("a");
       });
 
-      // useContainers should now be called with only tag "b"
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["b"] }),
-      );
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).not.toContain('"a"');
+        expect(decoded).toContain('"b"');
+      });
     });
 
-    it("adds a tag to URL array when setArrayFilter is called via addFilterTag", () => {
-      // TagFilterDropdown and TagsPopover are mocked away; verify URL
-      // array hydration indirectly: render with an existing tag in the URL and
-      // confirm useContainers receives it.
+    it("hydrates tags from URL into the SDK filter", async () => {
       renderPage(["/?tags=existing"]);
-      // The tags=existing param must arrive at useContainers
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ filterTags: ["existing"] }),
-      );
-      // The filter bar is still visible and the tags array remains stable
+      await waitFor(() => {
+        const call = sdk.getContainers.mock.calls.at(-1)?.[0] as {
+          query?: { filter?: string };
+        };
+        const decoded = atob(call?.query?.filter ?? "");
+        expect(decoded).toContain("existing");
+      });
       expect(
         screen.getByPlaceholderText("Search by hostname..."),
       ).toBeInTheDocument();
     });
   });
 
-  // ── Status change resets page ─────────────────────────────────────────────────
-
   describe("status change — clicking a status tab resets page to 1", () => {
     it("resets page to 1 when status tab is clicked while on page 2", async () => {
       const user = userEvent.setup();
-      // Start on page 2 with status=accepted
       renderPage(["/?page=2"]);
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2, status: "accepted" }),
+          }),
+        );
+      });
 
-      // Verify we started on page 2
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2, status: "accepted" }),
-      );
-
-      // Click the "Pending" tab (rendered as role="tab")
       await user.click(screen.getByRole("tab", { name: "Pending" }));
 
-      // After switching status the page must be reset to 1
-      expect(vi.mocked(useContainers)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1, status: "pending" }),
-      );
+      await waitFor(() => {
+        expect(sdk.getContainers).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1, status: "pending" }),
+          }),
+        );
+      });
     });
   });
-
-  // ── useContainerActions + ContainerActionsPortal ──────────────────────────────
 
   describe("action delegation — action buttons use useContainerActions", () => {
     it("calls requestAction(container, 'accept') when Accept is clicked in pending view", async () => {
       const user = userEvent.setup();
-      const pendingContainer = makeContainer({
-        uid: "uid-pending",
-        name: "pending-box",
-        status: "pending",
-        online: false,
-      });
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [pendingContainer],
-        totalCount: 1,
-      });
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockContainer({
+              uid: "uid-pending",
+              name: "pending-box",
+              status: "pending",
+              online: false,
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage(["/?status=pending"]);
-      await user.click(screen.getByRole("button", { name: "Accept" }));
+      await user.click(await screen.findByRole("button", { name: "Accept" }));
       expect(mockRequestAction).toHaveBeenCalledWith(
-        pendingContainer,
+        expect.objectContaining({ uid: "uid-pending", name: "pending-box" }),
         "accept",
       );
     });
 
     it("calls requestAction(container, 'reject') when Reject is clicked in pending view", async () => {
       const user = userEvent.setup();
-      const pendingContainer = makeContainer({
-        uid: "uid-pending-2",
-        name: "pending-box-2",
-        status: "pending",
-        online: false,
-      });
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [pendingContainer],
-        totalCount: 1,
-      });
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockContainer({
+              uid: "uid-pending-2",
+              name: "pending-box-2",
+              status: "pending",
+              online: false,
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage(["/?status=pending"]);
-      await user.click(screen.getByRole("button", { name: "Reject" }));
+      await user.click(await screen.findByRole("button", { name: "Reject" }));
       expect(mockRequestAction).toHaveBeenCalledWith(
-        pendingContainer,
+        expect.objectContaining({
+          uid: "uid-pending-2",
+          name: "pending-box-2",
+        }),
         "reject",
       );
     });
 
     it("calls requestAction(container, 'remove') when Remove is clicked in rejected view", async () => {
       const user = userEvent.setup();
-      const rejectedContainer = makeContainer({
-        uid: "uid-rejected",
-        name: "rejected-box",
-        status: "rejected",
-        online: false,
-      });
-      vi.mocked(useContainers).mockReturnValue({
-        ...defaultHookState,
-        containers: [rejectedContainer],
-        totalCount: 1,
-      });
+      sdk.getContainers.mockResolvedValue(
+        paginatedResponse(
+          [
+            mockContainer({
+              uid: "uid-rejected",
+              name: "rejected-box",
+              status: "rejected",
+              online: false,
+            }),
+          ],
+          1,
+        ),
+      );
       renderPage(["/?status=rejected"]);
-      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await user.click(await screen.findByRole("button", { name: "Remove" }));
       expect(mockRequestAction).toHaveBeenCalledWith(
-        rejectedContainer,
+        expect.objectContaining({
+          uid: "uid-rejected",
+          name: "rejected-box",
+        }),
         "remove",
       );
     });
