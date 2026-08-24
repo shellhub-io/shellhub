@@ -1,21 +1,13 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useDevicePolling } from "../useDevicePolling";
+import { mockSdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  getStatusDevices: vi.fn(),
-}));
-
-import { getStatusDevices } from "@/client";
-
-const mockGetStatusDevices = vi.mocked(getStatusDevices);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getStatusDevices: vi.fn(),
+  }),
+);
 
 const defaultStats = {
   registered_devices: 0,
@@ -24,6 +16,12 @@ const defaultStats = {
   pending_devices: 0,
   rejected_devices: 0,
 };
+
+function mockPollResponse(overrides: Partial<typeof defaultStats> = {}) {
+  sdk.getStatusDevices.mockResolvedValue(
+    mockSdkResponse({ ...defaultStats, ...overrides }),
+  );
+}
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -58,7 +56,7 @@ describe("useDevicePolling", () => {
     });
 
     it("is idempotent — calling start() twice does not double-start", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
 
       const onPoll = vi.fn().mockReturnValue(false);
       const { result } = renderHook(() =>
@@ -97,7 +95,7 @@ describe("useDevicePolling", () => {
     });
 
     it("cancels pending timeout when stopped", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(false);
 
       const { result } = renderHook(() =>
@@ -133,7 +131,7 @@ describe("useDevicePolling", () => {
 
   describe("polling behavior", () => {
     it("calls getStatusDevices after the initial interval", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
 
       const { result } = renderHook(() =>
         useDevicePolling({ onPoll: () => false, initialInterval: 2000 }),
@@ -143,19 +141,18 @@ describe("useDevicePolling", () => {
         result.current.start();
       });
 
-      expect(mockGetStatusDevices).not.toHaveBeenCalled();
+      expect(sdk.getStatusDevices).not.toHaveBeenCalled();
 
       await act(async () => {
         vi.advanceTimersByTime(2000);
         await Promise.resolve();
       });
 
-      expect(mockGetStatusDevices).toHaveBeenCalledTimes(1);
+      expect(sdk.getStatusDevices).toHaveBeenCalledTimes(1);
     });
 
     it("passes stats to the onPoll callback", async () => {
-      const stats = { ...defaultStats, pending_devices: 3 };
-      mockGetStatusDevices.mockResolvedValue({ data: stats } as never);
+      mockPollResponse({ pending_devices: 3 });
 
       const onPoll = vi.fn().mockReturnValue(false);
 
@@ -172,11 +169,14 @@ describe("useDevicePolling", () => {
         await Promise.resolve();
       });
 
-      expect(onPoll).toHaveBeenCalledWith(stats);
+      expect(onPoll).toHaveBeenCalledWith({
+        ...defaultStats,
+        pending_devices: 3,
+      });
     });
 
     it("stops polling when onPoll returns true", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(true);
 
       const { result } = renderHook(() =>
@@ -196,7 +196,7 @@ describe("useDevicePolling", () => {
     });
 
     it("continues polling when onPoll returns false", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(false);
 
       const { result } = renderHook(() =>
@@ -225,7 +225,7 @@ describe("useDevicePolling", () => {
 
   describe("exponential backoff", () => {
     it("applies backoff factor to subsequent intervals", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(false);
 
       const { result } = renderHook(() =>
@@ -257,7 +257,7 @@ describe("useDevicePolling", () => {
     });
 
     it("caps backoff at maxInterval", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(false);
 
       const { result } = renderHook(() =>
@@ -291,9 +291,8 @@ describe("useDevicePolling", () => {
 
   describe("error handling", () => {
     it("continues polling after getStatusDevices throws", async () => {
-      mockGetStatusDevices
-        .mockRejectedValueOnce(new Error("network error"))
-        .mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
+      sdk.getStatusDevices.mockRejectedValueOnce(new Error("network error"));
 
       const onPoll = vi.fn().mockReturnValue(false);
 
@@ -327,10 +326,10 @@ describe("useDevicePolling", () => {
 
     it("does not crash when stop is called mid-flight", async () => {
       let resolveStats!: (v: unknown) => void;
-      mockGetStatusDevices.mockReturnValue(
+      sdk.getStatusDevices.mockReturnValue(
         new Promise((r) => {
           resolveStats = r;
-        }) as never,
+        }),
       );
 
       const onPoll = vi.fn().mockReturnValue(false);
@@ -354,7 +353,7 @@ describe("useDevicePolling", () => {
 
       // Resolve the promise — should not call onPoll or throw
       await act(async () => {
-        resolveStats({ data: defaultStats });
+        resolveStats(mockSdkResponse(defaultStats));
         await Promise.resolve();
       });
 
@@ -364,7 +363,7 @@ describe("useDevicePolling", () => {
 
   describe("cleanup on unmount", () => {
     it("clears the pending timeout when the hook unmounts", async () => {
-      mockGetStatusDevices.mockResolvedValue({ data: defaultStats } as never);
+      mockPollResponse();
       const onPoll = vi.fn().mockReturnValue(false);
 
       const { result, unmount } = renderHook(() =>

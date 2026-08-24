@@ -1,23 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { getConfig, defaultConfig } from "@/env";
+import { mockSdkResponse } from "@/tests/sdk";
 import { useLatestAnnouncement } from "../useLatestAnnouncement";
 import type { Announcement } from "@/client";
 
-// Mock the generated query-option factories so we control what queryFn runs
-vi.mock("@/client", () => ({
-  listAnnouncementsOptions: vi.fn(),
-  getAnnouncementOptions: vi.fn(),
-}));
-
-import { getConfig, defaultConfig } from "@/env";
-import { listAnnouncementsOptions, getAnnouncementOptions } from "@/client";
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    listAnnouncements: vi.fn(),
+    getAnnouncement: vi.fn(),
+  }),
+);
 
 const mockGetConfig = vi.mocked(getConfig);
-const mockListAnnouncementsOptions = vi.mocked(listAnnouncementsOptions);
-const mockGetAnnouncementOptions = vi.mocked(getAnnouncementOptions);
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeAnnouncement(overrides: Partial<Announcement> = {}): Announcement {
   return {
@@ -29,39 +25,12 @@ function makeAnnouncement(overrides: Partial<Announcement> = {}): Announcement {
   };
 }
 
-/** Returns queryOptions-shaped objects that delegate to the provided fn. */
-function makeListOptions(fn: () => unknown) {
-  return {
-    queryKey: ["listAnnouncements"],
-    queryFn: fn,
-  };
-}
-
-function makeDetailOptions(uuid: string, fn: () => unknown) {
-  return {
-    queryKey: ["getAnnouncement", uuid],
-    queryFn: fn,
-  };
-}
-
-// ── Setup ─────────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
   vi.clearAllMocks();
-
-  // Default: feature enabled
   mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: true });
-
-  // Default: both option factories return never-resolving promises (loading state)
-  mockListAnnouncementsOptions.mockReturnValue(
-    makeListOptions(() => new Promise(() => {})) as never,
-  );
-  mockGetAnnouncementOptions.mockReturnValue(
-    makeDetailOptions("", () => new Promise(() => {})) as never,
-  );
+  sdk.listAnnouncements.mockReturnValue(new Promise(() => {}));
+  sdk.getAnnouncement.mockReturnValue(new Promise(() => {}));
 });
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("useLatestAnnouncement", () => {
   describe("when announcements feature flag is disabled", () => {
@@ -81,23 +50,16 @@ describe("useLatestAnnouncement", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    it("does not call listAnnouncementsOptions queryFn", () => {
-      const listFn = vi.fn().mockResolvedValue([]);
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(listFn) as never,
-      );
-
+    it("does not call the SDK", () => {
       renderHookWithClient(() => useLatestAnnouncement());
 
-      expect(listFn).not.toHaveBeenCalled();
+      expect(sdk.listAnnouncements).not.toHaveBeenCalled();
     });
   });
 
   describe("loading state", () => {
     it("returns isLoading true while list query is pending", () => {
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() => new Promise(() => {})) as never,
-      );
+      sdk.listAnnouncements.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
@@ -113,9 +75,7 @@ describe("useLatestAnnouncement", () => {
 
   describe("when list resolves but is empty", () => {
     it("returns null announcement", async () => {
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() => Promise.resolve([])) as never,
-      );
+      sdk.listAnnouncements.mockResolvedValue(mockSdkResponse([]));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
@@ -123,20 +83,14 @@ describe("useLatestAnnouncement", () => {
       expect(result.current.announcement).toBeNull();
     });
 
-    it("does not call getAnnouncementOptions queryFn", async () => {
-      const detailFn = vi.fn().mockResolvedValue(makeAnnouncement());
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() => Promise.resolve([])) as never,
-      );
-      mockGetAnnouncementOptions.mockReturnValue(
-        makeDetailOptions("", detailFn) as never,
-      );
+    it("does not call getAnnouncement", async () => {
+      sdk.listAnnouncements.mockResolvedValue(mockSdkResponse([]));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      expect(detailFn).not.toHaveBeenCalled();
+      expect(sdk.getAnnouncement).not.toHaveBeenCalled();
     });
   });
 
@@ -144,12 +98,10 @@ describe("useLatestAnnouncement", () => {
     it("returns the full announcement object", async () => {
       const ann = makeAnnouncement({ uuid: "ann-abc", title: "Big Update" });
 
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() => Promise.resolve([{ uuid: "ann-abc" }])) as never,
+      sdk.listAnnouncements.mockResolvedValue(
+        mockSdkResponse([{ uuid: "ann-abc" }]),
       );
-      mockGetAnnouncementOptions.mockReturnValue(
-        makeDetailOptions("ann-abc", () => Promise.resolve(ann)) as never,
-      );
+      sdk.getAnnouncement.mockResolvedValue(mockSdkResponse(ann));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
@@ -160,14 +112,10 @@ describe("useLatestAnnouncement", () => {
     it("returns isLoading false after both queries settle", async () => {
       const ann = makeAnnouncement();
 
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() =>
-          Promise.resolve([{ uuid: "ann-uuid-1" }]),
-        ) as never,
+      sdk.listAnnouncements.mockResolvedValue(
+        mockSdkResponse([{ uuid: "ann-uuid-1" }]),
       );
-      mockGetAnnouncementOptions.mockReturnValue(
-        makeDetailOptions("ann-uuid-1", () => Promise.resolve(ann)) as never,
-      );
+      sdk.getAnnouncement.mockResolvedValue(mockSdkResponse(ann));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
@@ -178,24 +126,14 @@ describe("useLatestAnnouncement", () => {
 
   describe("when the list query resolves but the detail query is still loading", () => {
     it("returns isLoading true", async () => {
-      mockListAnnouncementsOptions.mockReturnValue(
-        makeListOptions(() =>
-          Promise.resolve([{ uuid: "ann-uuid-1" }]),
-        ) as never,
+      sdk.listAnnouncements.mockResolvedValue(
+        mockSdkResponse([{ uuid: "ann-uuid-1" }]),
       );
-      // detail never resolves
-      mockGetAnnouncementOptions.mockReturnValue(
-        makeDetailOptions("ann-uuid-1", () => new Promise(() => {})) as never,
-      );
+      sdk.getAnnouncement.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useLatestAnnouncement());
 
-      // Let the list query settle so latestUuid is set and the detail query is enabled
-      await waitFor(() =>
-        expect(mockGetAnnouncementOptions).toHaveBeenCalledWith(
-          expect.objectContaining({ path: { uuid: "ann-uuid-1" } }),
-        ),
-      );
+      await waitFor(() => expect(sdk.getAnnouncement).toHaveBeenCalled());
 
       expect(result.current.isLoading).toBe(true);
     });
