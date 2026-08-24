@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWriteToClearsWhatTheClientSent(t *testing.T) {
@@ -41,4 +43,73 @@ func TestWriteToClearsEverythingForNoIdentity(t *testing.T) {
 	for _, name := range identityHeaders {
 		assert.Empty(t, spoofed.Get(name), name+" reached an anonymous handler")
 	}
+}
+
+func TestIdentityRoundTrip(t *testing.T) {
+	cases := []struct {
+		description string
+		identity    Identity
+	}{
+		{
+			description: "a user token",
+			identity: Identity{
+				ID:       "user-id",
+				Username: "username",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Role:     authorizer.RoleOwner,
+			},
+		},
+		{
+			description: "an api key",
+			identity: Identity{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				APIKey:   "key",
+				APIKeyID: "key-id",
+				Role:     authorizer.RoleObserver,
+			},
+		},
+		{
+			description: "a device token",
+			identity: Identity{
+				DeviceUID: "device-uid",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+			},
+		},
+		{
+			description: "an admin browsing the admin console",
+			identity: Identity{
+				Username: "username",
+				Role:     authorizer.RoleOwner,
+				Admin:    true,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			header := http.Header{}
+			tc.identity.WriteTo(header)
+
+			require.Equal(tt, tc.identity, IdentityFrom(header))
+		})
+	}
+}
+
+func TestIdentityActorDropsAuthorization(t *testing.T) {
+	identity := Identity{
+		ID:        "user-id",
+		Username:  "username",
+		TenantID:  "00000000-0000-4000-0000-000000000000",
+		DeviceUID: "device-uid",
+		APIKey:    "key",
+		Role:      authorizer.RoleOwner,
+		Admin:     true,
+	}
+
+	assert.Equal(t, Actor{
+		ID:        "user-id",
+		Username:  "username",
+		APIKey:    "key",
+		DeviceUID: "device-uid",
+	}, identity.Actor())
 }
