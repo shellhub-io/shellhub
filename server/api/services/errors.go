@@ -109,6 +109,7 @@ var (
 	ErrNoTags                          = errors.New("no tags has found", ErrLayer, ErrCodeNotFound)
 	ErrConflictName                    = errors.New("name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrInvalidFormat                   = errors.New("invalid format", ErrLayer, ErrCodeInvalid)
+	ErrDeviceFilterInvalid             = errors.New("device filter invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceNotFound                  = errors.New("device not found", ErrLayer, ErrCodeNotFound)
 	ErrDeviceNotOwned                  = errors.New("device not owned by the member", ErrLayer, ErrCodeInvalid)
 	ErrDeviceLoginCodeNotFound         = errors.New("device login code not found", ErrLayer, ErrCodeNotFound)
@@ -433,6 +434,12 @@ func NewErrPublicKeyDataInvalid(value []byte, next error) error {
 // NewErrPublicKeyFilter returns an error when the public key has more than one filter.
 func NewErrPublicKeyFilter(next error) error {
 	return NewErrInvalid(ErrPublicKeyFilter, nil, next)
+}
+
+// NewErrDeviceFilterInvalid returns an error when the device list filter cannot be honoured, such
+// as when it exceeds the filter limits.
+func NewErrDeviceFilterInvalid(next error) error {
+	return NewErrInvalid(ErrDeviceFilterInvalid, nil, next)
 }
 
 // NewErrDeviceNotFound returns an error when the device is not found.
