@@ -73,7 +73,7 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 // SSHAccessMode selects how a namespace authorizes SSH access.
 const (
 	// SSHAccessModeLegacy is the key/firewall model: access is a public key with
-	// an ACL plus, on Cloud/Enterprise, firewall rules. This is the default.
+	// an ACL plus, on Cloud/Enterprise, firewall rules.
 	SSHAccessModeLegacy = "legacy"
 	// SSHAccessModeIdentity is the identity model: access is a ShellHub identity
 	// (established by the out-of-band browser approval) plus Access Policies
