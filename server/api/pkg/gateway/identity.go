@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
@@ -31,6 +32,12 @@ var identityHeaders = []string{
 	"X-Role",
 	"X-Admin",
 	"X-Admin-ID",
+}
+
+// IdentityHeaders returns a copy of the headers [Identity.WriteTo] stamps, which a request
+// dispatched internally must carry forward for the caller's identity to survive the hop.
+func IdentityHeaders() []string {
+	return slices.Clone(identityHeaders)
 }
 
 // WriteTo stamps the identity onto header, clearing every identity header
@@ -67,6 +74,33 @@ func (i *Identity) WriteTo(header http.Header) {
 	if i.Admin {
 		header.Set("X-Admin", "true")
 	}
+}
+
+// IdentityFrom reads back the identity [Identity.WriteTo] stamped onto header.
+func IdentityFrom(header http.Header) Identity {
+	return Identity{
+		ID:        header.Get("X-ID"),
+		Username:  header.Get("X-Username"),
+		TenantID:  header.Get("X-Tenant-ID"),
+		DeviceUID: header.Get("X-Device-UID"),
+		APIKey:    header.Get("X-API-Key"),
+		APIKeyID:  header.Get("X-API-Key-ID"),
+		Role:      authorizer.RoleFromString(header.Get("X-Role")),
+		Admin:     header.Get("X-Admin") == "true",
+		AdminID:   header.Get("X-Admin-ID"),
+	}
+}
+
+// Actor returns the identity as the [Actor] a handler receives, dropping TenantID, APIKeyID, Role
+// and Admin. When ID is empty, as on the admin surface after [Identity.WithoutUserScope] moved it
+// to AdminID, the actor's ID is AdminID.
+func (i *Identity) Actor() Actor {
+	id := i.ID
+	if id == "" {
+		id = i.AdminID
+	}
+
+	return Actor{ID: id, Username: i.Username, APIKey: i.APIKey, DeviceUID: i.DeviceUID}
 }
 
 // WithoutUserScope returns the identity stripped of the acting user's ID and
