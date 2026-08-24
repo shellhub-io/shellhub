@@ -4,16 +4,16 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import SetupGuard from "../SetupGuard";
 
-vi.mock("@/client", () => ({ getInfo: vi.fn() }));
-
-import { getInfo } from "@/client";
-
-const mockedGetInfo = vi.mocked(getInfo);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getInfo: vi.fn(),
+  }),
+);
 
 function mockSetup(done: boolean) {
-  mockedGetInfo.mockResolvedValue({
+  sdk.getInfo.mockResolvedValue({
     data: { setup: done },
-  } as Awaited<ReturnType<typeof getInfo>>);
+  });
 }
 
 function renderAt(path: string) {
@@ -31,7 +31,7 @@ function renderAt(path: string) {
 }
 
 beforeEach(() => {
-  mockedGetInfo.mockReset();
+  sdk.getInfo.mockReset();
   useAuthStore.setState({ token: null });
 });
 

@@ -1,23 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import MfaEnableDrawer from "../MfaEnableDrawer";
+import type { MfaGenerate } from "@/client";
 import { mockSdkResponse } from "@/tests/sdk";
+import MfaEnableDrawer from "../MfaEnableDrawer";
 
 vi.mock("qrcode");
 
-vi.mock("@/client", () => ({
-  generateMfa: vi.fn(),
-  enableMfa: vi.fn(),
-  updateUser: vi.fn(),
-}));
-
-import { generateMfa, enableMfa, updateUser } from "@/client";
-import type { MfaGenerate } from "@/client";
-
-const mockedGenerateMfa = vi.mocked(generateMfa);
-const mockedEnableMfa = vi.mocked(enableMfa);
-const mockedUpdateUser = vi.mocked(updateUser);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    generateMfa: vi.fn(),
+    enableMfa: vi.fn(),
+    updateUser: vi.fn(),
+  }),
+);
 
 const mockMfaData: MfaGenerate = {
   link: "otpauth://totp/ShellHub:user@example.com?secret=ABCD1234&issuer=ShellHub",
@@ -31,9 +27,9 @@ describe("MfaEnableDrawer", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedGenerateMfa.mockResolvedValue(mockSdkResponse(mockMfaData));
-    mockedEnableMfa.mockResolvedValue(mockSdkResponse(undefined));
-    mockedUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
+    sdk.generateMfa.mockResolvedValue(mockSdkResponse(mockMfaData));
+    sdk.enableMfa.mockResolvedValue(mockSdkResponse(undefined));
+    sdk.updateUser.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("Step 1: Recovery Email", () => {
@@ -91,17 +87,17 @@ describe("MfaEnableDrawer", () => {
       await user.click(nextButton);
 
       await waitFor(() => {
-        expect(mockedUpdateUser).toHaveBeenCalledWith({
+        expect(sdk.updateUser).toHaveBeenCalledWith({
           body: { recovery_email: "new-recovery@example.com" },
           throwOnError: true,
         });
-        expect(mockedGenerateMfa).toHaveBeenCalled();
+        expect(sdk.generateMfa).toHaveBeenCalled();
       });
     });
 
     it("shows error when email is already in use (409)", async () => {
       const user = userEvent.setup();
-      mockedUpdateUser.mockRejectedValue(
+      sdk.updateUser.mockRejectedValue(
         Object.assign(new Error("409"), { status: 409 }),
       );
 
@@ -140,7 +136,7 @@ describe("MfaEnableDrawer", () => {
       await user.click(continueButton);
 
       await waitFor(() => {
-        expect(mockedGenerateMfa).toHaveBeenCalled();
+        expect(sdk.generateMfa).toHaveBeenCalled();
       });
     });
   });
@@ -160,7 +156,7 @@ describe("MfaEnableDrawer", () => {
       // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(mockedGenerateMfa).toHaveBeenCalled());
+      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
     });
 
     it("displays all 6 recovery codes", async () => {
@@ -210,7 +206,7 @@ describe("MfaEnableDrawer", () => {
       // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(mockedGenerateMfa).toHaveBeenCalled());
+      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
 
       // Proceed to step 3
       const checkbox = screen.getByRole("checkbox");
@@ -260,7 +256,7 @@ describe("MfaEnableDrawer", () => {
       await user.click(verifyButton);
 
       await waitFor(() => {
-        expect(mockedEnableMfa).toHaveBeenCalledWith({
+        expect(sdk.enableMfa).toHaveBeenCalledWith({
           body: {
             code: "123456",
             secret: mockMfaData.secret,
@@ -273,7 +269,7 @@ describe("MfaEnableDrawer", () => {
 
     it("shows error on invalid OTP", async () => {
       const user = userEvent.setup();
-      mockedEnableMfa.mockRejectedValue(new Error("Invalid code"));
+      sdk.enableMfa.mockRejectedValue(new Error("Invalid code"));
 
       await waitFor(() => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
@@ -318,7 +314,7 @@ describe("MfaEnableDrawer", () => {
       // Navigate through all steps
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(mockedGenerateMfa).toHaveBeenCalled());
+      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
 
       const checkbox = screen.getByRole("checkbox");
       await user.click(checkbox);
@@ -375,7 +371,7 @@ describe("MfaEnableDrawer", () => {
       // Proceed to step 2
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
-      await waitFor(() => expect(mockedGenerateMfa).toHaveBeenCalled());
+      await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
 
       // Close drawer
       rerender(
@@ -408,7 +404,7 @@ describe("MfaEnableDrawer", () => {
   describe("Error Handling", () => {
     it("handles API errors when generating MFA codes", async () => {
       const user = userEvent.setup();
-      mockedGenerateMfa.mockRejectedValue(new Error("Network error"));
+      sdk.generateMfa.mockRejectedValue(new Error("Network error"));
 
       render(
         <MfaEnableDrawer

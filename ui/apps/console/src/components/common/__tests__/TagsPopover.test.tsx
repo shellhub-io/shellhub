@@ -2,18 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fireEvent } from "@testing-library/react";
-
-vi.mock("@/hooks/useTags", () => ({
-  useTags: vi.fn(),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: vi.fn(),
-}));
-
-import { useTags } from "@/hooks/useTags";
-import { useHasPermission } from "@/hooks/useHasPermission";
+import { createTestWrapper } from "@/tests/wrapper";
+import { useAuthStore } from "@/stores/authStore";
+import { mockTags } from "@/tests/mockTags";
 import TagsPopover from "../TagsPopover";
+
+vi.hoisted(() => mockSdkGen({ getTags: vi.fn() }));
 
 const mockAddTag = vi.fn();
 const mockRemoveTag = vi.fn();
@@ -35,21 +29,17 @@ function renderPopover(
       onFilterTag={overrides.onFilterTag ?? vi.fn()}
       {...(overrides.editLabel ? { editLabel: overrides.editLabel } : {})}
     />,
+    { wrapper: createTestWrapper() },
   );
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useTags).mockReturnValue({
-    tags: [],
-    totalCount: 0,
-    isLoading: false,
-    error: null,
-  });
-  vi.mocked(useHasPermission).mockReturnValue(true);
-});
-
 describe("TagsPopover", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockTags([]);
+    useAuthStore.setState({ role: "owner" });
+  });
+
   describe("tag chip rendering", () => {
     it("renders each tag as a clickable button", () => {
       renderPopover({ tags: ["alpha", "beta"] });
@@ -79,7 +69,6 @@ describe("TagsPopover", () => {
 
   describe("edit button visibility", () => {
     it("shows the edit button when user has tag:edit permission", () => {
-      vi.mocked(useHasPermission).mockReturnValue(true);
       renderPopover();
 
       expect(
@@ -88,7 +77,7 @@ describe("TagsPopover", () => {
     });
 
     it("hides the edit button when user lacks tag:edit permission", () => {
-      vi.mocked(useHasPermission).mockReturnValue(false);
+      useAuthStore.setState({ role: "observer" });
       renderPopover();
 
       expect(
@@ -194,12 +183,7 @@ describe("TagsPopover", () => {
   describe("adding a tag via suggestion", () => {
     it("calls addTag when a suggestion is clicked", async () => {
       mockAddTag.mockResolvedValue(undefined);
-      vi.mocked(useTags).mockReturnValue({
-        tags: [{ name: "production" }],
-        totalCount: 1,
-        isLoading: false,
-        error: null,
-      } as never);
+      mockTags(["production"]);
 
       renderPopover({ tags: [] });
 
@@ -213,7 +197,7 @@ describe("TagsPopover", () => {
       await userEvent.type(input, "prod");
 
       await userEvent.click(
-        screen.getByRole("button", { name: /^production$/i }),
+        await screen.findByRole("button", { name: /^production$/i }),
       );
 
       await waitFor(() => {
@@ -282,12 +266,7 @@ describe("TagsPopover", () => {
   describe("error states", () => {
     it("shows an error alert when addTag fails", async () => {
       mockAddTag.mockRejectedValue(new Error("network error"));
-      vi.mocked(useTags).mockReturnValue({
-        tags: [{ name: "production" }],
-        totalCount: 1,
-        isLoading: false,
-        error: null,
-      } as never);
+      mockTags(["production"]);
 
       renderPopover({ tags: [] });
 
@@ -301,7 +280,7 @@ describe("TagsPopover", () => {
       await userEvent.type(input, "prod");
 
       await userEvent.click(
-        screen.getByRole("button", { name: /^production$/i }),
+        await screen.findByRole("button", { name: /^production$/i }),
       );
 
       await waitFor(() => {
@@ -311,12 +290,7 @@ describe("TagsPopover", () => {
 
     it("shows permission error when addTag fails with 403", async () => {
       mockAddTag.mockRejectedValue({ status: 403 });
-      vi.mocked(useTags).mockReturnValue({
-        tags: [{ name: "production" }],
-        totalCount: 1,
-        isLoading: false,
-        error: null,
-      } as never);
+      mockTags(["production"]);
 
       renderPopover({ tags: [] });
 
@@ -330,7 +304,7 @@ describe("TagsPopover", () => {
       await userEvent.type(input, "prod");
 
       await userEvent.click(
-        screen.getByRole("button", { name: /^production$/i }),
+        await screen.findByRole("button", { name: /^production$/i }),
       );
 
       await waitFor(() => {

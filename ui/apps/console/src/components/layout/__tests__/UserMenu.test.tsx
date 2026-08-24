@@ -1,64 +1,47 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
+import { mockSdkResponse } from "@/tests/sdk";
+import { mockNamespace, mockUserAuth } from "@/tests/factories";
+import type { Namespace } from "@/client";
 import UserMenu from "../UserMenu";
 
-const mockUseNamespaces = vi.fn<
-  () => {
-    namespaces: Array<{ tenant_id: string; name: string }>;
-    isLoading: boolean;
-    error: Error | null;
-    refetch: () => void;
-  }
->();
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getNamespaces: vi.fn(),
+  }),
+);
 
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespaces: () => mockUseNamespaces(),
-}));
-beforeEach(() => {
-  useAuthStore.setState({
-    token: "token",
-    user: "alice",
-    userId: "user-1",
-    email: "alice@example.com",
-    username: null,
-    recoveryEmail: null,
-    tenant: "t1",
-    role: "owner",
-    name: "Alice",
-    loading: false,
-  });
-
-  mockUseNamespaces.mockReturnValue({
-    namespaces: [{ tenant_id: "t1", name: "ns1" }],
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
-  });
-
-  vi.clearAllMocks();
-});
+function mockNamespaces(namespaces: Namespace[]) {
+  sdk.getNamespaces.mockResolvedValue(mockSdkResponse(namespaces));
+}
 
 function renderMenu() {
-  return render(
-    <MemoryRouter>
-      <UserMenu />
-    </MemoryRouter>,
-  );
+  return render(<UserMenu />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
+  });
 }
 
 async function openDropdown() {
-  await userEvent.click(screen.getByRole("button", { name: /alice/i }));
+  await userEvent.click(screen.getByRole("button", { name: /admin/i }));
 }
 
 describe("UserMenu", () => {
+  const auth = mockUserAuth();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAuthStore.setState({ ...auth });
+    mockNamespaces([mockNamespace()]);
+  });
+
   describe("trigger button", () => {
     it("displays the username", () => {
       renderMenu();
       expect(
-        screen.getByRole("button", { name: /alice/i }),
+        screen.getByRole("button", { name: /admin/i }),
       ).toBeInTheDocument();
     });
 
@@ -71,38 +54,26 @@ describe("UserMenu", () => {
     it("falls back to the name, not the email, when an SSO user has no username", () => {
       useAuthStore.setState({
         user: null,
-        name: "Alice",
-        email: "alice@corp.example",
+        name: "Admin User",
+        email: "admin@corp.example",
       });
       renderMenu();
-      // Exact accessible name proves precedence: the email fallback would read
-      // "Account menu for alice@corp.example".
       expect(
-        screen.getByRole("button", { name: "Account menu for Alice" }),
+        screen.getByRole("button", { name: "Account menu for Admin User" }),
       ).toBeInTheDocument();
     });
   });
 
   describe("dropdown — with namespaces", () => {
-    it("shows Profile", async () => {
+    it("shows Profile, Settings and Logout", async () => {
       renderMenu();
       await openDropdown();
       expect(
         screen.getByRole("button", { name: /profile/i }),
       ).toBeInTheDocument();
-    });
-
-    it("shows Settings", async () => {
-      renderMenu();
-      await openDropdown();
       expect(
         screen.getByRole("button", { name: /settings/i }),
       ).toBeInTheDocument();
-    });
-
-    it("shows Logout", async () => {
-      renderMenu();
-      await openDropdown();
       expect(
         screen.getByRole("button", { name: /logout/i }),
       ).toBeInTheDocument();
@@ -110,37 +81,19 @@ describe("UserMenu", () => {
   });
 
   describe("dropdown — without namespaces", () => {
-    beforeEach(() => {
-      mockUseNamespaces.mockReturnValue({
-        namespaces: [],
-        isLoading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
-    });
-
-    it("still shows Profile", async () => {
+    it("shows Profile and Logout but hides Settings", async () => {
+      mockNamespaces([]);
       renderMenu();
       await openDropdown();
       expect(
         screen.getByRole("button", { name: /profile/i }),
       ).toBeInTheDocument();
-    });
-
-    it("hides Settings", async () => {
-      renderMenu();
-      await openDropdown();
-      expect(
-        screen.queryByRole("button", { name: /settings/i }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("still shows Logout", async () => {
-      renderMenu();
-      await openDropdown();
       expect(
         screen.getByRole("button", { name: /logout/i }),
       ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /settings/i }),
+      ).not.toBeInTheDocument();
     });
   });
 });
