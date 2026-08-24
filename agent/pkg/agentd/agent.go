@@ -176,6 +176,8 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 	//  This behavior is driven by the [envconfig] package. Check it out for more information.
 	//
 	// [envconfig]: https://github.com/sethvargo/go-envconfig
+	applyEnvFileFallback(defaultEnvFilePath)
+
 	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
 	if err != nil {
 		log.Error("failed to parse the configuration")
