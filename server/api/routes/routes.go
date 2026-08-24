@@ -151,7 +151,7 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	}
 
 	publicAPI := router.Group("/api")
-	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+	publicAPI.GET(HealthCheckURL, gateway.None(handler.EvaluateHealth)(gateway.Claims{Anonymous: true, Unbounded: true}))
 
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
