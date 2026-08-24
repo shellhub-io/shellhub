@@ -42,7 +42,7 @@ function CreateInstallKeyDrawer({
   const [allowedMacs, setAllowedMacs] = useState("");
   const [webhookTimeout, setWebhookTimeout] = useState(5);
   const [webhookCallbackTtl, setWebhookCallbackTtl] = useState(3600);
-  const [usageLimit, setUsageLimit] = useState(1);
+  const [usageLimit, setUsageLimit] = useState(0);
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
   const [tags, setTags] = useState<string[]>([]);
@@ -69,7 +69,7 @@ function CreateInstallKeyDrawer({
     setAllowedMacs("");
     setWebhookTimeout(5);
     setWebhookCallbackTtl(3600);
-    setUsageLimit(1);
+    setUsageLimit(0);
     setEphemeral(false);
     setEphemeralTimeout(10);
     setTags([]);
