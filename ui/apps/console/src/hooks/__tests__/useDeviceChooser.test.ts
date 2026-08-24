@@ -1,39 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor, act } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import { useSuggestedDevices, useChoiceDevices } from "../useDeviceChooser";
+import { useInvalidateByIds } from "../useInvalidateQueries";
 
-// ── SDK mocks ────────────────────────────────────────────────────────────────
-
-const mockMostUsedQueryFn = vi.fn();
-const mockChoiceMutationFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client", () => ({
-  getDevicesMostUsedOptions: vi.fn(() => ({
-    queryKey: [{ _id: "getDevicesMostUsed" }],
-    queryFn: mockMostUsedQueryFn,
-  })),
-  choiceDevicesMutation: vi.fn(() => ({
-    mutationFn: mockChoiceMutationFn,
-  })),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getDevicesMostUsed: vi.fn(),
+    choiceDevices: vi.fn(),
+  }),
+);
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
 }));
 
-// ── Imports under test (vi.mock calls hoist above these) ─────────────────────
-
-import { useSuggestedDevices, useChoiceDevices } from "../useDeviceChooser";
-import { useInvalidateByIds } from "../useInvalidateQueries";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
-
-// ── useSuggestedDevices ──────────────────────────────────────────────────────
 
 describe("useSuggestedDevices", () => {
   describe("on success", () => {
@@ -42,7 +29,7 @@ describe("useSuggestedDevices", () => {
         { uid: "d1", name: "host-1" },
         { uid: "d2", name: "host-2" },
       ];
-      mockMostUsedQueryFn.mockResolvedValue(devices);
+      sdk.getDevicesMostUsed.mockResolvedValue(mockSdkResponse(devices));
 
       const { result } = renderHookWithClient(() => useSuggestedDevices());
 
@@ -55,8 +42,7 @@ describe("useSuggestedDevices", () => {
     });
 
     it("returns an empty array when data is undefined before load completes", () => {
-      // Don't resolve yet — keep the query pending
-      mockMostUsedQueryFn.mockReturnValue(new Promise(() => {}));
+      sdk.getDevicesMostUsed.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useSuggestedDevices());
 
@@ -64,7 +50,7 @@ describe("useSuggestedDevices", () => {
     });
 
     it("exposes isLoading=true while the query is in flight", () => {
-      mockMostUsedQueryFn.mockReturnValue(new Promise(() => {}));
+      sdk.getDevicesMostUsed.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHookWithClient(() => useSuggestedDevices());
 
@@ -73,10 +59,10 @@ describe("useSuggestedDevices", () => {
   });
 
   describe("when enabled=false", () => {
-    it("does not call the queryFn", () => {
+    it("does not call the SDK function", () => {
       renderHookWithClient(() => useSuggestedDevices(false));
 
-      expect(mockMostUsedQueryFn).not.toHaveBeenCalled();
+      expect(sdk.getDevicesMostUsed).not.toHaveBeenCalled();
     });
 
     it("returns an empty devices array", () => {
@@ -89,7 +75,7 @@ describe("useSuggestedDevices", () => {
   describe("on error", () => {
     it("exposes the error on failure", async () => {
       const err = new Error("network failure");
-      mockMostUsedQueryFn.mockRejectedValue(err);
+      sdk.getDevicesMostUsed.mockRejectedValue(err);
 
       const { result } = renderHookWithClient(() => useSuggestedDevices());
 
@@ -98,28 +84,28 @@ describe("useSuggestedDevices", () => {
   });
 });
 
-// ── useChoiceDevices ─────────────────────────────────────────────────────────
-
 describe("useChoiceDevices", () => {
   describe("mutation call", () => {
-    it("calls the mutationFn with the choices body", async () => {
-      mockChoiceMutationFn.mockResolvedValue(undefined);
+    it("calls the SDK function with the choices body", async () => {
+      sdk.choiceDevices.mockResolvedValue(mockSdkResponse(undefined));
 
       const { result } = renderHookWithClient(() => useChoiceDevices());
 
       const vars = { body: { choices: ["uid1", "uid2"] } };
-      await act(() => result.current.mutateAsync(vars as never));
+      await act(() => result.current.mutateAsync(vars));
 
-      expect(mockChoiceMutationFn).toHaveBeenCalledWith(
-        vars,
-        expect.anything(),
+      expect(sdk.choiceDevices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: { choices: ["uid1", "uid2"] },
+          throwOnError: true,
+        }),
       );
     });
   });
 
   describe("on success", () => {
     it("calls invalidate once after the mutation succeeds", async () => {
-      mockChoiceMutationFn.mockResolvedValue(undefined);
+      sdk.choiceDevices.mockResolvedValue(mockSdkResponse(undefined));
 
       const { result } = renderHookWithClient(() => useChoiceDevices());
 
@@ -144,7 +130,7 @@ describe("useChoiceDevices", () => {
   describe("on failure", () => {
     it("exposes error when the mutation fails", async () => {
       const err = new Error("server error");
-      mockChoiceMutationFn.mockRejectedValue(err);
+      sdk.choiceDevices.mockRejectedValue(err);
 
       const { result } = renderHookWithClient(() => useChoiceDevices());
 
@@ -155,7 +141,7 @@ describe("useChoiceDevices", () => {
     });
 
     it("does not call invalidate when the mutation fails", async () => {
-      mockChoiceMutationFn.mockRejectedValue(new Error("server error"));
+      sdk.choiceDevices.mockRejectedValue(new Error("server error"));
 
       const { result } = renderHookWithClient(() => useChoiceDevices());
 

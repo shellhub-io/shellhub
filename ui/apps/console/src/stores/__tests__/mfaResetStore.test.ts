@@ -4,22 +4,12 @@ import { useAuthStore } from "../authStore";
 import { mockSdkResponse, type SdkResponse } from "@/tests/sdk";
 import { mockUserAuth } from "@/tests/factories";
 
-vi.mock("@/client", () => ({
-  requestResetMfa: vi.fn(),
-  resetMfa: vi.fn(),
-  // Dependencies pulled in transitively by authStore
-  login: vi.fn(),
-  getUserInfo: vi.fn(),
-  updateUser: vi.fn(),
-  deleteUser: vi.fn(),
-  authMfa: vi.fn(),
-  mfaRecover: vi.fn(),
-}));
-
-import { requestResetMfa, resetMfa } from "@/client";
-
-const mockedRequestResetMfa = vi.mocked(requestResetMfa);
-const mockedResetMfa = vi.mocked(resetMfa);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    requestResetMfa: vi.fn(),
+    resetMfa: vi.fn(),
+  }),
+);
 
 beforeEach(() => {
   useMfaResetStore.setState({
@@ -67,7 +57,7 @@ describe("mfaResetStore", () => {
 
   describe("requestMfaReset", () => {
     it("stores the opaque token from the API response", async () => {
-      mockedRequestResetMfa.mockResolvedValueOnce(
+      sdk.requestResetMfa.mockResolvedValueOnce(
         mockSdkResponse({ token: "reset-token" }),
       );
 
@@ -82,7 +72,7 @@ describe("mfaResetStore", () => {
 
     it("sets loading during request", async () => {
       let resolve!: (v: SdkResponse<{ token: string }>) => void;
-      mockedRequestResetMfa.mockReturnValueOnce(
+      sdk.requestResetMfa.mockReturnValueOnce(
         new Promise<SdkResponse<{ token: string }>>((r) => {
           resolve = r;
         }),
@@ -98,7 +88,7 @@ describe("mfaResetStore", () => {
     });
 
     it("sets error and throws on failure", async () => {
-      mockedRequestResetMfa.mockRejectedValueOnce(new Error("network error"));
+      sdk.requestResetMfa.mockRejectedValueOnce(new Error("network error"));
 
       await expect(
         useMfaResetStore.getState().requestMfaReset("admin"),
@@ -131,7 +121,7 @@ describe("mfaResetStore", () => {
     });
 
     it("sets auth state in authStore on success", async () => {
-      mockedResetMfa.mockResolvedValueOnce(
+      sdk.resetMfa.mockResolvedValueOnce(
         mockSdkResponse(mockUserAuth({ token: "reset-token", mfa: false })),
       );
 
@@ -152,7 +142,7 @@ describe("mfaResetStore", () => {
         mfaResetToken: "user-123",
         mfaResetIdentifier: "admin",
       });
-      mockedResetMfa.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
+      sdk.resetMfa.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
 
       await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
 
@@ -163,11 +153,11 @@ describe("mfaResetStore", () => {
     });
 
     it("calls resetMfa with correct arguments", async () => {
-      mockedResetMfa.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
+      sdk.resetMfa.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
 
       await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
 
-      expect(mockedResetMfa).toHaveBeenCalledWith({
+      expect(sdk.resetMfa).toHaveBeenCalledWith({
         path: { "user-id": "user-123" },
         body: { main_email_code: "AAA11", recovery_email_code: "BBB22" },
         throwOnError: true,
@@ -175,7 +165,7 @@ describe("mfaResetStore", () => {
     });
 
     it("sets error and throws on failure", async () => {
-      mockedResetMfa.mockRejectedValueOnce(new Error("invalid codes"));
+      sdk.resetMfa.mockRejectedValueOnce(new Error("invalid codes"));
 
       await expect(
         useMfaResetStore.getState().completeMfaReset("WRONG", "CODES"),

@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor, act } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import { useUploadLicense } from "../useUploadLicense";
 
-const mockMutationFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("@/client", () => ({
-  sendLicenseMutation: vi.fn(() => ({ mutationFn: mockMutationFn })),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    sendLicense: vi.fn(),
+  }),
+);
 
 vi.mock("../useInvalidateQueries", () => ({
   useInvalidateByIds: vi.fn(() => mockInvalidate),
@@ -21,19 +23,21 @@ beforeEach(() => {
 describe("useUploadLicense", () => {
   describe("mutation call", () => {
     it("calls sendLicense with the provided body", async () => {
-      mockMutationFn.mockResolvedValue(undefined);
+      sdk.sendLicense.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useUploadLicense());
 
-      const body = { body: "license-data" };
-      await act(() => result.current.mutateAsync(body as never));
+      const file = new File(["license-data"], "license.lic");
+      await act(() => result.current.mutateAsync({ body: { file } }));
 
-      expect(mockMutationFn).toHaveBeenCalledWith(body, expect.anything());
+      expect(sdk.sendLicense).toHaveBeenCalledWith(
+        expect.objectContaining({ body: { file }, throwOnError: true }),
+      );
     });
   });
 
   describe("on success", () => {
     it("invalidates getLicense queries after a successful mutation", async () => {
-      mockMutationFn.mockResolvedValue(undefined);
+      sdk.sendLicense.mockResolvedValue(mockSdkResponse(undefined));
       const { result } = renderHookWithClient(() => useUploadLicense());
 
       await act(() => result.current.mutateAsync({}));
@@ -45,7 +49,7 @@ describe("useUploadLicense", () => {
   describe("on failure", () => {
     it("rejects and exposes the error when sendLicense fails", async () => {
       const error = new Error("upload failed");
-      mockMutationFn.mockRejectedValue(error);
+      sdk.sendLicense.mockRejectedValue(error);
       const { result } = renderHookWithClient(() => useUploadLicense());
 
       act(() => result.current.mutate({}));
@@ -55,7 +59,7 @@ describe("useUploadLicense", () => {
     });
 
     it("does not call invalidate when sendLicense fails", async () => {
-      mockMutationFn.mockRejectedValue(new Error("upload failed"));
+      sdk.sendLicense.mockRejectedValue(new Error("upload failed"));
       const { result } = renderHookWithClient(() => useUploadLicense());
 
       act(() => result.current.mutate({}));

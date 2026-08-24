@@ -1,23 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { renderHookWithClient } from "@/tests/wrapper";
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: vi.fn(),
-}));
-
-vi.mock("@/api/pagination", () => ({
-  paginatedQueryFn: vi.fn(),
-}));
-
-vi.mock("@/client", () => ({
-  getSessionsAdmin: vi.fn(),
-  getSessionsAdminQueryKey: vi.fn(() => ["sessions-admin"]),
-}));
-
+import { mockSdkResponse } from "@/tests/sdk";
 import { useAuthStore } from "@/stores/authStore";
-import { paginatedQueryFn } from "@/api/pagination";
 import { useAdminSessions } from "../useAdminSessions";
+
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getSessionsAdmin: vi.fn(),
+  }),
+);
 
 const mockSession = {
   uid: "session-1",
@@ -41,11 +33,7 @@ describe("useAdminSessions", () => {
 
   describe("when user is not an admin", () => {
     it("returns empty sessions and zero totalCount without fetching", () => {
-      vi.mocked(useAuthStore).mockReturnValue(false);
-      // paginatedQueryFn should not be called (query is disabled)
-      vi.mocked(paginatedQueryFn).mockReturnValue(() =>
-        Promise.resolve({ data: [], totalCount: 0 }),
-      );
+      useAuthStore.setState({ isAdmin: false });
 
       const { result } = renderAdminSessions();
 
@@ -53,17 +41,18 @@ describe("useAdminSessions", () => {
       expect(result.current.totalCount).toBe(0);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
+      expect(sdk.getSessionsAdmin).not.toHaveBeenCalled();
     });
   });
 
   describe("when user is an admin", () => {
     beforeEach(() => {
-      vi.mocked(useAuthStore).mockReturnValue(true);
+      useAuthStore.setState({ isAdmin: true });
     });
 
     it("returns sessions and totalCount on success", async () => {
-      vi.mocked(paginatedQueryFn).mockReturnValue(() =>
-        Promise.resolve({ data: [mockSession], totalCount: 1 }),
+      sdk.getSessionsAdmin.mockResolvedValue(
+        mockSdkResponse([mockSession], { "X-Total-Count": "1" }),
       );
 
       const { result } = renderAdminSessions();
@@ -76,8 +65,8 @@ describe("useAdminSessions", () => {
     });
 
     it("returns empty arrays when the API returns no sessions", async () => {
-      vi.mocked(paginatedQueryFn).mockReturnValue(() =>
-        Promise.resolve({ data: [], totalCount: 0 }),
+      sdk.getSessionsAdmin.mockResolvedValue(
+        mockSdkResponse([], { "X-Total-Count": "0" }),
       );
 
       const { result } = renderAdminSessions();
@@ -89,12 +78,7 @@ describe("useAdminSessions", () => {
     });
 
     it("is loading while the query is in-flight", () => {
-      vi.mocked(paginatedQueryFn).mockReturnValue(
-        () =>
-          new Promise(() => {
-            /* never resolves */
-          }),
-      );
+      sdk.getSessionsAdmin.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderAdminSessions();
 
@@ -102,9 +86,7 @@ describe("useAdminSessions", () => {
     });
 
     it("exposes the raw error on fetch failure", async () => {
-      vi.mocked(paginatedQueryFn).mockReturnValue(() =>
-        Promise.reject(new Error("Network timeout")),
-      );
+      sdk.getSessionsAdmin.mockRejectedValue(new Error("Network timeout"));
 
       const { result } = renderAdminSessions();
 
