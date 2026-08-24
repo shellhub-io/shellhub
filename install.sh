@@ -289,6 +289,15 @@ docker_install() {
 snap_install() {
   require_tenant
 
+  # The snap package exposes no install-key setting, so a key given here would be
+  # dropped and the device would enroll without one, landing in manual approval.
+  # Refuse instead of reporting an enrollment that will not happen.
+  if [ -n "$INSTALL_KEY" ]; then
+    echo "❌ ERROR: INSTALL_KEY is not supported by the snap install method."
+    echo "Use the docker, podman or standalone method to enroll with an install key."
+    exit 1
+  fi
+
   if ! type snap >/dev/null 2>&1; then
     echo "❌ Snap is not installed or not supported on this system."
     exit 1
@@ -359,6 +368,7 @@ standalone_install() {
   echo "🚀 Installing ShellHub system service..."
 
   INSTALL_ARGS="--server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID"
+  [ -n "${INSTALL_KEY}" ] && INSTALL_ARGS="$INSTALL_ARGS --install-key=$INSTALL_KEY"
   [ -n "${PREFERRED_HOSTNAME}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-hostname=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
   [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"

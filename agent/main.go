@@ -437,7 +437,11 @@ It is initialized by the agent when a new SFTP session is created.`,
 		runtime.Version(),
 	))
 
-	rootCmd.Execute() // nolint: errcheck
+	// A failed command must exit non-zero: install.sh guards every agent call with
+	// `|| { ...; exit 1; }`, and a discarded error made a failed install report success.
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 // waitForPairing enrolls a tenant-less agent from the main process: it creates
