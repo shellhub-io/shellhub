@@ -39,3 +39,14 @@ func (p *Paginator) Normalize() {
 		p.PerPage = min(max(p.PerPage, MinPerPage), MaxPerPage)
 	}
 }
+
+// Paginated is a request that carries a [Paginator]. Every request type embedding one satisfies it,
+// so a caller holding only the request can normalize the page without knowing its concrete type.
+type Paginated interface {
+	GetPaginator() *Paginator
+}
+
+// GetPaginator returns the paginator itself, satisfying [Paginated] for every type that embeds it.
+func (p *Paginator) GetPaginator() *Paginator {
+	return p
+}
