@@ -45,6 +45,23 @@ describe("getAcceptDeviceErrorMessage", () => {
       expect(cloudMsg).not.toBe(enterpriseMsg);
     });
 
+    it("separates a subscription block from a device-limit hit on cloud 402", () => {
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        edition: "cloud",
+      });
+
+      const limitMsg = getAcceptDeviceErrorMessage({ status: 402 });
+      const subscriptionMsg = getAcceptDeviceErrorMessage({
+        status: 402,
+        message: "the namespace's subscription blocks new devices",
+      });
+
+      expect(subscriptionMsg).not.toBe(limitMsg);
+      expect(limitMsg).toMatch(/device limit/i);
+      expect(subscriptionMsg).not.toMatch(/device limit/i);
+    });
+
     it("returns generic fallback for community on 402 (not billing copy)", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,

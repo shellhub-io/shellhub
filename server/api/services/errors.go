@@ -114,6 +114,7 @@ var (
 	ErrDeviceInvalid                   = errors.New("device invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceDuplicated                = errors.New("device duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrDeviceLimit                     = errors.New("device limit reached", ErrLayer, ErrCodePayment)
+	ErrDeviceBillingBlocked            = errors.New("the namespace's subscription blocks new devices", ErrLayer, ErrCodePayment)
 	ErrDeviceLicenseLimit              = errors.New("device license limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusInvalid             = errors.New("device status invalid", ErrLayer, ErrCodeInvalid)
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
