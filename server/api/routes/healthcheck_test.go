@@ -5,41 +5,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v5"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEvaluateHealth(t *testing.T) {
-	e := echo.New()
-	mock := mocks.NewMockService(t)
-	h := NewHandler(mock)
+func TestHealthCheckAnswersWithoutACredential(t *testing.T) {
+	router, _, _ := authenticatedRouter(t)
 
-	cases := []struct {
-		title         string
-		requiredMocks func()
-		expectedErr   error
-	}{
-		{
-			title:       "success when try to make a evaluate health",
-			expectedErr: nil,
-		},
-	}
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api"+HealthCheckURL, nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
 
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HealthCheckURL, nil)
-			rec := httptest.NewRecorder()
-			echoContext := e.NewContext(req, rec)
-
-			apictx := gateway.NewContext(echoContext)
-			err := h.EvaluateHealth(apictx)
-
-			assert.Equal(t, tc.expectedErr, err)
-			assert.Equal(t, http.StatusOK, rec.Code)
-		})
-	}
-
-	mock.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Empty(t, rec.Body.String())
 }
