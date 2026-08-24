@@ -36,9 +36,21 @@ func TestGetDevice(t *testing.T) {
 		uid           string
 		tenant        string
 		admin         bool
+		noIdentity    bool
 		requiredMocks func()
 		expected      Expected
 	}{
+		{
+			title:         "refuses the request when the caller carries no identity",
+			uid:           "1234",
+			tenant:        "00000000-0000-4000-0000-000000000000",
+			noIdentity:    true,
+			requiredMocks: func() {},
+			expected: Expected{
+				expectedSession: nil,
+				expectedStatus:  http.StatusUnauthorized,
+			},
+		},
 		{
 			title:         "fails when bind fails to validate uid",
 			uid:           "",
@@ -105,6 +117,9 @@ func TestGetDevice(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			if !tc.noIdentity {
+				req.Header.Set("X-ID", "000000000000000000000000")
+			}
 			if tc.tenant != "" {
 				req.Header.Set("X-Tenant-ID", tc.tenant)
 			}
@@ -400,6 +415,7 @@ func TestGetDeviceList(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-ID", "000000000000000000000000")
 			req.Header.Set("X-Tenant-ID", tc.req.TenantID)
 
 			rec := httptest.NewRecorder()
@@ -485,6 +501,7 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-ID", "000000000000000000000000")
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
 			rec := httptest.NewRecorder()
