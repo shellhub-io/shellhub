@@ -155,4 +155,18 @@ type BillingEvaluation struct {
 	CanAccept bool `json:"can_accept"`
 	// CanConnect indicates if the namespace can create a new connection SSH.
 	CanConnect bool `json:"can_connect"`
+	// Blocked names what denies the operation, and is empty when nothing does. The two reasons
+	// need different answers from the user, so a caller must report them as different errors.
+	Blocked BillingBlockReason `json:"blocked,omitempty"`
 }
+
+// BillingBlockReason names why a billing evaluation denies acceptance or connection.
+type BillingBlockReason string
+
+const (
+	// BillingBlockedQuota means the namespace uses every device its plan allows.
+	BillingBlockedQuota BillingBlockReason = "quota"
+	// BillingBlockedSubscription means the namespace's subscription denies the operation,
+	// whatever the device count is.
+	BillingBlockedSubscription BillingBlockReason = "subscription"
+)

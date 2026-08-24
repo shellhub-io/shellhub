@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
+	log "github.com/sirupsen/logrus"
 )
 
 // ========================================
@@ -123,25 +124,30 @@ func (s *service) EvaluateBilling(ctx context.Context, tenant string) error {
 	}
 
 	if !evaluation.CanConnect {
+		log.WithFields(log.Fields{
+			"tenant":  tenant,
+			"blocked": evaluation.Blocked,
+		}).Error("billing blocked the connection")
+
 		return ErrBillingBlocked
 	}
 
 	return nil
 }
 
-// evaluateBilling checks if a namespace can accept more devices.
-// Returns false if billing provider is not available (Community Edition).
-func (s *service) evaluateBilling(ctx context.Context, tenant string) (bool, error) {
+// evaluateBilling reports what the namespace's billing state allows.
+// It fails when the billing provider is not available (Community Edition).
+func (s *service) evaluateBilling(ctx context.Context, tenant string) (*models.BillingEvaluation, error) {
 	if s.billing == nil {
-		return false, ErrBillingNotAvailable
+		return nil, ErrBillingNotAvailable
 	}
 
 	evaluation, err := s.billing.Evaluate(ctx, tenant)
 	if err != nil {
-		return false, NewErrBillingEvaluate(err)
+		return nil, NewErrBillingEvaluate(err)
 	}
 
-	return evaluation.CanAccept, nil
+	return evaluation, nil
 }
 
 func (s *service) ReportBilling(ctx context.Context, tenant string, action BillingAction) error {
@@ -173,11 +179,20 @@ func (s *service) validateBillingForDeviceAcceptance(ctx context.Context, namesp
 		}
 	} else {
 		// Inactive subscription - evaluate if namespace can still accept
-		canAccept, err := s.evaluateBilling(ctx, namespace.TenantID)
+		evaluation, err := s.evaluateBilling(ctx, namespace.TenantID)
 		if err != nil {
 			return NewErrBillingEvaluate(err)
 		}
-		if !canAccept {
+
+		if !evaluation.CanAccept {
+			// The two denials need different answers from the user: one has to remove a device
+			// or upgrade, the other has to finish or repair the subscription. Reporting both as
+			// a device limit sends a namespace that is under its allowance to delete devices
+			// that were never the problem.
+			if evaluation.Blocked == models.BillingBlockedSubscription {
+				return ErrDeviceBillingBlocked
+			}
+
 			return ErrDeviceLimit
 		}
 	}
