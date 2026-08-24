@@ -1,6 +1,15 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { cleanup } from "@testing-library/react";
+
+globalThis.mockSdkGen = <T extends Record<string, Mock>>(mocks: T): T => {
+  vi.doMock("@/client/sdk.gen", async (importOriginal) => ({
+    ...(await (importOriginal as () => Promise<Record<string, unknown>>)()),
+    ...mocks,
+  }));
+  return mocks;
+};
 
 // Anything that formats a date renders it in the machine's timezone, so a test
 // asserting on a rendered date passes or fails depending on where it runs. Pin
