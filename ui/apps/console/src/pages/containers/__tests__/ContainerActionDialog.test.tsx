@@ -1,41 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import ContainerActionDialog from "../ContainerActionDialog";
 
-// ── Module mocks ──────────────────────────────────────────────────────────────
-
-vi.mock("@/hooks/useContainerMutations", () => ({
-  useUpdateContainerStatus: vi.fn(),
-  useRemoveContainer: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    updateContainerStatus: vi.fn(),
+    deleteContainer: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
 
-// ── Imports (after mocks) ─────────────────────────────────────────────────────
-
-import {
-  useUpdateContainerStatus,
-  useRemoveContainer,
-} from "@/hooks/useContainerMutations";
-import ContainerActionDialog from "../ContainerActionDialog";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const mockStatusMutateAsync = vi.fn();
-const mockRemoveMutateAsync = vi.fn();
-
 const mockContainer = { uid: "container-uid-1", name: "my-container" };
+
+const Wrapper = createTestWrapper();
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useUpdateContainerStatus).mockReturnValue({
-    mutateAsync: mockStatusMutateAsync,
-  } as never);
-  vi.mocked(useRemoveContainer).mockReturnValue({
-    mutateAsync: mockRemoveMutateAsync,
-  } as never);
+  sdk.updateContainerStatus.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.deleteContainer.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 type Action = "accept" | "reject" | "remove";
@@ -60,11 +48,13 @@ function renderDialog(
   return {
     onClose: props.onClose,
     onSuccess: props.onSuccess,
-    ...render(<ContainerActionDialog {...props} />),
+    ...render(
+      <Wrapper>
+        <ContainerActionDialog {...props} />
+      </Wrapper>,
+    ),
   };
 }
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("ContainerActionDialog", () => {
   describe("rendering — closed", () => {
@@ -137,20 +127,20 @@ describe("ContainerActionDialog", () => {
 
   describe("accept — success", () => {
     it("calls updateContainerStatus with uid and status 'accept'", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
 
       await waitFor(() => {
-        expect(mockStatusMutateAsync).toHaveBeenCalledWith({
-          path: { uid: "container-uid-1", status: "accept" },
-        });
+        expect(sdk.updateContainerStatus).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { uid: "container-uid-1", status: "accept" },
+          }),
+        );
       });
     });
 
     it("calls onClose after successful accept", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -159,7 +149,6 @@ describe("ContainerActionDialog", () => {
     });
 
     it("calls onSuccess after successful accept", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       const { onSuccess } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -170,20 +159,20 @@ describe("ContainerActionDialog", () => {
 
   describe("reject — success", () => {
     it("calls updateContainerStatus with uid and status 'reject'", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       renderDialog({ action: "reject" });
 
       await userEvent.click(screen.getByRole("button", { name: /^reject$/i }));
 
       await waitFor(() => {
-        expect(mockStatusMutateAsync).toHaveBeenCalledWith({
-          path: { uid: "container-uid-1", status: "reject" },
-        });
+        expect(sdk.updateContainerStatus).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { uid: "container-uid-1", status: "reject" },
+          }),
+        );
       });
     });
 
     it("calls onClose after successful reject", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({ action: "reject" });
 
       await userEvent.click(screen.getByRole("button", { name: /^reject$/i }));
@@ -192,7 +181,6 @@ describe("ContainerActionDialog", () => {
     });
 
     it("calls onSuccess after successful reject", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       const { onSuccess } = renderDialog({ action: "reject" });
 
       await userEvent.click(screen.getByRole("button", { name: /^reject$/i }));
@@ -202,21 +190,21 @@ describe("ContainerActionDialog", () => {
   });
 
   describe("remove — success", () => {
-    it("calls removeContainer with the container uid", async () => {
-      mockRemoveMutateAsync.mockResolvedValue(undefined);
+    it("calls deleteContainer with the container uid", async () => {
       renderDialog({ action: "remove" });
 
       await userEvent.click(screen.getByRole("button", { name: /^remove$/i }));
 
       await waitFor(() => {
-        expect(mockRemoveMutateAsync).toHaveBeenCalledWith({
-          path: { uid: "container-uid-1" },
-        });
+        expect(sdk.deleteContainer).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { uid: "container-uid-1" },
+          }),
+        );
       });
     });
 
     it("calls onClose after successful remove", async () => {
-      mockRemoveMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({ action: "remove" });
 
       await userEvent.click(screen.getByRole("button", { name: /^remove$/i }));
@@ -225,7 +213,6 @@ describe("ContainerActionDialog", () => {
     });
 
     it("calls onSuccess after successful remove", async () => {
-      mockRemoveMutateAsync.mockResolvedValue(undefined);
       const { onSuccess } = renderDialog({ action: "remove" });
 
       await userEvent.click(screen.getByRole("button", { name: /^remove$/i }));
@@ -236,7 +223,7 @@ describe("ContainerActionDialog", () => {
 
   describe("error handling — accept 402", () => {
     it("shows billing error message for accept + 402", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 402 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 402 });
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -249,7 +236,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("does not call onClose on accept + 402", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 402 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 402 });
       const { onClose } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -261,7 +248,7 @@ describe("ContainerActionDialog", () => {
 
   describe("error handling — accept 403", () => {
     it("shows namespace limit error message for accept + 403", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 403 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 403 });
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -274,7 +261,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("does not call onClose on accept + 403", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 403 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 403 });
       const { onClose } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -286,7 +273,7 @@ describe("ContainerActionDialog", () => {
 
   describe("error handling — accept 409", () => {
     it("shows name conflict error message for accept + 409", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 409 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 409 });
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -299,7 +286,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("does not call onClose on accept + 409", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 409 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 409 });
       const { onClose } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -311,7 +298,7 @@ describe("ContainerActionDialog", () => {
 
   describe("error handling — generic", () => {
     it("shows generic error for unknown status on accept", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 500 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 500 });
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -324,7 +311,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("shows generic error for non-SDK errors on accept", async () => {
-      mockStatusMutateAsync.mockRejectedValue(new Error("network error"));
+      sdk.updateContainerStatus.mockRejectedValue(new Error("network error"));
       renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -337,7 +324,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("shows generic error for reject failures", async () => {
-      mockStatusMutateAsync.mockRejectedValue({ status: 500 });
+      sdk.updateContainerStatus.mockRejectedValue({ status: 500 });
       renderDialog({ action: "reject" });
 
       await userEvent.click(screen.getByRole("button", { name: /^reject$/i }));
@@ -350,7 +337,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("shows generic error for remove failures", async () => {
-      mockRemoveMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteContainer.mockRejectedValue(new Error("server error"));
       renderDialog({ action: "remove" });
 
       await userEvent.click(screen.getByRole("button", { name: /^remove$/i }));
@@ -363,7 +350,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("does not call onClose on generic error", async () => {
-      mockStatusMutateAsync.mockRejectedValue(new Error("error"));
+      sdk.updateContainerStatus.mockRejectedValue(new Error("error"));
       const { onClose } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -373,7 +360,7 @@ describe("ContainerActionDialog", () => {
     });
 
     it("does not call onSuccess on error", async () => {
-      mockStatusMutateAsync.mockRejectedValue(new Error("error"));
+      sdk.updateContainerStatus.mockRejectedValue(new Error("error"));
       const { onSuccess } = renderDialog({ action: "accept" });
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
@@ -389,8 +376,10 @@ describe("ContainerActionDialog", () => {
 
       await userEvent.click(screen.getByRole("button", { name: /^accept$/i }));
 
-      await waitFor(() => expect(mockStatusMutateAsync).not.toHaveBeenCalled());
-      expect(mockRemoveMutateAsync).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(sdk.updateContainerStatus).not.toHaveBeenCalled(),
+      );
+      expect(sdk.deleteContainer).not.toHaveBeenCalled();
     });
   });
 
@@ -404,14 +393,13 @@ describe("ContainerActionDialog", () => {
     it("does not call any mutation when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockStatusMutateAsync).not.toHaveBeenCalled();
-      expect(mockRemoveMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.updateContainerStatus).not.toHaveBeenCalled();
+      expect(sdk.deleteContainer).not.toHaveBeenCalled();
     });
   });
 
   describe("optional onSuccess callback", () => {
     it("does not throw when onSuccess is not provided and action succeeds", async () => {
-      mockStatusMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({
         action: "accept",
         onSuccess: undefined,

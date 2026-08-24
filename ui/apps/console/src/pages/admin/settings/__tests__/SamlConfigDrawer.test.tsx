@@ -4,13 +4,11 @@ import userEvent from "@testing-library/user-event";
 import SamlConfigDrawer from "../SamlConfigDrawer";
 import { mockSdkResponse } from "@/tests/sdk";
 
-vi.mock("@/client", () => ({
-  configureSamlAuthentication: vi.fn(),
-}));
-
-import { configureSamlAuthentication as configureSamlAuthenticationSdk } from "@/client";
-
-const mockedConfigureSaml = vi.mocked(configureSamlAuthenticationSdk);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    configureSamlAuthentication: vi.fn(),
+  }),
+);
 
 const VALID_URL = "https://idp.example.com/sso";
 const VALID_METADATA_URL = "https://idp.example.com/metadata.xml";
@@ -39,7 +37,7 @@ function getSubmitButton() {
 
 describe("SamlConfigDrawer", () => {
   beforeEach(() => {
-    mockedConfigureSaml.mockReset();
+    sdk.configureSamlAuthentication.mockReset();
     defaultProps.onClose.mockReset();
     defaultProps.onSaved.mockReset();
   });
@@ -123,7 +121,7 @@ describe("SamlConfigDrawer", () => {
 
   describe("successful submission", () => {
     it("calls the API with correct metadata-mode body and closes the drawer", async () => {
-      mockedConfigureSaml.mockResolvedValue(mockSdkResponse({}));
+      sdk.configureSamlAuthentication.mockResolvedValue(mockSdkResponse({}));
       const user = userEvent.setup();
       renderDrawer();
 
@@ -134,8 +132,8 @@ describe("SamlConfigDrawer", () => {
       );
       await user.click(getSubmitButton());
 
-      await waitFor(() => expect(mockedConfigureSaml).toHaveBeenCalledTimes(1));
-      expect(mockedConfigureSaml).toHaveBeenCalledWith(
+      await waitFor(() => expect(sdk.configureSamlAuthentication).toHaveBeenCalledTimes(1));
+      expect(sdk.configureSamlAuthentication).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({
             enable: true,
@@ -150,7 +148,7 @@ describe("SamlConfigDrawer", () => {
     });
 
     it("calls the API with correct manual-mode body", async () => {
-      mockedConfigureSaml.mockResolvedValue(mockSdkResponse({}));
+      sdk.configureSamlAuthentication.mockResolvedValue(mockSdkResponse({}));
       const user = userEvent.setup();
       renderDrawer();
 
@@ -159,8 +157,8 @@ describe("SamlConfigDrawer", () => {
       await user.type(screen.getByLabelText(/x\.509 certificate/i), VALID_CERT);
       await user.click(getSubmitButton());
 
-      await waitFor(() => expect(mockedConfigureSaml).toHaveBeenCalledTimes(1));
-      expect(mockedConfigureSaml).toHaveBeenCalledWith(
+      await waitFor(() => expect(sdk.configureSamlAuthentication).toHaveBeenCalledTimes(1));
+      expect(sdk.configureSamlAuthentication).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({
             enable: true,
@@ -178,7 +176,7 @@ describe("SamlConfigDrawer", () => {
 
   describe("save failure", () => {
     it("displays an error alert when the API call fails", async () => {
-      mockedConfigureSaml.mockRejectedValue(new Error("network error"));
+      sdk.configureSamlAuthentication.mockRejectedValue(new Error("network error"));
       const user = userEvent.setup();
       renderDrawer();
 

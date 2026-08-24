@@ -1,42 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import type { Device } from "@/client";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
+import {
+  mockContainer as mockContainerFactory,
+  mockNamespace,
+} from "@/tests/factories";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
-vi.mock("@/hooks/useContainer", () => ({
-  useContainer: vi.fn(),
-}));
-
-vi.mock("@/hooks/useContainerMutations", () => ({
-  useRenameContainer: () => ({ mutateAsync: vi.fn() }),
-  useAddContainerTag: () => ({ mutateAsync: vi.fn() }),
-  useRemoveContainerTag: () => ({ mutateAsync: vi.fn() }),
-}));
-
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespace: () => ({ namespace: { name: "my-ns" } }),
-}));
-
-vi.mock("@/stores/authStore", () => ({
-  useAuthStore: (sel: (s: { tenant: string }) => unknown) =>
-    sel({ tenant: "tenant-1" }),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getContainer: vi.fn(),
+    updateContainer: vi.fn(),
+    createTag: vi.fn(),
+    pushTagToContainer: vi.fn(),
+    pullTagFromContainer: vi.fn(),
+    getNamespace: vi.fn(),
+    getNamespaceToken: vi.fn(),
+    getTags: vi.fn(),
+  }),
+);
 
 vi.mock("@/stores/terminalStore", () => ({
   useTerminalStore: (
     sel: (s: { sessions: []; restore: () => void }) => unknown,
   ) => sel({ sessions: [], restore: vi.fn() }),
-}));
-
-// TagsSection, the one child that fetches, reaches for both of these.
-vi.mock("@/hooks/useTags", () => ({
-  useTags: () => ({ tags: [], totalCount: 0, isLoading: false, error: null }),
-}));
-
-vi.mock("@/hooks/useHasPermission", () => ({
-  useHasPermission: () => true,
 }));
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -95,20 +86,16 @@ vi.mock("react-router-dom", async (importOriginal) => {
   };
 });
 
-import { useContainer } from "@/hooks/useContainer";
 import ContainerDetails from "@/pages/ContainerDetails";
 
 function makeContainer(overrides: Partial<Device> = {}): Device {
-  return {
+  return mockContainerFactory({
     uid: "test-uid",
     name: "my-container",
     status: "accepted",
     online: true,
-    tags: [],
     last_seen: "2024-01-15T10:00:00.000Z",
     created_at: "2023-06-01T08:00:00.000Z",
-    status_updated_at: "2023-06-02T08:00:00.000Z",
-    identity: { mac: "aa:bb:cc:dd:ee:ff" },
     info: {
       id: "alpine",
       pretty_name: "Alpine Linux 3.19",
@@ -116,116 +103,116 @@ function makeContainer(overrides: Partial<Device> = {}): Device {
       platform: "docker",
       version: "0.14.0",
     },
-    remote_addr: "1.2.3.4",
     ...overrides,
-  } as Device;
-}
-
-function mockContainer(
-  state: Partial<{
-    container: Device | null;
-    isLoading: boolean;
-    error: unknown;
-  }> = {},
-) {
-  vi.mocked(useContainer).mockReturnValue({
-    container: null,
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
-    ...state,
-  } as unknown as ReturnType<typeof useContainer>);
+  });
 }
 
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <ContainerDetails />
-    </MemoryRouter>,
-  );
+  return render(<ContainerDetails />, {
+    wrapper: createTestWrapper({ initialEntries: ["/containers/test-uid"] }),
+  });
 }
 
-describe("ContainerDetails", () => {
-  beforeEach(() => {
-    mockRequestAction.mockReset();
-    mockNavigate.mockReset();
-    capturedOnSuccess = undefined;
-    mockContainer();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  seedAuthStore();
+  sdk.getContainer.mockResolvedValue(mockSdkResponse(null));
+  sdk.getNamespace.mockResolvedValue(mockSdkResponse(mockNamespace()));
+  sdk.getNamespaceToken.mockResolvedValue(
+    mockSdkResponse({ token: "jwt-token", role: "owner" }),
+  );
+  sdk.getTags.mockResolvedValue(mockSdkResponse([]));
+  sdk.updateContainer.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.createTag.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pushTagToContainer.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.pullTagFromContainer.mockResolvedValue(mockSdkResponse(undefined));
+  mockRequestAction.mockReset();
+  mockNavigate.mockReset();
+  capturedOnSuccess = undefined;
+});
 
+describe("ContainerDetails", () => {
   describe("loading and missing states", () => {
     it("renders a spinner while loading", () => {
-      mockContainer({ isLoading: true });
+      sdk.getContainer.mockReturnValue(new Promise(() => {}));
       renderPage();
-      expect(screen.getByLabelText("Loading container details")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Loading container details"),
+      ).toBeInTheDocument();
     });
 
-    it("tells the user the container is missing when the query fails", () => {
-      mockContainer({ error: new Error("boom") });
+    it("tells the user the container is missing when the query fails", async () => {
+      sdk.getContainer.mockRejectedValue({ status: 404 });
       renderPage();
-      expect(screen.getByText("Container not found")).toBeInTheDocument();
+      expect(
+        await screen.findByText("Container not found"),
+      ).toBeInTheDocument();
     });
 
-    it("tells the user the container is missing when the query returns none", () => {
-      mockContainer({ container: null });
+    it("tells the user the container is missing when the query returns none", async () => {
       renderPage();
-      expect(screen.getByText("Container not found")).toBeInTheDocument();
+      expect(
+        await screen.findByText("Container not found"),
+      ).toBeInTheDocument();
     });
   });
 
   describe("container data", () => {
     beforeEach(() => {
-      mockContainer({ container: makeContainer() });
+      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
     });
 
-    it("renders the container name as a heading", () => {
+    it("renders the container name as a heading", async () => {
       renderPage();
       expect(
-        screen.getByRole("heading", { name: "my-container" }),
+        await screen.findByRole("heading", { name: "my-container" }),
       ).toBeInTheDocument();
     });
 
-    it("renders the MAC address", () => {
+    it("renders the MAC address", async () => {
       renderPage();
-      expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
+      expect(await screen.findByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
     });
 
-    it("renders the container image", () => {
+    it("renders the container image", async () => {
       renderPage();
-      expect(screen.getByText("Alpine Linux 3.19")).toBeInTheDocument();
+      expect(await screen.findByText("Alpine Linux 3.19")).toBeInTheDocument();
     });
 
-    it("renders the SSHID built from the namespace and container name", () => {
+    it("renders the SSHID built from the namespace and container name", async () => {
       renderPage();
       expect(
-        screen.getByText("my-ns.my-container@localhost"),
+        await screen.findByText("my-namespace.my-container@localhost"),
       ).toBeInTheDocument();
     });
 
-    it("marks an online container as Online", () => {
+    it("marks an online container as Online", async () => {
       renderPage();
-      expect(screen.getByText("Online")).toBeInTheDocument();
+      expect(await screen.findByText("Online")).toBeInTheDocument();
     });
   });
 
-  it("renders tag names flattened out of the generated tag objects", () => {
-    mockContainer({
-      container: makeContainer({
-        tags: [{ name: "production" }, { name: "edge" }],
-      } as unknown as Partial<Device>),
-    });
+  it("renders tag names flattened out of the generated tag objects", async () => {
+    sdk.getContainer.mockResolvedValue(
+      mockSdkResponse(
+        makeContainer({
+          tags: [{ name: "production" }, { name: "edge" }],
+        } as unknown as Partial<Device>),
+      ),
+    );
     renderPage();
-
-    expect(screen.getByText("production")).toBeInTheDocument();
+    expect(await screen.findByText("production")).toBeInTheDocument();
     expect(screen.getByText("edge")).toBeInTheDocument();
   });
 
-  it("hides the SSHID banner for a container that is not accepted", () => {
-    mockContainer({ container: makeContainer({ status: "pending" }) });
+  it("hides the SSHID banner for a container that is not accepted", async () => {
+    sdk.getContainer.mockResolvedValue(
+      mockSdkResponse(makeContainer({ status: "pending" })),
+    );
     renderPage();
-
+    await screen.findByRole("heading", { name: "my-container" });
     expect(
-      screen.queryByText("my-ns.my-container@localhost"),
+      screen.queryByText("my-namespace.my-container@localhost"),
     ).not.toBeInTheDocument();
   });
 
@@ -239,15 +226,19 @@ describe("ContainerDetails", () => {
       "calls requestAction('%s' → %s)",
       async (status, buttonName, expectedAction) => {
         const user = userEvent.setup();
-        mockContainer({
-          container: makeContainer({
-            status: status as Device["status"],
-            online: false,
-          }),
-        });
+        sdk.getContainer.mockResolvedValue(
+          mockSdkResponse(
+            makeContainer({
+              status: status as Device["status"],
+              online: false,
+            }),
+          ),
+        );
         renderPage();
 
-        await user.click(screen.getByRole("button", { name: buttonName }));
+        await user.click(
+          await screen.findByRole("button", { name: buttonName }),
+        );
 
         expect(mockRequestAction).toHaveBeenCalledWith(
           expect.objectContaining({ uid: "test-uid" }),
@@ -258,11 +249,13 @@ describe("ContainerDetails", () => {
 
     it("calls requestAction('remove') from the trash button on an accepted container", async () => {
       const user = userEvent.setup();
-      mockContainer({ container: makeContainer({ status: "accepted" }) });
+      sdk.getContainer.mockResolvedValue(
+        mockSdkResponse(makeContainer({ status: "accepted" })),
+      );
       renderPage();
 
       await user.click(
-        screen.getByRole("button", { name: "Remove container" }),
+        await screen.findByRole("button", { name: "Remove container" }),
       );
 
       expect(mockRequestAction).toHaveBeenCalledWith(
@@ -273,9 +266,10 @@ describe("ContainerDetails", () => {
   });
 
   describe("onSuccess callback wiring", () => {
-    it("navigates to /containers after a container is removed", () => {
-      mockContainer({ container: makeContainer() });
+    it("navigates to /containers after a container is removed", async () => {
+      sdk.getContainer.mockResolvedValue(mockSdkResponse(makeContainer()));
       renderPage();
+      await screen.findByRole("heading", { name: "my-container" });
 
       expect(capturedOnSuccess).toBeDefined();
       capturedOnSuccess!("remove");
@@ -283,9 +277,12 @@ describe("ContainerDetails", () => {
       expect(mockNavigate).toHaveBeenCalledWith("/containers");
     });
 
-    it("stays on the page after any other action", () => {
-      mockContainer({ container: makeContainer({ status: "pending" }) });
+    it("stays on the page after any other action", async () => {
+      sdk.getContainer.mockResolvedValue(
+        mockSdkResponse(makeContainer({ status: "pending" })),
+      );
       renderPage();
+      await screen.findByRole("heading", { name: "my-container" });
 
       expect(capturedOnSuccess).toBeDefined();
       capturedOnSuccess!("accept");

@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Sessions from "../index";
+import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSession } from "@/tests/factories";
 import { LocationProbe } from "@/tests/LocationProbe";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -12,17 +15,13 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("@/hooks/useSessions", () => ({
-  useSessions: vi.fn(),
-}));
-
-vi.mock("@/hooks/useSessionMutations", () => ({
-  useCloseSession: vi.fn(),
-}));
-
-vi.mock("@/hooks/useSessionRecording", () => ({
-  useSessionRecording: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    getSessions: vi.fn(),
+    closeSession: vi.fn(),
+    getSessionRecord: vi.fn(),
+  }),
+);
 
 vi.mock("../SessionPlayerDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
@@ -35,63 +34,6 @@ vi.mock("../SessionPlayerDialog", () => ({
     ) : null,
 }));
 
-import { useSessions } from "@/hooks/useSessions";
-import { useCloseSession } from "@/hooks/useSessionMutations";
-import { useSessionRecording } from "@/hooks/useSessionRecording";
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
-const mockFetchLogs = vi.fn().mockResolvedValue(undefined);
-const mockClearLogs = vi.fn();
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeSession(overrides: Record<string, any> = {}) {
-  return {
-    uid: "session-1",
-    device_uid: "device-1",
-    device: { uid: "device-1", name: "my-device", online: true },
-    tenant_id: "tenant-1",
-    username: "root",
-    ip_address: "192.168.1.1",
-    started_at: "2024-01-01T00:00:00Z",
-    last_seen: "2024-01-01T00:01:00Z",
-    active: false,
-    authenticated: true,
-    recorded: false,
-    type: "shell",
-    term: "xterm",
-    position: { latitude: 0, longitude: 0 },
-    events: { types: ["shell"], seats: [] },
-    ...overrides,
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeSessions(overrides: Record<string, any> = {}) {
-  return {
-    sessions: [],
-    totalCount: 0,
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
-    ...overrides,
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeRecording(overrides: Record<string, any> = {}) {
-  return {
-    logs: null,
-    isLoading: false,
-    error: null,
-    fetchLogs: mockFetchLogs,
-    clearLogs: mockClearLogs,
-    ...overrides,
-  };
-}
-
 function renderSessions(initialEntries: string[] = ["/"]) {
   let lastSearch = "";
   const result = render(
@@ -103,73 +45,64 @@ function renderSessions(initialEntries: string[] = ["/"]) {
         }}
       />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
   return { ...result, getSearch: () => lastSearch };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useSessions).mockReturnValue(makeSessions());
-  vi.mocked(useCloseSession).mockReturnValue({
-    mutateAsync: vi.fn(),
-    isPending: false,
-    error: null,
-  } as unknown as ReturnType<typeof useCloseSession>);
-  vi.mocked(useSessionRecording).mockReturnValue(makeRecording());
+  sdk.getSessions.mockResolvedValue(paginatedResponse([]));
+  sdk.closeSession.mockResolvedValue(mockSdkResponse(undefined));
+  sdk.getSessionRecord.mockRejectedValue(new Error("no recording"));
 });
-
-/* ------------------------------------------------------------------ */
-/* Tests                                                               */
-/* ------------------------------------------------------------------ */
 
 describe("Sessions", () => {
   describe("initial load", () => {
     it("shows loading state while fetching", () => {
-      vi.mocked(useSessions).mockReturnValue(makeSessions({ isLoading: true }));
-
+      sdk.getSessions.mockReturnValue(new Promise(() => {}));
       renderSessions();
-
       expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
     });
 
-    it("shows empty state when there are no sessions", () => {
+    it("shows empty state when there are no sessions", async () => {
       renderSessions();
-
-      expect(screen.getByText("No sessions found")).toBeInTheDocument();
+      expect(await screen.findByText("No sessions found")).toBeInTheDocument();
     });
   });
 
   describe("session row", () => {
     it("navigates to session detail when a row is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: [makeSession({ uid: "session-abc" })],
-        }),
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-abc" })]),
       );
-
       renderSessions();
 
-      await user.click(screen.getByText("root"));
+      await user.click(await screen.findByText("root"));
 
       expect(mockNavigate).toHaveBeenCalledWith("/sessions/session-abc");
     });
   });
 
   describe("logsError banner", () => {
-    it("shows an error banner when logsError is set", () => {
-      vi.mocked(useSessionRecording).mockReturnValue(
-        makeRecording({ error: "Failed to load recording" }),
+    it("shows an error banner when fetching recording fails", async () => {
+      const user = userEvent.setup();
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "s-1", recorded: true })]),
       );
-
       renderSessions();
 
-      expect(screen.getByText("Failed to load recording")).toBeInTheDocument();
+      await user.click(await screen.findByTitle("Play recording"));
+
+      expect(
+        await screen.findByText("Failed to load recording"),
+      ).toBeInTheDocument();
     });
 
-    it("does not show the error banner when error is null", () => {
+    it("does not show the error banner when error is null", async () => {
       renderSessions();
-
+      await screen.findByText("No sessions found");
       expect(
         screen.queryByText("Failed to load recording"),
       ).not.toBeInTheDocument();
@@ -177,114 +110,115 @@ describe("Sessions", () => {
   });
 
   describe("play recording", () => {
-    it("calls fetchLogs with the session uid when Play is clicked", async () => {
+    it("fetches the recording when Play is clicked", async () => {
       const user = userEvent.setup();
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }),
+      sdk.getSessionRecord.mockResolvedValue(mockSdkResponse("asciicast-data"));
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
       );
-
       renderSessions();
 
-      await user.click(screen.getByTitle("Play recording"));
+      await user.click(await screen.findByTitle("Play recording"));
 
-      expect(mockFetchLogs).toHaveBeenCalledWith("session-1");
+      expect(sdk.getSessionRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: { uid: "session-1", seat: 0 },
+        }),
+      );
     });
 
-    it("disables the play button after clicking while logs are loading", async () => {
+    it("disables the play button while the recording is loading", async () => {
       const user = userEvent.setup();
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }),
+      sdk.getSessionRecord.mockReturnValue(new Promise(() => {}));
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
       );
-      vi.mocked(useSessionRecording).mockReturnValue(
-        makeRecording({ isLoading: true }),
-      );
-
       renderSessions();
 
-      const btn = screen.getByTitle("Play recording");
-      // Not disabled yet — playTarget is null
+      const btn = await screen.findByTitle("Play recording");
       expect(btn).not.toBeDisabled();
 
       await user.click(btn);
 
-      // After click, playTarget === "session-1" and logsLoading is true
-      expect(btn).toBeDisabled();
+      await waitFor(() => expect(btn).toBeDisabled());
     });
 
-    it("does not show the player dialog when there are no logs", () => {
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }),
+    it("does not show the player dialog when there are no logs", async () => {
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
       );
-
       renderSessions();
-
+      await screen.findByTitle("Play recording");
       expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument();
     });
 
-    it("calls clearLogs when the player dialog is closed", async () => {
+    it("opens the player after recording loads and closes it on dismiss", async () => {
       const user = userEvent.setup();
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }),
+      sdk.getSessionRecord.mockResolvedValue(mockSdkResponse("asciicast-data"));
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse([mockSession({ uid: "session-1", recorded: true })]),
       );
-      vi.mocked(useSessionRecording).mockReturnValue(
-        makeRecording({ logs: "recorded-session-data", isLoading: false }),
-      );
-
       renderSessions();
 
-      await user.click(screen.getByTitle("Play recording"));
-      expect(screen.getByTestId("player-dialog")).toBeInTheDocument();
+      await user.click(await screen.findByTitle("Play recording"));
+      expect(await screen.findByTestId("player-dialog")).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: "Close Player" }));
 
-      expect(mockClearLogs).toHaveBeenCalledOnce();
+      await waitFor(() =>
+        expect(screen.queryByTestId("player-dialog")).not.toBeInTheDocument(),
+      );
     });
   });
 
-  // ── URL-driven state (usePaginatedListState adoption) ────────────────────────
-
   describe("URL hydration", () => {
-    it("calls useSessions with page hydrated from ?page=3", () => {
+    it("passes page=3 to the SDK when URL has ?page=3", async () => {
       renderSessions(["/?page=3"]);
-      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 3 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getSessions).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 3 }),
+          }),
+        );
+      });
     });
 
-    it("calls useSessions with page=1 when URL has no page param", () => {
+    it("passes page=1 to the SDK when URL has no page param", async () => {
       renderSessions(["/"]);
-      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getSessions).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 1 }),
+          }),
+        );
+      });
     });
   });
 
   describe("URL writes", () => {
     it("writes ?page=2 to the URL when the user navigates to page 2", async () => {
       const user = userEvent.setup();
-      vi.mocked(useSessions).mockReturnValue(
-        makeSessions({
-          sessions: Array.from({ length: 10 }, (_, i) =>
-            makeSession({ uid: `s-${i}`, username: `u-${i}` }),
+      sdk.getSessions.mockResolvedValue(
+        paginatedResponse(
+          Array.from({ length: 10 }, (_, i) =>
+            mockSession({ uid: `s-${i}`, username: `u-${i}` }),
           ),
-          totalCount: 30,
-        }),
+          30,
+        ),
       );
       renderSessions();
 
+      await screen.findByText("u-0");
+
       await user.click(screen.getByRole("button", { name: "Next page" }));
 
-      expect(vi.mocked(useSessions)).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2 }),
-      );
+      await waitFor(() => {
+        expect(sdk.getSessions).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({ page: 2 }),
+          }),
+        );
+      });
     });
 
     it("omits ?page from the URL when on the default page 1", () => {

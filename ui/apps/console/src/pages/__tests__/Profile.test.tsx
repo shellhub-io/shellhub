@@ -2,78 +2,42 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-
-vi.mock("@/client", () => ({
-  login: vi.fn(),
-  getUserInfo: vi.fn(),
-  updateUser: vi.fn(),
-  deleteUser: vi.fn(),
-  authMfa: vi.fn(),
-  mfaRecover: vi.fn(),
-  requestResetMfa: vi.fn(),
-  resetMfa: vi.fn(),
-  resendEmail: vi.fn(),
-  getInfo: vi.fn(),
-  getSamlAuthUrl: vi.fn(),
-  listNamespaces: vi.fn(),
-}));
-vi.mock("@/hooks/useNamespaces", () => ({
-  useNamespaces: vi.fn(() => ({ namespaces: [] })),
-}));
-
+import { createTestWrapper } from "@/tests/wrapper";
+import { paginatedResponse } from "@/tests/sdk";
 import Profile from "../Profile";
 import * as SettingsCardModule from "@/components/common/SettingsCard";
 import * as SettingsRowModule from "@/components/common/SettingsRow";
 import { getConfig, defaultConfig } from "@/env";
-import { updateUser as mockedUpdateUser } from "@/client";
+import { seedAuthStore } from "@/tests/seedAuthStore";
 
-const mockedGetConfig = vi.mocked(getConfig);
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    updateUser: vi.fn(),
+    getNamespaces: vi.fn(),
+  }),
+);
+
+const mockGetConfig = vi.mocked(getConfig);
 
 function renderProfile() {
   return render(
     <MemoryRouter>
       <Profile />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
-function seedAuthStore(
-  overrides: Partial<{
-    name: string;
-    username: string;
-    email: string;
-    recoveryEmail: string;
-    mfaEnabled: boolean;
-    origin: "local" | "saml";
-  }> = {},
-) {
-  useAuthStore.setState({
-    name: "Test User",
-    user: "testuser",
-    username: "testuser",
-    email: "test@example.com",
-    recoveryEmail: "recovery@example.com",
-    mfaEnabled: false,
-    origin: "local",
-    loading: false,
-    token: "tok",
-    userId: "uid-1",
-    tenant: "tenant-1",
-    role: "owner",
-    ...overrides,
-  });
-}
-
 beforeEach(() => {
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
+  vi.clearAllMocks();
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  sdk.getNamespaces.mockResolvedValue(paginatedResponse([]));
   seedAuthStore();
 });
 
 describe("Profile", () => {
   describe("shared component usage", () => {
     it("uses the shared SettingsCard component (not a local copy)", () => {
-      // Spy on the shared SettingsCard to confirm it is called during render
       const spy = vi.spyOn(SettingsCardModule, "default");
       renderProfile();
       expect(spy).toHaveBeenCalled();
@@ -81,7 +45,6 @@ describe("Profile", () => {
     });
 
     it("uses the shared SettingsRow component (not a local copy)", () => {
-      // Spy on the shared SettingsRow to confirm it is called during render
       const spy = vi.spyOn(SettingsRowModule, "default");
       renderProfile();
       expect(spy).toHaveBeenCalled();
@@ -92,7 +55,6 @@ describe("Profile", () => {
   describe("renders profile sections", () => {
     it("shows the Profile card heading", () => {
       renderProfile();
-      // Multiple headings with "Profile" exist (PageHeader h1 + SettingsCard h3)
       const headings = screen.getAllByRole("heading", { name: /^profile$/i });
       expect(headings.length).toBeGreaterThanOrEqual(1);
     });
@@ -113,19 +75,18 @@ describe("Profile", () => {
 
     it("renders the user name in the Profile card", () => {
       renderProfile();
-      expect(screen.getByText("Test User")).toBeInTheDocument();
+      expect(screen.getByText("Admin User")).toBeInTheDocument();
     });
 
     it("renders the user email in the Profile card", () => {
       renderProfile();
-      expect(screen.getByText("test@example.com")).toBeInTheDocument();
+      expect(screen.getByText("admin@test.com")).toBeInTheDocument();
     });
 
     it("renders the recovery email in the Profile card", () => {
       renderProfile();
-      // The recovery email may appear more than once (e.g. pre-filled in drawers)
       expect(
-        screen.getAllByText("recovery@example.com").length,
+        screen.getAllByText("recovery@test.com").length,
       ).toBeGreaterThanOrEqual(1);
     });
 
@@ -184,7 +145,6 @@ describe("Profile", () => {
     async function openChangePasswordDrawer() {
       const user = userEvent.setup();
       renderProfile();
-      // The Security row button opens the drawer
       await user.click(
         screen.getByRole("button", { name: /^change password$/i }),
       );
@@ -192,8 +152,6 @@ describe("Profile", () => {
     }
 
     function getDrawerSubmitButton() {
-      // Both the security-row opener and the drawer footer share the label.
-      // The footer submit button is always the last in DOM order.
       const all = screen.getAllByRole("button", { name: /^change password$/i });
       return all[all.length - 1];
     }
@@ -217,7 +175,7 @@ describe("Profile", () => {
     });
 
     it("shows 'Current password is incorrect.' on 403", async () => {
-      vi.mocked(mockedUpdateUser).mockRejectedValueOnce({
+      sdk.updateUser.mockRejectedValueOnce({
         status: 403,
         errors: {},
         message: "Forbidden",
@@ -238,10 +196,10 @@ describe("Profile", () => {
     });
 
     it("shows success message after a successful password change", async () => {
-      vi.mocked(mockedUpdateUser).mockResolvedValueOnce({
+      sdk.updateUser.mockResolvedValueOnce({
         data: undefined,
         error: undefined,
-      } as never);
+      });
       const user = await openChangePasswordDrawer();
 
       await user.type(screen.getByLabelText(/current password/i), "oldpass1");
@@ -262,7 +220,6 @@ describe("Profile", () => {
 
       await user.type(screen.getByLabelText(/current password/i), "somevalue");
 
-      // Close and reopen the drawer
       await user.click(screen.getByRole("button", { name: /cancel/i }));
       await user.click(
         screen.getByRole("button", { name: /^change password$/i }),

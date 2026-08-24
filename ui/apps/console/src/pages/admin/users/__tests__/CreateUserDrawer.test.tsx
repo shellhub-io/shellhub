@@ -1,24 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import CreateUserDrawer from "../CreateUserDrawer";
-import { useCreateUser } from "@/hooks/useAdminUserMutations";
-vi.mock("@/hooks/useAdminUserMutations", () => ({
-  useCreateUser: vi.fn(),
-}));
+
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    createUserAdmin: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/tests/mocks")).MockDrawer,
 }));
 
-const mockMutateAsync = vi.fn();
+const Wrapper = createTestWrapper();
 
 function renderDrawer(
   overrides: Partial<{ open: boolean; onClose: () => void }> = {},
 ) {
   const defaults = { open: true, onClose: vi.fn() };
   const props = { ...defaults, ...overrides };
-  return { onClose: props.onClose, ...render(<CreateUserDrawer {...props} />) };
+  return {
+    onClose: props.onClose,
+    ...render(<CreateUserDrawer {...props} />, { wrapper: Wrapper }),
+  };
 }
 
 async function fillForm({
@@ -43,9 +50,7 @@ async function fillForm({
 describe("CreateUserDrawer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useCreateUser).mockReturnValue({
-      mutateAsync: mockMutateAsync,
-    } as never);
+    sdk.createUserAdmin.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("rendering — closed", () => {
@@ -230,8 +235,7 @@ describe("CreateUserDrawer", () => {
   });
 
   describe("submit — success", () => {
-    it("calls mutateAsync with the correct payload", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("calls createUserAdmin with the correct payload", async () => {
       renderDrawer();
       await fillForm();
 
@@ -240,20 +244,21 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          body: expect.objectContaining({
-            name: "Alice",
-            username: "alice",
-            email: "alice@example.com",
-            password: "pass123",
-            admin: false,
+        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              name: "Alice",
+              username: "alice",
+              email: "alice@example.com",
+              password: "pass123",
+              admin: false,
+            }),
           }),
-        });
+        );
       });
     });
 
     it("calls onClose after successful creation", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDrawer();
       await fillForm();
 
@@ -265,7 +270,6 @@ describe("CreateUserDrawer", () => {
     });
 
     it("sends max_namespaces as undefined when limit is not enabled", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
       await fillForm();
 
@@ -274,14 +278,15 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          body: expect.objectContaining({ max_namespaces: undefined }),
-        });
+        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ max_namespaces: undefined }),
+          }),
+        );
       });
     });
 
     it("sends max_namespaces as 0 when namespace creation is disabled", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
       await fillForm();
 
@@ -296,16 +301,18 @@ describe("CreateUserDrawer", () => {
       );
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          body: expect.objectContaining({ max_namespaces: 0 }),
-        });
+        expect(sdk.createUserAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ max_namespaces: 0 }),
+          }),
+        );
       });
     });
   });
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 409 });
+      sdk.createUserAdmin.mockRejectedValue({ status: 409 });
       renderDrawer();
       await fillForm();
 
@@ -319,7 +326,7 @@ describe("CreateUserDrawer", () => {
     });
 
     it("shows generic error for 400 responses", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 400 });
+      sdk.createUserAdmin.mockRejectedValue({ status: 400 });
       renderDrawer();
       await fillForm();
 
@@ -333,7 +340,7 @@ describe("CreateUserDrawer", () => {
     });
 
     it("shows generic error for unexpected failures", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
       renderDrawer();
       await fillForm();
 
@@ -347,7 +354,7 @@ describe("CreateUserDrawer", () => {
     });
 
     it("renders error with role='alert'", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
       renderDrawer();
       await fillForm();
 
@@ -361,7 +368,7 @@ describe("CreateUserDrawer", () => {
     });
 
     it("does not call onClose when creation fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("network error"));
+      sdk.createUserAdmin.mockRejectedValue(new Error("network error"));
       const { onClose } = renderDrawer();
       await fillForm();
 
@@ -404,17 +411,14 @@ describe("CreateUserDrawer", () => {
     });
 
     it("blocks submit when fields are non-empty but format is invalid", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
-      // All fields non-empty but format-invalid: the schema keeps the form
-      // invalid, so the submit button stays disabled and no mutation fires.
       await fillForm({ username: "Alice", email: "bad", password: "abc" });
 
       const submit = screen.getByRole("button", { name: /create user/i });
       expect(submit).toBeDisabled();
       await userEvent.click(submit);
 
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.createUserAdmin).not.toHaveBeenCalled();
       expect(screen.getByLabelText(/^username$/i)).toHaveAttribute(
         "aria-invalid",
         "true",
@@ -449,10 +453,10 @@ describe("CreateUserDrawer", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call createUserAdmin when Cancel is clicked", async () => {
       renderDrawer();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.createUserAdmin).not.toHaveBeenCalled();
     });
   });
 
@@ -468,7 +472,7 @@ describe("CreateUserDrawer", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("fail"));
+      sdk.createUserAdmin.mockRejectedValue(new Error("fail"));
       const { rerender } = renderDrawer();
       await fillForm();
       await userEvent.click(

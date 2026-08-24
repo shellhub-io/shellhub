@@ -1,29 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockSdkResponse } from "@/tests/sdk";
 import DeleteNamespaceDialog from "../DeleteNamespaceDialog";
-import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
 
-vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
-  useAdminDeleteNamespace: vi.fn(),
-}));
+const sdk = vi.hoisted(() =>
+  mockSdkGen({
+    deleteNamespaceAdmin: vi.fn(),
+  }),
+);
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
   default: (await import("@/tests/mocks")).MockConfirmDialog,
 }));
-
-const mockMutateAsync = vi.fn();
 
 const mockNamespace = {
   tenant_id: "tenant-xyz",
   name: "test-namespace",
 };
 
+const Wrapper = createTestWrapper();
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useAdminDeleteNamespace).mockReturnValue({
-    mutateAsync: mockMutateAsync,
-  } as never);
+  sdk.deleteNamespaceAdmin.mockResolvedValue(mockSdkResponse(undefined));
 });
 
 function renderDialog(
@@ -44,7 +45,11 @@ function renderDialog(
   return {
     onClose: props.onClose,
     onDeleted: props.onDeleted,
-    ...render(<DeleteNamespaceDialog {...props} />),
+    ...render(
+      <Wrapper>
+        <DeleteNamespaceDialog {...props} />
+      </Wrapper>,
+    ),
   };
 }
 
@@ -95,21 +100,21 @@ describe("DeleteNamespaceDialog", () => {
   });
 
   describe("confirm — success", () => {
-    it("calls mutateAsync with the correct tenant_id", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
+    it("calls deleteNamespaceAdmin with the correct tenant_id", async () => {
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
 
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-          path: { tenant: "tenant-xyz" },
-        });
+        expect(sdk.deleteNamespaceAdmin).toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: { tenant: "tenant-xyz" },
+          }),
+        );
       });
     });
 
     it("calls onDeleted callback after successful deletion", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -118,7 +123,6 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("calls onClose after successful deletion", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -127,17 +131,18 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("calls onClose before onDeleted", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const callOrder: string[] = [];
       const onClose = vi.fn(() => callOrder.push("onClose"));
       const onDeleted = vi.fn(() => callOrder.push("onDeleted"));
       render(
-        <DeleteNamespaceDialog
-          open={true}
-          onClose={onClose}
-          namespace={mockNamespace}
-          onDeleted={onDeleted}
-        />,
+        <Wrapper>
+          <DeleteNamespaceDialog
+            open={true}
+            onClose={onClose}
+            namespace={mockNamespace}
+            onDeleted={onDeleted}
+          />
+        </Wrapper>,
       );
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -149,7 +154,7 @@ describe("DeleteNamespaceDialog", () => {
 
   describe("confirm — error handling", () => {
     it("shows generic error message on failure", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -162,7 +167,7 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("shows error for SDK errors", async () => {
-      mockMutateAsync.mockRejectedValue({ status: 500 });
+      sdk.deleteNamespaceAdmin.mockRejectedValue({ status: 500 });
       renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -175,7 +180,7 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("does not call onDeleted when deletion fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
       const { onDeleted } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -185,7 +190,7 @@ describe("DeleteNamespaceDialog", () => {
     });
 
     it("does not call onClose when deletion fails", async () => {
-      mockMutateAsync.mockRejectedValue(new Error("server error"));
+      sdk.deleteNamespaceAdmin.mockRejectedValue(new Error("server error"));
       const { onClose } = renderDialog();
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
@@ -202,10 +207,10 @@ describe("DeleteNamespaceDialog", () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not call mutateAsync when Cancel is clicked", async () => {
+    it("does not call deleteNamespaceAdmin when Cancel is clicked", async () => {
       renderDialog();
       await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(sdk.deleteNamespaceAdmin).not.toHaveBeenCalled();
     });
 
     it("does not call onDeleted when Cancel is clicked", async () => {
@@ -221,16 +226,17 @@ describe("DeleteNamespaceDialog", () => {
       expect(screen.queryByText("test-namespace")).not.toBeInTheDocument();
     });
 
-    it("does not call mutateAsync when confirmed with null namespace", async () => {
+    it("does not call deleteNamespaceAdmin when confirmed with null namespace", async () => {
       renderDialog({ namespace: null });
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-      await waitFor(() => expect(mockMutateAsync).not.toHaveBeenCalled());
+      await waitFor(() =>
+        expect(sdk.deleteNamespaceAdmin).not.toHaveBeenCalled(),
+      );
     });
   });
 
   describe("optional onDeleted callback", () => {
     it("does not throw when onDeleted is not provided and deletion succeeds", async () => {
-      mockMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDialog({ onDeleted: undefined });
 
       await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
