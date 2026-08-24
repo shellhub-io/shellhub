@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -39,6 +40,7 @@ type installerConfig struct {
 	ServerAddress     string
 	TenantID          string
 	PrivateKey        string
+	InstallKey        string
 	PreferredHostname string
 	PreferredIdentity string
 	KeepaliveInterval uint
@@ -46,8 +48,9 @@ type installerConfig struct {
 
 func registerInstallerCommands(rootCmd *cobra.Command) {
 	installCmd := &cobra.Command{ // nolint: exhaustruct
-		Use:   "install",
-		Short: "Install ShellHub agent as a systemd service",
+		Use:          "install",
+		Short:        "Install ShellHub agent as a systemd service",
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			flags := cmd.Flags()
 
@@ -56,6 +59,13 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 			privateKey, _ := flags.GetString("private-key")
 			preferredHostname, _ := flags.GetString("preferred-hostname")
 			preferredIdentity, _ := flags.GetString("preferred-identity")
+
+			installKey, _ := flags.GetString("install-key")
+			if installKey != "" {
+				if _, err := uuid.Parse(installKey); err != nil {
+					return fmt.Errorf("invalid install key: %q is not a valid UUID", installKey)
+				}
+			}
 
 			var keepaliveInterval uint
 			if flags.Changed("keepalive-interval") {
@@ -66,6 +76,7 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 				ServerAddress:     serverAddress,
 				TenantID:          tenantID,
 				PrivateKey:        privateKey,
+				InstallKey:        installKey,
 				PreferredHostname: preferredHostname,
 				PreferredIdentity: preferredIdentity,
 				KeepaliveInterval: keepaliveInterval,
@@ -84,6 +95,7 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	installCmd.Flags().String("server-address", "", "ShellHub server address")
 	installCmd.Flags().String("tenant-id", "", "Namespace tenant ID")
 	installCmd.Flags().String("private-key", "/etc/shellhub.key", "Path to the agent private key file")
+	installCmd.Flags().String("install-key", "", "Install key used to enroll the device")
 	installCmd.Flags().String("preferred-hostname", "", "Preferred device hostname")
 	installCmd.Flags().String("preferred-identity", "", "Preferred device identity")
 	installCmd.Flags().Uint("keepalive-interval", 30, "Keepalive interval in seconds")
@@ -156,6 +168,10 @@ func writeAgentEnvFile(cfg installerConfig) error {
 	fmt.Fprintf(&buf, "SHELLHUB_SERVER_ADDRESS=%s\n", cfg.ServerAddress)
 	fmt.Fprintf(&buf, "SHELLHUB_TENANT_ID=%s\n", cfg.TenantID)
 	fmt.Fprintf(&buf, "SHELLHUB_PRIVATE_KEY=%s\n", cfg.PrivateKey)
+
+	if cfg.InstallKey != "" {
+		fmt.Fprintf(&buf, "SHELLHUB_INSTALL_KEY=%s\n", cfg.InstallKey)
+	}
 
 	if cfg.PreferredHostname != "" {
 		fmt.Fprintf(&buf, "SHELLHUB_PREFERRED_HOSTNAME=%s\n", cfg.PreferredHostname)
