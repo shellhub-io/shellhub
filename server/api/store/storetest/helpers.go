@@ -56,7 +56,6 @@ func (s *Suite) CreateUser(t *testing.T, opts ...UserOption) string {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	// Default user
 	user := &models.User{
 		UserData: models.UserData{
 			Username: fmt.Sprintf("user_%d", time.Now().UnixNano()),
@@ -69,12 +68,10 @@ func (s *Suite) CreateUser(t *testing.T, opts ...UserOption) string {
 		LastLogin:     time.Now(),
 	}
 
-	// Apply customizations
 	for _, opt := range opts {
 		opt(user)
 	}
 
-	// Create via store
 	userID, err := st.UserCreate(ctx, user)
 	require.NoError(t, err)
 	require.NotEmpty(t, userID)
@@ -127,7 +124,6 @@ func (s *Suite) CreateNamespace(t *testing.T, opts ...NamespaceOption) string {
 		CreatedAt: time.Now(),
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(ns)
 	}
@@ -137,7 +133,6 @@ func (s *Suite) CreateNamespace(t *testing.T, opts ...NamespaceOption) string {
 		ns.Owner = s.CreateUser(t)
 	}
 
-	// Create via store
 	tenantID, err := st.NamespaceCreate(ctx, ns)
 	require.NoError(t, err)
 	require.NotEmpty(t, tenantID)
@@ -257,7 +252,6 @@ func (s *Suite) CreateDevice(t *testing.T, opts ...DeviceOption) models.UID {
 		LastSeen:  time.Now(),
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(device)
 	}
@@ -267,7 +261,6 @@ func (s *Suite) CreateDevice(t *testing.T, opts ...DeviceOption) models.UID {
 		device.TenantID = s.CreateNamespace(t)
 	}
 
-	// Create via store
 	deviceUID, err := st.DeviceCreate(ctx, device)
 	require.NoError(t, err)
 	require.NotEmpty(t, deviceUID)
@@ -318,7 +311,6 @@ func (s *Suite) CreateSession(t *testing.T, opts ...SessionOption) models.UID {
 		Authenticated: true,
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(session)
 	}
@@ -328,7 +320,6 @@ func (s *Suite) CreateSession(t *testing.T, opts ...SessionOption) models.UID {
 		session.DeviceUID = s.CreateDevice(t)
 	}
 
-	// Create via store
 	uid, err := st.SessionCreate(ctx, *session)
 	require.NoError(t, err)
 	require.NotEmpty(t, uid)
@@ -381,13 +372,11 @@ func (s *Suite) CreateTag(t *testing.T, opts ...TagOption) string {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	// Default tag
 	tag := &models.Tag{
 		Name:     fmt.Sprintf("tag_%d", time.Now().UnixNano()),
 		TenantID: "", // Will be set below if not provided via options
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(tag)
 	}
@@ -397,7 +386,6 @@ func (s *Suite) CreateTag(t *testing.T, opts ...TagOption) string {
 		tag.TenantID = s.CreateNamespace(t)
 	}
 
-	// Create via store
 	tagID, err := st.TagCreate(ctx, tag)
 	require.NoError(t, err)
 	require.NotEmpty(t, tagID)
@@ -477,7 +465,6 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 	keySum := sha256.Sum256([]byte(plainKey))
 	hashedKey := hex.EncodeToString(keySum[:])
 
-	// Default API key
 	key := &models.APIKey{
 		ID:        hashedKey, // SHA256 hash of the plain key
 		Name:      fmt.Sprintf("apikey_%d", time.Now().UnixNano()),
@@ -489,7 +476,6 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 		ExpiresIn: 0, // no expiration
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(key)
 	}
@@ -504,7 +490,6 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 		key.CreatedBy = s.CreateUser(t)
 	}
 
-	// Create via store
 	keyID, err := st.APIKeyCreate(ctx, key)
 	require.NoError(t, err)
 	require.NotEmpty(t, keyID)
@@ -580,7 +565,6 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
 		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp)) //nolint:gosec // G115
 
-	// Default public key
 	key := &models.PublicKey{
 		Data:        []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC..."),
 		Fingerprint: fingerprint,
@@ -596,7 +580,6 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 		},
 	}
 
-	// Apply customizations first
 	for _, opt := range opts {
 		opt(key)
 	}
@@ -606,7 +589,6 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 		key.TenantID = s.CreateNamespace(t)
 	}
 
-	// Create via store
 	createdFingerprint, err := st.PublicKeyCreate(ctx, key)
 	require.NoError(t, err)
 	require.NotEmpty(t, createdFingerprint)
@@ -646,19 +628,16 @@ func (s *Suite) CreatePrivateKey(t *testing.T, opts ...PrivateKeyOption) string 
 		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
 		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp)) //nolint:gosec // G115
 
-	// Default private key
 	key := &models.PrivateKey{
 		Data:        []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA..."),
 		Fingerprint: fingerprint,
 		CreatedAt:   time.Now(),
 	}
 
-	// Apply customizations
 	for _, opt := range opts {
 		opt(key)
 	}
 
-	// Create via store
 	err := st.PrivateKeyCreate(ctx, key)
 	require.NoError(t, err)
 

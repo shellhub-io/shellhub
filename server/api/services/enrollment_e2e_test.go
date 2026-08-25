@@ -591,7 +591,6 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:61", plaintextFor(0x61))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
 
-	// Revoke the key while the device sits pending.
 	key, err := e.st.InstallKeyResolve(context.Background(), scope.MustBounded(e.tenantID), store.InstallKeyIDResolver, digest(0x61))
 	require.NoError(t, err)
 	key.Revoked = true
@@ -739,7 +738,6 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 		}))
 	}
 
-	// First enrollment, accepted, then removed.
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:80", plaintextFor(0x80))
 	cur = base.Add(time.Hour)
 	accept(uid)

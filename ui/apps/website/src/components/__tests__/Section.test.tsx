@@ -23,7 +23,6 @@ describe("Section", () => {
     const outer = screen.getByTestId("outer");
     // containerClassName should NOT be on the outer element
     expect(outer).not.toHaveClass("custom-inner");
-    // inner container should carry the class
     const inner = outer.firstChild as HTMLElement;
     expect(inner).toHaveClass("custom-inner");
   });

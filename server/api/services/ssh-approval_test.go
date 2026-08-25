@@ -449,7 +449,6 @@ func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
 	err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
 	require.Error(t, err)
 
-	// Nothing was decided and no identity was touched.
 	storeMock.AssertExpectations(t)
 	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	storeMock.AssertNotCalled(t, "SSHIdentityTouchReauth", mock.Anything, mock.Anything, mock.Anything)

@@ -110,7 +110,6 @@ func TestMigration004Dedup(t *testing.T) {
 		`, id, ts, ts, name, ownerID))
 	}
 
-	// Group 1: three rows sharing "myapp" (case-insensitively).
 	const (
 		nsOldest  = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" // oldest → keeps "myapp"
 		nsMiddle  = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" // newer  → renamed
@@ -151,10 +150,8 @@ func TestMigration004Dedup(t *testing.T) {
 		byID[r.ID] = r.Name
 	}
 
-	// 1. Oldest row keeps its exact original name.
 	assert.Equal(t, "myapp", byID[nsOldest], "oldest row must keep original name")
 
-	// 2. Newer duplicates are renamed.
 	assert.NotEqual(t, "myapp", byID[nsMiddle], "middle duplicate must be renamed")
 	assert.NotEqual(t, "MyApp", byID[nsMixed], "mixed-case duplicate must be renamed")
 
@@ -167,7 +164,6 @@ func TestMigration004Dedup(t *testing.T) {
 	// 4. Control namespace is untouched.
 	assert.Equal(t, "otherapp", byID[nsControl], "unrelated namespace must not be changed")
 
-	// 5. All four lower(name) values are unique.
 	lowerSeen := make(map[string]string) // lower → id
 	for id, name := range byID {
 		lower := strings.ToLower(name)
@@ -212,7 +208,6 @@ func TestMigration004Dedup(t *testing.T) {
 			snapBefore[id] = name
 		}
 
-		// Re-execute only statement 0 (the dedup step).
 		_, execErr := db.ExecContext(ctx, stmts[0])
 		require.NoError(t, execErr, "re-running dedup step must not error")
 

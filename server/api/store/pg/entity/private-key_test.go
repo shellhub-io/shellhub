@@ -58,7 +58,6 @@ func TestPrivateKeyFromModel(t *testing.T) {
 }
 
 func TestPrivateKeyToModel(t *testing.T) {
-	// Use a non-UTC timezone to verify .UTC() conversion
 	loc := time.FixedZone("UTC+5", 5*60*60)
 	createdAt := time.Date(2024, 6, 15, 10, 30, 0, 0, loc)
 

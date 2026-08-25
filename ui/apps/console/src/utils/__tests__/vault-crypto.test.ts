@@ -127,7 +127,6 @@ describe("deriveKey", () => {
     const key1 = await deriveKey("stable-password", salt, 1);
     const key2 = await deriveKey("stable-password", salt, 1);
 
-    // Export both and compare bytes
     const raw1 = await crypto.subtle.exportKey("raw", key1).catch(() => null);
     const raw2 = await crypto.subtle.exportKey("raw", key2).catch(() => null);
 

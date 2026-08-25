@@ -58,7 +58,6 @@ describe("MfaRecoveryTimeoutModal", () => {
     });
 
     it("displays countdown timer", () => {
-      // Align to second boundary for exact diff
       const now = Math.floor(Date.now() / 1000) * 1000;
       vi.setSystemTime(now);
       const expiresAt = now / 1000 + 10 * 60; // 10 minutes
@@ -72,7 +71,6 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // useCountdown formats as "X minutes Y seconds remaining"
       expect(
         screen.getByText(/\d+ minutes? \d+ seconds? remaining/i),
       ).toBeInTheDocument();
@@ -224,7 +222,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       // Poll until setDisabling(true) triggers a re-render (real timers — waitFor polling works)
       await waitFor(() => expect(disableButton).toBeDisabled());
 
-      // Resolve and let the click promise complete
       resolveDisable();
       await clickPromise;
     });
@@ -341,7 +338,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       // onClose should not have been called autonomously (no auto-close logic in component)
       expect(onClose).not.toHaveBeenCalled();
 
-      // Complete the disable operation
       resolveDisable();
       await clickPromise;
 
@@ -382,7 +378,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       });
       await user.click(disableButton);
 
-      // onDisable was called
       expect(onDisable).toHaveBeenCalled();
       // Error bubbles out of handleDisable but onClose is not triggered
       expect(onClose).not.toHaveBeenCalled();
@@ -450,7 +445,6 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // Should still render
       expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
     });
   });

@@ -136,7 +136,6 @@ describe("usePaginatedListState — replace-history mode omits default-valued pa
       result.current.setPage(1);
     });
 
-    // The hook's internal params are correct
     expect(result.current.params.page).toBe(1);
 
     // And the URL should not carry page=1 (default suppressed)
@@ -427,7 +426,6 @@ describe("usePaginatedListState — array filters", () => {
       result.current.setArrayFilter("tags", ["web", "invalid", "prod"]);
     });
 
-    // "invalid" should be stripped by the parser
     expect(result.current.params.tags).toEqual(["web", "prod"]);
   });
 

@@ -292,7 +292,6 @@ describe("VaultSettingsSection", () => {
 
       renderSection();
 
-      // Requires aria-label="Lock vault" (lowercase 'v') on the button
       const lockBtn = screen.getByRole("button", { name: "Lock vault" });
       await userEvent.click(lockBtn);
 
@@ -305,7 +304,6 @@ describe("VaultSettingsSection", () => {
       setUnlocked();
       renderSection();
 
-      // Requires aria-label="Reset vault" (lowercase 'v') on the button
       const resetBtn = screen.getByRole("button", { name: "Reset vault" });
       await userEvent.click(resetBtn);
 
@@ -479,7 +477,6 @@ describe("VaultSettingsSection", () => {
         });
         await userEvent.click(btn);
 
-        // VaultSyncDialog renders a heading or dialog when open
         expect(
           screen.getByRole("heading", { name: /sync/i }),
         ).toBeInTheDocument();

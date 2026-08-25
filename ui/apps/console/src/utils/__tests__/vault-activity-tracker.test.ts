@@ -81,7 +81,6 @@ describe("idle timer", () => {
     vi.advanceTimersByTime(IDLE_MS - 1);
     expect(onIdle).not.toHaveBeenCalled();
 
-    // Now finish the re-armed timer
     vi.advanceTimersByTime(1);
     expect(onIdle).toHaveBeenCalledOnce();
   });
@@ -178,7 +177,6 @@ describe("throttle", () => {
     vi.advanceTimersByTime(1_500 - 1); // total elapsed: 61_498ms (= 60_000 + 1_498)
     expect(onIdle).not.toHaveBeenCalled();
 
-    // Now fires at exactly t=61_500ms
     vi.advanceTimersByTime(2); // total elapsed: 61_500ms
     expect(onIdle).toHaveBeenCalledOnce();
   });
@@ -301,10 +299,8 @@ describe("start() restart", () => {
       onIdle: onIdle1,
     });
 
-    // Advance partway through first session
     vi.advanceTimersByTime(IDLE_MS / 2);
 
-    // Restart with a different callback
     start({
       idleTimeoutMs: IDLE_MS,
       lockOnHidden: false,
@@ -318,7 +314,6 @@ describe("start() restart", () => {
     // First timer must have been cancelled
     expect(onIdle1).not.toHaveBeenCalled();
 
-    // Advance to complete the second timer
     vi.advanceTimersByTime(IDLE_MS / 2);
     expect(onIdle2).toHaveBeenCalledOnce();
   });

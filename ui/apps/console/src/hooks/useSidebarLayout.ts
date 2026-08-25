@@ -42,7 +42,6 @@ export function useSidebarLayout() {
   const closeDrawer = () => setDrawerOpen(false);
   const toggleDrawer = () => setDrawerOpen((prev) => !prev);
 
-  // Clean up hover timer on unmount
   useEffect(() => () => clearTimeout(hoverTimer.current), []);
 
   const handleExpand = () => {

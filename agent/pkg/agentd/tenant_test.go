@@ -30,7 +30,6 @@ func TestPersistAndReadTenant(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 
-	// Overwrite is atomic and replaces the previous tenant.
 	require.NoError(t, PersistTenant(path, "11111111-1111-4111-1111-111111111111"))
 
 	tenant, err = ReadPersistedTenant(path)

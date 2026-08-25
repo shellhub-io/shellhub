@@ -180,7 +180,6 @@ describe("KeyDrawer", () => {
       const { rerender } = renderDrawer({ editKey: mockEntry });
 
       rerender(<KeyDrawer open={false} editKey={null} onClose={vi.fn()} />);
-      // Reopen — useResetOnOpen resets fields
       rerender(<KeyDrawer open editKey={null} onClose={vi.fn()} />);
 
       expect(screen.getByLabelText(/^name$/i)).toHaveValue("");
@@ -340,7 +339,6 @@ describe("KeyDrawer", () => {
       mockUpdateKey.mockResolvedValue(undefined);
       renderDrawer({ editKey: mockEntry });
 
-      // Clear current name and type new one
       const nameInput = screen.getByLabelText(/^name$/i);
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "Updated Name");

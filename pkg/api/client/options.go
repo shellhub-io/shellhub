@@ -26,7 +26,6 @@ func WithURL(u *url.URL) Opt {
 			if c.scheme == "https" {
 				c.port = 443
 			} else {
-				// use default port
 				c.port = 80
 			}
 		}

@@ -218,7 +218,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
-		// bool-operator value type validation
 		{
 			name: "bool operator with bool value is accepted",
 			filters: &Filters{Data: []Filter{
@@ -258,7 +257,6 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
-		// eq/ne operator scalar enforcement
 		{
 			name: "eq operator with array value is rejected",
 			filters: &Filters{Data: []Filter{

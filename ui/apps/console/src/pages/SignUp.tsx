@@ -102,7 +102,6 @@ export default function SignUp() {
       return;
     }
 
-    // Invite flow: token returned — show AccountCreated
     setAccountCreated(true);
   };
 

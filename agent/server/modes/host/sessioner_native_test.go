@@ -205,7 +205,6 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 // non-zero in environments that are not a real Docker-on-host setup (CI, dev
 // containers, etc.).
 func TestExec_NonPty_SucceedingCommand(t *testing.T) {
-	// Mock osauth so LookupUser succeeds without touching /etc/passwd.
 	osauthMock := &osauthMocks.MockBackend{}
 	osauth.DefaultBackend = osauthMock
 

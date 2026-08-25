@@ -57,18 +57,15 @@ func TestNormalize(t *testing.T) {
 func TestIsValid(t *testing.T) {
 	assert.True(t, IsValid("WXYZ2K7Q", DeviceCodeLength))
 
-	// Generated codes are always valid at their length.
 	code, err := New(InviteCodeLength)
 	require.NoError(t, err)
 	assert.True(t, IsValid(code, InviteCodeLength))
 
-	// Wrong length (including the old 32-hex format).
 	assert.False(t, IsValid("", DeviceCodeLength))
 	assert.False(t, IsValid("WXYZ2K7", DeviceCodeLength))
 	assert.False(t, IsValid("WXYZ2K7QQ", DeviceCodeLength))
 	assert.False(t, IsValid("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", DeviceCodeLength))
 
-	// Ambiguous / out-of-alphabet characters.
 	assert.False(t, IsValid("WXYZ2K7O", DeviceCodeLength), "O not in alphabet")
 	assert.False(t, IsValid("WXYZ2K71", DeviceCodeLength), "1 not in alphabet")
 	assert.False(t, IsValid("wxyz2k7q", DeviceCodeLength), "lowercase is not canonical")

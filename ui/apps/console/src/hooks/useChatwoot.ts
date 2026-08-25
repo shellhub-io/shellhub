@@ -92,7 +92,6 @@ export function useChatwoot(): ChatwootHandle {
     config.chatwootWebsiteToken,
   ]);
 
-  // Identify the user (or re-identify on profile/tenant/identifier change).
   useEffect(() => {
     if (!widgetReady || !userId || !identifier) return;
     const key = [

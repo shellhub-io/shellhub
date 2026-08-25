@@ -125,7 +125,6 @@ describe("useBackdropClose", () => {
 
     it("uses the default enabled guard (always true) when no guard is provided", () => {
       const dialog = makeDialog();
-      // No `enabled` option — should default to closing
       const { handlers, onClose } = setup(dialog);
 
       fireSequence(handlers, dialog, dialog, dialog);
@@ -161,7 +160,6 @@ describe("useBackdropClose", () => {
       fireSequence(handlers, dialog, child, dialog);
       expect(onClose).not.toHaveBeenCalled();
 
-      // Second full backdrop sequence succeeds
       fireSequence(handlers, dialog, dialog, dialog);
       expect(onClose).toHaveBeenCalledOnce();
     });

@@ -20,12 +20,10 @@ export default function MfaResetVerify() {
   const otpMain = useOtpInput(5, true);
   const otpRecovery = useOtpInput(5, true);
 
-  // Clear stale error from previous session
   useEffect(() => {
     useMfaResetStore.setState({ error: null });
   }, []);
 
-  // State guard: redirect if no reset session
   useEffect(() => {
     if (!mfaResetToken) {
       void navigate("/mfa-recover");
@@ -44,7 +42,6 @@ export default function MfaResetVerify() {
       await completeMfaReset(otpMain.getValue(), otpRecovery.getValue());
       void navigate("/dashboard");
     } catch {
-      // Error is set in store
       otpMain.reset();
       otpRecovery.reset();
     }

@@ -26,7 +26,6 @@ func TestClient(t *testing.T) {
 	redisConnStr, err := redisContainer.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// Setup server and handlers
 	addr, err := asynqlib.ParseRedisURI(redisConnStr)
 	require.NoError(t, err)
 
@@ -52,7 +51,6 @@ func TestClient(t *testing.T) {
 
 	require.NoError(t, asynqSrv.Start(asynqMux))
 
-	// Setup client
 	client, err := asynq.NewClient(redisConnStr)
 	require.NoError(t, err)
 	defer client.Close()

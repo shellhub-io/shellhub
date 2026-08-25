@@ -21,7 +21,6 @@ func TestServer(t *testing.T) {
 	redisConnStr, err := redisContainer.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// Setup server and handlers
 	srv := asynq.NewServer(redisConnStr)
 
 	// Shutdown the server before terminating Redis to avoid connection refused spam.
@@ -50,7 +49,6 @@ func TestServer(t *testing.T) {
 
 	require.NoError(t, srv.Start())
 
-	// Setup asynq client and enqueue task
 	opt, err := asynqlib.ParseRedisURI(redisConnStr)
 	require.NoError(t, err)
 	asynqClient := asynqlib.NewClient(opt)

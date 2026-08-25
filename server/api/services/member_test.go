@@ -763,7 +763,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 					On("APIKeyDeleteAllByCreator", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
 					Return(nil).
 					Once()
-				// Instance bound to this namespace: single-tenant Community.
 				storeMock.
 					On("SystemGet", ctx).
 					Return(&models.System{InstanceTenantID: "00000000-0000-4000-0000-000000000000"}, nil).

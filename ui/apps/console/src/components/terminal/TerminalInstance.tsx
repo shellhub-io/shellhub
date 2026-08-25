@@ -57,7 +57,6 @@ export default function TerminalInstance({
     [session.id],
   );
 
-  // Connect on mount, cleanup on unmount
   useEffect(() => {
     let cancelled = false;
     let lastError = false;
@@ -233,7 +232,6 @@ export default function TerminalInstance({
         // Control messages stay async (the signature case signs with WebCrypto),
         // but the output path above must not await.
         void (async () => {
-          // JSON text message = challenge-response or error
           const textData = String(event.data as unknown);
           const msg = parseMessage(textData);
           if (!msg) {
@@ -276,7 +274,6 @@ export default function TerminalInstance({
                 ws.close();
                 return;
               }
-              // Clear sensitive key material from closure and store
               keyMaterial = undefined;
               keyPassphrase = undefined;
               useTerminalStore.getState().clearSensitiveData(session.id);
@@ -376,7 +373,6 @@ export default function TerminalInstance({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.id]);
 
-  // Live theme/font updates
   useEffect(() => {
     const term = termRef.current;
     if (!term) return;
@@ -397,7 +393,6 @@ export default function TerminalInstance({
     fitRef.current?.fit();
   }, [fontSize]);
 
-  // Hide cursor on error
   useEffect(() => {
     const term = termRef.current;
     if (!term || error === null) return;

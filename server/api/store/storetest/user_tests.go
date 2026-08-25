@@ -29,7 +29,6 @@ func (s *Suite) TestUserList(t *testing.T) {
 	t.Run("succeeds when users are found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test users
 		s.CreateUser(t, WithUsername("user1"), WithEmail("user1@test.com"))
 		s.CreateUser(t, WithUsername("user2"), WithEmail("user2@test.com"))
 		s.CreateUser(t, WithUsername("user3"), WithEmail("user3@test.com"))
@@ -63,7 +62,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	t.Run("succeeds resolving user by ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test user
 		userID := s.CreateUser(t, WithUsername("testuser"), WithUserStatus(models.UserStatusConfirmed))
 
 		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
@@ -104,7 +102,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	t.Run("succeeds resolving user by username", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test user
 		userID := s.CreateUser(t, WithUsername("bob_johnson"), WithUserStatus(models.UserStatusConfirmed))
 
 		user, err := st.UserResolve(ctx, store.UserUsernameResolver, "bob_johnson")
@@ -284,7 +281,6 @@ func (s *Suite) TestUserDelete(t *testing.T) {
 	t.Run("succeeds when user is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test user
 		userID := s.CreateUser(t, WithUsername("john_doe"))
 
 		err := st.UserDelete(ctx, &models.User{ID: userID})
@@ -300,7 +296,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 	t.Run("returns empty lists for user with no namespaces", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user without any namespaces
 		userID := s.CreateUser(t, WithUsername("lonelyuser"))
 
 		userInfo, err := st.UserGetInfo(ctx, userID)
@@ -337,7 +332,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t, WithNamespaceName("shared-ns"))
 
-		// Add member to namespace
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), &models.Member{
 			ID:   memberID,
 			Role: "observer",
@@ -348,7 +342,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
 
-		// Verify user info structure is returned
 		assert.NotNil(t, userInfo.OwnedNamespaces)
 		assert.NotNil(t, userInfo.AssociatedNamespaces)
 	})
@@ -358,11 +351,9 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 
 		user1ID := s.CreateUser(t, WithUsername("user1"))
 
-		// Create namespaces
 		s.CreateNamespace(t, WithNamespaceName("ns1"))
 		ns2ID := s.CreateNamespace(t, WithNamespaceName("ns2"))
 
-		// Add user1 as member to ns2
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(ns2ID), &models.Member{
 			ID:   user1ID,
 			Role: "observer",
@@ -373,7 +364,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
 
-		// Verify structure is returned correctly
 		assert.NotNil(t, userInfo.OwnedNamespaces)
 		assert.NotNil(t, userInfo.AssociatedNamespaces)
 	})
@@ -386,7 +376,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
 
-		// Should return empty lists
 		assert.Empty(t, userInfo.OwnedNamespaces)
 		assert.Empty(t, userInfo.AssociatedNamespaces)
 	})

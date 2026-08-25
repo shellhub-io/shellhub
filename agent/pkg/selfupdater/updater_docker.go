@@ -213,7 +213,6 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	}
 	defer rd.Close()
 
-	// Wait for image to pull
 	_, err = io.Copy(io.Discard, rd)
 	if err != nil {
 		return nil, err
@@ -259,7 +258,6 @@ func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 		// Values w/o = means they want this env to be removed/unset.
 		index := strings.Index(value, "=")
 		if index < 0 {
-			// no "=" in value
 			if i, exists := cache[value]; exists {
 				defaults[i] = "" // Used to indicate it should be removed
 			}

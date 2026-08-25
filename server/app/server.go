@@ -233,7 +233,6 @@ func (s *Server) Setup(ctx context.Context) error {
 		log.Warn("session retention disabled; sessions and their events are kept indefinitely")
 	}
 
-	// Apply any worker extensions registered by cloud/enterprise packages.
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
 
 	s.heartbeater = services.NewDeviceHeartbeater(store)

@@ -62,9 +62,7 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
 			"ip": remoteAddr,
 		}).Warn("wrong remoteAddr format")
 	} else {
-		// Parse IP address to a standard 16-byte representation
 		ip := net.ParseIP(host)
-		// Check whether IPv4 or IPv6
 		if ip4 := ip.To4(); ip4 != nil {
 			// This is a 32-bit IPv4 address to be
 			// stored in the first element of u.AddrV6
@@ -128,7 +126,6 @@ func updUtmp(u Utmpx, id string) {
 
 	defer file.Close()
 
-	// Lock the file
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),
 		Pid:  int32(os.Getpid()), //nolint:gosec // The maximum value of a pid in Linux and FreeBSD systems fits inside a int32.
@@ -166,7 +163,6 @@ func updUtmp(u Utmpx, id string) {
 		utID := string(bytes.Trim(ut.ID[:], "\x00"))
 
 		if utID == id {
-			// Required record found, rewind to overwrite it
 			if _, err = file.Seek(offset, io.SeekStart); err != nil {
 				logrus.WithFields(logrus.Fields{
 					"file": UtmpxFile,

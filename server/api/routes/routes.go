@@ -32,13 +32,10 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 
 	server.Binder = handlers.NewBinder()
 
-	// Sets the default validator.
 	server.Validator = handlers.NewValidator()
 
-	// Defines the default errors handler.
 	server.HTTPErrorHandler = handlers.NewErrors(cfg.Reporter)
 
-	// Configures the default IP extractor for a header.
 	server.IPExtractor = handlers.RealIPExtractor()
 
 	// NOTE: Instantiates a new logger instance to be used by the logger's middleware.

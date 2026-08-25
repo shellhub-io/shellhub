@@ -24,7 +24,6 @@ describe("useCountdown", () => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
-    // 5 minutes 30 seconds in the future
     const target = now / 1000 + 330;
 
     const { result } = renderHook(() => useCountdown(target));
@@ -37,7 +36,6 @@ describe("useCountdown", () => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
-    // 1 minute 1 second in the future
     const target = now / 1000 + 61;
 
     const { result } = renderHook(() => useCountdown(target));
@@ -49,7 +47,6 @@ describe("useCountdown", () => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
-    // 2 minutes 0 seconds in the future
     const target = now / 1000 + 120;
 
     const { result } = renderHook(() => useCountdown(target));
@@ -61,14 +58,12 @@ describe("useCountdown", () => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
-    // 10 seconds in the future
     const target = now / 1000 + 10;
 
     const { result } = renderHook(() => useCountdown(target));
 
     expect(result.current.timeLeft).toBe("0 minutes 10 seconds");
 
-    // Advance 3 seconds
     act(() => {
       vi.advanceTimersByTime(3000);
     });
@@ -80,14 +75,12 @@ describe("useCountdown", () => {
     const now = Date.now();
     vi.setSystemTime(now);
 
-    // 2 seconds in the future
     const target = Math.floor(now / 1000) + 2;
 
     const { result } = renderHook(() => useCountdown(target));
 
     expect(result.current.isExpired).toBe(false);
 
-    // Advance past the expiry
     act(() => {
       vi.advanceTimersByTime(3000);
     });
@@ -104,7 +97,6 @@ describe("useCountdown", () => {
 
     const { result } = renderHook(() => useCountdown(target));
 
-    // Advance to expiry
     act(() => {
       vi.advanceTimersByTime(1500);
     });
@@ -136,7 +128,6 @@ describe("useCountdown", () => {
     const now = Date.now();
     vi.setSystemTime(now);
 
-    // 5 seconds in the past
     const target = Math.floor(now / 1000) - 5;
 
     const { result } = renderHook(() => useCountdown(target));

@@ -201,7 +201,6 @@ describe("SignUp", () => {
       renderSignUp();
 
       await user.type(screen.getByLabelText(/^password$/i), "Secret123");
-      // No blur on confirmPassword
 
       expect(
         screen.queryByText(/passwords do not match/i),

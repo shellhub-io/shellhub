@@ -106,7 +106,6 @@ describe("useDevicePolling", () => {
         result.current.start();
       });
 
-      // Trigger first poll
       await act(async () => {
         vi.advanceTimersByTime(1000);
         await Promise.resolve();
@@ -114,7 +113,6 @@ describe("useDevicePolling", () => {
 
       expect(onPoll).toHaveBeenCalledTimes(1);
 
-      // Stop before second poll fires
       act(() => {
         result.current.stop();
       });
@@ -124,7 +122,6 @@ describe("useDevicePolling", () => {
         await Promise.resolve();
       });
 
-      // Should still be 1 — stopped
       expect(onPoll).toHaveBeenCalledTimes(1);
     });
   });
@@ -207,13 +204,11 @@ describe("useDevicePolling", () => {
         result.current.start();
       });
 
-      // First poll
       await act(async () => {
         vi.advanceTimersByTime(100);
         await Promise.resolve();
       });
 
-      // Second poll
       await act(async () => {
         vi.advanceTimersByTime(100);
         await Promise.resolve();
@@ -241,7 +236,6 @@ describe("useDevicePolling", () => {
         result.current.start();
       });
 
-      // First poll fires at t=1000
       await act(async () => {
         vi.advanceTimersByTime(1000);
         await Promise.resolve();
@@ -273,7 +267,6 @@ describe("useDevicePolling", () => {
         result.current.start();
       });
 
-      // First poll
       await act(async () => {
         vi.advanceTimersByTime(1000);
         await Promise.resolve();
@@ -316,7 +309,6 @@ describe("useDevicePolling", () => {
       });
       expect(onPoll).toHaveBeenCalledTimes(0);
 
-      // Second poll succeeds
       await act(async () => {
         vi.advanceTimersByTime(100);
         await Promise.resolve();
@@ -346,7 +338,6 @@ describe("useDevicePolling", () => {
         vi.advanceTimersByTime(100);
       });
 
-      // Stop while request is in flight
       act(() => {
         result.current.stop();
       });

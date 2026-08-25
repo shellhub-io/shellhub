@@ -21,9 +21,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 		return "", fromSQLError(err)
 	}
 
-	// Handle many-to-many tag relationships if tags are provided
 	if len(e.Tags) > 0 {
-		// Insert relationships into the junction table
 		now := clock.Now()
 		for _, tag := range e.Tags {
 			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint, e.NamespaceID)

@@ -544,7 +544,6 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 	require.NoError(t, st.NamespaceCreateMembership(ctx, scope.MustBounded(owner),
 		&models.Member{ID: memberID, Role: authorizer.RoleObserver}))
 
-	// The membership landed in the owning namespace only.
 	members, _, err := st.NamespaceGetMembers(ctx, scope.MustBounded(other))
 	require.NoError(t, err)
 	assert.Empty(t, members)

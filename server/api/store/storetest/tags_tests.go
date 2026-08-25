@@ -101,7 +101,6 @@ func (s *Suite) TestTagList(t *testing.T) {
 	t.Run("succeeds spanning namespaces under an explicit unbounded scope", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create tags in different namespaces
 		tenant1 := s.CreateNamespace(t)
 		tenant2 := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenant1))
@@ -122,7 +121,6 @@ func (s *Suite) TestTagList(t *testing.T) {
 	t.Run("succeeds when tenant filter applied", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create tags in different namespaces
 		tenant1 := s.CreateNamespace(t)
 		tenant2 := s.CreateNamespace(t)
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenant1))
@@ -137,7 +135,6 @@ func (s *Suite) TestTagList(t *testing.T) {
 		sortTags(tags)
 		assert.Equal(t, "production", tags[0].Name)
 		assert.Equal(t, "staging", tags[1].Name)
-		// Verify both tags belong to tenant1
 		assert.Equal(t, tenant1, tags[0].TenantID)
 		assert.Equal(t, tenant1, tags[1].TenantID)
 	})
@@ -156,7 +153,6 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
 
-		// Try to resolve the deleted tag
 		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, tag)
@@ -216,7 +212,6 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
 
-		// Try to update non-existent tag
 		tag := &models.Tag{
 			ID:       tagID,
 			TenantID: tenantID,
@@ -242,7 +237,6 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 		err := st.TagUpdate(ctx, tag)
 		require.NoError(t, err)
 
-		// Verify update
 		updatedTag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		require.NoError(t, err)
 		assert.Equal(t, "edited-tag", updatedTag.Name)
@@ -264,7 +258,6 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
 
-		// Try to push non-existent tag
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -282,7 +275,6 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		err = st.DeviceDelete(ctx, device)
 		require.NoError(t, err)
 
-		// Try to push tag to non-existent device
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -335,7 +327,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
 
-		// Try to pull non-existent tag
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -353,7 +344,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		err = st.DeviceDelete(ctx, device)
 		require.NoError(t, err)
 
-		// Try to pull tag from non-existent device
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -380,7 +370,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		fp2 := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		// Push tag to both public keys
 		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fp1)
 		require.NoError(t, err)
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fp2)
@@ -413,7 +402,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		device2 := s.CreateDevice(t, WithTenantID(tenantID))
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		// Push tag to both devices
 		err := st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(device1))
 		require.NoError(t, err)
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(device2))
@@ -463,7 +451,6 @@ func (s *Suite) TestTagDelete(t *testing.T) {
 		err := st.TagDelete(ctx, tag)
 		require.NoError(t, err)
 
-		// Verify deletion
 		_, err = st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})

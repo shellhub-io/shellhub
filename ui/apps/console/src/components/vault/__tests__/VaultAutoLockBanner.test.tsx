@@ -86,7 +86,6 @@ describe("VaultAutoLockBanner", () => {
       useVaultStore.setState({ autoLockNonce: 0 });
       render(<VaultAutoLockBanner />);
 
-      // Simulate vault auto-locking: bump the nonce
       act(() => {
         useVaultStore.setState({ autoLockNonce: 1 });
       });
@@ -104,7 +103,6 @@ describe("VaultAutoLockBanner", () => {
       useVaultStore.setState({ autoLockNonce: 0 });
       render(<VaultAutoLockBanner />);
 
-      // First lock event — toast should appear
       act(() => {
         useVaultStore.setState({ autoLockNonce: 1 });
       });
@@ -174,7 +172,6 @@ describe("VaultAutoLockBanner", () => {
         screen.getByText(/vault locked due to inactivity/i),
       ).toBeInTheDocument();
 
-      // Advance past the auto-dismiss threshold
       act(() => {
         vi.advanceTimersByTime(6100);
       });
@@ -194,7 +191,6 @@ describe("VaultAutoLockBanner", () => {
         useVaultStore.setState({ autoLockNonce: 1 });
       });
 
-      // Advance just under the threshold
       act(() => {
         vi.advanceTimersByTime(5000);
       });
@@ -214,7 +210,6 @@ describe("VaultAutoLockBanner", () => {
         useVaultStore.setState({ autoLockNonce: 1 });
       });
 
-      // Unmount before timer fires
       unmount();
 
       // Advancing timers should not throw (timer must have been cleared)

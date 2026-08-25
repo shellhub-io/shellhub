@@ -43,7 +43,6 @@ func (s *spyTransport) SendEvent(e *sentry.Event) {
 	s.mu.Lock()
 	s.events = append(s.events, e)
 	s.mu.Unlock()
-	// Signal that at least one event was delivered.
 	s.once.Do(func() { close(s.done) })
 }
 

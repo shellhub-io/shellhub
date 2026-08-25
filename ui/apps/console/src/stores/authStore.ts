@@ -92,7 +92,6 @@ export const useAuthStore = create<AuthState>()(
           const mfaToken = response.headers.get("x-mfa-token");
 
           if (mfaToken) {
-            // MFA required - store token temporarily, don't persist
             set({
               mfaToken,
               mfaEnabled: true,
@@ -102,7 +101,6 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
-          // Normal login without MFA
           const userData = data;
           set({
             token: userData.token,
@@ -264,7 +262,6 @@ export const useAuthStore = create<AuthState>()(
           const userData = data;
           const expiresAt = response.headers.get("x-expires-at") || "";
 
-          // Parse expiry time with validation
           let expiryValue: number | null = null;
           if (expiresAt) {
             const parsed = parseInt(expiresAt, 10);

@@ -127,7 +127,6 @@ func TestDeviceFromModel(t *testing.T) {
 				require.Len(t, result.Tags, 2)
 				assert.Equal(t, "tag-1", result.Tags[0].ID)
 				assert.Equal(t, "tag-2", result.Tags[1].ID)
-				// Only ID is set when using TagIDs
 				assert.Equal(t, "", result.Tags[0].Name)
 			},
 		},

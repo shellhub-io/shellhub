@@ -20,7 +20,6 @@ describe("StatusDot", () => {
     it("applies green glow shadow by default", () => {
       render(<StatusDot data-testid="dot" />);
       const outer = screen.getByRole("img", { name: "Online" });
-      // The solid dot (second child) carries the glow
       const solidDot = outer.children[1] as HTMLElement;
       expect(solidDot.className).toContain(
         "shadow-[0_0_6px_rgba(130,165,104,0.4)]",

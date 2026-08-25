@@ -87,7 +87,6 @@ export default function BaseDialog({
   const backdropHandlers = useBackdropClose(ref, onClose, canClose);
   useFocusTrap(ref, open, focusOnOpen);
 
-  // Drive showModal() / close() from the open prop.
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -110,7 +109,6 @@ export default function BaseDialog({
     const handleCancel = (e: Event) => {
       // Prevent the browser from closing the dialog itself — React owns the state.
       e.preventDefault();
-      // Honor the close guard before delegating to onClose.
       if (!canClose()) return;
       onClose();
     };

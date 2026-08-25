@@ -166,7 +166,6 @@ export function usePaginatedListState<T extends Record<string, unknown>>({
           const current = parseListParams<T>(currentStripped, defaults, constraints);
           const merged = { ...current, ...patch };
 
-          // Serialize the merged state (default-valued keys are omitted).
           const serialized = serializeListParams<T>(merged, defaults);
 
           // Remove every key managed by this instance (prefixed) from `next`,

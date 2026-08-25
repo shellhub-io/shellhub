@@ -90,7 +90,6 @@ describe("KeyFileInput", () => {
 
     it("shows the drop zone by default (file mode)", () => {
       renderComponent();
-      // Drop zone is identifiable by the empty-state label
       expect(
         screen.getByText("Drop key file, paste, or browse"),
       ).toBeInTheDocument();
@@ -213,7 +212,6 @@ describe("KeyFileInput", () => {
       const bigFile = new File([bigContent], "big.pem", { type: "text/plain" });
       fireEvent.drop(dropZone, { dataTransfer: { files: [bigFile] } });
 
-      // Give any async processing time to run
       await new Promise((r) => setTimeout(r, 20));
       expect(onChange).not.toHaveBeenCalled();
     });

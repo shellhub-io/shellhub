@@ -157,7 +157,6 @@ func (s *service) reportBilling(ctx context.Context, tenant string, action Billi
 // This is called during device acceptance in cloud environments.
 func (s *service) validateBillingForDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
 	if namespace.Billing.IsActive() {
-		// Active subscription - report acceptance for quota tracking
 		if err := s.reportBilling(ctx, namespace.TenantID, BillingActionDeviceAccept); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}

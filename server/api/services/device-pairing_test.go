@@ -112,7 +112,6 @@ func TestCreateDevicePairing(t *testing.T) {
 					}).
 					Return(nil).
 					Once()
-				// and that code is still live
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {

@@ -182,7 +182,6 @@ func namespaceList(service serviceFunc) *cobra.Command {
 				return nil
 			}
 
-			// non-quiet output
 			w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
 			fmt.Fprintln(w, "NAME\tTENANT ID\tTYPE")
 

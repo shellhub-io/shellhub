@@ -206,7 +206,6 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 			return fromSQLError(err)
 		}
 
-		// Only check if specific targets were provided
 		if len(targetIDs) > 0 {
 			if count, err := r.RowsAffected(); err != nil || count == 0 {
 				return store.ErrNoDocuments
@@ -223,7 +222,6 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 			return fromSQLError(err)
 		}
 
-		// Only check if specific targets were provided
 		if len(targetIDs) > 0 {
 			if count, err := r.RowsAffected(); err != nil || count == 0 {
 				return store.ErrNoDocuments

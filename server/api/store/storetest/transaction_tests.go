@@ -78,7 +78,6 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Verify the device WAS persisted
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)

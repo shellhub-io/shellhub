@@ -27,7 +27,6 @@ import (
 )
 
 func main() {
-	// Default command.
 	rootCmd := &cobra.Command{ // nolint: exhaustruct
 		Use: "agent",
 		Run: func(cmd *cobra.Command, _ []string) {
@@ -129,7 +128,6 @@ func main() {
 				"preferred_hostname": cfg.PreferredHostname,
 			}).Info("Listening for connections")
 
-			// Disable check update in development mode
 			if AgentVersion != "latest" {
 				go func() {
 					for {

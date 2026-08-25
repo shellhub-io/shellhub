@@ -431,7 +431,6 @@ func (a *Agent) generateDeviceIdentity() error {
 		return nil
 	}
 
-	// get identity from network interface.
 	iface, err := sysinfo.PrimaryInterface()
 	if err != nil {
 		return err

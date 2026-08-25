@@ -318,7 +318,6 @@ describe("Setup", () => {
       const user = userEvent.setup();
       renderSetup();
 
-      // Simulate the survey-completed postMessage from the iframe origin
       window.dispatchEvent(
         new MessageEvent("message", {
           data: "formbricksSurveyCompleted",

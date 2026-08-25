@@ -85,7 +85,6 @@ export default function MfaDisableDialog({
 
       onSuccess();
       onClose();
-      // Reset state
       setTimeout(() => {
         setMode("totp");
         otp.reset();
