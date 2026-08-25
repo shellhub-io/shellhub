@@ -387,7 +387,6 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
-				// Validate namespace can accept another device
 				if err := s.validateDeviceAcceptance(ctx, namespace); err != nil {
 					return err
 				}
@@ -553,11 +552,9 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 			return NewErrDeviceLimit(namespace.MaxDevices, nil)
 		}
 
-		// For CE/Enterprise, this is a license/config limit
 		return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 	}
 
-	// Additional billing validation for cloud
 	if envs.IsCloud() && s.billing != nil {
 		if err := s.validateBillingForDeviceAcceptance(ctx, namespace); err != nil {
 			log.WithError(err).WithFields(log.Fields{

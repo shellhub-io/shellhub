@@ -86,7 +86,6 @@ type HTTPProxyTarget struct {
 func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case TransportVersion1:
-		// Write initial handshake request and expect 200 OK.
 		handshakeReq, _ := http.NewRequestWithContext(ctx, http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
 		if err := handshakeReq.Write(conn); err != nil {
 			return nil, err

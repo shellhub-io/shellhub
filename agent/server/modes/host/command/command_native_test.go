@@ -67,7 +67,6 @@ func TestSetgroupsDenied(t *testing.T) {
 			return nil, os.ErrNotExist
 		}
 
-		// No warning expected — just false.
 		assert.False(t, setgroupsDenied())
 	})
 

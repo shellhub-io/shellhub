@@ -541,7 +541,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, lockout, "", NewErrAuthUnathorized(nil)
 	}
 
-	// Reset the attempt and timeout values when succeeds
 	if err := s.cache.ResetLoginAttempts(ctx, sourceIP, user.ID); err != nil {
 		log.WithError(err).
 			WithField("source_ip", sourceIP).

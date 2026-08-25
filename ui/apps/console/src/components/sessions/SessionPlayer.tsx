@@ -117,7 +117,6 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
     void p.play();
   };
 
-  // Initial setup — runs once
   useEffect(() => {
     setupPlayer();
     return () => {
@@ -139,7 +138,6 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
     setCurrentTime(clamped);
   };
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (

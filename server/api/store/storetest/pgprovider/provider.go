@@ -51,7 +51,6 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 	pgStore := st.(*pg.Pg)
 	driver := pgStore.Driver()
 
-	// Get fixtures path relative to this file
 	_, file, _, _ := runtime.Caller(0)
 	// Navigate from storetest/pgprovider/provider.go to storetest/fixtures
 	fixturesPath := filepath.Join(filepath.Dir(file), "..", "fixtures")
@@ -88,7 +87,6 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 			return fmt.Errorf("failed to read fixture %s: %w", fixtureName, err)
 		}
 
-		// Parse YAML into generic structure
 		var records []map[string]interface{}
 		if err := yaml.Unmarshal(data, &records); err != nil {
 			return fmt.Errorf("failed to parse fixture %s: %w", fixtureName, err)
@@ -96,7 +94,6 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 
 		t.Logf("Loading %d records from fixture %s", len(records), fixtureName)
 
-		// Insert records based on fixture name
 		if err := p.insertFixture(ctx, fixtureName, records); err != nil {
 			return fmt.Errorf("failed to insert fixture %s: %w", fixtureName, err)
 		}
@@ -121,12 +118,9 @@ func (p *Provider) insertFixture(ctx context.Context, fixtureName string, record
 		return nil
 	}
 
-	// Map fixture name to table name
 	tableName := fixtureName
 
-	// Insert each record individually to handle different schemas
 	for _, record := range records {
-		// Convert Go slices to PostgreSQL array format
 		processedRecord := p.processRecordForPostgres(record)
 
 		// Use Model with map and Table to specify table name
@@ -150,7 +144,6 @@ func (p *Provider) processRecordForPostgres(record map[string]interface{}) map[s
 	for key, value := range record {
 		switch v := value.(type) {
 		case []interface{}:
-			// Convert slice to PostgreSQL array format using pq.Array
 			if len(v) > 0 {
 				if _, ok := v[0].(string); ok {
 					strArray := make([]string, len(v))
@@ -191,7 +184,6 @@ func (p *Provider) CleanDatabase(t *testing.T) error {
 		return fmt.Errorf("failed to list tables: %w", err)
 	}
 
-	// If no tables exist yet, nothing to clean
 	if tableList == "" {
 		return nil
 	}

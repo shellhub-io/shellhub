@@ -43,7 +43,6 @@ export default function TerminalManager({
     });
   }, [reconnectTarget, currentNamespace]);
 
-  // Auto-minimize terminal when navigating to another page
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
   useEffect(() => {

@@ -15,7 +15,6 @@ func TestAcceptClientEnv(t *testing.T) {
 		input    []string
 		expected []string
 	}{
-		// Accepted entries
 		{
 			name:     "accept LANG",
 			input:    []string{"LANG=en_US.UTF-8"},
@@ -41,7 +40,6 @@ func TestAcceptClientEnv(t *testing.T) {
 			input:    []string{"LC_="},
 			expected: []string{"LC_="},
 		},
-		// Dropped entries
 		{
 			name:     "drop LD_PRELOAD",
 			input:    []string{"LD_PRELOAD=/"},
@@ -107,7 +105,6 @@ func TestAcceptClientEnv(t *testing.T) {
 			input:    []string{"LD_=x"},
 			expected: []string{},
 		},
-		// Edge cases
 		{
 			name:     "drop malformed entry without equals sign",
 			input:    []string{"FOO"},

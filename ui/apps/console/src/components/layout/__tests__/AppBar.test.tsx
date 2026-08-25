@@ -140,7 +140,6 @@ describe("AppBar", () => {
     // Now mid fade-out (pending = t1, nothing committed yet).
     expect(contentWrapper().className).toContain("opacity-0");
 
-    // Session removed before transitionend ever fires.
     act(() => {
       useTerminalStore.setState({ sessions: [] });
     });

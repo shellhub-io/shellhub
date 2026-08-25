@@ -1680,7 +1680,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "device-name", mock.AnythingOfType("[]store.QueryOption")).
 					Return(oldDevice, nil).
 					Once()
-				// Merge operations
 				storeMock.
 					On("SessionUpdateDeviceUID", ctx, models.UID("old-device"), models.UID("new-device")).
 					Return(nil).
@@ -1697,7 +1696,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
-				// Final status update
 				storeMock.
 					On("DeviceUpdate", ctx, finalDevice).
 					Return(nil).
@@ -2095,7 +2093,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		expectedError error
 	}{
 		{
-			// (a) evaluator returns (false, nil) → ErrDeviceLicenseLimit
 			description: "failure (accepted) (different MAC) - license limit reached",
 			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
@@ -2142,7 +2139,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 			expectedError: ErrDeviceLicenseLimit,
 		},
 		{
-			// (b) evaluator returns (true, nil) → device accepted
 			description: "success (accepted) (different MAC) - license allows acceptance",
 			edition:     envs.Enterprise,
 			req: &requests.DeviceUpdateStatus{
@@ -2258,7 +2254,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("CanAcceptDevice", ctx).
 					Return(false, errors.New("evaluator unreachable", "", 0)).
 					Once()
-				// fail-open: device is accepted despite evaluator error
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
 					Return(nil).
@@ -2352,7 +2347,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
-				// Final status update
 				storeMock.
 					On("DeviceUpdate", ctx, finalDevice).
 					Return(nil).

@@ -12,7 +12,6 @@ import (
 
 func TestLicenseEvaluator(t *testing.T) {
 	t.Run("factory is nil before registration", func(t *testing.T) {
-		// Reset the package-level var before the test.
 		licenseEvaluatorFactory = nil
 
 		got := LicenseEvaluatorFactory()

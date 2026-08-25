@@ -211,7 +211,6 @@ func TestUserToModel(t *testing.T) {
 			assert.Equal(t, tt.expected.LastLogin, result.LastLogin)
 			assert.Equal(t, tt.expected.EmailMarketing, result.EmailMarketing)
 			assert.Equal(t, tt.expected.Admin, result.Admin)
-			// UserData disaggregation
 			assert.Equal(t, tt.expected.Name, result.Name)
 			assert.Equal(t, tt.expected.Username, result.Username)
 			assert.Equal(t, tt.expected.Email, result.Email)

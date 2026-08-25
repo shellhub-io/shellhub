@@ -48,14 +48,12 @@ func TestDeadReadGuard(t *testing.T) {
 		g := &deadReadGuard{r: emptyReader{}}
 		buf := make([]byte, 8)
 
-		// The first maxConsecutiveEmptyReads-1 calls report (0, nil)...
 		for range maxConsecutiveEmptyReads - 1 {
 			n, err := g.Read(buf)
 			require.Equal(t, 0, n)
 			require.NoError(t, err)
 		}
 
-		// ...and the next one trips the guard.
 		n, err := g.Read(buf)
 		assert.Equal(t, 0, n)
 		assert.ErrorIs(t, err, io.ErrNoProgress)

@@ -29,7 +29,6 @@ func getMaxDevices() int {
 // The tenant defaults to a UUID if not provided.
 // Max device limit is based on the envs.IsCloud() setting.
 func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error) {
-	// tenant is optional.
 	if input.TenantID == "" {
 		input.TenantID = uuid.Generate()
 	}

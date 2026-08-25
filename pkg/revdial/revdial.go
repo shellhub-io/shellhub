@@ -137,7 +137,6 @@ func (d *Dialer) close() {
 func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 	uuid := uuid.Generate()
 
-	// First, tell serve that we want a connection:
 	select {
 	case d.connReady <- uuid:
 		d.logger.Debug("message true to conn ready channel")
@@ -161,7 +160,6 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 
 	connection := ch.(chan net.Conn)
 
-	// Then pick it up:
 	select {
 	case c := <-connection:
 		d.logger.Debug("new incoming connection")
@@ -241,7 +239,6 @@ func (d *Dialer) serve() error {
 				}
 			case "keep-alive":
 			default:
-				// Ignore unknown messages
 				log.WithField("message", msg.Command).Debug("unknown message received")
 			}
 		}
@@ -346,7 +343,6 @@ func (ln *Listener) run() {
 
 	closeTimer := time.AfterFunc(dialerKeepAliveTimeout, done)
 
-	// Write loop
 	writec := make(chan []byte, 8)
 	ln.writec = writec
 	go func() {
@@ -369,7 +365,6 @@ func (ln *Listener) run() {
 	go func() {
 		defer onceDefer.Do(done)
 
-		// Read loop
 		br := bufio.NewReader(ln.sc)
 		for {
 			line, err := br.ReadSlice('\n')
@@ -390,7 +385,6 @@ func (ln *Listener) run() {
 			case "conn-ready":
 				go ln.grabConn(msg.ConnPath)
 			default:
-				// Ignore unknown messages
 			}
 		}
 	}()

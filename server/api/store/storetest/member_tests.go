@@ -22,7 +22,6 @@ func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 		// Create a user but not a namespace
 		userID := s.CreateUser(t)
 
-		// Try to add membership to non-existent namespace
 		member := &models.Member{
 			ID:   userID,
 			Role: authorizer.RoleObserver,
@@ -37,7 +36,6 @@ func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 
-		// Add user as member to namespace
 		member := &models.Member{
 			ID:   userID,
 			Role: authorizer.RoleObserver,
@@ -63,7 +61,6 @@ func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), member)
 		require.NoError(t, err)
 
-		// Try to update membership for non-existent user
 		nonExistentMember := &models.Member{
 			ID:   "99999999-9999-4999-9999-999999999999",
 			Role: authorizer.RoleAdministrator,
@@ -112,7 +109,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		err = st.NamespaceDelete(ctx, ns)
 		require.NoError(t, err)
 
-		// Try to delete membership from deleted namespace
 		err = st.NamespaceDeleteMembership(ctx, scope.MustBounded(tenantID), member)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -143,12 +139,10 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		// Set preferred namespace (targeted write; full UserUpdate no longer persists it)
 		require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, tenantID))
 
-		// Verify preferred is set
 		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, user.Preferences.PreferredNamespace)
 
-		// Delete membership
 		member := &models.Member{
 			ID:   userID,
 			Role: authorizer.RoleObserver,
@@ -156,7 +150,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		err = st.NamespaceDeleteMembership(ctx, scope.MustBounded(tenantID), member)
 		require.NoError(t, err)
 
-		// Verify preferred namespace is cleared
 		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		assert.Empty(t, user.Preferences.PreferredNamespace)

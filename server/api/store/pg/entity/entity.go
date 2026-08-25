@@ -2,7 +2,6 @@ package entity
 
 func Entities() []any {
 	return []any{
-		// Register intermediary models first for many-to-many relationships
 		(*DeviceTag)(nil),
 		(*PublicKeyTag)(nil),
 		(*AccessPolicyTag)(nil),

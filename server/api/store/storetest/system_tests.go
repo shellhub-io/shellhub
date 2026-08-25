@@ -17,7 +17,6 @@ func (s *Suite) TestSystemGet(t *testing.T) {
 	t.Run("returns existing system configuration", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create a system configuration
 		expectedSystem := &models.System{
 			Setup: true,
 			Authentication: &models.SystemAuthentication{
@@ -79,7 +78,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		err := st.SystemSet(ctx, system)
 		require.NoError(t, err)
 
-		// Verify it was created
 		created, err := st.SystemGet(ctx)
 		require.NoError(t, err)
 		assert.True(t, created.Setup)
@@ -100,7 +98,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		err := st.SystemSet(ctx, initialSystem)
 		require.NoError(t, err)
 
-		// Update system
 		updatedSystem := &models.System{
 			Setup: true,
 			Authentication: &models.SystemAuthentication{
@@ -113,7 +110,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		err = st.SystemSet(ctx, updatedSystem)
 		require.NoError(t, err)
 
-		// Verify update
 		system, err := st.SystemGet(ctx)
 		require.NoError(t, err)
 		assert.True(t, system.Setup)
@@ -135,7 +131,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		err := st.SystemSet(ctx, system)
 		require.NoError(t, err)
 
-		// Verify
 		created, err := st.SystemGet(ctx)
 		require.NoError(t, err)
 		assert.NotNil(t, created)

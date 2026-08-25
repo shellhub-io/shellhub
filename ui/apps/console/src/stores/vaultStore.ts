@@ -398,7 +398,6 @@ export const useVaultStore = create<VaultState>((set, get) => {
           await persistKeys(get().keys, backend);
           await backend.saveMeta(newMeta);
         } catch (err) {
-          // Restore old session key, encrypted data, and meta
           setSessionKey(oldKey);
           if (oldData) await backend.saveData(oldData).catch(() => undefined);
           await backend.saveMeta(oldMeta).catch(() => undefined);

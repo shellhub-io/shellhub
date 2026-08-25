@@ -110,6 +110,5 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	case <-done:
 		t.Fatal("it returned without a deadline; the timeout is not what bounds this")
 	case <-time.After(3 * time.Second):
-		// Still waiting, as expected.
 	}
 }

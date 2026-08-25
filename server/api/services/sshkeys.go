@@ -225,7 +225,6 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		}
 	}
 
-	// Update the public key fields
 	publicKey.Name = key.Name
 	publicKey.Username = key.Username
 	publicKey.Filter.Hostname = key.Filter.Hostname

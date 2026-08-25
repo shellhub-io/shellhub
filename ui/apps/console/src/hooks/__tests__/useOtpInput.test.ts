@@ -73,7 +73,6 @@ describe("useOtpInput", () => {
   it("handles backspace on empty field", () => {
     const { result } = renderHook(() => useOtpInput(6));
 
-    // Fill first two digits
     act(() => {
       result.current.handleChange(0, "1");
       result.current.handleChange(1, "2");
@@ -98,7 +97,6 @@ describe("useOtpInput", () => {
 
     expect(result.current.code[0]).toBe("1");
 
-    // Backspace on filled field should clear it
     act(() => {
       result.current.handleKeyDown(0, { key: "Backspace" } as React.KeyboardEvent<HTMLInputElement>);
     });

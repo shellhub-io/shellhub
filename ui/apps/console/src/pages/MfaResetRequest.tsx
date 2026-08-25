@@ -17,7 +17,6 @@ export default function MfaResetRequest() {
 
   const { handleSubmit } = useForm();
 
-  // Clear stale error from previous session
   useEffect(() => {
     useMfaResetStore.setState({ error: null });
   }, []);
@@ -29,7 +28,6 @@ export default function MfaResetRequest() {
     }
   }, [identifier, mfaToken, navigate]);
 
-  // Don't render if we don't have an identifier
   if (!identifier) {
     return null;
   }

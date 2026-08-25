@@ -79,7 +79,6 @@ export default function NamespaceGuard() {
   const apiReachable = useConnectivityStore((s) => s.apiReachable);
   const { pathname } = useLocation();
 
-  // Retry namespace fetch when API comes back online
   useEffect(() => {
     if (apiReachable && error) {
       void refetch();

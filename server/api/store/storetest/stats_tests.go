@@ -18,7 +18,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 	t.Run("succeeds without tenantID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create data for tenant1
 		tenant1 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("pending"))
@@ -26,7 +25,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
-		// Create data for tenant2
 		tenant2 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 
@@ -45,7 +43,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 	t.Run("succeeds with specific tenantID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create data for tenant1
 		tenant1 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
@@ -62,7 +59,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		// Should count only tenant1 accepted devices
 		assert.Equal(t, 3, stats.RegisteredDevices) // 3 accepted devices from tenant1
 		assert.Equal(t, 1, stats.ActiveSessions)
 		assert.Equal(t, 1, stats.PendingDevices)
@@ -71,19 +67,16 @@ func (s *Suite) TestGetStats(t *testing.T) {
 	t.Run("succeeds with non-existent tenantID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create data for an existing tenant
 		tenant1 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 
 		deviceUID := s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
-		// Query with non-existent tenant ID
 		stats, err := st.GetStats(ctx, scope.MustBounded("99999999-9999-4999-9999-999999999999"))
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 
-		// Should return zero stats
 		assert.Equal(t, 0, stats.RegisteredDevices)
 		assert.Equal(t, 0, stats.ActiveSessions)
 		assert.Equal(t, 0, stats.PendingDevices)

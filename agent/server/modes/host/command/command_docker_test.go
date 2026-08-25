@@ -81,7 +81,6 @@ func TestNsenterCommandWrapper(t *testing.T) {
 	})
 
 	t.Run("statFn controls which ns flags appear", func(t *testing.T) {
-		// Override statFn so only net is present.
 		statFn = func(path string) (os.FileInfo, error) {
 			if path == "/usr/bin/nsenter" || path == "/proc/1/ns/net" {
 				return nil, nil
@@ -102,7 +101,6 @@ func TestNsenterCommandWrapper(t *testing.T) {
 	})
 
 	t.Run("multiple ns flags from statFn — no -T", func(t *testing.T) {
-		// Override statFn so mnt and uts are present.
 		statFn = func(path string) (os.FileInfo, error) {
 			if path == "/usr/bin/nsenter" || path == "/proc/1/ns/mnt" || path == "/proc/1/ns/uts" {
 				return nil, nil

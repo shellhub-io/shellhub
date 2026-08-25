@@ -163,7 +163,6 @@ func TestSSHIdentityMode(t *testing.T) {
 }
 
 func TestSSH(t *testing.T) {
-	// Run all tests with both v1 and v2
 	for _, version := range []int{1, 2} {
 		t.Run(fmt.Sprintf("connection_v%d", version), func(t *testing.T) {
 			testSSHWithVersion(t, version)
@@ -874,7 +873,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 				defer sess.Close()
 
-				// Generate large output (around 1MB).
 				output, err := sess.Output("yes X | tr -d '\n' | head -c 1048576")
 				require.NoError(t, err)
 
@@ -1086,7 +1084,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				sess.Stdout = &stdout
 				sess.Stderr = &stderr
 
-				// No RequestPty: this is the heredoc shape.
 				require.NoError(t, sess.Shell())
 
 				_, err = io.WriteString(stdin, "echo -n heredoc_out\necho -n heredoc_err 1>&2\nexit 5\n")
@@ -1154,7 +1151,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				_, err = ch.SendRequest("shell", true, nil)
 				require.NoError(t, err)
 
-				// The agent runs with SHELLHUB_KEEPALIVE_INTERVAL=1.
 				for {
 					select {
 					case req, ok := <-reqs:
@@ -1360,7 +1356,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, specialChars, string(output))
 
-				// Test Unicode characters
 				unicodeChars := "こんにちは世界 ñáéíóú 你好世界"
 				sess2, err := conn.NewSession()
 				require.NoError(t, err)

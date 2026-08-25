@@ -77,11 +77,9 @@ export default function AdminAuthentication() {
 
   const handleSamlToggle = async () => {
     if (!settings?.saml?.enabled) {
-      // Turning ON — open drawer to configure first
       setDrawerOpen(true);
       return;
     }
-    // Turning OFF
     setTogglingSaml(true);
     setError(null);
     try {

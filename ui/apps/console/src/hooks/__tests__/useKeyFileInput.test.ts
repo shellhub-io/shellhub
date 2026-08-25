@@ -21,7 +21,6 @@ function mockFileReader(content: string) {
     onload: (() => void) | null = null;
 
     readAsText(_file: File) {
-      // Simulate async read with a microtask
       void Promise.resolve().then(() => {
         this.result = content;
         if (this.onload) this.onload();
@@ -155,7 +154,6 @@ describe("useKeyFileInput", () => {
       await act(async () => {
         result.current.processFile(makeFile("key.pem", "key content"));
       });
-      // onChange still called, no error thrown
       expect(onChange).toHaveBeenCalledWith("key content");
       restore();
     });
@@ -275,7 +273,6 @@ describe("useKeyFileInput", () => {
       Object.defineProperty(event, "clipboardData", {
         value: { getData: (_: string) => text },
       });
-      // Make preventDefault a spy we can assert on
       event.preventDefault = vi.fn();
       document.dispatchEvent(event);
       return event;

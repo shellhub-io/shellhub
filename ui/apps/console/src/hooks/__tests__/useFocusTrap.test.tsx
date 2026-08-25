@@ -94,7 +94,6 @@ describe("useFocusTrap", () => {
         screen.getByRole("button", { name: "Third" }),
       );
 
-      // Tab again — should wrap to First
       await user.tab();
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "First" }),
@@ -136,13 +135,11 @@ describe("useFocusTrap", () => {
       trigger.focus();
       expect(document.activeElement).toBe(trigger);
 
-      // Activate trap
       await user.click(trigger);
       expect(document.activeElement).toBe(
         screen.getByRole("button", { name: "Inside" }),
       );
 
-      // Deactivate trap — focus should return to trigger
       await user.click(trigger);
       expect(document.activeElement).toBe(trigger);
     });

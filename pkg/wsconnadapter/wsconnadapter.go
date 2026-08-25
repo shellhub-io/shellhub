@@ -96,7 +96,6 @@ func (a *Adapter) Ping() chan bool {
 			timeout.Reset(a.pongTimeout)
 			a.Logger.Trace("pong timeout")
 
-			// non-blocking channel write
 			select {
 			case a.pongCh <- true:
 				a.Logger.Trace("write true to pong channel")
@@ -106,7 +105,6 @@ func (a *Adapter) Ping() chan bool {
 			return nil
 		})
 
-		// ping loop
 		go func() {
 			ticker := time.NewTicker(a.pingInterval)
 			defer ticker.Stop()

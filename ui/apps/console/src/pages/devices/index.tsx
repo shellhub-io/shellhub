@@ -324,7 +324,6 @@ export default function Devices() {
       ];
     }
 
-    // rejected
     return [
       ...baseColumns,
       {

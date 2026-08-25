@@ -555,7 +555,6 @@ describe("vaultStore", () => {
 
       const { onIdle } = mockTrackerStart.mock.calls[0][0];
 
-      // Manually lock the vault first
       useVaultStore.setState({ status: "locked", autoLockNonce: 2 });
       vi.clearAllMocks();
 
@@ -762,7 +761,6 @@ describe("vaultStore", () => {
       // Lock the vault mid-flight (simulating onIdle firing during await)
       useVaultStore.setState({ status: "locked", keys: [] });
 
-      // Resolve encrypt so persistKeys finishes
       resolveEncrypt(makeVaultData());
       await promise.catch(() => {
         /* may throw */
@@ -858,7 +856,6 @@ describe("vaultStore", () => {
         .getState()
         .updateKey("key-1", { name: "New Name" });
 
-      // Lock mid-flight
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
@@ -923,7 +920,6 @@ describe("vaultStore", () => {
 
       const promise = useVaultStore.getState().removeKey("key-1");
 
-      // Lock mid-flight
       useVaultStore.setState({ status: "locked", keys: [] });
 
       resolveEncrypt(makeVaultData());
@@ -1040,7 +1036,6 @@ describe("vaultStore", () => {
       expect(
         mockSetSession.mock.calls[mockSetSession.mock.calls.length - 1]?.[0],
       ).toBe(oldKey);
-      // Old data should have been restored
       expect(backend.saveData).toHaveBeenCalledWith(oldData);
     });
 
@@ -1079,7 +1074,6 @@ describe("vaultStore", () => {
       useVaultStore.setState({ status: "locked", keys: [] });
       mockGetSession.mockReturnValue(null);
 
-      // Now resolve createVaultMeta
       resolveCrypto({ meta: newMeta, derivedKey: newKey });
       await promise;
 
@@ -1090,7 +1084,6 @@ describe("vaultStore", () => {
       expect(backend.saveMeta).not.toHaveBeenCalledWith(newMeta);
       // saveData should NOT have been re-called (the new encrypt path never ran)
       expect(mockEncrypt).not.toHaveBeenCalled();
-      // Error should be set
       expect(useVaultStore.getState().error).toBe(
         "Vault locked during password change",
       );

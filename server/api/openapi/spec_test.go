@@ -38,21 +38,18 @@ func TestGetSessionsAdvertisesFilterQueryParameter(t *testing.T) {
 	_, err := os.Stat(filterRef)
 	require.NoError(t, err, "filterQuery.yaml component file should exist at %s", filterRef)
 
-	// Read and parse the sessions path spec.
 	data, err := os.ReadFile(sessionsPath) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 	require.NoError(t, err, "should be able to read %s", sessionsPath)
 
 	var spec map[string]interface{}
 	require.NoError(t, yaml.Unmarshal(data, &spec), "api@sessions.yaml must be valid YAML")
 
-	// Navigate to get.parameters.
 	getOp, ok := spec["get"].(map[string]interface{})
 	require.True(t, ok, "spec must have a 'get' operation")
 
 	params, ok := getOp["parameters"].([]interface{})
 	require.True(t, ok, "get operation must have a 'parameters' list")
 
-	// Look for a $ref entry pointing to filterQuery.yaml.
 	const wantRef = "../components/parameters/query/filterQuery.yaml"
 
 	found := false

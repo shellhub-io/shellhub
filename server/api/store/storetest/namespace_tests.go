@@ -30,7 +30,6 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 	t.Run("returns all namespaces without pagination", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test namespaces
 		s.CreateNamespace(t, WithNamespaceName("namespace-1"))
 		s.CreateNamespace(t, WithNamespaceName("namespace-2"))
 		s.CreateNamespace(t, WithNamespaceName("namespace-3"))
@@ -45,7 +44,6 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		assert.Equal(t, 4, count)
 		assert.Len(t, namespaces, 4)
 
-		// Verify namespace names
 		names := []string{}
 		for _, ns := range namespaces {
 			names = append(names, ns.Name)
@@ -84,7 +82,6 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 	t.Run("pagination works correctly - page 1", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test namespaces
 		s.CreateNamespace(t, WithNamespaceName("ns-1"))
 		s.CreateNamespace(t, WithNamespaceName("ns-2"))
 		s.CreateNamespace(t, WithNamespaceName("ns-3"))
@@ -103,7 +100,6 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 	t.Run("pagination works correctly - page 2", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test namespaces
 		s.CreateNamespace(t, WithNamespaceName("ns-1"))
 		s.CreateNamespace(t, WithNamespaceName("ns-2"))
 		s.CreateNamespace(t, WithNamespaceName("ns-3"))
@@ -128,7 +124,6 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 	t.Run("resolve by tenant ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test namespace
 		tenantID := s.CreateNamespace(t, WithNamespaceName("namespace-1"))
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
@@ -141,7 +136,6 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 	t.Run("resolve by name", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test namespace
 		tenantID := s.CreateNamespace(t, WithNamespaceName("namespace-2"))
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceNameResolver, "namespace-2")
@@ -244,7 +238,6 @@ func (s *Suite) TestNamespaceGetPreferred(t *testing.T) {
 	t.Run("returns error for user with no namespaces", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user without any namespaces
 		userID := s.CreateUser(t)
 
 		ns, err := st.NamespaceGetPreferred(ctx, userID)
@@ -305,7 +298,6 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "ns-with-members", ns.Name)
 
-		// Verify member exists
 		found := false
 		for _, m := range ns.Members {
 			if m.ID == memberID {
@@ -319,7 +311,6 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 	t.Run("creates namespace successfully", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create owner
 		userID := s.CreateUser(t)
 
 		namespace := &models.Namespace{
@@ -333,7 +324,6 @@ func (s *Suite) TestNamespaceCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, tenantID)
 
-		// Verify it was created
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		assert.Equal(t, "test-namespace", ns.Name)
@@ -467,7 +457,6 @@ func (s *Suite) TestNamespaceConflicts(t *testing.T) {
 
 		s.CreateNamespace(t, WithNamespaceName("namespace-1"))
 
-		// Check for conflict with same name
 		conflicts, has, err := st.NamespaceConflicts(ctx, &models.NamespaceConflicts{
 			Name: "namespace-1",
 		})
@@ -482,7 +471,6 @@ func (s *Suite) TestNamespaceConflicts(t *testing.T) {
 
 		s.CreateNamespace(t, WithNamespaceName("namespace-1"))
 
-		// Check with different name
 		conflicts, has, err := st.NamespaceConflicts(ctx, &models.NamespaceConflicts{
 			Name: "unique-namespace",
 		})
@@ -503,7 +491,6 @@ func (s *Suite) TestNamespaceUpdate(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t, WithNamespaceName("original-name"))
 
-		// Get and update it
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 
@@ -513,7 +500,6 @@ func (s *Suite) TestNamespaceUpdate(t *testing.T) {
 		err = st.NamespaceUpdate(ctx, ns)
 		require.NoError(t, err)
 
-		// Verify update
 		updated, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		assert.Equal(t, "updated-namespace", updated.Name)
@@ -546,7 +532,6 @@ func (s *Suite) TestNamespaceIncrementDeviceCount(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Get initial counts
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		initialAccepted := ns.DevicesAcceptedCount
@@ -555,17 +540,14 @@ func (s *Suite) TestNamespaceIncrementDeviceCount(t *testing.T) {
 		err = st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 5)
 		require.NoError(t, err)
 
-		// Verify increment
 		ns, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		assert.Equal(t, initialAccepted+5, ns.DevicesAcceptedCount)
 		assert.Equal(t, initialPending, ns.DevicesPendingCount, "other counters should not change")
 
-		// Decrement
 		err = st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, -3)
 		require.NoError(t, err)
 
-		// Verify decrement
 		ns, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		assert.Equal(t, initialAccepted+2, ns.DevicesAcceptedCount)
@@ -592,14 +574,12 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Get namespace to delete
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 
 		err = st.NamespaceDelete(ctx, ns)
 		require.NoError(t, err)
 
-		// Verify deletion
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -607,7 +587,6 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	t.Run("fails when namespace does not exist", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Try to delete non-existent namespace
 		fakeNs := &models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}
 		err := st.NamespaceDelete(ctx, fakeNs)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
@@ -616,12 +595,10 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	t.Run("deletes namespace with devices and sessions", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace with devices and sessions
 		tenantID := s.CreateNamespace(t)
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		sessionUID := s.CreateSession(t, WithSessionDevice(deviceUID))
 
-		// Verify resources exist
 		_, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
 		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
@@ -632,7 +609,6 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		err = st.NamespaceDelete(ctx, ns)
 		require.NoError(t, err)
 
-		// Verify cascade deletion
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
@@ -646,7 +622,6 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		pkFingerprint := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
 		apiKeyID := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID))
 
-		// Verify resources exist
 		_, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, pkFingerprint)
 		require.NoError(t, err)
 		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, apiKeyID)
@@ -657,7 +632,6 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		err = st.NamespaceDelete(ctx, ns)
 		require.NoError(t, err)
 
-		// Verify cascade deletion
 		_, err = st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, pkFingerprint)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, apiKeyID)
@@ -667,14 +641,12 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	t.Run("clears user preferred namespace when deleted", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user with preferred namespace
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 
 		// Set preferred namespace (targeted write; full UserUpdate no longer persists it)
 		require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, tenantID))
 
-		// Verify preferred namespace is set
 		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, user.Preferences.PreferredNamespace)
@@ -684,7 +656,6 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		err = st.NamespaceDelete(ctx, ns)
 		require.NoError(t, err)
 
-		// Verify preferred namespace is cleared
 		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		assert.Empty(t, user.Preferences.PreferredNamespace)
@@ -746,7 +717,6 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), deleted)
 
-		// Verify ns-1 still exists
 		namespaces, count, err := st.NamespaceList(ctx)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
@@ -770,7 +740,6 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), deleted)
 
-		// Verify deletions
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant1)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant2)
@@ -780,24 +749,20 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 	t.Run("deletes multiple namespaces", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create multiple namespaces
 		tenant1 := s.CreateNamespace(t, WithNamespaceName("ns-1"))
 		tenant2 := s.CreateNamespace(t, WithNamespaceName("ns-2"))
 		tenant3 := s.CreateNamespace(t, WithNamespaceName("ns-3"))
 
-		// Delete first two
 		tenantIDs := []string{tenant1, tenant2}
 		deleted, err := st.NamespaceDeleteMany(ctx, tenantIDs)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), deleted)
 
-		// Verify deletions
 		for _, tenantID := range tenantIDs {
 			_, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 			assert.ErrorIs(t, err, store.ErrNoDocuments)
 		}
 
-		// Verify remaining namespace still exists
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant3)
 		require.NoError(t, err)
 		assert.Equal(t, "ns-3", ns.Name)

@@ -45,7 +45,6 @@ func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		// No system exists, create new one
 		if systemEntity.ID == "" {
 			systemEntity.ID = uuid.Generate()
 		}

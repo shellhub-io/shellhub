@@ -29,7 +29,6 @@ export default function VaultAutoLockBanner() {
     seenNonce.current = autoLockNonce;
     setVisible(true);
 
-    // Clear any pending auto-dismiss from a previous show
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
     }

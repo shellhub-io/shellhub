@@ -202,7 +202,6 @@ describe("authStore", () => {
         // Should not throw at the caller level
         expect(() => useAuthStore.getState().logout()).not.toThrow();
 
-        // Auth state is still cleared
         expect(useAuthStore.getState().token).toBeNull();
         expect(useAuthStore.getState().user).toBeNull();
       });
@@ -305,7 +304,6 @@ describe("authStore", () => {
         loading: true,
         username: "admin",
         recoveryEmail: "r@b.com",
-        // MFA fields
         mfaEnabled: true,
         mfaToken: "mfa-temp-token",
         mfaRecoveryExpiry: "1234567890",

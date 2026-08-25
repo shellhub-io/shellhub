@@ -194,7 +194,6 @@ func TestPgStore(t *testing.T) {
 // This ensures complete isolation between test suites
 func runSubSuite(t *testing.T, name string, testFunc func(*storetest.Suite, *testing.T)) {
 	t.Run(name, func(t *testing.T) {
-		// Create fresh provider with new database + migrations
 		ctx := context.Background()
 		provider, err := pgprovider.NewProvider(ctx)
 		if err != nil {
@@ -202,7 +201,6 @@ func runSubSuite(t *testing.T, name string, testFunc func(*storetest.Suite, *tes
 		}
 		defer provider.Close(t)
 
-		// Create suite and run tests
 		suite := storetest.NewSuite(provider)
 		testFunc(suite, t)
 	})

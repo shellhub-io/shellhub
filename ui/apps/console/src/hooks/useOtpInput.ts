@@ -5,7 +5,6 @@ export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, value: string) => {
-    // Validate input based on mode
     const pattern = alphanumeric ? /^[a-zA-Z0-9]$/ : /^\d$/;
     if (value && !pattern.test(value)) return;
 
@@ -15,7 +14,6 @@ export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
       return newCode;
     });
 
-    // Auto-advance to next field
     if (value && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }

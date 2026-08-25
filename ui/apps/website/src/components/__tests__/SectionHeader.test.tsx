@@ -25,7 +25,6 @@ describe("SectionHeader", () => {
   it("reveal=false renders a plain div without Reveal", () => {
     render(<SectionHeader title="Hello" reveal={false} />);
     expect(screen.queryByTestId("reveal-wrapper")).toBeNull();
-    // Should still render a wrapper div
     const h2 = screen.getByRole("heading", { level: 2 });
     expect(h2).toBeInTheDocument();
   });

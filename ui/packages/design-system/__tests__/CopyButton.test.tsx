@@ -46,11 +46,9 @@ describe("CopyButton — copy lifecycle (secure context)", () => {
     });
     expect(writeText).toHaveBeenCalledWith("hello");
 
-    // After click: check icon appears
     const checkPath = btn.querySelector("path[d*='m4.5 12.75']");
     expect(checkPath).not.toBeNull();
 
-    // After 1500ms: reverts back to clipboard icon
     act(() => {
       vi.advanceTimersByTime(1500);
     });
@@ -75,7 +73,6 @@ describe("CopyButton — onError on writeText rejection", () => {
     render(<CopyButton text="hello" onError={onError} />);
     fireEvent.click(screen.getByTitle("Copy"));
 
-    // Flush the rejected promise
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce());
   });
 });

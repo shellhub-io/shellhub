@@ -88,7 +88,6 @@ describe("AnnouncementModal", () => {
       renderModal({
         announcement: makeAnnouncement({ date: "2024-06-15T12:00:00Z" }),
       });
-      // formatDateShort renders "Jun 15, 2024"
       expect(screen.getByText("Jun 15, 2024")).toBeInTheDocument();
     });
 

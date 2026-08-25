@@ -231,7 +231,6 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
 
-		// Try to update the deleted API key
 		apiKey.Name = "updated"
 		err = st.APIKeyUpdate(ctx, apiKey)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
@@ -243,7 +242,6 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID), WithAPIKeyRole("administrator"))
 
-		// Get the full API key
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
@@ -251,7 +249,6 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		err = st.APIKeyUpdate(ctx, apiKey)
 		require.NoError(t, err)
 
-		// Verify update
 		updatedKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 		assert.Equal(t, "updated-dev", updatedKey.Name)
@@ -274,7 +271,6 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
 
-		// Try to delete again
 		err = st.APIKeyDelete(ctx, apiKey)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -285,14 +281,12 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenantID))
 
-		// Get the full API key
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
 
-		// Verify deletion
 		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})

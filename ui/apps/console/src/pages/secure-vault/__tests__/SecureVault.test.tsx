@@ -680,7 +680,6 @@ describe("SecureVault", () => {
 
   describe("auto-lock nonce — auto-open unlock dialog", () => {
     it("opens VaultUnlockDialog when autoLockNonce bumps while mounted (unlocked → locked)", () => {
-      // Start unlocked with nonce=0
       setupStore("unlocked", [], 0);
       const { rerender } = render(<SecureVault />);
 
@@ -698,14 +697,12 @@ describe("SecureVault", () => {
     });
 
     it("does NOT auto-open unlock dialog on manual lock (nonce unchanged)", () => {
-      // Start unlocked with nonce=0
       setupStore("unlocked", [], 0);
       const { rerender } = render(<SecureVault />);
 
       // Simulate manual lock: status becomes locked but nonce stays at 0
       act(() => {
         getState().status = "locked";
-        // autoLockNonce remains 0 — no bump
       });
       rerender(<SecureVault />);
 
@@ -734,11 +731,9 @@ describe("SecureVault", () => {
     });
 
     it("hook count is stable across unlocked→locked transition (no hook-order crash)", () => {
-      // Start unlocked
       setupStore("unlocked", [], 0);
       const { rerender } = render(<SecureVault />);
 
-      // Mutate BOTH status and nonce simultaneously before rerender
       act(() => {
         getState().status = "locked";
         getState().autoLockNonce = 1;
@@ -790,7 +785,6 @@ describe("SecureVault", () => {
       setupConnectStore("unlocked", [vaultKey]);
       const { rerender } = renderConnectDrawer();
 
-      // Vault auto-locks
       act(() => {
         setupConnectStore("locked", []);
       });
@@ -811,11 +805,9 @@ describe("SecureVault", () => {
     });
 
     it("hides key-selection UI when vault is locked", () => {
-      // Start unlocked with vault key
       setupConnectStore("unlocked", [vaultKey]);
       const { rerender } = renderConnectDrawer();
 
-      // Auto-lock
       act(() => {
         setupConnectStore("locked", []);
       });

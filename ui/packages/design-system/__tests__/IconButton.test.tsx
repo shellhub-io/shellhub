@@ -209,7 +209,6 @@ describe("IconButton — as=a (anchor)", () => {
 
 describe("IconButton — as={Link} (React Router Link-like)", () => {
   it("renders a component passed as `as` and forwards to prop", () => {
-    // Simulate a React Router Link component
     const FakeLink = ({
       to,
       children,

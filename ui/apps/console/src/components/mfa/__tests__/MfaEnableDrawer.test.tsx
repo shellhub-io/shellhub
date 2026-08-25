@@ -43,9 +43,7 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Heading contains "Recovery Email"
       expect(screen.getByText(/Set Recovery Email/i)).toBeInTheDocument();
-      // Input placeholder is "recovery@example.com"
       expect(
         screen.getByPlaceholderText(/recovery@example\.com/i),
       ).toBeInTheDocument();
@@ -238,13 +236,11 @@ describe("MfaEnableDrawer", () => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
 
-      // Find OTP inputs and enter code
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter(
         (input) => input.getAttribute("maxLength") === "1",
       );
 
-      // Type 6-digit code
       await user.type(otpInputs[0], "1");
       await user.type(otpInputs[1], "2");
       await user.type(otpInputs[2], "3");
@@ -275,7 +271,6 @@ describe("MfaEnableDrawer", () => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
 
-      // Enter OTP
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter(
         (input) => input.getAttribute("maxLength") === "1",
@@ -311,7 +306,6 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Navigate through all steps
       const continueButton = screen.getByRole("button", { name: /continue/i });
       await user.click(continueButton);
       await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
@@ -325,7 +319,6 @@ describe("MfaEnableDrawer", () => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
       });
 
-      // Enter OTP
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter(
         (input) => input.getAttribute("maxLength") === "1",
@@ -342,7 +335,6 @@ describe("MfaEnableDrawer", () => {
       await user.click(verifyButton);
 
       await waitFor(() => {
-        // Component shows "MFA Enabled Successfully!"
         expect(
           screen.getByText(/MFA Enabled Successfully/i),
         ).toBeInTheDocument();
@@ -373,7 +365,6 @@ describe("MfaEnableDrawer", () => {
       await user.click(continueButton);
       await waitFor(() => expect(sdk.generateMfa).toHaveBeenCalled());
 
-      // Close drawer
       rerender(
         <MfaEnableDrawer
           open={false}
@@ -383,7 +374,6 @@ describe("MfaEnableDrawer", () => {
         />,
       );
 
-      // Reopen drawer
       rerender(
         <MfaEnableDrawer
           open={true}

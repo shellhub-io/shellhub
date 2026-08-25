@@ -74,7 +74,6 @@ describe("DataTable", () => {
   describe("data rows", () => {
     it("renders a row for each data item", () => {
       renderTable();
-      // thead row + 2 data rows
       expect(screen.getAllByRole("row")).toHaveLength(ROWS.length + 1);
     });
 

@@ -96,12 +96,10 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	t.Run("succeeds with tag filters", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create tenant and tags first
 		tenantID := s.CreateNamespace(t)
 		tagID1 := s.CreateTag(t, WithTagName("tag1"), WithTagTenant(tenantID))
 		tagID2 := s.CreateTag(t, WithTagName("tag2"), WithTagTenant(tenantID))
 
-		// Create public key with tag filters
 		fingerprint := s.CreatePublicKey(t,
 			WithPublicKeyName("key-with-tags"),
 			WithPublicKeyTenant(tenantID),
@@ -109,7 +107,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		)
 		assert.NotEmpty(t, fingerprint)
 
-		// Verify the key was created with tags
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Len(t, pubKey.Filter.TagIDs, 2)
@@ -118,7 +115,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	t.Run("succeeds with empty tag filter", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create public key with explicitly empty tags
 		fingerprint := s.CreatePublicKey(t,
 			WithPublicKeyName("key-no-tags"),
 			WithPublicKeyTags([]string{}),
@@ -132,7 +128,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("single-tag"), WithTagTenant(tenantID))
 
-		// Create public key with single tag filter
 		fingerprint := s.CreatePublicKey(t,
 			WithPublicKeyName("key-with-single-tag"),
 			WithPublicKeyTenant(tenantID),
@@ -140,7 +135,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		)
 		assert.NotEmpty(t, fingerprint)
 
-		// Verify the key was created
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Len(t, pubKey.Filter.TagIDs, 1)
@@ -164,7 +158,6 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
 
-		// Try to update the deleted public key
 		pubKey.Name = "edited_name"
 		err = st.PublicKeyUpdate(ctx, pubKey)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
@@ -195,17 +188,14 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		tag2 := s.CreateTag(t, WithTagName("tag2"), WithTagTenant(tenantID))
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenantID))
 
-		// Get the full public key
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
-		// Update name and tags
 		pubKey.Name = "edited_key"
 		pubKey.Filter.TagIDs = []string{tag1, tag2}
 		err = st.PublicKeyUpdate(ctx, pubKey)
 		require.NoError(t, err)
 
-		// Verify update
 		updatedKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Equal(t, "edited_key", updatedKey.Name)
@@ -228,7 +218,6 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
 
-		// Try to delete again
 		err = st.PublicKeyDelete(ctx, pubKey)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -243,7 +232,6 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
-		// Try to delete with wrong tenant ID
 		pubKey.TenantID = tenant2
 		err = st.PublicKeyDelete(ctx, pubKey)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
@@ -255,14 +243,12 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenantID))
 
-		// Get the full public key
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
 
-		// Verify deletion
 		_, err = st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})

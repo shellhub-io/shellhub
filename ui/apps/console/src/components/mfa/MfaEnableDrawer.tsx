@@ -138,7 +138,6 @@ export default function MfaEnableDrawer({
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -149,7 +148,6 @@ export default function MfaEnableDrawer({
 
   const handleClose = (): void => {
     onClose();
-    // Reset state after drawer animation completes
     timeoutRef.current = setTimeout(() => {
       setStep(1);
       setRecoveryEmail("");

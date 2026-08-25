@@ -42,7 +42,6 @@ func TestConcurrentClose(t *testing.T) {
 	client, server := newTestPair(t)
 	defer server.Close()
 
-	// Call Ping so stopPingCh is initialised.
 	client.Ping()
 
 	const goroutines = 50

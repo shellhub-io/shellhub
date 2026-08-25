@@ -15,14 +15,12 @@ export default function MfaLogin() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirect if no MFA token
   useEffect(() => {
     if (!mfaToken) {
       void navigate("/login");
     }
   }, [mfaToken, navigate]);
 
-  // Prevent rendering while redirecting
   if (!mfaToken) {
     return null;
   }
@@ -36,7 +34,6 @@ export default function MfaLogin() {
       const params = new URLSearchParams(location.search);
       void navigate(resolvePostLoginRedirect(params));
     } catch {
-      // Error is set in store
       otp.reset();
     }
   };

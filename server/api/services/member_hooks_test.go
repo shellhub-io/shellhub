@@ -11,7 +11,6 @@ import (
 )
 
 func TestOnMembershipInvited(t *testing.T) {
-	// Save and restore global state.
 	original := membershipInvitedHooks
 	t.Cleanup(func() { membershipInvitedHooks = original })
 
