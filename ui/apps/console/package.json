@@ -39,7 +39,7 @@
     "react-hook-form": "^7.85.0",
     "sshpk": "^1.18.0",
     "zod": "^3.25.76",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.101.4",
