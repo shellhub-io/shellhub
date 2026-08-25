@@ -929,7 +929,6 @@ func TestCreateNamespace(t *testing.T) {
 						nil,
 					).
 					Once()
-				// envs.IsCommunity = false
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{
@@ -1009,7 +1008,6 @@ func TestCreateNamespace(t *testing.T) {
 						nil,
 					).
 					Once()
-				// envs.IsCommunity = false
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(&models.User{

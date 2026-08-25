@@ -148,8 +148,6 @@ func parseMasterPasswdLine(line string) (User, error) {
 	}
 	result.GID = uint32(gid)
 
-	// result.Name = strings.TrimSpace(parts[4])
-
 	result.HomeDir = strings.TrimSpace(parts[8])
 	result.Shell = strings.TrimSpace(parts[9])
 
