@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import type { UseDeviceActionsResult } from "@/hooks/useDeviceActions";
+import type { UseActionDialogResult } from "@/hooks/useActionDialog";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice, mockNamespace } from "@/tests/factories";
 import { mockSdkResponse, paginatedResponse } from "@/tests/sdk";
@@ -88,27 +88,20 @@ vi.mock("@/components/common/TagsPopover", () => ({
   ),
 }));
 
-const mockDeviceActionsPortal = vi.fn();
-vi.mock("../DeviceActionsPortal", () => ({
-  default: (props: { controller: UseDeviceActionsResult }) => {
-    mockDeviceActionsPortal(props);
-    return null;
-  },
+vi.mock("@/components/common/ActionDialog", () => ({
+  default: () => null,
 }));
 
 const mockRequestAction = vi.fn();
-const mockDeviceActionsController: UseDeviceActionsResult = {
-  operation: undefined,
+const mockDeviceActionsController: UseActionDialogResult = {
+  action: undefined,
+  actionKey: "closed",
   requestAction: mockRequestAction,
   close: vi.fn(),
-  billingWarningOpen: false,
-  closeBillingWarning: vi.fn(),
-  onBillingWarning: undefined,
-  runSuccess: vi.fn(),
-  billingEnabled: false,
+  handleSuccess: vi.fn(),
 };
-vi.mock("@/hooks/useDeviceActions", () => ({
-  useDeviceActions: vi.fn(() => mockDeviceActionsController),
+vi.mock("@/hooks/useActionDialog", () => ({
+  useActionDialog: vi.fn(() => mockDeviceActionsController),
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -140,7 +133,6 @@ beforeEach(() => {
   sdk.pullTagFromDevice.mockResolvedValue(mockSdkResponse(undefined));
   mockNavigate.mockReset();
   mockManageTagsDrawer.mockReset();
-  mockDeviceActionsPortal.mockReset();
   mockRequestAction.mockReset();
 });
 
@@ -369,16 +361,6 @@ describe("Devices list", () => {
         const decoded = atob(call?.query?.filter ?? "");
         expect(decoded).toContain("myhost");
       });
-    });
-  });
-
-  describe("DeviceActionsPortal integration", () => {
-    it("mounts DeviceActionsPortal with the controller returned by useDeviceActions", async () => {
-      renderPage();
-      await waitFor(() => expect(sdk.getDevices).toHaveBeenCalled());
-      expect(mockDeviceActionsPortal).toHaveBeenCalledWith(
-        expect.objectContaining({ controller: mockDeviceActionsController }),
-      );
     });
   });
 

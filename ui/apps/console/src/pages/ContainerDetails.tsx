@@ -18,8 +18,9 @@ import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
-import { useContainerActions } from "../hooks/useContainerActions";
-import ContainerActionsPortal from "./containers/ContainerActionsPortal";
+import { useActionDialog } from "../hooks/useActionDialog";
+import ActionDialog from "@/components/common/ActionDialog";
+import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import { buildSshid } from "../utils/sshid";
@@ -52,14 +53,12 @@ export default function ContainerDetails() {
   const renameMutation = useRenameContainer();
   const addTagMutation = useAddContainerTag();
   const removeTagMutation = useRemoveContainerTag();
-  const containerActions = useContainerActions({
-    // ContainerDetails never showed the billing warning on master — a 402 on
-    // accept surfaces as the dialog's inline error instead. Keep that behavior.
-    enableBillingWarning: false,
-    onSuccess: (action) => {
-      if (action === "remove") void navigate("/containers");
+  const containerActions = useActionDialog({
+    onSuccess: (operation) => {
+      if (operation === "remove") void navigate("/containers");
     },
   });
+  const runContainerAction = useContainerActionRunner();
 
   const shouldAutoConnect =
     searchParams.get("connect") === "true" &&
@@ -338,8 +337,16 @@ export default function ContainerDetails() {
         sshid={sshid}
       />
 
-      {/* Action Dialog */}
-      <ContainerActionsPortal controller={containerActions} />
+      {containerActions.action && (
+        <ActionDialog
+          key={containerActions.actionKey}
+          action={containerActions.action}
+          onClose={containerActions.close}
+          onSuccess={containerActions.handleSuccess}
+          entityType="container"
+          runAction={runContainerAction}
+        />
+      )}
     </div>
   );
 }

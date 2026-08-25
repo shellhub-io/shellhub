@@ -42,25 +42,22 @@ vi.mock("@/components/common/RestrictedAction", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/pages/containers/ContainerActionsPortal", () => ({
+vi.mock("@/components/common/ActionDialog", () => ({
   default: () => null,
 }));
 
 const mockRequestAction = vi.fn();
 let capturedOnSuccess: ((action: string) => void) | undefined;
 
-vi.mock("@/hooks/useContainerActions", () => ({
-  useContainerActions: (opts?: { onSuccess?: (action: string) => void }) => {
+vi.mock("@/hooks/useActionDialog", () => ({
+  useActionDialog: (opts?: { onSuccess?: (action: string) => void }) => {
     capturedOnSuccess = opts?.onSuccess;
     return {
-      operation: undefined,
+      action: undefined,
+      actionKey: "closed",
       requestAction: mockRequestAction,
       close: vi.fn(),
-      billingWarningOpen: false,
-      closeBillingWarning: vi.fn(),
-      onBillingWarning: undefined,
-      runSuccess: vi.fn(),
-      billingEnabled: false,
+      handleSuccess: vi.fn(),
     };
   },
 }));

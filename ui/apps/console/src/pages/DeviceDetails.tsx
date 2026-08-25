@@ -9,7 +9,7 @@ import {
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
-import { useDeviceActions } from "../hooks/useDeviceActions";
+import { useActionDialog } from "../hooks/useActionDialog";
 import {
   useRenameDevice,
   useAddDeviceTag,
@@ -21,7 +21,8 @@ import { resolveEnrollmentSource } from "@/pages/install-keys/helpers";
 import { DeprecatedBadge } from "@/pages/install-keys/StatusChip";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
-import DeviceActionsPortal from "./devices/DeviceActionsPortal";
+import ActionDialog from "@/components/common/ActionDialog";
+import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
@@ -56,11 +57,12 @@ export default function DeviceDetails() {
   const canRename = useHasPermission("device:rename");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
-  const actionsController = useDeviceActions({
-    onSuccess: (action) => {
-      if (action === "remove") void navigate("/devices");
+  const actionsController = useActionDialog({
+    onSuccess: (operation) => {
+      if (operation === "remove") void navigate("/devices");
     },
   });
+  const runDeviceAction = useDeviceActionRunner();
 
   // Auto-open connect drawer if ?connect=true (adjust during render)
   const shouldAutoConnect =
@@ -377,8 +379,16 @@ export default function DeviceDetails() {
         sshid={sshid}
       />
 
-      {/* Action Portal (accept/reject/remove for pending/rejected devices) */}
-      <DeviceActionsPortal controller={actionsController} />
+      {actionsController.action && (
+        <ActionDialog
+          key={actionsController.actionKey}
+          action={actionsController.action}
+          onClose={actionsController.close}
+          onSuccess={actionsController.handleSuccess}
+          entityType="device"
+          runAction={runDeviceAction}
+        />
+      )}
     </div>
   );
 }

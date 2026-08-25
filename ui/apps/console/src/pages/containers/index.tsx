@@ -21,8 +21,10 @@ import {
   useAddContainerTag,
   useRemoveContainerTag,
 } from "@/hooks/useContainerMutations";
-import ContainerActionsPortal from "./ContainerActionsPortal";
-import { useContainerActions } from "@/hooks/useContainerActions";
+import { useActionDialog } from "@/hooks/useActionDialog";
+import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
+import ActionDialog from "@/components/common/ActionDialog";
+
 import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
 import {
   PlusIcon,
@@ -93,8 +95,9 @@ export default function Containers() {
 
   const addContainerTag = useAddContainerTag();
   const removeContainerTag = useRemoveContainerTag();
-  const containerActions = useContainerActions();
+  const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
+  const runContainerAction = useContainerActionRunner();
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
     name: string;
@@ -491,7 +494,16 @@ export default function Containers() {
         }
       />
 
-      <ContainerActionsPortal controller={containerActions} />
+      {containerActions.action && (
+        <ActionDialog
+          key={containerActions.actionKey}
+          action={containerActions.action}
+          onClose={containerActions.close}
+          onSuccess={containerActions.handleSuccess}
+          entityType="container"
+          runAction={runContainerAction}
+        />
+      )}
 
       <ConnectDrawer
         open={!!connectTarget}
