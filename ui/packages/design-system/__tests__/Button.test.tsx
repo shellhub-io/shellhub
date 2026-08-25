@@ -2,9 +2,6 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Button } from "../primitives/Button";
 
-// ---------------------------------------------------------------------------
-// Variant classes
-// ---------------------------------------------------------------------------
 describe("Button — variants", () => {
   it("variant=primary renders primary classes", () => {
     render(
@@ -100,9 +97,6 @@ describe("Button — variants", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Size — padding / text / radius
-// ---------------------------------------------------------------------------
 describe("Button — sizes", () => {
   it("size=sm has correct padding, text, radius", () => {
     render(
@@ -140,9 +134,6 @@ describe("Button — sizes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Base classes — focus ring
-// ---------------------------------------------------------------------------
 describe("Button — base classes", () => {
   it("includes focus-visible:ring-2", () => {
     render(<Button data-testid="btn">X</Button>);
@@ -159,9 +150,6 @@ describe("Button — base classes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Native button type
-// ---------------------------------------------------------------------------
 describe("Button — native type attribute", () => {
   it("defaults to type=button", () => {
     render(<Button data-testid="btn">X</Button>);
@@ -178,9 +166,6 @@ describe("Button — native type attribute", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// glow=true
-// ---------------------------------------------------------------------------
 describe("Button — glow", () => {
   it("glow=true adds shadow and scale classes on the button", () => {
     render(
@@ -214,9 +199,6 @@ describe("Button — glow", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// loading
-// ---------------------------------------------------------------------------
 describe("Button — loading", () => {
   it("loading=true renders a Spinner inside the button", () => {
     render(
@@ -266,9 +248,6 @@ describe("Button — loading", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// as=a (polymorphic)
-// ---------------------------------------------------------------------------
 describe("Button — as=a (anchor)", () => {
   it("renders an <a> element", () => {
     render(
@@ -327,9 +306,6 @@ describe("Button — as=a (anchor)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// className override via cn
-// ---------------------------------------------------------------------------
 describe("Button — className override", () => {
   it("merges className via cn (custom class is present)", () => {
     render(
@@ -353,9 +329,6 @@ describe("Button — className override", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// icon / iconRight placement
-// ---------------------------------------------------------------------------
 describe("Button — icon / iconRight", () => {
   it("icon prop renders a leading icon before children", () => {
     render(
@@ -389,9 +362,6 @@ describe("Button — icon / iconRight", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// fullWidth
-// ---------------------------------------------------------------------------
 describe("Button — fullWidth", () => {
   it("fullWidth=true adds w-full class", () => {
     render(
