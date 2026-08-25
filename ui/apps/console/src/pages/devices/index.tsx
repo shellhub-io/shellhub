@@ -7,7 +7,7 @@ import { usePaginatedListState } from "@/hooks/usePaginatedListState";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { useDeviceActions } from "@/hooks/useDeviceActions";
+import { useActionDialog } from "@/hooks/useActionDialog";
 import PageHeader from "@/components/common/PageHeader";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
@@ -24,7 +24,8 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
 } from "@/hooks/useDeviceMutations";
-import DeviceActionsPortal from "./DeviceActionsPortal";
+import ActionDialog from "@/components/common/ActionDialog";
+import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import {
   PlusIcon,
   TagIcon,
@@ -95,7 +96,8 @@ export default function Devices() {
 
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
-  const deviceActions = useDeviceActions();
+  const runDeviceAction = useDeviceActionRunner();
+  const deviceActions = useActionDialog();
   const { requestAction: requestDeviceAction } = deviceActions;
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;
@@ -396,7 +398,8 @@ export default function Devices() {
                 type="button"
                 key={tab.value}
                 onClick={() => handleStatusChange(tab.value)}
-                className={cn("h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
+                className={cn(
+                  "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
                   params.status === tab.value
                     ? "bg-primary/15 text-primary border border-primary/25"
                     : "text-text-muted hover:text-text-secondary border border-transparent",
@@ -502,7 +505,16 @@ export default function Devices() {
         }
       />
 
-      <DeviceActionsPortal controller={deviceActions} />
+      {deviceActions.action && (
+        <ActionDialog
+          key={deviceActions.actionKey}
+          action={deviceActions.action}
+          onClose={deviceActions.close}
+          onSuccess={deviceActions.handleSuccess}
+          entityType="device"
+          runAction={runDeviceAction}
+        />
+      )}
 
       <ConnectDrawer
         open={!!connectTarget}

@@ -82,7 +82,7 @@ vi.mock("@/components/common/TagsPopover", () => ({
   ),
 }));
 
-vi.mock("../ContainerActionsPortal", () => ({ default: () => null }));
+vi.mock("@/components/common/ActionDialog", () => ({ default: () => null }));
 
 vi.mock("../AddDockerConnectorDrawer", () => ({
   default: () => <div />,
@@ -92,21 +92,14 @@ vi.mock("@/components/common/RestrictedAction", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock("@/components/billing/BillingWarning", () => ({
-  default: () => <div />,
-}));
-
 const mockRequestAction = vi.fn();
-vi.mock("@/hooks/useContainerActions", () => ({
-  useContainerActions: () => ({
+vi.mock("@/hooks/useActionDialog", () => ({
+  useActionDialog: () => ({
     requestAction: mockRequestAction,
-    operation: null,
+    action: undefined,
+    actionKey: "closed",
     close: vi.fn(),
-    runSuccess: vi.fn(),
-    onBillingWarning: vi.fn(),
-    billingEnabled: false,
-    billingWarningOpen: false,
-    closeBillingWarning: vi.fn(),
+    handleSuccess: vi.fn(),
   }),
 }));
 
