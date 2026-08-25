@@ -34,7 +34,6 @@ func (s *Suite) TestNamespaceCreateMembership(t *testing.T) {
 	t.Run("succeeds when tenant is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace and user
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 
@@ -55,7 +54,6 @@ func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 	t.Run("fails when user is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace with a member
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 		member := &models.Member{
@@ -77,7 +75,6 @@ func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 	t.Run("succeeds when tenant and user is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace with a member
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 		member := &models.Member{
@@ -87,7 +84,6 @@ func (s *Suite) TestNamespaceUpdateMembership(t *testing.T) {
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), member)
 		require.NoError(t, err)
 
-		// Update member role
 		member.Role = authorizer.RoleAdministrator
 		err = st.NamespaceUpdateMembership(ctx, scope.MustBounded(tenantID), member)
 		assert.NoError(t, err)
@@ -111,7 +107,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), member)
 		require.NoError(t, err)
 
-		// Delete the namespace
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
 		err = st.NamespaceDelete(ctx, ns)
@@ -125,7 +120,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 	t.Run("succeeds when tenant and user is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace with a member
 		tenantID := s.CreateNamespace(t)
 		userID := s.CreateUser(t)
 		member := &models.Member{
@@ -135,7 +129,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(tenantID), member)
 		require.NoError(t, err)
 
-		// Delete membership
 		err = st.NamespaceDeleteMembership(ctx, scope.MustBounded(tenantID), member)
 		assert.NoError(t, err)
 	})
@@ -143,7 +136,6 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 	t.Run("clears preferred namespace on delete", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user, namespace, and membership
 		userID := s.CreateUser(t)
 		tenantID := s.CreateNamespace(t, WithOwner(userID))
 		s.CreateMembership(t, tenantID, userID, "observer")

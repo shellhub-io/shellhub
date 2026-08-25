@@ -152,7 +152,6 @@ func (p *Provider) processRecordForPostgres(record map[string]interface{}) map[s
 		case []interface{}:
 			// Convert slice to PostgreSQL array format using pq.Array
 			if len(v) > 0 {
-				// Check if it's a string array
 				if _, ok := v[0].(string); ok {
 					strArray := make([]string, len(v))
 					for i, item := range v {

@@ -102,7 +102,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 	})
 
 	// namespace_id is uuid-typed; a malformed tenant ID must return ErrNoDocuments
-	// without reaching the database (avoids SQLSTATE 22P02 on Postgres). See #6406.
+	// without reaching the database (avoids SQLSTATE 22P02 on Postgres).
 	t.Run("fails with malformed (non-UUID) namespace ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -247,7 +247,6 @@ func (s *Suite) TestAPIKeyUpdate(t *testing.T) {
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
-		// Update name
 		apiKey.Name = "updated-dev"
 		err = st.APIKeyUpdate(ctx, apiKey)
 		require.NoError(t, err)
@@ -290,7 +289,6 @@ func (s *Suite) TestAPIKeyDelete(t *testing.T) {
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, keyID)
 		require.NoError(t, err)
 
-		// Delete
 		err = st.APIKeyDelete(ctx, apiKey)
 		require.NoError(t, err)
 

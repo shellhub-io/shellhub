@@ -34,7 +34,6 @@ func (s *Suite) TestUserList(t *testing.T) {
 		s.CreateUser(t, WithUsername("user2"), WithEmail("user2@test.com"))
 		s.CreateUser(t, WithUsername("user3"), WithEmail("user3@test.com"))
 
-		// List all users
 		users, count, err := st.UserList(ctx,
 			st.Options().Match(&query.Filters{}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
@@ -67,7 +66,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		// Create test user
 		userID := s.CreateUser(t, WithUsername("testuser"), WithUserStatus(models.UserStatusConfirmed))
 
-		// Resolve by ID
 		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
 		require.NotNil(t, user)
@@ -86,10 +84,8 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	t.Run("succeeds resolving user by email", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test user
 		userID := s.CreateUser(t, WithEmail("jane.smith@test.com"), WithUserStatus(models.UserStatusConfirmed))
 
-		// Resolve by email
 		user, err := st.UserResolve(ctx, store.UserEmailResolver, "jane.smith@test.com")
 		require.NoError(t, err)
 		require.NotNil(t, user)
@@ -111,7 +107,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		// Create test user
 		userID := s.CreateUser(t, WithUsername("bob_johnson"), WithUserStatus(models.UserStatusConfirmed))
 
-		// Resolve by username
 		user, err := st.UserResolve(ctx, store.UserUsernameResolver, "bob_johnson")
 		require.NoError(t, err)
 		require.NotNil(t, user)
@@ -256,10 +251,8 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 	t.Run("succeeds when user is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create test user
 		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
 
-		// Update user
 		err := st.UserUpdate(ctx, &models.User{
 			ID: userID,
 			UserData: models.UserData{
@@ -294,7 +287,6 @@ func (s *Suite) TestUserDelete(t *testing.T) {
 		// Create test user
 		userID := s.CreateUser(t, WithUsername("john_doe"))
 
-		// Delete user
 		err := st.UserDelete(ctx, &models.User{ID: userID})
 		require.NoError(t, err)
 	})
@@ -311,7 +303,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		// Create user without any namespaces
 		userID := s.CreateUser(t, WithUsername("lonelyuser"))
 
-		// Get user info
 		userInfo, err := st.UserGetInfo(ctx, userID)
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
@@ -342,10 +333,8 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 	t.Run("returns associated namespaces for member users", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create member user
 		memberID := s.CreateUser(t, WithUsername("member"))
 
-		// Create namespace
 		tenantID := s.CreateNamespace(t, WithNamespaceName("shared-ns"))
 
 		// Add member to namespace
@@ -355,7 +344,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Get member's user info
 		userInfo, err := st.UserGetInfo(ctx, memberID)
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
@@ -368,7 +356,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 	t.Run("separates owned and associated namespaces correctly", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user
 		user1ID := s.CreateUser(t, WithUsername("user1"))
 
 		// Create namespaces
@@ -382,7 +369,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Get user1's info
 		userInfo, err := st.UserGetInfo(ctx, user1ID)
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)

@@ -6,7 +6,6 @@ import "time"
 type Config struct {
 	// AllowPublickeyAccessBelow060 allows SSH to connect with an agent via a public key when the agent version is
 	// less than 0.6.0. Agents 0.5.x or earlier do not validate the public key request and may panic.
-	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool
 
 	// Domain is the instance's base domain, used to build the browser approval URL

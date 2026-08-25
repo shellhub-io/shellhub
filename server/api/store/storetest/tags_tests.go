@@ -19,10 +19,8 @@ func (s *Suite) TestTagCreate(t *testing.T) {
 	t.Run("succeeds when tag data is valid", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create namespace first
 		tenantID := s.CreateNamespace(t)
 
-		// Create tag
 		tag := &models.Tag{
 			Name:     "staging",
 			TenantID: tenantID,
@@ -367,11 +365,9 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		// Push tag to public key
 		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
 		require.NoError(t, err)
 
-		// Pull tag from public key
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
 		require.NoError(t, err)
 	})
@@ -402,11 +398,9 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		// First push the tag to device
 		err := st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		require.NoError(t, err)
 
-		// Then pull it
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		require.NoError(t, err)
 	})

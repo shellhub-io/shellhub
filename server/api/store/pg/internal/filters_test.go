@@ -55,8 +55,8 @@ func TestParseFilterProperty_DeviceUID(t *testing.T) {
 	}
 }
 
-// Regression guard for shellhub-io/shellhub#6574: the deprecated "info.platform"
-// and "identity.mac" aliases must resolve to their real columns for every operator.
+// Regression guard: the deprecated "info.platform" and "identity.mac" aliases must
+// resolve to their real columns for every operator.
 func TestParseFilterProperty_LegacyDeviceFieldAliases(t *testing.T) {
 	cases := []struct {
 		description string

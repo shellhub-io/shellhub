@@ -30,7 +30,6 @@ type DefaultHTTPHandlerConfig struct {
 func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Handler {
 	server := echo.New()
 
-	// Sets the default binder.
 	server.Binder = handlers.NewBinder()
 
 	// Sets the default validator.

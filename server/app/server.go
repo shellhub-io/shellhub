@@ -91,7 +91,6 @@ type sshEnv struct {
 	HostKeyFile string `env:"HOST_KEY_FILE"`
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
-	// Please refer to: https://github.com/shellhub-io/shellhub/issues/3453
 	AllowPublickeyAccessBelow060 bool `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
 	// RequireAcceptedTunnel refuses the agent's reverse tunnel unless the device is accepted, so a
 	// pending or rejected device holds no connection. Off by default: not every fleet can adopt it

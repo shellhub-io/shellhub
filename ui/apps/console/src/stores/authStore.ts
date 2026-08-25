@@ -89,7 +89,6 @@ export const useAuthStore = create<AuthState>()(
             throwOnError: true,
           });
 
-          // Check for MFA token in response headers
           const mfaToken = response.headers.get("x-mfa-token");
 
           if (mfaToken) {

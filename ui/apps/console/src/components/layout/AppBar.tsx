@@ -92,7 +92,7 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
   // subscription callback (never during render, never synchronously in an effect
   // body) keeps both react-hooks/set-state-in-render and set-state-in-effect happy
   // while removing all render-phase state updates — the fix for the audit's
-  // concurrent-rendering concern (team#137). dispatch is stable so the effect runs
+  // concurrent-rendering concern. dispatch is stable so the effect runs
   // once ([] deps); the listener fires on every store change but early-returns
   // unless the active-session id actually changed.
   useEffect(() => {

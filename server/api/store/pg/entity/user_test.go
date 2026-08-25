@@ -216,9 +216,7 @@ func TestUserToModel(t *testing.T) {
 			assert.Equal(t, tt.expected.Username, result.Username)
 			assert.Equal(t, tt.expected.Email, result.Email)
 			assert.Equal(t, tt.expected.RecoveryEmail, result.RecoveryEmail)
-			// Password
 			assert.Equal(t, tt.expected.Password.Hash, result.Password.Hash)
-			// Preferences
 			assert.Equal(t, tt.expected.Preferences, result.Preferences)
 			// entity.Namespaces is scanonly (populated by DB queries) and intentionally not mapped by UserToModel.
 		})

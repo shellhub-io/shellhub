@@ -129,7 +129,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	t.Run("succeeds with single tag", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create tenant and a single tag
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("single-tag"), WithTagTenant(tenantID))
 
@@ -178,7 +177,6 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
-		// Get the public key from tenant1
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
@@ -242,7 +240,6 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
-		// Get the public key from tenant1
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
@@ -262,7 +259,6 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
-		// Delete
 		err = st.PublicKeyDelete(ctx, pubKey)
 		require.NoError(t, err)
 
