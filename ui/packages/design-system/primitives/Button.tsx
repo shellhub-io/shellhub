@@ -2,10 +2,6 @@ import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
 import { Spinner } from "./Spinner";
 import { cn } from "./cn";
 
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
-
 export type ButtonVariant =
   | "primary"
   | "secondary"
@@ -19,10 +15,6 @@ export type ButtonVariant =
   | "warning"
   | "outline";
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
-
-// ---------------------------------------------------------------------------
-// Static maps (no runtime allocations per render)
-// ---------------------------------------------------------------------------
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary:
@@ -61,10 +53,6 @@ const BASE =
   " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background" +
   " disabled:opacity-50 disabled:cursor-not-allowed";
 
-// ---------------------------------------------------------------------------
-// Polymorphic helper types (same pattern as Card)
-// ---------------------------------------------------------------------------
-
 type ButtonOwnProps<T extends ElementType> = {
   as?: T;
   variant?: ButtonVariant;
@@ -85,10 +73,6 @@ type ButtonOwnProps<T extends ElementType> = {
 
 type ButtonProps<T extends ElementType = "button"> = ButtonOwnProps<T> &
   Omit<ComponentPropsWithoutRef<T>, keyof ButtonOwnProps<T>>;
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function Button<T extends ElementType = "button">({
   as,

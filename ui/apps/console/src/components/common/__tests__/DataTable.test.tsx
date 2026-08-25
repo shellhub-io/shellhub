@@ -3,10 +3,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DataTable, { type Column } from "../DataTable";
 
-// ---------------------------------------------------------------------------
-// Test type and fixtures
-// ---------------------------------------------------------------------------
-
 type Row = { id: string; name: string };
 
 const COLUMNS: Column<Row>[] = [
@@ -18,10 +14,6 @@ const ROWS: Row[] = [
   { id: "1", name: "Alice" },
   { id: "2", name: "Bob" },
 ];
-
-// ---------------------------------------------------------------------------
-// Render helper
-// ---------------------------------------------------------------------------
 
 interface RenderOptions {
   columns?: Column<Row>[];
@@ -56,10 +48,6 @@ function renderTable(options: RenderOptions = {}) {
     />,
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 beforeEach(() => {
   vi.clearAllMocks();

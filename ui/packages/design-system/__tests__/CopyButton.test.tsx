@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { CopyButton } from "../components/CopyButton";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function stubClipboard(resolves: boolean) {
   const writeText = resolves
     ? vi.fn().mockResolvedValue(undefined)

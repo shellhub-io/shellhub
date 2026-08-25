@@ -163,11 +163,6 @@ describe.each(TEXT_CASES)("$name (RHF adapter contract)", ({ label, render: rend
   });
 });
 
-// ---------------------------------------------------------------------------
-// FormCheckboxField — same contract, but boolean/checked semantics differ
-// enough (toggle via click, checked instead of value) to warrant its own block.
-// ---------------------------------------------------------------------------
-
 interface CheckboxFormValues extends FieldValues {
   agree: boolean;
 }

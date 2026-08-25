@@ -7,10 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// ========================================
-// LICENSE EVALUATOR FACTORY
-// ========================================
-
 // LicenseEvaluatorFactory is a function that constructs a LicenseEvaluator using
 // the core store and cache. It is called during server setup when the enterprise binary
 // is built. Enterprise packages register a factory via RegisterLicenseEvaluator in their
@@ -31,10 +27,6 @@ func RegisterLicenseEvaluator(f LicenseEvaluatorFactoryFunc) {
 func LicenseEvaluatorFactory() LicenseEvaluatorFactoryFunc {
 	return licenseEvaluatorFactory
 }
-
-// ========================================
-// INTERFACES
-// ========================================
 
 // LicenseEvaluator defines the interface for license-based device acceptance checks.
 //

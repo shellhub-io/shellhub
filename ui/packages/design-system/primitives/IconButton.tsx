@@ -2,16 +2,8 @@ import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
 import { Spinner } from "./Spinner";
 import { cn } from "./cn";
 
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
-
 export type IconButtonVariant = "ghost" | "primary" | "danger" | "filled";
 export type IconButtonSize = "sm" | "md" | "lg";
-
-// ---------------------------------------------------------------------------
-// Static maps
-// ---------------------------------------------------------------------------
 
 // Icon-button variants intentionally rest at text-text-muted and accent on hover,
 // so `primary` and `danger` here differ from the always-filled Button variants of the same name.
@@ -34,10 +26,6 @@ const BASE =
   " focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-primary" +
   " disabled:opacity-50 disabled:cursor-not-allowed";
 
-// ---------------------------------------------------------------------------
-// Polymorphic helper types (same pattern as Button)
-// ---------------------------------------------------------------------------
-
 type IconButtonOwnProps<T extends ElementType> = {
   as?: T;
   variant?: IconButtonVariant;
@@ -50,10 +38,6 @@ type IconButtonOwnProps<T extends ElementType> = {
 
 type IconButtonProps<T extends ElementType = "button"> = IconButtonOwnProps<T> &
   Omit<ComponentPropsWithoutRef<T>, keyof IconButtonOwnProps<T>>;
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function IconButton<T extends ElementType = "button">({
   as,
