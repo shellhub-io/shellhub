@@ -2,10 +2,6 @@ import type { ReactNode } from "react";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { cn } from "./cn";
 
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
-
 export type WindowChromeVariant = "terminal" | "browser";
 export type WindowChromeSize = "sm" | "md";
 export type WindowChromeAccent =
@@ -29,10 +25,6 @@ export interface WindowChromeProps {
   children?: ReactNode;
 }
 
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
 const DOT_SIZE: Record<WindowChromeSize, string> = {
   sm: "w-2.5 h-2.5",
   md: "w-3 h-3",
@@ -45,10 +37,6 @@ const ACCENT_BG: Record<WindowChromeAccent, string> = {
   red: "bg-accent-red",
   yellow: "bg-accent-yellow",
 };
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function WindowChrome({
   variant,

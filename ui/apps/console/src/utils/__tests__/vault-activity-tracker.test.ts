@@ -1,10 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { start, stop, reset } from "../vault-activity-tracker";
 
-// ---------------------------------------------------------------------------
-// Fake-timer helpers
-// ---------------------------------------------------------------------------
-
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
 });
@@ -13,10 +9,6 @@ afterEach(() => {
   stop();
   vi.useRealTimers();
 });
-
-// ---------------------------------------------------------------------------
-// Helpers for visibilityState override
-// ---------------------------------------------------------------------------
 
 let originalVisibilityDescriptor: PropertyDescriptor | undefined;
 
@@ -52,16 +44,8 @@ function restoreVisibility() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const IDLE_MS = 5_000;
 const GRACE_MS = 2_000;
-
-// ---------------------------------------------------------------------------
-// 1. onIdle fires after idleTimeoutMs with no activity
-// ---------------------------------------------------------------------------
 
 describe("idle timer", () => {
   it("fires onIdle after idleTimeoutMs elapses with no activity", () => {
@@ -79,10 +63,6 @@ describe("idle timer", () => {
     vi.advanceTimersByTime(1);
     expect(onIdle).toHaveBeenCalledOnce();
   });
-
-  // ---------------------------------------------------------------------------
-  // 2. activity event re-arms idle timer (no premature fire)
-  // ---------------------------------------------------------------------------
 
   it("re-arms idle timer on activity so it does not fire early", () => {
     const onIdle = vi.fn();
@@ -106,10 +86,6 @@ describe("idle timer", () => {
     expect(onIdle).toHaveBeenCalledOnce();
   });
 
-  // ---------------------------------------------------------------------------
-  // 3. idleTimeoutMs:0 never fires
-  // ---------------------------------------------------------------------------
-
   it("never fires when idleTimeoutMs is 0", () => {
     const onIdle = vi.fn();
     start({ idleTimeoutMs: 0, lockOnHidden: false, hiddenGraceMs: 0, onIdle });
@@ -118,10 +94,6 @@ describe("idle timer", () => {
     expect(onIdle).not.toHaveBeenCalled();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 4. First activity immediately after start() re-arms exactly once
-// ---------------------------------------------------------------------------
 
 describe("first-activity throttle", () => {
   it("first activity immediately after start() triggers exactly one re-arm", () => {
@@ -144,10 +116,6 @@ describe("first-activity throttle", () => {
     expect(onIdle).toHaveBeenCalledOnce();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 5. Throttle: at most one reset per 1000ms
-// ---------------------------------------------------------------------------
 
 describe("throttle", () => {
   it("second event within throttle window does NOT re-arm; idle fires at t=0-based deadline", () => {
@@ -216,10 +184,6 @@ describe("throttle", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 6. stop() cancels timers, removes listeners, and is idempotent
-// ---------------------------------------------------------------------------
-
 describe("stop()", () => {
   it("cancels the idle timer so onIdle never fires after stop()", () => {
     const onIdle = vi.fn();
@@ -267,10 +231,6 @@ describe("stop()", () => {
     expect(() => stop()).not.toThrow();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 7. lockOnHidden: hidden fires after grace period; visible cancels it
-// ---------------------------------------------------------------------------
 
 describe("lockOnHidden", () => {
   afterEach(() => {
@@ -329,10 +289,6 @@ describe("lockOnHidden", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 8. start() restarts cleanly (calls stop() first)
-// ---------------------------------------------------------------------------
-
 describe("start() restart", () => {
   it("calling start() a second time cancels the first session and starts fresh", () => {
     const onIdle1 = vi.fn();
@@ -368,10 +324,6 @@ describe("start() restart", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 9. reset() re-arms idle timer (exported for tests)
-// ---------------------------------------------------------------------------
-
 describe("reset()", () => {
   it("re-arms the idle timer when called directly", () => {
     const onIdle = vi.fn();
@@ -392,10 +344,6 @@ describe("reset()", () => {
     expect(onIdle).toHaveBeenCalledOnce();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 10. All ACTIVITY_EVENTS trigger re-arm
-// ---------------------------------------------------------------------------
 
 describe("ACTIVITY_EVENTS", () => {
   const EVENTS = [

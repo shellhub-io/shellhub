@@ -11,10 +11,6 @@ import {
 import { IconButton } from "./IconButton";
 import { cn } from "./cn";
 
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
-
 export type CalloutVariant =
   "error" | "success" | "warning" | "info" | "feature";
 

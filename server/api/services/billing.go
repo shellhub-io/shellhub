@@ -9,10 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// ========================================
-// BILLING PROVIDER FACTORY
-// ========================================
-
 // BillingProviderFactory is a function that constructs a BillingProvider using the
 // core store and cache. It is called during server setup when the -tags enterprise binary
 // is built. Cloud packages register a factory via RegisterBillingProvider in their
@@ -32,10 +28,6 @@ func RegisterBillingProvider(f BillingProviderFactory) {
 func BillingFactory() BillingProviderFactory {
 	return billingFactory
 }
-
-// ========================================
-// INTERFACES
-// ========================================
 
 // BillingProvider defines the interface for enterprise/cloud billing integrations.
 //
@@ -77,10 +69,6 @@ type BillingProvider interface {
 	Report(ctx context.Context, tenant string, action BillingAction) error
 }
 
-// ========================================
-// TYPES
-// ========================================
-
 // BillingAction represents an action to report to the billing system.
 type BillingAction string
 
@@ -88,10 +76,6 @@ const (
 	BillingActionDeviceAccept    BillingAction = "device_accept"
 	BillingActionNamespaceDelete BillingAction = "namespace_delete"
 )
-
-// ========================================
-// IMPLEMENTATION
-// ========================================
 
 type BillingService interface {
 	// EvaluateBilling reports whether billing lets an SSH connection to the

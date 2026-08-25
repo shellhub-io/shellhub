@@ -26,10 +26,6 @@ export interface TrackerOptions {
   onIdle: () => void;
 }
 
-// ---------------------------------------------------------------------------
-// Module-level singleton state
-// ---------------------------------------------------------------------------
-
 /** Timestamp (Date.now()) of the last throttled activity reset. 0 = never. */
 let lastResetStamp = 0;
 
@@ -37,10 +33,6 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let hiddenTimer: ReturnType<typeof setTimeout> | null = null;
 
 let currentOptions: TrackerOptions | null = null;
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
 
 function fireIdle(): void {
   currentOptions?.onIdle();
@@ -96,10 +88,6 @@ function onVisibilityChange(): void {
     onDocumentVisible();
   }
 }
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
 
 /**
  * Re-arm the idle timer. Exported so tests can drive it directly.
