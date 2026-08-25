@@ -3,7 +3,7 @@ import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
-import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
+import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 
 /**
  * Resolves a pairing/login code and accepts the device in one shot, into the
@@ -55,7 +55,7 @@ export function useAcceptDeviceByCode() {
       setError(
         isSdkError(err) && err.status === 404
           ? "That code is invalid or has expired. Double-check it and try again."
-          : getAcceptDeviceErrorMessage(err),
+          : getAcceptErrorMessage(err),
       );
       return null;
     } finally {

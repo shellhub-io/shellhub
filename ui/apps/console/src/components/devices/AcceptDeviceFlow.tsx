@@ -31,7 +31,7 @@ import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioCard from "@/components/common/fields/RadioCard";
 import PairingCodeForm from "@/components/common/PairingCodeForm";
 import { getInitials } from "@/utils/string";
-import { getAcceptDeviceErrorMessage } from "@/utils/deviceErrors";
+import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 
 type DevicePreview = ResolveDeviceLoginCodeResponse;
 
@@ -124,7 +124,7 @@ export default function AcceptDeviceFlow({
       await acceptDevice.mutateAsync({ path: { uid: device.uid } });
       finish({ kind: "success", device });
     } catch (err) {
-      setActionError(getAcceptDeviceErrorMessage(err));
+      setActionError(getAcceptErrorMessage(err));
     }
   };
 
@@ -144,7 +144,7 @@ export default function AcceptDeviceFlow({
         namespace: data.namespace ?? "",
       });
     } catch (err) {
-      setActionError(getAcceptDeviceErrorMessage(err));
+      setActionError(getAcceptErrorMessage(err));
     }
   };
 
