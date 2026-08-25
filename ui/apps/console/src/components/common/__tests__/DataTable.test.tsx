@@ -54,9 +54,6 @@ beforeEach(() => {
 });
 
 describe("DataTable", () => {
-  // -------------------------------------------------------------------------
-  // Column headers
-  // -------------------------------------------------------------------------
   describe("column headers", () => {
     it("renders a header cell for each column", () => {
       renderTable();
@@ -74,9 +71,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Data rows
-  // -------------------------------------------------------------------------
   describe("data rows", () => {
     it("renders a row for each data item", () => {
       renderTable();
@@ -105,9 +99,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Loading state
-  // -------------------------------------------------------------------------
   describe("loading state", () => {
     it("shows spinner with role='status' when isLoading and data is empty", () => {
       renderTable({ isLoading: true, data: [] });
@@ -140,9 +131,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Empty state
-  // -------------------------------------------------------------------------
   describe("empty state", () => {
     it("shows 'No data available' by default when data is empty and not loading", () => {
       renderTable({ data: [] });
@@ -186,9 +174,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Row click
-  // -------------------------------------------------------------------------
   describe("row click", () => {
     it("calls onRowClick with the correct row when clicked", async () => {
       const onRowClick = vi.fn();
@@ -222,9 +207,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // No row click
-  // -------------------------------------------------------------------------
   describe("no row click handler", () => {
     it("does not add cursor-pointer class when onRowClick is undefined", () => {
       renderTable();
@@ -243,9 +225,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Keyboard navigation
-  // -------------------------------------------------------------------------
   describe("keyboard navigation on clickable rows", () => {
     it("calls onRowClick when Enter is pressed on a row", () => {
       const onRowClick = vi.fn();
@@ -280,9 +259,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Focus-visible classes
-  // -------------------------------------------------------------------------
   describe("focus-visible outline classes", () => {
     it("applies focus-visible outline classes to clickable rows", () => {
       renderTable({ onRowClick: vi.fn() });
@@ -302,9 +278,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // rowClassName
-  // -------------------------------------------------------------------------
   describe("rowClassName", () => {
     it("applies the class returned by rowClassName to each row", () => {
       renderTable({
@@ -331,9 +304,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Pagination
-  // -------------------------------------------------------------------------
   describe("pagination", () => {
     it("does not render pagination when page, totalPages and onPageChange are all undefined", () => {
       renderTable();
@@ -407,9 +377,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Sorting
-  // -------------------------------------------------------------------------
   describe("sorting", () => {
     const sortableColumns: Column<Row>[] = [
       { key: "id", header: "ID", sortable: true, render: (row) => row.id },
@@ -524,9 +491,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // noWrapper prop
-  // -------------------------------------------------------------------------
   describe("noWrapper prop", () => {
     it("renders the default card wrapper when noWrapper is omitted", () => {
       const { container } = renderTable();
@@ -553,9 +517,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // label prop (accessible name for the table)
-  // -------------------------------------------------------------------------
   describe("label prop", () => {
     it("sets an aria-label on the table when label is provided", () => {
       renderTable({ label: "Users" });
@@ -568,9 +529,6 @@ describe("DataTable", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // Table structure
-  // -------------------------------------------------------------------------
   describe("table structure", () => {
     it("renders a <table> element", () => {
       renderTable();

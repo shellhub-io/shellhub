@@ -16,9 +16,6 @@ function stubClipboard(resolves: boolean) {
   return writeText;
 }
 
-// ---------------------------------------------------------------------------
-// (a) Clipboard icon at rest → check after click → reverts after 1500ms
-// ---------------------------------------------------------------------------
 describe("CopyButton — copy lifecycle (secure context)", () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, "isSecureContext", {
@@ -62,9 +59,6 @@ describe("CopyButton — copy lifecycle (secure context)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// (b) onError invoked when writeText rejects
-// ---------------------------------------------------------------------------
 describe("CopyButton — onError on writeText rejection", () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, "isSecureContext", {
@@ -86,9 +80,6 @@ describe("CopyButton — onError on writeText rejection", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// (c) onError invoked when isSecureContext is false
-// ---------------------------------------------------------------------------
 describe("CopyButton — onError when not in secure context", () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, "isSecureContext", {

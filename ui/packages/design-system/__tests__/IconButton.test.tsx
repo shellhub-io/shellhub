@@ -2,9 +2,6 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { IconButton } from "../primitives/IconButton";
 
-// ---------------------------------------------------------------------------
-// aria-label forwarding
-// ---------------------------------------------------------------------------
 describe("IconButton — aria-label", () => {
   it("forwards aria-label to the underlying element", () => {
     render(
@@ -19,9 +16,6 @@ describe("IconButton — aria-label", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Base classes
-// ---------------------------------------------------------------------------
 describe("IconButton — base classes", () => {
   it("includes inline-flex items-center justify-center shrink-0", () => {
     render(<IconButton data-testid="btn">X</IconButton>);
@@ -69,9 +63,6 @@ describe("IconButton — base classes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Size map
-// ---------------------------------------------------------------------------
 describe("IconButton — sizes", () => {
   it("size=sm adds p-1 rounded", () => {
     render(
@@ -120,9 +111,6 @@ describe("IconButton — sizes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Variant map
-// ---------------------------------------------------------------------------
 describe("IconButton — variants", () => {
   it("variant=ghost (default) adds ghost classes", () => {
     render(<IconButton data-testid="btn">X</IconButton>);
@@ -170,9 +158,6 @@ describe("IconButton — variants", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Polymorphic — as=a forwards href
-// ---------------------------------------------------------------------------
 describe("IconButton — as=a (anchor)", () => {
   it("renders an <a> element", () => {
     render(
@@ -222,9 +207,6 @@ describe("IconButton — as=a (anchor)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Polymorphic — as={Link} forwards to prop
-// ---------------------------------------------------------------------------
 describe("IconButton — as={Link} (React Router Link-like)", () => {
   it("renders a component passed as `as` and forwards to prop", () => {
     // Simulate a React Router Link component
@@ -254,9 +236,6 @@ describe("IconButton — as={Link} (React Router Link-like)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Native button type
-// ---------------------------------------------------------------------------
 describe("IconButton — native type attribute", () => {
   it("defaults to type=button", () => {
     render(<IconButton data-testid="btn">X</IconButton>);
@@ -273,9 +252,6 @@ describe("IconButton — native type attribute", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// disabled handling
-// ---------------------------------------------------------------------------
 describe("IconButton — disabled", () => {
   it("disabled prop makes the button disabled", () => {
     render(
@@ -287,9 +263,6 @@ describe("IconButton — disabled", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// disabled + loading interaction
-// ---------------------------------------------------------------------------
 describe("IconButton — disabled prop interaction", () => {
   it("loading=true with disabled=false still produces a disabled button", () => {
     render(
@@ -301,9 +274,6 @@ describe("IconButton — disabled prop interaction", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// loading
-// ---------------------------------------------------------------------------
 describe("IconButton — loading", () => {
   it("loading=true renders a Spinner inside the button", () => {
     render(
@@ -365,9 +335,6 @@ describe("IconButton — loading", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// className override
-// ---------------------------------------------------------------------------
 describe("IconButton — className override", () => {
   it("merges custom className", () => {
     render(
@@ -379,9 +346,6 @@ describe("IconButton — className override", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Export re-check from primitives/index
-// ---------------------------------------------------------------------------
 describe("IconButton — exported from primitives/index", () => {
   it("is exported from the primitives barrel", async () => {
     const mod = await import("../primitives/index");
