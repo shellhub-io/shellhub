@@ -20,7 +20,7 @@ require (
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.15.0
 	github.com/shellhub-io/shellhub v0.0.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0

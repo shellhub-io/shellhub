@@ -16,7 +16,7 @@ require (
 	github.com/labstack/echo/v5 v5.3.1
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/sethvargo/go-envconfig v1.4.3
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go/modules/redis v0.44.0
 	golang.org/x/crypto v0.54.0
