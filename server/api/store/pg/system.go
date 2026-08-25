@@ -50,7 +50,6 @@ func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 		}
 		_, err = db.NewInsert().Model(systemEntity).Exec(ctx)
 	case err == nil:
-		// System exists, update it (use existing ID)
 		systemEntity.ID = existingSystem.ID
 		_, err = db.NewUpdate().Model(systemEntity).WherePK().Exec(ctx)
 	}

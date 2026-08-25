@@ -196,11 +196,9 @@ func (d *dockerUpdater) removeContainer(container *dockerContainer) error {
 func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name string, parent bool) (*dockerContainer, error) { //nolint:unparam
 	ctx := context.Background()
 
-	// Clone container container config and update the image name
 	config := container.info.Config
 	config.Image = image
 
-	// Set current container as parent of the new container
 	if parent {
 		config.Env = replaceOrAppendEnvValues(config.Env, []string{fmt.Sprintf("PARENT_CONTAINER=%s", container.info.ID)})
 	}
@@ -218,7 +216,6 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 		return nil, err
 	}
 
-	// Create a new container using the cloned container config
 	clone, err := d.api.ContainerCreate(ctx, config, container.info.HostConfig, netConfig, nil, name)
 	if err != nil {
 		return nil, err
@@ -272,7 +269,6 @@ func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 		}
 	}
 
-	// Now remove all entries that we want to "unset"
 	for i := 0; i < len(defaults); i++ {
 		if defaults[i] == "" {
 			defaults = append(defaults[:i], defaults[i+1:]...)
