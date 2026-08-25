@@ -16,7 +16,7 @@ require (
 	github.com/labstack/echo-contrib/v5 v5.0.1
 	github.com/labstack/echo/v5 v5.3.1
 	github.com/lib/pq v1.12.3
-	github.com/mark3labs/mcp-go v0.57.0
+	github.com/mark3labs/mcp-go v0.58.0
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.15.0
 	github.com/shellhub-io/shellhub v0.0.0
