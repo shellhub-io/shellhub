@@ -1,23 +1,23 @@
-import { useState } from "react";
 import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
-import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { type InstallKeyEvent } from "@/client";
+import type { RequestDeviceAction } from "./installKeyEventColumns";
 import StatusChip from "./StatusChip";
 
-/**
- * The frozen verdict: a soft status chip (accepted green / rejected red) over when it was decided —
- * chip-over-timestamp, matching the Registration column's layout.
- */
 type ReviewVerdict = "accepted" | "rejected";
 
-function Verdict({ status, at }: { status: ReviewVerdict; at?: string | null }) {
+function Verdict({
+  status,
+  at,
+}: {
+  status: ReviewVerdict;
+  at?: string | null;
+}) {
   const rejected = status === "rejected";
 
   return (
@@ -36,24 +36,20 @@ function Verdict({ status, at }: { status: ReviewVerdict; at?: string | null }) 
   );
 }
 
-/** An inline text-link action (accept green / reject red), the review's control under its status. */
 function ActionLink({
   children,
   color,
   onClick,
-  disabled,
 }: {
   children: string;
   color: "green" | "red";
   onClick: () => void;
-  disabled: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      className={`font-medium hover:underline disabled:opacity-50 disabled:no-underline ${
+      className={`font-medium hover:underline ${
         color === "green" ? "text-accent-green" : "text-accent-red"
       }`}
     >
@@ -62,11 +58,7 @@ function ActionLink({
   );
 }
 
-/**
- * Resolve an event's review verdict: the per-event stamped decision (survives the device being
- * removed, so an older re-registration keeps its own), falling back to the current device's live
- * status when the decision predates stamping so a decided device never shows a dash.
- */
+// decided_status is per-event (survives device removal); device_status is the live fallback for pre-stamping enrollments.
 function resolveVerdict(event: InstallKeyEvent): ReviewVerdict | undefined {
   const decided = event.decided_status;
   if (decided === "accepted" || decided === "rejected") return decided;
@@ -78,53 +70,25 @@ function resolveVerdict(event: InstallKeyEvent): ReviewVerdict | undefined {
   return undefined;
 }
 
-/**
- * The Review cell: the enrollment's verdict and, for the current device, its live control right under
- * it. A pending device shows a Pending badge with Accept / Reject links; a rejected current device
- * shows the Rejected verdict with a second-chance Accept link; a reviewed row shows its frozen verdict;
- * an older, never-decided row shows a dash. Controls only ever apply to the current device's newest
- * enrollment.
- */
 export default function InstallKeyEventReview({
   event,
+  requestAction,
 }: {
   event: InstallKeyEvent;
+  requestAction: RequestDeviceAction;
 }) {
-  const accept = useAcceptDevice();
-  const reject = useRejectDevice();
-  const refreshHistory = useInvalidateByIds("installKeyHistory");
-  const [error, setError] = useState("");
-
-  const busy = accept.isPending || reject.isPending;
   const status = event.device_status;
   const actionable = event.is_current;
-
-  const run = async (fn: () => Promise<unknown>) => {
-    setError("");
-    try {
-      await fn();
-      await refreshHistory();
-    } catch {
-      setError("Action failed");
-    }
-  };
-
-  const doAccept = () =>
-    run(() => accept.mutateAsync({ path: { uid: event.device_uid } }));
-  const doReject = () =>
-    run(() =>
-      reject.mutateAsync({ path: { uid: event.device_uid, status: "reject" } }),
-    );
+  const entity = { uid: event.device_uid, name: event.hostname };
 
   const acceptLink = (
     <RestrictedAction action="device:accept">
-      <ActionLink color="green" onClick={() => void doAccept()} disabled={busy}>
+      <ActionLink color="green" onClick={() => requestAction(entity, "accept")}>
         Accept
       </ActionLink>
     </RestrictedAction>
   );
 
-  // Current device still awaiting review: Pending badge with the live controls under it.
   if (actionable && status === "pending") {
     return (
       <div className="space-y-1.5">
@@ -135,27 +99,21 @@ export default function InstallKeyEventReview({
           <RestrictedAction action="device:reject">
             <ActionLink
               color="red"
-              onClick={() => void doReject()}
-              disabled={busy}
+              onClick={() => requestAction(entity, "reject")}
             >
               Reject
             </ActionLink>
           </RestrictedAction>
-          {error && <span className="text-accent-red">{error}</span>}
         </div>
       </div>
     );
   }
 
-  // Current device that was rejected: the verdict with a second-chance Accept under it.
   if (actionable && status === "rejected") {
     return (
       <div className="space-y-1">
         <Verdict status="rejected" at={event.decided_at} />
-        <div className="flex items-center gap-2 text-2xs">
-          {acceptLink}
-          {error && <span className="text-accent-red">{error}</span>}
-        </div>
+        <div className="flex items-center gap-2 text-2xs">{acceptLink}</div>
       </div>
     );
   }
