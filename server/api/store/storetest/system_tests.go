@@ -30,7 +30,6 @@ func (s *Suite) TestSystemGet(t *testing.T) {
 		err := st.SystemSet(ctx, expectedSystem)
 		require.NoError(t, err)
 
-		// Get the system
 		system, err := st.SystemGet(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, system)
@@ -89,7 +88,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 	t.Run("updates existing system", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create initial system
 		initialSystem := &models.System{
 			Setup: false,
 			Authentication: &models.SystemAuthentication{

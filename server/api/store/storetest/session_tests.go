@@ -41,7 +41,6 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		s.CreateSession(t, WithSessionUser("user3"))
 		s.CreateSession(t, WithSessionUser("user4"))
 
-		// List all sessions
 		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
@@ -371,7 +370,6 @@ func (s *Suite) TestSessionResolve(t *testing.T) {
 			WithSessionUser("testuser"),
 		)
 
-		// Resolve by UID
 		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 		require.NoError(t, err)
 		require.NotNil(t, session)
@@ -388,11 +386,9 @@ func (s *Suite) TestSessionCreate(t *testing.T) {
 	t.Run("succeeds when data is valid", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create device first
 		tenantID := s.CreateNamespace(t)
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 
-		// Create session
 		session := models.Session{
 			Username:      "testuser",
 			UID:           "test-session-uid",
@@ -437,7 +433,6 @@ func (s *Suite) TestSessionUpdateDeviceUID(t *testing.T) {
 		newDevice := s.CreateDevice(t, WithDeviceName("new-device"), WithTenantID(tenantID))
 		s.CreateSession(t, WithSessionDevice(oldDevice))
 
-		// Update device UID
 		err := st.SessionUpdateDeviceUID(ctx, oldDevice, newDevice)
 		require.NoError(t, err)
 	})
@@ -451,10 +446,8 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("succeeds when session is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		// Update session
 		err := st.SessionUpdate(ctx, &models.Session{
 			UID:           string(sessionUID),
 			Authenticated: true,
@@ -480,11 +473,9 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("succeeds when setting Authenticated to true", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		tenantID := s.CreateNamespace(t)
 		sessionUID := s.CreateSession(t, WithSessionUser("user2"))
 
-		// Update session
 		err := st.SessionUpdate(ctx, &models.Session{
 			UID:           string(sessionUID),
 			Authenticated: true,
@@ -497,10 +488,8 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("succeeds when updating Type field", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("user3"))
 
-		// Update type
 		err := st.SessionUpdate(ctx, &models.Session{
 			UID:  string(sessionUID),
 			Type: "exec",
@@ -511,7 +500,6 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 	t.Run("succeeds when updating Recorded flag", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("user4"))
 
 		// Update recorded flag
@@ -541,7 +529,6 @@ func (s *Suite) TestActiveSessionDelete(t *testing.T) {
 		// Create session with active flag
 		sessionUID := s.CreateSession(t, WithSessionActive(true))
 
-		// Delete active session
 		err := st.ActiveSessionDelete(ctx, sessionUID)
 		require.NoError(t, err)
 	})
@@ -571,7 +558,6 @@ func (s *Suite) TestActiveSessionResolve(t *testing.T) {
 			WithSessionActive(true),
 		)
 
-		// Resolve active session
 		activeSession, err := st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
 		require.NoError(t, err)
 		require.NotNil(t, activeSession)
@@ -598,7 +584,6 @@ func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
 	t.Run("succeeds when active session is found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create active session
 		sessionUID := s.CreateSession(t, WithSessionActive(true))
 
 		// Update last seen
@@ -619,10 +604,8 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 	t.Run("succeeds when creating a session event", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		// Create session event
 		event := &models.SessionEvent{
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
@@ -638,7 +621,6 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 	t.Run("succeeds when creating multiple events for same session", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create multiple events
@@ -674,7 +656,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 	t.Run("succeeds when events are found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events
@@ -691,7 +672,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// List events
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
@@ -701,7 +681,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 	t.Run("succeeds filtering by seat", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events with different seats
@@ -730,7 +709,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 	t.Run("succeeds filtering by event type", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events with different types
@@ -756,7 +734,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		err = st.SessionEventsCreate(ctx, event2)
 		require.NoError(t, err)
 
-		// List only PtyOutput events
 		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
@@ -779,7 +756,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 	t.Run("succeeds when deleting events", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events
@@ -796,7 +772,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// Delete events
 		err := st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
 
@@ -810,7 +785,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 	t.Run("succeeds deleting only matching seat", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events with different seats
@@ -847,7 +821,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 	t.Run("succeeds deleting only matching event type", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create session
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		// Create events with different types
@@ -873,7 +846,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 		err = st.SessionEventsCreate(ctx, event2)
 		require.NoError(t, err)
 
-		// Delete only PtyOutput events
 		err = st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
 

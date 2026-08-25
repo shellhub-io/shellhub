@@ -14,7 +14,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// These tests lock the fix for issue shellhub-io/shellhub#6637: full-model *Update methods must
+// These tests lock a rule: full-model *Update methods must
 // not clobber columns that are maintained by separate targeted writes (atomic counters, the
 // heartbeat, preferred-namespace clears, the invitation counter). Each test interleaves a targeted
 // write with a full-model update built from a stale resolve-time snapshot and asserts the targeted

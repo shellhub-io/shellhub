@@ -23,7 +23,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("pending"))
 
-		// Create a device with active session
 		deviceUID := s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
@@ -52,7 +51,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("pending"))
 
-		// Create a device with active session
 		deviceUID := s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
 		s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionActive(true))
 
@@ -60,7 +58,6 @@ func (s *Suite) TestGetStats(t *testing.T) {
 		tenant2 := s.CreateNamespace(t)
 		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
 
-		// Get stats for tenant1 only
 		stats, err := st.GetStats(ctx, scope.MustBounded(tenant1))
 		require.NoError(t, err)
 		require.NotNil(t, stats)

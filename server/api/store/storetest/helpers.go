@@ -349,11 +349,9 @@ func (s *Suite) CreateActiveSession(t *testing.T, sessionUID models.UID, lastSee
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	// Get the session first
 	session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 	require.NoError(t, err)
 
-	// Create active session
 	err = st.ActiveSessionCreate(ctx, session)
 	require.NoError(t, err)
 }

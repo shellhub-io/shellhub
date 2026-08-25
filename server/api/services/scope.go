@@ -7,7 +7,7 @@ import (
 // reasonInternalSessionMutation is the justification carried by the internal session mutations the
 // SSH server drives (deactivate, keep-alive, update, event recording). Their call chains carry no
 // namespace at all, so bounding them means changing the SSH-facing contract, which is deliberately
-// deferred to its own change: see shellhub-io/shellhub#6749.
+// deferred to its own change.
 const reasonInternalSessionMutation = "internal SSH-driven session mutation: no namespace exists anywhere in the call chain yet; bounding it changes the SSH-facing contract (see #6749)"
 
 // BoundTo bounds an operation to the tenant a request carries. An absent tenant refuses the request
