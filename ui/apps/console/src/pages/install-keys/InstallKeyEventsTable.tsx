@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useInstallKeyEvents } from "@/hooks/useInstallKeyEvents";
+import { useActionDialog } from "@/hooks/useActionDialog";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import DataTable from "@/components/common/DataTable";
-import { installKeyEventColumns } from "./installKeyEventColumns";
+import ActionDialog from "@/components/common/ActionDialog";
+import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import { pageCount } from "@/utils/pagination";
+import { getInstallKeyEventColumns } from "./installKeyEventColumns";
 
 const EMPTY_MESSAGE =
   "No registrations yet. Devices that register with this key will appear here.";
@@ -27,6 +31,15 @@ export default function InstallKeyEventsTable({
   viewAll?: { to: string; state?: unknown };
 }) {
   const [page, setPage] = useState(1);
+  const refreshHistory = useInvalidateByIds("installKeyHistory");
+  const deviceActions = useActionDialog({
+    onSuccess: () => void refreshHistory(),
+  });
+  const runDeviceAction = useDeviceActionRunner();
+  const columns = useMemo(
+    () => getInstallKeyEventColumns(deviceActions.requestAction),
+    [deviceActions.requestAction],
+  );
   const { events, totalCount, isLoading, error } = useInstallKeyEvents({
     id,
     page: compact ? 1 : page,
@@ -49,7 +62,7 @@ export default function InstallKeyEventsTable({
     <>
       <DataTable
         label="Registration Activity"
-        columns={installKeyEventColumns}
+        columns={columns}
         data={events}
         rowKey={(event) => event.id}
         rowClassName={() => "[&>td]:py-4"}
@@ -78,6 +91,16 @@ export default function InstallKeyEventsTable({
             View all {totalCount} registrations →
           </Link>
         </div>
+      )}
+      {deviceActions.action && (
+        <ActionDialog
+          key={deviceActions.actionKey}
+          action={deviceActions.action}
+          onClose={deviceActions.close}
+          onSuccess={deviceActions.handleSuccess}
+          entityType="device"
+          runAction={runDeviceAction}
+        />
       )}
     </>
   );
