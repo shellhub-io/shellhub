@@ -57,6 +57,16 @@ func (pg *Pg) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, erro
 	return stats, nil
 }
 
+func (pg *Pg) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, error) {
+	db := pg.GetConnection(ctx)
+
+	if !sc.IsValid() {
+		return 0, store.ErrInvalidScope
+	}
+
+	return countInScope(ctx, buildRegisteredDevicesQuery(db), sc)
+}
+
 func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (int, error) {
 	query, err := applyScopedOptions(ctx, query, sc)
 	if err != nil {

@@ -1157,6 +1157,72 @@ func (_c *MockStore_ActiveSessionUpdate_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// CountRegisteredDevices provides a mock function for the type MockStore
+func (_mock *MockStore) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int, error) {
+	ret := _mock.Called(ctx, sc)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountRegisteredDevices")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) (int, error)); ok {
+		return returnFunc(ctx, sc)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) int); ok {
+		r0 = returnFunc(ctx, sc)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_CountRegisteredDevices_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountRegisteredDevices'
+type MockStore_CountRegisteredDevices_Call struct {
+	*mock.Call
+}
+
+// CountRegisteredDevices is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) CountRegisteredDevices(ctx any, sc any) *MockStore_CountRegisteredDevices_Call {
+	return &MockStore_CountRegisteredDevices_Call{Call: _e.mock.On("CountRegisteredDevices", ctx, sc)}
+}
+
+func (_c *MockStore_CountRegisteredDevices_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_CountRegisteredDevices_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_CountRegisteredDevices_Call) Return(n int, err error) *MockStore_CountRegisteredDevices_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_CountRegisteredDevices_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) (int, error)) *MockStore_CountRegisteredDevices_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceConflicts provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	var tmpRet mock.Arguments
