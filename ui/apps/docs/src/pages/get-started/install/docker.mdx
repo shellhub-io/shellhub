@@ -60,8 +60,10 @@ Agent settings are environment variables on the container. See
 [Agent Configuration](/get-started/agent-configuration) for all of them.
 
 The one that matters most for persistence is `SHELLHUB_PRIVATE_KEY`. The agent generates a key on
-first run and that key is the device's identity — if it lives only inside the container's
-writable layer, recreating the container produces a *new* device. Keep it on a volume.
+first run and that key is the device's identity. The installer keeps it on the **host**, at
+`/etc/shellhub.key`, reached from the container as `/host/etc/shellhub.key` — so recreating the
+container returns the same device. If you run the container yourself, point the variable at a
+path under `/host` as well; a key in the container's writable layer dies with the container.
 
 ## Managing the agent
 

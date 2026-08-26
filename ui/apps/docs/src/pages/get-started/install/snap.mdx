@@ -13,16 +13,12 @@ On a machine with `snapd` and no container runtime, the installer uses Snap.
 ## Install
 
 ```bash
-$ curl -sSf https://cloud.shellhub.io/install.sh | \
-    INSTALL_KEY=<your-install-key> \
-    sh
-```
-
-Or directly:
-
-```bash
 $ sudo snap install --classic --channel=latest/stable shellhub
+$ sudo snap set shellhub tenant-id=<your-tenant-id>
 ```
+
+The install script picks Snap on its own when `snapd` is present and no container runtime is, and
+it needs `TENANT_ID` to do so.
 
 <Callout variant="warning" title="Snap is the one method that still needs a tenant">
 It does not pair and it does not take an install key: the script refuses to run without
@@ -76,7 +72,7 @@ $ sudo snap refresh --hold shellhub
 $ sudo snap remove shellhub
 ```
 
-The installer's `--uninstall` flag does **not** cover Snap — remove it with `snap remove`.
+The install script's `uninstall` does **not** cover Snap — remove it with `snap remove`.
 
 ## Where to go next
 

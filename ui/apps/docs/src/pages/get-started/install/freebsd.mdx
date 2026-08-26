@@ -38,9 +38,9 @@ shellhub_tenant_id="<your-tenant-id>"
 Both the server address and the tenant ID are required — the `rc.d` script validates them at
 startup and exits with an error if either is missing.
 
-The agent generates a private key on first run and stores it at the path in
-`shellhub_private_key`. That key is the device's identity: delete it and the device re-registers
-as a new one, so it belongs on persistent storage.
+The agent generates a private key on first run and stores it at `shellhub_private_key`, which
+defaults to `/usr/local/etc/shellhub.key`. That key is the device's identity: delete it and the
+device re-registers as a new one, so it belongs on persistent storage.
 
 ## Managing the service
 

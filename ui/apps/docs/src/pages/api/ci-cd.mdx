@@ -70,7 +70,7 @@ month is included without an edit:
 ```bash
 $ curl -s -H "X-API-Key: $SHELLHUB_API_KEY" \
     "https://cloud.shellhub.io/api/devices" | \
-  jq -r '.[] | select(.tags[]? == "production") | .name' | \
+  jq -r '.[] | select(.tags[]?.name == "production") | .name' | \
   while read -r device; do
     ssh "deploy@mycompany.$device@cloud.shellhub.io" 'systemctl restart myservice'
   done
