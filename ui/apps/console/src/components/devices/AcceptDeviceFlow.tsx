@@ -26,11 +26,13 @@ import {
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
-import { useNamespaces } from "@/hooks/useNamespaces";
+import { useNamespace, useNamespaces } from "@/hooks/useNamespaces";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioCard from "@/components/common/fields/RadioCard";
 import PairingCodeForm from "@/components/common/PairingCodeForm";
 import { getInitials } from "@/utils/string";
+import { useHasPermission } from "@/hooks/useHasPermission";
+import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 
 type DevicePreview = ResolveDeviceLoginCodeResponse;
@@ -75,6 +77,12 @@ export default function AcceptDeviceFlow({
   const [actionBranch, setActionBranch] = useState<Branch | null>(null);
   const [actionError, setActionError] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
+  const { namespace: targetNamespace } = useNamespace(
+    selectedTenant || authTenant || "",
+  );
+  const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
+  const canSubscribeInAuth = useHasPermission("billing:subscribe");
+  const canSubscribe = canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 
   const finish = (b: Branch) => {
     clearPendingDeviceCode();
@@ -124,7 +132,7 @@ export default function AcceptDeviceFlow({
       await acceptDevice.mutateAsync({ path: { uid: device.uid } });
       finish({ kind: "success", device });
     } catch (err) {
-      setActionError(getAcceptErrorMessage(err));
+      setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
   };
 
@@ -144,7 +152,7 @@ export default function AcceptDeviceFlow({
         namespace: data.namespace ?? "",
       });
     } catch (err) {
-      setActionError(getAcceptErrorMessage(err));
+      setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
   };
 
