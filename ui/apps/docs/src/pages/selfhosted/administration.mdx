@@ -1,0 +1,114 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Administration
+description: Administer a self-hosted instance from the host — accounts, namespaces, members, and the one way to reset a password without mail.
+---
+
+import Callout from "../../components/Callout.astro";
+import EditionBanner from "../../components/EditionBanner.astro";
+
+# Administration
+
+Most of ShellHub is scoped to a namespace. Administering the **instance** — every account, every
+namespace — is done from the host it runs on, with the admin commands built into the server
+binary. They write to the database directly, without going through the API.
+
+<EditionBanner>
+The admin **console** at `/admin` is Enterprise, and it opens only for an account carrying the
+superadmin flag. On Cloud and Enterprise the instance is operated by ShellHub, so there is no host
+of yours to run these commands on.
+</EditionBanner>
+
+## Running a command
+
+```bash
+$ ./bin/cli user list
+```
+
+`bin/cli` runs the command inside the `server` container, so there is nothing separate to install.
+It refuses to run when the stack is down, with `ShellHub is not running`.
+
+## Users
+
+| Command | Purpose |
+|---|---|
+| `user create <username> <password> <email>` | Create a user |
+| `user password <username> <password>` | Change a user's password |
+| `user delete <username>` | Delete a user |
+| `user list` | List all users |
+
+```bash
+$ ./bin/cli user create john_doe Secret123!- john.doe@example.com
+```
+
+Add `--admin` to create the user as a superadmin. The flag applies at creation: there is no
+command that promotes an existing account. Usernames and emails are lowercased before they are
+stored, so two accounts cannot differ by case alone.
+
+A superadmin administers the instance. It does not reach a device: an
+[access policy](/manage/access-control/access-policies) still decides that, exactly as for
+anybody else.
+
+### Resetting a password
+
+```bash
+$ ./bin/cli user password john_doe NewSecret123!-
+```
+
+Password recovery by email is a Cloud capability. On a self-hosted instance this command is the
+recovery path, and it is the reason an operator needs shell access to the host.
+
+<Callout variant="danger" title="Deleting a user deletes the namespaces they own">
+`user delete` removes every namespace the person owns — devices, identities, access policies and
+session records included — and their membership everywhere else. There is no confirmation and no
+reassignment step. Transfer ownership first if the team still needs the namespace.
+</Callout>
+
+## Namespaces
+
+| Command | Purpose |
+|---|---|
+| `namespace create <namespace> <owner> [tenant]` | Create a namespace |
+| `namespace delete <namespace>` | Delete a namespace |
+| `namespace list` | List namespaces |
+| `namespace inspect <namespace>` | Show one namespace in full |
+
+```bash
+$ ./bin/cli namespace create engineering john_doe
+```
+
+The tenant identifier is optional; one is generated when it is omitted.
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--type` | `team` | The namespace type |
+| `--ssh-access-mode` | `identity` | `legacy` or `identity` |
+
+<Callout variant="warning">
+A namespace created with `--ssh-access-mode legacy` can move to identity mode and cannot move
+back. Only namespaces that predate identity mode keep the return path. See
+[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+</Callout>
+
+Deleting a namespace removes its devices, identities, policies and session records.
+
+## Members
+
+| Command | Purpose |
+|---|---|
+| `namespace member add <username> <namespace> <role>` | Add a member |
+| `namespace member remove <username> <namespace>` | Remove a member |
+
+```bash
+$ ./bin/cli namespace member add myuser mynamespace observer
+```
+
+The role is one of `observer`, `operator`, `administrator` or `owner`. Adding a member grants
+access to no device — a member reaches nothing until an
+[access policy](/manage/access-control/access-policies) grants it. On Community this is also how
+the first member joins the one namespace, since invitations need mail the instance does not have.
+
+## Where to go next
+
+- [User Roles](/manage/team/user-roles) — What each role permits inside a namespace.
+- [Environment Variables](/selfhosted/environment-variables) — Everything the composition reads.
