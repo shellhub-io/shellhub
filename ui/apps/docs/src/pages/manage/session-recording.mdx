@@ -49,6 +49,10 @@ From the session's detail page.
 The player replays the terminal in real time — what was typed, what was displayed, and the timing
 between them.
 
+One consequence worth knowing: **a local recording plays without the `session:play`
+permission**, because it is your own browser data rather than something the server holds.
+Server-side playback is permission-gated as you would expect. See [User Roles](/manage/team/user-roles).
+
 ## What is captured, and what is not
 
 **Captured:** everything the terminal displayed, everything typed, and terminal resizes.
