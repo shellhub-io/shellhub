@@ -197,7 +197,7 @@ export default function AcceptDeviceFlow({
             </>
           }
           action={
-            <div className="space-y-3">
+            <div className="flex flex-col items-center gap-3">
               <Button
                 variant="secondary"
                 size="md"
