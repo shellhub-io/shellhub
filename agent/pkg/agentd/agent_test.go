@@ -39,7 +39,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 
 	type expected struct {
 		cfg    *Config
-		fields map[string]interface{}
+		fields map[string]any
 		err    error
 	}
 
@@ -79,7 +79,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 			expected: expected{
 				cfg: nil,
-				fields: map[string]interface{}{
+				fields: map[string]any{
 					"PrivateKey": "required",
 				},
 				err: validator.ErrStructureInvalid,
@@ -101,7 +101,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			},
 			expected: expected{
 				cfg: nil,
-				fields: map[string]interface{}{
+				fields: map[string]any{
 					"ServerAddress": "required",
 					"PrivateKey":    "required",
 				},

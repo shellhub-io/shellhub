@@ -158,13 +158,13 @@ func DecodeEnrollmentDecisionClaims(publicKey *rsa.PublicKey, raw string) (*Enro
 
 // ClaimsFromBearerToken decodes the provided bearer token into either [github.com/shellhub-io/shellhub/pkg/api/authorizer.UserClaims]
 // or [github.com/shellhub-io/shellhub/pkg/api/authorizer.DeviceClaims]. It returns the decoded claims and an error if any.
-func ClaimsFromBearerToken(publicKey *rsa.PublicKey, bearerToken string) (interface{}, error) {
+func ClaimsFromBearerToken(publicKey *rsa.PublicKey, bearerToken string) (any, error) {
 	raw := strings.ReplaceAll(bearerToken, "Bearer ", "")
 
 	return unmarshalBearerToken(publicKey, raw)
 }
 
-func unmarshalBearerToken(publicKey *rsa.PublicKey, raw string) (interface{}, error) {
+func unmarshalBearerToken(publicKey *rsa.PublicKey, raw string) (any, error) {
 	kindAux := struct {
 		Kind string `json:"claims"`
 		jwt.RegisteredClaims

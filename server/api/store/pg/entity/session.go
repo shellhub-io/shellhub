@@ -179,7 +179,7 @@ func SessionEventToModel(entity *SessionEvent) *models.SessionEvent {
 	}
 
 	if entity.Data != "" {
-		var data interface{}
+		var data any
 		if err := json.Unmarshal([]byte(entity.Data), &data); err == nil {
 			event.Data = data
 		}

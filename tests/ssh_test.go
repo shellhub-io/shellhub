@@ -725,10 +725,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				wg := new(sync.WaitGroup)
 
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-
+				wg.Go(func() {
 					conn, err := listener.Accept()
 					require.NoError(t, err)
 
@@ -741,7 +738,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					require.Equal(t, "test", string(buffer[:4]))
 
 					conn.Close()
-				}()
+				})
 
 				dest, err := strconv.Atoi(port)
 				require.NoError(t, err)

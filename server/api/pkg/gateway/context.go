@@ -15,7 +15,7 @@ type ctxKey string
 const ctxAdminRoute ctxKey = "admin-route"
 
 type Context struct {
-	service interface{}
+	service any
 	*echo.Context
 }
 
@@ -35,7 +35,7 @@ func (c *Context) isAdminRoute() bool {
 // contextKey is where [WithContext] parks the gateway [Context] in Echo's per-request store.
 const contextKey = "gateway-context"
 
-func NewContext(service interface{}, c *echo.Context) *Context {
+func NewContext(service any, c *echo.Context) *Context {
 	return &Context{service: service, Context: c}
 }
 
@@ -44,7 +44,7 @@ func NewContext(service interface{}, c *echo.Context) *Context {
 // Echo's Context is a concrete struct, so the gateway context cannot be handed to the next
 // handler in its place — it rides along in the request store instead, and [From] takes it back
 // out. Register this before anything that calls [From].
-func WithContext(service interface{}) echo.MiddlewareFunc {
+func WithContext(service any) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			c.Set(contextKey, NewContext(service, c))
@@ -65,7 +65,7 @@ func From(c *echo.Context) (*Context, bool) {
 	return gCtx, ok
 }
 
-func (c *Context) Service() interface{} {
+func (c *Context) Service() any {
 	return c.service
 }
 

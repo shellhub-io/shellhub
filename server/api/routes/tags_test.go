@@ -247,7 +247,7 @@ func TestCreateTag(t *testing.T) {
 		description   string
 		url           string
 		headers       map[string]string
-		body          map[string]interface{}
+		body          map[string]any
 		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
 	}{
@@ -260,7 +260,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleObserver.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -274,7 +274,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleObserver.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -289,7 +289,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "a",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -304,7 +304,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -327,7 +327,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -353,7 +353,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -375,7 +375,7 @@ func TestCreateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "production",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -434,7 +434,7 @@ func TestUpdateTag(t *testing.T) {
 		description   string
 		url           string
 		headers       map[string]string
-		body          map[string]interface{}
+		body          map[string]any
 		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
 	}{
@@ -447,7 +447,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleObserver.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -461,7 +461,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleObserver.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -476,7 +476,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "ab",
 			},
 			requiredMocks: func(_ *mocks.MockService) {},
@@ -491,7 +491,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -515,7 +515,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -538,7 +538,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {
@@ -562,7 +562,7 @@ func TestUpdateTag(t *testing.T) {
 				"X-Role":       authorizer.RoleOwner.String(),
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name": "staging",
 			},
 			requiredMocks: func(svcMock *mocks.MockService) {

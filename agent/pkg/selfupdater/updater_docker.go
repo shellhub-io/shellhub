@@ -1,5 +1,4 @@
 //go:build docker
-// +build docker
 
 package selfupdater
 
@@ -247,14 +246,14 @@ func NewUpdater(version string) (Updater, error) {
 func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 	cache := make(map[string]int, len(defaults))
 	for i, e := range defaults {
-		index := strings.Index(e, "=")
-		cache[e[:index]] = i
+		before, _, _ := strings.Cut(e, "=")
+		cache[before] = i
 	}
 
 	for _, value := range overrides {
 		// Values w/o = means they want this env to be removed/unset.
-		index := strings.Index(value, "=")
-		if index < 0 {
+		before, _, ok := strings.Cut(value, "=")
+		if !ok {
 			if i, exists := cache[value]; exists {
 				defaults[i] = "" // Used to indicate it should be removed
 			}
@@ -262,7 +261,7 @@ func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 			continue
 		}
 
-		if i, exists := cache[value[:index]]; exists {
+		if i, exists := cache[before]; exists {
 			defaults[i] = value
 		} else {
 			defaults = append(defaults, value)

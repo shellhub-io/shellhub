@@ -25,7 +25,7 @@ type FilterProperty struct {
 	Operator string `json:"operator"`
 
 	// Value is the value used in the operation. (e.g., "eq" operations use Value to determine the value to be equal).
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 }
 
 // FilterOperator represents a JSON representation of a filter operator in a query (e.g., "and", "or" in MongoDB queries).

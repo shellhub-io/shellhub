@@ -15,11 +15,11 @@ import (
 // caller.
 type SyncSliceMap struct {
 	mu     sync.RWMutex
-	values map[interface{}][]interface{}
+	values map[any][]any
 }
 
 // Load retrieves the most recently stored value for the key.
-func (ssm *SyncSliceMap) Load(key interface{}) (interface{}, bool) {
+func (ssm *SyncSliceMap) Load(key any) (any, bool) {
 	ssm.mu.RLock()
 	defer ssm.mu.RUnlock()
 
@@ -32,12 +32,12 @@ func (ssm *SyncSliceMap) Load(key interface{}) (interface{}, bool) {
 
 // Store appends the value to the key's slice and returns the values that were
 // already stored under it.
-func (ssm *SyncSliceMap) Store(key, value interface{}) []interface{} {
+func (ssm *SyncSliceMap) Store(key, value any) []any {
 	ssm.mu.Lock()
 	defer ssm.mu.Unlock()
 
 	if ssm.values == nil {
-		ssm.values = make(map[interface{}][]interface{})
+		ssm.values = make(map[any][]any)
 	}
 
 	displaced := slices.Clone(ssm.values[key])
@@ -49,11 +49,11 @@ func (ssm *SyncSliceMap) Store(key, value interface{}) []interface{} {
 // Delete removes the value from the key's slice and returns how many values
 // remain under it. The key itself is dropped once its last value is gone, so
 // the map does not retain an entry for every device ever seen.
-func (ssm *SyncSliceMap) Delete(key, value interface{}) int {
+func (ssm *SyncSliceMap) Delete(key, value any) int {
 	ssm.mu.Lock()
 	defer ssm.mu.Unlock()
 
-	remaining := slices.DeleteFunc(ssm.values[key], func(v interface{}) bool {
+	remaining := slices.DeleteFunc(ssm.values[key], func(v any) bool {
 		return v == value
 	})
 
@@ -69,7 +69,7 @@ func (ssm *SyncSliceMap) Delete(key, value interface{}) int {
 }
 
 // Size returns the current size of the slice associated with the key.
-func (ssm *SyncSliceMap) Size(key interface{}) int {
+func (ssm *SyncSliceMap) Size(key any) int {
 	ssm.mu.RLock()
 	defer ssm.mu.RUnlock()
 

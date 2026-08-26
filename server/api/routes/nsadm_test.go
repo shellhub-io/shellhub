@@ -259,7 +259,7 @@ func TestEditNamespace(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
-		body          map[string]interface{}
+		body          map[string]any
 		requiredMocks func()
 		expected      int
 	}{
@@ -271,7 +271,7 @@ func TestEditNamespace(t *testing.T) {
 				"X-Role":       "observer",
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"session_record": true,
 			},
 			requiredMocks: func() {
@@ -286,7 +286,7 @@ func TestEditNamespace(t *testing.T) {
 				"X-Role":       "operator",
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"session_record": true,
 			},
 			requiredMocks: func() {
@@ -301,7 +301,7 @@ func TestEditNamespace(t *testing.T) {
 				"X-Role":       "owner",
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"session_record": true,
 			},
 			requiredMocks: func() {
@@ -320,7 +320,7 @@ func TestEditNamespace(t *testing.T) {
 				"X-Role":       "owner",
 				"X-ID":         "000000000000000000000000",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"session_record": true,
 				"tenant":         "00000000-0000-4000-0000-000000000000",
 			},
@@ -588,7 +588,7 @@ func encodeFilter(t *testing.T, filters []query.Filter) string {
 // verifies the first property filter in a *requests.NamespaceList carries the
 // given field name un-rewritten, ensuring the handler passes the API-level
 // field name to the service layer without translating it to a database column.
-func namespaceListHasFilterName(name string) interface{} {
+func namespaceListHasFilterName(name string) any {
 	return gomock.MatchedBy(func(req *requests.NamespaceList) bool {
 		for _, f := range req.Filters.Data {
 			if f.Type != query.FilterTypeProperty {

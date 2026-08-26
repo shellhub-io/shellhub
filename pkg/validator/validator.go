@@ -191,9 +191,9 @@ func (v *Validator) Struct(structure any) (bool, error) {
 }
 
 // StructWithFields validades a structure using ShellHub validation's tags, returnig the invalid fields and its tags.
-func (v *Validator) StructWithFields(structure any) (bool, map[string]interface{}, error) {
+func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error) {
 	if err := v.Validate.Struct(structure); err != nil {
-		fields := make(map[string]interface{}, 0)
+		fields := make(map[string]any, 0)
 
 		errs := err.(validator.ValidationErrors)
 

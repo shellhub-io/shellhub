@@ -70,7 +70,7 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 // abandoned connection, and [revdial.Dialer.Close] blocks until its owner
 // observes the close. Neither belongs on the path registering the live
 // connection.
-func (m *Manager) evict(key string, displaced []interface{}) {
+func (m *Manager) evict(key string, displaced []any) {
 	if len(displaced) == 0 {
 		return
 	}

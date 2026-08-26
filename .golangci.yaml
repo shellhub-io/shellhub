@@ -29,6 +29,7 @@ linters:
     - unconvert
     - unused
     - misspell
+    - modernize
     - whitespace
     - depguard
     - nlreturn

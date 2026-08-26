@@ -43,7 +43,7 @@ func TestGetReference(t *testing.T) {
 			name: "success when multiple calls return same key",
 			test: func(t *testing.T) {
 				keys := make([]*rsa.PrivateKey, 10)
-				for i := 0; i < 10; i++ {
+				for i := range 10 {
 					keys[i] = GetReference()
 				}
 				firstKey := keys[0]
@@ -63,13 +63,13 @@ func TestGetReference_Concurrency(t *testing.T) {
 	t.Run("success when called concurrently returns singleton", func(t *testing.T) {
 		const numGoroutines = 100
 		keys := make(chan *rsa.PrivateKey, numGoroutines)
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			go func() {
 				keys <- GetReference()
 			}()
 		}
 		collectedKeys := make([]*rsa.PrivateKey, numGoroutines)
-		for i := 0; i < numGoroutines; i++ {
+		for i := range numGoroutines {
 			collectedKeys[i] = <-keys
 		}
 		firstKey := collectedKeys[0]

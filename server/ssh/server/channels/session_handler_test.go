@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"slices"
 	"sync"
 	"testing"
 
@@ -44,13 +45,7 @@ func (f *fakeSession) called(name string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	for _, c := range f.calls {
-		if c == name {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(f.calls, name)
 }
 
 func (f *fakeSession) LogFields() log.Fields { return log.Fields{"uid": "fake"} }
@@ -170,11 +165,11 @@ func (n *rejectingNewChannel) ExtraData() []byte   { return n.extraData }
 type stubContext struct {
 	context.Context
 	sync.Mutex
-	values map[interface{}]interface{}
+	values map[any]any
 }
 
 func newStubContext() *stubContext {
-	return &stubContext{Context: context.Background(), values: map[interface{}]interface{}{}}
+	return &stubContext{Context: context.Background(), values: map[any]any{}}
 }
 
 func (s *stubContext) User() string          { return "user@namespace.device" }
@@ -186,14 +181,14 @@ func (s *stubContext) LocalAddr() net.Addr   { return nil }
 
 func (s *stubContext) Permissions() *gliderssh.Permissions { return &gliderssh.Permissions{} }
 
-func (s *stubContext) SetValue(key, val interface{}) {
+func (s *stubContext) SetValue(key, val any) {
 	s.Lock()
 	defer s.Unlock()
 
 	s.values[key] = val
 }
 
-func (s *stubContext) Value(key interface{}) interface{} {
+func (s *stubContext) Value(key any) any {
 	s.Lock()
 	defer s.Unlock()
 

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -28,10 +29,8 @@ var extraTagTargets []TagTarget
 // It must be called during package initialization (e.g., from an init function)
 // and is not safe for concurrent use.
 func RegisterTagTarget(t TagTarget) {
-	for _, existing := range extraTagTargets {
-		if existing == t {
-			return
-		}
+	if slices.Contains(extraTagTargets, t) {
+		return
 	}
 
 	extraTagTargets = append(extraTagTargets, t)

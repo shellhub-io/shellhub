@@ -11,8 +11,8 @@ func TestUtmpConstants(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		got      interface{}
-		expected interface{}
+		got      any
+		expected any
 	}{
 		{
 			name:     "UserProcess type",

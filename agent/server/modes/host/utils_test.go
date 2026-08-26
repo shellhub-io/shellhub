@@ -6,6 +6,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -93,7 +94,7 @@ func (c *stubSSHContext) LocalAddr() net.Addr { return &net.TCPAddr{} }
 
 func (c *stubSSHContext) Permissions() *gliderssh.Permissions { return nil }
 
-func (c *stubSSHContext) SetValue(_, _ interface{}) {}
+func (c *stubSSHContext) SetValue(_, _ any) {}
 
 // Ensure stubSSHContext satisfies the gliderssh.Context interface at compile time.
 var _ gliderssh.Context = (*stubSSHContext)(nil)
@@ -169,13 +170,7 @@ func TestGenerateShellCmdFiltersClientEnv(t *testing.T) {
 
 // containsEnvEntry reports whether the exact entry e appears in envs.
 func containsEnvEntry(envs []string, e string) bool {
-	for _, v := range envs {
-		if v == e {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(envs, e)
 }
 
 // TestGenerateShellCmdExcludesForbiddenVarsPresentInCmdEnv verifies that dangerous

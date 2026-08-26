@@ -11,7 +11,7 @@ type Filter struct {
 	// to PropertyParams structure and when set "operator", the Params field must be set to OperatorParams structure.
 	Type string `json:"type,omitempty"`
 	// Params is the filter params. Params can be either PropertyParams or OperatorParams.
-	Params interface{} `json:"params,omitempty"`
+	Params any `json:"params,omitempty"`
 }
 
 func (f *Filter) UnmarshalJSON(data []byte) error {
@@ -47,9 +47,9 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 }
 
 type PropertyParams struct {
-	Name     string      `json:"name"`
-	Operator string      `json:"operator"`
-	Value    interface{} `json:"value"`
+	Name     string `json:"name"`
+	Operator string `json:"operator"`
+	Value    any    `json:"value"`
 }
 
 type OperatorParams struct {

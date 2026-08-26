@@ -17,7 +17,7 @@ const (
 // Backend is an interface for any sort of underlying key/value store.
 type Backend interface {
 	Get(key string) string
-	Process(prefix string, spec interface{}) error
+	Process(prefix string, spec any) error
 }
 
 // DefaultBackend define the backend to be used to get environment variables.

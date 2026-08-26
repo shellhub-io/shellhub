@@ -6,7 +6,7 @@ import (
 
 // Data is a custom type to carry error's metadata.
 // It can be any data type, but a struct is recommended due its fine control on JSON marshalling for each field.
-type Data interface{}
+type Data any
 
 // Error is a custom error that carry attributes to specify error's message, resource, layer, code and data.
 type Error struct {
@@ -72,7 +72,7 @@ func Unwrap(err error) error {
 }
 
 // As wraps [errors.As]. Check [errors.As] for more information.
-func As(err error, target interface{}) bool {
+func As(err error, target any) bool {
 	return errors.As(err, target)
 }
 

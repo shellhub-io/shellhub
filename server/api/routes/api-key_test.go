@@ -30,7 +30,7 @@ func TestCreateAPIKey(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
-		body          map[string]interface{}
+		body          map[string]any
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -42,7 +42,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
 			},
@@ -58,7 +58,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "observer",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
 			},
@@ -74,7 +74,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "operator",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
 			},
@@ -90,7 +90,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "de",
 				"expires_at": 30,
 			},
@@ -106,7 +106,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "devdevdevdevdevdevdev",
 				"expires_at": 30,
 			},
@@ -122,7 +122,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev dev",
 				"expires_at": 30,
 			},
@@ -138,7 +138,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
 			},
@@ -154,7 +154,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
 				"key":        "invalid",
@@ -171,7 +171,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
 				"role":       "invalid",
@@ -188,7 +188,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
 			},
@@ -219,7 +219,7 @@ func TestCreateAPIKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{
+			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
 				"key":        "3d7a3ea1-d1eb-4ffc-8c14-f7bfd1b7c550",

@@ -60,7 +60,7 @@ type ErrDataLimit struct {
 type ErrDataInvalid struct {
 	// Data is a key-value map of the invalid fields. key must be the field name what is invalid and value must be the
 	// value of the field.
-	Data map[string]interface{}
+	Data map[string]any
 }
 
 var (
@@ -176,7 +176,7 @@ func NewErrNotFound(err error, id string, next error) error {
 }
 
 // NewErrInvalid returns an error with the ErrDataInvalid and wrap an error.
-func NewErrInvalid(err error, data map[string]interface{}, next error) error {
+func NewErrInvalid(err error, data map[string]any, next error) error {
 	return errors.Wrap(errors.WithData(err, ErrDataInvalid{Data: data}), next)
 }
 
@@ -200,7 +200,7 @@ func NewErrLimit(err error, limit int, next error) error {
 //
 // A service can make n calls to store's function, but each service has your main action; what it was made to do. For
 // this case, to use when the main store's function fails, this error was intended to be used.
-func NewErrStore(err error, data interface{}, next error) error {
+func NewErrStore(err error, data any, next error) error {
 	return errors.Wrap(errors.WithData(err, data), next)
 }
 
@@ -230,7 +230,7 @@ func NewErrAPIKeyNotFound(name string, next error) error {
 }
 
 func NewErrAPIKeyInvalid(name string) error {
-	return NewErrAuthInvalid(map[string]interface{}{"api-key": name}, nil)
+	return NewErrAuthInvalid(map[string]any{"api-key": name}, nil)
 }
 
 // NewErrAPIKeyDuplicated returns an error when the APIKey name is duplicated.
@@ -275,7 +275,7 @@ func NewErrInstallKeyInvalidField(fields map[string]string) error {
 
 // NewErrTagInvalid returns an error when the tag is invalid.
 func NewErrTagInvalid(tag string, next error) error {
-	return NewErrInvalid(ErrTagInvalid, map[string]interface{}{"name": tag}, next)
+	return NewErrInvalid(ErrTagInvalid, map[string]any{"name": tag}, next)
 }
 
 // NewErrSameTags returns an error when the
@@ -315,7 +315,7 @@ func NewErrUserGetToken(id string, next error) error {
 }
 
 // NewErrUserInvalid returns an error when the user is invalid.
-func NewErrUserInvalid(data map[string]interface{}, next error) error {
+func NewErrUserInvalid(data map[string]any, next error) error {
 	return NewErrInvalid(ErrUserInvalid, data, next)
 }
 
@@ -370,7 +370,7 @@ func NewErrSSHIdentityDuplicated(fingerprint string, next error) error {
 // NewErrSSHIdentityInvalid returns an error when the provided public key cannot
 // be parsed.
 func NewErrSSHIdentityInvalid(data string, next error) error {
-	return NewErrInvalid(ErrSSHIdentityInvalid, map[string]interface{}{"data": data}, next)
+	return NewErrInvalid(ErrSSHIdentityInvalid, map[string]any{"data": data}, next)
 }
 
 // NewErrServiceAccountNotFound returns an error when the service account is not found
@@ -380,7 +380,7 @@ func NewErrServiceAccountNotFound(id string, next error) error {
 }
 
 // NewErrPublicKeyInvalid returns an error when the public key is invalid.
-func NewErrPublicKeyInvalid(data map[string]interface{}, next error) error {
+func NewErrPublicKeyInvalid(data map[string]any, next error) error {
 	return NewErrInvalid(ErrPublicKeyInvalid, data, next)
 }
 
@@ -412,7 +412,7 @@ func NewErrPublicKeyDataInvalid(value []byte, next error) error {
 	// value agreement.
 	//
 	// For now, there are a test to check if the models.PublicKey has the "Data" field.
-	return NewErrInvalid(ErrPublicKeyDataInvalid, map[string]interface{}{"Data": value}, next)
+	return NewErrInvalid(ErrPublicKeyDataInvalid, map[string]any{"Data": value}, next)
 }
 
 // NewErrPublicKeyFilter returns an error when the public key has more than one filter.
@@ -505,7 +505,7 @@ func NewErrNamespaceMemberDuplicated(id string, next error) error {
 }
 
 // NewErrDeviceInvalid returns an error to be used when the device data is invalid.
-func NewErrDeviceInvalid(data map[string]interface{}, next error) error {
+func NewErrDeviceInvalid(data map[string]any, next error) error {
 	return NewErrInvalid(ErrDeviceInvalid, data, next)
 }
 
@@ -527,14 +527,14 @@ func NewErrDeviceCustomFieldLimitReached(limit int, next error) error {
 
 // NewErrDeviceStatusInvalid returns an error to be used when the device's status is invalid.
 func NewErrDeviceStatusInvalid(status string, next error) error {
-	return NewErrInvalid(ErrDeviceStatusInvalid, map[string]interface{}{"status": status}, next)
+	return NewErrInvalid(ErrDeviceStatusInvalid, map[string]any{"status": status}, next)
 }
 
 // NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.
 func NewErrDeviceStatusAccepted(next error) error {
 	// This error is so tied to the device status, that it is not possible to use the NewErrInvalid function without this
 	// literal assignment.
-	return NewErrInvalid(ErrDeviceStatusAccepted, map[string]interface{}{"status": "accepted"}, next)
+	return NewErrInvalid(ErrDeviceStatusAccepted, map[string]any{"status": "accepted"}, next)
 }
 
 // NewErrTokenSigned returns an error to be used when the token signed fails.
@@ -554,7 +554,7 @@ func NewErrUserAwaitingApproval(err error) error {
 }
 
 // NewErrAuthInvalid returns a error to be used when the auth data is invalid.
-func NewErrAuthInvalid(data map[string]interface{}, err error) error {
+func NewErrAuthInvalid(data map[string]any, err error) error {
 	return NewErrInvalid(ErrAuthInvalid, data, err)
 }
 
@@ -630,9 +630,9 @@ func NewErrSetupForbidden(err error) error {
 }
 
 func NewErrAuthDeviceNoIdentityAndHostname() error {
-	return NewErrInvalid(ErrAuthDeviceNoIdentityAndHostname, map[string]interface{}{}, nil)
+	return NewErrInvalid(ErrAuthDeviceNoIdentityAndHostname, map[string]any{}, nil)
 }
 
 func NewErrAuthDeviceNoIdentity() error {
-	return NewErrInvalid(ErruthDeviceNoIdentity, map[string]interface{}{"identity": true}, nil)
+	return NewErrInvalid(ErruthDeviceNoIdentity, map[string]any{"identity": true}, nil)
 }

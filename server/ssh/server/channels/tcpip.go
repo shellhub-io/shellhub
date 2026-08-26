@@ -104,11 +104,8 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	wg := new(sync.WaitGroup)
 
 	// TODO: control the running state of these goroutines.
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		logger.Trace("copying data from client to agent")
 
 		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && err != io.EOF {
@@ -120,13 +117,9 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 			return
 		}
-	}()
+	})
 
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		logger.Trace("copying data from agent to client")
 
 		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
@@ -137,7 +130,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 			return
 		}
-	}()
+	})
 
 	wg.Wait()
 

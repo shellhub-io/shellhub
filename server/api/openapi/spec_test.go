@@ -41,13 +41,13 @@ func TestGetSessionsAdvertisesFilterQueryParameter(t *testing.T) {
 	data, err := os.ReadFile(sessionsPath) //nolint:gosec // path is constructed from runtime.Caller, not user input.
 	require.NoError(t, err, "should be able to read %s", sessionsPath)
 
-	var spec map[string]interface{}
+	var spec map[string]any
 	require.NoError(t, yaml.Unmarshal(data, &spec), "api@sessions.yaml must be valid YAML")
 
-	getOp, ok := spec["get"].(map[string]interface{})
+	getOp, ok := spec["get"].(map[string]any)
 	require.True(t, ok, "spec must have a 'get' operation")
 
-	params, ok := getOp["parameters"].([]interface{})
+	params, ok := getOp["parameters"].([]any)
 	require.True(t, ok, "get operation must have a 'parameters' list")
 
 	const wantRef = "../components/parameters/query/filterQuery.yaml"
@@ -55,7 +55,7 @@ func TestGetSessionsAdvertisesFilterQueryParameter(t *testing.T) {
 	found := false
 
 	for _, p := range params {
-		entry, ok := p.(map[string]interface{})
+		entry, ok := p.(map[string]any)
 		if !ok {
 			continue
 		}

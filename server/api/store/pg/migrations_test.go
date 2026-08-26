@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -35,7 +36,7 @@ func migration004Statements(t *testing.T) []string {
 	require.NoError(t, err, "004 migration file must exist on disk")
 
 	var stmts []string
-	for _, part := range strings.Split(string(raw), "--bun:split") {
+	for part := range strings.SplitSeq(string(raw), "--bun:split") {
 		if s := strings.TrimSpace(part); s != "" {
 			stmts = append(stmts, s)
 		}
@@ -204,9 +205,7 @@ func TestMigration004Dedup(t *testing.T) {
 	// 9. Re-running the dedup UPDATE is idempotent — no name changes a second time.
 	t.Run("idempotency", func(t *testing.T) {
 		snapBefore := make(map[string]string)
-		for id, name := range byID {
-			snapBefore[id] = name
-		}
+		maps.Copy(snapBefore, byID)
 
 		_, execErr := db.ExecContext(ctx, stmts[0])
 		require.NoError(t, execErr, "re-running dedup step must not error")

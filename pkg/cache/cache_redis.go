@@ -49,7 +49,7 @@ func NewRedisCache(uri string, pool int) (Cache, error) {
 
 // Get gets the cache value for the given key.
 // NOTE: missing key is not an error.
-func (c *redisCache) Get(ctx context.Context, key string, value interface{}) error {
+func (c *redisCache) Get(ctx context.Context, key string, value any) error {
 	err := c.cache.Get(ctx, key, value)
 	if err == rediscache.ErrCacheMiss {
 		return nil
@@ -59,7 +59,7 @@ func (c *redisCache) Get(ctx context.Context, key string, value interface{}) err
 }
 
 // Set puts value into cache with key and expire time.
-func (c *redisCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (c *redisCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	return c.cache.Set(&rediscache.Item{Ctx: ctx, Key: key, Value: value, TTL: ttl})
 }
 
@@ -67,7 +67,7 @@ func (c *redisCache) Set(ctx context.Context, key string, value interface{}, ttl
 // already exist, reporting whether it was set. Unlike Set (which serializes
 // through go-redis/cache), this goes straight to the Redis SETNX so it can back
 // single-use reservations.
-func (c *redisCache) SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error) {
+func (c *redisCache) SetNX(ctx context.Context, key string, value any, ttl time.Duration) (bool, error) {
 	return c.client.SetNX(ctx, key, value, ttl).Result()
 }
 

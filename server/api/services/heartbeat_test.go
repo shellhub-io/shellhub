@@ -135,7 +135,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 	go func() {
 		defer close(done)
 
-		for i := 0; i < deviceHeartbeatQueueSize*2; i++ {
+		for range deviceHeartbeatQueueSize * 2 {
 			h.Submit("device-a")
 		}
 	}()

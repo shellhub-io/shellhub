@@ -168,7 +168,7 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 		sk, err := s.store.InstallKeyResolve(ctx, sc, store.InstallKeyIDResolver, hashInstallKey(req.InstallKey))
 		// A system key (legacy/pairing) is never presentable by an agent; treat it like any invalid key.
 		if err != nil || sk.IsSystem() || !sk.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, err)
+			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, err)
 		}
 
 		return sk, sk.ID, nil
@@ -190,7 +190,7 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 		// install key, so a device that shows up without one is hard-rejected here (no device row, no
 		// pending queue) rather than enrolled. Enabled is the default, so this is backward-compatible.
 		if !legacy.IsValid() {
-			return nil, "", NewErrAuthInvalid(map[string]interface{}{"install_key": "required"}, nil)
+			return nil, "", NewErrAuthInvalid(map[string]any{"install_key": "required"}, nil)
 		}
 
 		// Return the legacy key itself (not nil) so the enrollment decision reads its mode uniformly:

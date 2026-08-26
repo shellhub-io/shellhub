@@ -23,15 +23,15 @@ func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
 }
 
 type Cache interface {
-	Get(ctx context.Context, key string, value interface{}) error
-	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
+	Get(ctx context.Context, key string, value any) error
+	Set(ctx context.Context, key string, value any, ttl time.Duration) error
 	Delete(ctx context.Context, key string) error
 
 	// SetNX atomically sets key to value with the given ttl only if the key does
 	// not already exist, and reports whether it was set. It is the building block
 	// for single-use reservations (e.g. a pairing code claimed by exactly one
 	// device even under concurrent requests), which Get+Set cannot do race-free.
-	SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error)
+	SetNX(ctx context.Context, key string, value any, ttl time.Duration) (bool, error)
 
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp

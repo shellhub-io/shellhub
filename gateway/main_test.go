@@ -86,10 +86,7 @@ func TestMain_smoke(t *testing.T) {
 			t.Fatalf("all %d attempts exhausted, last error: %v", maxRetries, err)
 		}
 
-		delay := time.Duration(attempt) * time.Second
-		if delay > 5*time.Second {
-			delay = 5 * time.Second
-		}
+		delay := min(time.Duration(attempt)*time.Second, 5*time.Second)
 
 		time.Sleep(delay)
 	}
