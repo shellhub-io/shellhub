@@ -22,7 +22,7 @@ $ head -3 agent/go.mod
 ```bash
 $ git clone https://github.com/shellhub-io/shellhub.git
 $ cd shellhub/agent
-$ go build -o shellhub-agent ./cmd/agent
+$ go build -o shellhub-agent .
 ```
 
 The result is a static binary with no runtime dependencies.
@@ -32,9 +32,9 @@ The result is a static binary with no runtime dependencies.
 Go cross-compiles without a toolchain per target:
 
 ```bash
-$ GOOS=linux GOARCH=arm64 go build -o shellhub-agent-arm64 ./cmd/agent
-$ GOOS=linux GOARCH=arm GOARM=7 go build -o shellhub-agent-armv7 ./cmd/agent
-$ GOOS=linux GOARCH=arm GOARM=6 go build -o shellhub-agent-armv6 ./cmd/agent
+$ GOOS=linux GOARCH=arm64 go build -o shellhub-agent-arm64 .
+$ GOOS=linux GOARCH=arm GOARM=7 go build -o shellhub-agent-armv7 .
+$ GOOS=linux GOARCH=arm GOARM=6 go build -o shellhub-agent-armv6 .
 ```
 
 The published builds cover `amd64`, `armv6`, `armv7`, `arm64` and `386`.

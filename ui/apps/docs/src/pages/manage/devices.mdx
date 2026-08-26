@@ -28,8 +28,8 @@ waiting for somebody. See [Accepting Devices](/manage/devices/accepting).
 Separate from status. A device is online while its agent holds a connection to the server, and
 offline when it does not.
 
-The agent sends a keepalive every 30 seconds by default and reconnects with a backoff capped at
-60 seconds, so a brief network problem resolves itself without anybody doing anything. A device
+The agent sends a keepalive every 30 seconds by default and reconnects on its own, waiting a
+random 5 to 65 seconds before each attempt, so a brief network problem resolves itself without anybody doing anything. A device
 that stays offline has a real cause — see
 [Device Not Appearing](/manage/devices/device-not-appearing).
 

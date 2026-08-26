@@ -46,7 +46,7 @@ No. There is no path between two devices.
 
 ## What happens when the device loses its connection?
 
-The agent retries with a backoff capped at 60 seconds by default. The device shows as offline
+The agent retries on its own, waiting a random 5 to 65 seconds before each attempt. The device shows as offline
 until it reconnects, and reconnects on its own once the network is back.
 
 ## What happens if I delete the agent's private key?

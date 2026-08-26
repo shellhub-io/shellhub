@@ -99,8 +99,7 @@ containing a key claims the same identity. See
 
 ## It appeared, then went offline
 
-Normal, if brief. The agent keepalives every 30 seconds and reconnects with a backoff capped at 60
-seconds by default, so a short network problem resolves itself.
+Normal, if brief. The agent keepalives every 30 seconds and reconnects on its own, waiting a random 5 to 65 seconds before each attempt, so a short network problem resolves itself.
 
 Staying offline has a real cause. Check the agent is still running, then the network.
 
