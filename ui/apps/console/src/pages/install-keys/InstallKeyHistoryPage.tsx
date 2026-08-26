@@ -164,7 +164,7 @@ export default function InstallKeyHistoryPage() {
         onClose={() => setRevealOpen(false)}
       />
 
-      <InstallKeyEventsTable id={id} perPage={15} />
+      <InstallKeyEventsTable id={id} />
     </div>
   );
 }
