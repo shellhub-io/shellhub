@@ -51,6 +51,15 @@ That is deliberate: the API does not tell an unauthenticated caller which of tho
 
 So a `401` means "this credential is not usable", not "this credential does not exist".
 
+## Paginating a response
+
+List endpoints take `page` and `per_page`:
+
+```bash
+$ curl -H "X-API-KEY: $KEY" \
+    "https://cloud.shellhub.io/api/devices?page=1&per_page=100"
+```
+
 ## What API keys cannot do
 
 A number of routes refuse API keys outright, regardless of the key's role:
