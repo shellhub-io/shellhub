@@ -280,6 +280,7 @@ export const sidebar: SidebarSection[] = [
         href: "/selfhosted/environment-variables",
         featured: true,
       },
+      { label: "Administration", href: "/selfhosted/administration" },
       { label: "Backup", href: "/selfhosted/backup" },
       { label: "Upgrade", href: "/selfhosted/upgrade" },
       { label: "Troubleshooting", href: "/selfhosted/troubleshooting" },
