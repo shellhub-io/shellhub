@@ -1,8 +1,10 @@
 package session
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +15,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/target"
+	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -183,5 +187,122 @@ func TestResolveKeyAuth(t *testing.T) {
 		// created and waited on, not what the person decided.
 		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRejected)
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
+	})
+}
+
+// captureLogs collects what the session logs on the standard logger, at debug
+// level so entries below the default threshold are recorded too.
+func captureLogs(t *testing.T) *test.Hook {
+	t.Helper()
+
+	hook := test.NewGlobal()
+	level := log.GetLevel()
+	log.SetLevel(log.DebugLevel)
+
+	t.Cleanup(func() {
+		log.SetLevel(level)
+		hook.Reset()
+	})
+
+	return hook
+}
+
+func TestAuthorize(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("a policy denial is reported with the reason the policies gave", func(t *testing.T) {
+		hook := captureLogs(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Return(&models.Decision{Allowed: false, Reason: `no policy grants "root" on this device`}, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess.UserID = "user-id"
+
+		dec, err := sess.authorize(ctx)
+
+		require.ErrorIs(t, err, ErrAccessDenied)
+		assert.Nil(t, dec)
+
+		require.Len(t, hook.AllEntries(), 1)
+
+		entry := hook.LastEntry()
+		assert.Equal(t, log.WarnLevel, entry.Level)
+		assert.Equal(t, `no policy grants "root" on this device`, entry.Data["reason"])
+		assert.Equal(t, "tenant-id", entry.Data["tenant"])
+		assert.Equal(t, "user-id", entry.Data["user"])
+		assert.Equal(t, "device-uid", entry.Data["device"])
+		assert.Equal(t, "user", entry.Data["username"])
+		assert.Equal(t, "127.0.0.1", entry.Data["ip"])
+		assert.Equal(t, "test-uid", entry.Data["session"])
+	})
+
+	t.Run("a failure to evaluate the policies is reported as a malfunction", func(t *testing.T) {
+		hook := captureLogs(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Return(nil, errors.New("the store is unreachable")).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess.UserID = "user-id"
+
+		dec, err := sess.authorize(ctx)
+
+		require.ErrorIs(t, err, ErrAccessDenied)
+		assert.Nil(t, dec)
+
+		require.Len(t, hook.AllEntries(), 1)
+
+		entry := hook.LastEntry()
+		assert.Equal(t, log.ErrorLevel, entry.Level)
+		assert.EqualError(t, entry.Data[log.ErrorKey].(error), "the store is unreachable")
+		assert.NotContains(t, entry.Data, "reason")
+	})
+
+	t.Run("an absent decision is reported as a malfunction", func(t *testing.T) {
+		hook := captureLogs(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Return(nil, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess.UserID = "user-id"
+
+		dec, err := sess.authorize(ctx)
+
+		require.ErrorIs(t, err, ErrAccessDenied)
+		assert.Nil(t, dec)
+
+		require.Len(t, hook.AllEntries(), 1)
+		assert.Equal(t, log.ErrorLevel, hook.LastEntry().Level)
+	})
+
+	t.Run("an allowed decision is returned without a log line", func(t *testing.T) {
+		hook := captureLogs(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Return(&models.Decision{Allowed: true, RequireReauth: true}, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess.UserID = "user-id"
+
+		dec, err := sess.authorize(ctx)
+
+		require.NoError(t, err)
+		require.NotNil(t, dec)
+		assert.True(t, dec.RequireReauth)
+		assert.Empty(t, hook.AllEntries())
 	})
 }

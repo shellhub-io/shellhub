@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/banner"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/magickey"
+	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -230,13 +231,34 @@ func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
 // authorize is the hard identity-mode gate: it refuses here, before any key is
 // minted, so the agent is never contacted for a login the policies deny. It
 // returns the decision so the caller can honor a step-up requirement.
+//
+// A refusal is reported here rather than by the callers: this is the last point
+// at which a denial, a failed evaluation and a missing decision are still
+// distinguishable, and every caller refuses through it.
 func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
 	dec, err := s.service.Authorize(ctx, s.Namespace.TenantID, s.UserID, s.Device.UID, s.Target.Username, s.IPAddress)
-	if err != nil || dec == nil || !dec.Allowed {
-		return nil, ErrAccessDenied
+	if err == nil && dec != nil && dec.Allowed {
+		return dec, nil
 	}
 
-	return dec, nil
+	// The log is the only place the reason can go: the sentinel below carries no
+	// detail, and must not, since the reason names policies the client may not be
+	// entitled to know about.
+	logger := log.WithFields(s.LogFields()).WithFields(log.Fields{
+		"tenant": s.Namespace.TenantID,
+		"user":   s.UserID,
+	})
+
+	switch {
+	case err != nil:
+		logger.WithError(err).Error("failed to evaluate the access policies")
+	case dec == nil:
+		logger.Error("access policy evaluation returned no decision")
+	default:
+		logger.WithField("reason", dec.Reason).Warn("ssh access denied by the access policies")
+	}
+
+	return nil, ErrAccessDenied
 }
 
 // approvalAuth authenticates a session whose presented key is not an identity
