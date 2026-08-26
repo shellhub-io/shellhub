@@ -1,0 +1,62 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Sessions
+description: See who connected to what, when, and from where.
+---
+
+# Sessions
+
+Every connection through ShellHub is a session, and every session is recorded in the list —
+whether or not the *contents* were recorded.
+
+![The Sessions page listing active and historical SSH sessions](/img/sessions/session-list.png)
+
+## What a session tells you
+
+| | |
+|---|---|
+| Who | The authenticated principal — a person or a service account |
+| Which device | |
+| Which unix login | The user they connected as |
+| When | Start, and end for a closed session |
+| From where | The client address, resolved through `SHELLHUB_PROXY_TRUSTED_IPS` |
+
+That "who" is the payoff of the identity model. In the legacy model the record could only name the
+key that was used; here it names the principal the key belongs to. See
+[How Authorization Works](/manage/access-control).
+
+## Session details
+
+![A session detail page showing the session flow timeline, details, device, and play recording button](/img/sessions/session-detail.png)
+
+Active sessions can be inspected while they run. A session with a recording has a play control —
+see [Session Recording](/manage/session-recording).
+
+## Sessions and authorization
+
+Worth understanding together, because it explains something that otherwise looks like a bug.
+
+**Authorization happens once, when the connection is made.** Revoking an identity, deleting a
+policy or removing a member does not end a session already running. It was authorized when it
+started, and it continues until it is closed.
+
+So the sessions list is not only history — for live sessions it is the answer to "who is connected
+right now", and the place to look after revoking somebody's access if you need to be sure they are
+actually gone.
+
+## What is not here
+
+**File transfer contents.** A session shows that somebody was connected and, with recording on,
+what the terminal displayed. It does not capture the bytes of an `scp`.
+
+**Denial reasons.** A refused connection does not become a session — it was refused before the
+device was contacted. The reason is not surfaced to the client either. See
+[Connection Denied](/manage/access-control/connection-denied).
+
+**Web endpoint traffic.** A [web endpoint](/connect/web-endpoints) is reached by URL, not by an
+authenticated session, so requests to it do not appear here.
+
+## Where to go next
+
+- [Session Recording](/manage/session-recording) — Capturing and replaying the terminal.
+- [Settings](/manage/settings) — Turning recording on.

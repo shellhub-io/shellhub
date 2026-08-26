@@ -1,0 +1,87 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Managing Devices
+description: The device list, what the statuses mean, and how devices are identified.
+---
+
+# Managing Devices
+
+Every machine running an agent appears under **Devices**.
+
+![ShellHub Devices page listing accepted devices](/img/devices/device-list.png)
+
+## Statuses
+
+| Status | Meaning |
+|---|---|
+| `accepted` | In the namespace and reachable |
+| `pending` | Enrolled, waiting to be accepted. Cannot be connected to |
+| `rejected` | Explicitly refused |
+| `removed` | Deleted from the namespace |
+| `unused` | Registered but never used |
+
+Only accepted devices can be connected to. A device sitting in pending is not broken — it is
+waiting for somebody. See [Accepting Devices](/manage/devices/accepting).
+
+## Online and offline
+
+Separate from status. A device is online while its agent holds a connection to the server, and
+offline when it does not.
+
+The agent sends a keepalive every 30 seconds by default and reconnects with a backoff capped at
+60 seconds, so a brief network problem resolves itself without anybody doing anything. A device
+that stays offline has a real cause — see
+[Device Not Appearing](/manage/devices/device-not-appearing).
+
+## What identifies a device
+
+The agent's **private key**, at `SHELLHUB_PRIVATE_KEY`. Not the hostname, not the MAC, not the IP.
+
+The consequences are worth internalizing:
+
+- Rename the machine and it is the same device.
+- Move it to another network and it is the same device.
+- Lose the key — reflash, recreate the container, wipe the volume — and it is a **new** device,
+  and the old entry stays behind.
+
+Most confusing device lists are the result of that last one.
+
+## Names
+
+A device's name defaults to its hostname and is what you type in an SSHID:
+
+```bash
+$ ssh root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+You can rename a device in the console. Set `SHELLHUB_PREFERRED_HOSTNAME` on the agent when the
+system hostname is not meaningful — a container with a random name, or a fleet where every unit
+reports the same one.
+
+Names matter beyond typing: a policy can select devices by a hostname pattern, so a naming
+convention is something you can write rules against. See
+[Access Policies](/manage/access-control/access-policies).
+
+## Details
+
+Opening a device shows its SSHID with a copy button, plus what the agent reports about it — OS,
+architecture, agent version, when it was last seen.
+
+![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+
+The agent version is the first thing to check when something behaves oddly on one device and not
+another.
+
+## Removing a device
+
+Removing it from the namespace does not stop the agent. If the agent is still running with the
+same key and configuration, it re-enrolls — and depending on how it enrolls, may come straight
+back.
+
+To retire a device properly: stop the agent on it, *then* remove it here.
+
+## Where to go next
+
+- [Accepting Devices](/manage/devices/accepting) — Working the pending list.
+- [Tags](/manage/devices/tags) — Grouping devices so policies can select them.
+- [Install Keys](/manage/devices/install-keys) — Enrolling without a manual step.

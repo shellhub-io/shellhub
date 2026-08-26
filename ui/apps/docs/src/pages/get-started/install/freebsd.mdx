@@ -1,0 +1,69 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: FreeBSD
+description: Build and run the ShellHub agent on FreeBSD from the ports tree.
+---
+
+# Installing on FreeBSD
+
+FreeBSD is supported, but not by the install script. If you run it there, the installer stops and
+points you here:
+
+> Automatic installation is not supported on FreeBSD. Please refer to the ShellHub port at
+> https://github.com/shellhub-io/ports
+
+## The port
+
+The port lives in [github.com/shellhub-io/ports](https://github.com/shellhub-io/ports), not in
+the official FreeBSD ports tree. There is no binary package — you build from source.
+
+```bash
+$ git clone https://github.com/shellhub-io/ports.git /usr/local/shellhub-ports
+$ cd /usr/local/shellhub-ports/shellhub
+$ make install clean
+```
+
+The port pulls Go as a build dependency and installs the agent as an `rc.d` service.
+
+## Configuration
+
+In `/etc/rc.conf`:
+
+```bash
+shellhub_enable="YES"
+shellhub_server_address="https://cloud.shellhub.io"
+shellhub_tenant_id="<your-tenant-id>"
+```
+
+Both the server address and the tenant ID are required — the `rc.d` script validates them at
+startup and exits with an error if either is missing.
+
+The agent generates a private key on first run and stores it at the path in
+`shellhub_private_key`. That key is the device's identity: delete it and the device re-registers
+as a new one, so it belongs on persistent storage.
+
+## Managing the service
+
+```bash
+$ service shellhub start
+$ service shellhub stop
+$ service shellhub restart
+$ service shellhub status
+```
+
+## Updating
+
+The port has no package manager behind it, so an update is a rebuild:
+
+```bash
+$ cd /usr/local/shellhub-ports && git pull
+$ cd shellhub
+$ make deinstall
+$ make install clean
+$ service shellhub restart
+```
+
+## Where to go next
+
+- [Enrolling Devices](/get-started/enrolling-devices) — Accepting it into a namespace.
+- [Agent Configuration](/get-started/agent-configuration) — The variables behind the rc.conf names.

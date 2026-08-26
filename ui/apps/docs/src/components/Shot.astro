@@ -1,0 +1,43 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+
+/**
+ * A screenshot the docs declare for themselves.
+ *
+ * The page states what it wants captured and where the image belongs; the
+ * capture pass reads these markers and produces exactly them. There is no
+ * separate manifest to drift out of sync, and the id is the filename, so a
+ * shot cannot end up written next to the image the prose actually references.
+ *
+ * `of`, `expect`, `click` and `padding` are read by the capture pass rather
+ * than by this component: they describe how to reach and frame the shot.
+ */
+interface Props {
+  id: string;
+  alt: string;
+  route: string;
+  of?: { role: string; name?: string };
+  expect?: string[];
+  click?: string;
+  padding?: number;
+  caption?: string;
+}
+
+const { id, alt, caption } = Astro.props;
+
+const src = `/img/generated/${id}.png`;
+const file = path.join(process.cwd(), "public", src);
+
+if (!fs.existsSync(file)) {
+  throw new Error(
+    `<Shot id="${id}"> has no image at public${src}. ` +
+      "Run the capture pass, or remove the marker.",
+  );
+}
+---
+
+<figure class="my-6">
+  <img src={src} alt={alt} loading="lazy" class="rounded-lg border border-border" />
+  {caption && <figcaption class="mt-2 text-sm text-text-muted">{caption}</figcaption>}
+</figure>

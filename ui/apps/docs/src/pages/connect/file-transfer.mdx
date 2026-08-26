@@ -1,0 +1,81 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: File Transfer
+description: Move files to and from a device with scp and sftp.
+---
+
+# File Transfer
+
+`scp` and `sftp` work through ShellHub with no special handling. The agent serves SFTP over the
+same connection that carries a shell.
+
+## scp
+
+```bash
+$ scp firmware.bin root@mycompany.raspberrypi@cloud.shellhub.io:/tmp/
+```
+
+And back:
+
+```bash
+$ scp root@mycompany.raspberrypi@cloud.shellhub.io:/var/log/syslog ./
+```
+
+
+## sftp
+
+For an interactive session:
+
+```bash
+$ sftp root@mycompany.raspberrypi@cloud.shellhub.io
+sftp> cd /var/log
+sftp> get syslog
+sftp> put patch.tar.gz /tmp/
+sftp> quit
+```
+
+Any SFTP client works — FileZilla, WinSCP, Cyberduck, your editor's remote support. Point them at
+the server as the host and the SSHID as the username.
+
+## rsync
+
+`rsync` runs over SSH, so it works too, and is what you want for anything large or repeated:
+
+```bash
+$ rsync -avz ./build/ root@mycompany.raspberrypi@cloud.shellhub.io:/opt/app/
+```
+
+The `-z` matters more here than on a LAN — the path goes out to the server and back down to the
+device.
+
+## Permissions
+
+Transfers happen as the unix user in the SSHID, with exactly that user's permissions. If you
+cannot write to `/opt` as `deploy`, ShellHub will not help — that is the device's decision, not
+ShellHub's.
+
+Which unix users you may connect as is decided by access policies. A policy granting only
+`deploy` means you transfer as `deploy` and nothing else, even on a device where `root` exists.
+See [Access Policies](/manage/access-control/access-policies).
+
+## What recording does and does not capture
+
+Session recording captures the terminal — what was typed and what was displayed. **File transfer
+payloads are not recorded.** A recording will show that somebody was connected; it will not show
+you the bytes of a file they copied.
+
+If that gap matters for your audit requirements, know about it now rather than during an incident.
+See [Session Recording](/manage/session-recording).
+
+## Large transfers
+
+Everything goes through the server, so a multi-gigabyte transfer occupies that path for its
+duration. For images and firmware being pushed to many devices, a release artifact somewhere the
+devices can fetch from — and a shell command to fetch it — is usually kinder than pushing the same
+bytes through the gateway once per device.
+
+## Where to go next
+
+- [Connecting to a Device](/connect) — The SSHID this all relies on.
+- [Port Forwarding](/connect/port-forwarding) — Reaching a service instead of a file.
+- [SSH Client Configuration](/connect/ssh-clients) — Aliases, if the full address gets tedious.

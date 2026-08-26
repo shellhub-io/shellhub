@@ -1,0 +1,83 @@
+---
+layout: ../layouts/DocsLayout.astro
+title: Connecting to a Device
+description: Open a terminal from the browser or from your own SSH client.
+---
+
+# Connecting to a Device
+
+Two ways in. The browser needs nothing installed; a native client works with no plugin.
+
+## From the browser
+
+Open the device in the console and click the terminal button.
+
+![Device connecting](/img/devices/device-connect.gif)
+
+The web terminal runs over a WebSocket to the server and out through the agent's existing
+connection. Nothing is installed and nothing is configured.
+
+The browser generates its own key the first time and holds it non-extractably — it cannot be
+exported, works only in that browser, and disappears with the browser's site data. That key
+becomes an SSH identity like any other, so a session opened this way is attributed to you the
+same as one from your laptop. See [SSH Identities](/manage/access-control/ssh-identities).
+
+## From your own SSH client
+
+Use the device's SSHID as the username:
+
+```bash
+$ ssh <username>@<namespace>.<device>@<server>
+```
+
+For example:
+
+```bash
+$ ssh root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+| Part | Meaning |
+|---|---|
+| `root` | The unix user on the device |
+| `mycompany` | Your namespace |
+| `raspberrypi` | The device's name in that namespace |
+| `cloud.shellhub.io` | The ShellHub server |
+
+The device details page shows the whole string with a copy button.
+
+![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+
+Because the SSHID is just an SSH username, everything that speaks SSH works: OpenSSH, PuTTY,
+`scp`, `sftp`, Ansible. See [SSH Client Configuration](/connect/ssh-clients) for making it less
+tedious to type.
+
+## The first connection from a native client
+
+The first time you offer a key ShellHub has not seen, the login does not fail — it parks, and
+asks a member to approve it in the console. Approving binds that key to your account.
+
+Every connection after that goes straight through. No approval, no wrapper, no special client.
+
+See [Login Approvals](/manage/access-control/login-approvals).
+
+## Authentication
+
+Which unix user you connect as is the `username` part of the SSHID, and whether you may is
+decided by access policies — not by anything on the device. A policy can grant `deploy` and not
+`root` on the same machine.
+
+The device still has to accept the credential for that unix user, exactly as it would for a
+direct SSH connection. ShellHub decides *whether the connection is allowed*; the device decides
+*whether the login succeeds*.
+
+## What else you can do over the same connection
+
+- [File Transfer](/connect/file-transfer) — `scp` and `sftp`
+- [Port Forwarding](/connect/port-forwarding) — reach a service on the device or its network
+- [Container Access](/connect/container-access) — a shell inside a container on the device
+- [Web Endpoints](/connect/web-endpoints) — publish an HTTP service at a URL
+
+## Where to go next
+
+- [SSH Client Configuration](/connect/ssh-clients) — Aliases and config entries.
+- [Connection Denied](/manage/access-control/connection-denied) — When it is refused.

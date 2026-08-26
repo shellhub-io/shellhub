@@ -1,0 +1,40 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: SAML Sign-In Fails
+description: The identity provider is usually not the problem. Check the licence first.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# SAML Sign-In Fails
+
+SAML failing on a deployment that has it configured looks like an identity provider problem, and
+usually is not.
+
+## Check the licence first
+
+<Callout variant="warning" title="A missing or expired licence does not announce itself">
+Nothing says "your licence expired". The sign-in simply fails, and every minute spent in the
+identity provider's logs is wasted.
+</Callout>
+
+Open **License** in the admin console. It states which it is: no licence installed, expiring
+soon, expired, or expired but inside its grace period. A licence past its grace period stops
+gating in your favour, and SAML is one of the things that stops.
+
+## Then check the edition
+
+SAML is **Enterprise only**. It is not in Cloud, and it is not in Community — this is the one
+capability where Cloud is not a superset. If sign-in fails on Cloud, it is not misconfigured;
+the capability is not there. See [Editions](/about/editions).
+
+## Then the configuration
+
+Only after the two above. See [Single Sign-On](/manage/team/single-sign-on) for what the
+identity provider needs and what ShellHub expects back.
+
+## Where to go next
+
+- [Single Sign-On](/manage/team/single-sign-on) — Configuring it.
+- [Editions](/about/editions) — Which edition has what.
+- [Getting Support](/help/support) — What to include when you ask.

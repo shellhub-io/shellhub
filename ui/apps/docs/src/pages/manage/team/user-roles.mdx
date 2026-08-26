@@ -1,0 +1,77 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: User Roles
+description: What each role can do, and how roles relate to device access.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# User Roles
+
+Every member of a namespace holds one role. The role decides what they can do to the namespace
+itself.
+
+| Role | Can |
+|---|---|
+| **Observer** | Connect to a device, and view device and session details. Nothing else |
+| **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details |
+| **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
+| **Owner** | Everything |
+
+There is also an internal **service** role, carried by
+[service accounts](/manage/access-control/service-accounts). It has no permissions and no
+authority — a service account exists to hold SSH identities and connect, not to administer
+anything.
+
+## Roles do not grant device access
+
+Worth stating plainly, because the names suggest otherwise.
+
+An **operator** is not automatically allowed to reach any device. Device access comes from
+[access policies](/manage/access-control/access-policies), evaluated per connection. A member with
+the operator role and no matching policy connects to nothing.
+
+What the role controls is the console: what they see, what they can change, whether they can
+remove a device.
+
+## Roles as policy subjects
+
+The two systems meet here, and it is the most useful pattern in the whole model. A policy can name
+a **role** as its subject:
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Operators to fleet | allow | Role: operator | tag `production` | `deploy` |
+
+Now the role is doing both jobs: it says what somebody can do in the console, and — through the
+policy — what they can reach. Adding a member as an operator grants both at once.
+
+<Callout variant="warning">
+A role subject matches by exact name, which means it never matches a service account.
+Grant those deliberately. See [Service Accounts](/manage/access-control/service-accounts).
+</Callout>
+
+## Choosing
+
+**Observer** for people who need to look — support staff triaging, someone reviewing a session
+recording.
+
+**Operator** for the people doing the work. The inability to remove a device is the point: they
+can operate the fleet without being able to erase parts of it.
+
+**Administrator** for people who manage the namespace day to day. The two exclusions —
+deleting the namespace and billing — are the ones you want to keep to the owner.
+
+**Owner** for exactly one person.
+
+## API keys carry roles too
+
+An API key is created with a role, and it must be **equal to or less than the role of whoever
+created it**. An operator cannot mint an administrator key.
+
+See [API Keys](/api/api-keys).
+
+## Where to go next
+
+- [Members](/manage/team) — Adding people.
+- [Access Policies](/manage/access-control/access-policies) — Granting device access by role.

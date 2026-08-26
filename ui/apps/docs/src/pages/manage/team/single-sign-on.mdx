@@ -1,0 +1,78 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Single Sign-On (SAML)
+description: Authenticate members against your own identity provider.
+---
+
+import EditionBanner from "../../../components/EditionBanner.astro";
+import Callout from "../../../components/Callout.astro";
+
+# Single Sign-On (SAML)
+
+SAML lets people sign in to ShellHub with your organization's identity provider instead of a
+ShellHub password.
+
+<EditionBanner>
+SAML is **Enterprise only**. It is not part of Cloud — this is the one capability where
+Cloud is not a superset.
+</EditionBanner>
+
+## What it changes
+
+Members authenticate against your IdP, so account lifecycle follows the IdP: somebody who leaves
+loses their ShellHub sign-in when their IdP account goes, without anybody remembering to remove
+them here.
+
+## What it does not change
+
+**SSO controls sign-in, not device access.** A member who signs in through SAML still needs an
+[access policy](/manage/access-control/access-policies) to reach anything, exactly like a member
+who signs in with a password.
+
+**SSH identities are separate.** SSO does not distribute or bind SSH keys. Somebody who has signed
+in through your IdP still enrolls a key the usual way, through
+[an approval at first use](/manage/access-control/login-approvals) or by adding it ahead of time.
+
+That surprises people, so it is worth being direct: SAML is a sign-in mechanism, not an
+authorization one. Everything about who reaches which device stays in policies.
+
+## Configuring it
+
+SAML is configured from the Enterprise Admin Console rather than the ordinary namespace settings.
+
+![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+
+The page carries toggles for local authentication and SAML, so you can run both while migrating
+and switch local off when you are confident.
+
+The self-hosted deployment needs one variable set:
+
+| Variable | Meaning |
+|---|---|
+| `SHELLHUB_SAML_SECRET` | Encrypts the service provider's X.509 private key |
+
+The Enterprise Admin Console itself is reached with
+`SHELLHUB_ENTERPRISE_ADMIN_USERNAME` and `SHELLHUB_ENTERPRISE_ADMIN_PASSWORD`.
+
+<Callout variant="warning">
+If SAML appears not to work at all on a self-hosted deployment, check the license
+first. Enterprise features sit behind a license check, and an expired or missing one is by far
+the most common cause.
+</Callout>
+
+## Re-authentication through SAML
+
+On Enterprise, a policy's re-authentication step can be satisfied through SAML rather than the
+built-in browser confirmation, so a step-up runs through the same IdP as the original sign-in.
+
+See [Login Approvals](/manage/access-control/login-approvals).
+
+## Leaving local authentication on
+
+Keep at least one local administrator account working. If the IdP integration breaks — an expired
+certificate, a metadata change — a local account is how you get back in to fix it.
+
+## Where to go next
+
+- [Members](/manage/team) — Roles, and why membership is not access.
+- [Multi-Factor Authentication](/manage/team/multi-factor-authentication) — The alternative when SAML is not available.

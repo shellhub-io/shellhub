@@ -1,0 +1,84 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Migrating from the Legacy Model
+description: Move a namespace from public keys and firewall rules to identities and access policies.
+---
+
+# Migrating from the Legacy Model
+
+Namespaces created before identity-based access default to the legacy model: a public key grants
+access through its device ACL, and firewall rules restrict it. Namespaces created today start in
+identity mode.
+
+Moving across is a switch you make when you are ready. This page is what to do before you flip it.
+
+## What changes
+
+| | Legacy | Identity |
+|---|---|---|
+| Proves who you are | A public key registered in the namespace | An identity bound to a person or service account |
+| Decides what you reach | The key's device ACL, plus firewall rules | Access policies |
+| An unlisted device | Reachable unless a rule blocks it | Unreachable until a policy grants it |
+| Source IP | A firewall rule can grant on it | Only narrows a grant; never grants |
+| Revoking one person | Find and remove their key everywhere it applies | Revoke the identity, in one place |
+| Audit trail names | The key | The person |
+
+In identity mode the firewall checks are bypassed entirely. The rules stay stored and manageable,
+and are never consulted.
+
+## Before you switch
+
+The switch takes effect on the next connection, so do the mapping first.
+
+**1. Inventory who actually connects.** List the public keys in the namespace and work out who
+holds each one. The keys nobody can account for are the reason this migration is worth doing —
+do not carry them across.
+
+**2. Turn each key into an identity.** Add the ones you are keeping on the SSH Identities page,
+each bound to the right member. For automation, create a
+[service account](/manage/access-control/service-accounts) rather than binding the key to whoever
+set it up. Doing this before the switch means nobody sits through a first-use approval.
+
+**3. Translate your firewall rules.** A deny rule usually becomes a deny policy. An allow rule
+that grants on source IP has **no direct equivalent** — source IP in a policy only narrows, so the
+policy needs a real subject, with the addresses as a restriction on top. This is the sharpest
+semantic difference in the migration, and anyone relying on IP-based grants will feel it.
+
+**4. Write the allows.** Start from roles rather than individuals, so the grant keeps working as
+people join and leave. Select devices by [tag](/manage/devices/tags) rather than hostname pattern
+where you can.
+
+**5. Decide where re-authentication belongs.** Production and privileged logins are the usual
+candidates. Off is the default and the right choice nearly everywhere else.
+
+## Switching
+
+Change the namespace's SSH access mode in the console settings.
+
+If the namespace has no policies at the moment you switch, ShellHub seeds one — **Owner access**,
+granting the owner every login on every device — so default deny cannot lock the owner out.
+
+**Every other member starts with no access.** That is why the mapping above matters: anyone you
+did not write a policy for loses access the moment you switch.
+
+## Switching back
+
+A namespace that predates identity mode can be switched back to legacy while you settle in.
+
+A namespace **born** in identity mode cannot. There is no legacy configuration behind it to return
+to, and the server refuses the change.
+
+## After the switch
+
+Public keys and firewall rules remain visible but decide nothing. Leave them until you are
+confident, then remove them — a stale key that grants nothing here is still a key somebody might
+try elsewhere.
+
+Watch for refusals in the first days. `no policy grants "<login>" on this device` means a mapping
+was missed. See [Connection Denied](/manage/access-control/connection-denied).
+
+## Where to go next
+
+- [How Authorization Works](/manage/access-control) — The model you are moving to.
+- [Access Policies](/manage/access-control/access-policies) — Writing the rules.
+- [Public Keys](/manage/access-control/public-keys) — The model you are leaving.

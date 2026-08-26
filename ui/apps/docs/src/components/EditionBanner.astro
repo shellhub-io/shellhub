@@ -1,10 +1,20 @@
 ---
-import { Callout } from "@shellhub/design-system/primitives";
+import Callout from "./Callout.astro";
+
+interface Props {
+  /** Overrides the sentence, for a feature whose availability is not the usual pair. */
+  title?: string;
+}
+
+const { title } = Astro.props;
 ---
+
 <Callout
   variant="feature"
-  action={{ href: "/getting-started/editions", label: "See all editions" }}
-  className="mb-6"
+  title={title}
+  action={{ href: "/about/editions", label: "See all editions" }}
 >
-  This feature is included with <strong>Cloud</strong> and <strong>Enterprise</strong> editions.
+  <slot>
+    This feature is included with <strong>Cloud</strong> and <strong>Enterprise</strong>.
+  </slot>
 </Callout>

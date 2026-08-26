@@ -1,0 +1,52 @@
+---
+import {
+  InformationCircleIcon,
+  ExclamationTriangleIcon,
+  ShieldExclamationIcon,
+  SparklesIcon,
+} from "@heroicons/react/24/outline";
+
+interface Props {
+  variant?: "info" | "warning" | "danger" | "feature";
+  /** Header text. Defaults to the variant's own word. */
+  title?: string;
+  /**
+   * Set false to drop the header entirely, leaving only the tone: the rule and
+   * the wash. Material for MkDocs spells the same thing `!!! note ""`.
+   */
+  /** Drop the icon and show the header as text alone. */
+  icon?: boolean;
+  /** Optional call to action, rendered under the body on any variant. */
+  action?: { href: string; label: string };
+}
+
+const { variant = "info", title, icon = true, action } = Astro.props;
+
+const STYLES = {
+  info:    { label: "Note",         Icon: InformationCircleIcon,  tone: "cyan"   },
+  warning: { label: "Careful",      Icon: ExclamationTriangleIcon, tone: "yellow" },
+  danger:  { label: "Danger",       Icon: ShieldExclamationIcon,   tone: "red"    },
+  feature: { label: "Availability", Icon: SparklesIcon,            tone: "primary"},
+} as const;
+
+const s = STYLES[variant];
+const Icon = s.Icon;
+---
+
+<aside
+  role={variant === "danger" ? "alert" : "note"}
+  data-tone={s.tone}
+  data-bare={icon ? undefined : ""}
+  class="callout"
+>
+  {icon && (
+    <p class="callout-head">
+      <Icon className="callout-icon" strokeWidth={2} aria-hidden="true" />
+      {title ?? s.label}
+    </p>
+  )}
+
+  <div class="callout-body"><slot />{action && (
+    <p class="callout-action"><a href={action.href}>{action.label} &rarr;</a></p>
+  )}</div>
+</aside>

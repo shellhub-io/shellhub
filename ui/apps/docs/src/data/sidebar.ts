@@ -2,14 +2,11 @@ import type { ComponentType, SVGProps } from "react";
 import {
   AdjustmentsHorizontalIcon,
   BookOpenIcon,
-  CodeBracketIcon,
-  CodeBracketSquareIcon,
-  CpuChipIcon,
+  CommandLineIcon,
+  LifebuoyIcon,
   PuzzlePieceIcon,
   RocketLaunchIcon,
   ServerStackIcon,
-  ShieldCheckIcon,
-  Square3Stack3DIcon,
 } from "@heroicons/react/24/outline";
 
 export interface SidebarItem {
@@ -26,7 +23,13 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
-// pages intentionally not in the sidebar nav
+// Pages intentionally not in the sidebar nav.
+//
+// Everything under the second block is the pre-rewrite tree. This app is a
+// throwaway spike comparing documentation structures, and the sandbox running
+// it cannot delete files, so the superseded pages stay on disk and are retired
+// from navigation here instead. Their content lives on, reorganized, under the
+// journey-shaped tree the sidebar actually exposes.
 export const PAGES_NOT_IN_NAV: string[] = ["/"];
 
 export function flattenItems(
@@ -41,278 +44,283 @@ export function flattenItems(
 
 export const sidebar: SidebarSection[] = [
   {
-    label: "Getting Started",
+    label: "About ShellHub",
     description:
-      "What ShellHub is, how it works, editions, and your first connection.",
-    icon: RocketLaunchIcon,
-    items: [
-      {
-        label: "Introduction",
-        href: "/getting-started/introduction",
-        featured: true,
-      },
-      {
-        label: "How it Works",
-        href: "/getting-started/how-it-works",
-        featured: true,
-      },
-      {
-        label: "Features",
-        href: "/getting-started/features",
-        featured: true,
-      },
-      { label: "Editions", href: "/getting-started/editions" },
-      {
-        label: "Quick Start",
-        href: "/getting-started/quick-start",
-        featured: true,
-      },
-      { label: "FAQ", href: "/getting-started/faq" },
-    ],
-  },
-  {
-    label: "Resources",
-    description:
-      "Core platform resources — devices, sessions, and web endpoints.",
-    icon: Square3Stack3DIcon,
-    items: [
-      {
-        label: "Devices",
-        href: "/guides/devices",
-        featured: true,
-      },
-      {
-        label: "Sessions",
-        href: "/guides/sessions",
-        featured: true,
-      },
-      {
-        label: "Web Endpoints",
-        href: "/guides/web-endpoints",
-        featured: true,
-      },
-    ],
-  },
-  {
-    label: "Security",
-    description: "Secure your devices with public keys and firewall rules.",
-    icon: ShieldCheckIcon,
-    items: [
-      {
-        label: "Public Keys",
-        href: "/guides/public-keys",
-        featured: true,
-      },
-      {
-        label: "Firewall Rules",
-        href: "/guides/firewall-rules",
-        featured: true,
-      },
-      { label: "Multi-Factor Authentication", href: "/guides/mfa" },
-      { label: "Single Sign-On (SAML)", href: "/guides/sso" },
-      { label: "Local Authentication", href: "/guides/local-authentication" },
-    ],
-  },
-  {
-    label: "Management",
-    description:
-      "Organize your infrastructure with namespaces, teams, and settings.",
-    icon: AdjustmentsHorizontalIcon,
-    items: [
-      {
-        label: "Namespaces",
-        href: "/guides/namespaces",
-        featured: true,
-      },
-      {
-        label: "Team",
-        href: "/guides/team",
-        featured: true,
-      },
-      {
-        label: "Settings",
-        href: "/guides/settings",
-        featured: true,
-      },
-    ],
-  },
-  {
-    label: "User Guides",
-    description:
-      "Manage devices, connect via SSH, organize with namespaces and tags.",
+      "What ShellHub is, how it reaches your devices, and which deployment fits you.",
     icon: BookOpenIcon,
     items: [
       {
-        label: "Connecting via SSH",
-        href: "/guides/connecting",
+        label: "Introduction",
+        href: "/introduction",
         featured: true,
       },
       {
+        label: "How ShellHub Works",
+        href: "/about/how-shellhub-works",
+        featured: true,
+      },
+      {
+        label: "ShellHub vs. Jump Hosts and VPNs",
+        href: "/about/shellhub-vs-jump-hosts",
+      },
+      {
+        label: "Self-Hosted vs. Cloud",
+        href: "/about/self-hosted-vs-cloud",
+        featured: true,
+      },
+      { label: "Editions", href: "/about/editions" },
+      {
+        label: "Ports and Connectivity",
+        href: "/about/ports-and-connectivity",
+      },
+      { label: "FAQ", href: "/about/faq" },
+    ],
+  },
+  {
+    label: "Get Started",
+    description:
+      "Install the agent on a device and see it appear in your namespace.",
+    icon: RocketLaunchIcon,
+    items: [
+      {
+        label: "Onboarding Guide",
+        href: "/get-started",
+        featured: true,
+      },
+      {
+        label: "Install the Agent",
+        items: [
+          {
+            label: "Choosing a Method",
+            href: "/get-started/install",
+            featured: true,
+          },
+          { label: "Docker", href: "/get-started/install/docker" },
+          { label: "Podman", href: "/get-started/install/podman" },
+          { label: "Snap", href: "/get-started/install/snap" },
+          {
+            label: "Standalone Binary",
+            href: "/get-started/install/standalone",
+          },
+          { label: "WSL", href: "/get-started/install/wsl" },
+          { label: "FreeBSD", href: "/get-started/install/freebsd" },
+          {
+            label: "Raspberry Pi",
+            href: "/get-started/install/raspberry-pi",
+          },
+          { label: "Buildroot", href: "/get-started/install/buildroot" },
+          { label: "Yocto Project", href: "/get-started/install/yocto" },
+          {
+            label: "Building from Source",
+            href: "/get-started/install/build-from-source",
+          },
+        ],
+      },
+      {
+        label: "Enrolling Devices",
+        href: "/get-started/enrolling-devices",
+        featured: true,
+      },
+      {
+        label: "Agent Configuration",
+        href: "/get-started/agent-configuration",
+      },
+    ],
+  },
+  {
+    label: "Connect",
+    description:
+      "Open a terminal, move files, forward a port, or reach a service on the device.",
+    icon: CommandLineIcon,
+    items: [
+      {
+        label: "Connecting to a Device",
+        href: "/connect",
+        featured: true,
+      },
+      { label: "SSH Client Configuration", href: "/connect/ssh-clients" },
+      {
         label: "File Transfer",
-        href: "/guides/file-transfer",
+        href: "/connect/file-transfer",
         featured: true,
       },
       {
         label: "Port Forwarding",
-        href: "/guides/port-forwarding",
+        href: "/connect/port-forwarding",
         featured: true,
       },
       {
         label: "Container Access",
-        href: "/guides/container-access",
+        href: "/connect/container-access",
         featured: true,
       },
-      { label: "Session Recording", href: "/guides/session-recording" },
-      { label: "Organizing with Tags", href: "/guides/tags" },
+      { label: "Web Endpoints", href: "/connect/web-endpoints" },
     ],
   },
   {
-    label: "Agent",
-    description: "Install the ShellHub agent on Docker, Snap, FreeBSD, or WSL.",
-    icon: CpuChipIcon,
+    label: "Manage",
+    description:
+      "Run a fleet: devices, who may reach them, your team, and what was done.",
+    icon: AdjustmentsHorizontalIcon,
     items: [
       {
-        label: "Agent Overview",
-        href: "/agent/overview",
-        featured: true,
-      },
-      { label: "Install Script", href: "/agent/install-script" },
-      {
-        label: "Platform Guides",
+        label: "Devices",
         items: [
           {
-            label: "Docker",
-            href: "/agent/docker",
+            label: "Managing Devices",
+            href: "/manage/devices",
             featured: true,
           },
+          { label: "Accepting Devices", href: "/manage/devices/accepting" },
+          { label: "Install Keys", href: "/manage/devices/install-keys" },
+          { label: "Tags", href: "/manage/devices/tags" },
           {
-            label: "Snap",
-            href: "/agent/snap",
-            featured: true,
-          },
-          {
-            label: "FreeBSD",
-            href: "/agent/freebsd",
-            featured: true,
-          },
-          { label: "WSL", href: "/agent/wsl" },
-          {
-            label: "Building from Source",
-            href: "/agent/building-from-source",
+            label: "Device Not Appearing",
+            href: "/manage/devices/device-not-appearing",
           },
         ],
       },
-    ],
-  },
-  {
-    label: "Embedded Linux",
-    description:
-      "Embed the agent on Raspberry Pi, Buildroot, and Yocto images.",
-    icon: CodeBracketSquareIcon,
-    items: [
       {
-        label: "Embedded Linux Overview",
-        href: "/embedded-linux/overview",
+        label: "Access Control",
+        items: [
+          {
+            label: "How Authorization Works",
+            href: "/manage/access-control",
+            featured: true,
+          },
+          {
+            label: "SSH Identities",
+            href: "/manage/access-control/ssh-identities",
+            featured: true,
+          },
+          {
+            label: "Access Policies",
+            href: "/manage/access-control/access-policies",
+            featured: true,
+          },
+          {
+            label: "Policy Reference",
+            href: "/manage/access-control/policy-reference",
+          },
+          {
+            label: "Service Accounts",
+            href: "/manage/access-control/service-accounts",
+          },
+          {
+            label: "Login Approvals",
+            href: "/manage/access-control/login-approvals",
+          },
+          {
+            label: "Connection Denied",
+            href: "/manage/access-control/connection-denied",
+          },
+          {
+            label: "Migrating from the Legacy Model",
+            href: "/manage/access-control/migrating-from-legacy",
+          },
+          {
+            label: "Public Keys",
+            href: "/manage/access-control/public-keys",
+          },
+          {
+            label: "Firewall Rules",
+            href: "/manage/access-control/firewall-rules",
+          },
+        ],
+      },
+      {
+        label: "Team",
+        items: [
+          {
+            label: "Members",
+            href: "/manage/team",
+            featured: true,
+          },
+          { label: "User Roles", href: "/manage/team/user-roles" },
+          {
+            label: "Single Sign-On (SAML)",
+            href: "/manage/team/single-sign-on",
+          },
+          {
+            label: "SAML Sign-In Fails",
+            href: "/manage/team/sso-not-working",
+          },
+          {
+            label: "Multi-Factor Authentication",
+            href: "/manage/team/multi-factor-authentication",
+          },
+        ],
+      },
+      {
+        label: "Namespaces",
+        href: "/manage/namespaces",
         featured: true,
       },
       {
-        label: "Raspberry Pi",
-        href: "/embedded-linux/raspberry-pi",
+        label: "Sessions",
+        href: "/manage/sessions",
         featured: true,
       },
-      {
-        label: "Buildroot",
-        href: "/embedded-linux/buildroot",
-        featured: true,
-      },
-      {
-        label: "Yocto Project",
-        href: "/embedded-linux/yocto",
-        featured: true,
-      },
-    ],
-  },
-  {
-    label: "Integrations",
-    description:
-      "Connect ShellHub with Ansible, Terraform, CI/CD, and VS Code.",
-    icon: PuzzlePieceIcon,
-    items: [
-      { label: "Integrations Overview", href: "/integration/overview" },
-      {
-        label: "Ansible",
-        href: "/integration/ansible",
-        featured: true,
-      },
-      {
-        label: "Terraform",
-        href: "/integration/terraform",
-        featured: true,
-      },
-      {
-        label: "CI/CD Pipelines",
-        href: "/integration/ci-cd",
-        featured: true,
-      },
-      {
-        label: "VS Code Remote",
-        href: "/integration/vscode-remote",
-        featured: true,
-      },
+      { label: "Session Recording", href: "/manage/session-recording" },
+      { label: "Settings", href: "/manage/settings" },
     ],
   },
   {
     label: "Self-Hosted",
-    description: "Deploy, configure, and maintain your own ShellHub instance.",
+    description: "Run your own ShellHub server.",
     icon: ServerStackIcon,
     items: [
       {
-        label: "Setup",
-        href: "/self-hosted/deploying",
+        label: "Self-Hosting Quickstart",
+        href: "/selfhosted/quickstart",
         featured: true,
       },
       {
-        label: "Configuration",
-        href: "/self-hosted/configuring",
+        label: "Environment Variables",
+        href: "/selfhosted/environment-variables",
         featured: true,
       },
-      {
-        label: "Administration",
-        href: "/self-hosted/administration",
-        featured: true,
-      },
-      {
-        label: "Upgrade",
-        href: "/self-hosted/upgrading",
-        featured: true,
-      },
-      {
-        label: "Troubleshooting",
-        href: "/self-hosted/troubleshooting",
-      },
+      { label: "Backup", href: "/selfhosted/backup" },
+      { label: "Upgrade", href: "/selfhosted/upgrade" },
+      { label: "Troubleshooting", href: "/selfhosted/troubleshooting" },
     ],
   },
   {
-    label: "Developers",
+    label: "API and Automation",
     description:
-      "Set up a dev environment, use the API, and build the agent from source.",
-    icon: CodeBracketIcon,
+      "Drive ShellHub from a script, a pipeline, a config tool, or an AI agent.",
+    icon: PuzzlePieceIcon,
     items: [
       {
-        label: "Dev Environment",
-        href: "/developers/development-environment",
+        label: "API Authentication",
+        href: "/api",
         featured: true,
       },
       {
-        label: "API Reference",
-        href: "/developers/api-reference",
+        label: "API Keys",
+        href: "/api/api-keys",
         featured: true,
       },
+      { label: "Install Key Webhook", href: "/api/install-key-webhook" },
+      { label: "OpenAPI Specification", href: "/api/openapi" },
       {
-        label: "Agent Development",
-        href: "/developers/agent-development",
+        label: "MCP Server",
+        href: "/api/mcp",
         featured: true,
       },
+      { label: "Ansible", href: "/api/ansible" },
+      { label: "Terraform", href: "/api/terraform" },
+      { label: "CI/CD Pipelines", href: "/api/ci-cd" },
+      { label: "Debugging a CI Run", href: "/api/ci-debug" },
+    ],
+  },
+  {
+    label: "Help",
+    description: "Find the guide for what is not working, or ask.",
+    icon: LifebuoyIcon,
+    items: [
+      { label: "Troubleshooting", href: "/help/troubleshooting", featured: true },
+      { label: "Getting Support", href: "/help/support", featured: true },
     ],
   },
 ];

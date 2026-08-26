@@ -1,0 +1,72 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: OpenAPI Specification
+description: Read the API in a browser, and generate a client from the right spec.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# OpenAPI Specification
+
+The REST API is described by an OpenAPI specification, and the fastest way to read it is to let
+your own server render it.
+
+## Reading it in a browser
+
+Bring up an instance with `SHELLHUB_ENV=development` and it renders the specification for you,
+as browsable documentation rather than YAML you have to hold in your head:
+
+| | Shows | Where |
+|---|---|---|
+| **Customer** | Only what an API key can call | `http://localhost/openapi/customer.html` |
+| **Full** | Every route, including `/admin` and `/internal` | `http://localhost/openapi/` |
+
+The instance renders the specification for the edition it is running — a Cloud server bundles the
+Cloud spec, a Community server the Community one — so what you are reading is the API that server
+actually has.
+
+<Callout variant="warning" title="The route is development-only">
+The gateway registers it when `SHELLHUB_ENV=development`, so no production server serves it —
+including the one you connect to. It is a thing you bring up to read the API, not a page on your
+own deployment.
+</Callout>
+
+If running one is not an option, the specifications are in the repository under `openapi/spec/`,
+one per edition. Those are the full ones, so read past the `/admin` and `/internal` routes: they
+are not yours to call.
+
+## Which one to generate a client from
+
+The customer one. It is the same source with a filter applied: routes under `/admin` and
+`/internal` are dropped, operations an API key cannot use are dropped, anything marked
+`x-internal` is dropped, and the JWT scheme is stripped so the only credential in the document is
+the one you actually hold.
+
+Generate from the full spec and you get methods for routes your key cannot call and your server
+may not even have.
+
+Every release publishes the customer bundles, one per edition, so the spec you build against is
+versioned with the server you are talking to rather than taken from whatever is on `master`.
+
+**Use the one matching your edition.** Editions expose different routes: a Community server has no
+MFA, firewall rule, or web endpoint routes at all, and a client generated for the wrong edition
+produces methods that return 404. That is not a permission failure — the routes are not
+registered. See [Editions](/about/editions).
+
+## Generating a client
+
+Any OpenAPI generator works:
+
+```bash
+$ openapi-generator-cli generate \
+    -i community-openapi.yaml \
+    -g python \
+    -o ./shellhub-client
+```
+
+Authentication is the `X-API-Key` header — see [API Authentication](/api).
+
+## Where to go next
+
+- [API Authentication](/api) — Getting a credential in.
+- [API Keys](/api/api-keys) — Creating one.

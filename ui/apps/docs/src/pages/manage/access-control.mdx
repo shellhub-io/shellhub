@@ -1,0 +1,114 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: How Authorization Works
+description: How ShellHub decides who may reach which device, as which unix login.
+---
+
+# How Authorization Works
+
+Every connection is authorized before the device is contacted. ShellHub refuses at the server,
+before it mints anything for the agent, so a denied login never reaches the device at all.
+
+How the decision is made depends on which model your namespace uses.
+
+## Two models
+
+| | Identity | Legacy |
+|---|---|---|
+| What proves who you are | An [SSH identity](/manage/access-control/ssh-identities) bound to a person or service account | A public key registered in the namespace |
+| What decides what you reach | [Access policies](/manage/access-control/access-policies) | The key's device ACL, plus firewall rules |
+| An unlisted device is | Denied | Allowed, unless a rule blocks it |
+| The audit trail names | The principal | The key |
+
+**Namespaces created today start in identity mode and stay there** — a namespace born in identity
+mode cannot be switched back. Namespaces that predate identity mode default to legacy and can move
+across when you are ready.
+
+The rest of this page describes identity mode. For the older model see
+[Public Keys](/manage/access-control/public-keys) and
+[Firewall Rules](/manage/access-control/firewall-rules); to move, see
+[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+
+## Identities prove who
+
+An SSH identity binds a public key to a **principal** — a person on your team, or a service
+account. The key is the credential; the identity is who that credential belongs to.
+
+This inversion is what makes everything downstream work. In the legacy model a key *is* the
+access: whoever holds it gets in, and the record can only name the key. With identities, a
+connection whose key fingerprint resolves to an identity is recognized as that principal, and
+policy evaluation, the session record and revocation are all about the person.
+
+See [SSH Identities](/manage/access-control/ssh-identities).
+
+## Policies decide what
+
+An identity proves who. A policy decides what they may reach: a subject, a set of devices, a set
+of unix logins, and whether the effect is to allow or deny.
+
+See [Access Policies](/manage/access-control/access-policies) for writing them, and
+[Policy Reference](/manage/access-control/policy-reference) for every field.
+
+## How a decision is made
+
+When a connection arrives, ShellHub resolves the presented key to an identity, then evaluates the
+namespace's policies against that identity, the target device, and the requested unix login.
+
+The order:
+
+1. **Membership.** Not a member of the namespace → refused, before policies are consulted.
+2. **Every deny.** A matching deny refuses, and nothing later overrides it. A deny that cannot be
+   evaluated also refuses.
+3. **Every allow.** One match is enough. The strictest re-authentication requirement across all
+   matching allows is taken.
+4. **Nothing matched** → refused.
+
+Three properties fall out of that, and they are the ones worth remembering:
+
+**Default deny.** A device is unreachable until some policy says otherwise. A namespace with no
+policies at all refuses every connection — and ShellHub short-circuits that case, refusing
+immediately rather than proceeding toward a login that could never be authorized.
+
+**Deny wins.** Deny is a subtractive blocklist carved out of broad grants, not a base layer.
+Default deny already blocks everything a policy does not grant, so deny exists to carve exceptions
+*out of* your allows.
+
+**Deny fails closed.** If a deny's filter or source IP cannot be evaluated, ShellHub assumes it
+applies. An allow that cannot be evaluated is treated as a non-match instead — the asymmetry is
+deliberate, and it always errs toward refusing.
+
+## Where the network does not fit
+
+Network position is not part of the decision. There is no "inside": a device on your office LAN
+and one on a customer's cellular link are evaluated identically, against the same policies.
+
+A policy can carry a source IP restriction, but it only ever **narrows** a grant that already
+matched. An empty list matches any address, and no source IP ever grants access on its own.
+
+In identity mode the legacy firewall rules — which match on source IP, hostname and username —
+are bypassed entirely. They remain stored and manageable, and are never consulted.
+
+## The starter policy
+
+A namespace in identity mode is seeded with one policy, **Owner access**, granting the namespace
+owner every login on every device. It is created when a namespace is born in identity mode, and
+also when a namespace switches to identity mode with no policies of its own.
+
+Without it, default deny would lock the owner out of their own namespace at the moment the mode
+changed. Every other member starts with no access at all.
+
+## What authorization does not do
+
+**It runs once, at the handshake.** Revoking an identity or deleting a policy does not tear down a
+session that is already open — that session was authorized when it started, and it continues
+until it is closed.
+
+**The reason is not surfaced.** A refusal carries a specific reason internally, but the connecting
+client receives a generic access-denied. [Connection Denied](/manage/access-control/connection-denied) works
+through the four possibilities.
+
+## Where to go next
+
+- [SSH Identities](/manage/access-control/ssh-identities) — Binding keys to people.
+- [Access Policies](/manage/access-control/access-policies) — Writing the rules.
+- [Login Approvals](/manage/access-control/login-approvals) — When a login pauses for confirmation.

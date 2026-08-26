@@ -1,0 +1,106 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Install Key Webhook
+description: The request ShellHub sends when a device enrolls, and the answer it expects.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Install Key Webhook
+
+An [install key](/manage/devices/install-keys) in webhook mode asks your service whether to admit
+each device that enrolls with it. This page is the contract: what ShellHub sends, what it accepts
+back, and how to answer later instead of immediately.
+
+## The request
+
+ShellHub sends a `POST` with a JSON body and two headers.
+
+| Header | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `X-ShellHub-Signature` | HMAC-SHA256 of the raw body, hex encoded, under the key's webhook secret |
+
+```json
+{
+  "tenant_id": "00000000-0000-4000-0000-000000000000",
+  "install_key_id": "b1946ac92492d2347c6235b4d2611184",
+  "install_key_name": "factory-line-2",
+  "device_uid": "3c9e2f1a7b4d8e6f0a1c5d9b2e7f4a83",
+  "mac": "00:1b:44:11:3a:b7",
+  "hostname": "gateway-01",
+  "info": { "id": "debian", "pretty_name": "Debian GNU/Linux 12", "arch": "arm64" },
+  "source_ip": "203.0.113.9",
+  "timestamp": "2026-08-26T03:41:00Z",
+  "callback_url": "https://cloud.shellhub.io/api/devices/enroll/callback/<token>"
+}
+```
+
+<Callout variant="warning">
+Key your policy on `install_key_id`, never on `install_key_name`. The id is the key's
+digest: stable, not a secret, and it survives a rename. The name rides along for your own logs
+and changes whenever somebody edits it.
+</Callout>
+
+The secret itself is never sent, not even a fragment. Authenticity comes from the signature:
+compute the same HMAC over the raw body you received and compare.
+
+`callback_url` is absent when the server cannot work out its own public address.
+
+## The answer
+
+Reply `2xx` with a JSON body:
+
+```json
+{ "decision": "accept", "reason": "serial in manufacturing batch 44" }
+```
+
+| `decision` | Result |
+|---|---|
+| `accept` | The device is accepted into the namespace |
+| `reject` | The device is rejected |
+| `defer` | Decide later, through the callback URL |
+| `pending` | Leave it for a human in the console |
+
+`reason` is optional and is recorded with the decision.
+
+**Anything else fails closed to pending**: a transport error, a non-2xx status, a body that does
+not parse, an unrecognized `decision`, or no answer inside the timeout. The device waits for a
+human rather than walking in.
+
+The request times out in **5 seconds** by default, **15** at most. Answer `defer` rather than
+holding the connection open.
+
+## Deciding later
+
+`POST` to the `callback_url` from the request:
+
+```bash
+$ curl -X POST "$CALLBACK_URL" \
+    -H 'Content-Type: application/json' \
+    -d '{"decision":"accept"}'
+```
+
+Only `accept` and `reject` are valid here — `defer` has already happened.
+
+The URL carries a signed, expiring token scoped to that one device. It is valid for **1 hour** by
+default, **24 hours** at most, and it is **single use**: a second POST with the same URL is
+refused, so a replay cannot flip a decision.
+
+An `accept` arriving through the callback is checked again on the way in. The key is re-resolved
+and revalidated, because it may have been revoked, disabled, expired or exhausted since the token
+was minted, and a use is reserved against its limit. A deferred accept is bound by the same rules
+as an immediate one.
+
+A device left pending this way is re-evaluated the next time the agent authenticates, so a
+decision that was deferred resolves on its own once your service answers.
+
+## Reachability
+
+The webhook must be reachable at a public address. The destination is checked after DNS
+resolution, so a hostname that resolves into a private network is refused too.
+
+## Where to go next
+
+- [Install Keys](/manage/devices/install-keys) — The modes, and everything a key carries.
+- [API Authentication](/api) — The credentials the rest of the API takes.

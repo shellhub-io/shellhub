@@ -1,0 +1,71 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Backup
+description: What to back up, how, and what a database dump does not cover.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Backup
+
+Nothing backs itself up. This page is short and you should act on it before you need it.
+
+## What has to be backed up
+
+**PostgreSQL.** Devices, identities, access policies, members, namespaces, sessions. This is the
+deployment — without it, the agents are still running out there and nothing knows what they are.
+
+**The secrets from `make keygen`.** The API key pair and the SSH host key. Losing the SSH host key
+means every client that has connected before refuses to connect, because the server's host key
+changed.
+
+**Object storage, on Enterprise.** Session recordings live in MinIO or whatever S3-compatible
+storage you configured. **A database dump does not include them.**
+
+**Your `.env.override`.** Small, easily recreated, easily forgotten at the worst moment.
+
+## Dumping the database
+
+Using the default credentials — `admin` / `main`, or whatever you set in
+`SHELLHUB_POSTGRES_USERNAME` and `SHELLHUB_POSTGRES_DATABASE`:
+
+```bash
+$ ./bin/docker-compose exec postgres pg_dump -U admin main | gzip > backup.gz
+```
+
+Restoring:
+
+```bash
+$ gunzip -c backup.gz | ./bin/docker-compose exec -T postgres psql -U admin main
+```
+
+<Callout variant="warning">
+These are the standard composition's credentials. If you changed `SHELLHUB_POSTGRES_USERNAME` or
+`SHELLHUB_POSTGRES_DATABASE`, change them here too — and verify a restore before you rely on it.
+</Callout>
+
+## Test the restore
+
+A backup nobody has restored is a hypothesis.
+
+Restore into a scratch instance and check that devices, members and policies are all there. Do
+that once, now, rather than during an incident.
+
+## What a dump does not cover
+
+- **Session recordings** — separate storage, separate backup.
+- **Docker volumes generally** — nothing backs them up automatically.
+- **The secrets** — they are files, and `pg_dump` has never heard of them.
+
+## Automating it
+
+Whatever you already use for scheduled jobs is the right answer. What matters is that the output
+lands somewhere that is not the host running ShellHub — a backup on the machine you are protecting
+against losing is not a backup.
+
+Keep more than one, so a corrupt dump taken last night is not your only copy.
+
+## Where to go next
+
+- [Environment Variables](/selfhosted/environment-variables) — Where the credentials above come from.
+- [Upgrade](/selfhosted/upgrade) — Back up first.

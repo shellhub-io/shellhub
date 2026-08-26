@@ -1,0 +1,71 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Settings
+description: "Namespace-wide settings: recording, announcements, and the SSH access mode."
+---
+
+# Settings
+
+Namespace settings apply to everything inside the namespace.
+
+![Namespace Settings page](/img/settings/namespace-settings.png)
+
+## Session recording
+
+Turns on server-side recording for new sessions in this namespace.
+
+Community records the web terminal in the browser regardless — this setting is about the
+**server-side** recording available on Cloud and Enterprise. See
+[Session Recording](/manage/session-recording).
+
+## Connection announcement
+
+A message shown in the terminal when somebody connects.
+
+Its most useful job is telling people recording is on. Somewhere between courtesy and a legal
+requirement depending on where you operate, and it costs one sentence:
+
+```
+Sessions on this namespace are recorded.
+```
+
+It is also a reasonable place for an environment warning — anything that makes somebody pause
+before typing on the wrong machine.
+
+## SSH access mode
+
+Chooses between the identity model and the legacy key-and-firewall model.
+
+Namespaces created today are born in identity mode and **cannot leave it**. Namespaces that
+predate identity mode default to legacy and can be switched across — and, while they are settling
+in, switched back.
+
+Switching to identity mode with no policies seeds the **Owner access** policy so default deny does
+not lock the owner out. Everyone else starts with no access.
+
+Do not switch without preparing. See
+[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+
+## MFA requirements
+
+On Cloud and Enterprise, whether members must have MFA enabled. See
+[Multi-Factor Authentication](/manage/team/multi-factor-authentication).
+
+## Instance-wide settings
+
+Some things are not namespace settings but deployment configuration, set with environment
+variables on a self-hosted server and not visible here:
+
+| Variable | Default | Effect |
+|---|---|---|
+| `SHELLHUB_CONNECTOR` | `true` | Connector features in the console |
+| `SHELLHUB_ANNOUNCEMENTS` | `false` | Release announcements |
+| `SHELLHUB_PAYWALL` | `true` | Whether Cloud/Enterprise features are shown to Community users |
+| `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Lockout in minutes after failed sign-ins; 0 disables |
+
+See [Environment Variables](/selfhosted/environment-variables).
+
+## Where to go next
+
+- [Namespaces](/manage/namespaces) — Name, tenant ID, deletion.
+- [Session Recording](/manage/session-recording) — What recording captures.

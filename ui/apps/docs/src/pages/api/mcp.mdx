@@ -1,0 +1,73 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: MCP Server
+description: Let an AI assistant query and operate your ShellHub namespace.
+---
+
+
+# MCP Server
+
+ShellHub ships a Model Context Protocol server, so an AI assistant can work with your namespace
+directly — list devices, look at sessions, and act on them — instead of you relaying output into a
+chat window.
+
+It is mounted at **`/mcp`** as an MCP Streamable HTTP server.
+
+The MCP server is in Community and is registered unconditionally, on every edition.
+
+## Connecting
+
+Point an MCP-capable client at your server's `/mcp` endpoint and give it an API key.
+
+```
+https://cloud.shellhub.io/mcp
+```
+
+## Authentication is API-key only
+
+This is the part to understand before wiring anything up.
+
+**MCP authenticates with an API key and nothing else.** The user-identity headers that the rest of
+the API accepts do not apply here and are deliberately omitted. There is no way to connect an
+assistant "as yourself" with your session — it connects as an API key.
+
+The consequence: **the assistant can do whatever the key's role can do.** Give it an observer key
+if it should look and not touch. Give it an operator key only if you have decided you want it
+acting.
+
+See [API Keys](/api/api-keys) and [User Roles](/manage/team/user-roles).
+
+## How authorization is enforced
+
+The MCP tools make in-process API calls, replaying the captured authentication headers. That means
+the same middleware the REST API uses runs for an MCP request: the same permission checks, the
+same tenant scoping, and the same refusals for routes that block API keys.
+
+So an assistant cannot reach anything through MCP that the key could not reach through the REST
+API. There is no separate, looser path — which is exactly the property you want from a tool an
+assistant drives.
+
+The routes that refuse API keys refuse MCP too: namespace membership, install key management, MFA,
+user management.
+
+## What it exposes
+
+Tools covering the namespace's resources — devices among them. The set grows with releases, and
+this page will not list it because a stale list is worse than none. Ask your client to enumerate
+the available tools; MCP is self-describing.
+
+## Being deliberate about it
+
+An assistant with an operator key can change things in your namespace. That is the point, and it
+is worth a moment's thought:
+
+- Start with an **observer** key. Most of the value is in asking questions.
+- Use a **separate key** for the assistant, named for it, so you can revoke it without touching
+  anything else.
+- Give it an **expiry**.
+- The key is in your assistant's configuration. Treat that file as holding a credential.
+
+## Where to go next
+
+- [API Keys](/api/api-keys) — Creating a scoped key.
+- [API Authentication](/api) — The underlying model.

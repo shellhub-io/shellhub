@@ -1,0 +1,123 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: SSH Client Configuration
+description: Make the SSHID less tedious with aliases, config entries, and client-specific setup.
+---
+
+# SSH Client Configuration
+
+An SSHID is correct but long. Nothing here changes how ShellHub works — it is about typing less.
+
+## OpenSSH
+
+Add an entry to `~/.ssh/config`:
+
+```
+Host pi
+  HostName cloud.shellhub.io
+  User root@mycompany.raspberrypi
+```
+
+Then:
+
+```bash
+$ ssh pi
+```
+
+The whole SSHID goes in `User`, and `HostName` is just the server. That split is what makes the
+rest of the OpenSSH ecosystem work — `scp`, `sftp`, `rsync` and anything reading `ssh_config` all
+honor the alias.
+
+For a fleet, a wildcard saves writing one block per device:
+
+```
+Host *.shellhub
+  HostName cloud.shellhub.io
+  User root@mycompany.%h
+```
+
+That is imperfect — `%h` includes the `.shellhub` suffix — so most people end up with explicit
+blocks for the devices they touch often and the full SSHID for the rest.
+
+## Keys
+
+Point at a specific key the normal way:
+
+```
+Host pi
+  HostName cloud.shellhub.io
+  User root@mycompany.raspberrypi
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+```
+
+`IdentitiesOnly yes` is worth setting. Without it, OpenSSH offers every key it has, and the
+*first* one ShellHub recognizes is the identity your session is attributed to — which may not be
+the one you meant.
+
+## PuTTY
+
+Put the SSHID in **Host Name** as `user@namespace.device@server`, or set the server as the host
+and the SSHID's user part under **Connection → Data → Auto-login username**.
+
+Save it as a session so you do not retype it.
+
+## Ansible
+
+The SSHID goes in the inventory as the connection user:
+
+```ini
+[edge]
+raspberrypi ansible_host=cloud.shellhub.io ansible_user=root@mycompany.raspberrypi
+```
+
+Or in YAML:
+
+```yaml
+all:
+  hosts:
+    raspberrypi:
+      ansible_host: cloud.shellhub.io
+      ansible_user: root@mycompany.raspberrypi
+```
+
+See [Ansible](/api/ansible) for generating the inventory from your device list rather than
+maintaining it by hand.
+
+## rsync, scp and sftp
+
+They inherit `~/.ssh/config`, so an alias covers them:
+
+```bash
+$ scp file.tar.gz pi:/tmp/
+$ rsync -av ./build/ pi:/opt/app/
+```
+
+Without an alias, quote carefully — the SSHID contains `@` twice:
+
+```bash
+$ scp file.tar.gz root@mycompany.raspberrypi@cloud.shellhub.io:/tmp/
+```
+
+See [File Transfer](/connect/file-transfer).
+
+## Multiplexing
+
+Reusing one connection for several sessions makes repeated commands noticeably faster:
+
+```
+Host pi
+  HostName cloud.shellhub.io
+  User root@mycompany.raspberrypi
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 10m
+```
+
+Be aware of the interaction with authorization: ShellHub authorizes when the connection is made.
+A multiplexed connection held open for ten minutes was authorized once, at the start.
+
+## Where to go next
+
+- [File Transfer](/connect/file-transfer) — Moving files over the same path.
+- [Port Forwarding](/connect/port-forwarding) — `-L` and `-R` through ShellHub.

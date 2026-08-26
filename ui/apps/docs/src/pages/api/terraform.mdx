@@ -1,0 +1,94 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Terraform
+description: Reach ShellHub devices from Terraform provisioners, and manage ShellHub from the API.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Terraform
+
+Two different things people mean by "Terraform and ShellHub", and they are worth separating.
+
+## Reaching a device from a provisioner
+
+Terraform's `remote-exec` and `file` provisioners connect over SSH, and ShellHub's SSHID is an
+ordinary SSH username:
+
+```hcl
+connection {
+  type        = "ssh"
+  host        = "cloud.shellhub.io"
+  user        = "root@mycompany.gateway-01"
+  private_key = file("~/.ssh/id_ed25519")
+}
+
+provisioner "remote-exec" {
+  inline = [
+    "systemctl restart myservice",
+  ]
+}
+```
+
+The host is always the ShellHub server; the device is identified by `user`.
+
+**The key must already be an [SSH identity](/manage/access-control/ssh-identities).** If it is
+not, the connection parks waiting for a browser approval and Terraform hangs until it times out.
+Add the key ahead of time, on a
+[service account](/manage/access-control/service-accounts).
+
+<Callout variant="warning">
+Provisioners are a last resort in Terraform's own guidance, and that applies here.
+Configuring a device that ShellHub reaches is usually better done with
+[Ansible](/api/ansible) or a configuration tool, with Terraform doing infrastructure.
+</Callout>
+
+## Managing ShellHub itself
+
+ShellHub's REST API is what you would target to manage namespaces, API keys, tags or access
+policies as code.
+
+There is no official ShellHub Terraform provider. The options are the generic HTTP provider for
+simple cases, or `null_resource` with a `local-exec` calling the API:
+
+```hcl
+resource "null_resource" "shellhub_tag" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      curl -sf -X POST https://cloud.shellhub.io/api/... \
+        -H "X-API-Key: ${var.shellhub_api_key}" \
+        -H "Content-Type: application/json" \
+        -d '{ ... }'
+    EOT
+  }
+}
+```
+
+Be honest with yourself about that pattern: it has no real state tracking, no drift detection and
+no meaningful destroy. For anything beyond a couple of resources, a script against the API is
+clearer than pretending it is declarative.
+
+See [API Authentication](/api) and the
+[OpenAPI Specification](/api/openapi) for the endpoints.
+
+## Enrolling devices Terraform creates
+
+If Terraform is creating machines that should appear in ShellHub, put the agent in at creation
+with an [install key](/manage/devices/install-keys), through cloud-init or user data:
+
+```hcl
+user_data = <<-EOT
+  #!/bin/sh
+  curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=${var.shellhub_install_key} \
+    sh
+EOT
+```
+
+An install key in `automatic` mode means instances arrive accepted and tagged, with nobody
+watching a console. That is the pattern worth adopting — it is the one that scales.
+
+## Where to go next
+
+- [Install Keys](/manage/devices/install-keys) — Automatic enrollment.
+- [Ansible](/api/ansible) — Usually the better tool for configuring a device.

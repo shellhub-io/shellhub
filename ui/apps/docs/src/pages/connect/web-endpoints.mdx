@@ -1,0 +1,78 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Web Endpoints
+description: Publish an HTTP service running on a device at a public URL.
+---
+
+import EditionBanner from "../../components/EditionBanner.astro";
+
+# Web Endpoints
+
+A web endpoint takes an HTTP service running on a device and gives it a URL. Somebody opens the
+URL in a browser and reaches the service, with nothing installed and no SSH involved.
+
+<EditionBanner>
+Web endpoints are available on **Cloud** and **Enterprise**. On an Enterprise
+Enterprise deployment they are switched on with `SHELLHUB_WEB_ENDPOINTS` and need DNS
+configuration — see below.
+</EditionBanner>
+
+## What it is for
+
+A device is running a web interface — a dashboard, an admin panel, a camera's UI — on a network
+you cannot reach. A [port forward](/connect/port-forwarding) solves that for *you*, on your
+machine, for as long as the forward is open.
+
+A web endpoint solves it for anyone you give the URL to, with no client at all. That is the
+difference, and it is the reason to choose one over the other.
+
+## Creating one
+
+From the console's **Web Endpoints** page, pick the device and the port the service is listening
+on. You get back a URL.
+
+![The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining](/img/web-endpoints/web-endpoints.png)
+
+The endpoint carries an expiry, shown in the list as time remaining.
+
+## How access works
+
+This is the part to be clear-eyed about. **A web endpoint is reached by knowing its URL.** The
+address contains a random component that is both its name and its secret. There is no login in
+front of it, and access policies do not apply to it.
+
+The consequences:
+
+- Anyone with the URL reaches the service, from anywhere.
+- The URL in a chat message, a ticket, or a browser history is a working credential.
+- Revoking access means deleting the endpoint, not changing a policy.
+
+That is a reasonable trade for showing somebody a dashboard for an afternoon. It is the wrong
+mechanism for standing access to something sensitive — use [SSH](/connect) and policies for that.
+
+Set expiries deliberately, and delete endpoints when the reason for them has passed.
+
+## What it does not expose
+
+Publishing an endpoint publishes **one service on one port**. It does not give anyone a shell, a
+file transfer, or access to anything else on the device. The device itself stays unreachable.
+
+## Self-hosted configuration
+
+On Enterprise, web endpoints need a DNS provider so certificates can be issued for the generated
+hostnames:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_WEB_ENDPOINTS` | `false` | Switches the feature on |
+| `SHELLHUB_WEB_ENDPOINTS_DOMAIN` | falls back to `SHELLHUB_DOMAIN` | The domain endpoints are published under |
+| `SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER` | `digitalocean` | DigitalOcean and Cloudflare are supported; `acme-dns` is also handled |
+| `SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN` | — | Required when auto-SSL is on |
+
+Endpoints get their own hostnames under the endpoints domain, so that domain needs a wildcard DNS
+record pointing at the server.
+
+## Where to go next
+
+- [Port Forwarding](/connect/port-forwarding) — The alternative, for yourself rather than others.
+- [Environment Variables](/selfhosted/environment-variables) — The self-hosted settings above.

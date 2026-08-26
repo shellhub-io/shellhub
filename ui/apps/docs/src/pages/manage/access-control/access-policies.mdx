@@ -1,0 +1,121 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Access Policies
+description: Write the rules that decide which identities reach which devices, as which unix login.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Access Policies
+
+An identity proves who is connecting. A policy decides what they may reach.
+
+Policies are namespace-scoped and evaluated on every connection. Evaluation is **default deny**:
+until a policy grants access, nothing is reachable, and a namespace with no policies refuses
+everything.
+
+Manage them under **Access Policies** in the console.
+
+## Anatomy
+
+**Name** — how you will recognize it. It appears verbatim in the denial when a deny refuses
+somebody, so a descriptive name is what makes a refusal diagnosable. `Operators to prod` beats
+`policy-2`.
+
+**Effect** — `allow` grants the access described; `deny` blocks it. A matching deny wins over any
+allow, however specific.
+
+**Subject** — who it applies to:
+
+| Subject | Applies to |
+|---|---|
+| All members | Every member of the namespace |
+| Role | Everyone holding that role, so the grant follows the role rather than the person |
+| User | One person |
+| Service account | An automated system connecting on its own identity |
+
+<Callout variant="warning">
+**All members excludes service accounts.** A broad `all-members` allow will not sweep
+a service account in by accident. Grant one on purpose, with a user or role subject. A role
+subject already excludes them by exact match.
+</Callout>
+
+**Devices** — which devices are covered:
+
+| Selector | Behavior |
+|---|---|
+| All devices | Every device in the namespace, including ones enrolled later |
+| Hostname | A regular expression against the device name, like `^prod-.*$` |
+| Tags | Devices carrying the selected tags |
+
+Prefer tags. A tag is a decision recorded when the device enrolls; a hostname pattern is a bet
+that names stay consistent.
+
+**Logins** — which unix logins are allowed on those devices: a specific list like `deploy` and
+`root`, or any. This is the difference between reaching a device and reaching it as root.
+
+**Source IP** — optionally, only accept connections from these addresses or ranges. Empty matches
+any address. It only ever **narrows** — it never grants.
+
+**Re-authentication** — optionally, require the identity to confirm in the browser before
+connecting. Either every login, or once per window. See
+[Login Approvals](/manage/access-control/login-approvals).
+
+## How policies combine
+
+Every deny is evaluated first. If one matches, the connection is refused and no allow overrides
+it.
+
+If no deny matches, the allows are evaluated, and one match is enough.
+
+If nothing matches, refused.
+
+A deny whose selector cannot be evaluated fails closed. An allow that cannot be evaluated is
+treated as a non-match.
+
+That order makes a working policy set predictable in shape: **broad allows for what people
+normally need, then narrow denies to carve out exceptions.** Fighting a deny by adding more allows
+does not work.
+
+## A worked example
+
+A team where operators handle the fleet, one contractor touches only lab devices, and a pipeline
+deploys.
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Operators to fleet | allow | Role: operator | tag `production` | `deploy` |
+| Contractor to lab | allow | User: contractor | tag `lab` | any |
+| No root anywhere | deny | All members | All devices | `root` |
+| Pipeline deploys | allow | Service account `ci-bot` | tag `production` | `deploy` |
+
+What this buys you:
+
+- The deny spans the namespace and needs no exception list. It beats all three allows without any
+  of them being rewritten.
+- Tagging a new device `production` grants operators and the pipeline at once. No policy is
+  edited.
+- Adding somebody to the operator role grants them the fleet. No policy is edited.
+- `ci-bot` needs its own allow — the `all-members` deny still applies to it, but no `all-members`
+  *allow* would have covered it.
+
+## Starting from scratch
+
+A new namespace has one policy: **Owner access**, granting the owner every login on every device.
+Everybody else has nothing.
+
+A reasonable second and third policy:
+
+1. An allow for the role your team mostly holds, scoped to a tag, with the logins they actually
+   need — not `*`.
+2. A namespace-wide deny for `root`, if root is not something people should be reaching for
+   routinely.
+
+Then add narrower allows as real needs appear, rather than trying to model the whole organization
+up front.
+
+## Where to go next
+
+- [Policy Reference](/manage/access-control/policy-reference) — Every field, and what empty means.
+- [Tags](/manage/devices/tags) — Selecting devices well.
+- [User Roles](/manage/team/user-roles) — What a role subject resolves to.

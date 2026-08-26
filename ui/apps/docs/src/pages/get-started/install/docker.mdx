@@ -1,0 +1,84 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Docker
+description: Run the ShellHub agent as a Docker container.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Installing on Docker
+
+Docker is the installer's first choice when the daemon is present and usable in rootful mode.
+
+## Install
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+To force Docker when something else would have been picked:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=docker sh
+```
+
+<Callout variant="info">
+Give it nothing at all and the agent pairs: it prints a link, and opening the link
+accepts the device. An install key is for when nobody is at the machine. See
+[Enrolling Devices](/get-started/enrolling-devices).
+</Callout>
+
+## What gets installed
+
+A container from `docker.io/shellhubio/agent`, tagged with the version reported by your server,
+plus a `shellhub-agent` wrapper on the host so `shellhub-agent login` can open a browser during
+pairing.
+
+Override the image with `AGENT_IMAGE` if you mirror it internally:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    AGENT_IMAGE=registry.example.com/shellhub/agent:v0.27.0 \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+## Why it runs privileged
+
+The agent opens shells as real unix users on the host, transfers files from the host filesystem,
+and forwards ports on the host's behalf. A container isolated from the host cannot do any of
+that.
+
+If that trade is not acceptable on a given machine, the
+[standalone binary](/get-started/install/standalone) runs directly under systemd instead.
+
+## Configuration
+
+Agent settings are environment variables on the container. See
+[Agent Configuration](/get-started/agent-configuration) for all of them.
+
+The one that matters most for persistence is `SHELLHUB_PRIVATE_KEY`. The agent generates a key on
+first run and that key is the device's identity — if it lives only inside the container's
+writable layer, recreating the container produces a *new* device. Keep it on a volume.
+
+## Managing the agent
+
+```bash
+$ docker ps | grep shellhub          # is it running
+$ docker logs -f <container>         # what it is doing
+$ docker restart <container>         # restart it
+```
+
+## Uninstalling
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+## Where to go next
+
+- [Enrolling Devices](/get-started/enrolling-devices) — Get it into a namespace.
+- [Container Access](/connect/container-access) — Reach *other* containers on this host.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — If it never shows up.

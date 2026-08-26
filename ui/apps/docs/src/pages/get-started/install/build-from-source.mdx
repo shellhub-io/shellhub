@@ -1,0 +1,71 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Building from Source
+description: Compile the ShellHub agent yourself, including for a target architecture.
+---
+
+# Building the Agent from Source
+
+The agent is a single Go program in the ShellHub repository. Build it when you need an
+architecture we do not publish, a patched build, or reproducibility you control.
+
+## Requirements
+
+Go, at the version pinned in `agent/go.mod`. Check it rather than trusting this page:
+
+```bash
+$ head -3 agent/go.mod
+```
+
+## Build
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub/agent
+$ go build -o shellhub-agent ./cmd/agent
+```
+
+The result is a static binary with no runtime dependencies.
+
+## Cross-compiling
+
+Go cross-compiles without a toolchain per target:
+
+```bash
+$ GOOS=linux GOARCH=arm64 go build -o shellhub-agent-arm64 ./cmd/agent
+$ GOOS=linux GOARCH=arm GOARM=7 go build -o shellhub-agent-armv7 ./cmd/agent
+$ GOOS=linux GOARCH=arm GOARM=6 go build -o shellhub-agent-armv6 ./cmd/agent
+```
+
+The published builds cover `amd64`, `armv6`, `armv7`, `arm64` and `386`.
+
+## Running it
+
+The binary reads its configuration from the environment:
+
+```bash
+$ SHELLHUB_SERVER_ADDRESS=https://shellhub.example.com \
+  SHELLHUB_TENANT_ID=<your-tenant-id> \
+  SHELLHUB_PRIVATE_KEY=/var/lib/shellhub/device.key \
+  ./shellhub-agent
+```
+
+For anything permanent, put it under a service manager. The
+[standalone install](/get-started/install/standalone) shows the systemd shape.
+
+## Matching the server version
+
+The server reports the agent version it expects at `/info`:
+
+```bash
+$ curl -s https://cloud.shellhub.io/info
+```
+
+Building from a tag matching your server avoids surprises. The agent is generally tolerant across
+versions, but the server does refuse public-key authentication from agents older than 0.6.0
+unless `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` is set — note the spelling of that
+variable, the typo is real.
+
+## Where to go next
+
+- [Agent Configuration](/get-started/agent-configuration) — Every variable.

@@ -1,0 +1,166 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Self-Hosting Quickstart
+description: Bring up your own ShellHub server with Docker Compose.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Self-Hosting Quickstart
+
+From nothing to a running server.
+
+<Callout variant="info" action={{ href: "https://cloud.shellhub.io", label: "Try it on Cloud" }}>
+Trying ShellHub rather than committing to it? Cloud takes a few clicks and we run the server. The
+agents and the daily workflow are identical, so nothing you learn there is wasted if you
+self-host afterwards.
+</Callout>
+
+## Requirements
+
+Docker and Docker Compose, and a host with a stable address that your devices can reach. The
+composition is four services plus PostgreSQL.
+
+
+## 1. Clone
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub
+```
+
+Check out a release tag rather than running from `master`. The available tags are on the
+[releases page](https://github.com/shellhub-io/shellhub/releases).
+
+## 2. Generate keys
+
+```bash
+$ make keygen
+```
+
+This creates three secrets — the API key pair and the SSH host key — which are mounted as Docker
+secrets.
+
+**Back these up.** Regenerating the SSH host key changes the server's host key, and every SSH
+client that has connected before will refuse to connect until its known-hosts entry is cleared.
+
+## 3. Configure
+
+Never edit `.env` — it carries the defaults and an upgrade will overwrite it. Put your settings in
+`.env.override`, which is read last and wins:
+
+```bash
+$ touch .env.override
+```
+
+```bash
+# .env.override
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_AUTO_SSL=true
+SHELLHUB_POSTGRES_PASSWORD=<something-that-is-not-admin>
+```
+
+At minimum, set the domain and change the database password. Every variable is in
+[Environment Variables](/selfhosted/environment-variables).
+
+## 4. Start
+
+```bash
+$ make start
+```
+
+This runs `keygen` if you have not, then brings the stack up detached.
+
+<Callout variant="warning">
+Always use `./bin/docker-compose`, never bare `docker compose`. The wrapper assembles
+the compose file list and the environment file chain. Running plain `docker compose` skips the
+PostgreSQL overlay entirely, and the server comes up with no database.
+</Callout>
+
+## 5. Create the first account
+
+The stack comes up with no users. The first one is created in the browser:
+
+<p><img src="/img/selfhosted/setup.png" alt="The ShellHub initial setup page" width="600" /></p>
+
+1. Open the server's address. Until the first account exists every path redirects to `/setup`.
+2. Enter a name, a username and an email. This user is the instance's superadmin.
+3. Keep the suggested namespace or click **Edit**. Lowercase, no dots — it appears in every SSHID.
+4. Enter a password of at least 5 characters, and click **Complete setup**.
+
+You are signed in. On Community that namespace is **the** namespace — Community is
+single-namespace, and the server refuses to create another. See [Editions](/about/editions).
+
+<Callout variant="warning" title="On Community the first step is a survey, and it needs the internet">
+Setup opens with a short onboarding survey loaded from an external form service, and
+**Continue** stays disabled until the survey is completed. On a host with no outbound access the
+page never gets past it. Leave `SHELLHUB_ONBOARDING_URL=` empty in `.env.override` to skip it.
+</Callout>
+
+<Callout variant="info">
+`/setup` only exists while no users do. Once the first account is created it is gone, and
+`/info` reports `"setup": true`.
+</Callout>
+
+## 6. Connect a device
+
+Install the agent on something. Fetch the script from your own server and it registers
+there — the address is rendered into the script as the server hands it over, so there is
+nothing to pass:
+
+```bash
+$ curl -sSf https://shellhub.example.com/install.sh | sh
+```
+
+The script installs the agent and stops on a link:
+
+```
+To accept this device, open the ShellHub console and enter this code:
+      J38E-SWDV
+Enter it at https://shellhub.example.com/accept-device, or open the link:
+  https://shellhub.example.com/accept-device?code=J38ESWDV
+Waiting for acceptance... (code expires in 10 minutes)
+```
+
+Open it, accept the device, and the script finishes with **Device accepted. The agent will connect
+automatically.** The device is in the namespace, online.
+
+From here on nothing is specific to self-hosting: [Connecting to a Device](/connect) opens a
+session on it, and the first connection from a key the namespace has not seen prints a link in
+the terminal rather than opening a session — see [SSH Identities](/manage/access-control/ssh-identities).
+
+## Managing the stack
+
+```bash
+$ make start           # bring it up
+$ make stop            # stop it
+$ make restart         # stop then start
+$ ./bin/docker-compose ps
+$ ./bin/docker-compose logs -f
+```
+
+## What you just deployed
+
+- A **gateway**, terminating TLS and fronting web traffic
+- A **server**, carrying the API and the SSH endpoint in one process
+- The **web console**
+- **PostgreSQL**, holding everything that matters
+- A cache and task queue
+
+The SSH port is published by the server, not the gateway. That matters if you put a load balancer
+in front. See [Ports and Connectivity](/about/ports-and-connectivity).
+
+## Before you depend on it
+
+1. Decide who owns the server, by name.
+2. Decide where the database backup goes, and restore it once to prove it works. See
+   [Backup](/selfhosted/backup).
+3. Decide whether an outage is acceptable, or whether you need more than one host.
+4. Read [Ports and Connectivity](/about/ports-and-connectivity), so the network conversation
+   happens once rather than during an incident.
+
+## Where to go next
+
+- [Running on Your Own Infrastructure](/about/self-hosted-vs-cloud) — What you now own.
+- [Environment Variables](/selfhosted/environment-variables) — Everything configurable.
+- [Backup](/selfhosted/backup) — Do this before you need it.

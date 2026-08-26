@@ -1,0 +1,81 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: WSL
+description: Run the ShellHub agent inside Windows Subsystem for Linux.
+---
+
+# Installing on WSL
+
+The agent runs inside a WSL 2 distribution. What you reach through ShellHub is the Linux
+environment, not Windows itself.
+
+## Requirements
+
+- **WSL version 2.** WSL 1 is not supported and the installer will decline.
+- **Ubuntu.** The installer checks for it specifically.
+
+Check what you have:
+
+```powershell
+PS> wsl --list --verbose
+```
+
+The `VERSION` column must say `2`. To convert:
+
+```powershell
+PS> wsl --set-version Ubuntu 2
+```
+
+## Install
+
+Inside the Ubuntu shell:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+## What you get, and what you do not
+
+Connecting to this device gives you a shell in the WSL distribution. From there you reach the
+Windows filesystem under `/mnt/c`, and you can run Windows executables through interop. You do
+**not** get a Windows shell, and you cannot manage Windows services this way.
+
+If you need Windows itself, ShellHub is not the tool.
+
+## The lifecycle problem
+
+This is the part that catches people. **WSL does not run in the background by default.** The
+distribution starts when you open a terminal and shuts down when the last session ends, and the
+agent goes with it — the device drops offline.
+
+For a workstation you use interactively this may be fine: the device is online while you are
+working. For anything you expect to reach at arbitrary times, arrange for the distribution to
+stay running. On recent Windows builds, enabling systemd inside WSL and letting the agent run as
+a service is the least fragile approach.
+
+Test it honestly before relying on it: close every WSL terminal, wait, and see whether the device
+is still online in the console.
+
+## Managing the agent
+
+If systemd is enabled in your distribution:
+
+```bash
+$ systemctl status shellhub-agent
+$ journalctl -u shellhub-agent -f
+```
+
+Otherwise the installer will have used whatever init the distribution offers.
+
+## Uninstalling
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+## Where to go next
+
+- [Agent Configuration](/get-started/agent-configuration) — Every variable.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — Usually the lifecycle issue above.

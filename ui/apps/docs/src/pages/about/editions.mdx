@@ -1,0 +1,85 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Editions
+description: What Community, Cloud, and Enterprise each include, and who runs them.
+---
+
+# Editions
+
+ShellHub comes in three editions. They are built from the same core, and the differences are
+narrower than you might expect: the whole access model, every way of reaching a device, and the
+API are in all three.
+
+## Who runs it
+
+| Edition | Runs on | Operated by |
+|---|---|---|
+| Community | Your infrastructure | You |
+| Cloud | Ours, shared | ShellHub |
+| Enterprise | Ours, dedicated to you | ShellHub |
+
+Community is what you install and run. Cloud and Enterprise both run on ours: Cloud shared with
+other customers, Enterprise on an instance of its own.
+
+Deciding whether to run it yourself is [Self-Hosted vs. Cloud](/about/self-hosted-vs-cloud).
+
+## What every edition has
+
+Everything below is in Community, unmodified, with no license and no limit:
+
+- The web terminal and native SSH from any client
+- File transfer over SCP and SFTP
+- Port forwarding
+- Container access
+- The full identity model: SSH identities, access policies, service accounts, login approvals
+- Install keys, including webhook and allowlist enrollment
+- Tags, roles and members
+- API keys and the REST API
+- The MCP server
+- Browser-local session recording
+
+That last one is worth stating plainly because it is commonly misread: Community *does* record
+sessions. The recording is made in the browser that opened the session and stays there. What
+Cloud and Enterprise add is recording on the **server**, stored centrally and independent of
+whoever's browser it was.
+
+## What Cloud and Enterprise add
+
+| Capability | Community | Cloud | Enterprise |
+|---|:--:|:--:|:--:|
+| Multi-factor authentication | — | ✅ | ✅ |
+| Server-side session recording | — | ✅ | ✅ |
+| [Web endpoints](/connect/web-endpoints) | — | ✅ | ✅ |
+| [Firewall rules](/manage/access-control/firewall-rules) (legacy) | — | ✅ | ✅ |
+| Multiple namespaces | — | ✅ | ✅ |
+| SAML single sign-on | — | — | ✅ |
+| Password recovery, email confirmation | — | ✅ | — |
+| Support | Community | Best effort | Dedicated |
+| Device limit | Not enforced | 3 on the free plan | None |
+
+Two rows deserve a sentence.
+
+**SAML is Enterprise only.** It is not in Cloud. This is the one place where Cloud is not a
+superset, and if SSO is the reason you are reading this page, Enterprise is the answer.
+
+**Password recovery is Cloud only.** It depends on mail and Redis, which the Enterprise
+deployment does not carry. On Enterprise, an administrator resets a password.
+
+## Can one Community server serve two customers?
+
+No, and it is the boundary worth stating plainly. A Community instance is a single namespace,
+created at setup, and the server will not create another.
+
+Inside it you can segment: [tags](/manage/devices/tags) group devices, and an
+[access policy](/manage/access-control/access-policies) can grant one team a set of devices and
+nothing else. But that is segmentation within one namespace, not isolated tenants — everyone who
+is a member sees the same device list, and a policy governs who may connect, not who may look.
+
+Two ways out. Cloud and Enterprise both hold as many namespaces as you create, one shared with
+other customers and one on an instance of its own. Or run a Community deployment per customer,
+which is the same isolation bought with your own operations instead.
+
+## Where to go next
+
+- [Self-Hosted vs. Cloud](/about/self-hosted-vs-cloud) — The deployment question.
+- [Self-Hosting Quickstart](/selfhosted/quickstart) — Run Community yourself.

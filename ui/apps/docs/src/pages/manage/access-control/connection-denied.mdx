@@ -1,0 +1,118 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Connection Denied
+description: Work out which of the four reasons refused your connection, and fix it.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Connection Denied
+
+Authorization runs before ShellHub contacts the device, so a refused connection fails at the
+server and never reaches the agent. In the web terminal you get an access-denied banner; a native
+client sees the raw error.
+
+<Callout variant="info">
+The connecting client is **not** told which of the four reasons applied — it receives
+a generic refusal. This page is the substitute for that, worked through in the order the server
+evaluates them.
+</Callout>
+
+## First: is it actually a denial?
+
+Two things look like failures and are not.
+
+**The login is waiting, not refused.** A key that is not yet an identity parks the login until
+somebody approves it in the console. So does a policy demanding re-authentication. Check for a
+pending approval before assuming a denial. See
+[Login Approvals](/manage/access-control/login-approvals).
+
+**The device is not there.** If the device is offline or was never accepted, there is nothing to
+connect to and the failure is not about authorization. See
+[Device Not Appearing](/manage/devices/device-not-appearing).
+
+## 1. Are you a member of the namespace?
+
+Checked before any policy is consulted. If the account is not a member, nothing else matters.
+
+Check the namespace in the SSHID is the one you mean — `root@**mycompany**.device@server` — and
+that the account was actually invited and accepted.
+
+## 2. Is a deny policy matching?
+
+Deny is evaluated before allow and beats it, however specific your allow is.
+
+The denial reason names the responsible policy internally, but you will not see it, so look at
+your denies directly. They are usually few, and usually broad — a namespace-wide "no root
+anywhere" is a common shape and it catches cases nobody was thinking about when the allow was
+written.
+
+**Fix it by narrowing the deny, not by adding allows.** No allow can win against a deny.
+
+Also check for a deny that cannot be evaluated — a malformed regular expression in a hostname
+filter, or an invalid CIDR in a source IP. A deny that cannot be evaluated **fails closed**, which
+means a typo in a deny policy refuses connections it was never meant to match.
+
+## 3. Does any allow actually cover this?
+
+The most common case, and it usually means what it says: nothing grants it.
+
+Work through it in this order:
+
+**Is there any allow for this principal at all?** A new member starts with nothing. Only the owner
+is covered by the starter policy. See [Members](/manage/team).
+
+**Is this a service account?** An `all-members` allow does **not** cover service accounts. They
+need a policy naming them. See
+[Service Accounts](/manage/access-control/service-accounts).
+
+**Does the filter cover this device?** A hostname filter is a regular expression against the
+device name — `prod-` does not match `prod-01` unless written as a pattern that does. A tag filter
+matches only devices actually carrying the tag; check the device has it.
+
+**Does it cover this login?** A policy granting `deploy` does not permit `ssh root@…`. Check the
+username in the SSHID, not just the device.
+
+**Is the connection attributed to the identity you think?** If you hold several keys, the session
+is attributed to whichever your client offered first. `IdentitiesOnly yes` in your SSH config
+removes the ambiguity. See [SSH Client Configuration](/connect/ssh-clients).
+
+## 4. Is a source IP restriction excluding you?
+
+A policy with a source IP list only matches connections from those ranges. Connecting from
+somewhere new — home instead of the office, a different VPN — silently stops matching.
+
+On a self-hosted server behind a load balancer, check `SHELLHUB_PROXY` and
+`SHELLHUB_PROXY_TRUSTED_IPS`. Set wrong, every connection appears to come from the balancer and
+source IP matching is operating on the wrong address entirely. See
+[Ports and Connectivity](/about/ports-and-connectivity).
+
+## The namespace has no policies at all
+
+A namespace in identity mode with zero policies refuses everything, and ShellHub short-circuits it
+— refusing immediately rather than proceeding toward a login that could never succeed.
+
+This happens after switching a namespace to identity mode without writing policies first. The
+owner keeps working, through the seeded **Owner access** policy; nobody else does. See
+[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+
+## Legacy namespaces
+
+If the namespace is still in legacy mode, none of the above applies. Access is decided by the
+key's device ACL and by firewall rules — see
+[Public Keys](/manage/access-control/public-keys) and
+[Firewall Rules](/manage/access-control/firewall-rules).
+
+## The four reasons, for reference
+
+| Reason | What it means |
+|---|---|
+| `user is not a member of the namespace` | Step 1 above |
+| `denied by policy "<name>"` | Step 2 — a deny matched |
+| `denied: policy "<name>" could not be evaluated` | Step 2 — a deny failed closed on a malformed filter |
+| `no policy grants "<login>" on this device` | Step 3 — nothing allowed it |
+
+## Where to go next
+
+- [How Authorization Works](/manage/access-control) — The evaluation order.
+- [Access Policies](/manage/access-control/access-policies) — Writing rules that grant what you meant.

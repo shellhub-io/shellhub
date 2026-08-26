@@ -1,0 +1,107 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Buildroot
+description: Add the agent to a root filesystem with the ShellHub external tree.
+---
+
+# Buildroot
+
+ShellHub maintains a Buildroot external tree, so a manufactured unit arrives with the
+agent already on it. Use it rather than writing a package yourself.
+
+## Prerequisites
+
+- A Buildroot tree
+- An [install key](/manage/devices/install-keys), so units register themselves with nobody
+  present
+
+## Adding the external tree
+
+```bash
+$ git clone git://git.buildroot.net/buildroot
+$ git clone https://github.com/shellhub-io/buildroot.git shellhub
+```
+
+Point Buildroot at it with `BR2_EXTERNAL`, here against the emulated target:
+
+```bash
+$ cd buildroot
+$ make BR2_EXTERNAL=../shellhub qemu_x86_64_defconfig
+```
+
+## Selecting the package
+
+```bash
+$ make BR2_EXTERNAL=../shellhub menuconfig
+```
+
+Select **shellhub** under **External options**, then build.
+
+The package needs a toolchain with threads and Go support for your target
+architecture, and pulls in `ca-certificates` and `libxcrypt`. Buildroot selects both for
+you.
+
+The external tree pins the agent version it builds. Check that pin against the version
+your server expects, which it publishes at `/info`.
+
+## Configuring it
+
+Configuration is a root filesystem overlay. Write the file the service reads:
+
+```bash
+$ cat > rootfs_overlay/etc/default/shellhub-agent <<-EOF
+SERVER_ADDRESS="https://cloud.shellhub.io"
+PRIVATE_KEY="/etc/shellhub-agent.key"
+INSTALL_KEY="<your-install-key>"
+EOF
+```
+
+`TENANT_ID` is the deprecated alternative to `INSTALL_KEY`, and the two do not go
+together. Set the install key.
+
+**Why the tenant is the wrong one.** A device registering with the tenant alone goes
+through the namespace's legacy registration path, which holds it for manual review —
+so a production run arrives as a queue of pending devices rather than a working fleet. An
+install key also carries tags, so a policy can cover the batch before anybody opens the
+console. See [Using install keys](/manage/devices/install-keys).
+
+## The key must be writable and must not be in the overlay
+
+The agent generates its device key when the file is missing. Two consequences, and both
+of them bite in production:
+
+**`PRIVATE_KEY` has to point somewhere writable that survives a reboot.** On a read-only
+root filesystem, or a path on a volatile partition, every boot produces a new identity and
+a new device in the console.
+
+**Never put a generated key in the overlay.** Every unit written from that image claims
+the same identity, and you get a single device that appears to move between machines
+instead of a fleet. The overlay carries the configuration; the key is created on the
+device, once.
+
+## Init systems
+
+The package installs a systemd unit or an `S42shellhub` sysvinit script, following the
+init system your configuration selects. Neither needs configuration beyond the overlay
+above.
+
+## Verifying
+
+Write the image to two devices and start both.
+
+Expected result: Two devices appear, each carrying the install key's tags, and each with
+its own identity.
+
+## Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| A new device appears at every boot | `PRIVATE_KEY` is not writable, or does not survive a reboot |
+| One device that keeps changing machine | A key was baked into the overlay. Remove it |
+| Devices arrive pending instead of accepted | The overlay sets `TENANT_ID` rather than `INSTALL_KEY`, or the key's mode is manual |
+
+## Where to go next
+
+- [Using install keys](/manage/devices/install-keys)
+- [Yocto Project](/get-started/install/yocto)
+- [Agent configuration](/get-started/agent-configuration)
