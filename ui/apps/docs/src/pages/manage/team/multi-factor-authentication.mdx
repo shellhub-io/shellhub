@@ -14,6 +14,15 @@ MFA adds a time-based one-time code to signing in to the console.
 MFA is available on **Cloud** and **Enterprise**.
 </EditionBanner>
 
+## Set the recovery email first
+
+The profile carries a **recovery email**, separate from the address you sign in with, and
+enabling MFA fails without it: the request is refused before the code you typed is even checked,
+so an empty recovery email looks like a wrong code unless you know to look. It is also half of the
+reset path — a reset sends one code to your sign-in address and another to the recovery one, and
+needs both — and it cannot be set from a locked-out account, which is the moment you would think
+of it.
+
 ## Enabling it
 
 From your profile's Security section.

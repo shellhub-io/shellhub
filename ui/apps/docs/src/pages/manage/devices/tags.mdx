@@ -4,6 +4,8 @@ title: Tags
 description: Label devices so policies and filters can select them as a group.
 ---
 
+import Callout from "../../../components/Callout.astro";
+
 # Tags
 
 A tag is a namespace-scoped label on a device. Tags are how you stop managing devices one at a
@@ -59,6 +61,17 @@ The device list filters by tag, which is how you find things in a fleet of any s
 Tags are namespace-scoped, so renaming one changes it everywhere at once — including inside
 policies that select on it. Check what selects a tag before renaming it; a policy pointing at a
 tag that no longer exists grants nothing, silently.
+
+Deleting a tag detaches it from everything attached to it, then removes it. No device and no
+policy is deleted with it.
+
+<Callout variant="danger" title="Deleting a tag widens the policies that filtered on it">
+The tag is dropped from the policy along with everything else, and a policy left with no tags
+and no hostname pattern has an empty device filter — which matches **every device in the
+namespace**. An allow that covered one group of machines now covers all of them, silently, with
+no edit to the policy and nothing in the list to show it. Before deleting a tag, open
+[Access Policies](/manage/access-control/access-policies) and check which ones filter on it.
+</Callout>
 
 ## Where to go next
 
