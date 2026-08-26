@@ -12,7 +12,7 @@ import (
 )
 
 func TestSessionFromModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	clockMock := clockmock.NewMockClock(t)
 	oldClock := clock.DefaultBackend
@@ -85,7 +85,7 @@ func TestSessionFromModel(t *testing.T) {
 }
 
 func TestSessionToModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name   string
@@ -175,7 +175,7 @@ func TestSessionToModel(t *testing.T) {
 }
 
 func TestActiveSessionFromModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	clockMock := clockmock.NewMockClock(t)
 	oldClock := clock.DefaultBackend
@@ -222,7 +222,7 @@ func TestActiveSessionFromModel(t *testing.T) {
 }
 
 func TestActiveSessionToModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name   string
@@ -284,7 +284,7 @@ func TestActiveSessionToModel(t *testing.T) {
 }
 
 func TestSessionEventFromModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name  string
@@ -298,7 +298,7 @@ func TestSessionEventFromModel(t *testing.T) {
 				Type:      models.SessionEventTypePtyOutput,
 				Timestamp: now,
 				Seat:      0,
-				Data:      map[string]interface{}{"output": "hello"},
+				Data:      map[string]any{"output": "hello"},
 			},
 			check: func(t *testing.T, result *SessionEvent) {
 				assert.Equal(t, "session-1", result.SessionID)
@@ -336,7 +336,7 @@ func TestSessionEventFromModel(t *testing.T) {
 }
 
 func TestSessionEventToModel(t *testing.T) {
-	now := time.Now()
+	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name   string
@@ -358,7 +358,7 @@ func TestSessionEventToModel(t *testing.T) {
 				assert.Equal(t, now, result.Timestamp)
 				assert.Equal(t, 0, result.Seat)
 				require.NotNil(t, result.Data)
-				assert.Equal(t, map[string]interface{}{"output": "hello"}, result.Data)
+				assert.Equal(t, map[string]any{"output": "hello"}, result.Data)
 			},
 		},
 		{
