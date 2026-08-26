@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { useInstallKeyEvents } from "@/hooks/useInstallKeyEvents";
 import { useActionDialog } from "@/hooks/useActionDialog";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
@@ -9,27 +8,12 @@ import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import { pageCount } from "@/utils/pagination";
 import { getInstallKeyEventColumns } from "./installKeyEventColumns";
 
+const PER_PAGE = 15;
+
 const EMPTY_MESSAGE =
   "No registrations yet. Devices that register with this key will appear here.";
 
-/**
- * An install key's registration-activity table, self-fetching by key id. Two shapes: the paginated
- * full view (the activity page) or a compact view — the first `perPage` rows, no card, with a "View
- * all" link when there are more. The compact form is embedded inline under the tenant-only row on the
- * list, so it drops the wrapper and pagination to sit flush inside its host.
- */
-export default function InstallKeyEventsTable({
-  id,
-  perPage = 15,
-  compact = false,
-  viewAll,
-}: {
-  id: string;
-  perPage?: number;
-  compact?: boolean;
-  /** Compact only: a link to the full activity page, shown when more rows exist than are displayed. */
-  viewAll?: { to: string; state?: unknown };
-}) {
+export default function InstallKeyEventsTable({ id }: { id: string }) {
   const [page, setPage] = useState(1);
   const refreshHistory = useInvalidateByIds("installKeyHistory");
   const deviceActions = useActionDialog({
@@ -42,8 +26,8 @@ export default function InstallKeyEventsTable({
   );
   const { events, totalCount, isLoading, error } = useInstallKeyEvents({
     id,
-    page: compact ? 1 : page,
-    perPage,
+    page,
+    perPage: PER_PAGE,
   });
 
   if (error) {
@@ -69,29 +53,12 @@ export default function InstallKeyEventsTable({
         isLoading={isLoading}
         loadingMessage="Loading activity..."
         emptyMessage={EMPTY_MESSAGE}
-        noWrapper={compact}
-        headerTopBorder={compact}
-        {...(compact
-          ? {}
-          : {
-              page,
-              totalPages: pageCount(totalCount, perPage),
-              totalCount,
-              itemLabel: "registration",
-              onPageChange: setPage,
-            })}
+        page={page}
+        totalPages={pageCount(totalCount, PER_PAGE)}
+        totalCount={totalCount}
+        itemLabel="registration"
+        onPageChange={setPage}
       />
-      {compact && viewAll && totalCount > events.length && (
-        <div className="border-t border-border/60 px-4 py-2.5 text-center">
-          <Link
-            to={viewAll.to}
-            state={viewAll.state}
-            className="text-2xs font-medium text-primary hover:underline"
-          >
-            View all {totalCount} registrations →
-          </Link>
-        </div>
-      )}
       {deviceActions.action && (
         <ActionDialog
           key={deviceActions.actionKey}
