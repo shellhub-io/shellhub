@@ -22,19 +22,24 @@ $ head -3 agent/go.mod
 ```bash
 $ git clone https://github.com/shellhub-io/shellhub.git
 $ cd shellhub/agent
-$ go build -o shellhub-agent .
+$ CGO_ENABLED=0 go build \
+    -ldflags "-X main.AgentVersion=$(git describe --tags --abbrev=0)" \
+    -o shellhub-agent .
 ```
 
-The result is a static binary with no runtime dependencies.
+The version has to be compiled in: the agent validates it at startup, and a binary built without
+it stops immediately with `invalid semantic version`. `CGO_ENABLED=0` is what makes the result a
+static binary with no runtime dependencies.
 
 ## Cross-compiling
 
 Go cross-compiles without a toolchain per target:
 
 ```bash
-$ GOOS=linux GOARCH=arm64 go build -o shellhub-agent-arm64 .
-$ GOOS=linux GOARCH=arm GOARM=7 go build -o shellhub-agent-armv7 .
-$ GOOS=linux GOARCH=arm GOARM=6 go build -o shellhub-agent-armv6 .
+$ export CGO_ENABLED=0 LDFLAGS="-X main.AgentVersion=$(git describe --tags --abbrev=0)"
+$ GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o shellhub-agent-arm64 .
+$ GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "$LDFLAGS" -o shellhub-agent-armv7 .
+$ GOOS=linux GOARCH=arm GOARM=6 go build -ldflags "$LDFLAGS" -o shellhub-agent-armv6 .
 ```
 
 The published builds cover `amd64`, `armv6`, `armv7`, `arm64` and `386`.
@@ -45,9 +50,9 @@ The binary reads its configuration from the environment:
 
 ```bash
 $ SHELLHUB_SERVER_ADDRESS=https://shellhub.example.com \
-  SHELLHUB_TENANT_ID=<your-tenant-id> \
-  SHELLHUB_PRIVATE_KEY=/var/lib/shellhub/device.key \
-  ./shellhub-agent
+  SHELLHUB_INSTALL_KEY=<your-install-key> \
+  SHELLHUB_PRIVATE_KEY=/etc/shellhub.key \
+  sudo -E ./shellhub-agent
 ```
 
 For anything permanent, put it under a service manager. The

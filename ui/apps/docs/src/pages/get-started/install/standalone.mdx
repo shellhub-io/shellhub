@@ -55,30 +55,25 @@ Buildroot image, you are installing this binary, just at build time rather than 
 
 ## Configuration
 
-Environment variables on the systemd unit. Use a drop-in so an upgrade does not overwrite them:
+The installer writes the configuration to `/etc/shellhub-agent.env`, readable by root only, and
+the unit reads it at start:
 
 ```bash
-$ sudo systemctl edit shellhub-agent
+SHELLHUB_SERVER_ADDRESS=https://shellhub.example.com
+SHELLHUB_INSTALL_KEY=<your-install-key>
+SHELLHUB_PRIVATE_KEY=/etc/shellhub.key
 ```
 
-```ini
-[Service]
-Environment=SHELLHUB_SERVER_ADDRESS=https://shellhub.example.com
-Environment=SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
-Environment=SHELLHUB_PRIVATE_KEY=/var/lib/shellhub/device.key
-```
-
-Then reload and restart:
+Edit it and restart:
 
 ```bash
-$ sudo systemctl daemon-reload
 $ sudo systemctl restart shellhub-agent
 ```
 
 See [Agent Configuration](/get-started/agent-configuration) for the full set.
 
-**Put the private key somewhere persistent.** The agent generates it on first run, and it is the
-device's identity. If it lands somewhere that gets wiped, the device comes back as a new one.
+**The key at `/etc/shellhub.key` is the device's identity.** The agent generates it on first run;
+if it lands somewhere that gets wiped, the device comes back as a new one.
 
 ## Managing the agent
 

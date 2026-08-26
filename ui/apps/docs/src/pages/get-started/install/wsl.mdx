@@ -13,6 +13,11 @@ environment, not Windows itself.
 
 - **WSL version 2.** WSL 1 is not supported and the installer will decline.
 - **Ubuntu.** The installer checks for it specifically.
+- **systemd enabled** in the distribution. The agent runs as a unit under it.
+- **Mirrored networking mode.**
+
+The installer checks all four and stops on any of them; for the last two, which are set on the
+Windows side, it prints the Microsoft page that explains how.
 
 Check what you have:
 
@@ -52,22 +57,18 @@ agent goes with it — the device drops offline.
 
 For a workstation you use interactively this may be fine: the device is online while you are
 working. For anything you expect to reach at arbitrary times, arrange for the distribution to
-stay running. On recent Windows builds, enabling systemd inside WSL and letting the agent run as
-a service is the least fragile approach.
+stay running — systemd is already there, since the installer requires it; what remains is keeping
+the distribution itself alive.
 
 Test it honestly before relying on it: close every WSL terminal, wait, and see whether the device
 is still online in the console.
 
 ## Managing the agent
 
-If systemd is enabled in your distribution:
-
 ```bash
 $ systemctl status shellhub-agent
 $ journalctl -u shellhub-agent -f
 ```
-
-Otherwise the installer will have used whatever init the distribution offers.
 
 ## Uninstalling
 

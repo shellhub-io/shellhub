@@ -63,8 +63,20 @@ and status instead so the unit and the container do not disagree.
 
 ## Persistence
 
-`SHELLHUB_PRIVATE_KEY` is the device's identity. Keep it on a volume — if it lives in the
-container's writable layer, recreating the container registers a new device.
+`SHELLHUB_PRIVATE_KEY` is the device's identity. The installer keeps it on the host at
+`/etc/shellhub.key`, reached from the container as `/host/etc/shellhub.key`, so recreating the
+container returns the same device. Point it under `/host` too if you run the container yourself.
+
+<Callout variant="warning" title="A Podman install does not come back after a reboot">
+Podman starts containers at boot through `podman-restart.service`, which only picks up those with
+a restart policy of `always` or `unless-stopped` — and the installer creates the agent with
+`on-failure`. Until that changes, give the container a policy the boot service starts:
+
+```bash
+$ sudo podman update --restart=always shellhub
+$ sudo systemctl enable --now podman-restart.service
+```
+</Callout>
 
 ## Uninstalling
 
