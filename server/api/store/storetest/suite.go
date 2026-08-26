@@ -102,6 +102,7 @@ func (s *Suite) Run(t *testing.T) {
 	t.Run("StatsStore", func(t *testing.T) {
 		s.TestGetStats(t)
 		s.TestGetStatsOnlineBoundary(t)
+		s.TestCountRegisteredDevices(t)
 	})
 
 	t.Run("PrivateKeyStore", func(t *testing.T) {
@@ -171,6 +172,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestScopeIsolationMembershipInvitationResolve(t)
 		s.TestScopeIsolationNamespaceMembershipInvitationList(t)
 		s.TestScopeIsolationGetStats(t)
+		s.TestScopeIsolationCountRegisteredDevices(t)
 		s.TestScopeIsolationAccessPolicyList(t)
 		s.TestScopeIsolationAccessPolicyResolve(t)
 		s.TestScopeIsolationSSHIdentityList(t)
