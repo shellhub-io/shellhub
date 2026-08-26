@@ -93,7 +93,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 # ── production stage ──────────────────────────────────────────────────────────
 FROM alpine:3.24.1 AS production
 
-RUN apk add --no-cache curl openssh-client
+RUN apk add --no-cache curl openssh-client && \
+    apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
 
 COPY --from=builder /server /server
 COPY --from=builder /templates /templates

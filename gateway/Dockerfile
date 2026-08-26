@@ -48,7 +48,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 # production stage
 FROM alpine:3.24.1 AS production
 
-RUN apk add --no-cache ca-certificates libgcc
+RUN apk add --no-cache ca-certificates libgcc && \
+    apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix
 
 # The account key and the certificates. Declared here rather than in the compose
 # file so the volume exists however the image is run: without it, every recreate

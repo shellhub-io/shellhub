@@ -64,6 +64,9 @@ RUN apk add --no-cache brotli gzip && \
 
 FROM alpine:3.24.1 AS production
 
+# CVE-2026-14456: remove when alpine base image includes the fix
+RUN apk upgrade --no-cache libssl3 libcrypto3
+
 # Pinned exactly, not to a major: the header precedence ui/sws.toml relies on is
 # undocumented, so a release that changed it would break caching silently.
 ARG SWS_VERSION=2.44.0
