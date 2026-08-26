@@ -25,6 +25,16 @@ That "who" is the payoff of the identity model. In the legacy model the record c
 key that was used; here it names the principal the key belongs to. See
 [How Authorization Works](/manage/access-control).
 
+### A red username is worth stopping on
+
+A username shown in red, with a warning triangle, marks a session that **never
+authenticated**. A record is written when a connection arrives and flipped to authenticated
+only once the SSH authentication succeeds, so a red row is an attempt that reached the server
+and got no further.
+
+One is ordinary — a wrong key, a client that gave up. A run of them against one device, or
+from one address, is the thing this list exists to show you.
+
 ## Session details
 
 ![A session detail page showing the session flow timeline, details, device, and play recording button](/img/sessions/session-detail.png)
