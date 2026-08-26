@@ -3,28 +3,22 @@ import { isCloud, isEnterprise } from "@/env";
 
 type EntityType = "device" | "container";
 
-const SUBSCRIPTION_BLOCKED_MESSAGE =
-  "the namespace's subscription blocks new devices";
-
 function fallback(entityType: EntityType): string {
   return `An error occurred while accepting the ${entityType}. Please try again.`;
 }
 
-export function isSubscriptionBlocked(err: unknown): boolean {
-  return isSdkError(err) && err.message === SUBSCRIPTION_BLOCKED_MESSAGE;
-}
-
 export function getAcceptErrorMessage(
   err: unknown,
+  hasSubscription: boolean,
+  canSubscribe: boolean,
   entityType: EntityType = "device",
-  canSubscribe = true,
 ): string {
   if (!isSdkError(err)) return fallback(entityType);
 
   switch (err.status) {
     case 402: {
       if (isCloud()) {
-        if (err.message === SUBSCRIPTION_BLOCKED_MESSAGE) {
+        if (hasSubscription) {
           return canSubscribe
             ? `Your subscription needs attention before this namespace can accept ${entityType}s. Open Billing to finish or repair it — your ${entityType} count is not the problem.`
             : `Your namespace's subscription needs attention before it can accept ${entityType}s. Ask the namespace owner to check Billing.`;

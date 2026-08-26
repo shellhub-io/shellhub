@@ -6,11 +6,15 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import BaseDialog from "@/components/common/BaseDialog";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { isCloud } from "@/env";
-import type { Action, EntityBase, EntityOperation } from "@/hooks/useActionDialog";
-import {
-  getAcceptErrorMessage,
-  isSubscriptionBlocked,
-} from "@/utils/acceptErrors";
+import type {
+  Action,
+  EntityBase,
+  EntityOperation,
+} from "@/hooks/useActionDialog";
+import { getAcceptErrorMessage } from "@/utils/acceptErrors";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { useAuthStore } from "@/stores/authStore";
+import { isSubscriptionBlocked } from "@/utils/billing";
 
 const VARIANT: Record<EntityOperation, "success" | "warning" | "danger"> = {
   accept: "success",
@@ -36,6 +40,9 @@ export default function ActionDialog({
   runAction: (entity: EntityBase, operation: EntityOperation) => Promise<void>;
 }) {
   const navigate = useNavigate();
+  const tenant = useAuthStore((s) => s.tenant);
+  const { namespace } = useNamespace(tenant ?? "");
+  const hasSubscription = isSubscriptionBlocked(namespace?.billing);
   const canSubscribe = useHasPermission("billing:subscribe");
   const billingTitleId = useId();
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +67,10 @@ export default function ActionDialog({
         return;
       }
 
-      if (operation === "accept") setError(getAcceptErrorMessage(err, entityType));
+      if (operation === "accept")
+        setError(
+          getAcceptErrorMessage(err, hasSubscription, canSubscribe, entityType),
+        );
       else setError(`Failed to ${operation} ${entityType}.`);
 
       return;
@@ -70,10 +80,15 @@ export default function ActionDialog({
   };
 
   if (billingError) {
-    const billingTitle = isSubscriptionBlocked(billingError)
+    const billingTitle = hasSubscription
       ? "Subscription issue"
       : `${entityLabel} limit reached`;
-    const billingMessage = getAcceptErrorMessage(billingError, entityType, canSubscribe);
+    const billingMessage = getAcceptErrorMessage(
+      billingError,
+      hasSubscription,
+      canSubscribe,
+      entityType,
+    );
 
     if (canSubscribe) {
       return (
@@ -96,7 +111,10 @@ export default function ActionDialog({
     return (
       <BaseDialog open onClose={onClose} aria-labelledby={billingTitleId}>
         <div className="p-6 pb-0">
-          <h2 id={billingTitleId} className="text-base font-semibold text-text-primary">
+          <h2
+            id={billingTitleId}
+            className="text-base font-semibold text-text-primary"
+          >
             {billingTitle}
           </h2>
         </div>
@@ -104,7 +122,9 @@ export default function ActionDialog({
           <p className="text-sm text-text-muted">{billingMessage}</p>
         </div>
         <div className="flex justify-end px-6 py-4 border-t border-border">
-          <Button variant="ghost" onClick={onClose}>Close</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Close
+          </Button>
         </div>
       </BaseDialog>
     );

@@ -3,6 +3,9 @@ import { resolveDeviceLoginCode, acceptDevicePairing } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
 import { useAcceptDevice } from "@/hooks/useDeviceMutations";
+import { useHasPermission } from "@/hooks/useHasPermission";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
 
 /**
@@ -13,6 +16,9 @@ import { getAcceptErrorMessage } from "@/utils/acceptErrors";
  */
 export function useAcceptDeviceByCode() {
   const authTenant = useAuthStore((s) => s.tenant);
+  const { namespace } = useNamespace(authTenant ?? "");
+  const hasSubscription = isSubscriptionBlocked(namespace?.billing);
+  const canSubscribe = useHasPermission("billing:subscribe");
   const acceptDevice = useAcceptDevice();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
@@ -55,7 +61,7 @@ export function useAcceptDeviceByCode() {
       setError(
         isSdkError(err) && err.status === 404
           ? "That code is invalid or has expired. Double-check it and try again."
-          : getAcceptErrorMessage(err),
+          : getAcceptErrorMessage(err, hasSubscription, canSubscribe),
       );
       return null;
     } finally {
