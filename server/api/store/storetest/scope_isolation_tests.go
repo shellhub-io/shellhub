@@ -423,6 +423,31 @@ func (s *Suite) TestScopeIsolationGetStats(t *testing.T) {
 	assert.Equal(t, 1, allStats.RegisteredDevices)
 }
 
+// TestScopeIsolationCountRegisteredDevices pins that the narrow count honours the scope it is
+// given, so a bounded caller cannot read another namespace's devices through it.
+func (s *Suite) TestScopeIsolationCountRegisteredDevices(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	owner := s.CreateNamespace(t)
+	other := s.CreateNamespace(t)
+	s.CreateDevice(t, WithTenantID(owner), WithDeviceName("dev"), WithDeviceStatus(models.DeviceStatusAccepted))
+
+	ownerCount, err := st.CountRegisteredDevices(ctx, scope.MustBounded(owner))
+	require.NoError(t, err)
+	assert.Equal(t, 1, ownerCount)
+
+	otherCount, err := st.CountRegisteredDevices(ctx, scope.MustBounded(other))
+	require.NoError(t, err)
+	assert.Equal(t, 0, otherCount)
+
+	// The unbounded scope is what the license evaluation asks for, and it does span both.
+	allCount, err := st.CountRegisteredDevices(ctx, scope.NewUnbounded("test: instance-wide device count spans every namespace"))
+	require.NoError(t, err)
+	assert.Equal(t, 1, allCount)
+}
+
 // TestScopeRejectsUnconstructedScope pins the zero value: a [scope.Scope] that was never built is
 // neither bounded nor deliberately unbounded, so the store refuses it instead of reading everything.
 func (s *Suite) TestScopeRejectsUnconstructedScope(t *testing.T) {

@@ -138,3 +138,77 @@ func (s *Suite) TestGetStatsOnlineBoundary(t *testing.T) {
 		assert.Equal(t, 0, stats.OnlineDevices, "the window follows the clock, not wall time")
 	})
 }
+
+// TestCountRegisteredDevices covers the narrow count the license and firewall evaluations use.
+// It answers the same question as GetStats' RegisteredDevices field, so the two must agree on
+// what "registered" means: accepted only, pending and rejected excluded.
+func (s *Suite) TestCountRegisteredDevices(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("counts accepted devices across every namespace when unbounded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("pending"))
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("rejected"))
+
+		tenant2 := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
+
+		count, err := st.CountRegisteredDevices(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
+		require.NoError(t, err)
+
+		assert.Equal(t, 3, count, "2 accepted from tenant1 + 1 from tenant2, ignoring pending and rejected")
+	})
+
+	t.Run("counts only the scoped namespace when bounded", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenant1), WithDeviceStatus("pending"))
+
+		tenant2 := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenant2), WithDeviceStatus("accepted"))
+
+		count, err := st.CountRegisteredDevices(ctx, scope.MustBounded(tenant1))
+		require.NoError(t, err)
+
+		assert.Equal(t, 2, count)
+	})
+
+	t.Run("returns zero for a namespace with no accepted devices", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("pending"))
+
+		count, err := st.CountRegisteredDevices(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("agrees with GetStats", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("accepted"))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus("rejected"))
+
+		sc := scope.NewUnbounded(reasonTestQueryMechanics)
+
+		stats, err := st.GetStats(ctx, sc)
+		require.NoError(t, err)
+
+		count, err := st.CountRegisteredDevices(ctx, sc)
+		require.NoError(t, err)
+
+		assert.Equal(t, stats.RegisteredDevices, count)
+	})
+}

@@ -112,6 +112,7 @@ func TestPgStore(t *testing.T) {
 	runSubSuite(t, "StatsStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestGetStats(t)
 		suite.TestGetStatsOnlineBoundary(t)
+		suite.TestCountRegisteredDevices(t)
 	})
 
 	runSubSuite(t, "PrivateKeyStore", func(suite *storetest.Suite, t *testing.T) {
@@ -182,6 +183,7 @@ func TestPgStore(t *testing.T) {
 		suite.TestScopeIsolationMembershipInvitationResolve(t)
 		suite.TestScopeIsolationNamespaceMembershipInvitationList(t)
 		suite.TestScopeIsolationGetStats(t)
+		suite.TestScopeIsolationCountRegisteredDevices(t)
 		suite.TestScopeIsolationAccessPolicyList(t)
 		suite.TestScopeIsolationAccessPolicyResolve(t)
 		suite.TestScopeIsolationSSHIdentityList(t)
