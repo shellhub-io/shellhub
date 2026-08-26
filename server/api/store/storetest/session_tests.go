@@ -113,7 +113,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		tenant := s.CreateNamespace(t)
 		device := s.CreateDevice(t, WithTenantID(tenant))
 
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			s.CreateSession(t, WithSessionDevice(device),
 				WithSessionUser(fmt.Sprintf("user%d", i)))
 		}
@@ -600,7 +600,7 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
 			Timestamp: clock.Now(),
-			Data:      map[string]interface{}{"output": "test output"},
+			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
 
@@ -613,12 +613,12 @@ func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
 				Timestamp: clock.Now(),
-				Data:      map[string]interface{}{"output": "test output"},
+				Data:      map[string]any{"output": "test output"},
 				Seat:      i,
 			}
 
@@ -647,12 +647,12 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
 				Timestamp: clock.Now(),
-				Data:      map[string]interface{}{"output": "test output"},
+				Data:      map[string]any{"output": "test output"},
 				Seat:      1,
 			}
 
@@ -672,12 +672,12 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
 		for seat := 1; seat <= 2; seat++ {
-			for i := 0; i < 2; i++ {
+			for range 2 {
 				event := &models.SessionEvent{
 					Session:   string(sessionUID),
 					Type:      models.SessionEventTypePtyOutput,
 					Timestamp: clock.Now(),
-					Data:      map[string]interface{}{"output": "test output"},
+					Data:      map[string]any{"output": "test output"},
 					Seat:      seat,
 				}
 
@@ -701,7 +701,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
 			Timestamp: clock.Now(),
-			Data:      map[string]interface{}{"output": "test output"},
+			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
 
@@ -709,7 +709,7 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
 			Timestamp: clock.Now(),
-			Data:      map[string]interface{}{"request": "test request"},
+			Data:      map[string]any{"request": "test request"},
 			Seat:      1,
 		}
 
@@ -743,12 +743,12 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 
 		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			event := &models.SessionEvent{
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
 				Timestamp: clock.Now(),
-				Data:      map[string]interface{}{"output": "test output"},
+				Data:      map[string]any{"output": "test output"},
 				Seat:      1,
 			}
 
@@ -775,7 +775,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 				Session:   string(sessionUID),
 				Type:      models.SessionEventTypePtyOutput,
 				Timestamp: clock.Now(),
-				Data:      map[string]interface{}{"output": "test output"},
+				Data:      map[string]any{"output": "test output"},
 				Seat:      seat,
 			}
 
@@ -806,7 +806,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyOutput,
 			Timestamp: clock.Now(),
-			Data:      map[string]interface{}{"output": "test output"},
+			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}
 
@@ -814,7 +814,7 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 			Session:   string(sessionUID),
 			Type:      models.SessionEventTypePtyRequest,
 			Timestamp: clock.Now(),
-			Data:      map[string]interface{}{"request": "test request"},
+			Data:      map[string]any{"request": "test request"},
 			Seat:      1,
 		}
 
@@ -987,7 +987,7 @@ func (s *Suite) TestSessionCleanup(t *testing.T) {
 			Session:   string(uid),
 			Type:      models.SessionEventTypePtyOutput,
 			Timestamp: clk.now,
-			Data:      map[string]interface{}{"output": "test output"},
+			Data:      map[string]any{"output": "test output"},
 			Seat:      1,
 		}))
 

@@ -132,7 +132,7 @@ func TestValidateFilters(t *testing.T) {
 		{
 			name: "allowed property with array of primitives",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: []interface{}{"a", "b"}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: []any{"a", "b"}}},
 			}},
 			wantErr: nil,
 		},
@@ -160,14 +160,14 @@ func TestValidateFilters(t *testing.T) {
 		{
 			name: "nested object as value",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: map[string]interface{}{"$ne": "accepted"}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: map[string]any{"$ne": "accepted"}}},
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
 		{
 			name: "array of objects as value",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []interface{}{map[string]interface{}{"$ne": "accepted"}}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []any{map[string]any{"$ne": "accepted"}}}},
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
@@ -200,8 +200,8 @@ func TestValidateFilters(t *testing.T) {
 		{
 			name: "array over length limit",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: func() []interface{} {
-					a := make([]interface{}, MaxArrayLen+1)
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: func() []any {
+					a := make([]any, MaxArrayLen+1)
 					for i := range a {
 						a[i] = "x"
 					}
@@ -214,7 +214,7 @@ func TestValidateFilters(t *testing.T) {
 		{
 			name: "array item string over limit",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: []interface{}{strings.Repeat("A", MaxStringValueLen+1)}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: []any{strings.Repeat("A", MaxStringValueLen+1)}}},
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
@@ -260,14 +260,14 @@ func TestValidateFilters(t *testing.T) {
 		{
 			name: "eq operator with array value is rejected",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []interface{}{"a", "b"}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: []any{"a", "b"}}},
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
 		{
 			name: "ne operator with array value is rejected",
 			filters: &Filters{Data: []Filter{
-				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: []interface{}{"a"}}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "ne", Value: []any{"a"}}},
 			}},
 			wantErr: ErrFilterPropertyInvalid,
 		},
@@ -415,7 +415,7 @@ func TestValidateFilters(t *testing.T) {
 func TestIsBoolConvertible(t *testing.T) {
 	cases := []struct {
 		name string
-		in   interface{}
+		in   any
 		want bool
 	}{
 		{"bool true", true, true},
@@ -432,7 +432,7 @@ func TestIsBoolConvertible(t *testing.T) {
 		{"string x — invalid", "x", false},
 		{"nil", nil, false},
 		{"int — not a JSON type", 1, false},
-		{"slice", []interface{}{true}, false},
+		{"slice", []any{true}, false},
 	}
 
 	for _, tc := range cases {
@@ -445,7 +445,7 @@ func TestIsBoolConvertible(t *testing.T) {
 func TestIsPrimitive(t *testing.T) {
 	cases := []struct {
 		name string
-		in   interface{}
+		in   any
 		want bool
 	}{
 		{"nil", nil, true},
@@ -454,11 +454,11 @@ func TestIsPrimitive(t *testing.T) {
 		{"float64 (JSON number)", 3.14, true},
 		{"int is not a JSON primitive", 42, false},
 		{"int64 is not a JSON primitive", int64(42), false},
-		{"array of primitives", []interface{}{"a", 3.14, true}, true},
-		{"empty array", []interface{}{}, true},
-		{"map", map[string]interface{}{"$ne": "x"}, false},
-		{"array with map", []interface{}{map[string]interface{}{"$ne": "x"}}, false},
-		{"nested array of primitives", []interface{}{[]interface{}{"a", "b"}}, true},
+		{"array of primitives", []any{"a", 3.14, true}, true},
+		{"empty array", []any{}, true},
+		{"map", map[string]any{"$ne": "x"}, false},
+		{"array with map", []any{map[string]any{"$ne": "x"}}, false},
+		{"nested array of primitives", []any{[]any{"a", "b"}}, true},
 		{"struct", struct{ X int }{X: 1}, false},
 	}
 

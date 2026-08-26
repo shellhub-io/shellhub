@@ -23,7 +23,7 @@ func decodeClaims[T jwt.Claims](publicKey *rsa.PublicKey, raw string, claims T) 
 
 // evalClaims evaluates if a token is valid.
 func evalClaims(publicKey *rsa.PublicKey) jwt.Keyfunc {
-	return func(t *jwt.Token) (interface{}, error) {
+	return func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signature method: %v", t.Header["alg"])
 		}

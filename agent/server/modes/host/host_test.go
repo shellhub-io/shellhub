@@ -21,7 +21,7 @@ type testSSHContext struct {
 	permissions   *gliderssh.Permissions
 }
 
-func (ctx *testSSHContext) SetValue(key, value interface{}) {
+func (ctx *testSSHContext) SetValue(key, value any) {
 	ctx.Context = context.WithValue(ctx.Context, key, value)
 }
 

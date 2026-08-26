@@ -18,13 +18,13 @@ import (
 type stubContext struct {
 	context.Context
 	sync.Mutex
-	values map[interface{}]interface{}
+	values map[any]any
 }
 
 func newStubContext() *stubContext {
 	return &stubContext{
 		Context: context.Background(),
-		values:  make(map[interface{}]interface{}),
+		values:  make(map[any]any),
 	}
 }
 
@@ -39,14 +39,14 @@ func (s *stubContext) Permissions() *gliderssh.Permissions {
 	return &gliderssh.Permissions{}
 }
 
-func (s *stubContext) SetValue(key, val interface{}) {
+func (s *stubContext) SetValue(key, val any) {
 	s.Lock()
 	defer s.Unlock()
 
 	s.values[key] = val
 }
 
-func (s *stubContext) Value(key interface{}) interface{} {
+func (s *stubContext) Value(key any) any {
 	s.Lock()
 	defer s.Unlock()
 

@@ -12,7 +12,7 @@ import (
 func FuzzVerify(f *testing.F) {
 	const settings = "$y$j9T$AAt9R641xPvCI9nXw1HHW/"
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		v, err := rand.Int(rand.Reader, big.NewInt(64))
 		assert.NoError(f, err)
 

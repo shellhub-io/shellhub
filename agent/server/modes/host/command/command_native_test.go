@@ -1,11 +1,11 @@
 //go:build !docker
-// +build !docker
 
 package command
 
 import (
 	"errors"
 	"os"
+	"slices"
 	"sync/atomic"
 	"testing"
 
@@ -152,13 +152,7 @@ func TestCheckCredentialSwitch(t *testing.T) {
 }
 
 func containsEnv(envs []string, entry string) bool {
-	for _, v := range envs {
-		if v == entry {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(envs, entry)
 }
 
 func TestNewCmdNativeEnv(t *testing.T) {

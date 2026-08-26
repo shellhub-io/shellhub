@@ -2601,7 +2601,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				full := make(map[string]string, maxCustomFieldsPerDevice)
-				for i := 0; i < maxCustomFieldsPerDevice; i++ {
+				for i := range maxCustomFieldsPerDevice {
 					full[string(rune('a'+i))] = "v"
 				}
 				device := &models.Device{
@@ -2673,7 +2673,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				full := make(map[string]string, maxCustomFieldsPerDevice)
-				for i := 0; i < maxCustomFieldsPerDevice; i++ {
+				for i := range maxCustomFieldsPerDevice {
 					full[string(rune('a'+i))] = "v"
 				}
 				device := &models.Device{

@@ -13,15 +13,15 @@ func NewNullCache() Cache {
 	return &nullCache{}
 }
 
-func (*nullCache) Get(_ context.Context, _ string, _ interface{}) error {
+func (*nullCache) Get(_ context.Context, _ string, _ any) error {
 	return nil
 }
 
-func (*nullCache) Set(_ context.Context, _ string, _ interface{}, _ time.Duration) error {
+func (*nullCache) Set(_ context.Context, _ string, _ any, _ time.Duration) error {
 	return nil
 }
 
-func (*nullCache) SetNX(_ context.Context, _ string, _ interface{}, _ time.Duration) (bool, error) {
+func (*nullCache) SetNX(_ context.Context, _ string, _ any, _ time.Duration) (bool, error) {
 	return true, nil
 }
 

@@ -87,7 +87,7 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 			return fmt.Errorf("failed to read fixture %s: %w", fixtureName, err)
 		}
 
-		var records []map[string]interface{}
+		var records []map[string]any
 		if err := yaml.Unmarshal(data, &records); err != nil {
 			return fmt.Errorf("failed to parse fixture %s: %w", fixtureName, err)
 		}
@@ -113,7 +113,7 @@ func (p *Provider) LoadFixtures(t *testing.T, fixtures ...string) error {
 }
 
 // insertFixture inserts records into the appropriate table
-func (p *Provider) insertFixture(ctx context.Context, fixtureName string, records []map[string]interface{}) error {
+func (p *Provider) insertFixture(ctx context.Context, fixtureName string, records []map[string]any) error {
 	if len(records) == 0 {
 		return nil
 	}
@@ -138,12 +138,12 @@ func (p *Provider) insertFixture(ctx context.Context, fixtureName string, record
 }
 
 // processRecordForPostgres converts Go types to PostgreSQL-compatible formats
-func (p *Provider) processRecordForPostgres(record map[string]interface{}) map[string]interface{} {
-	processed := make(map[string]interface{})
+func (p *Provider) processRecordForPostgres(record map[string]any) map[string]any {
+	processed := make(map[string]any)
 
 	for key, value := range record {
 		switch v := value.(type) {
-		case []interface{}:
+		case []any:
 			if len(v) > 0 {
 				if _, ok := v[0].(string); ok {
 					strArray := make([]string, len(v))

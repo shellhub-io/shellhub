@@ -32,7 +32,7 @@ type MemberView struct {
 	Role     authorizer.Role `json:"role"`
 	// Status is MemberStatusActive or MemberStatusAwaitingApproval.
 	Status  string    `json:"status"`
-	AddedAt time.Time `json:"added_at,omitempty"`
+	AddedAt time.Time `json:"added_at"`
 }
 
 type Member struct {

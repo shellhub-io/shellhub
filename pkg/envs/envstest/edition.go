@@ -14,7 +14,7 @@ func (m *mapBackend) Get(key string) string {
 	return m.values[key]
 }
 
-func (m *mapBackend) Process(string, interface{}) error {
+func (m *mapBackend) Process(string, any) error {
 	return nil
 }
 

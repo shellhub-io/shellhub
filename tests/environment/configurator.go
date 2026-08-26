@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"maps"
 	"sync"
 	"testing"
 
@@ -69,9 +70,7 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 		t:    t,
 	}
 
-	for k, v := range dcc.envs {
-		clonedEnv.envs[k] = v
-	}
+	maps.Copy(clonedEnv.envs, dcc.envs)
 
 	dcc.mu.Lock()
 	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)

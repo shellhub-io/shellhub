@@ -169,11 +169,11 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 // isValueWithinLimits reports whether v respects the filter size limits:
 // strings up to [MaxStringValueLen] and arrays up to [MaxArrayLen] (with
 // each string inside the array also bounded by [MaxStringValueLen]).
-func isValueWithinLimits(v interface{}) bool {
+func isValueWithinLimits(v any) bool {
 	switch x := v.(type) {
 	case string:
 		return len(x) <= MaxStringValueLen
-	case []interface{}:
+	case []any:
 		if len(x) > MaxArrayLen {
 			return false
 		}
@@ -193,7 +193,7 @@ func isValueWithinLimits(v interface{}) bool {
 // the filter store layer. It accepts bool values directly, float64 values
 // (JSON numbers always decode to float64; 0 is false, any other value is true),
 // and strings accepted by [strconv.ParseBool].
-func isBoolConvertible(v interface{}) bool {
+func isBoolConvertible(v any) bool {
 	switch x := v.(type) {
 	case bool:
 		return true
@@ -213,11 +213,11 @@ func isBoolConvertible(v interface{}) bool {
 // smuggle operator-shaped keys into filter values. Only the types produced by
 // [json.Unmarshal] into [interface{}] are listed — internal programmatic
 // callers don't pass through this validator.
-func isPrimitive(v interface{}) bool {
+func isPrimitive(v any) bool {
 	switch x := v.(type) {
 	case nil, bool, string, float64:
 		return true
-	case []interface{}:
+	case []any:
 		for _, item := range x {
 			if !isPrimitive(item) {
 				return false

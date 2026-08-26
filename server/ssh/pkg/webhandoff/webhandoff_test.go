@@ -85,11 +85,7 @@ func TestStore_onlyOneConcurrentTakeWins(t *testing.T) {
 	)
 
 	for range racers {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			<-start
 
 			if _, ok := store.Take("user@uuid"); ok {
@@ -97,7 +93,7 @@ func TestStore_onlyOneConcurrentTakeWins(t *testing.T) {
 				wins++
 				mu.Unlock()
 			}
-		}()
+		})
 	}
 
 	close(start)

@@ -38,7 +38,7 @@ func (s *stubContext) LocalAddr() net.Addr   { return nil }
 func (s *stubContext) Permissions() *gliderssh.Permissions {
 	return &gliderssh.Permissions{}
 }
-func (s *stubContext) SetValue(_, _ interface{}) {}
+func (s *stubContext) SetValue(_, _ any) {}
 
 func newStubCtx(user string) gliderssh.Context {
 	return &stubContext{

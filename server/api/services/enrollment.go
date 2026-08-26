@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"slices"
 	"strings"
 	"time"
 
@@ -41,7 +42,7 @@ func enrollmentWebhookClient() *http.Client {
 
 	var v4, v6 []netip.Prefix
 
-	for _, raw := range strings.Split(envs.DefaultBackend.Get(enrollmentWebhookAllowedCIDRsEnv), ",") {
+	for raw := range strings.SplitSeq(envs.DefaultBackend.Get(enrollmentWebhookAllowedCIDRsEnv), ",") {
 		raw = strings.TrimSpace(raw)
 		if raw == "" {
 			continue
@@ -112,10 +113,8 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.InstallKey
 		return enrollPending
 	case models.InstallKeyModeAllowlist:
 		mac := strings.ToLower(strings.TrimSpace(req.Identity.MAC))
-		for _, allowed := range key.AllowedMACs {
-			if allowed == mac {
-				return enrollAccept
-			}
+		if slices.Contains(key.AllowedMACs, mac) {
+			return enrollAccept
 		}
 
 		return enrollReject

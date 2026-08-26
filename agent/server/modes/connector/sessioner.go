@@ -56,9 +56,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	defer resp.Close()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
@@ -71,17 +69,15 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		if _, err := io.Copy(session, resp.Conn); err != nil && err != io.EOF {
 			fmt.Println(err)
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer resp.Close()
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
 			fmt.Println(err)
 		}
-	}()
+	})
 
 	wg.Wait()
 
@@ -107,9 +103,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	defer resp.Close()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
@@ -133,17 +127,15 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 				fmt.Println(err)
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
 			fmt.Println(err)
 		}
-	}()
+	})
 
 	wg.Wait()
 
@@ -172,9 +164,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	defer resp.Close()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
@@ -187,17 +177,15 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && err != io.EOF {
 			fmt.Println(err)
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
 			fmt.Println(err)
 		}
-	}()
+	})
 
 	wg.Wait()
 

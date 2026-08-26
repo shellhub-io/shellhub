@@ -38,7 +38,7 @@ func TestListSessions(t *testing.T) {
 	// passed to Match carries exactly the specified filter data. This catches
 	// regressions where the service drops or mangles req.Filters before
 	// forwarding it to the store.
-	matchFilters := func(data []query.Filter) interface{} {
+	matchFilters := func(data []query.Filter) any {
 		return mock.MatchedBy(func(f *query.Filters) bool {
 			return reflect.DeepEqual(f.Data, data)
 		})

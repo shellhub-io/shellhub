@@ -155,7 +155,7 @@ type Config struct {
 	SFTPServerCommand func() *exec.Cmd
 }
 
-func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
+func LoadConfigFromEnv() (*Config, map[string]any, error) {
 	// NOTE(r): When T, the generic parameter, is a structure with required tag, the fallback for an
 	// "unprefixed" parameter is used.
 	//

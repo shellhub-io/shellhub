@@ -17,7 +17,7 @@ import (
 // UserStore interface. The method was replaced by the duplicate-detection path
 // inside UserCreate (ErrDuplicate / DuplicatedField).
 func (s *Suite) TestUserConflictsRemoved(t *testing.T) {
-	ifaceType := reflect.TypeOf((*store.UserStore)(nil)).Elem()
+	ifaceType := reflect.TypeFor[store.UserStore]()
 	_, ok := ifaceType.MethodByName("UserConflicts")
 	assert.False(t, ok, "UserStore.UserConflicts must be removed from the interface")
 }

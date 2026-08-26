@@ -14,7 +14,7 @@ func (b *envBackend) Get(name string) string {
 	return os.Getenv(name)
 }
 
-func (b *envBackend) Process(prefix string, spec interface{}) error {
+func (b *envBackend) Process(prefix string, spec any) error {
 	return envconfig.ProcessWith(context.Background(), &envconfig.Config{
 		Target: spec,
 		Lookuper: envconfig.MultiLookuper(

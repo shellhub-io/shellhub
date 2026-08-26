@@ -88,7 +88,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("InstallKeyResolve", ctx, testifymock.Anything, store.InstallKeyIDResolver, badDigest).Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: Expected{res: nil, err: NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, store.ErrNoDocuments)},
+			expected: Expected{res: nil, err: NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, store.ErrNoDocuments)},
 		},
 		{
 			description: "rejects the system legacy key presented by an agent",
@@ -100,7 +100,7 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("InstallKeyResolve", ctx, testifymock.Anything, store.InstallKeyIDResolver, badDigest).Return(&models.InstallKey{ID: badDigest, TenantID: tenant, Type: models.InstallKeyTypeLegacy, Reusable: true}, nil).Once()
 			},
-			expected: Expected{res: nil, err: NewErrAuthInvalid(map[string]interface{}{"install_key": "invalid"}, nil)},
+			expected: Expected{res: nil, err: NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, nil)},
 		},
 		{
 			description: "attributes a tenant-only device to the legacy key without accepting it",

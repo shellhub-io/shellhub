@@ -10,7 +10,7 @@ import (
 
 func TestLoad(t *testing.T) {
 	type Expected struct {
-		result interface{}
+		result any
 		status bool
 	}
 
@@ -79,8 +79,8 @@ func TestStore(t *testing.T) {
 		title             string
 		setup             func() *SyncSliceMap
 		key               string
-		value             interface{}
-		expectedDisplaced []interface{}
+		value             any
+		expectedDisplaced []any
 		expectedSize      int
 	}{
 		{
@@ -104,7 +104,7 @@ func TestStore(t *testing.T) {
 			},
 			key:               "key",
 			value:             "value3",
-			expectedDisplaced: []interface{}{"value1", "value2"},
+			expectedDisplaced: []any{"value1", "value2"},
 			expectedSize:      3,
 		},
 		{
@@ -142,7 +142,7 @@ func TestDelete(t *testing.T) {
 		title             string
 		setup             func() *SyncSliceMap
 		key               string
-		valueToDelete     interface{}
+		valueToDelete     any
 		expectedRemaining int
 	}{
 		{

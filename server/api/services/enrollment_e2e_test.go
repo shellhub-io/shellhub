@@ -623,7 +623,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 	errs := make([]error, racers)
 
 	var wg sync.WaitGroup
-	for i := 0; i < racers; i++ {
+	for i := range racers {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
@@ -650,7 +650,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 	wg.Wait()
 
 	accepted := 0
-	for i := 0; i < racers; i++ {
+	for i := range racers {
 		if errs[i] != nil {
 			// A racer that resolved the key after it was exhausted is rejected at auth (no device row);
 			// that is the expected outcome, not a failure.

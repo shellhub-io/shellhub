@@ -56,7 +56,7 @@ func TestNonTransactionalMigrations(t *testing.T) {
 			t.Fatalf("failed to read %q: %v", file, err)
 		}
 
-		for _, chunk := range strings.Split(string(raw), "--bun:split") {
+		for chunk := range strings.SplitSeq(string(raw), "--bun:split") {
 			statement := stripSQLComments(chunk)
 
 			keyword := findNonTransactionalStatement(statement)
@@ -101,7 +101,7 @@ func stripSQLComments(chunk string) string {
 // autovacuum_* storage parameters, which would condemn an ALTER TABLE ... SET that is
 // transactional in every respect.
 func findNonTransactionalStatement(chunk string) string {
-	for _, statement := range strings.Split(chunk, ";") {
+	for statement := range strings.SplitSeq(chunk, ";") {
 		normalized := strings.Join(strings.Fields(strings.ToUpper(statement)), " ")
 
 		for _, keyword := range nonTransactionalStatements {
@@ -180,7 +180,7 @@ func TestNonTransactionalDetection(t *testing.T) {
 func countStatements(statement string) int {
 	count := 0
 
-	for _, s := range strings.Split(statement, ";") {
+	for s := range strings.SplitSeq(statement, ";") {
 		if strings.TrimSpace(s) != "" {
 			count++
 		}

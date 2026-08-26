@@ -25,7 +25,7 @@ func TestUpdateInstallKey(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
-		body          map[string]interface{}
+		body          map[string]any
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -37,7 +37,7 @@ func TestUpdateInstallKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{"usage_limit": 10},
+			body: map[string]any{"usage_limit": 10},
 			requiredMocks: func() {
 				svcMock.On("UpdateInstallKey", mock.Anything, mock.Anything).
 					Return(services.NewErrInstallKeyInvalidField(map[string]string{
@@ -55,7 +55,7 @@ func TestUpdateInstallKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{"revoked": true},
+			body: map[string]any{"revoked": true},
 			requiredMocks: func() {
 				svcMock.On("UpdateInstallKey", mock.Anything, mock.Anything).
 					Return(services.NewErrInstallKeyForbidden()).
@@ -74,7 +74,7 @@ func TestUpdateInstallKey(t *testing.T) {
 				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
 				"X-Role":       "owner",
 			},
-			body: map[string]interface{}{"disabled": true},
+			body: map[string]any{"disabled": true},
 			requiredMocks: func() {
 				svcMock.On("UpdateInstallKey", mock.Anything, mock.Anything).
 					Return(nil).
