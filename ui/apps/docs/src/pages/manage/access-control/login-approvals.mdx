@@ -25,12 +25,42 @@ OpenSSH client.
 This is the approve-once model. The alternative — approving every login — is what
 `require_reauth` is for, and it is off by default.
 
-The approval carries a **code**, which is both its name and its secret; the server prints it in
-the terminal banner so the person approving can confirm they are approving the login actually in
-front of them, not somebody else's.
+The server answers in the terminal, as an SSH banner mid-handshake — which is how it reaches a
+stock client with nothing installed:
 
-If nobody approves, the login stays pending and eventually fails. Rejecting refuses the connection
-and binds nothing.
+```
+  ShellHub doesn't know this SSH key yet.
+
+  Open the link to add it to your identities. This login
+  continues once you do:
+
+    https://cloud.shellhub.io/ssh-identities/new/2TV899JA
+
+  Security code:  2TV8 99JA
+  Key:            SHA256:2Ur4mPvXqE9V78JBIR26G4zpPW0IWs9ci690kNbQ
+
+  Waiting...
+```
+
+There is nothing to type. Open the link, approve, and the handshake finishes into an ordinary
+session.
+
+**The identity is created for whoever approves, not for whoever was connecting.** Approve a
+stranger's key and you have handed them a key that connects as you, with session records in
+your name. Approve only a login you started yourself; if somebody sends you their link, tell them
+to open it themselves.
+
+**Check the security code and the fingerprint before approving.** The code is the tail of the
+link, printed in pairs so it can be read aloud; the fingerprint is the key that was offered.
+Both appear again in the browser, and they are what tells you the page you are approving belongs
+to the connection in front of you rather than to somebody else's attempt at the same moment.
+
+**The login is held for 90 seconds.** Miss it and the connection fails; connect again and a fresh
+link appears. Three logins from one address may wait at a time, and 256 across the server — beyond
+that a connection is refused rather than parked, so opening a handful of terminals at once is fine
+and something scripted against this path is not.
+
+Rejecting refuses the connection and binds nothing.
 
 You can skip this step by adding the key ahead of time on the SSH Identities page — the usual
 move for a CI runner or a server key, where nobody is watching for a prompt. See
