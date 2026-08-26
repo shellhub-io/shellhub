@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/docker/docker/api/types/container"
@@ -15,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
@@ -65,7 +65,7 @@ type ConfigConnector struct {
 	Label string `env:"CONNECTOR_LABEL,default="`
 }
 
-func LoadConfigConnectorFromEnv() (*ConfigConnector, map[string]interface{}, error) {
+func LoadConfigConnectorFromEnv() (*ConfigConnector, map[string]any, error) {
 	cfg, err := envs.ParseWithPrefix[ConfigConnector]("SHELLHUB_")
 	if err != nil {
 		log.Fatal(err)
@@ -285,7 +285,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		"hostname":       cfg.PreferredHostname,
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
-		"timestamp":      time.Now(),
+		"timestamp":      clock.Now(),
 		"version":        cfg.Version,
 	}).Info("Connector container started")
 
@@ -297,7 +297,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"hostname":       cfg.PreferredHostname,
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
-			"timestamp":      time.Now(),
+			"timestamp":      clock.Now(),
 			"version":        cfg.Version,
 		}).Fatal("Failed to create connector mode")
 	}
@@ -325,7 +325,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 		"hostname":       cfg.PreferredHostname,
 		"tenant_id":      cfg.TenantID,
 		"server_address": cfg.ServerAddress,
-		"timestamp":      time.Now(),
+		"timestamp":      clock.Now(),
 		"version":        cfg.Version,
 	}).Info("Listening for connections")
 
@@ -339,7 +339,7 @@ func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container
 			"hostname":       cfg.PreferredHostname,
 			"tenant_id":      cfg.TenantID,
 			"server_address": cfg.ServerAddress,
-			"timestamp":      time.Now(),
+			"timestamp":      clock.Now(),
 			"version":        cfg.Version,
 		}).Fatal("Failed to listen for connections")
 	}
