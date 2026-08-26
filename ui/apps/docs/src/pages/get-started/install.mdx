@@ -37,13 +37,21 @@ $ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `SERVER_ADDRESS` | `https://cloud.shellhub.io` | Which server the agent talks to |
+| `SERVER_ADDRESS` | the instance that served the script | Which server the agent talks to |
 | `TENANT_ID` | — | Which namespace to join. Deprecated |
 | `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
 | `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
 | `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
 
-If you are self-hosting, `SERVER_ADDRESS` is the one you must set.
+`SERVER_ADDRESS` is filled in for you. The script is served by the server, not from a
+repository, and the server writes its own address into it on the way out — port included — so
+fetching `https://your.server/install.sh` gives you a script that registers with your server.
+Set the variable only to point somewhere other than where the script came from.
+
+`<domain>/kickstart.sh` serves the same script, under the name it was published as before.
+
+The rendered script can also carry `?tenant_id=`, `?preferred_hostname=` and
+`?preferred_identity=` as defaults; an explicit variable on the command line still wins.
 
 ## Architectures
 
