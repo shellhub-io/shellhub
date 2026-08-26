@@ -113,7 +113,36 @@ enroll_agent_interactively() {
   $_AGENT_CMD login || true
 }
 
+check_podman_boot_restart() {
+  [ "${SKIP_BOOT_RESTART_CHECK}" = "1" ] && {
+    printf "⚠️  SKIP_BOOT_RESTART_CHECK is set; skipping podman-restart.service check.\n"
+    printf "   The agent container will NOT auto-start on boot unless you manage it yourself\n"
+    printf "   (Quadlet, an orchestrator, etc.).\n"
+    return 0
+  }
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    printf "❌ ERROR: systemctl not found. Podman needs podman-restart.service to start\n"
+    printf "   the agent container on boot, which requires systemd.\n"
+    printf "   Set SKIP_BOOT_RESTART_CHECK=1 to install anyway (if you manage the container\n"
+    printf "   lifecycle yourself), or use INSTALL_METHOD=docker or standalone.\n"
+    exit 1
+  fi
+
+  if ! systemctl is-enabled podman-restart.service >/dev/null 2>&1; then
+    printf "❌ ERROR: podman-restart.service is not enabled. Without it the agent container\n"
+    printf "   will not start on boot.\n\n"
+    printf "   Enable it with:\n\n"
+    printf "     sudo systemctl enable podman-restart.service\n\n"
+    printf "   Then re-run this script. Set SKIP_BOOT_RESTART_CHECK=1 to install anyway\n"
+    printf "   (if you manage the container lifecycle yourself).\n"
+    exit 1
+  fi
+}
+
 podman_install() {
+  check_podman_boot_restart
+
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
@@ -171,7 +200,7 @@ podman_install() {
   $SUDO podman run -d \
     --name=$CONTAINER_NAME \
     --replace \
-    --restart=on-failure \
+    --restart=unless-stopped \
     --privileged \
     --pid=host \
     --security-opt label=disable \
@@ -259,7 +288,7 @@ docker_install() {
 
   $SUDO docker run -d \
     --name=$CONTAINER_NAME \
-    --restart=on-failure \
+    --restart=unless-stopped \
     --privileged \
     --net=host \
     --pid=host \
