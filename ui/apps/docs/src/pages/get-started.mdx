@@ -1,0 +1,94 @@
+---
+layout: ../layouts/DocsLayout.astro
+title: Onboarding Guide
+description: Install the agent on a device, accept it into your namespace, and open your first terminal.
+---
+
+import Callout from "../components/Callout.astro";
+
+# Onboarding Guide
+
+This is the short path from nothing to a terminal on a device. It takes three steps, and the
+first two happen on the device.
+
+If you are self-hosting, bring a server up first with the
+[Self-Hosting Quickstart](/selfhosted/quickstart) and use its address wherever this page says
+`cloud.shellhub.io`.
+
+## 1. Install the agent
+
+On the device you want to reach:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh
+```
+
+The installer looks at the machine and picks a method — Docker, Podman, Snap, WSL, or a native
+binary under systemd — in that order. If you would rather choose, or the auto-detection picked
+something you did not want, see [Choosing a Method](/get-started/install).
+
+That is the whole command. The script is served by the server it registers with, which
+renders the address into it on the way out, so there is nothing to point at anything.
+
+For a machine nobody is standing at, add an [install key](/manage/devices/install-keys):
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+<Callout variant="info">
+Fetch the script from your own server and the agent registers there instead —
+`curl -sSf https://shellhub.example.com/install.sh | sh`. `SERVER_ADDRESS` overrides that,
+and is only needed when the two differ. See [Enrolling Devices](/get-started/enrolling-devices).
+</Callout>
+
+## 2. Accept the device
+
+Open the console. The device appears under **Devices**, on the **Pending** tab.
+
+![ShellHub Devices page on the Pending tab where new devices await acceptance](/img/devices/device-pending.gif)
+
+Accept it, and it moves to the accepted list and comes online.
+
+A device landing in **Pending** is the default for a plain tenant-only enrollment. If you are
+adding devices at any volume you will want them accepted automatically — that is what
+[Install Keys](/manage/devices/install-keys) are for.
+
+## 3. Connect
+
+From the console, open the device and click the terminal button. That is the whole flow — no
+client, no key to arrange.
+
+![Device connecting](/img/devices/device-connect.gif)
+
+From your own machine, use the device's SSHID:
+
+```bash
+$ ssh <username>@<namespace>.<device>@cloud.shellhub.io
+```
+
+The device details page shows the SSHID with a copy button.
+
+![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+
+The first time you connect with a native client, ShellHub will not recognize the key you offer.
+It parks the login and asks a member to approve it in the console. Approving binds that key to
+your account, and every later connection with it goes straight through — no approval, no wrapper.
+See [Login Approvals](/manage/access-control/login-approvals).
+
+## What to do next
+
+Now that one device works, the questions that come up in order:
+
+- **More devices, without accepting each one by hand** — [Install Keys](/manage/devices/install-keys)
+- **Other people need access** — [Members](/manage/team), then [Access Policies](/manage/access-control/access-policies)
+- **More than a shell** — [File Transfer](/connect/file-transfer), [Port Forwarding](/connect/port-forwarding), [Container Access](/connect/container-access)
+- **Automation** — [API Keys](/api/api-keys) and [Service Accounts](/manage/access-control/service-accounts)
+
+<Callout variant="info">
+A new namespace starts with one access policy, granting the owner every login on
+every device. Everybody else starts with no access at all, which is deliberate — see
+[How Authorization Works](/manage/access-control).
+</Callout>

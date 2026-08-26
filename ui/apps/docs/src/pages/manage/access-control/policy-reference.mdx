@@ -1,0 +1,153 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Policy Reference
+description: Every access policy field, its accepted values, and what leaving it empty means.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Access Policy Reference
+
+Field reference. For how to write a policy, see
+[Access Policies](/manage/access-control/access-policies).
+
+## Fields
+
+### `name`
+
+How the policy is identified in the console and in denial reasons. When a deny refuses a
+connection, the reason names this policy.
+
+### `action`
+
+`allow` or `deny`. Defaults to `allow`.
+
+Deny is evaluated first and wins over any allow, however specific.
+
+### `subject`
+
+A type and a value:
+
+| Type | Value holds | Matches |
+|---|---|---|
+| `user` | The user's id | That one user |
+| `role` | The role name | Every member holding that role |
+| `all-members` | Empty | Every member **except service accounts** |
+
+The service account carve-out applies only to `all-members`. A `role` subject already excludes
+service accounts by exact match, so `all-members` is the one place a service account could be
+swept into an over-broad allow by accident. Grant one deliberately, with a `user` or `role`
+subject.
+
+A connection from someone who is not a member of the namespace is refused before policies are
+consulted at all.
+
+### `filter`
+
+Which devices the policy covers. A hostname pattern **or** a tag set — the two are mutually
+exclusive:
+
+| Form | Behavior |
+|---|---|
+| `hostname` | A regular expression matched against the device name |
+| `tags` | Matches a device carrying any of the listed tags |
+| *(empty)* | **Matches every device** |
+
+An empty filter is how you write "all devices". It is the same device selector the legacy public
+key ACL uses.
+
+### `logins`
+
+Which unix logins the policy covers. Exact names, or `["*"]` for any login.
+
+A policy granting `["deploy"]` does not permit `ssh root@…`, even on a device the filter matches.
+
+### `source_ip`
+
+A list of CIDRs. A connection matches when the client address falls inside any of them. A bare
+address is normalized to a host route — `/32`, or `/128` for IPv6.
+
+**Empty matches any address.** Source IP only narrows a policy that already matched. It never
+grants on its own, and it is not a substitute for a subject.
+
+An unparseable CIDR or client address causes a **deny** to fail closed.
+
+<Callout variant="warning">
+The client address is resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
+balancer without that configured correctly, every connection appears to come from the balancer
+and source IP restrictions are meaningless. See
+[Ports and Connectivity](/about/ports-and-connectivity).
+</Callout>
+
+### `require_reauth`
+
+Off by default — the identity alone is the norm.
+
+When set, an identity granted access by this policy must confirm out of band, in the browser,
+before the connection proceeds, even though the key it presented is already an identity.
+
+When several allows match one connection, the **strictest** requirement wins: required if any
+matching allow requires it, at the shortest window. Without that, a broad grant with no re-auth
+would shadow the narrow policy you wrote specifically to protect production.
+
+<Callout variant="warning">
+Service accounts never re-authenticate. Re-auth is an interactive step and there is no
+human to complete it — demanding one would hang the connection. A service account's freshness
+comes from its key's lifecycle instead: expiry, and single use.
+</Callout>
+
+### `reauth_period`
+
+The freshness window for `require_reauth`, in seconds. Only meaningful when `require_reauth` is
+set.
+
+Re-authentication is demanded only when the identity has not re-authenticated within the window.
+The freshness belongs to the **identity**, not to a connection: inside the window, every login
+with that key goes straight through.
+
+`0` or unset means *always* — the only setting that is genuinely per login.
+
+Between two matching policies, the shorter window wins, and "always" beats any number.
+
+## Evaluation order
+
+1. Not a member of the namespace → refuse.
+2. Every **deny**: a match refuses; one that cannot be evaluated also refuses.
+3. Every **allow**: one match is enough. An allow that cannot be evaluated is a non-match. Collect
+   the strictest re-auth across all that matched.
+4. No allow matched → refuse.
+
+## Denial reasons
+
+| Reason | Meaning |
+|---|---|
+| `user is not a member of the namespace` | The connecting account does not belong to this namespace |
+| `denied by policy "<name>"` | A deny matched |
+| `denied: policy "<name>" could not be evaluated` | A deny had an unparseable filter or source IP, and failed closed |
+| `no policy grants "<login>" on this device` | No allow covered this device and login |
+
+<Callout variant="info">
+These reasons are computed but **not surfaced to the connecting client**, which
+receives a generic access-denied. Use [Connection Denied](/manage/access-control/connection-denied) to work
+through which one applies.
+</Callout>
+
+## The starter policy
+
+Every namespace in identity mode is seeded with:
+
+| Field | Value |
+|---|---|
+| `name` | `Owner access` |
+| `action` | `allow` |
+| `subject` | `user` = the namespace owner |
+| `filter` | empty — all devices |
+| `logins` | `["*"]` |
+| `source_ip` | empty — any address |
+
+Created when a namespace is born in identity mode, or switches to it with no policies.
+
+## Where to go next
+
+- [Access Policies](/manage/access-control/access-policies) — Writing them, with an example.
+- [How Authorization Works](/manage/access-control) — The model behind the fields.

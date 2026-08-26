@@ -1,0 +1,71 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Members
+description: Add people to a namespace and give them a role.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Members
+
+A namespace's members are the people who can sign in and see it. Manage them under **Team**.
+
+![The Team page showing the Members tab with members and their roles](/img/team/members.png)
+
+## Adding someone
+
+Invite them from the Team page and assign a role. The role decides what they can do *in the
+console* — see [User Roles](/manage/team/user-roles).
+
+## Membership and device access are different things
+
+This is the distinction that matters most on this page, and the one people get wrong.
+
+**Being a member does not grant access to any device.** In identity mode, device access comes
+entirely from [access policies](/manage/access-control/access-policies), and a new member matches
+none of them.
+
+So adding somebody is two steps:
+
+1. Add them as a member, with a role.
+2. Write or extend a policy that grants them something.
+
+A member with no policy can sign in, see the namespace, and connect to nothing. That is deliberate
+— default deny means access is something you grant on purpose.
+
+The exception is the namespace owner, who is covered by the starter **Owner access** policy.
+
+## Roles as policy subjects
+
+The cleanest way to handle step 2 is to grant the **role**, not the person:
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Operators to fleet | allow | Role: operator | tag `production` | `deploy` |
+
+Now adding somebody as an operator grants them the fleet, and removing them takes it away, with no
+policy edited either time. Per-person policies are for genuine exceptions.
+
+## Removing someone
+
+Removing a member ends their access to the namespace.
+
+Two things to do alongside it:
+
+**Revoke their SSH identities.** Membership and identities are separate records. Revoke the keys
+bound to them on the [SSH Identities](/manage/access-control/ssh-identities) page.
+
+**Check for automation on their key.** If a pipeline was configured with a key of theirs, it stops
+working — which is exactly why automation should hold a
+[service account](/manage/access-control/service-accounts) instead.
+
+<Callout variant="warning">
+Neither removing a member nor revoking an identity interrupts a session already open.
+Authorization is evaluated when the connection is made.
+</Callout>
+
+## Where to go next
+
+- [User Roles](/manage/team/user-roles) — What each role can do.
+- [Access Policies](/manage/access-control/access-policies) — Granting device access.
+- [Single Sign-On (SAML)](/manage/team/single-sign-on) — Bringing members from an IdP.

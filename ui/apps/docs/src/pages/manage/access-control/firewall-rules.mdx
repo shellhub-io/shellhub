@@ -1,0 +1,74 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Firewall Rules
+description: The legacy restriction layer, matching on source IP, hostname and username.
+---
+
+import LegacyBanner from "../../../components/LegacyBanner.astro";
+import EditionBanner from "../../../components/EditionBanner.astro";
+import Callout from "../../../components/Callout.astro";
+
+# Firewall Rules
+
+<EditionBanner>
+Firewall rules are on **Cloud** and **Enterprise**.
+</EditionBanner>
+
+<LegacyBanner>
+In identity mode firewall rules are bypassed entirely: they remain stored and manageable, and
+are never consulted. Access is decided by
+<a href="/manage/access-control/access-policies">access policies</a> instead.
+</LegacyBanner>
+
+Firewall rules restrict what public keys otherwise permit. Where a key says "this key may reach
+these devices as these users", a firewall rule says "and not from there, not as that, not to
+that one".
+
+![The Firewall Rules page showing a table of rules with Priority, Action, Source IP, Username, Device Filter, and Status columns](/img/firewall/firewall-rules.png)
+
+## Anatomy
+
+![The New Firewall Rule drawer with Status, Priority, Policy, Source IP, Username, and Device filter fields](/img/firewall/add-rule.png)
+
+| Field | Meaning |
+|---|---|
+| Status | Whether the rule is active |
+| Priority | Evaluation order — rules are considered in priority order |
+| Policy | Allow or deny |
+| Source IP | Which client addresses the rule matches |
+| Username | Which unix login the rule matches |
+| Device filter | Which devices — all, a hostname pattern, or tags |
+
+## Priority, and why it is the hard part
+
+Rules are evaluated in priority order and the first match decides. That makes the rule set
+order-dependent, and order-dependence is where firewall rule sets go wrong: inserting a rule at
+the wrong priority silently changes what the rules below it do.
+
+Access policies are not ordered this way — deny is always evaluated before allow, regardless of
+what order the policies were created in. That is one of the reasons for the change.
+
+## The source IP difference
+
+This is the one to understand before migrating.
+
+A firewall rule can **grant** on source IP: "allow from this range". An access policy's source IP
+only **narrows** a grant that already matched — an empty list matches everything, and no source
+IP ever grants on its own.
+
+So a firewall rule that grants access to a range has no direct equivalent. The replacement policy
+needs a real subject — a user, a role, a service account — with the addresses as a restriction on
+top. See
+[Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy).
+
+<Callout variant="warning">
+Source addresses are resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
+balancer without that set correctly, every connection appears to come from the balancer and both
+firewall rules and policy source IPs are matching on the wrong thing. See
+[Ports and Connectivity](/about/ports-and-connectivity).
+</Callout>
+
+## Where to go next
+
+- [Public Keys](/manage/access-control/public-keys) — What these rules restrict.
+- [Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy) — Translating rules to policies.

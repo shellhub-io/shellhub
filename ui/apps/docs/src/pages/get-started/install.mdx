@@ -1,0 +1,103 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Choosing an Install Method
+description: How the installer picks a method, and when to override it.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Choosing an Install Method
+
+One command covers almost every case:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh
+```
+
+The installer inspects the machine and picks a method. This page is for when you want to know
+what it picked, or want to pick differently.
+
+## The order it tries
+
+| Order | Method | Chosen when |
+|---|---|---|
+| 1 | [Docker](/get-started/install/docker) | Docker is present and usable rootful |
+| 2 | [Podman](/get-started/install/podman) | Podman is present and usable rootful |
+| 3 | [Snap](/get-started/install/snap) | The `snap` command is present |
+| 4 | [WSL](/get-started/install/wsl) | WSL 2 with Ubuntu |
+| 5 | [Standalone](/get-started/install/standalone) | Nothing above matched — native binary under systemd |
+
+To force one, set `INSTALL_METHOD`:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
+```
+
+## What it configures
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SERVER_ADDRESS` | `https://cloud.shellhub.io` | Which server the agent talks to |
+| `TENANT_ID` | — | Which namespace to join. Deprecated |
+| `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
+| `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
+| `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
+
+If you are self-hosting, `SERVER_ADDRESS` is the one you must set.
+
+## Architectures
+
+Detected automatically: `amd64`, `armv6`, `armv7`, `arm64`, `386`.
+
+## Building the agent into an image
+
+Everything above assumes a machine that already boots and has a shell you can pipe into. A
+product image has neither at the point the decision is made, so the agent goes in at build time
+instead — and it goes in from a tree ShellHub maintains, not from a recipe you write.
+
+| Build system | What you add | Page |
+|---|---|---|
+| Yocto | The `meta-shellhub` OpenEmbedded layer | [Yocto Project](/get-started/install/yocto) |
+| Buildroot | The ShellHub external tree | [Buildroot](/get-started/install/buildroot) |
+| Raspberry Pi OS | The installer, then the device key removed before imaging | [Raspberry Pi](/get-started/install/raspberry-pi) |
+
+Two things change once the agent ships inside an image, and both decide whether a production
+run arrives as a fleet or as a problem.
+
+**Enrollment has to happen with nobody present.** There is no console to open and no link to
+click on a unit coming off a line, so the image carries an
+[install key](/manage/devices/install-keys) and units are accepted as they come online, with
+their tags already set. A tenant ID would leave the whole run pending.
+
+**The device key must be absent from the image and writable on the device.** The agent
+generates it when the file is missing. A key baked into the image gives every unit the same
+identity — one device that appears to move between machines — and a key path that is read-only
+or volatile gives a new device on every boot.
+
+<Callout variant="info" title="FreeBSD is not the installer's job either">
+It is refused deliberately. Use the
+[ShellHub ports tree](https://github.com/shellhub-io/ports) — see
+[FreeBSD](/get-started/install/freebsd).
+</Callout>
+
+## Uninstalling
+
+Supported for standalone, WSL, Docker and Podman:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+Other methods will refuse rather than half-remove themselves. A Snap install is removed with
+`snap remove shellhub`.
+
+## The agent wrapper
+
+Container installs also drop a `shellhub-agent` command on the host. It exists so
+`shellhub-agent login` can open a browser during pairing — an agent inside a container cannot do
+that on its own. See [Enrolling Devices](/get-started/enrolling-devices).
+
+## Where to go next
+
+- [Enrolling Devices](/get-started/enrolling-devices) — Pairing, install keys, and the tenant ID that is on its way out.
+- [Agent Configuration](/get-started/agent-configuration) — Every agent variable.

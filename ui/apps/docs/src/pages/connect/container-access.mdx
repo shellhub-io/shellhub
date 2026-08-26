@@ -1,0 +1,81 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Container Access
+description: Reach containers running on a device as if each one were its own device.
+---
+
+# Container Access
+
+The Connector exposes containers running on a host as ShellHub devices in their own right. Each
+container gets its own entry, its own SSHID, and its own place in your access policies.
+
+## What it changes
+
+Without it, you reach a container by SSHing to the host and then `docker exec`-ing in — which
+means everyone who needs a container needs the host, and the host is a much larger grant.
+
+With it, the container is a device. You can write a policy that grants somebody a container and
+not the machine underneath it.
+
+## Setting it up
+
+From the console's **Containers** page, register the Docker host:
+
+![ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command](/img/containers/add-docker-host.png)
+
+That gives you a one-line command to run on the host. The Connector then watches the Docker daemon
+and registers containers as they appear.
+
+## Configuration
+
+The Connector takes its own variables, which differ from the agent's in one important way:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_SERVER_ADDRESS` | — | Required |
+| `SHELLHUB_PRIVATE_KEYS` | — | Required. **Plural** — a directory holding one key per container |
+| `SHELLHUB_TENANT_ID` | — | Required. The Connector does not support pairing mode |
+| `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | Seconds |
+| `SHELLHUB_CONNECTOR_LABEL` | `""` | Only manage containers carrying this label |
+
+`SHELLHUB_PRIVATE_KEYS` being a directory follows from each container being a separate device:
+separate devices need separate identities. Put that directory on a volume — if the keys are lost,
+every container comes back as a new device.
+
+`SHELLHUB_CONNECTOR_LABEL` is how you avoid registering every container on a busy host. Set it,
+label the containers you actually want reachable, and the rest are ignored.
+
+## Connecting
+
+A registered container behaves like any device:
+
+```bash
+$ ssh root@mycompany.mycontainer@cloud.shellhub.io
+```
+
+## Authentication inside a container
+
+Containers usually have no real user accounts, and this is where it gets awkward.
+
+With the Connector enabled, password authentication is refused for a user with no password set in
+the container's `/etc/shadow` — which is most container users. Two ways forward: set one with
+`passwd` inside the container, or use public-key authentication, which works regardless.
+
+Public keys are the better answer in every case where you have a choice.
+
+## Availability
+
+Container access is in **Community**. It is switched on by `SHELLHUB_CONNECTOR`, which defaults to
+`true`.
+
+## Lifecycle
+
+Containers come and go, and a device list that accumulates one entry per container that ever
+existed becomes unusable. Prune stopped containers' entries, and consider whether the containers
+you actually need reachable are a small labelled subset — which is what `SHELLHUB_CONNECTOR_LABEL`
+is for.
+
+## Where to go next
+
+- [Access Policies](/manage/access-control/access-policies) — Granting a container and not its host.
+- [Tags](/manage/devices/tags) — Selecting containers as a group.

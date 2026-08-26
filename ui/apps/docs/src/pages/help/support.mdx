@@ -1,0 +1,97 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Getting Support
+description: Where to ask, and what to bring so the answer is quick.
+---
+
+# Getting Support
+
+## Where to go
+
+**[GitHub Issues](https://github.com/shellhub-io/shellhub/issues)** — bugs and feature requests.
+Search first; a lot of things are already there.
+
+**[GitHub Discussions](https://github.com/shellhub-io/shellhub/discussions)** — questions, and
+"is this supposed to work like this".
+
+**Cloud and Enterprise customers** have their support channel through their account.
+
+## Before you ask
+
+Two pages answer most of what comes up, and checking them first usually saves a round trip:
+
+- [Connection Denied](/manage/access-control/connection-denied) — a connection is refused
+- [Device Not Appearing](/manage/devices/device-not-appearing) — a device is missing or offline
+
+## What to include
+
+The difference between a fast answer and three days of clarifying questions:
+
+**Which edition and version.** Community, Cloud or Enterprise, and the version:
+
+```bash
+$ grep SHELLHUB_VERSION .env      # self-hosted
+```
+
+**Self-hosted or Cloud.** They fail differently.
+
+**The access mode.** Identity or legacy — it changes which authorization model is even running.
+See [How Authorization Works](/manage/access-control).
+
+**How the agent was installed.** Docker, Podman, standalone, WSL, or built into an image.
+
+**What you did, what happened, what you expected.** Concretely. "It does not work" cannot be
+acted on; "`ssh root@ns.device@server` returns permission denied, and the device shows online in
+the console" can.
+
+**Logs, if the server is yours:**
+
+```bash
+$ ./bin/docker-compose logs --tail 200
+```
+
+**Agent logs, from the device:**
+
+```bash
+$ docker logs <container>
+$ journalctl -u shellhub-agent -n 200
+$ sudo snap logs shellhub
+```
+
+## What not to include
+
+Redact before pasting:
+
+- The contents of `.env.override` — it has your database password
+- API keys and install keys
+- Private keys, always
+- Tenant IDs, if you would rather not have them public
+
+Log output can carry addresses and hostnames too. A quick read before pasting is worth it.
+
+## Reporting a security issue
+
+Do **not** open a public issue. There are two private routes: a
+[GitHub Security Advisory](https://github.com/shellhub-io/shellhub/security/advisories/new),
+which is the preferred one and is visible only to maintainers, or `security@shellhub.io`. Receipt
+is confirmed within two business days.
+
+ShellHub follows coordinated disclosure, assigns a CVE to every confirmed vulnerability, and
+publishes an advisory once a fix exists. The
+[security policy](https://github.com/shellhub-io/shellhub/blob/master/SECURITY.md) carries the
+patch targets by severity and what an advisory contains.
+
+## Contributing a fix
+
+ShellHub is open source and the fix may well be yours. Open an issue first for anything larger
+than a small change, so the discussion happens before the work; for a small one, the pull request
+is the discussion. Branch, push, open the PR against the relevant repository.
+
+[CONTRIBUTING.md](https://github.com/shellhub-io/shellhub/blob/master/CONTRIBUTING.md) has the
+rest, including the code of conduct every interaction is expected to follow, and the repository's
+README covers getting the stack running.
+
+## Where to go next
+
+- [FAQ](/about/faq) — Short answers to common questions.
+- [Troubleshooting](/selfhosted/troubleshooting) — Self-hosted server problems.

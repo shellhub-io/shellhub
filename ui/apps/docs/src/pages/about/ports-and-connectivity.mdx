@@ -1,0 +1,92 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Ports and Connectivity
+description: What has to be reachable on the device side and on the server side, and what does not.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Ports and Connectivity
+
+This page exists so you can answer the network team's questions in one go.
+
+## On the device
+
+**Outbound access to the ShellHub server's HTTP(S) address. That is the whole requirement.**
+
+The agent dials the address you gave it in `SHELLHUB_SERVER_ADDRESS` and holds that connection
+open. It does not listen. Nothing has to be forwarded to it, published for it, or arranged in
+advance.
+
+That means all of the following are fine, with no configuration:
+
+- Behind NAT, including carrier-grade NAT with no public address at all
+- Behind a corporate firewall that only permits outbound web traffic
+- Behind an HTTP proxy
+- On a mobile or satellite link
+- On a network you do not administer, such as a customer's
+
+If a browser on that device could load a web page from your server, the agent can connect.
+
+<Callout variant="info">
+ShellHub does not require the device to be reachable, but the **server** does have to
+be. That is the asymmetry the whole design rests on: one reachable server, any number of
+unreachable devices.
+</Callout>
+
+## On the server
+
+| Port | Variable | Default | What for |
+|---|---|---|---|
+| HTTP | `SHELLHUB_HTTP_PORT` | `80` | Web console, API, and the agents' connections |
+| HTTPS | `SHELLHUB_HTTPS_PORT` | `443` | The same, with TLS. **Only bound when `SHELLHUB_AUTO_SSL=true`** |
+| SSH | `SHELLHUB_SSH_PORT` | `22` | Native SSH clients |
+
+Two details that surprise people:
+
+**The HTTPS port is not bound unless auto-SSL is on.** The port mapping lives in an overlay that
+is only applied when `SHELLHUB_AUTO_SSL=true`. If you terminate TLS somewhere else, you are
+publishing HTTP and your proxy is doing the rest.
+
+**SSH does not go through the gateway.** The SSH port is published by the server process
+directly. The gateway handles web traffic only. If you are putting a load balancer in front of
+ShellHub, the SSH port needs its own path — it is not HTTP and it will not survive an HTTP proxy.
+
+## Behind a load balancer
+
+If a Layer 4 load balancer sits in front of the server, set `SHELLHUB_PROXY=true` so ShellHub
+reads the client address from the PROXY protocol header rather than seeing the balancer's.
+
+`SHELLHUB_PROXY_TRUSTED_IPS` decides which peers are allowed to declare a client address. It
+defaults to `0.0.0.0/0 ::/0`, which trusts everyone — fine when nothing but your balancer can
+reach the port, and wrong if that is not true.
+
+This matters beyond cosmetics: the client address is what login lockout and any source-IP
+restriction in an access policy are keyed on. Get it wrong and both are operating on the
+balancer's address.
+
+If you terminate TLS at a reverse proxy that speaks HTTP — nginx, Caddy, Traefik — you do not
+need this flag.
+
+## TLS
+
+Three ways to get a certificate:
+
+**Automatic.** Set `SHELLHUB_AUTO_SSL=true` and `SHELLHUB_DOMAIN` to a name that resolves to the
+server. Certificates are obtained from Let's Encrypt and renewed for you. This requires the
+server to be reachable for the challenge.
+
+**Your own certificate.** Set `SHELLHUB_TLS_CERT_FILE` and `SHELLHUB_TLS_KEY_FILE` to paths
+inside the gateway container. Set **both** — with only one, the gateway will not start.
+
+**Terminate elsewhere.** Leave auto-SSL off, publish HTTP, and let your existing proxy or load
+balancer hold the certificate.
+
+`SHELLHUB_ACME_CA_SERVER` points at a different ACME directory if you are using an internal CA.
+Empty means Let's Encrypt production.
+
+## Where to go next
+
+- [Environment Variables](/selfhosted/environment-variables) — Every variable, with defaults.
+- [Self-Hosting Quickstart](/selfhosted/quickstart) — Bring a server up.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — When the agent cannot get through.

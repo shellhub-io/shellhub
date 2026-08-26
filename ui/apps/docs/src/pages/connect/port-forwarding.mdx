@@ -1,0 +1,100 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Port Forwarding
+description: Reach a service running on the device, or on the device's network, as if it were local.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Port Forwarding
+
+Port forwarding is what turns "I can get a shell" into "I can reach the thing that shell can
+reach". Standard SSH local forwarding works through ShellHub.
+
+## Reaching a service on the device
+
+A database bound to localhost on the device, reachable at `localhost:5432` on your machine:
+
+```bash
+$ ssh -L 5432:localhost:5432 root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+Then connect your client to `localhost:5432` as usual. The service does not need to be listening
+on anything but loopback — the agent is on the device, so loopback is local to it.
+
+That is the common case and it is genuinely useful: a web admin interface, a database, a metrics
+endpoint, all of them bound to `127.0.0.1` on a device you cannot otherwise reach.
+
+## Reaching something else on the device's network
+
+The forward target is resolved *by the device*, so it does not have to be the device itself:
+
+```bash
+$ ssh -L 8080:192.168.1.50:80 root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+Now `localhost:8080` on your machine reaches a web interface on `192.168.1.50` — a PLC, a camera,
+a switch — on a LAN that has no route to you at all.
+
+This is worth dwelling on, because it is the widest thing ShellHub does. One device with an agent
+becomes a way in to everything that device can see. A device on a factory network is a way to
+reach the factory network.
+
+<Callout variant="warning">
+Access policies grant access to a **device**, and a device that can reach other things
+passes that reach along. If a device sits somewhere sensitive, be deliberate about who gets a
+policy for it.
+</Callout>
+
+## Keeping the forward without a shell
+
+`-N` opens the forward and no terminal:
+
+```bash
+$ ssh -N -L 5432:localhost:5432 root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+Add `-f` to background it. To close it, kill the process — or use a control socket, which is
+tidier:
+
+```bash
+$ ssh -M -S ~/.ssh/cm-pi -fNT -L 5432:localhost:5432 pi
+$ ssh -S ~/.ssh/cm-pi -O exit pi
+```
+
+## Several at once
+
+Repeat `-L`:
+
+```bash
+$ ssh -N \
+    -L 5432:localhost:5432 \
+    -L 8080:localhost:80 \
+    -L 9090:localhost:9090 \
+    pi
+```
+
+## Reverse forwarding is refused
+
+`ssh -R` does not work. The server declines every reverse forwarding request, and there is no
+setting that enables it. To reach a service on the device from outside, publish a
+[web endpoint](/connect/web-endpoints) instead.
+
+## Authorization
+
+A forward rides on a session, so it is governed by whatever authorized that session. Policies
+grant a device and a set of unix logins; there is no separate per-port permission.
+
+The practical consequence: granting somebody shell on a device grants them forwarding from it
+too. If you need someone to reach one service and nothing else, ShellHub's port forwarding is not
+the mechanism — a [web endpoint](/connect/web-endpoints) is closer, since it publishes exactly
+one service.
+
+Authorization is checked when the session is established. A long-lived `-N` forward was authorized
+once, at the start, and revoking access does not tear it down. See
+[How Authorization Works](/manage/access-control).
+
+## Where to go next
+
+- [Web Endpoints](/connect/web-endpoints) — Publishing one HTTP service at a URL instead.
+- [Container Access](/connect/container-access) — Reaching containers on the device.

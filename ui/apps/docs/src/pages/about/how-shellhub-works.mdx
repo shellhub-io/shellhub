@@ -1,0 +1,131 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: How ShellHub Works
+description: Concepts, architecture, and the path an SSH connection takes from your terminal to a device.
+---
+
+import Callout from "../../components/Callout.astro";
+
+import DiagramReverseConnectivity from '../../components/DiagramReverseConnectivity.astro';
+import DiagramConnectionFlow from '../../components/DiagramConnectionFlow.astro';
+
+# How ShellHub Works
+
+ShellHub has two moving parts. A **server**, which every device and every user talks to, and an
+**agent**, which runs on each device you want to reach. Everything else in this documentation is
+a consequence of how those two behave.
+
+## The connection is made by the device
+
+Reaching a machine over the internet normally means the machine has to be reachable: a public
+address, an open inbound port, or a tunnel you built in advance. That works when you own the
+network. It stops working the moment the device sits behind carrier-grade NAT, on a customer's
+LAN, or on a mobile link.
+
+ShellHub turns the direction around. The agent opens the connection outbound, to the server, and
+holds it open. When you want to reach the device, your session is routed through the connection
+that already exists.
+
+<DiagramReverseConnectivity />
+
+The practical consequence is that the device needs exactly one thing from its network: the
+ability to reach the ShellHub server's HTTP(S) address. No inbound port, no public IP, no static
+address, and no change to the network it happens to be plugged into. If the device can load a web
+page, ShellHub can reach it.
+
+## The server
+
+The server is where every agent's connection terminates and where every user session starts. It
+registers devices, tracks which ones are online, works out who is connecting, decides whether
+that person is allowed, bridges the session down the agent's connection, and records it when
+recording is switched on.
+
+You can run it yourself or use the managed [ShellHub Cloud](https://cloud.shellhub.io). Which
+components it is made of and how to operate them belong to
+[Self-Hosted](/selfhosted/quickstart) — from the outside it is one address.
+
+## The agent
+
+The agent is a small daemon on the device. It does three things: it connects outbound to the
+server and keeps that connection alive, it registers the device and reports its hostname and
+identity, and it serves whatever you ask for over the connection — a shell, a file transfer, a
+forwarded port, a container session.
+
+It is the only piece that runs outside the server. It never listens for inbound connections.
+
+A few of its behaviors are worth knowing because they show up in troubleshooting. It sends a
+keepalive every 30 seconds by default (`SHELLHUB_KEEPALIVE_INTERVAL`). When the connection drops
+it retries with a backoff capped at 60 seconds by default
+(`SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT`, accepted range 10–120). It generates a private key on
+first run if one is not already at `SHELLHUB_PRIVATE_KEY`, and that key is what identifies the
+device from then on — delete it and the device comes back as a new one.
+
+See [Agent Configuration](/get-started/agent-configuration) for the full set.
+
+## Namespaces
+
+A namespace is the workspace everything else lives inside: devices, members, policies, settings.
+It has a name you can change, and a **Tenant ID** — an immutable UUID that devices, API keys and
+sessions actually reference.
+
+A namespace also carries its **SSH access mode**, which decides how connections are authorized.
+Namespaces created today start in identity mode. See
+[How Authorization Works](/manage/access-control).
+
+<Callout variant="info">
+Community is single-namespace. The one namespace is created at setup, and the server
+refuses to create another. Cloud and Enterprise allow as many as you need.
+</Callout>
+
+## SSHID
+
+One server address fronts every device, so the address you type has to say which device you mean.
+ShellHub encodes that into the SSH username, the same way web servers used the `Host` header to
+put many sites on one IP:
+
+```
+username@namespace.device@server
+```
+
+For example:
+
+```bash
+$ ssh root@mycompany.raspberrypi@cloud.shellhub.io
+```
+
+| Part | Value | Meaning |
+|---|---|---|
+| `root` | SSH username | The unix user on the device |
+| `mycompany` | Namespace | Which workspace |
+| `raspberrypi` | Device hostname | Which device in that namespace |
+| `cloud.shellhub.io` | Server | The ShellHub server address |
+
+The server splits the string on the **first** `@` to get the username, then splits what remains on
+the **first** `.` to get the namespace and hostname. Because the whole thing is just an SSH
+username, every client understands it with no plugin: OpenSSH, PuTTY, `scp`, `sftp`, Ansible.
+
+## The path a connection takes
+
+<DiagramConnectionFlow />
+
+1. You run `ssh root@mycompany.raspberrypi@cloud.shellhub.io`.
+2. The connection reaches the ShellHub server.
+3. The server parses the SSHID and resolves the namespace and the device.
+4. It works out **who you are** — from the key you presented, a password, or an approval you
+   confirm in the browser.
+5. It **authorizes** the connection against the namespace's access policies.
+6. It finds the connection the agent already has open.
+7. Your terminal I/O is bridged down that connection to the agent.
+8. The agent opens a shell on the device and joins it to the session.
+
+Step 5 happens before the server mints anything for the agent, so a refused connection never
+reaches the device at all.
+
+The web terminal takes a different route in — your browser opens a WebSocket to the server
+instead of an SSH connection — and exactly the same route out.
+
+## Where to go next
+
+- [Ports and Connectivity](/about/ports-and-connectivity) — What has to be reachable, on both ends.
+- [Self-Hosted vs. Cloud](/about/self-hosted-vs-cloud) — Which deployment fits you.
+- [Onboarding Guide](/get-started) — Put the agent on a device.

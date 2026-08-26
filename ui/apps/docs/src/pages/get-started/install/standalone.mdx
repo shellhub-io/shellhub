@@ -1,0 +1,100 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Standalone Binary
+description: Run the ShellHub agent as a native binary under systemd.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Installing the Standalone Binary
+
+The fallback, and the right choice on any machine where you would rather not run a container
+runtime. The agent is a single Go binary managed by systemd.
+
+## Install
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+The installer falls back to this method when Docker, Podman, Snap and WSL all fail to match. To
+force it on a machine that has a container runtime:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
+```
+
+<Callout variant="info">
+The standalone install pairs like the container ones do: give it nothing and it prints a
+link. See [Enrolling Devices](/get-started/enrolling-devices).
+</Callout>
+
+## What gets installed
+
+The binary goes to `/usr/local/bin` by default. Override with `INSTALL_DIR`:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_DIR=/opt/shellhub/bin \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+Alongside it, a systemd unit that starts the agent at boot and restarts it if it exits.
+
+## Why this is the leanest option
+
+No container runtime, no image layer, one process. On a constrained device — a gateway with
+limited flash, a board where you control exactly what runs — this is usually what you want.
+
+It is also the method that fits an image you build yourself. If you are producing a Yocto or
+Buildroot image, you are installing this binary, just at build time rather than with curl. See
+[Buildroot](/get-started/install/buildroot) and [Yocto Project](/get-started/install/yocto).
+
+## Configuration
+
+Environment variables on the systemd unit. Use a drop-in so an upgrade does not overwrite them:
+
+```bash
+$ sudo systemctl edit shellhub-agent
+```
+
+```ini
+[Service]
+Environment=SHELLHUB_SERVER_ADDRESS=https://shellhub.example.com
+Environment=SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
+Environment=SHELLHUB_PRIVATE_KEY=/var/lib/shellhub/device.key
+```
+
+Then reload and restart:
+
+```bash
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart shellhub-agent
+```
+
+See [Agent Configuration](/get-started/agent-configuration) for the full set.
+
+**Put the private key somewhere persistent.** The agent generates it on first run, and it is the
+device's identity. If it lands somewhere that gets wiped, the device comes back as a new one.
+
+## Managing the agent
+
+```bash
+$ systemctl status shellhub-agent
+$ journalctl -u shellhub-agent -f
+$ sudo systemctl restart shellhub-agent
+```
+
+## Uninstalling
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+## Where to go next
+
+- [Agent Configuration](/get-started/agent-configuration) — Every variable.
+- [Building from Source](/get-started/install/build-from-source) — Compile it yourself.

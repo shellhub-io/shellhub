@@ -1,0 +1,94 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Login Approvals
+description: When a login pauses for a confirmation in the browser, and how the freshness window works.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Login Approvals
+
+Most connections go straight through: the key resolves to an identity, policies grant it, the
+session opens.
+
+Two situations pause a login and ask for a confirmation in the console instead.
+
+## First use of a key
+
+When a client offers a key the namespace has never seen, ShellHub does not refuse it. It holds the
+login open and asks a member to approve.
+
+Approving binds that key to the approving account. From then on the key **is** an identity, and
+every later connection with it is recognized immediately — no approval, no wrapper, a stock
+OpenSSH client.
+
+This is the approve-once model. The alternative — approving every login — is what
+`require_reauth` is for, and it is off by default.
+
+The approval carries a **code**, which is both its name and its secret; the server prints it in
+the terminal banner so the person approving can confirm they are approving the login actually in
+front of them, not somebody else's.
+
+If nobody approves, the login stays pending and eventually fails. Rejecting refuses the connection
+and binds nothing.
+
+You can skip this step by adding the key ahead of time on the SSH Identities page — the usual
+move for a CI runner or a server key, where nobody is watching for a prompt. See
+[SSH Identities](/manage/access-control/ssh-identities).
+
+## Re-authentication required by a policy
+
+A policy can carry `require_reauth`. When it grants a connection, the identity must confirm out of
+band before the session opens, even though the key is already known.
+
+Use it on the paths that deserve a deliberate step: production, a privileged login, a device
+nobody should reach absent-mindedly.
+
+### The freshness window
+
+`reauth_period` decides how often the confirmation is actually demanded. It is a window in
+seconds, and **the freshness belongs to the identity, not to a connection.**
+
+That distinction is the whole point:
+
+- **Window set** — one confirmation covers every login with that key until the window lapses.
+  Confirm once in the morning, work all day.
+- **Window unset, or `0`** — confirm on every single login. The only genuinely per-connection
+  setting.
+
+An identity that has never re-authenticated is always challenged.
+
+The window is measured against the identity's **last re-authenticated** timestamp, which moves
+only on a successful re-authentication — not on ordinary use.
+
+### When several policies match
+
+The **strictest** requirement wins: if any matching allow requires re-authentication, the
+connection requires it, at the shortest window among them.
+
+This is deliberate. Without it, a broad "all members, all devices" grant with no re-auth would
+silently shadow the narrow policy you wrote specifically to protect production.
+
+<Callout variant="warning">
+Service accounts never re-authenticate. There is no human to complete the step, so
+demanding one would hang the connection. See
+[Service Accounts](/manage/access-control/service-accounts).
+</Callout>
+
+## The two side by side
+
+| | First use of a key | Re-authentication |
+|---|---|---|
+| Why it appeared | The key is not an identity yet | A policy requires fresh confirmation |
+| What confirming does | Binds the key to the approver | Refreshes the identity's freshness window |
+| Creates anything | Yes, a new identity | No |
+| Happens again | No — the key is now an identity | When the window lapses |
+
+An approval is `pending`, then `confirmed` or `rejected`. There is no stored expired state — a
+pending approval past its deadline simply reads as unknown, and is pruned later.
+
+## Where to go next
+
+- [SSH Identities](/manage/access-control/ssh-identities) — Adding keys ahead of time.
+- [Policy Reference](/manage/access-control/policy-reference) — `require_reauth` and `reauth_period`.
+- [Connection Denied](/manage/access-control/connection-denied) — When a pause is actually a refusal.

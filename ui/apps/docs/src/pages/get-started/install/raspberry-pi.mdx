@@ -1,0 +1,44 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Raspberry Pi
+description: Prepare a card image that enrolls itself on first boot.
+---
+
+# Raspberry Pi
+
+Prepare a card image that registers itself on first boot, for units you will not have
+hands on again.
+
+## Prerequisites
+
+- An [install key](/manage/devices/install-keys). A pairing code accepts one device and cannot
+  be used in an image
+- A reference card you will re-image
+
+## Installing the agent
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_KEY=<your-install-key> INSTALL_METHOD=standalone sh
+```
+
+## Removing the device key before imaging
+
+```bash
+$ sudo systemctl stop shellhub-agent
+$ sudo rm -f /etc/shellhub.key
+```
+
+The device key is the identity of the device. An image containing one assigns the same
+identity to every card written from it.
+
+## Verifying
+
+Write two cards and start both.
+
+Expected result: Two devices appear in the console, each carrying the tags configured
+on the install key.
+
+## Where to go next
+
+- [Using install keys](/manage/devices/install-keys)
+- [Yocto project](/get-started/install/yocto)

@@ -1,0 +1,128 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Ansible
+description: Run playbooks against devices reached through ShellHub.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Ansible
+
+ShellHub ships an Ansible collection, `shellhub.core`, whose dynamic inventory plugin lists the
+devices in a namespace and connects to each one through the gateway. Ansible treats them like any
+other SSH host.
+
+## Installing the collection
+
+```bash
+$ git clone https://github.com/shellhub-io/ansible-collection.git
+$ ansible-galaxy collection install ./ansible-collection
+```
+
+<Callout variant="warning" title="Not on Galaxy yet">
+`ansible-galaxy collection install shellhub.core` does not resolve — the collection is not
+published. Install it from the repository until it is.
+</Callout>
+
+## The inventory
+
+The source file's name must end in `shellhub.yml`, which is how Ansible knows to hand it to the
+plugin:
+
+```yaml
+# inventory.shellhub.yml
+plugin: shellhub.core.devices
+api_url: https://cloud.shellhub.io
+ssh_user: root
+ssh_key: ~/.ssh/id_ed25519
+keyed_groups:
+  - key: shellhub_tags
+    prefix: tag
+```
+
+The plugin authenticates with a namespace [API key](/api/api-keys), which also tells the server
+which namespace to list. Pass it in the environment rather than the file:
+
+```bash
+$ export SHELLHUB_API_KEY=...
+$ ansible-inventory -i inventory.shellhub.yml --graph
+$ ansible -i inventory.shellhub.yml tag_production -m ping
+```
+
+Every option can come from the file or the environment:
+
+| Option | Environment | Default |
+|---|---|---|
+| `api_url` | `SHELLHUB_API_URL` | `https://cloud.shellhub.io` |
+| `api_key` | `SHELLHUB_API_KEY` | *(required)* |
+| `ssh_host` | `SHELLHUB_SSH_HOST` | the host of `api_url` |
+| `ssh_port` | `SHELLHUB_SSH_PORT` | `22` |
+| `ssh_user` | `SHELLHUB_SSH_USER` | `root` |
+| `ssh_key` | `SHELLHUB_SSH_KEY` | *(none)* |
+
+### What it puts in the inventory
+
+Only accepted devices, paged through the API. For each one:
+
+| Variable | |
+|---|---|
+| `ansible_host` | The gateway. The same for every device |
+| `ansible_user` | The device's SSHID, `<ssh_user>@<namespace>.<device>` |
+| `shellhub_tags` | The device's tags, which is what `keyed_groups` groups on |
+| `shellhub_online` | Whether it is connected |
+| `shellhub_namespace` | The namespace the key resolved to |
+
+`ansible_host` being identical for every host is the whole point: one inventory reaches machines
+on networks that have no route to each other, and the device is identified entirely by
+`ansible_user`.
+
+Because tags arrive as host facts, a device tagged `production` lands in the `tag_production`
+group with the `keyed_groups` above — and a device tagged after the fact joins on the next run,
+with no inventory to edit. See [Tags](/manage/devices/tags).
+
+## Authentication
+
+Ansible presents an SSH key like any client, and that key must be an
+[SSH identity](/manage/access-control/ssh-identities).
+
+**Add the key ahead of time.** If it is not already an identity, the first connection parks
+waiting for somebody to approve it in the console — which for a playbook run means it hangs.
+Nobody is watching for that prompt at 3am.
+
+For scheduled runs, put the key on a
+[service account](/manage/access-control/service-accounts) rather than a person's identity. The
+run is then attributed to `ansible-runner` in the session list, and it does not break when
+somebody leaves.
+
+## Authorization
+
+Every host in the play is authorized separately, as its own connection. A play across fifty
+devices is fifty authorizations.
+
+So the policy needs to cover the whole set — usually a policy granting the service account a tag,
+with the unix login the playbook uses:
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Ansible to fleet | allow | Service account `ansible-runner` | tag `production` | `root` |
+
+A device the policy misses fails in the play as unreachable, which is the correct behavior and
+looks like a network problem. If a subset of hosts fails, check the policy before the network.
+
+## Performance
+
+Every connection goes through the ShellHub server, so a play against a large fleet has a different
+shape to one on a LAN. Pipelining helps by reducing round trips:
+
+```ini
+[ssh_connection]
+pipelining = True
+```
+
+`ControlMaster` also works — see [SSH Client Configuration](/connect/ssh-clients) — but note that
+a persisted connection is authorized once, when it opens.
+
+## Where to go next
+
+- [Service Accounts](/manage/access-control/service-accounts) — The right principal for a runner.
+- [SSH Client Configuration](/connect/ssh-clients) — Aliases and multiplexing.

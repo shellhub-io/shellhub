@@ -1,0 +1,81 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: ShellHub vs. Jump Hosts and VPNs
+description: How ShellHub differs from a bastion, a VPN, or a mesh network, and when each one is the right tool.
+---
+
+# ShellHub vs. Jump Hosts and VPNs
+
+If you already reach your devices somehow, it is worth being precise about what changes. This
+page compares ShellHub to the three things it usually replaces.
+
+## The jump host
+
+A bastion is a machine with a public address that you SSH into first, and from there you SSH
+onward to whatever you actually wanted. It is the oldest answer and it still works.
+
+What it costs you: the bastion is a public inbound surface you have to keep patched, the target
+machines still have to be reachable *from* the bastion, so you are still arranging network for
+them, and access is expressed as SSH keys sitting in `authorized_keys` files across the fleet. To
+remove one person you go find their key everywhere it landed. The audit trail says which key was
+used, not who used it.
+
+What ShellHub does differently: the target devices dial out, so there is nothing to arrange for
+them and no second hop. Access is a policy naming a person, evaluated centrally at connection
+time. Removing someone is one revocation, in one place.
+
+What a bastion still does better: it is one box and it is yours. If your requirement is "as few
+moving parts as possible and nothing phones home", a bastion is honestly hard to beat.
+
+## The VPN
+
+A VPN puts your machine and the target on the same network, and then you connect as if you were
+local.
+
+What it costs you: the VPN concentrator is infrastructure to run and a public inbound surface of
+its own. Client configuration drifts, and it breaks when networks change. Most importantly, being
+on the VPN usually means being able to reach a lot more than the one machine you needed — the
+grant is network-shaped, not access-shaped.
+
+What ShellHub does differently: nothing joins a network. A device is a destination, not a
+participant, so reaching one device grants nothing about any other. Access is per device and per
+unix login, not per subnet.
+
+What a VPN still does better: arbitrary protocols to arbitrary hosts, including things ShellHub
+does not carry, and access to devices that cannot run an agent at all.
+
+## The mesh network
+
+A mesh — WireGuard-based overlays and similar — gives every machine an address on a private
+network and lets them talk to each other directly, usually peer to peer.
+
+What it costs you: every peer is on the overlay, so a compromised laptop is adjacent to
+everything else on it. Containing that is what posture checks and network policies exist for, and
+those are real work to configure and keep correct.
+
+What ShellHub does differently: there is no overlay and no peer-to-peer. Devices connect to the
+server and nowhere else, so devices cannot reach each other through ShellHub at all. There is no
+lateral movement to contain because there is no path between two devices to move along.
+
+What a mesh still does better: machine-to-machine traffic, low latency by going direct, and
+anything that genuinely needs an IP-level network rather than access to a specific device.
+
+## Choosing
+
+| | Jump host | VPN | Mesh | ShellHub |
+|---|---|---|---|---|
+| Inbound port on targets | Needed | Needed on the concentrator | Not needed | **Not needed** |
+| Devices can reach each other | Via the bastion | Yes, usually broadly | Yes, by design | **No** |
+| Access granted as | A key in a file | Network membership | Network policy | **A policy naming a person** |
+| Removing one person | Find every key | Revoke the profile | Revoke the peer | **One revocation** |
+| Audit says | Which key | Which client | Which peer | **Which person** |
+| Arbitrary protocols | Via forwarding | Yes | Yes | Shell, files, ports, HTTP |
+| **Best for** | One team, few hosts, minimal infrastructure | Full network access to internal systems | Machines that must talk to each other | Reaching devices you do not own the network for |
+
+They are not exclusive. Plenty of people run a mesh for their internal systems and ShellHub for
+the fleet in the field, because the two problems are genuinely different.
+
+## Where to go next
+
+- [How ShellHub Works](/about/how-shellhub-works) — The mechanism behind the middle column.
+- [How Authorization Works](/manage/access-control) — What replaces the keys in files.

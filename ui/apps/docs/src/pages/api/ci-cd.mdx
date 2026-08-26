@@ -1,0 +1,106 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: CI/CD Pipelines
+description: Deploy to devices from a pipeline, without giving it a person's credentials.
+---
+
+# CI/CD Pipelines
+
+A pipeline reaching devices through ShellHub is an SSH client like any other. What makes it worth
+its own page is the credential question — get that wrong and the pipeline either breaks
+unpredictably or is over-privileged.
+
+## Set it up correctly, once
+
+**1. Create a service account.** Not a person's key. On the SSH Identities page, add a key for a
+new service account named for the pipeline — `ci-deploy`.
+
+Two things this buys you: the session list attributes deploys to `ci-deploy` rather than to
+whoever set it up, and the pipeline does not break the week that person leaves. See
+[Service Accounts](/manage/access-control/service-accounts).
+
+**2. Add the key ahead of time.** A key that is not yet an identity parks the login waiting for a
+browser approval. In a pipeline that is a hang, then a timeout, on a job nobody is watching.
+
+**3. Write a policy for it.** An `all-members` allow does **not** cover a service account:
+
+| Name | Effect | Subject | Devices | Logins |
+|---|---|---|---|---|
+| Deploy to production | allow | Service account `ci-deploy` | tag `production` | `deploy` |
+
+Grant the unix login it actually needs. If the deploy runs as `deploy`, do not grant `root`.
+
+**4. Put the private key in the pipeline's secret store.** Nowhere else.
+
+## Using it
+
+GitHub Actions:
+
+```yaml
+- name: Deploy
+  env:
+    SSH_KEY: ${{ secrets.SHELLHUB_DEPLOY_KEY }}
+  run: |
+    install -m 600 /dev/stdin ~/.ssh/id_ed25519 <<< "$SSH_KEY"
+    ssh -o StrictHostKeyChecking=accept-new \
+      deploy@mycompany.gateway-01@cloud.shellhub.io \
+      'systemctl restart myservice'
+```
+
+GitLab CI:
+
+```yaml
+deploy:
+  script:
+    - install -m 600 /dev/stdin ~/.ssh/id_ed25519 <<< "$SHELLHUB_DEPLOY_KEY"
+    - ssh -o StrictHostKeyChecking=accept-new
+        deploy@mycompany.gateway-01@cloud.shellhub.io
+        'systemctl restart myservice'
+```
+
+`StrictHostKeyChecking=accept-new` accepts the ShellHub server's host key on first use. Pinning it
+properly is better if your runner has persistent state — and be aware that regenerating the
+server's SSH host key changes it.
+
+## Deploying to a fleet
+
+Do not enumerate devices in the pipeline. Query them by tag and iterate, so a device added next
+month is included without an edit:
+
+```bash
+$ curl -s -H "X-API-Key: $SHELLHUB_API_KEY" \
+    "https://cloud.shellhub.io/api/devices" | \
+  jq -r '.[] | select(.tags[]? == "production") | .name' | \
+  while read -r device; do
+    ssh "deploy@mycompany.$device@cloud.shellhub.io" 'systemctl restart myservice'
+  done
+```
+
+That needs both credentials, and they are different things: an
+[API key](/api/api-keys) to list devices, and the service account's SSH key to connect. Neither
+substitutes for the other.
+
+For anything beyond a loop, use [Ansible](/api/ansible).
+
+## Short-lived credentials
+
+For a genuinely one-shot job — a provisioning run, a migration — a service account key can be
+**single use**: spent after one connection. Combined with an expiry, that is the tightest
+credential available.
+
+## What to watch for
+
+**A device the policy misses** fails as unreachable, which looks like a network problem. Check the
+policy before the network.
+
+**Ephemeral runners** each connect fresh, so the key must already be an identity — a runner cannot
+complete a browser approval.
+
+**Sessions are attributed and recorded** like any other. If recording is on, pipeline sessions are
+recorded too.
+
+## Where to go next
+
+- [Service Accounts](/manage/access-control/service-accounts) — The principal a pipeline should hold.
+- [Ansible](/api/ansible) — Beyond a shell loop.
+- [Install Keys](/manage/devices/install-keys) — Enrolling what the pipeline creates.

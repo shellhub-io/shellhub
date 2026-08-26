@@ -1,0 +1,106 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: SSH Identities
+description: Bind SSH keys to a person or a service account, and revoke them in one place.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# SSH Identities
+
+An SSH identity binds a public key to a principal — a person, or a service account. The key is
+the credential; the identity is who it belongs to.
+
+Identities are scoped to a namespace. The same key can be an identity in more than one namespace,
+and one principal can hold several keys — a laptop, a workstation, a CI runner. Within a
+namespace, a fingerprint maps to exactly one identity.
+
+Manage them under **SSH Identities** in the console.
+
+## Where identities come from
+
+| Source | What it is | What revoking does |
+|---|---|---|
+| **Manual** | Somebody pasted or uploaded the public key on the SSH Identities page | The next login with it needs approval again |
+| **At login** | A member approved the key when a client offered one the namespace had not seen | The next login with it needs approval again |
+| **Browser** | The web terminal generated the key inside a browser | That browser registers a new key next time it opens a terminal |
+
+A browser key is generated in the browser and held non-extractably: it cannot be exported, works
+only there, and dies with that browser's site data.
+
+<Callout variant="warning">
+The source is a label, not a security boundary. Only the approval path is asserted by
+the server, so nothing authorizes on the strength of a source alone.
+</Callout>
+
+## Approve once, then connect normally
+
+The first time a native client offers a key the namespace does not know, a member approves it in
+the console, and that approval binds the key to the approving account. Every later connection
+with that key is recognized immediately.
+
+A stock OpenSSH client is all you need — no wrapper, and no approval on every login. See
+[Login Approvals](/manage/access-control/login-approvals).
+
+## Adding a key ahead of time
+
+You do not have to wait for a first connection. **Add a Key** takes an OpenSSH public key that
+already exists — a server key, a CI runner's key — so its first connection works with no approval
+step.
+
+When adding, you choose who it belongs to:
+
+- **Yourself** — another of your own identities. Name it for where it lives, like `laptop`.
+- **A new service account** — a non-human identity for an automated system, separate from you.
+  Name it for the system, like `ci-bot`.
+
+Two things are rejected: a string that is not a valid public key, and a key that is already an
+identity in this namespace.
+
+Adding keys ahead of time is the right move for anything unattended, because nobody is watching a
+console to approve a pipeline's first run at 3am.
+
+## Lifecycle
+
+By default a key is durable: no deadline, reusable, valid until revoked.
+
+Two optional limits:
+
+**Expiry.** A key can carry an expiry, after which it stops being an identity. Nil means never.
+
+**Single use.** Only offered for a service account's key, whose one key serves one automated run.
+Once consumed, it is spent.
+
+The console marks a key approaching its deadline or already spent, so a stale identity is visible
+in the list rather than discovered at connection time.
+
+An expired or consumed key is rejected outright — it does not fall back into the approval flow and
+quietly re-enroll itself.
+
+## Revoking
+
+Revoking removes the binding, and takes effect on the next connection. What that means depends on
+where the key came from — see the table above.
+
+Revocation is per key, in one place. You do not touch the devices, and other keys held by the same
+principal keep working.
+
+<Callout variant="warning">
+Revoking does not interrupt a session that is already open. Authorization is evaluated
+when the connection is made. To end a live session, end the session.
+</Callout>
+
+## Two timestamps
+
+Worth knowing because they answer different questions:
+
+- **Last used** moves every time the key is resolved to its identity — the answer to "is this key
+  still in use".
+- **Last re-authenticated** moves only on a successful re-authentication, and is what a policy's
+  re-auth window is measured against.
+
+## Where to go next
+
+- [Service Accounts](/manage/access-control/service-accounts) — Identities with no human behind them.
+- [Access Policies](/manage/access-control/access-policies) — Deciding what an identity reaches.
+- [Login Approvals](/manage/access-control/login-approvals) — The approve-once flow.

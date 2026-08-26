@@ -1,0 +1,79 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Multi-Factor Authentication
+description: Add a second factor to console sign-in.
+---
+
+import EditionBanner from "../../../components/EditionBanner.astro";
+
+# Multi-Factor Authentication
+
+MFA adds a time-based one-time code to signing in to the console.
+
+<EditionBanner>
+MFA is available on **Cloud** and **Enterprise**.
+</EditionBanner>
+
+## Enabling it
+
+From your profile's Security section.
+
+![The Profile page Security section with the Enable MFA option](/img/account/mfa-enable.gif)
+
+Scan the QR code with an authenticator app:
+
+![MFA QR Code waiting to be scanned](/img/account/mfa-setup.png)
+
+Then confirm with a code from the app. From then on, sign-in asks for one:
+
+![Login requiring 6-digit code](/img/account/mfa-login.png)
+
+## Recovery codes
+
+Setup produces a set of recovery codes. Save them somewhere that is not the phone holding the
+authenticator.
+
+![Recovery codes screen](/img/account/mfa-recovery-codes.png)
+
+Each is single use, and they are the way back in when the authenticator is lost. Lose both and
+recovery becomes a support matter.
+
+![Recovery mail](/img/account/mfa-recovery-mail.png)
+
+## What MFA covers
+
+**Console sign-in.** That is its scope.
+
+It does not gate SSH connections. An SSH connection is authorized by
+[access policies](/manage/access-control/access-policies) against an
+[SSH identity](/manage/access-control/ssh-identities), and MFA is not part of that path.
+
+If you want a second, deliberate step in front of *connections* rather than sign-in, that is
+`require_reauth` on a policy — see [Login Approvals](/manage/access-control/login-approvals). The
+two are complementary: MFA protects the account, re-auth protects a connection.
+
+## MFA and API keys
+
+Every MFA endpoint refuses API keys. It is a human-only flow by construction — an API key holder
+has no browser and no authenticator, and allowing one to manipulate MFA state would undermine the
+point.
+
+An automation that needs to reach devices should hold a
+[service account](/manage/access-control/service-accounts), which never has MFA because it never
+signs in.
+
+## Account lockout
+
+Separate from MFA but related: repeated failed sign-ins lock an account for a period, 60 minutes
+by default, configurable with `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT`. Setting it to 0 disables the
+lockout.
+
+Lockout is keyed on the client address, resolved through `SHELLHUB_PROXY_TRUSTED_IPS` — so a
+self-hosted deployment behind a load balancer without that set correctly will lock out on the
+balancer's address, which is to say everybody at once. See
+[Ports and Connectivity](/about/ports-and-connectivity).
+
+## Where to go next
+
+- [Single Sign-On (SAML)](/manage/team/single-sign-on) — Delegating sign-in to your IdP.
+- [Login Approvals](/manage/access-control/login-approvals) — A second factor on connections.

@@ -1,0 +1,123 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Yocto Project
+description: Add the agent to a product image with the ShellHub layer.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Yocto Project
+
+ShellHub maintains an OpenEmbedded layer, so the agent ships with your firmware without
+you writing a recipe. Use it rather than packaging the agent yourself.
+
+## Prerequisites
+
+- A Yocto build environment on a supported release. The layer declares compatibility with
+  `styhead`, `whinlatter` and `wrynose`
+- An [install key](/manage/devices/install-keys), so units register themselves with nobody
+  present
+
+## Adding the layer
+
+```bash
+$ git clone https://github.com/shellhub-io/meta-shellhub.git
+$ bitbake-layers add-layer ../meta-shellhub
+```
+
+The layer depends only on `meta` from openembedded-core, so it drops into an existing
+build without pulling anything else in.
+
+## Adding the agent to the image
+
+```bitbake
+IMAGE_INSTALL:append = " shellhub-agent"
+```
+
+There is also `packagegroup-shellhub-runtime`, which pulls the agent and its runtime
+dependencies. Either works; the packagegroup is the one to prefer when your image is
+assembled from packagegroups already.
+
+The agent's own dependencies come with it — `openssh-scp` so file transfer works, and
+`shadow` so the login you connect as can be resolved.
+
+## Configuring it
+
+Set these in `local.conf` or your distro configuration:
+
+```bitbake
+SHELLHUB_SERVER_ADDRESS = "https://cloud.shellhub.io"
+SHELLHUB_INSTALL_KEY = "<your-install-key>"
+```
+
+| Variable | Default |
+|---|---|
+| `SHELLHUB_SERVER_ADDRESS` | `https://cloud.shellhub.io` |
+| `SHELLHUB_PRIVATE_KEY` | `/etc/shellhub-agent.key` |
+| `SHELLHUB_INSTALL_KEY` | *(none)* |
+| `SHELLHUB_TENANT_ID` | *(none, deprecated)* |
+
+These are written into `/etc/default/shellhub-agent`, which the service reads at start.
+One of the two registration variables is required — the configuration recipe stops the
+build rather than producing an image that registers nowhere.
+
+<Callout variant="warning">
+The two are mutually exclusive, and setting both fails the build. There is
+no precedence rule on purpose: an image that registers through a source you did not
+choose is the thing worth failing over.
+</Callout>
+
+`SHELLHUB_TENANT_ID` is deprecated. It remains for integrations that already ship with
+it; use the install key for anything new.
+
+<Callout variant="info">
+The layer puts the device key at `/etc/shellhub-agent.key`. The installation
+script uses `/etc/shellhub.key` instead, so the two paths are not interchangeable if you
+are comparing an image build against a machine you installed by hand.
+</Callout>
+
+**Why the tenant is the wrong one.** A device registering with the tenant alone goes
+through the namespace's legacy registration path, which holds it for manual review —
+so a production run arrives as a queue of pending devices rather than a working fleet. An
+install key also carries tags, so a policy can cover the batch before anybody opens the
+console. See [Using install keys](/manage/devices/install-keys).
+
+## The key must be writable and must not be in the image
+
+The agent generates its device key when the file is missing. Two consequences, and both
+of them bite in production:
+
+**The key path has to be writable and to survive a reboot.** On a read-only root
+filesystem, or a path on a volatile partition, every boot produces a new identity and a
+new device in the console.
+
+**No key may be baked into the image.** Every unit written from an image containing one
+claims the same identity, and you get a single device that appears to move between
+machines instead of a fleet.
+
+## Init systems
+
+The recipe installs a systemd unit or a sysvinit script, following your image's
+`DISTRO_FEATURES`. Neither needs configuration beyond the variables above.
+
+## Overriding the tenant per image
+
+The layer ships `shellhub-rootfs-postcommand.bbclass` for the case where one build feeds
+several namespaces. Inherit it and set `SHELLHUB_ROOTFS_TENANT_ID`, and the tenant in the
+generated configuration is rewritten as the rootfs is assembled, without a rebuild of the
+agent.
+
+It rewrites the tenant only. A build that registers by install key does not need it.
+
+## Verifying
+
+Write the image to two devices and start both.
+
+Expected result: Two devices appear, each carrying the install key's tags, and each with
+its own identity.
+
+## Where to go next
+
+- [Using install keys](/manage/devices/install-keys)
+- [Buildroot](/get-started/install/buildroot)
+- [Agent configuration](/get-started/agent-configuration)

@@ -1,0 +1,53 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Troubleshooting
+description: Find the guide for what is not working. Each one lives next to the feature it covers.
+---
+
+# Troubleshooting
+
+Pick the area closest to what is failing. Every guide below lives beside the feature it covers,
+so none of this is a second copy that drifts from the first.
+
+## Connecting
+
+| | |
+|---|---|
+| A connection is refused | [Connection Denied](/manage/access-control/connection-denied) |
+| A login hangs instead of refusing | [Login Approvals](/manage/access-control/login-approvals) — a key waiting to be approved |
+| Sessions from a legacy namespace behave differently | [Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy) |
+
+## Devices
+
+| | |
+|---|---|
+| A device never showed up | [Device Not Appearing](/manage/devices/device-not-appearing) |
+| It arrived pending instead of accepted | [Install Keys](/manage/devices/install-keys) — the key's mode decides |
+| A device came back that you deleted | [Device Not Appearing](/manage/devices/device-not-appearing#did-an-old-device-come-back-instead) |
+
+## Signing in
+
+| | |
+|---|---|
+| SAML fails | [SAML Sign-In Fails](/manage/team/sso-not-working) — check the licence first |
+| Somebody cannot see a device | [User Roles](/manage/team/user-roles) |
+
+## Your own server
+
+| | |
+|---|---|
+| The stack will not come up, or a service is unhealthy | [Troubleshooting](/selfhosted/troubleshooting) |
+| Certificates, the database, the gateway | [Troubleshooting](/selfhosted/troubleshooting) |
+| It broke after an upgrade | [Upgrade](/selfhosted/upgrade) |
+
+## Automation
+
+| | |
+|---|---|
+| A playbook or pipeline hangs at connect | The key is not an identity yet. [SSH Identities](/manage/access-control/ssh-identities) |
+| A generated client returns 404 | The spec was the wrong edition. [OpenAPI Specification](/api/openapi) |
+
+## Still stuck
+
+[Getting Support](/help/support) has where to ask, what to include so the first answer is useful,
+and what to redact before pasting.

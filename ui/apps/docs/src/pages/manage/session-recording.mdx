@@ -1,0 +1,81 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Session Recording
+description: Capture and replay terminal sessions — in the browser, or on the server.
+---
+
+# Session Recording
+
+ShellHub can capture what happened in a terminal session and play it back. There are **two**
+recording mechanisms, and they are genuinely different — mixing them up is the most common
+misunderstanding on this page.
+
+## Two mechanisms
+
+| | Browser-local | Server-side |
+|---|---|---|
+| Edition | **Community**, Cloud, Enterprise | Cloud and Enterprise |
+| Where the recording lives | In the browser that opened the session | On the server |
+| Covers | Web terminal sessions from that browser | Every session, including native SSH clients |
+| Survives clearing site data | No | Yes |
+| Available to other members | No | Yes |
+
+**Browser-local recording is in Community.** The web terminal records the session in the browser
+and keeps it there. It is real and useful for reviewing your own work, and it is not an audit
+trail: it is on one machine, it belongs to one person, and it disappears with the browser's site
+data.
+
+**Server-side recording is Cloud and Enterprise.** It is made by the server, so it covers sessions
+from any client, is stored centrally, and is available to anyone with permission. That is the one
+that satisfies a compliance requirement.
+
+So "does Community have session recording" has an honest answer of "yes, but probably not the kind
+you mean".
+
+## Turning server-side recording on
+
+It is a namespace setting.
+
+![Session recording playback](/img/sessions/session-recording-enable.gif)
+
+It applies to new sessions. Sessions already running are unaffected.
+
+## Playing a recording
+
+From the session's detail page.
+
+![Session recording playback](/img/sessions/session-play.gif)
+
+The player replays the terminal in real time — what was typed, what was displayed, and the timing
+between them.
+
+## What is captured, and what is not
+
+**Captured:** everything the terminal displayed, everything typed, and terminal resizes.
+
+**Not captured:** file transfer payloads, and forwarded port traffic. A recording will show
+somebody ran `scp`; it will not show the file's contents. It will show they opened a forward; it
+will not show what went through it.
+
+Know that before relying on recordings for an audit requirement.
+
+## Privacy
+
+A recording captures whatever appeared on screen. That includes passwords typed at an interactive
+prompt, tokens in environment output, and the contents of any file somebody `cat`s.
+
+Tell your team recording is on. Use
+[connection announcements](/manage/settings) so the terminal itself says so at login.
+
+## Storage
+
+Server-side recordings need somewhere to live. Enterprise uses object storage,
+configured with the `SHELLHUB_OBJECT_STORAGE_*` variables and pointed at MinIO by default.
+
+That storage grows with session activity, and it is **not** covered by a PostgreSQL dump. Backing
+up the database does not back up the recordings — see [Backup](/selfhosted/backup).
+
+## Where to go next
+
+- [Sessions](/manage/sessions) — The session list itself.
+- [Settings](/manage/settings) — Recording and announcements.

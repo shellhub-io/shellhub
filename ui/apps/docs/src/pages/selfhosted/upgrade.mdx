@@ -1,0 +1,86 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Upgrade
+description: Move a self-hosted deployment to a newer ShellHub release.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Upgrade
+
+`SHELLHUB_VERSION` decides which image tag every service runs. Changing it and recreating the
+containers is the upgrade; everything else on this page is what to do around that.
+
+<Callout variant="warning">
+Read the release notes for every version between the one you are on and the one you are moving
+to. Migrations and breaking changes are announced there and nowhere else.
+</Callout>
+
+## Before you start
+
+**Back up.** The database and the secrets, and verify the dump is readable. See
+[Backup](/selfhosted/backup).
+
+**Read the release notes** for every version between where you are and where you are going, not
+just the target. Migrations and breaking changes live there.
+
+**Know your current version:**
+
+```bash
+$ grep SHELLHUB_VERSION .env
+```
+
+## The shape of it
+
+Get the new sources:
+
+```bash
+$ git fetch --tags
+$ git checkout <the-tag-you-want>
+```
+
+Do not hardcode a version from documentation — including this page. Pick a real tag from the
+[releases page](https://github.com/shellhub-io/shellhub/releases).
+
+Your settings survive, because they are in `.env.override` and not in `.env`. If you edited `.env`
+directly, the checkout has just overwritten your changes — which is why the quickstart says not
+to.
+
+Then pull and recreate:
+
+```bash
+$ ./bin/docker-compose pull
+$ make stop
+$ make start
+```
+
+## Afterwards
+
+Check the services are up and the logs are clean:
+
+```bash
+$ ./bin/docker-compose ps
+$ ./bin/docker-compose logs -f
+```
+
+Then check a device actually connects. Services being up is not the same as the product working —
+open a session before you call it done.
+
+## Agent versions
+
+Agents do not have to match the server, and updating the server does not update them. Snap
+installs refresh themselves; container and standalone installs stay where they are until you move
+them.
+
+One hard boundary: the server refuses public-key authentication from agents older than 0.6.0
+unless `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` is set — note the spelling.
+
+## If it goes wrong
+
+Check the tag back out, pull, and restart. If a migration ran, restore the database from the
+backup you took — which is why the first instruction on this page is to take one.
+
+## Where to go next
+
+- [Backup](/selfhosted/backup) — Do this first.
+- [Troubleshooting](/selfhosted/troubleshooting) — When it does not come back up.

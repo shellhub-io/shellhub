@@ -1,0 +1,19 @@
+---
+import Callout from "./Callout.astro";
+---
+
+<Callout
+  variant="warning"
+  title="This is the legacy access model"
+  action={{
+    href: "/manage/access-control/migrating-from-legacy",
+    label: "Migrating from the legacy model",
+  }}
+>
+  <slot>
+    Namespaces created today start in identity mode, where access is decided by
+    <a href="/manage/access-control/ssh-identities">SSH identities</a> and
+    <a href="/manage/access-control/access-policies">access policies</a>. In identity mode
+    this page describes something that is not running.
+  </slot>
+</Callout>

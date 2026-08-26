@@ -1,0 +1,97 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: FAQ
+description: Short answers to the questions that come up most often.
+---
+
+# Frequently Asked Questions
+
+## Does the device need a public IP?
+
+No. The agent connects outbound and holds that connection open. Nothing about the device's
+network has to change. See [Ports and Connectivity](/about/ports-and-connectivity).
+
+## Do I have to open a port on the device?
+
+No. The agent never listens.
+
+## Does the server need a public address?
+
+Yes. The asymmetry is the point: one reachable server, any number of unreachable devices. If you
+are self-hosting, the server is the thing that has to be reachable.
+
+## Which operating systems does the agent run on?
+
+Linux, on `amd64`, `armv6`, `armv7`, `arm64` and `386`. FreeBSD is supported through the
+[ShellHub ports tree](https://github.com/shellhub-io/ports) rather than the installer.
+
+## Do I need a special SSH client?
+
+No. The SSHID is encoded as an ordinary SSH username, so OpenSSH, PuTTY, `scp`, `sftp` and
+Ansible all work with nothing installed. See [SSH Client Configuration](/connect/ssh-clients).
+
+## Can I use ShellHub without installing anything on my own machine?
+
+Yes — the web terminal runs in the browser. See [Connecting to a Device](/connect).
+
+## Is ShellHub a VPN?
+
+No. Nothing joins a network. A device is a destination, not a participant, and devices cannot
+reach each other through ShellHub. See
+[ShellHub vs. Jump Hosts and VPNs](/about/shellhub-vs-jump-hosts).
+
+## Can two devices talk to each other through ShellHub?
+
+No. There is no path between two devices.
+
+## What happens when the device loses its connection?
+
+The agent retries with a backoff capped at 60 seconds by default. The device shows as offline
+until it reconnects, and reconnects on its own once the network is back.
+
+## What happens if I delete the agent's private key?
+
+The device comes back as a new one. The key at `SHELLHUB_PRIVATE_KEY` is what identifies the
+device — keep it on persistent storage.
+
+## Is session recording available in Community?
+
+Yes, recorded in the browser that opened the session and kept there. Recording on the **server**,
+stored centrally, is Cloud and Enterprise. See [Session Recording](/manage/session-recording).
+
+## Can I have more than one namespace?
+
+Not on Community, which is single-namespace by design. Cloud and Enterprise allow many. See
+[Editions](/about/editions).
+
+## Is SAML SSO available on Cloud?
+
+No — SAML is Enterprise only. It is the one capability Cloud does not include.
+
+## How many devices can I connect?
+
+Self-hosted Community has no limit. The Cloud free plan is limited to 3 devices.
+
+## Does revoking someone's access kill their open session?
+
+No. Authorization is evaluated when the connection is made. A session already open continues
+until it is closed. See [How Authorization Works](/manage/access-control).
+
+## Why was my connection refused?
+
+There are four distinct reasons and they point at different fixes. See
+[Connection Denied](/manage/access-control/connection-denied).
+
+## Can an API key do everything a user can?
+
+No. A number of routes explicitly refuse API keys — namespace membership operations, install key
+management, MFA, and user management among them. See [API Keys](/api/api-keys).
+
+## Which database does ShellHub use?
+
+PostgreSQL. Earlier releases used MongoDB; that is gone.
+
+## Where do I report a bug?
+
+[GitHub Issues](https://github.com/shellhub-io/shellhub/issues). See
+[Getting Support](/help/support).

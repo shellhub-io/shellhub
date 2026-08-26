@@ -1,0 +1,142 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Device Not Appearing
+description: The agent is installed and the device is not in the list, or is offline.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Device Not Appearing
+
+The agent is installed and the device is not where you expect. Work down this page in order — it
+goes from most to least common.
+
+## Is it in Pending?
+
+Check the **Pending** tab before anything else. A device enrolled with only a tenant ID lands
+there and waits to be accepted. It is not broken; it is queued.
+
+Accept it and it comes online. To stop needing to, use an
+[install key](/manage/devices/install-keys). See
+[Accepting Devices](/manage/devices/accepting).
+
+## Is the agent running?
+
+Depends on how it was installed:
+
+```bash
+$ docker ps | grep shellhub        # Docker
+$ podman ps | grep shellhub        # Podman
+$ snap services shellhub           # Snap
+$ systemctl status shellhub-agent  # standalone
+$ service shellhub status          # FreeBSD
+```
+
+If it is not running, the logs say why:
+
+```bash
+$ docker logs <container>
+$ sudo snap logs shellhub
+$ journalctl -u shellhub-agent -n 50
+```
+
+## Is the configuration right?
+
+Two variables are required, and a mistake in either produces a device that never appears.
+
+**`SHELLHUB_SERVER_ADDRESS`** — must include the scheme. `https://shellhub.example.com`, not
+`shellhub.example.com`. Self-hosted deployments often have this pointing at the default Cloud
+address by accident.
+
+**`SHELLHUB_TENANT_ID`** — required for Snap and standalone installs. Optional for Docker and
+Podman, which fall back to pairing mode when it is absent — so a container install with no tenant
+is not misconfigured, it is waiting to be paired. Run `shellhub-agent login` on the host. See
+[Enrolling Devices](/get-started/enrolling-devices).
+
+A typo'd variable name is ignored silently, which is a particularly quiet way to fail. Check the
+spelling against [Agent Configuration](/get-started/agent-configuration).
+
+## Can the device reach the server?
+
+From the device:
+
+```bash
+$ curl -sS -o /dev/null -w '%{http_code}\n' https://shellhub.example.com/info
+```
+
+A `200` means the path is fine and the problem is elsewhere. Anything else is network or DNS, and
+that is what to fix.
+
+The agent needs only outbound access — no inbound port, no public address. If a browser on that
+device could load a page from your server, so can the agent. See
+[Ports and Connectivity](/about/ports-and-connectivity).
+
+## Does it show up under a name you did not expect?
+
+The device name defaults to the system hostname. On a fleet where every unit reports the same
+hostname, or a container with a random one, the device is there but not called what you are
+looking for.
+
+Set `SHELLHUB_PREFERRED_HOSTNAME` to something meaningful.
+
+## Did an old device come back instead?
+
+If a device you expected to be new appears as an existing entry — or vice versa — the private key
+is the reason.
+
+`SHELLHUB_PRIVATE_KEY` **is** the device's identity. The consequences:
+
+- **Same key, new machine** → it is the same device to ShellHub.
+- **Key lost** — reflashed, container recreated, volume wiped — → a **new** device, with the old
+  entry left behind.
+
+The second is by far the most common cause of a device list that does not match reality. Put the
+key on persistent storage.
+
+If you are building images, be sure the key is *not* baked in — every unit flashed from an image
+containing a key claims the same identity. See
+[Yocto](/get-started/install/yocto) and [Buildroot](/get-started/install/buildroot).
+
+## It appeared, then went offline
+
+Normal, if brief. The agent keepalives every 30 seconds and reconnects with a backoff capped at 60
+seconds by default, so a short network problem resolves itself.
+
+Staying offline has a real cause. Check the agent is still running, then the network.
+
+**On WSL specifically:** the distribution shuts down when the last terminal closes, and the agent
+goes with it. See [WSL](/get-started/install/wsl).
+
+**After a reboot, on Podman:** the container does not come back. Podman has no daemon, so
+containers are started at boot by `podman-restart.service`, which only starts those with a restart
+policy of `always` or `unless-stopped` — and the installer creates the agent container with
+`on-failure`. Docker is unaffected. Until that changes, either give the container a policy the
+boot service starts:
+
+```bash
+$ sudo podman update --restart=always shellhub
+$ sudo systemctl enable --now podman-restart.service
+```
+
+or generate a systemd unit for it and enable that instead.
+
+## An install key was involved
+
+If the device enrolled with an install key, the key's mode decides where it lands: `automatic`
+accepts it, `manual` puts it in Pending, `webhook` asks your endpoint, `allowlist` accepts it only
+if its MAC is listed.
+
+A device rejected by an allowlist or a webhook did enroll — it was refused. Check the key's
+history. See [Install Keys](/manage/devices/install-keys).
+
+<Callout variant="warning">
+A webhook that points at an internal address is **not called** unless its range is in
+`SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS`, which defaults to blocking private, loopback and
+metadata addresses.
+</Callout>
+
+## Where to go next
+
+- [Enrolling Devices](/get-started/enrolling-devices) — The four enrollment paths.
+- [Agent Configuration](/get-started/agent-configuration) — Every variable and its real name.
+- [Connection Denied](/manage/access-control/connection-denied) — The device is there but refuses you.

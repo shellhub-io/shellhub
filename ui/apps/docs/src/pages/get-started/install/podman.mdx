@@ -1,0 +1,78 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Podman
+description: Run the ShellHub agent as a Podman container.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Installing on Podman
+
+Podman is the installer's second choice, picked when Podman is present and usable in rootful mode
+and Docker is not available.
+
+## Install
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+To force Podman on a machine that also has Docker:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=podman sh
+```
+
+<Callout variant="info">
+Give it nothing at all and the agent pairs: it prints a link, and opening the link
+accepts the device. An install key is for when nobody is at the machine. See
+[Enrolling Devices](/get-started/enrolling-devices).
+</Callout>
+
+## Rootful only
+
+The installer checks that Podman works in **rootful** mode and declines otherwise.
+
+This is not arbitrary. The agent opens shells as arbitrary unix users, reads and writes files
+across the host filesystem, and forwards ports. Rootless Podman cannot do those things, so an
+agent installed that way would appear to work and then fail at the moment somebody tried to use
+it.
+
+If rootful Podman is not something you want on the machine, use the
+[standalone binary](/get-started/install/standalone).
+
+## What gets installed
+
+The same image the Docker method uses, `docker.io/shellhubio/agent`, run under Podman, plus the
+`shellhub-agent` host wrapper for pairing.
+
+`AGENT_IMAGE` overrides the image if you mirror it internally.
+
+## Managing the agent
+
+```bash
+$ podman ps | grep shellhub
+$ podman logs -f <container>
+$ podman restart <container>
+```
+
+If Podman is managing the container as a systemd unit on your system, use `systemctl` for restart
+and status instead so the unit and the container do not disagree.
+
+## Persistence
+
+`SHELLHUB_PRIVATE_KEY` is the device's identity. Keep it on a volume — if it lives in the
+container's writable layer, recreating the container registers a new device.
+
+## Uninstalling
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh -s uninstall
+```
+
+## Where to go next
+
+- [Agent Configuration](/get-started/agent-configuration) — Every agent variable.
+- [Enrolling Devices](/get-started/enrolling-devices) — Get it into a namespace.

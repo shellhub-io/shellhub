@@ -1,0 +1,185 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Install Keys
+description: Enroll devices at scale, with the right tags, without accepting each one by hand.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Install Keys
+
+An install key is a reusable credential you put in an image or a provisioning script. Devices
+carrying it enroll, get accepted according to the key's mode, and arrive with tags already
+applied.
+
+This is what turns enrollment from an afternoon of clicking into something that happens on its
+own.
+
+## Creating one
+
+On the **Install Keys** page, click **Create Install Key**. A key has:
+
+| Field | Meaning |
+|---|---|
+| **Name** | Unique within the namespace. How you identify it later |
+| **Mode** | How an enrollment is decided |
+| **Expiration** | A date after which the key stops enrolling, or never |
+| **Usage limit** | Single-use, a number of devices, or unlimited |
+| **Ephemeral** | Whether devices enrolled with it are removed after a spell offline |
+| **Tags** | Applied to every device enrolling with the key |
+
+The key is not copy-once. It is stored encrypted and can be read again from the key's activity
+page, by clicking the masked value. Reading it needs the `installKey:reveal` permission, so a role
+that can use the console is not automatically a role that can retrieve a credential.
+
+## Using one
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_KEY=<your-install-key> sh
+```
+
+Or as an agent variable, `SHELLHUB_INSTALL_KEY`, which is how it goes into a
+[Yocto](/get-started/install/yocto) or [Buildroot](/get-started/install/buildroot) image.
+
+## Modes
+
+The mode decides what happens when a device presents the key.
+
+| Mode | Device lands | Use it for |
+|---|---|---|
+| `automatic` | Accepted | Fleets you trust by construction — your own images, your own provisioning |
+| `manual` | Pending | Keeping the human check while still getting tags |
+| `webhook` | Whatever your endpoint says | Deciding from your own inventory |
+| `allowlist` | Accepted if its MAC is listed, rejected otherwise | A known, fixed set of hardware |
+
+### Automatic
+
+The one people mean when they say install key. A device presents it and joins the namespace, with
+the key's tags applied.
+
+The trade is real: anything holding the key can enroll and be accepted. Scope keys narrowly — one
+per product line, per site, per batch — so revoking one does not strand everything.
+
+### Manual
+
+Tags without automatic acceptance. Useful when you want the fleet sorted but still want to look at
+each arrival.
+
+### Webhook
+
+The decision goes to an endpoint of yours, called at enrollment. Your service answers, and its
+answer decides.
+
+This is how you enroll against your own source of truth: an ERP, a manufacturing database,
+whatever knows which serial numbers are genuinely yours.
+
+Bounds worth knowing: the call times out after 5 seconds by default, 15 at most. A deferred
+decision has a callback window, 1 hour by default and 24 hours at most. The request is signed with
+HMAC-SHA256. See [Install Key Webhook](/api/install-key-webhook) for the contract.
+
+What matters without the contract is how it fails. A webhook that does not answer in time **fails
+closed to pending**, not to accepted — the device waits for a human rather than walking in. And a
+device left pending by a webhook or an allowlist key has its enrollment re-evaluated the next time
+the agent authenticates, so a decision that was deferred or blocked resolves on its own once the
+condition clears.
+
+The webhook may only reach a public address. The destination is checked after DNS resolution, so a
+hostname that resolves into a private network is refused too.
+
+### Allowlist
+
+Accepted if the device's MAC is in the key's list, rejected otherwise. For a fixed set of hardware
+you can enumerate in advance.
+
+## Tags
+
+A key applies its tags to every device that enrolls with it. This is the highest-leverage part of
+the whole feature, because tags are what policies select on.
+
+Put the tag on the key and the fleet is governable the moment it arrives — a policy granting
+`tag:production` covers every device that ever enrolls with the production key, including ones
+that do not exist yet. See [Tags](/manage/devices/tags) and
+[Access Policies](/manage/access-control/access-policies).
+
+## Bounding a key
+
+An install key outlives the session you created it in. Three settings bound it without you having
+to remember to.
+
+**Expiration** is a date. Four presets are offered — 30, 60 and 90 days, and a year — and any
+other date can be picked from the calendar beside them. A key with no expiry keeps enrolling
+devices for as long as the namespace exists.
+
+**Usage limit** is how many devices may ever enroll with it: single-use, a count, or unlimited. A
+key cut for one production batch should be capped at that batch.
+
+**Ephemeral** marks the devices it enrolls for automatic removal once they have been offline past
+a timeout, between 1 and 10 minutes. Use it for machines that come and go by design — a CI runner,
+a short-lived container — so the device list reflects what exists rather than everything that ever
+ran.
+
+## Reviewing a pending enrollment
+
+A key in manual mode, and a key whose webhook deferred, leaves devices waiting. They are reviewed
+on the key's activity page rather than in the device list.
+
+Each row is one enrollment attempt: which device, the MAC address, the source address, the
+architecture, the agent version, whether the device was new or enrolling again, and how it was
+resolved. A pending row carries **Accept** and **Reject** beside it. A device that was rejected can
+still be accepted later.
+
+This is the audit trail for enrollment. When a device turns up that you did not expect, this is
+where you find out which key let it in.
+
+<Callout variant="info">
+Install key management refuses API keys. It is a human-only operation.
+</Callout>
+
+## Pausing and revoking
+
+The actions menu on a key offers **Edit**, **Disable** and **Revoke**, and the difference between
+the last two matters.
+
+**Disable** is a pause. The key stops enrolling devices and can be enabled again — the right move
+while you work out whether a key is being misused.
+
+**Revoke** is permanent and cannot be undone. A revoked key never enrolls another device. There is
+no delete: the key stays in the list, which is what keeps the devices it admitted attributable to
+it on their device pages.
+
+Neither affects devices already enrolled. They stay accepted and connected.
+
+## The two keys you did not create
+
+Every namespace's key list carries two rows it manages itself.
+
+**Pairing code** covers devices that pair by the code the agent prints during install, or by the
+link printed with it. There is nothing to reveal and no mode worth setting — the code itself is
+the acceptance.
+
+**Tenant-only enrollment** is the legacy path for devices that enroll with the namespace
+identifier and no key at all. It is deprecated and will be removed. It starts on manual mode,
+which is why a plain tenant-only enrollment lands in **Pending** — but its mode is editable like
+any other, and it is worth confirming nobody has moved it to automatic. On automatic, anything
+holding your namespace identifier enrolls itself.
+
+<Callout variant="warning">
+Do not put a pairing code in an image. A pairing code accepts one device, and every
+machine written from that image will try to use the same one. An install key is the credential
+meant for that job.
+</Callout>
+
+## Treating a key as a secret
+
+A key in an image is a credential you shipped. Anyone with the image has it.
+
+- Scope narrowly — per product line or batch, not one key for everything.
+- Rotate when a batch is done.
+- Prefer `webhook` or `allowlist` over `automatic` when the images go somewhere you do not control.
+- Check the activity page when the device list grows in a way you did not expect.
+
+## Where to go next
+
+- [Install Key Webhook](/api/install-key-webhook) — The contract, if your endpoint decides.
+- [Tags](/manage/devices/tags) — What the key applies, and why it matters.
+- [Accepting Devices](/manage/devices/accepting) — The manual path this replaces.

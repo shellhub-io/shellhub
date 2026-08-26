@@ -1,0 +1,97 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Debugging a CI Run
+description: SSH into a live GitHub Actions runner through ShellHub when a build fails.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Debugging a CI Run
+
+A build that only fails in CI is the worst kind. ShellHub ships a GitHub Action that registers
+the runner itself as a device, so you open a shell on the machine while the job is still standing.
+
+The action installs the agent on the runner, registers it as an ephemeral device, accepts it, and
+removes it when the job ends. The session goes through your own gateway, which is what separates
+this from pasting a tunnel URL into a public log: access is governed by your namespace, the key
+is one you manage, and the session is recorded.
+
+## The step
+
+```yaml
+- uses: shellhub-io/ci-action@v1
+  with:
+    server: https://cloud.shellhub.io
+    tenant-id: ${{ secrets.SHELLHUB_TENANT_ID }}
+    api-key: ${{ secrets.SHELLHUB_API_KEY }}
+```
+
+The job log prints an `ssh` command and a browser URL. The browser URL opens the runner's terminal
+in the console, so you do not need a client at all.
+
+The runner needs Docker, which the GitHub-hosted `ubuntu-*` images have. The API key needs
+permission to accept and remove devices, and to remove public keys when the action manages one for
+you.
+
+## Only when something broke
+
+Waiting on every green build is not the point. Gate the step:
+
+```yaml
+- name: build
+  run: make
+- uses: shellhub-io/ci-action@v1
+  if: failure()
+  with:
+    server: https://cloud.shellhub.io
+    tenant-id: ${{ secrets.SHELLHUB_TENANT_ID }}
+    api-key: ${{ secrets.SHELLHUB_API_KEY }}
+    timeout: 1800
+```
+
+## Blocking or detached
+
+By default the step **blocks**: the job stops there and waits for you. Once you connect it holds
+until you disconnect, and `sudo touch /continue` inside the session releases it early. Connection
+state is read from the runner's `/dev/pts`, so it releases a few seconds after a dropped
+connection rather than hanging on it.
+
+`detached: true` inverts that — the job carries on and the runner stays reachable, with
+`idle-timeout` deciding how long the teardown waits at the end for somebody to connect.
+
+<Callout variant="warning" title="Blocking with timeout: 0 waits forever">
+That is the default, and it is the right one for a failure you are watching. On a job nobody is
+watching it holds a runner until the workflow's own timeout kills it.
+</Callout>
+
+## Authorizing yourself
+
+Your public key has to be authorized in ShellHub, scoped to the device's tags — `github` unless
+you set `tags`. Three ways, and they differ in what is left behind:
+
+| | What you do | Afterwards |
+|---|---|---|
+| **Register it yourself** | Add your key in ShellHub once, scoped to the `github` tag | Persists. Every runner the action registers is reachable |
+| **`public-key`** | Pass the key to the action | Removed on teardown |
+| **`authorize-actor`** | The action fetches the triggering user's keys from GitHub | Removed on teardown |
+
+`authorize-actor: true` requires the actor to have keys and warns when they have none; `auto` is
+best effort and stays quiet.
+
+## Which user you land as
+
+The agent runs as root with host access, so the shell is on the runner itself rather than in a
+container, and you can connect as any user on it:
+
+```
+ssh <user>@<namespace>.ci-<run_id>-<attempt>@cloud.shellhub.io
+```
+
+`ssh-username` pins one user — it is a regular expression, defaulting to `.*` — and the pinned
+name is filled into the command the action prints.
+
+## Where to go next
+
+- [CI/CD Pipelines](/api/ci-cd) — The other direction: a pipeline reaching your devices.
+- [API Keys](/api/api-keys) — What the action authenticates with.
+- [Tags](/manage/devices/tags) — What scopes the access.

@@ -1,0 +1,84 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Snap
+description: Install the ShellHub agent from the Snap Store.
+---
+
+import Callout from "../../../components/Callout.astro";
+
+# Installing with Snap
+
+On a machine with `snapd` and no container runtime, the installer uses Snap.
+
+## Install
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | \
+    INSTALL_KEY=<your-install-key> \
+    sh
+```
+
+Or directly:
+
+```bash
+$ sudo snap install --classic --channel=latest/stable shellhub
+```
+
+<Callout variant="warning" title="Snap is the one method that still needs a tenant">
+It does not pair and it does not take an install key: the script refuses to run without
+`TENANT_ID`, which is the deprecated path and lands the device pending. Every other method
+takes a key or pairs. Your tenant ID is on the namespace settings page.
+</Callout>
+
+## Why classic confinement
+
+The agent opens shells as real unix users and reaches the host filesystem. Strict confinement
+would cut it off from both, so the snap is classic.
+
+That has a consequence worth knowing: **classic snaps cannot be installed on Ubuntu Core.** If
+your target is Ubuntu Core, run the agent as a container under the Docker snap instead.
+
+## Configuration
+
+Snap settings are set with `snap set`:
+
+```bash
+$ sudo snap set shellhub server-address=https://shellhub.example.com
+$ sudo snap set shellhub tenant-id=<your-tenant-id>
+```
+
+Restart the service to apply:
+
+```bash
+$ sudo snap restart shellhub
+```
+
+## Managing the agent
+
+```bash
+$ snap services shellhub          # is it running
+$ sudo snap logs -f shellhub      # what it is doing
+$ sudo snap restart shellhub      # restart it
+```
+
+## Updates
+
+`snapd` refreshes snaps on its own schedule, so the agent updates itself without you doing
+anything. If you need to pin a version, hold the refresh:
+
+```bash
+$ sudo snap refresh --hold shellhub
+```
+
+## Uninstalling
+
+```bash
+$ sudo snap remove shellhub
+```
+
+The installer's `--uninstall` flag does **not** cover Snap — remove it with `snap remove`.
+
+## Where to go next
+
+- [Agent Configuration](/get-started/agent-configuration) — What each setting does.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — If it never shows up.

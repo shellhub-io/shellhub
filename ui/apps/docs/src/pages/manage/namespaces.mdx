@@ -1,0 +1,86 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Namespaces
+description: The workspace that holds your devices, members, policies and settings.
+---
+
+import EditionBanner from "../../components/EditionBanner.astro";
+
+# Namespaces
+
+A namespace is the boundary everything lives inside: devices, members, identities, policies,
+tags, settings. Two namespaces share nothing.
+
+![Namespace Settings page](/img/settings/namespace-settings.png)
+
+## Name and Tenant ID
+
+Every namespace has both, and they do different jobs.
+
+The **name** is human-facing and can be changed. It must be a valid hostname — lowercase, no dots
+— because it appears in an SSHID:
+
+```bash
+$ ssh root@mycompany.raspberrypi@cloud.shellhub.io
+#          ^^^^^^^^^ the namespace name
+```
+
+The **Tenant ID** is an immutable UUID generated when the namespace is created. It is what devices,
+API keys and sessions actually reference.
+
+![Namespace Settings page showing the Tenant ID being copied](/img/settings/namespace-copy-tenant-id.gif)
+
+Renaming a namespace changes every SSHID for it. Anything with a stored SSHID — an SSH config
+alias, an Ansible inventory, a script — breaks. The tenant ID does not change, so agent
+configuration is unaffected.
+
+## Creating one
+
+![Switching namespaces](/img/settings/namespace-create.gif)
+
+<EditionBanner>
+Creating a namespace is on **Cloud** and **Enterprise**. Community is single-namespace: the one
+namespace is created at setup and the server refuses to create another. The route is not
+registered, so an attempt returns 404 rather than an error explaining itself.
+</EditionBanner>
+
+Reasons to have more than one: separating customers, separating environments where the separation
+must be absolute, or separating teams that should not see each other's devices. Within a single
+namespace, [tags](/manage/devices/tags) and
+[access policies](/manage/access-control/access-policies) handle most separation without the
+overhead of a second workspace.
+
+## Switching
+
+![Switching namespaces](/img/settings/namespace-switch.gif)
+
+Membership is per namespace, and so is your role — you can be an administrator in one and an
+observer in another.
+
+## The SSH access mode
+
+A namespace carries its access mode, which decides how connections are authorized. Namespaces
+created today are born in identity mode. Namespaces predating it default to legacy and can be
+switched.
+
+A namespace born in identity mode can never leave it. See
+[How Authorization Works](/manage/access-control).
+
+## Deleting
+
+![Deleting namespaces](/img/settings/namespace-delete.gif)
+
+Deleting takes the devices, identities, policies and history with it. Only the owner can do it —
+an administrator cannot.
+
+Agents keep running on the devices. They no longer have a namespace to enroll into, so stop them
+if the machines are staying in service.
+
+## Device limits
+
+Self-hosted Community has no limit. The Cloud free plan is limited to 3 devices.
+
+## Where to go next
+
+- [Members](/manage/team) — Who is in the namespace.
+- [Settings](/manage/settings) — Recording, announcements, MFA requirements.

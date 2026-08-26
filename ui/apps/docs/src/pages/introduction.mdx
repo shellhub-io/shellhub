@@ -1,0 +1,45 @@
+---
+layout: ../layouts/DocsLayout.astro
+title: Introduction to ShellHub
+description: Learn everything there is to know about ShellHub.
+---
+
+import Callout from "../components/Callout.astro";
+
+# Introduction to ShellHub
+
+ShellHub is an open source platform that gives you access to devices you cannot reach directly.
+You install a small agent on a device, the agent dials out to the ShellHub server, and from then
+on that device — and the things running on it — are available to you through a single address,
+with every connection authorized against the identity of whoever is asking.
+
+<Callout variant="info">
+ShellHub is an **[open-source](https://github.com/shellhub-io/shellhub)** project and
+can be self-hosted. See a comparison between the self-hosted and cloud-hosted versions
+[here](/about/self-hosted-vs-cloud).
+</Callout>
+
+There is no inbound port to open and no public IP to arrange. The device makes the connection, so
+it works from a customer's network, a factory floor, or a cellular link just as well as from a
+rack you own. Once it is connected you can open a terminal, move files, forward a port, step into
+a container, or publish an HTTP service it is running.
+
+It takes a single command on the device to get there.
+
+## Guides
+
+- [Onboarding Guide](/get-started) — Install the agent and reach your first device.
+- [Self-Host ShellHub](/selfhosted/quickstart) — Run your own server with Docker Compose.
+- [How Authorization Works](/manage/access-control) — Decide who may reach which device, as which login.
+- [Add People to Your Namespace](/manage/team) — Invite members and give them roles.
+- [Connect to a Device](/connect) — The web terminal, native SSH, and the SSHID.
+- [Port Forwarding](/connect/port-forwarding) — Reach a service on the device or on its network.
+- [Install Keys](/manage/devices/install-keys) — Enroll devices at scale without a manual step.
+- [MCP Server](/api/mcp) — Let an AI assistant operate your fleet.
+
+## About ShellHub
+
+- [How ShellHub Works](/about/how-shellhub-works) — Concepts, architecture, and the path a connection takes.
+- [ShellHub vs. Jump Hosts and VPNs](/about/shellhub-vs-jump-hosts) — How this differs from what you have now.
+- [Self-Hosted vs. Cloud](/about/self-hosted-vs-cloud) — Compare the deployments and decide which fits.
+- [Editions](/about/editions) — What Community, Cloud, and Enterprise each include.

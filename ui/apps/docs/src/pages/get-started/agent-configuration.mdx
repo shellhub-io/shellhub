@@ -1,0 +1,88 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Agent Configuration
+description: Every environment variable the ShellHub agent reads, with defaults.
+---
+
+# Agent Configuration
+
+The agent is configured entirely through environment variables. Where you put them depends on the
+install method — the container's environment, a systemd drop-in, `snap set`, or `/etc/rc.conf` on
+FreeBSD.
+
+All names take the `SHELLHUB_` prefix. The required ones are also accepted without it, for
+compatibility with older setups.
+
+## Required
+
+| Variable | Meaning |
+|---|---|
+| `SHELLHUB_SERVER_ADDRESS` | The server the agent connects to, e.g. `https://cloud.shellhub.io` |
+| `SHELLHUB_PRIVATE_KEY` | Path to the device's private key. Generated on first run if absent |
+
+**`SHELLHUB_PRIVATE_KEY` is the device's identity.** Whatever else you get wrong, get this one
+right: it must be on storage that survives restarts, reflashes and container recreation, and it
+must be *unique per device*. A key shipped inside an image makes every unit built from that image
+claim to be the same device.
+
+## Enrollment
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_TENANT_ID` | — | Which namespace to join. When empty, and nothing was persisted from an earlier pairing, the agent boots into pairing mode and waits to be accepted |
+| `SHELLHUB_PAIRING_CODE` | — | A pre-authorized code. Read by the container methods only, and nothing in the console mints one today |
+| `SHELLHUB_INSTALL_KEY` | — | A reusable key from the Install Keys page. Rides alongside the tenant ID, applying the key's tags and ephemeral flag |
+
+See [Enrolling Devices](/get-started/enrolling-devices) for how these interact.
+
+## Connection
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | Seconds between keepalives |
+| `SHELLHUB_MAX_RETRY_CONNECTION_TIMEOUT` | `60` | Backoff cap in seconds when reconnecting. Accepted range 10–120 |
+| `SHELLHUB_TRANSPORT_VERSION` | `2` | Transport. `1` uses HTTP-based revdial; `2` uses yamux multiplexing with multistream |
+
+Leave the transport at its default unless you are working around something specific. Version 1
+exists for compatibility with older servers.
+
+## Identification
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_PREFERRED_HOSTNAME` | — | A hint for the device's name, instead of the system hostname |
+| `SHELLHUB_PREFERRED_IDENTITY` | `""` | A hint for the device's identity |
+
+`SHELLHUB_PREFERRED_HOSTNAME` is worth setting on anything whose system hostname is not
+meaningful — a container with a random hostname, or a fleet where every unit reports the same
+one. The device name is what you type in an SSHID and what a policy's hostname filter matches
+against.
+
+## Access
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_SINGLE_USER_PASSWORD` | — | Password hash for single-user mode |
+| `SHELLHUB_SIMPLE_USER_PASSWORD` | — | **Legacy alias** for the above, a preserved typo. Use `SINGLE` in new configuration |
+
+Generate the hash with `openssl passwd`. Single-user mode is for devices with no real user
+accounts to authenticate against.
+
+## Connector
+
+The Connector — the component that exposes containers on a host as devices — takes its own set:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_SERVER_ADDRESS` | — | Required |
+| `SHELLHUB_PRIVATE_KEYS` | — | Required. Note the **plural**: a directory holding one key per container |
+| `SHELLHUB_TENANT_ID` | — | Required. The Connector does not pair |
+| `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | As above |
+| `SHELLHUB_CONNECTOR_LABEL` | `""` | Only manage containers carrying this label |
+
+See [Container Access](/connect/container-access).
+
+## Where to go next
+
+- [Enrolling Devices](/get-started/enrolling-devices) — Getting into a namespace.
+- [Device Not Appearing](/manage/devices/device-not-appearing) — When configuration is the cause.

@@ -1,0 +1,63 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Public Keys
+description: The pre-identity access model, for namespaces still using it.
+---
+
+import LegacyBanner from "../../../components/LegacyBanner.astro";
+
+# Public Keys
+
+<LegacyBanner />
+
+In the legacy model, a public key registered in the namespace *is* the access. Whoever holds the
+matching private key connects.
+
+![The Public Keys page listing registered SSH keys with their scope, fingerprint, and management actions](/img/public-keys/public-keys.png)
+
+## Registering a key
+
+On the **Public Keys** page, paste an OpenSSH public key and give it a name.
+
+Each key carries a scope:
+
+- **Which devices** — all of them, a hostname pattern, or a tag set. This is the same device
+  selector access policies use.
+- **Which unix logins** — a specific username, or any.
+
+A connection is permitted when the presented key is registered and its scope covers the device and
+the login being requested.
+
+## Why this model was replaced
+
+Not because it does not work — it does. Because of what it cannot tell you and cannot do.
+
+**A key is not a person.** The key proves somebody holds the file. It does not say who, and it
+does not stop them handing it on. The audit trail names the key.
+
+**Revocation is a search.** Removing one person's access means finding every key that is theirs
+and removing each one, and being sure you found them all.
+
+**Unlisted devices are reachable.** The legacy model permits by default within a key's scope, and
+firewall rules subtract from that. Get the scope slightly too wide and access exists that nobody
+decided to grant.
+
+The identity model inverts the first — a key is a credential *belonging to* a principal — and
+inverts the last, since access policies are default deny.
+
+## Firewall rules
+
+On Cloud and Enterprise, [firewall rules](/manage/access-control/firewall-rules) restrict what
+keys otherwise permit, matching on source IP, hostname and username.
+
+They are part of this same legacy model and are bypassed entirely in identity mode.
+
+## Managing keys
+
+Keys can be renamed, rescoped and removed. Removing one takes effect on the next connection — a
+session already open is not interrupted.
+
+## Where to go next
+
+- [Migrating from the Legacy Model](/manage/access-control/migrating-from-legacy) — Moving to identities.
+- [Firewall Rules](/manage/access-control/firewall-rules) — The restriction layer.

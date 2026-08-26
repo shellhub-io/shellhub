@@ -1,0 +1,123 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Self-Hosted vs. Cloud
+description: Compare running your own ShellHub server with the managed Cloud, and decide which one fits.
+---
+
+import EditionBanner from "../../components/EditionBanner.astro";
+
+# Self-Hosted vs. Cloud-Hosted ShellHub
+
+ShellHub can be used in two ways: self-hosted and cloud-hosted. The self-hosted version runs on
+your own servers, from the same source that is on GitHub. The cloud-hosted version is hosted by
+us at [cloud.shellhub.io](https://cloud.shellhub.io).
+
+This page is the short answer to what differs.
+
+## What self-hosting actually means
+
+We built ShellHub to remove work, not add it. The whole point is that an admin stops arranging
+public addresses, opening ports, maintaining a jump host and chasing SSH keys across machines,
+and instead installs one agent and gets on with the job. As is usually the case with things that
+feel simple from the outside, a fair amount happens behind them.
+
+Self-hosting means you own all of it. A ShellHub server is not one process: there is a gateway
+terminating TLS, a server process carrying both the API and the SSH endpoint, a web console, a
+PostgreSQL database holding everything that matters, and a cache and task queue. You are
+responsible for keeping those running, for the certificates, for the backups, and for being the
+person who gets paged when a fleet cannot connect.
+
+Two things make that easier than it sounds. It is a small stack — four services plus the
+database — brought up with a single `make start`, and every variable it reads is documented in
+[Environment Variables](/selfhosted/environment-variables).
+
+Two things make it harder. The *server* has to be reachable, unlike your devices, so you need
+somewhere with a stable public address. And you inherit the database: PostgreSQL holds your
+devices, identities and policies, and nothing backs it up for you.
+
+If you are running a homelab, an air-gapped network, or you have a compliance requirement that
+rules out someone else holding your data, self-hosting is the right answer and the docs will get
+you there. If you want to reach some devices and would rather not think about any of the above,
+Cloud is the right answer and there is no shame in it.
+
+Read [How ShellHub Works](/about/how-shellhub-works) before deciding — it is a short page and it
+explains what you would be operating.
+
+## Installation and Maintenance
+
+Self-hosted, you install and maintain every component, and you back up and secure the data. The
+[Self-Hosting Quickstart](/selfhosted/quickstart) gets a working server up in a few commands; the
+ongoing part is yours.
+
+Cloud-hosted, you install the agent on your devices and log in. That is the entire operational
+burden. Updates, certificates, database, and availability are ours.
+
+In both cases the agent side is identical — the same binary, the same install command, the same
+configuration.
+
+## Features
+
+The two share the whole core: the web terminal, native SSH from any client, file transfer, port
+forwarding, container access, tags, roles, API keys, the MCP server, and the full identity-based
+access model with SSH identities, access policies and service accounts. None of that is held
+back.
+
+What Cloud adds is the set of things that either need infrastructure we run or only make sense
+for an organization paying for a service:
+
+- **[Multi-factor authentication](/manage/team/multi-factor-authentication)** on user login.
+- **[Server-side session recording](/manage/session-recording)**, stored centrally rather than in
+  the browser that opened the session.
+- **[Web endpoints](/connect/web-endpoints)**, publishing an HTTP service from a device at a URL.
+- **[Firewall rules](/manage/access-control/firewall-rules)**, the legacy restriction layer.
+- **Multiple namespaces** in one account. Community is limited to one.
+- Password recovery and email confirmation, which need mail infrastructure.
+
+<EditionBanner>
+SAML single sign-on is **Enterprise only**, which is the one place Cloud is not a
+superset of self-hosted. See [Single Sign-On](/manage/team/single-sign-on).
+</EditionBanner>
+
+The Cloud free plan is limited to **3 devices**. Self-hosted Community has no device limit.
+
+## Where Your Data Lives
+
+Self-hosted, everything is in your PostgreSQL instance. Nothing leaves your infrastructure.
+
+Cloud-hosted, it is on ours.
+
+This is usually the deciding factor for regulated environments, and it is a legitimate one.
+
+## Availability
+
+Cloud runs with the redundancy you would expect from a service. Self-hosted, availability is
+whatever you build: a single Docker Compose deployment on one host is a single point of failure,
+and if that host is down, your fleet is unreachable until it comes back.
+
+Devices survive the outage — the agent retries with backoff and reconnects on its own — but
+nobody is opening a terminal in the meantime.
+
+## Quick Comparison
+
+Self-hosting today means running Community, so that is the column.
+
+| Aspect | Self-Hosted (Community) | Cloud-Hosted |
+|---|---|---|
+| **Setup time** | A few commands, plus a host and a domain | Instant |
+| **Infrastructure** | You manage | We manage |
+| **Public address** | You provide one for the server | Provided |
+| **TLS certificates** | Automatic via Let's Encrypt, or bring your own | Managed |
+| **Database** | Your PostgreSQL, your backups | Managed |
+| **Namespaces** | One | Many |
+| **Device limit** | None | 3 on the free plan |
+| **MFA, web endpoints, server-side recording** | Not in Community | Included |
+| **SAML SSO** | Not in Community | Enterprise |
+| **Upgrades** | You choose when | Continuous |
+| **Cost** | Your infrastructure | Subscription |
+| **Best for** | Homelabs, air-gapped networks, data residency and compliance requirements | Teams who want to reach devices without operating a server |
+
+## Get Started
+
+- [Self-Hosting Quickstart](/selfhosted/quickstart) — Bring a server up.
+- [Editions](/about/editions) — What each edition includes, feature by feature.
+- Star the project [on GitHub](https://github.com/shellhub-io/shellhub).

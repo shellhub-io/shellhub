@@ -530,3 +530,91 @@ html {
   font-size: 13px;
 }
 
+/* ── Callouts ──────────────────────────────────────────────────────────────
+   The page already carries three levels of heading, so a callout does not get
+   a fourth. Only danger is allowed to interrupt: it keeps a heavier rule and a
+   stronger wash. The rest state their kind in the reading voice — sentence
+   case, no tracking — and sit on one continuous tint so they read as an aside
+   in the prose rather than a widget dropped into it. */
+
+.prose .callout {
+  --callout: theme('colors.accent.cyan');
+  margin: 22px 0;
+  border-left: 2px solid var(--callout);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--callout) 4%, transparent);
+  padding: 12px 16px;
+}
+
+.prose .callout[data-tone='yellow']  { --callout: theme('colors.accent.yellow'); }
+.prose .callout[data-tone='red']     { --callout: theme('colors.accent.red'); }
+.prose .callout[data-tone='primary'] { --callout: theme('colors.primary.DEFAULT'); }
+
+/* Danger is the one that has to stop someone mid-scroll. */
+.prose .callout[data-tone='red'] {
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--callout) 7%, transparent);
+}
+
+.prose .callout-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 5px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--callout);
+}
+
+.prose .callout-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Bare: no header at all, so the tone is carried by the rule and the wash and
+   nothing else. The word "Note" adds nothing a reader cannot already see, and
+   without an icon beside it, it reads as a heading the callout does not have. */
+.prose .callout[data-bare] .callout-body > :first-child { margin-top: 0; }
+
+.prose .callout-body > :first-child { margin-top: 0; }
+.prose .callout-body > :last-child  { margin-bottom: 0; }
+
+.prose .callout-body p { font-size: 14.5px; margin-bottom: 10px; }
+.prose .callout-body ul { margin: 6px 0 10px 0; }
+
+.prose .callout-action { margin: 10px 0 0 0; font-size: 13px; }
+
+/* The action reads as a next step, not an inline reference, so it takes the
+   callout's hue and drops the underline until hover. */
+.prose .callout-action a {
+  color: var(--callout);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: none;
+}
+
+.prose .callout-action a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Deprecated ────────────────────────────────────────────────────────────
+   A pill for the thing that still works and should not be reached for. It has
+   to survive inside a heading and inside a table cell, so it carries its own
+   size rather than inheriting one, and it never wraps away from what it marks. */
+
+.prose .badge-deprecated {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid color-mix(in srgb, theme('colors.accent.yellow') 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, theme('colors.accent.yellow') 12%, transparent);
+  color: theme('colors.accent.yellow');
+  font-family: theme('fontFamily.mono');
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.prose td .badge-deprecated { margin-left: 0; }

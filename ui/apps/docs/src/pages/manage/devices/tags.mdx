@@ -1,0 +1,66 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Tags
+description: Label devices so policies and filters can select them as a group.
+---
+
+# Tags
+
+A tag is a namespace-scoped label on a device. Tags are how you stop managing devices one at a
+time.
+
+## Why they matter more than they look
+
+A tag is not just a filter for the device list. **Access policies select devices by tag**, which
+makes a tag the unit of governance.
+
+A policy granting `tag:production` to the operator role covers every device carrying that tag —
+including devices that do not exist yet. Tag a new machine `production` and the grant applies. No
+policy is edited, nobody is added to a list.
+
+The alternative is selecting devices by a hostname pattern, which works but is a bet that names
+stay consistent. A tag is a decision recorded at enrollment. Prefer tags.
+
+## Applying them
+
+Three ways:
+
+**In the console** — on a device, or to a selection of devices at once.
+
+**Through an install key** — the key applies its tags to everything that enrolls with it. This is
+the one that scales: a device arrives already tagged, without anyone touching it. See
+[Install Keys](/manage/devices/install-keys).
+
+**Through the API** — for reconciling tags from your own inventory. See
+[API Authentication](/api).
+
+## A scheme that works
+
+Tags are free-form, which means the scheme is your problem. What holds up in practice is tagging
+along the axes you will actually write rules about:
+
+- **Environment** — `production`, `staging`, `lab`
+- **Role** — `gateway`, `sensor`, `kiosk`
+- **Location or customer** — `site-north`, `customer-acme`
+- **Hardware** — `rpi4`, `imx8`
+
+Then a policy is legible: operators get `production`, the field team gets `customer-acme`, the
+firmware team gets `lab`.
+
+What does not hold up is tagging things you already know from elsewhere — the OS and architecture
+are reported by the agent, so a tag repeating them is one more thing to keep correct.
+
+## Filtering
+
+The device list filters by tag, which is how you find things in a fleet of any size.
+
+## Renaming and deleting
+
+Tags are namespace-scoped, so renaming one changes it everywhere at once — including inside
+policies that select on it. Check what selects a tag before renaming it; a policy pointing at a
+tag that no longer exists grants nothing, silently.
+
+## Where to go next
+
+- [Access Policies](/manage/access-control/access-policies) — Granting access by tag.
+- [Install Keys](/manage/devices/install-keys) — Tagging at enrollment.

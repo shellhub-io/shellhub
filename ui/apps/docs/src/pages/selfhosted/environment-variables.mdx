@@ -1,0 +1,138 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Environment Variables
+description: Every server-side variable, with its real name and default.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Environment Variables
+
+Configuration for a self-hosted server. For the *agent's* variables, see
+[Agent Configuration](/get-started/agent-configuration).
+
+## Where to put them
+
+Files are read in order, and the last one wins:
+
+1. `.env` — the defaults. **Do not edit this**; an upgrade overwrites it.
+2. `.env.enterprise` — Enterprise defaults, when the edition is not community.
+3. `../cloud/.env` — when present, for Cloud deployments.
+4. `.env.override` — **yours, and it wins over everything above.**
+
+Put every change in `.env.override`.
+
+```bash
+# .env.override
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_AUTO_SSL=true
+SHELLHUB_POSTGRES_PASSWORD=<not-admin>
+```
+
+## Network
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_BIND_ADDRESS` | `0.0.0.0` | Address the gateway binds |
+| `SHELLHUB_HTTP_PORT` | `80` | HTTP port |
+| `SHELLHUB_HTTPS_PORT` | `443` | HTTPS port. **Only bound when `SHELLHUB_AUTO_SSL=true`** |
+| `SHELLHUB_SSH_PORT` | `22` | SSH port. Published by the server, not the gateway |
+| `SHELLHUB_DOMAIN` | `localhost` | Public domain. Required for auto-SSL |
+| `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
+
+## TLS
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_AUTO_SSL` | `false` | Obtain certificates from Let's Encrypt |
+| `SHELLHUB_TLS_CERT_FILE` | *(empty)* | Path to your own certificate, inside the gateway container |
+| `SHELLHUB_TLS_KEY_FILE` | *(empty)* | Its key. **Set both or the gateway will not start** |
+| `SHELLHUB_ACME_CA_SERVER` | *(empty)* | Alternative ACME directory. Empty means Let's Encrypt production |
+
+## Behind a proxy
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
+| `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
+
+`SHELLHUB_PROXY_TRUSTED_IPS` is what login lockout and access policy source IPs are keyed on. The
+default trusts everyone, which is fine only if nothing but your balancer can reach the port.
+
+## Database
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_DATABASE` | `postgres` | Anything else warns and falls back to postgres |
+| `SHELLHUB_POSTGRES_HOST` | `postgres` | |
+| `SHELLHUB_POSTGRES_PORT` | `5432` | |
+| `SHELLHUB_POSTGRES_USERNAME` | `admin` | Note: `_USERNAME`, not `_USER` |
+| `SHELLHUB_POSTGRES_PASSWORD` | `admin` | **Change this** |
+| `SHELLHUB_POSTGRES_DATABASE` | `main` | Note: `_DATABASE`, not `_DB` |
+| `SHELLHUB_POSTGRES_LOG_LEVEL` | `INFO` | |
+| `SHELLHUB_POSTGRES_LOG_VERBOSE` | `false` | |
+
+## Logging
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` |
+| `SHELLHUB_LOG_FORMAT` | `text` | `text` or `json` |
+| `SHELLHUB_GATEWAY_ACCESS_LOGS` | `true` | |
+| `SHELLHUB_SENTRY_DSN` | *(empty)* | |
+
+## Features and behavior
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_EDITION` | `community` | `community`, `enterprise`, or `cloud` |
+| `SHELLHUB_VERSION` | a release tag | Which image tag to run |
+| `SHELLHUB_CONNECTOR` | `true` | Connector features in the console |
+| `SHELLHUB_METRICS` | `false` | Metrics endpoint |
+| `SHELLHUB_ANNOUNCEMENTS` | `false` | Release announcements |
+| `SHELLHUB_PAYWALL` | `true` | Show Cloud/Enterprise features to Community users |
+| `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Lockout minutes after failed sign-ins; 0 disables |
+| `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Agent-side |
+| `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | 0 means the driver default |
+| `SHELLHUB_WORKER_SCHEDULE` | `@daily` | Cron format |
+| `SHELLHUB_ASYNQ_UNIQUENESS_TIMEOUT` | `24` | Hours; 0 or less disables uniqueness |
+| `SHELLHUB_ONBOARDING_URL` | a survey URL | Empty disables the survey |
+| `SHELLHUB_INSTALL_KEY_WEBHOOK_ALLOWED_CIDRS` | *(empty)* | Empty blocks all private, loopback and metadata addresses |
+| `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` | `false` | Permit public-key auth from agents older than 0.6.0 |
+
+<Callout variant="info">
+`SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` contains a misspelling — "BELLOW".
+That is the real variable name. Reproduce it exactly.
+</Callout>
+
+## Enterprise
+
+From `.env.enterprise`, and only meaningful when the edition is not community.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_ENTERPRISE_ADMIN_USERNAME` | *(empty)* | Enterprise Admin Console |
+| `SHELLHUB_ENTERPRISE_ADMIN_PASSWORD` | *(empty)* | |
+| `SHELLHUB_SAML_SECRET` | *(empty)* | Encrypts the SP's X.509 private key |
+| `SHELLHUB_WEB_ENDPOINTS` | `false` | Enable web endpoints |
+| `SHELLHUB_WEB_ENDPOINTS_DOMAIN` | falls back to `SHELLHUB_DOMAIN` | Domain endpoints are published under |
+| `SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER` | `digitalocean` | DigitalOcean, Cloudflare, or `acme-dns` |
+| `SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN` | *(empty)* | Required with auto-SSL |
+| `SHELLHUB_OBJECT_STORAGE_ENDPOINT` | `http://minio:9000` | Session recording storage |
+| `SHELLHUB_OBJECT_STORAGE_REGION` | `default` | |
+| `SHELLHUB_OBJECT_STORAGE_BUCKET` | `shellhub` | |
+| `SHELLHUB_OBJECT_STORAGE_ACCESS_KEY` | `username` | **Change this** |
+| `SHELLHUB_OBJECT_STORAGE_SECRET_KEY` | `password` | **Change this** |
+| `SHELLHUB_MAXMIND_MIRROR` | *(empty)* | GeoIP source |
+| `SHELLHUB_MAXMIND_LICENSE` | *(empty)* | |
+
+## Applying changes
+
+```bash
+$ make restart
+```
+
+## Where to go next
+
+- [Ports and Connectivity](/about/ports-and-connectivity) — What the network variables mean in practice.
+- [Backup](/selfhosted/backup) — Using the database credentials above.
