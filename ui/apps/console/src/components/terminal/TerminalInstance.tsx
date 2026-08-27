@@ -9,6 +9,10 @@ import { generateSignature } from "@/utils/sshKeys";
 import type { TerminalSession } from "@/stores/terminalStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { useRecordingsStore } from "@/stores/recordingsStore";
+import { OpfsCastRecorder } from "@/utils/recordings";
 import { nextFontSize } from "./fontSizeShortcut";
 import type { TerminalError } from "./terminalErrors";
 import TerminalErrorBanner from "./TerminalErrorBanner";
@@ -23,8 +27,6 @@ import {
 } from "./terminalErrors";
 import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
-import { OpfsCastRecorder } from "@/utils/recordings";
-import { useRecordingsStore } from "@/stores/recordingsStore";
 
 interface TerminalInstanceProps {
   session: TerminalSession;
@@ -49,6 +51,10 @@ export default function TerminalInstance({
   const [approvalCode, setApprovalCode] = useState<string | null>(null);
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
+
+  const tenant = useAuthStore((s) => s.tenant);
+  const { namespace } = useNamespace(tenant ?? "");
+  const isIdentityMode = namespace?.settings?.ssh_access_mode === "identity";
 
   const updateStatus = useCallback(
     (s: "connecting" | "connected" | "disconnected") => {
@@ -283,7 +289,7 @@ export default function TerminalInstance({
             case WS_KIND.ERROR: {
               lastError = true;
               updateStatus("disconnected");
-              setError(resolveError(msg.data, session.deviceUid));
+              setError(resolveError(msg.data, session.deviceUid, isIdentityMode));
               break;
             }
             case WS_KIND.SESSION: {
