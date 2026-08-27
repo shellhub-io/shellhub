@@ -101,7 +101,7 @@ func main() {
 				}).Fatal("Failed to initialize agent")
 			}
 
-			if cfg.TenantID == "" {
+			if !cfg.HasNamespaceCredential() {
 				tenant, err := waitForPairing(cmd.Context(), ag, cfg)
 				if err != nil {
 					log.WithError(err).Fatal("Failed to pair the device")

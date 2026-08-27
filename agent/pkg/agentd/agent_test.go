@@ -436,3 +436,52 @@ func TestAgent_readPublicKey_PathContainment(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigHasNamespaceCredential(t *testing.T) {
+	tests := []struct {
+		description string
+		config      *Config
+		expected    bool
+	}{
+		{
+			description: "has none when neither a tenant nor an install key is set",
+			config:      &Config{},
+			expected:    false,
+		},
+		{
+			description: "has one when the install key is the only credential",
+			config:      &Config{InstallKey: "00000000-0000-4000-0000-000000000000"},
+			expected:    true,
+		},
+		{
+			description: "has one when the tenant is the only credential",
+			config:      &Config{TenantID: "00000000-0000-4000-0000-000000000000"},
+			expected:    true,
+		},
+		{
+			description: "has one when both are set, the key governing acceptance rather than enrollment",
+			config: &Config{
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				InstallKey: "11111111-1111-4111-1111-111111111111",
+			},
+			expected: true,
+		},
+		{
+			description: "has none when only a pairing code is set, since the code is claimed by the pairing flow",
+			config:      &Config{PairingCode: "XDGBESC4"},
+			expected:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.config.HasNamespaceCredential())
+		})
+	}
+}
+
+func TestAgentAuthorizeRequiresANamespaceCredential(t *testing.T) {
+	agent := &Agent{config: &Config{}}
+
+	assert.Equal(t, ErrNewAgentWithConfigEmptyTenant, agent.Authorize())
+}

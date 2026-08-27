@@ -101,9 +101,9 @@ type Config struct {
 	PairingCode string `env:"PAIRING_CODE"`
 
 	// InstallKey is a reusable install key handed to the agent at install time (minted from the
-	// console's Install Keys page). It rides alongside TenantID: the server auto-accepts the device
-	// into the key's namespace, applying the key's tags and ephemeral flag, so it never lands in the
-	// pending list.
+	// console's Install Keys page). The key is namespace-scoped, so it enrolls the device on its own:
+	// with no TenantID configured the server resolves the namespace from the key, applying the key's
+	// mode, tags and ephemeral flag. It may also ride alongside TenantID, which enrolls the same way.
 	InstallKey string `env:"INSTALL_KEY"`
 
 	// Determine the interval to send the keep alive message to the server. This
@@ -153,6 +153,14 @@ type Config struct {
 	// embedding program (where /proc/self/exe is not the agent binary) must set this to point
 	// at a binary/subcommand that runs the SFTP server.
 	SFTPServerCommand func() *exec.Cmd
+}
+
+// HasNamespaceCredential reports whether the configuration carries something naming the namespace
+// the device enrolls into: a tenant ID, or an install key, which is namespace-scoped and so resolves
+// one on its own. A configuration with neither has to pair, the only path that waits on a user.
+// PairingCode does not count, as the pairing flow claims it and returns the tenant it resolved.
+func (c *Config) HasNamespaceCredential() bool {
+	return c.TenantID != "" || c.InstallKey != ""
 }
 
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
@@ -333,11 +341,14 @@ func (a *Agent) Setup() error {
 	return nil
 }
 
-// Authorize registers the device on the ShellHub server within its tenant.
-// [Agent.Setup] must have been run first, and the tenant must be set (either
-// from configuration or injected with [Agent.SetTenantID] after a pairing).
+// Authorize registers the device on the ShellHub server within its namespace.
+// [Agent.Setup] must have been run first, and the device must carry something
+// naming a namespace: a tenant (from configuration, or injected with
+// [Agent.SetTenantID] after a pairing) or an install key, which is
+// namespace-scoped and so enrolls on its own. The tenant an install key
+// resolved to is adopted from the server's response.
 func (a *Agent) Authorize() error {
-	if a.config.TenantID == "" {
+	if !a.config.HasNamespaceCredential() {
 		return ErrNewAgentWithConfigEmptyTenant
 	}
 
@@ -345,11 +356,16 @@ func (a *Agent) Authorize() error {
 		return errors.Wrap(err, "failed to authorize device")
 	}
 
+	if a.config.TenantID == "" {
+		a.config.TenantID = a.authData.TenantID
+	}
+
 	a.closed.Store(false)
 
 	a.logger = log.WithFields(log.Fields{
 		"version":           a.config.Version,
-		"tenant_id":         a.authData.Namespace,
+		"tenant_id":         a.config.TenantID,
+		"namespace":         a.authData.Namespace,
 		"server_address":    a.config.ServerAddress,
 		"ssh_endpoint":      a.serverInfo.Endpoints.SSH,
 		"api_endpoint":      a.serverInfo.Endpoints.API,
