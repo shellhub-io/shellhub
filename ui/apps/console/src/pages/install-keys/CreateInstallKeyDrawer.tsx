@@ -4,7 +4,6 @@ import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useCreateInstallKey } from "@/hooks/useInstallKeyMutations";
-import { useAuthStore } from "@/stores/authStore";
 import { buildInstallCommand } from "@/utils/installCommand";
 import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
@@ -34,7 +33,6 @@ function CreateInstallKeyDrawer({
   onCreated?: (name: string) => void;
 }) {
   const createKey = useCreateInstallKey();
-  const tenant = useAuthStore((s) => s.tenant);
   const [name, setName] = useState("");
   const [mode, setMode] = useState<InstallKeyMode>("automatic");
   const [webhookUrl, setWebhookUrl] = useState("");
@@ -146,7 +144,7 @@ function CreateInstallKeyDrawer({
   };
 
   const installCommand = buildInstallCommand(
-    `TENANT_ID=${tenant} INSTALL_KEY=${generatedKey}`,
+    `INSTALL_KEY=${generatedKey}`,
     window.location.origin,
   );
 

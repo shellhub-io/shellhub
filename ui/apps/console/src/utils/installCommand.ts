@@ -1,5 +1,6 @@
 /**
  * Builds the ShellHub agent install command. Pass the credential env pair:
+ * `INSTALL_KEY=<key>` to enroll into the key's namespace under the key's mode,
  * `TENANT_ID=<id>` to land the device in a namespace's pending list, or
  * `CODE=<code>` for a pre-authorized install that is accepted
  * automatically and can be confirmed live.
