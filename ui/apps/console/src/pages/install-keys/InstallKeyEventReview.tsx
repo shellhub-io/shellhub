@@ -3,8 +3,8 @@ import {
   ClockIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { format } from "date-fns";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import { formatDateFull } from "@/utils/date";
 import { type InstallKeyEvent } from "@/client";
 import type { RequestDeviceAction } from "./installKeyEventColumns";
 import StatusChip from "./StatusChip";
@@ -29,7 +29,7 @@ function Verdict({
       />
       {at && (
         <div className="text-2xs font-mono text-text-muted whitespace-nowrap">
-          {format(new Date(at), "MMM d, yyyy HH:mm")}
+          {formatDateFull(at)}
         </div>
       )}
     </div>

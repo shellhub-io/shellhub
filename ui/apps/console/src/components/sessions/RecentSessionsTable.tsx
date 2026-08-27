@@ -9,14 +9,12 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import DeviceChip from "@/components/common/DeviceChip";
 import { useSessions } from "@/hooks/useSessions";
 import { useAdminSessions } from "@/hooks/useAdminSessions";
-import { formatDate } from "@/utils/date";
+import { formatRelative } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
 import { apiErrorMessage } from "@/api/errors";
 
-export default function RecentSessionsTable({
-  isAdmin = false,
-}) {
+export default function RecentSessionsTable({ isAdmin = false }) {
   const sessionsHook = isAdmin ? useAdminSessions : useSessions;
   const { sessions, isLoading, error } = sessionsHook({ page: 1, perPage: 5 });
   const navigate = useNavigate();
@@ -107,7 +105,7 @@ export default function RecentSessionsTable({
       header: "Started",
       render: (s) => (
         <span className="text-xs text-text-secondary">
-          {formatDate(s.started_at)}
+          {formatRelative(s.started_at)}
         </span>
       ),
     },

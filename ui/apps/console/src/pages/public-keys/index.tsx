@@ -10,7 +10,7 @@ import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import KeyDrawer from "./KeyDrawer";
-import { formatDate } from "@/utils/date";
+import { formatRelative } from "@/utils/date";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import {
   KeyIcon,
@@ -73,7 +73,10 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <span
-        className={cn("inline-flex items-center gap-1 text-xs font-mono", isAllUsers ? "text-text-muted" : "text-text-secondary")}
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-mono",
+          isAllUsers ? "text-text-muted" : "text-text-secondary",
+        )}
       >
         {isAllUsers ? (
           <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
@@ -103,9 +106,10 @@ const DEFAULTS: PublicKeysParams = {
 };
 
 export default function PublicKeys() {
-  const { params, setPage, setSearch } = usePaginatedListState<PublicKeysParams>({
-    defaults: DEFAULTS,
-  });
+  const { params, setPage, setSearch } =
+    usePaginatedListState<PublicKeysParams>({
+      defaults: DEFAULTS,
+    });
 
   const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
   const { publicKeys, totalCount, isLoading } = usePublicKeys({
@@ -190,7 +194,7 @@ export default function PublicKeys() {
       header: "Added",
       render: (pk) => (
         <span className="text-xs font-mono text-text-muted">
-          {formatDate(pk.created_at)}
+          {formatRelative(pk.created_at)}
         </span>
       ),
     },

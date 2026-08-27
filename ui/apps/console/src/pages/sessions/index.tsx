@@ -20,7 +20,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import SessionPlayerDialog from "./SessionPlayerDialog";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { formatDate, formatDuration } from "@/utils/date";
+import { formatRelative, formatDuration } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import { isEnterpriseOrCloud } from "@/env";
 import {
@@ -249,7 +249,7 @@ export default function Sessions() {
       header: "Started",
       render: (s) => (
         <span className="text-xs text-text-secondary">
-          {formatDate(s.started_at)}
+          {formatRelative(s.started_at)}
         </span>
       ),
     },

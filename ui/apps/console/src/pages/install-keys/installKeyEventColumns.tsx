@@ -1,6 +1,6 @@
 import { ArrowPathIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import { format } from "date-fns";
 import { type InstallKeyEvent } from "@/client";
+import { formatDateFull } from "@/utils/date";
 import { type Column } from "@/components/common/DataTable";
 import DistroIcon from "@/components/common/DistroIcon";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
@@ -68,7 +68,7 @@ export function getInstallKeyEventColumns(
             <StatusChip icon={PlusCircleIcon} label="New" tone="muted" />
           )}
           <div className="text-2xs font-mono text-text-muted whitespace-nowrap">
-            {format(new Date(event.timestamp), "MMM d, yyyy HH:mm")}
+            {formatDateFull(event.timestamp)}
           </div>
         </div>
       ),

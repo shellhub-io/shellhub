@@ -28,7 +28,7 @@ import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
-import { formatDate } from "@/utils/date";
+import { formatRelative } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 
@@ -227,7 +227,7 @@ export default function SecureVault() {
       header: "Added",
       render: (entry) => (
         <span className="text-xs font-mono text-text-muted">
-          {formatDate(entry.createdAt)}
+          {formatRelative(entry.createdAt)}
         </span>
       ),
     },

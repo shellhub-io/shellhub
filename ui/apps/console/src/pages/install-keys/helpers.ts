@@ -1,5 +1,6 @@
-import { differenceInCalendarDays, format } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { type InstallKey } from "@/client";
+import { formatDateShort } from "@/utils/date";
 
 /**
  * The auto-managed system keys: every namespace has two, discriminated by `type` — `legacy` (devices
@@ -223,7 +224,7 @@ export function getExpiryInfo(
 ): ExpiryInfo {
   if (expiresAt == null) return { label: "Never", tone: "muted" };
   const expiry = new Date(expiresAt);
-  const label = format(expiry, "MMM d, yyyy");
+  const label = formatDateShort(expiresAt);
   if (expiry.getTime() <= Date.now()) return { label, tone: "danger" };
   const tone: ExpiryTone =
     differenceInCalendarDays(expiry, new Date()) <= 7 ? "warning" : "normal";
