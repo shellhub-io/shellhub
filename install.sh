@@ -2,8 +2,8 @@
 
 # Overridden variables from Go template: {{.Overrides}}
 
-# Pairing mode (empty TENANT_ID) is only supported by the container methods in
-# agent mode; every other path still requires a tenant.
+# Connector mode and snap have no way to enroll without a tenant: neither reaches the pairing flow,
+# and snap does not accept an install key.
 require_tenant() {
   [ -z "$TENANT_ID" ] && {
     echo "ERROR: TENANT_ID is required for this installation method."
@@ -65,6 +65,21 @@ EOF
   echo "✅ Installed shellhub-agent wrapper at $WRAPPER_PATH."
 }
 
+# Names the credential that will put this device in a namespace, in the same order
+# enroll_agent_interactively picks one. Reported before installing so a wrong or missing credential
+# is visible then, rather than only in the agent's log once it is already running.
+enrollment_summary() {
+  if [ -n "$CODE" ]; then
+    echo "pairing code (pre-authorized)"
+  elif [ -n "$INSTALL_KEY" ]; then
+    echo "install key"
+  elif [ -n "$TENANT_ID" ]; then
+    echo "tenant $TENANT_ID (device lands pending)"
+  else
+    echo "none — enroll with 'shellhub-agent login'"
+  fi
+}
+
 # Enrolls a freshly installed agent. Without a tenant the device does not belong
 # to any namespace yet, so we run the login flow in the foreground: it prints the
 # accept URL (opening the browser when possible) and waits until a user accepts
@@ -89,7 +104,8 @@ enroll_agent_interactively() {
 
   if [ -n "$INSTALL_KEY" ]; then
     echo ""
-    echo "The device will be accepted automatically via the install key."
+    echo "The device will enroll into the install key's namespace."
+    echo "Whether it is accepted straight away or left pending is the key's own setting."
 
     return 0
   fi
@@ -148,6 +164,9 @@ podman_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
+  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
+  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
@@ -213,7 +232,6 @@ podman_install() {
     -v /var/log:/var/log \
     -v /tmp:/tmp \
     -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
-    -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
     $LABEL_ARGS \
     "$AGENT_IMAGE" \
@@ -234,6 +252,9 @@ docker_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
   [ -n "${CODE}" ] && ARGS="$ARGS -e SHELLHUB_PAIRING_CODE=$CODE"
   [ -n "${INSTALL_KEY}" ] && ARGS="$ARGS -e SHELLHUB_INSTALL_KEY=$INSTALL_KEY"
+  # An empty assignment is not the same as an absent one: the agent reads the variable as set and
+  # blank, which overrides a tenant it had persisted from an earlier enrollment.
+  [ -n "${TENANT_ID}" ] && ARGS="$ARGS -e SHELLHUB_TENANT_ID=$TENANT_ID"
 
   if [ -n "$AGENT_IMAGE_OVERRIDDEN" ]; then
     echo "📦 Using image $AGENT_IMAGE (skipping pull)..."
@@ -300,7 +321,6 @@ docker_install() {
     -v /var/log:/var/log \
     -v /tmp:/tmp \
     -e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS \
-    -e SHELLHUB_TENANT_ID=$TENANT_ID \
     $ARGS \
     $LABEL_ARGS \
     "$AGENT_IMAGE" \
@@ -396,7 +416,8 @@ standalone_install() {
 
   echo "🚀 Installing ShellHub system service..."
 
-  INSTALL_ARGS="--server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID"
+  INSTALL_ARGS="--server-address=$SERVER_ADDRESS"
+  [ -n "${TENANT_ID}" ] && INSTALL_ARGS="$INSTALL_ARGS --tenant-id=$TENANT_ID"
   [ -n "${INSTALL_KEY}" ] && INSTALL_ARGS="$INSTALL_ARGS --install-key=$INSTALL_KEY"
   [ -n "${PREFERRED_HOSTNAME}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-hostname=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
@@ -535,9 +556,9 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
   exit 1
 fi
 
-# TENANT_ID is optional for the container methods: without it the agent boots
-# into pairing mode and is enrolled into a namespace via 'shellhub-agent login'.
-# Snap and standalone installs still require it (checked in their functions).
+# TENANT_ID is optional wherever something else names the namespace: an install key does so on its
+# own, a pairing code claims one, and with neither the container methods boot into pairing and
+# enroll via 'shellhub-agent login'. Snap always requires it (checked in its function).
 
 SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
@@ -587,7 +608,7 @@ fi
 
 echo "⚙️ Detected settings:"
 echo "- Server address: $SERVER_ADDRESS"
-echo "- Tenant ID: ${TENANT_ID:-(none — enroll with 'shellhub-agent login')}"
+echo "- Enrollment: $(enrollment_summary)"
 echo "- Agent version: $AGENT_VERSION"
 echo "- Architecture: $BINARY_ARCH"
 [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"
