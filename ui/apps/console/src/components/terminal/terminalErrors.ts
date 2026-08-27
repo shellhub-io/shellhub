@@ -180,7 +180,11 @@ export function parseMessage(
   return null;
 }
 
-export function resolveError(raw: string, deviceUid: string): TerminalError {
+export function resolveError(
+  raw: string,
+  deviceUid: string,
+  isIdentityMode: boolean,
+): TerminalError {
   const entry = errorMap[raw];
   if (!entry) {
     return {
@@ -192,19 +196,25 @@ export function resolveError(raw: string, deviceUid: string): TerminalError {
     };
   }
 
-  const hasFirewall = isEnterpriseOrCloud();
-
-  const hints = [...entry.hints];
-  if (hasFirewall) {
-    hints.push("A firewall rule may be blocking this connection.");
-  }
+  const hints = entry.hints.map((h) =>
+    isIdentityMode ? h.replace("namespace policy", "access policy") : h,
+  );
 
   const links = (entry.links ?? []).map((l) => ({
     ...l,
-    to: l.to.split("$uid").join(deviceUid),
+    to: l.to.replace("$uid", encodeURIComponent(deviceUid)),
   }));
-  if (hasFirewall) {
-    links.push({ label: "Firewall rules", to: "/firewall-rules" });
+
+  if (isEnterpriseOrCloud()) {
+    hints.push(
+      isIdentityMode
+        ? "An access policy may be blocking this connection."
+        : "A firewall rule may be blocking this connection.",
+    );
+    links.push({
+      label: isIdentityMode ? "Access policies" : "Firewall rules",
+      to: "/firewall-rules",
+    });
   }
 
   return {
