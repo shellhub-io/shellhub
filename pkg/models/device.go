@@ -89,6 +89,10 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+	// TenantID is the namespace the device was enrolled into. An agent that authenticated with an
+	// install key alone learns its namespace here, having had no tenant to send. Additive and
+	// optional: older agents that don't read it are unaffected.
+	TenantID string `json:"tenant_id,omitempty"`
 	// Status is the device's enrollment status after this auth (accepted/pending/rejected). It lets a
 	// current agent react to its authorization state (e.g. stop opening the tunnel when not accepted)
 	// instead of connecting blind. Additive and optional: older agents that don't read it are
