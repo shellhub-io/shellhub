@@ -11,6 +11,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -87,7 +88,7 @@ func TestResolveKeyAuth(t *testing.T) {
 	})
 
 	t.Run("dead key is rejected, not sent to enrollment", func(t *testing.T) {
-		consumedAt := time.Now()
+		consumedAt := clock.Now()
 
 		serviceMock := servicemocks.NewMockService(t)
 		// A burned single-use key resolves but is no longer active.
@@ -106,7 +107,7 @@ func TestResolveKeyAuth(t *testing.T) {
 	})
 
 	t.Run("an expired key is rejected too", func(t *testing.T) {
-		expiredAt := time.Now().Add(-time.Hour)
+		expiredAt := clock.Now().Add(-time.Hour)
 
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
@@ -216,7 +217,7 @@ func TestAuthorize(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
 			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
-			Return(&models.Decision{Allowed: false, Reason: `no policy grants "root" on this device`}, nil).
+			Return(&models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: "user"}, nil).
 			Once()
 
 		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
@@ -231,13 +232,40 @@ func TestAuthorize(t *testing.T) {
 
 		entry := hook.LastEntry()
 		assert.Equal(t, log.WarnLevel, entry.Level)
-		assert.Equal(t, `no policy grants "root" on this device`, entry.Data["reason"])
+		assert.Equal(t, "ssh access denied by the access policies", entry.Message)
+		assert.Equal(t, models.ReasonNoGrant, entry.Data["reason"])
+		assert.Equal(t, `no policy grants "user" on this device`, entry.Data["detail"])
+		assert.NotContains(t, entry.Data, "policy_name")
 		assert.Equal(t, "tenant-id", entry.Data["tenant"])
 		assert.Equal(t, "user-id", entry.Data["user"])
 		assert.Equal(t, "device-uid", entry.Data["device"])
 		assert.Equal(t, "user", entry.Data["username"])
 		assert.Equal(t, "127.0.0.1", entry.Data["ip"])
 		assert.Equal(t, "test-uid", entry.Data["session"])
+	})
+
+	t.Run("a denial by a named policy carries the policy on the entry", func(t *testing.T) {
+		hook := captureLogs(t)
+
+		serviceMock := servicemocks.NewMockService(t)
+		serviceMock.EXPECT().
+			Authorize(mock.Anything, "tenant-id", "user-id", "device-uid", "user", "127.0.0.1").
+			Return(&models.Decision{Allowed: false, Reason: models.ReasonDeniedByPolicy, PolicyName: "block contractors"}, nil).
+			Once()
+
+		sess := newIdentitySession(serviceMock, models.SSHAccessModeIdentity)
+		sess.UserID = "user-id"
+
+		_, err := sess.authorize(ctx)
+		require.ErrorIs(t, err, ErrAccessDenied)
+
+		require.Len(t, hook.AllEntries(), 1)
+
+		entry := hook.LastEntry()
+		assert.Equal(t, "ssh access denied by the access policies", entry.Message)
+		assert.Equal(t, models.ReasonDeniedByPolicy, entry.Data["reason"])
+		assert.Equal(t, "block contractors", entry.Data["policy_name"])
+		assert.Equal(t, `denied by policy "block contractors"`, entry.Data["detail"])
 	})
 
 	t.Run("a failure to evaluate the policies is reported as a malfunction", func(t *testing.T) {

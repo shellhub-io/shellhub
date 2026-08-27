@@ -63,7 +63,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 
 	member, ok := namespace.FindMember(userID)
 	if !ok {
-		return &models.Decision{Allowed: false, Reason: "user is not a member of the namespace"}, nil
+		return &models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil
 	}
 
 	policies, _, err := s.store.AccessPolicyList(ctx, sc)
@@ -84,11 +84,11 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 			log.WithError(err).WithField("access_policy", policy.ID).
 				Warn("deny access policy failed to evaluate; denying")
 
-			return &models.Decision{Allowed: false, Reason: fmt.Sprintf("denied: policy %q could not be evaluated", policy.Name)}, nil
+			return &models.Decision{Allowed: false, Reason: models.ReasonPolicyUnevaluable, PolicyName: policy.Name}, nil
 		}
 
 		if matched {
-			return &models.Decision{Allowed: false, Reason: fmt.Sprintf("denied by policy %q", policy.Name)}, nil
+			return &models.Decision{Allowed: false, Reason: models.ReasonDeniedByPolicy, PolicyName: policy.Name}, nil
 		}
 	}
 
@@ -132,7 +132,7 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 	}
 
 	if !allowed {
-		return &models.Decision{Allowed: false, Reason: fmt.Sprintf("no policy grants %q on this device", login)}, nil
+		return &models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: login}, nil
 	}
 
 	// Re-auth is an interactive step, so it cannot apply to a service account: there
