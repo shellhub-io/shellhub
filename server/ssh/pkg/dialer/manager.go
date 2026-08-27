@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/yamux"
@@ -20,6 +21,37 @@ type Manager struct {
 	Connections             *SyncSliceMap
 	DialerDoneCallback      func(string)
 	DialerKeepAliveCallback func(string)
+
+	// displaced counts the connections evict has closed. It is monotonic and
+	// read by [Collector]; the store's own size says nothing about how often
+	// this happened, because a displaced connection is gone by the next scrape.
+	displaced atomic.Uint64
+}
+
+// Stats is a snapshot of what a [Manager] holds.
+//
+// Connections and Devices are equal in a healthy store; the difference is the
+// connections a reconnect displaced whose teardown has not finished.
+type Stats struct {
+	Connections int
+	Devices     int
+	Displaced   uint64
+}
+
+// Stats reports the store's size and how many connections have been displaced
+// since the process started.
+//
+// The two sizes come from one read of the store, so they describe the same
+// instant. The counter does not, which costs nothing: it is monotonic and is
+// never compared against the sizes within a single read.
+func (m *Manager) Stats() Stats {
+	devices, connections := m.Connections.Stats()
+
+	return Stats{
+		Connections: connections,
+		Devices:     devices,
+		Displaced:   m.displaced.Load(),
+	}
 }
 
 func NewManager() *Manager {
@@ -74,6 +106,8 @@ func (m *Manager) evict(key string, displaced []any) {
 	if len(displaced) == 0 {
 		return
 	}
+
+	m.displaced.Add(uint64(len(displaced)))
 
 	log.WithFields(log.Fields{
 		"key":  key,

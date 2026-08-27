@@ -331,3 +331,136 @@ func TestConcurrentStoreAndDeleteReportOneWinner(t *testing.T) {
 	assert.Equal(t, 1, emptied, "exactly one teardown must see the key empty")
 	assert.Equal(t, 0, ssm.Size("key"))
 }
+
+func TestStats(t *testing.T) {
+	type Expected struct {
+		keys   int
+		values int
+	}
+
+	cases := []struct {
+		title    string
+		setup    func() *SyncSliceMap
+		expected Expected
+	}{
+		{
+			title: "reports an empty map as zero",
+			setup: func() *SyncSliceMap {
+				return &SyncSliceMap{}
+			},
+			expected: Expected{keys: 0, values: 0},
+		},
+		{
+			title: "counts every value held, across keys",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key1", "value1.1")
+				ssm.Store("key1", "value1.2")
+				ssm.Store("key2", "value2.1")
+
+				return ssm
+			},
+			expected: Expected{keys: 2, values: 3},
+		},
+		{
+			title: "drops both counts when a key loses its last value",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key1", "value1.1")
+				ssm.Store("key2", "value2.1")
+				ssm.Delete("key2", "value2.1")
+
+				return ssm
+			},
+			expected: Expected{keys: 1, values: 1},
+		},
+		{
+			title: "keeps the key when only one of its values goes",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+				ssm.Store("key", "value2")
+				ssm.Delete("key", "value1")
+
+				return ssm
+			},
+			expected: Expected{keys: 1, values: 1},
+		},
+		{
+			title: "ignores a delete of a value the key never held",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value1")
+				ssm.Delete("key", "other")
+				ssm.Delete("missing", "value1")
+
+				return ssm
+			},
+			expected: Expected{keys: 1, values: 1},
+		},
+		{
+			// Delete drops every match, so the total must fall by more than one.
+			title: "subtracts every copy a single delete removes",
+			setup: func() *SyncSliceMap {
+				ssm := &SyncSliceMap{}
+				ssm.Store("key", "value")
+				ssm.Store("key", "value")
+				ssm.Store("key", "survivor")
+				ssm.Delete("key", "value")
+
+				return ssm
+			},
+			expected: Expected{keys: 1, values: 1},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.title, func(t *testing.T) {
+			keys, values := tc.setup().Stats()
+
+			assert.Equal(t, tc.expected, Expected{keys, values})
+		})
+	}
+}
+
+// TestStatsSurvivesConcurrentMutation guards the running total against the map
+// it summarizes: a count maintained outside the critical sections drifts, and a
+// gauge that drifts is worse than no gauge at all. Run under -race.
+func TestStatsSurvivesConcurrentMutation(t *testing.T) {
+	const (
+		keys       = 20
+		perKey     = 10
+		goroutines = keys * perKey
+	)
+
+	ssm := &SyncSliceMap{}
+
+	mutate := func(op func(key, value any)) {
+		var wg sync.WaitGroup
+
+		wg.Add(goroutines)
+
+		for k := range keys {
+			for v := range perKey {
+				go func() {
+					defer wg.Done()
+					op(fmt.Sprintf("key%d", k), fmt.Sprintf("value%d.%d", k, v))
+				}()
+			}
+		}
+
+		wg.Wait()
+	}
+
+	mutate(func(key, value any) { ssm.Store(key, value) })
+
+	gotKeys, gotValues := ssm.Stats()
+	assert.Equal(t, keys, gotKeys)
+	assert.Equal(t, goroutines, gotValues)
+
+	mutate(func(key, value any) { ssm.Delete(key, value) })
+
+	gotKeys, gotValues = ssm.Stats()
+	assert.Equal(t, 0, gotKeys)
+	assert.Equal(t, 0, gotValues)
+}

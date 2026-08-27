@@ -14,6 +14,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v5"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -293,6 +294,13 @@ func (s *Server) setupSSH(service services.Service) error {
 	}
 
 	d := dialer.NewDialer(service, s.heartbeater)
+
+	// Published on routes.InternalMetricsURL, which is always on. Registration
+	// is the only thing that can fail here, and it does not stop the SSH
+	// server: losing a gauge is not a reason to refuse device connections.
+	if err := prometheus.Register(dialer.NewCollector(d.Manager)); err != nil {
+		log.WithError(err).Warning("failed to register the dialer connection metrics")
+	}
 
 	sshhttp.Register(s.router, s.authn, d, service, &sshhttp.Config{
 		RequireAcceptedTunnel: env.RequireAcceptedTunnel,

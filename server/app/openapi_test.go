@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
@@ -128,6 +129,9 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 		{web.WebsocketSSHBridgeRoute, true},
 		{"/metrics", true},
 		{"/internal/auth", true},
+		// Always registered, and answers with an exposition format no OpenAPI
+		// schema describes.
+		{routes.InternalMetricsURL, true},
 		// Sits under the bridge route but answers with a JSON body, so prefix matching
 		// would wrongly exempt it.
 		{web.WebSessionRoute, false},

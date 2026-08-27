@@ -265,6 +265,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	// MCP server (Model Context Protocol) for AI assistants.
 	SetupMCPRoutes(router)
 
+	registerInternalMetrics(router, handler.authn)
+
 	if handler.authn != nil {
 		registerAnonymousRoutes(handler.authn)
 	}
