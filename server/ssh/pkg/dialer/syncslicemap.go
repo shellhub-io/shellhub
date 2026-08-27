@@ -16,6 +16,21 @@ import (
 type SyncSliceMap struct {
 	mu     sync.RWMutex
 	values map[any][]any
+
+	// total is the number of values across every key, maintained by the
+	// mutating operations below so [SyncSliceMap.Stats] costs a lock rather
+	// than a walk of a map that holds one entry per connected device.
+	total int
+}
+
+// Stats returns how many keys the map holds and how many values across all of
+// them, under one read lock so the two describe the same instant. They differ
+// only while some key holds more than one value.
+func (ssm *SyncSliceMap) Stats() (keys, values int) {
+	ssm.mu.RLock()
+	defer ssm.mu.RUnlock()
+
+	return len(ssm.values), ssm.total
 }
 
 // Load retrieves the most recently stored value for the key.
@@ -42,6 +57,7 @@ func (ssm *SyncSliceMap) Store(key, value any) []any {
 
 	displaced := slices.Clone(ssm.values[key])
 	ssm.values[key] = append(ssm.values[key], value)
+	ssm.total++
 
 	return displaced
 }
@@ -53,9 +69,15 @@ func (ssm *SyncSliceMap) Delete(key, value any) int {
 	ssm.mu.Lock()
 	defer ssm.mu.Unlock()
 
-	remaining := slices.DeleteFunc(ssm.values[key], func(v any) bool {
+	// DeleteFunc writes through the array but leaves this header alone, so the
+	// two lengths still bracket how many values it dropped. It drops every
+	// match, which need not be one.
+	stored := ssm.values[key]
+	remaining := slices.DeleteFunc(stored, func(v any) bool {
 		return v == value
 	})
+
+	ssm.total -= len(stored) - len(remaining)
 
 	if len(remaining) == 0 {
 		delete(ssm.values, key)
