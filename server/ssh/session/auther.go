@@ -255,7 +255,15 @@ func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
 	case dec == nil:
 		logger.Error("access policy evaluation returned no decision")
 	default:
-		logger.WithField("reason", dec.Reason).Warn("ssh access denied by the access policies")
+		// The message stays constant so operators can still group and alert on it;
+		// what varies goes in the fields. dec.Login is not among them, since
+		// LogFields already carries the same value as "username".
+		fields := log.Fields{"reason": dec.Reason, "detail": dec.Message()}
+		if dec.PolicyName != "" {
+			fields["policy_name"] = dec.PolicyName
+		}
+
+		logger.WithFields(fields).Warn("ssh access denied by the access policies")
 	}
 
 	return nil, ErrAccessDenied

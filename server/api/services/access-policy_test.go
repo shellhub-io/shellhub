@@ -38,6 +38,9 @@ func TestAuthorize(t *testing.T) {
 		requireMocks    func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions)
 		expectedAllowed bool
 		expectedReauth  bool
+		expectedReason  models.DenialReason
+		expectedPolicy  string
+		expectedLogin   string
 		expectedErr     bool
 	}{
 		{
@@ -60,6 +63,7 @@ func TestAuthorize(t *testing.T) {
 					Return(&models.Namespace{TenantID: tenantID}, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNotAMember,
 			expectedErr:     false,
 		},
 		{
@@ -88,6 +92,8 @@ func TestAuthorize(t *testing.T) {
 					Return([]models.AccessPolicy{}, 0, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -128,6 +134,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -168,6 +176,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -228,6 +238,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -402,6 +414,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -421,6 +435,7 @@ func TestAuthorize(t *testing.T) {
 							Action:  models.PolicyActionAllow,
 						},
 						{
+							Name:    "block root",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"root"},
@@ -429,6 +444,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonDeniedByPolicy,
+			expectedPolicy:  "block root",
 			expectedErr:     false,
 		},
 		{
@@ -475,6 +492,7 @@ func TestAuthorize(t *testing.T) {
 							Action:  models.PolicyActionAllow,
 						},
 						{
+							Name:    "block everything",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
@@ -483,6 +501,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonDeniedByPolicy,
+			expectedPolicy:  "block everything",
 			expectedErr:     false,
 		},
 		{
@@ -502,6 +522,7 @@ func TestAuthorize(t *testing.T) {
 							Action:  models.PolicyActionAllow,
 						},
 						{
+							Name:    "broken deny",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{Hostname: "["},
 							Logins:  []string{"*"},
@@ -510,6 +531,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonPolicyUnevaluable,
+			expectedPolicy:  "broken deny",
 			expectedErr:     false,
 		},
 		{
@@ -523,6 +546,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
+							Name:    "block root",
 							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"root"},
@@ -531,6 +555,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonDeniedByPolicy,
+			expectedPolicy:  "block root",
 			expectedErr:     false,
 		},
 		{
@@ -544,6 +570,7 @@ func TestAuthorize(t *testing.T) {
 				storeMock.On("AccessPolicyList", ctx, mock.Anything).
 					Return([]models.AccessPolicy{
 						{
+							Name:    "deny all",
 							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:  models.PublicKeyFilter{},
 							Logins:  []string{"*"},
@@ -558,6 +585,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonDeniedByPolicy,
+			expectedPolicy:  "deny all",
 			expectedErr:     false,
 		},
 		{
@@ -604,6 +633,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -646,6 +677,7 @@ func TestAuthorize(t *testing.T) {
 							Action:  models.PolicyActionAllow,
 						},
 						{
+							Name:     "block office range",
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
@@ -655,6 +687,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonDeniedByPolicy,
+			expectedPolicy:  "block office range",
 			expectedErr:     false,
 		},
 		{
@@ -750,6 +784,7 @@ func TestAuthorize(t *testing.T) {
 							Action:  models.PolicyActionAllow,
 						},
 						{
+							Name:     "block office range",
 							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
 							Filter:   models.PublicKeyFilter{},
 							Logins:   []string{"*"},
@@ -759,6 +794,8 @@ func TestAuthorize(t *testing.T) {
 					}, 2, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonPolicyUnevaluable,
+			expectedPolicy:  "block office range",
 			expectedErr:     false,
 		},
 		{
@@ -782,6 +819,8 @@ func TestAuthorize(t *testing.T) {
 					}, 1, nil).Once()
 			},
 			expectedAllowed: false,
+			expectedReason:  models.ReasonNoGrant,
+			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 	}
@@ -803,6 +842,9 @@ func TestAuthorize(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tc.expectedAllowed, decision.Allowed)
 				require.Equal(t, tc.expectedReauth, decision.RequireReauth)
+				require.Equal(t, tc.expectedReason, decision.Reason)
+				require.Equal(t, tc.expectedPolicy, decision.PolicyName)
+				require.Equal(t, tc.expectedLogin, decision.Login)
 			}
 
 			storeMock.AssertExpectations(t)

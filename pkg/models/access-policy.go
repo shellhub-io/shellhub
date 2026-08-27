@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // PolicySubjectType enumerates who an Access Policy grants access to.
 type PolicySubjectType string
@@ -88,16 +91,64 @@ func NewOwnerAccessPolicy(tenantID, ownerID string) *AccessPolicy {
 	}
 }
 
+// DenialReason is the cause of a denied Decision, as a stable value operators can
+// count and filter on. The human sentence is derived from it (see
+// Decision.Message), never the other way round, so rewording never breaks a query.
+type DenialReason string
+
+const (
+	// ReasonNotAMember refuses because the user does not belong to the device's
+	// namespace, so no policy in it could ever apply to them.
+	ReasonNotAMember DenialReason = "not_a_member"
+	// ReasonDeniedByPolicy refuses because a deny policy matched. Carries PolicyName.
+	ReasonDeniedByPolicy DenialReason = "denied_by_policy"
+	// ReasonPolicyUnevaluable refuses because a deny policy could not be evaluated,
+	// and evaluation fails closed. Carries PolicyName.
+	ReasonPolicyUnevaluable DenialReason = "policy_unevaluable"
+	// ReasonNoGrant refuses because no allow policy grants the requested login on
+	// the device, leaving default-deny to stand. Carries Login.
+	ReasonNoGrant DenialReason = "no_grant"
+)
+
 // Decision is the outcome of an Access Policy authorization check.
 type Decision struct {
-	Allowed bool `json:"allowed"`
+	Allowed bool
 	// RequireReauth is set when access is allowed by a policy that carries the
 	// re-auth flag; the gateway must run a fresh re-authentication before
 	// proceeding, subject to ReauthPeriod.
-	RequireReauth bool `json:"require_reauth"`
+	RequireReauth bool
 	// ReauthPeriod is the matched policy's freshness window in seconds (nil/0 =
 	// always). The gateway skips the re-auth when the identity re-authed within
 	// it. Only meaningful when RequireReauth is set.
-	ReauthPeriod *int   `json:"reauth_period"`
-	Reason       string `json:"reason"`
+	ReauthPeriod *int
+
+	// Reason is the cause of the refusal, empty when Allowed.
+	Reason DenialReason
+	// PolicyName is the policy that produced the refusal. Set for
+	// ReasonDeniedByPolicy and ReasonPolicyUnevaluable only.
+	PolicyName string
+	// Login is the login the request asked for. Set for ReasonNoGrant only.
+	Login string
+}
+
+// Message renders a refusal as an operator-facing sentence for the log. It is
+// presentation: the reason code and its fields are the record, and callers must
+// branch on Reason rather than parse this.
+func (d Decision) Message() string {
+	if d.Allowed {
+		return ""
+	}
+
+	switch d.Reason {
+	case ReasonNotAMember:
+		return "user is not a member of the namespace"
+	case ReasonDeniedByPolicy:
+		return fmt.Sprintf("denied by policy %q", d.PolicyName)
+	case ReasonPolicyUnevaluable:
+		return fmt.Sprintf("denied: policy %q could not be evaluated", d.PolicyName)
+	case ReasonNoGrant:
+		return fmt.Sprintf("no policy grants %q on this device", d.Login)
+	default:
+		return "denied by the access policies"
+	}
 }
