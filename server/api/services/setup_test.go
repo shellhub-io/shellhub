@@ -11,6 +11,7 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -42,6 +43,7 @@ func TestSetup(t *testing.T) {
 
 	// Setup calls envs.IsDevelopment() to decide the namespace tenant; not development here.
 	envMock.On("Get", "SHELLHUB_ENV").Return("")
+	envMock.On("Get", "SHELLHUB_EDITION").Return("")
 
 	ctx := context.TODO()
 
@@ -295,7 +297,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					CreatedAt: now,
 				}
@@ -381,7 +383,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					CreatedAt: now,
 				}
@@ -447,7 +449,7 @@ func TestSetup(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					CreatedAt: now,
 				}

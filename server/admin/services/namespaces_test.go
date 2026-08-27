@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -24,14 +23,13 @@ func TestNamespaceCreate(t *testing.T) {
 		namespace *models.Namespace
 		err       error
 	}
-	now := time.Now()
-
 	mock := new(mocks.MockStore)
 	ctx := context.TODO()
 
 	mockClock := new(clockmock.MockClock)
+	mockClock.On("Now").Return(clock.Now())
 	clock.DefaultBackend = mockClock
-	mockClock.On("Now").Return(now)
+	now := clock.Now()
 
 	cases := []struct {
 		description   string
@@ -85,7 +83,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -125,7 +123,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -146,7 +144,7 @@ func TestNamespaceCreate(t *testing.T) {
 				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 				},
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
@@ -183,7 +181,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
@@ -204,7 +202,7 @@ func TestNamespaceCreate(t *testing.T) {
 				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 				},
 				MaxDevices: MaxNumberDevicesLimited,
 				CreatedAt:  now,
@@ -241,7 +239,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
@@ -262,7 +260,7 @@ func TestNamespaceCreate(t *testing.T) {
 				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 				},
 				MaxDevices: MaxNumberDevicesLimited,
 				CreatedAt:  now,
@@ -299,7 +297,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -320,7 +318,7 @@ func TestNamespaceCreate(t *testing.T) {
 				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 				},
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
@@ -357,7 +355,7 @@ func TestNamespaceCreate(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 					},
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
@@ -378,7 +376,7 @@ func TestNamespaceCreate(t *testing.T) {
 				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
-					ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 				},
 				MaxDevices: MaxNumberDevicesUnlimited,
 				CreatedAt:  now,
@@ -407,11 +405,11 @@ func TestNamespaceAddMember(t *testing.T) {
 
 	mock := new(mocks.MockStore)
 	mockClock := new(clockmock.MockClock)
+	mockClock.On("Now").Return(clock.Now())
 	clock.DefaultBackend = mockClock
 
 	ctx := context.TODO()
-	now := time.Now()
-	mockClock.On("Now").Return(now)
+	now := clock.Now()
 
 	cases := []struct {
 		description   string
@@ -517,7 +515,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 	mock := new(mocks.MockStore)
 
 	ctx := context.TODO()
-	now := time.Now()
+	now := clock.Now()
 
 	cases := []struct {
 		description   string

@@ -56,7 +56,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		},
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+			ConnectionAnnouncement: envs.AnnouncementFor(envs.CurrentEdition()),
 			SSHAccessMode:          input.SSHAccessMode,
 		},
 		CreatedAt: clock.Now(),

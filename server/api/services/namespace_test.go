@@ -672,7 +672,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
 						},
@@ -736,7 +736,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
 						},
@@ -797,7 +797,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
 						},
@@ -820,7 +820,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					MaxDevices: -1,
 				},
@@ -879,7 +879,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
 						},
@@ -902,7 +902,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					MaxDevices: -1,
 				},
@@ -958,7 +958,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: "",
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 							},
 							MaxDevices: 3,
 						},
@@ -981,7 +981,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: "",
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: 3,
 				},
@@ -1037,7 +1037,7 @@ func TestCreateNamespace(t *testing.T) {
 							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
-								ConnectionAnnouncement: "",
+								ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 							},
 							MaxDevices: 3,
 						},
@@ -1060,7 +1060,7 @@ func TestCreateNamespace(t *testing.T) {
 					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
-						ConnectionAnnouncement: "",
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: 3,
 				},
