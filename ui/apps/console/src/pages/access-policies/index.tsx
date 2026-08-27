@@ -35,7 +35,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
-import { formatDate } from "@/utils/date";
+import { formatRelative } from "@/utils/date";
 import AccessPolicyDrawer from "./AccessPolicyDrawer";
 
 /* ── cell chip ────────────────────────────────────── */
@@ -319,7 +319,7 @@ export default function AccessPolicies() {
       header: "Created",
       render: (p) => (
         <span className="text-xs font-mono text-text-muted">
-          {formatDate(p.created_at)}
+          {formatRelative(p.created_at)}
         </span>
       ),
     },

@@ -20,7 +20,7 @@ import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
-import { formatDate } from "@/utils/date";
+import { formatRelative, formatDateShort } from "@/utils/date";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 import {
   XMarkIcon,
@@ -65,7 +65,7 @@ function formatExpiration(expiresIn: string): string {
   const d = new Date(expiresIn);
   const now = new Date();
   if (d.getTime() < now.getTime()) {
-    return `Expired ${formatDate(expiresIn)}`;
+    return `Expired ${formatRelative(expiresIn)}`;
   }
   const diffMs = d.getTime() - now.getTime();
   const diffMins = Math.floor(diffMs / 60000);
@@ -74,11 +74,7 @@ function formatExpiration(expiresIn: string): string {
   if (diffHrs < 24) return `${diffHrs}h remaining`;
   const diffDays = Math.floor(diffHrs / 24);
   if (diffDays < 30) return `${diffDays}d remaining`;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateShort(expiresIn);
 }
 
 function isValidIPv4(ip: string): boolean {
@@ -144,7 +140,10 @@ function DeviceSelector({
           {selected ? (
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span
-                className={cn("w-2 h-2 rounded-full shrink-0", selected.online ? "bg-accent-green" : "bg-text-muted/40")}
+                className={cn(
+                  "w-2 h-2 rounded-full shrink-0",
+                  selected.online ? "bg-accent-green" : "bg-text-muted/40",
+                )}
               />
               <span className="text-sm text-text-primary truncate">
                 {selected.name}
@@ -193,7 +192,10 @@ function DeviceSelector({
                   className="px-3 py-2 text-sm gap-2"
                 >
                   <span
-                    className={cn("w-2 h-2 rounded-full shrink-0", dev.online ? "bg-accent-green" : "bg-text-muted/40")}
+                    className={cn(
+                      "w-2 h-2 rounded-full shrink-0",
+                      dev.online ? "bg-accent-green" : "bg-text-muted/40",
+                    )}
                   />
                   <span className="truncate">{dev.name}</span>
                   <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
@@ -490,12 +492,22 @@ function EndpointDrawer({
                   )}
                 >
                   <ServerStackIcon
-                    className={cn("w-5 h-5 transition-colors", hostMode === "localhost" ? "text-primary" : "text-text-muted")}
+                    className={cn(
+                      "w-5 h-5 transition-colors",
+                      hostMode === "localhost"
+                        ? "text-primary"
+                        : "text-text-muted",
+                    )}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span
-                    className={cn("text-sm font-semibold transition-colors", hostMode === "localhost" ? "text-primary" : "text-text-primary")}
+                    className={cn(
+                      "text-sm font-semibold transition-colors",
+                      hostMode === "localhost"
+                        ? "text-primary"
+                        : "text-text-primary",
+                    )}
                   >
                     Localhost
                   </span>
@@ -559,12 +571,22 @@ function EndpointDrawer({
                   )}
                 >
                   <ArrowsRightLeftIcon
-                    className={cn("w-5 h-5 transition-colors", hostMode === "custom" ? "text-primary" : "text-text-muted")}
+                    className={cn(
+                      "w-5 h-5 transition-colors",
+                      hostMode === "custom"
+                        ? "text-primary"
+                        : "text-text-muted",
+                    )}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <span
-                    className={cn("text-sm font-semibold transition-colors", hostMode === "custom" ? "text-primary" : "text-text-primary")}
+                    className={cn(
+                      "text-sm font-semibold transition-colors",
+                      hostMode === "custom"
+                        ? "text-primary"
+                        : "text-text-primary",
+                    )}
                   >
                     Local network
                   </span>
@@ -718,7 +740,10 @@ function EndpointCard({
             )}
           >
             <GlobeAltIcon
-              className={cn("w-4.5 h-4.5", expired ? "text-accent-yellow" : "text-primary")}
+              className={cn(
+                "w-4.5 h-4.5",
+                expired ? "text-accent-yellow" : "text-primary",
+              )}
             />
           </div>
           <div className="min-w-0 flex-1">
@@ -775,7 +800,7 @@ function EndpointCard({
                   ? "Never expires"
                   : formatExpiration(endpoint.expires_in)}
                 {" · "}
-                {formatDate(endpoint.created_at)}
+                {formatRelative(endpoint.created_at)}
               </span>
             </div>
           </div>

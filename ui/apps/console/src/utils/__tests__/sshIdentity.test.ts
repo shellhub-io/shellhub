@@ -52,7 +52,7 @@ describe("sshIdentityStatus", () => {
   it("names the deadline itself, not the distance to it", () => {
     const status = sshIdentityStatus({ expires_at: future, single_use: false }, NOW);
     expect(status?.label).toBe("Expires Jan 20, 2026");
-    expect(status?.title).toBe(new Date(future).toLocaleString());
+    expect(status?.title).toBe("Jan 20, 2026, 00:00");
   });
 
   // A far-off expiry is a fact about the key; a near one is something to act on,

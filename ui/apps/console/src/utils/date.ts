@@ -1,11 +1,7 @@
-import { formatDistanceToNow, format, differenceInSeconds } from "date-fns";
-
-export function formatDate(dateStr: string): string {
-  return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
-}
+import { formatDistanceToNow, format } from "date-fns";
 
 export function formatRelative(dateStr: string): string {
-  if (!dateStr) return "\u2014";
+  if (!dateStr) return "—";
   return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
 }
 
@@ -15,18 +11,13 @@ export function formatExpiry(expiresIn: number): string {
 }
 
 export function formatDateFull(dateStr: string): string {
-  if (!dateStr) return "\u2014";
-  return format(new Date(dateStr), "MMM d, yyyy, hh:mm a");
+  if (!dateStr) return "—";
+  return format(new Date(dateStr), "MMM d, yyyy, HH:mm");
 }
 
 export function formatDateShort(dateStr: string): string {
-  if (!dateStr) return "\u2014";
+  if (!dateStr) return "—";
   return format(new Date(dateStr), "MMM d, yyyy");
-}
-
-/** Format a countdown of seconds as m:ss (e.g. 7:41). */
-export function formatCountdown(seconds: number): string {
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 export function formatDuration(
@@ -34,10 +25,10 @@ export function formatDuration(
   lastSeen: string,
   active: boolean,
 ): string {
-  const start = new Date(startedAt);
-  const end = active ? new Date() : new Date(lastSeen);
-  const secs = Math.max(0, differenceInSeconds(end, start));
-  if (secs === 0) return "\u2014";
+  const start = new Date(startedAt).getTime();
+  const end = active ? Date.now() : new Date(lastSeen).getTime();
+  const secs = Math.max(0, Math.floor((end - start) / 1000));
+  if (secs === 0) return "—";
   if (secs < 60) return `${secs}s`;
   if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s`;
   const h = Math.floor(secs / 3600);

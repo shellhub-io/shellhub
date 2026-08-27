@@ -10,10 +10,6 @@ import SecureVault from "../index";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import type { VaultKeyEntry } from "@/types/vault";
 
-vi.mock("@/utils/date", () => ({
-  formatDate: (d: string) => d,
-}));
-
 vi.mock("@/components/common/PageHeader", () => ({
   default: ({
     title,

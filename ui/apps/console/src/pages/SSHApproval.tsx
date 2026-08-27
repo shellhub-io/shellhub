@@ -27,6 +27,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNamespaces } from "@/hooks/useNamespaces";
 import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
 import { getInitials } from "@/utils/string";
+import { formatDateFull } from "@/utils/date";
 
 /**
  * The two approvals a native login can wait on. Both act on the identity — one
@@ -311,7 +312,7 @@ function PendingRequest({
           />
           <SpecRow
             label="requested"
-            value={formatRequestedAt(details.requestedAt)}
+            value={formatDateFull(details.requestedAt)}
           />
         </dl>
       </details>
@@ -762,12 +763,6 @@ function reauthWindowSentence(periodSeconds: number) {
       : `${Math.max(1, Math.round(periodSeconds / 60))} minutes`;
 
   return ` Connecting with it again won't ask for the next ${window}.`;
-}
-
-function formatRequestedAt(value: string) {
-  const ms = Date.parse(value);
-  if (Number.isNaN(ms)) return value || "—";
-  return new Date(ms).toLocaleString();
 }
 
 function StatusMessage({ label }: { label: string }) {

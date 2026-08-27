@@ -1,5 +1,5 @@
 import { differenceInDays } from "date-fns";
-import { formatDateShort } from "@/utils/date";
+import { formatDateFull, formatDateShort } from "@/utils/date";
 import { isSdkError } from "@/api/errors";
 import type { SshIdentity } from "@/client";
 
@@ -107,7 +107,10 @@ export function sshIdentitySource(
  */
 export function shortFingerprint(fingerprint: string): string {
   const [prefix, body] = fingerprint.includes(":")
-    ? [`${fingerprint.slice(0, fingerprint.indexOf(":") + 1)}`, fingerprint.slice(fingerprint.indexOf(":") + 1)]
+    ? [
+        `${fingerprint.slice(0, fingerprint.indexOf(":") + 1)}`,
+        fingerprint.slice(fingerprint.indexOf(":") + 1),
+      ]
     : ["", fingerprint];
 
   return body.length > 12 ? `${prefix}${body.slice(0, 12)}\u2026` : fingerprint;
@@ -148,7 +151,7 @@ export function sshIdentityEndOfLife(
       kind: "consumed",
       value: "consumed",
       tone: "dead",
-      title: new Date(identity.consumed_at).toLocaleString(),
+      title: formatDateFull(identity.consumed_at),
     };
 
   if (identity.expires_at && new Date(identity.expires_at).getTime() <= now)
@@ -156,7 +159,7 @@ export function sshIdentityEndOfLife(
       kind: "expired",
       value: "expired",
       tone: "dead",
-      title: new Date(identity.expires_at).toLocaleString(),
+      title: formatDateFull(identity.expires_at),
     };
 
   // A single-use key has a deadline that is not a date: it dies with the session
@@ -170,8 +173,9 @@ export function sshIdentityEndOfLife(
     return {
       kind: "expires",
       value: formatDateShort(identity.expires_at),
-      tone: differenceInDays(at, now) <= EXPIRY_WARNING_DAYS ? "armed" : "quiet",
-      title: at.toLocaleString(),
+      tone:
+        differenceInDays(at, now) <= EXPIRY_WARNING_DAYS ? "armed" : "quiet",
+      title: formatDateFull(identity.expires_at),
     };
   }
 
