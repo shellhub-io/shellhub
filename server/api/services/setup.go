@@ -108,7 +108,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		CreatedAt: clock.Now(),
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          false,
-			ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+			ConnectionAnnouncement: envs.AnnouncementFor(envs.CurrentEdition()),
 		},
 	}
 
