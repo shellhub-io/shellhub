@@ -201,6 +201,27 @@ func (s *service) enrollmentInstallKey(ctx context.Context, sc scope.Scope, req 
 	return nil, "", nil
 }
 
+// installKeyTenant recovers the namespace of an install key presented as an agent's only credential.
+// See reasonInstallKeyTenant for why the lookup crosses namespaces.
+//
+// It deliberately does not check the key's validity. Recovering a tenant is not authorizing an
+// enrollment: enrollmentInstallKey still rejects a revoked or exhausted key when a device actually
+// enrolls, while a reconnect of an already-enrolled device keeps working, preserving the rule that a
+// revoked key never deauthorizes a device it enrolled. A system key is refused here as it is there,
+// since an agent can never hold one.
+//
+// The failure is the generic invalid-key error, identical to the one a bad key gets inside a known
+// namespace: the endpoint is anonymous, and a distinct error would tell a caller guessing keys when
+// it had found a real one.
+func (s *service) installKeyTenant(ctx context.Context, installKey string) (string, error) {
+	sk, err := s.store.InstallKeyResolve(ctx, scope.NewUnbounded(reasonInstallKeyTenant), store.InstallKeyIDResolver, hashInstallKey(installKey))
+	if err != nil || sk.IsSystem() {
+		return "", NewErrAuthInvalid(map[string]any{"install_key": "invalid"}, err)
+	}
+
+	return sk.TenantID, nil
+}
+
 // AuthDevice enrolls or resolves a device from an agent's registration request. A keyless enrollment
 // attributes to the namespace's legacy key (see enrollmentInstallKey).
 func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
@@ -211,6 +232,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 // keyless enrollment attributes to the pairing system key instead of the legacy one. The flag is
 // server-only (never read from the wire) so an agent can't claim it to dodge the legacy key.
 func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paired bool) (*models.DeviceAuthResponse, error) {
+	// An install key is namespace-scoped, so it identifies the namespace on its own. The tenant is
+	// recovered before anything else runs: the device UID hashes it, the token claims carry it, and
+	// the rows written below reference it, so nothing downstream can proceed without it.
+	if req.TenantID == "" && req.InstallKey != "" {
+		tenantID, err := s.installKeyTenant(ctx, req.InstallKey)
+		if err != nil {
+			return nil, err
+		}
+
+		req.TenantID = tenantID
+	}
+
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
@@ -255,6 +288,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 			Token:     token,
 			Name:      cachedData["device_name"],
 			Namespace: cachedData["namespace_name"],
+			TenantID:  req.TenantID,
 		}
 
 		return resp, nil
@@ -474,6 +508,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 		Token:     token,
 		Name:      cachedData["device_name"],
 		Namespace: cachedData["namespace_name"],
+		TenantID:  req.TenantID,
 		Status:    device.Status,
 	}
 
