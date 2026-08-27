@@ -100,7 +100,9 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	installCmd.Flags().String("preferred-identity", "", "Preferred device identity")
 	installCmd.Flags().Uint("keepalive-interval", 30, "Keepalive interval in seconds")
 	installCmd.MarkFlagRequired("server-address") //nolint:errcheck
-	installCmd.MarkFlagRequired("tenant-id")       //nolint:errcheck
+	// An install key names its own namespace, so it stands in for the tenant. One of the two is
+	// required; without either the agent would boot into pairing, which needs a console.
+	installCmd.MarkFlagsOneRequired("tenant-id", "install-key")
 
 	rootCmd.AddCommand(installCmd)
 
@@ -166,8 +168,14 @@ func writeAgentEnvFile(cfg installerConfig) error {
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "SHELLHUB_SERVER_ADDRESS=%s\n", cfg.ServerAddress)
-	fmt.Fprintf(&buf, "SHELLHUB_TENANT_ID=%s\n", cfg.TenantID)
 	fmt.Fprintf(&buf, "SHELLHUB_PRIVATE_KEY=%s\n", cfg.PrivateKey)
+
+	// An empty assignment is not the same as an absent one: the agent reads this file as a fallback
+	// for its environment, and a blank tenant would override a tenant it had persisted from an
+	// earlier enrollment.
+	if cfg.TenantID != "" {
+		fmt.Fprintf(&buf, "SHELLHUB_TENANT_ID=%s\n", cfg.TenantID)
+	}
 
 	if cfg.InstallKey != "" {
 		fmt.Fprintf(&buf, "SHELLHUB_INSTALL_KEY=%s\n", cfg.InstallKey)
