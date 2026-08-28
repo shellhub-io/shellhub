@@ -23,6 +23,8 @@ directories=(
     "" # Parent path
     "server"
     "agent"
+    "gateway"
+    "openapi"
     "tests"
 )
 
