@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
 // APIKey is used to authenticate a request. It is similar to [UserAuthClaims] but only for
@@ -39,7 +40,7 @@ func (a *APIKey) IsValid() bool {
 		return true
 	}
 
-	now := time.Unix(time.Now().Unix(), 0)
+	now := time.Unix(clock.Now().Unix(), 0)
 	expiresIn := time.Unix(a.ExpiresIn, 0)
 
 	return now.Before(expiresIn)
