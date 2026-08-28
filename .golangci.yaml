@@ -68,6 +68,8 @@ linters:
     - usetesting
     - errname
     - intrange
+    # Error identity survives wrapping: errors.Is/As over == and type assertions.
+    - errorlint
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

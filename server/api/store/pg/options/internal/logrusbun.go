@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -114,16 +115,18 @@ func (h *QueryHook) BeforeQuery(ctx context.Context, event *bun.QueryEvent) cont
 	return ctx
 }
 
+// isQuiet reports whether the query outcome is one the non-verbose hook stays silent about.
+func isQuiet(err error) bool {
+	return err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone)
+}
+
 func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	if !h.enabled {
 		return
 	}
 
-	if !h.verbose {
-		switch event.Err {
-		case nil, sql.ErrNoRows, sql.ErrTxDone:
-			return
-		}
+	if !h.verbose && isQuiet(event.Err) {
+		return
 	}
 
 	var level logrus.Level
@@ -133,8 +136,8 @@ func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	now := time.Now()
 	dur := now.Sub(event.StartTime)
 
-	switch event.Err {
-	case nil, sql.ErrNoRows:
+	switch {
+	case event.Err == nil, errors.Is(event.Err, sql.ErrNoRows):
 		isError = false
 		if h.opts.LogSlow > 0 && dur >= h.opts.LogSlow {
 			level = h.opts.SlowLevel

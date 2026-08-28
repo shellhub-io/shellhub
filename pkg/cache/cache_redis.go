@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"math"
 	"strconv"
 	"time"
@@ -51,7 +52,7 @@ func NewRedisCache(uri string, pool int) (Cache, error) {
 // NOTE: missing key is not an error.
 func (c *redisCache) Get(ctx context.Context, key string, value any) error {
 	err := c.cache.Get(ctx, key, value)
-	if err == rediscache.ErrCacheMiss {
+	if errors.Is(err, rediscache.ErrCacheMiss) {
 		return nil
 	}
 
@@ -73,7 +74,7 @@ func (c *redisCache) SetNX(ctx context.Context, key string, value any, ttl time.
 
 // Delete deletes cached value by given key.
 func (c *redisCache) Delete(ctx context.Context, key string) error {
-	if err := c.cache.Get(ctx, key, nil); err == rediscache.ErrCacheMiss {
+	if err := c.cache.Get(ctx, key, nil); errors.Is(err, rediscache.ErrCacheMiss) {
 		return nil
 	}
 

@@ -99,7 +99,8 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	// proxies and request binders handle far more predictably.
 	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
-		if _, ok := err.(net.Error); ok {
+		var netErr net.Error
+		if errors.As(err, &netErr) {
 			log.WithFields(log.Fields{
 				"url": r.Request.URL,
 			}).WithError(err).Error("network error")

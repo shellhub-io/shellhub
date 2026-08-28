@@ -456,7 +456,7 @@ func (ln *Listener) Accept() (net.Conn, error) {
 		err, closed := ln.readErr, ln.closed
 		ln.mu.Unlock()
 		if err != nil && !closed {
-			return nil, fmt.Errorf("revdial: Listener closed; %v", err)
+			return nil, fmt.Errorf("revdial: Listener closed; %w", err)
 		}
 
 		return nil, ErrListenerClosed
