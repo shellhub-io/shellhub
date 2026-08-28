@@ -39,7 +39,7 @@ func (r *Reverser) Auth(ctx context.Context, token string, connPath string) erro
 		"Authorization": []string{"Bearer " + token},
 	}
 
-	conn, _, err := DialContext(ctx, uri, header)
+	conn, _, err := DialContext(ctx, uri, header) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 	if err != nil {
 		return err
 	}

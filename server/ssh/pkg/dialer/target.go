@@ -93,7 +93,10 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 
 		buffered := bufio.NewReader(conn)
 
-		resp, err := http.ReadResponse(buffered, handshakeReq)
+		// The body shares the tunnel's buffered reader, which is handed back to the caller on
+		// success. Closing it would consume bytes belonging to the proxied stream; on the error
+		// paths below the caller closes conn, which releases it.
+		resp, err := http.ReadResponse(buffered, handshakeReq) //nolint:bodyclose
 		if err != nil {
 			return nil, err
 		}

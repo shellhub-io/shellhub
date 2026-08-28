@@ -73,6 +73,8 @@ linters:
     # I/O that a cancelled request should not outlive.
     - noctx
     - errchkjson
+    # A response body left open holds its connection out of the pool.
+    - bodyclose
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

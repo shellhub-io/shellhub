@@ -305,7 +305,7 @@ func (c *client) NewReverseListenerV2(ctx context.Context, token string, path st
 		return nil, err
 	}
 
-	wsconn, _, err := DialContext(ctx, u, http.Header{
+	wsconn, _, err := DialContext(ctx, u, http.Header{ //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 		"Authorization": []string{"Bearer " + token},
 	})
 	if err != nil {
