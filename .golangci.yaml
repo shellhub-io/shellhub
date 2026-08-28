@@ -75,6 +75,8 @@ linters:
     - errchkjson
     # A response body left open holds its connection out of the pool.
     - bodyclose
+    # A switch over an enum with no default silently ignores a value added later.
+    - exhaustive
     - gocritic
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
@@ -85,9 +87,14 @@ linters:
     - tparallel
 
   settings:
+    exhaustive:
+      # A default case is the codebase's way of saying the rest are deliberately ignored.
+      # Without this the linter demands every one of Stripe's 200-odd event types be listed.
+      default-signifies-exhaustive: true
     gosec:
       excludes:
-        # G104 (errors unhandled) is redundant with the disabled errcheck policy.
+        # G104 (errors unhandled) duplicates errcheck, which reports the same call
+        # with a better message and honours the //nolint:errcheck convention.
         - G104
     revive:
       severity: warning

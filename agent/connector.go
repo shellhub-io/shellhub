@@ -236,6 +236,8 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 				d.Start(ctx, container.Actor.ID, name)
 			case "die":
 				d.Stop(ctx, container.Actor.ID)
+			default:
+				// Every other Docker event is none of the connector's business.
 			}
 		}
 	}

@@ -409,6 +409,8 @@ waits until the device is accepted, rejected, or the code expires.`,
 				case models.DeviceStatusRejected:
 					cmd.PrintErrln("✗ Device was rejected.")
 					os.Exit(1)
+				default:
+					// Still pending: keep polling until the code expires.
 				}
 			}
 

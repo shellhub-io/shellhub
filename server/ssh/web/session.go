@@ -342,6 +342,8 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 					return
 				}
+			default:
+				// The client sends the other kinds only in the opposite direction.
 			}
 		}
 	}()
