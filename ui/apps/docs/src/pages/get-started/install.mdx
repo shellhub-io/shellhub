@@ -42,6 +42,7 @@ $ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
 | `AGENT_VERSION` | fetched from `$SERVER_ADDRESS/info` | Which agent version to install |
 | `AGENT_IMAGE` | `docker.io/shellhubio/agent:$AGENT_VERSION` | Container image, for the container methods |
 | `INSTALL_DIR` | `/usr/local/bin` | Where the binary goes, for standalone |
+| `SKIP_BOOT_RESTART_CHECK` | — | Set to `1` to install under Podman without `podman-restart.service` |
 
 `SERVER_ADDRESS` is filled in for you. The script is served by the server, not from a
 repository, and the server writes its own address into it on the way out — port included — so

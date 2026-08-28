@@ -106,18 +106,14 @@ Staying offline has a real cause. Check the agent is still running, then the net
 **On WSL specifically:** the distribution shuts down when the last terminal closes, and the agent
 goes with it. See [WSL](/get-started/install/wsl).
 
-**After a reboot, on Podman:** the container does not come back. Podman has no daemon, so
-containers are started at boot by `podman-restart.service`, which only starts those with a restart
-policy of `always` or `unless-stopped` — and the installer creates the agent container with
-`on-failure`. Docker is unaffected. Until that changes, either give the container a policy the
-boot service starts:
+**After a reboot, on Podman:** the container is started by `podman-restart.service`. If it is
+not running, enable the unit:
 
 ```bash
-$ sudo podman update --restart=always shellhub
 $ sudo systemctl enable --now podman-restart.service
 ```
 
-or generate a systemd unit for it and enable that instead.
+An install made with `SKIP_BOOT_RESTART_CHECK=1` is yours to bring back.
 
 ## An install key was involved
 

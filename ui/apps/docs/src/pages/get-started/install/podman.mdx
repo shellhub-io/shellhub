@@ -67,15 +67,17 @@ and status instead so the unit and the container do not disagree.
 `/etc/shellhub.key`, reached from the container as `/host/etc/shellhub.key`, so recreating the
 container returns the same device. Point it under `/host` too if you run the container yourself.
 
-<Callout variant="warning" title="A Podman install does not come back after a reboot">
-Podman starts containers at boot through `podman-restart.service`, which only picks up those with
-a restart policy of `always` or `unless-stopped` — and the installer creates the agent with
-`on-failure`. Until that changes, give the container a policy the boot service starts:
+<Callout variant="info" title="Podman needs podman-restart.service">
+Podman has no daemon; containers come back at boot through `podman-restart.service`. The
+installer creates the agent with `--restart=unless-stopped` and refuses to install while that
+unit is disabled:
 
 ```bash
-$ sudo podman update --restart=always shellhub
-$ sudo systemctl enable --now podman-restart.service
+$ sudo systemctl enable podman-restart.service
 ```
+
+Set `SKIP_BOOT_RESTART_CHECK=1` if you manage the container's lifecycle yourself, through
+Quadlet or an orchestrator.
 </Callout>
 
 ## Uninstalling
