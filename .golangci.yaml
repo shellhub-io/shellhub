@@ -75,6 +75,7 @@ linters:
     - errchkjson
     # A response body left open holds its connection out of the pool.
     - bodyclose
+    - gocritic
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

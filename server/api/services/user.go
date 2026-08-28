@@ -61,7 +61,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 
 // UpdatePasswordUser updates a user's password.
 //
-// Deprecated, use [Service.UpdateUser] instead.
+// Deprecated: use [Service.UpdateUser] instead.
 func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, id)
 	if user == nil {

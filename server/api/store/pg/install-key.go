@@ -42,11 +42,12 @@ func (pg *Pg) InstallKeyConflicts(ctx context.Context, sc scope.Scope, target *m
 		return nil, false, err
 	}
 
-	if target.ID != "" && target.Name != "" {
+	switch {
+	case target.ID != "" && target.Name != "":
 		query = query.Where("key_digest = ? OR name = ?", target.ID, target.Name)
-	} else if target.ID != "" {
+	case target.ID != "":
 		query = query.Where("key_digest = ?", target.ID)
-	} else if target.Name != "" {
+	case target.Name != "":
 		query = query.Where("name = ?", target.Name)
 	}
 
