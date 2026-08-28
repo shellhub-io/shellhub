@@ -11,7 +11,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 )
 

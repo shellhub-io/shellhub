@@ -7,7 +7,6 @@ import (
 
 	"github.com/openwall/yescrypt-go"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 )
 
