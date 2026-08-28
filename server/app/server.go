@@ -10,9 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo-contrib/v5/pprof"
-
 	"github.com/getsentry/sentry-go"
+	"github.com/labstack/echo-contrib/v5/pprof"
 	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/shellhub-io/shellhub/pkg/api/query"

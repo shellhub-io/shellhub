@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

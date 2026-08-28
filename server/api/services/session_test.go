@@ -2,11 +2,10 @@ package services
 
 import (
 	"context"
+	goerrors "errors"
 	"net"
 	"reflect"
 	"testing"
-
-	goerrors "errors"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"

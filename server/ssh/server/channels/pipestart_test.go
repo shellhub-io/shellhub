@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/server/ssh/session"
-
 	"github.com/stretchr/testify/assert"
 )
 
