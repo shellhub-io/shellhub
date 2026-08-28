@@ -412,7 +412,7 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		if start > 0 {
 			// copy remaning read bytes from the end to the beginning of a buffer
 			// so that we will get normal bytes
-			for i := 0; i < start; i++ {
+			for i := range start {
 				buf[i] = buf[end+i]
 			}
 		}

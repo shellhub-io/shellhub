@@ -35,6 +35,30 @@ linters:
     - nlreturn
     - nilerr
     - gosec
+    # Resource leaks and silent truncation.
+    - sqlclosecheck
+    - rowserrcheck
+    # Constructs that compile but cannot mean what they say.
+    - durationcheck
+    - asasalint
+    - makezero
+    - nilnesserr
+    - wastedassign
+    - reassign
+    - predeclared
+    - recvcheck
+    - fatcontext
+    - nosprintfhostport
+    - musttag
+    - iotamixing
+    - unqueryvet
+    # Naming and idiom the codebase already follows.
+    - errname
+    - intrange
+    - usestdlibvars
+    - mirror
+    - exptostd
+    - tparallel
 
   settings:
     gosec:

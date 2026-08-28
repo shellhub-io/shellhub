@@ -187,8 +187,8 @@ func TestPublicKey(t *testing.T) {
 				osauthMock.On("LookupUser", "test").Return(&osauth.User{Username: "test"}, nil).Once()
 
 				type Signature struct {
-					Username  string
-					Namespace string
+					Username  string `json:"Username"`
+					Namespace string `json:"Namespace"`
 				}
 
 				sigBytes, _ := json.Marshal(&Signature{

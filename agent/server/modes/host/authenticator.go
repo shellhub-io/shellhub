@@ -83,8 +83,8 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh
 	}
 
 	type Signature struct {
-		Username  string
-		Namespace string
+		Username  string `json:"Username"`
+		Namespace string `json:"Namespace"`
 	}
 
 	sig := &Signature{

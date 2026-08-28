@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -49,7 +49,7 @@ func TestMain_smoke(t *testing.T) {
 	port, err := container.MappedPort(ctx, "80")
 	require.NoError(t, err)
 
-	baseURL := fmt.Sprintf("http://%s:%s", host, port.Port())
+	baseURL := "http://" + net.JoinHostPort(host, port.Port())
 
 	t.Logf("gateway container listening at %s", baseURL)
 

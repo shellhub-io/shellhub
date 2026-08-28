@@ -74,9 +74,10 @@ func (i *Identity) WriteTo(header http.Header) {
 // call came from the admin panel rather than from a namespace member", and let
 // it past the tenant guard. An admin hitting the regular /api surface keeps
 // their user scope and stays subject to that guard.
-func (i Identity) WithoutUserScope() Identity {
-	i.ID = ""
-	i.TenantID = ""
+func (i *Identity) WithoutUserScope() Identity {
+	scoped := *i
+	scoped.ID = ""
+	scoped.TenantID = ""
 
-	return i
+	return scoped
 }

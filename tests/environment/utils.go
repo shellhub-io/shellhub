@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"io"
 	"net"
+	"slices"
 	"strconv"
 	"testing"
 
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slices"
 )
 
 type Service string

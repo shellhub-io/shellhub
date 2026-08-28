@@ -158,7 +158,7 @@ var (
 	ErrSetupForbidden                  = errors.New("setup isn't allowed anymore", ErrLayer, ErrCodeForbidden)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
-	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
+	ErrAuthDeviceNoIdentity            = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
 )
 
 // NewErrNoContentChange returns an error to be used when an operation results in no content change.
@@ -634,5 +634,5 @@ func NewErrAuthDeviceNoIdentityAndHostname() error {
 }
 
 func NewErrAuthDeviceNoIdentity() error {
-	return NewErrInvalid(ErruthDeviceNoIdentity, map[string]any{"identity": true}, nil)
+	return NewErrInvalid(ErrAuthDeviceNoIdentity, map[string]any{"identity": true}, nil)
 }

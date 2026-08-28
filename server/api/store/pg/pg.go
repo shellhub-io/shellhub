@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,7 +23,7 @@ type Pg struct {
 }
 
 func URI(host, port, user, password, db string) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, db)
+	return fmt.Sprintf("postgres://%s:%s@%s/%s", user, password, net.JoinHostPort(host, port), db)
 }
 
 func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, error) {

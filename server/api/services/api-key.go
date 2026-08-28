@@ -41,7 +41,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	expiresIn := int64(0)
+	var expiresIn int64
 	switch req.ExpiresAt {
 	case 30, 60, 90:
 		expiresIn = clock.Now().AddDate(0, 0, req.ExpiresAt).Unix()
