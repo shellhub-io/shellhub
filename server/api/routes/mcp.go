@@ -183,7 +183,10 @@ func intArg(args map[string]any, key string, def int) int {
 }
 
 func toJSON(v any) string {
-	b, _ := json.MarshalIndent(v, "", "  ")
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("failed to encode the result: %v", err)
+	}
 
 	return string(b)
 }

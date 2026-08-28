@@ -192,10 +192,11 @@ func TestPublicKey(t *testing.T) {
 					Namespace string `json:"Namespace"`
 				}
 
-				sigBytes, _ := json.Marshal(&Signature{
+				sigBytes, err := json.Marshal(&Signature{
 					Username:  "test",
 					Namespace: "device",
 				})
+				require.NoError(t, err)
 
 				digest := sha256.Sum256(sigBytes)
 

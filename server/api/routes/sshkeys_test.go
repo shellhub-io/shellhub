@@ -109,7 +109,8 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 						},
 					},
 				}
-				b, _ := json.Marshal(filters)
+				b, err := json.Marshal(filters)
+				require.NoError(t, err)
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
@@ -127,7 +128,8 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 						},
 					},
 				}
-				b, _ := json.Marshal(filters)
+				b, err := json.Marshal(filters)
+				require.NoError(t, err)
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
