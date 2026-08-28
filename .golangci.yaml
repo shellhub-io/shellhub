@@ -60,6 +60,9 @@ linters:
     - usetesting
     - errname
     - intrange
+    # Tests that fail for the reason they claim, and report the caller's line.
+    - testifylint
+    - thelper
     - usestdlibvars
     - mirror
     - exptostd

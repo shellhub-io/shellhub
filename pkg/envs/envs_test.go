@@ -6,6 +6,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/envs/envstest"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCurrentEdition(t *testing.T) {
@@ -101,7 +103,7 @@ func TestResolveEdition(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected, edition)
 		})
 	}
@@ -153,6 +155,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 			description: "parse envs with prefix empty",
 			prefix:      "",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
@@ -168,6 +172,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 			description: "parse envs with one prefix and an empty",
 			prefix:      "FOO_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
@@ -184,6 +190,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 			description: "parse envs with one prefix",
 			prefix:      "BAR_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
 				t.Setenv("FOO_MONGO_URI", "mongodb://mongo:27017/foo")
@@ -201,6 +209,8 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 			description: "parse envs with one prefix and default",
 			prefix:      "FOO_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
 				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
@@ -247,6 +257,8 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 			description: "parse envs with a prefix and no prefixed",
 			prefix:      "FOO_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
@@ -262,6 +274,8 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 			description: "parse envs with a prefix and no prefixed",
 			prefix:      "FOO_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
@@ -277,6 +291,8 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 			description: "fails to parse when two different prefixes",
 			prefix:      "FOO_",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
 				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/empty")
 			},
@@ -317,6 +333,8 @@ func TestParse_with_default(t *testing.T) {
 		{
 			description: "parse envs",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
 			},
@@ -331,6 +349,8 @@ func TestParse_with_default(t *testing.T) {
 		{
 			description: "parse envs with one set and one default",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 			},
 			expected: Expected{
@@ -343,7 +363,9 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with all default",
-			setup:       func(t *testing.T) {},
+			setup: func(t *testing.T) {
+				t.Helper()
+			},
 			expected: Expected{
 				Envs: &Envs{
 					RedisURI: "redis://redis:6379/default",
@@ -384,6 +406,8 @@ func TestParse_with_required(t *testing.T) {
 		{
 			description: "parse envs",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
 			},
@@ -398,6 +422,8 @@ func TestParse_with_required(t *testing.T) {
 		{
 			description: "fail to parse envs when one env is missing",
 			setup: func(t *testing.T) {
+				t.Helper()
+
 				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 			},
 			expected: Expected{
@@ -407,6 +433,7 @@ func TestParse_with_required(t *testing.T) {
 		{
 			description: "fails to parse when all envs are missing",
 			setup: func(t *testing.T) {
+				t.Helper()
 			},
 			expected: Expected{
 				Envs:  nil,

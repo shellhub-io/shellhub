@@ -62,7 +62,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 
 	select {
 	case err := <-done:
-		assert.Error(t, err, "a silent agent must not authenticate")
+		require.Error(t, err, "a silent agent must not authenticate")
 		assert.WithinDuration(t, start.Add(2*time.Second), time.Now(), 3*time.Second,
 			"the handshake should give up at the configured timeout")
 	case <-time.After(30 * time.Second):

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestNsenterCommandWrapper is an integration-level test for nsenterCommandWrapper.
@@ -52,7 +53,7 @@ func TestNsenterCommandWrapper(t *testing.T) {
 
 	t.Run("present ns flags included and -T never present", func(t *testing.T) {
 		cmd, err := nsenterCommandWrapper(1000, 1000, []uint32{1000}, "/home/user", "/bin/sh")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// -T must never be present.
 		assert.NotContains(t, cmd, "-T")
@@ -89,7 +90,7 @@ func TestNsenterCommandWrapper(t *testing.T) {
 		}
 
 		cmd, err := nsenterCommandWrapper(1000, 1000, []uint32{1000}, "/home/user", "/bin/bash")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Contains(t, cmd, "-n")
 		assert.NotContains(t, cmd, "-T")
@@ -109,7 +110,7 @@ func TestNsenterCommandWrapper(t *testing.T) {
 		}
 
 		cmd, err := nsenterCommandWrapper(1000, 1000, []uint32{1000}, "/home/user", "/bin/bash")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Contains(t, cmd, "-m")
 		assert.Contains(t, cmd, "-u")

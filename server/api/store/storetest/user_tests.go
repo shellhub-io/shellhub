@@ -55,7 +55,7 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		nonExistentID := "00000000-0000-0000-0000-000000000000"
 
 		user, err := st.UserResolve(ctx, store.UserIDResolver, nonExistentID)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, user)
 	})
 
@@ -75,7 +75,7 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		user, err := st.UserResolve(ctx, store.UserEmailResolver, "nonexistent@test.com")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, user)
 	})
 
@@ -95,7 +95,7 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		user, err := st.UserResolve(ctx, store.UserUsernameResolver, "nonexistent_user")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, user)
 	})
 
@@ -203,7 +203,7 @@ func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 			},
 			Password: models.UserPassword{Hash: "somehash"},
 		})
-		assert.ErrorIs(t, err, store.ErrDuplicate)
+		require.ErrorIs(t, err, store.ErrDuplicate)
 
 		field, ok := store.DuplicatedField(err)
 		assert.True(t, ok)
@@ -223,7 +223,7 @@ func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 			},
 			Password: models.UserPassword{Hash: "somehash"},
 		})
-		assert.ErrorIs(t, err, store.ErrDuplicate)
+		require.ErrorIs(t, err, store.ErrDuplicate)
 
 		field, ok := store.DuplicatedField(err)
 		assert.True(t, ok)

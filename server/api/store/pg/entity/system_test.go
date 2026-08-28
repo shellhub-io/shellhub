@@ -18,6 +18,8 @@ func TestSystemFromModel(t *testing.T) {
 			name:  "nil input",
 			model: nil,
 			check: func(t *testing.T, result *System) {
+				t.Helper()
+
 				require.NotNil(t, result)
 				assert.False(t, result.Setup)
 			},
@@ -33,6 +35,8 @@ func TestSystemFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *System) {
+				t.Helper()
+
 				assert.True(t, result.Setup)
 				assert.True(t, result.Authentication.Local.Enabled)
 			},
@@ -44,6 +48,8 @@ func TestSystemFromModel(t *testing.T) {
 				Authentication: nil,
 			},
 			check: func(t *testing.T, result *System) {
+				t.Helper()
+
 				assert.True(t, result.Setup)
 				assert.False(t, result.Authentication.Local.Enabled)
 			},
@@ -56,6 +62,8 @@ func TestSystemFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *System) {
+				t.Helper()
+
 				assert.False(t, result.Authentication.Local.Enabled)
 			},
 		},
@@ -67,6 +75,8 @@ func TestSystemFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *System) {
+				t.Helper()
+
 				assert.False(t, result.Authentication.Local.Enabled)
 			},
 		},
@@ -90,6 +100,8 @@ func TestSystemToModel(t *testing.T) {
 			name:   "nil input",
 			entity: nil,
 			check: func(t *testing.T, result *models.System) {
+				t.Helper()
+
 				require.NotNil(t, result)
 				assert.False(t, result.Setup)
 				assert.Nil(t, result.Authentication)
@@ -101,6 +113,8 @@ func TestSystemToModel(t *testing.T) {
 				Setup: true,
 			},
 			check: func(t *testing.T, result *models.System) {
+				t.Helper()
+
 				assert.True(t, result.Setup)
 				require.NotNil(t, result.Authentication)
 				require.NotNil(t, result.Authentication.Local)
@@ -116,6 +130,8 @@ func TestSystemToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.System) {
+				t.Helper()
+
 				assert.True(t, result.Setup)
 				require.NotNil(t, result.Authentication)
 				require.NotNil(t, result.Authentication.Local)
@@ -131,6 +147,8 @@ func TestSystemToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.System) {
+				t.Helper()
+
 				assert.False(t, result.Setup)
 				require.NotNil(t, result.Authentication)
 				require.NotNil(t, result.Authentication.Local)

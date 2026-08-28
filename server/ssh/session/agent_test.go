@@ -106,7 +106,7 @@ func TestCloseAgentWriteOnAnUnknownSeat(t *testing.T) {
 	channel := new(recordingChannel)
 	sess := newAgentSession(t, "v0.9.2")
 
-	assert.ErrorIs(t, sess.CloseAgentWrite(404), ErrSeatNotFound)
+	require.ErrorIs(t, sess.CloseAgentWrite(404), ErrSeatNotFound)
 	assert.False(t, channel.closed)
 	assert.False(t, channel.closedWrite)
 }

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,6 +25,8 @@ var freePortController []string
 // GetFreePort returns a randomly available TCP port. It can be used to avoid
 // network conflicts in Docker Compose.
 func GetFreePort(t *testing.T) string {
+	t.Helper()
+
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	require.NoError(t, err)
 
@@ -45,12 +46,12 @@ func GetFreePort(t *testing.T) string {
 }
 
 func ReaderToString(t *testing.T, reader io.Reader) string {
+	t.Helper()
+
 	buffer := bytes.NewBuffer(make([]byte, 1024))
 
 	_, err := stdcopy.StdCopy(buffer, io.Discard, reader)
-	if !assert.NoError(t, err) {
-		assert.FailNow(t, err.Error())
-	}
+	require.NoError(t, err)
 
 	return buffer.String()
 }

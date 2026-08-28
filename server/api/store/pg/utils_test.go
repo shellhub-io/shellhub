@@ -23,6 +23,8 @@ func TestFromSQLError(t *testing.T) {
 			name:  "nil passes through",
 			input: nil,
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				assert.NoError(t, result)
 			},
 		},
@@ -30,27 +32,33 @@ func TestFromSQLError(t *testing.T) {
 			name:  "sql.ErrNoRows maps to store.ErrNoDocuments",
 			input: sql.ErrNoRows,
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrNoDocuments))
+				assert.ErrorIs(t, result, store.ErrNoDocuments)
 			},
 		},
 		{
 			name:  "pgconn unique_violation (23505) maps to store.ErrDuplicate",
 			input: &pgconn.PgError{Code: "23505"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrDuplicate))
+				assert.ErrorIs(t, result, store.ErrDuplicate)
 			},
 		},
 		{
 			name:  "23505 with users_email_key joins DuplicateFieldError with email",
 			input: &pgconn.PgError{Code: "23505", ConstraintName: "users_email_key"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrDuplicate))
+				require.ErrorIs(t, result, store.ErrDuplicate)
 
 				var df store.DuplicateFieldError
-				require.True(t, errors.As(result, &df))
+				require.ErrorAs(t, result, &df)
 				assert.Equal(t, "email", df.Field)
 			},
 		},
@@ -58,11 +66,13 @@ func TestFromSQLError(t *testing.T) {
 			name:  "23505 with users_username_key joins DuplicateFieldError with username",
 			input: &pgconn.PgError{Code: "23505", ConstraintName: "users_username_key"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrDuplicate))
+				require.ErrorIs(t, result, store.ErrDuplicate)
 
 				var df store.DuplicateFieldError
-				require.True(t, errors.As(result, &df))
+				require.ErrorAs(t, result, &df)
 				assert.Equal(t, "username", df.Field)
 			},
 		},
@@ -70,63 +80,77 @@ func TestFromSQLError(t *testing.T) {
 			name:  "23505 with unrelated constraint returns bare ErrDuplicate without DuplicateFieldError",
 			input: &pgconn.PgError{Code: "23505", ConstraintName: "some_other_unique_key"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrDuplicate))
+				require.ErrorIs(t, result, store.ErrDuplicate)
 
 				var df store.DuplicateFieldError
-				assert.False(t, errors.As(result, &df), "expected no DuplicateFieldError for unknown constraint")
+				assert.NotErrorAs(t, result, &df, "expected no DuplicateFieldError for unknown constraint")
 			},
 		},
 		{
 			name:  "restrict_violation (23001) on the instance FK maps to ErrNamespaceInstanceProtected",
 			input: &pgconn.PgError{Code: "23001", ConstraintName: "systems_instance_tenant_id_fkey"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
-				assert.False(t, errors.Is(result, store.ErrInternal))
+				require.ErrorIs(t, result, store.ErrNamespaceInstanceProtected)
+				assert.NotErrorIs(t, result, store.ErrInternal)
 			},
 		},
 		{
 			name:  "foreign_key_violation (23503) on the instance FK maps to ErrNamespaceInstanceProtected",
 			input: &pgconn.PgError{Code: "23503", ConstraintName: "systems_instance_tenant_id_fkey"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
+				assert.ErrorIs(t, result, store.ErrNamespaceInstanceProtected)
 			},
 		},
 		{
 			name:  "restrict_violation (23001) on an unrelated constraint stays internal",
 			input: &pgconn.PgError{Code: "23001", ConstraintName: "some_other_fkey"},
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrInternal))
-				assert.False(t, errors.Is(result, store.ErrNamespaceInstanceProtected))
+				require.ErrorIs(t, result, store.ErrInternal)
+				assert.NotErrorIs(t, result, store.ErrNamespaceInstanceProtected)
 			},
 		},
 		{
 			name:  "generic unmapped error wraps with store.ErrInternal",
 			input: errors.New("some unexpected db error"),
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, store.ErrInternal), "expected result to wrap store.ErrInternal")
+				assert.ErrorIs(t, result, store.ErrInternal, "expected result to wrap store.ErrInternal")
 			},
 		},
 		{
 			name:  "context.Canceled passes through unwrapped (not ErrInternal)",
 			input: context.Canceled,
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, context.Canceled), "expected result to be context.Canceled")
-				assert.False(t, errors.Is(result, store.ErrInternal), "context.Canceled must NOT wrap store.ErrInternal")
+				require.ErrorIs(t, result, context.Canceled, "expected result to be context.Canceled")
+				assert.NotErrorIs(t, result, store.ErrInternal, "context.Canceled must NOT wrap store.ErrInternal")
 			},
 		},
 		{
 			name:  "context.DeadlineExceeded passes through unwrapped (not ErrInternal)",
 			input: context.DeadlineExceeded,
 			check: func(t *testing.T, result error) {
+				t.Helper()
+
 				require.Error(t, result)
-				assert.True(t, errors.Is(result, context.DeadlineExceeded), "expected result to be context.DeadlineExceeded")
-				assert.False(t, errors.Is(result, store.ErrInternal), "context.DeadlineExceeded must NOT wrap store.ErrInternal")
+				require.ErrorIs(t, result, context.DeadlineExceeded, "expected result to be context.DeadlineExceeded")
+				assert.NotErrorIs(t, result, store.ErrInternal, "context.DeadlineExceeded must NOT wrap store.ErrInternal")
 			},
 		},
 	}

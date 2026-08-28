@@ -27,7 +27,9 @@ func newAgentConn(t *testing.T) *wsconnadapter.Adapter {
 	upgrader := websocket.Upgrader{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		ready <- wsconnadapter.New(conn)
 	}))
@@ -57,7 +59,7 @@ func TestManagerDialFailsWhenTheStreamCannotBeOpened(t *testing.T) {
 
 	conn, version, err := m.Dial(context.Background(), "tenant:uid")
 
-	assert.Error(t, err, "a stream that could not be opened must be reported to the caller")
+	require.Error(t, err, "a stream that could not be opened must be reported to the caller")
 	assert.Nil(t, conn)
 	assert.Equal(t, TransportVersionUnknown, version)
 }

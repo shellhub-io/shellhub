@@ -7,6 +7,8 @@ import (
 
 	"github.com/openwall/yescrypt-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func FuzzVerify(f *testing.F) {
@@ -14,14 +16,14 @@ func FuzzVerify(f *testing.F) {
 
 	for range 100 {
 		v, err := rand.Int(rand.Reader, big.NewInt(64))
-		assert.NoError(f, err)
+		require.NoError(f, err)
 
 		password := make([]byte, v.Int64())
 		_, err = rand.Read(password)
-		assert.NoError(f, err)
+		require.NoError(f, err)
 
 		hash, err := yescrypt.Hash(password, []byte(settings))
-		assert.NoError(f, err)
+		require.NoError(f, err)
 
 		f.Add(string(password), string(hash))
 	}

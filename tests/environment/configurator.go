@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/compose"
 )
@@ -26,10 +27,10 @@ type DockerComposeConfigurator struct {
 // it assigns random values for ports and network to avoid collision errors. Use
 // [DockerComposeConfigurator.Up] to build the instance, initiating a [DockerCompose] instance.
 func New(t *testing.T) *DockerComposeConfigurator {
+	t.Helper()
+
 	envs, err := godotenv.Read("../.env")
-	if !assert.NoError(t, err) {
-		assert.FailNow(t, err.Error())
-	}
+	require.NoError(t, err)
 
 	envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
 	envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
@@ -65,6 +66,8 @@ func (dcc *DockerComposeConfigurator) WithEnvs(envs map[string]string) *DockerCo
 // It returns a pointer to the newly cloned struct, calling assert.FailNow if an error
 // arises.
 func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigurator {
+	t.Helper()
+
 	clonedEnv := &DockerComposeConfigurator{
 		envs: make(map[string]string),
 		t:    t,
@@ -102,9 +105,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
 
 	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
-	if !assert.NoError(dcc.t, err) {
-		assert.FailNow(dcc.t, err.Error())
-	}
+	require.NoError(dcc.t, err)
 
 	// Since we can't utilize [compose.dockerCompose] in the parameters,
 	// we must implement the [DockerCompose.down] method here.
@@ -115,9 +116,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 			compose.RemoveVolumes(true),
 			compose.RemoveImagesAll,
 		)
-		if !assert.NoError(dc.t, err) {
-			assert.FailNow(dc.t, err.Error())
-		}
+		require.NoError(dc.t, err)
 
 		for k := range dc.services {
 			dc.services[k] = nil
@@ -133,9 +132,7 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 
 	for _, service := range services {
 		composeService, err := tcDc.ServiceContainer(ctx, string(service))
-		if !assert.NoError(dc.t, err) {
-			assert.FailNow(dc.t, err.Error())
-		}
+		require.NoError(dc.t, err)
 
 		dc.services[service] = composeService
 	}

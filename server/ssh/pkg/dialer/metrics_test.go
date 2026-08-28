@@ -108,7 +108,7 @@ func TestCollectorCountsDisplacedConnections(t *testing.T) {
 	}
 
 	reconnect()
-	assert.NoError(t, testutil.CollectAndCompare(collector, strings.NewReader(displacedExpositionOf(0)), displacedMetric),
+	require.NoError(t, testutil.CollectAndCompare(collector, strings.NewReader(displacedExpositionOf(0)), displacedMetric),
 		"a first registration displaces nothing")
 
 	reconnect()

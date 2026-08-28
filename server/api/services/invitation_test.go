@@ -22,6 +22,7 @@ import (
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // mockClockNow swaps clock.DefaultBackend (and uuid.DefaultBackend) for mocks and restores them
@@ -51,7 +52,7 @@ func TestService_ResolveInvitation(t *testing.T) {
 
 	// A freshly-minted code passes pairingcode.IsValid; the service normalizes before lookup.
 	code, err := pairingcode.New(pairingcode.InviteCodeLength)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	normalized := pairingcode.Normalize(code)
 
 	type Expected struct {

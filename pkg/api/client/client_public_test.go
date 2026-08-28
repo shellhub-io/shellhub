@@ -13,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetInfo(t *testing.T) {
@@ -127,7 +129,7 @@ func TestGetInfo(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			cli, err := NewClient("https://www.cloud.shellhub.io/")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			client, ok := cli.(*client)
 			assert.True(t, ok)
@@ -243,7 +245,7 @@ func TestAuthDevice(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			cli, err := NewClient("https://www.cloud.shellhub.io/")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			client, ok := cli.(*client)
 			assert.True(t, ok)
@@ -305,7 +307,7 @@ func TestAuthPublicKey(t *testing.T) {
 	}
 
 	sigBytes, err := json.Marshal(sig)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sigString := string(sigBytes)
 	fmt.Println(sigString)
@@ -398,7 +400,7 @@ func TestAuthPublicKey(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			cli, err := NewClient("https://www.cloud.shellhub.io/")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			client, ok := cli.(*client)
 			assert.True(t, ok)
@@ -464,12 +466,12 @@ func TestReverseListener(t *testing.T) {
 			ctx := context.Background()
 
 			cli, err := NewClient("https://www.cloud.shellhub.io/", WithReverser(mock))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			test.requiredMocks()
 
 			_, err = cli.NewReverseListenerV1(ctx, test.token, "")
-			assert.Equal(t, err, test.expected)
+			assert.Equal(t, test.expected, err)
 		})
 	}
 }

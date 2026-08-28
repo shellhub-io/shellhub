@@ -150,7 +150,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 func TestNewAgent(t *testing.T) {
 	agent, err := NewAgent("http://localhost:80", "00000000-0000-4000-0000-000000000000", "./shellhub.key", new(HostMode))
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, TransportV2, agent.config.TransportVersion)
 }
 

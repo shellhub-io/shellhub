@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHash(t *testing.T) {
@@ -20,8 +21,8 @@ func TestHash(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			hash, err := Do(tc.password)
-			assert.NoError(t, err)
-			assert.NotEqual(t, hash, "")
+			require.NoError(t, err)
+			assert.NotEmpty(t, hash)
 		})
 	}
 }

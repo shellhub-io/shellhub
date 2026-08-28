@@ -21,7 +21,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, "nonexistent-fingerprint")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, pubKey)
 	})
 
@@ -33,7 +33,7 @@ func (s *Suite) TestPublicKeyResolve(t *testing.T) {
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("key1"), WithPublicKeyTenant(tenant1))
 
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant2), store.PublicKeyFingerprintResolver, fingerprint)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, pubKey)
 	})
 

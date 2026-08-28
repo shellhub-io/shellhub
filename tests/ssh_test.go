@@ -172,6 +172,8 @@ func TestSSH(t *testing.T) {
 }
 
 func testSSHWithVersion(t *testing.T, connectionVersion int) {
+	t.Helper()
+
 	type Environment struct {
 		services *environment.DockerCompose
 		agent    testcontainers.Container
@@ -185,6 +187,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "reconnect to server",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				ctx := context.Background()
 
 				err := environment.agent.Stop(ctx, nil)
@@ -212,6 +216,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				NewAgentContainerWithIdentity("test"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				ctx := context.Background()
 
 				err := environment.agent.Stop(ctx, nil)
@@ -236,6 +242,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "authenticate with password",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -259,6 +267,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "fail to authenticate with password",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -277,6 +287,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				NewAgentContainerWithIdentity("test"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -300,6 +312,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "authenticate with public key",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				ctx := context.Background()
 
 				privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -343,6 +357,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "fail to authenticate with public key",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 				require.NoError(t, err)
 
@@ -364,6 +380,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection SHELL with Pty",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -401,6 +419,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC and a SHELL on same connection",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -452,6 +472,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -484,6 +506,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC with non zero status code",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -523,6 +547,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				NewAgentContainerWithIdentity("test"),
 			},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -556,6 +582,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "connection SFTP to upload file",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -592,6 +620,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "connection SFTP to download file",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -631,6 +661,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "connection SCP to upload file",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -666,6 +698,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "connection SCP to download file",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -701,6 +735,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "direct tcpip port redirect",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, env *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -735,7 +771,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					read, err := conn.Read(buffer)
 					require.NoError(t, err)
 
-					require.Equal(t, read, 4)
+					require.Equal(t, 4, read)
 					require.Equal(t, "test", string(buffer[:4]))
 
 					conn.Close()
@@ -760,7 +796,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				wrote, err := ch.Write([]byte("test"))
 				require.NoError(t, err)
 
-				require.Equal(t, wrote, 4)
+				require.Equal(t, 4, wrote)
 
 				wg.Wait()
 
@@ -771,6 +807,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "session timeout behavior",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -798,6 +836,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			name:    "connection SFTP to upload large file",
 			options: []NewAgentContainerOption{},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -855,6 +895,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC with large output",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -874,7 +916,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				output, err := sess.Output("yes X | tr -d '\n' | head -c 1048576")
 				require.NoError(t, err)
 
-				assert.Equal(t, 1024*1024, len(output))
+				assert.Len(t, output, 1024*1024)
 				for _, b := range output {
 					assert.Equal(t, byte('X'), b)
 				}
@@ -887,6 +929,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// apart.
 			name: "connection EXEC with separate stdout and stderr",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -926,6 +970,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// EOF either. The assertion that matters is that this returns at all.
 			name: "connection EXEC with large stderr",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -972,6 +1018,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// so the gap was invisible unless you asked for a terminal.
 			name: "connection SHELL with Pty reports the exit code",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1015,6 +1063,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection SHELL with Pty reports a successful exit",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1058,6 +1108,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// had no data path and hung until the client gave up.
 			name: "connection SHELL without Pty",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1113,6 +1165,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// too.
 			name: "connection keepalive reaches the client",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1174,6 +1228,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			// the agent silently drops blocked vars.
 			name: "connection EXEC with environment variables",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1209,6 +1265,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "terminal window size change",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1305,6 +1363,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection EXEC with invalid command",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1332,6 +1392,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "handling special characters in commands and output",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1368,6 +1430,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection with cipher and MAC preferences",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1404,6 +1468,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "multiple concurrent SSH sessions",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1462,6 +1528,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection with strict host key checking simulation",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				var learnedKey ssh.PublicKey
 				config1 := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
@@ -1501,6 +1569,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection with keep-alive and heartbeat",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1542,6 +1612,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection with subsystem request (sftp)",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1581,6 +1653,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		{
 			name: "connection with pseudo-terminal modes",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{
@@ -1623,12 +1697,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				buffer := make([]byte, 1024)
 				n, err := stdout.Read(buffer)
 				require.NoError(t, err)
-				assert.Greater(t, n, 0)
+				assert.Positive(t, n)
 			},
 		},
 		{
 			name: "connection with signal handling",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
+				t.Helper()
+
 				config := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
 					Auth: []ssh.AuthMethod{

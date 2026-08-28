@@ -213,11 +213,11 @@ func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	conn.SetDeadline(deadline) //nolint:errcheck
 
 	_, err = conn.Write([]byte("hello"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	buf := make([]byte, 5)
 	n, err := conn.Read(buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "hello", string(buf[:n]))
 
 	assert.NoError(t, <-done)

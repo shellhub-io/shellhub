@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -87,6 +86,6 @@ func TestValidateBillingForDeviceAcceptance(t *testing.T) {
 // ErrDeviceLimit. They share a layer and a code, so only the message separates them, and a caller
 // that tells a namespace to free a device slot must not match a billing block.
 func TestErrDeviceBillingBlocked(t *testing.T) {
-	assert.False(t, errors.Is(ErrDeviceBillingBlocked, ErrDeviceLimit))
-	assert.False(t, errors.Is(ErrDeviceLimit, ErrDeviceBillingBlocked))
+	require.NotErrorIs(t, ErrDeviceBillingBlocked, ErrDeviceLimit)
+	assert.NotErrorIs(t, ErrDeviceLimit, ErrDeviceBillingBlocked)
 }

@@ -16,6 +16,8 @@ func NewSuite(provider StoreProvider) *Suite {
 
 // Run executes all store tests organized by interface
 func (s *Suite) Run(t *testing.T) {
+	t.Helper()
+
 	t.Run("NamespaceStore", func(t *testing.T) {
 		s.TestNamespaceList(t)
 		s.TestNamespaceResolve(t)

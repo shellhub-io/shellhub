@@ -97,7 +97,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, "nonexistent-id")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
 
@@ -110,7 +110,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		malformedTenantID := "83176492-e6cl-43d7-922e-ee01c3693e26"
 
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(malformedTenantID), store.APIKeyIDResolver, "any-key-id")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
 
@@ -135,7 +135,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyNameResolver, "nonexistent")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
 
@@ -162,7 +162,7 @@ func (s *Suite) TestAPIKeyResolve(t *testing.T) {
 		s.CreateAPIKey(t, WithAPIKeyName("dev"), WithAPIKeyTenant(tenant1))
 
 		apiKey, err := st.APIKeyResolve(ctx, scope.MustBounded(tenant2), store.APIKeyNameResolver, "dev")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, apiKey)
 	})
 }

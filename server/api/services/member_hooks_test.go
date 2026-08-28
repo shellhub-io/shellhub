@@ -31,7 +31,7 @@ func TestOnMembershipInvited(t *testing.T) {
 		require.Len(t, membershipInvitedHooks, 1)
 
 		err := membershipInvitedHooks[0](context.Background(), nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, called)
 	})
 }
@@ -64,7 +64,7 @@ func TestFireMembershipInvited(t *testing.T) {
 		})
 
 		err := fireMembershipInvited(context.Background(), notification)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, called)
 	})
 
@@ -84,7 +84,7 @@ func TestFireMembershipInvited(t *testing.T) {
 		})
 
 		err := fireMembershipInvited(context.Background(), notification)
-		assert.ErrorIs(t, err, errHook)
+		require.ErrorIs(t, err, errHook)
 		assert.False(t, secondCalled)
 	})
 
@@ -104,7 +104,7 @@ func TestFireMembershipInvited(t *testing.T) {
 		})
 
 		err := fireMembershipInvited(context.Background(), notification)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, []int{1, 2}, order)
 	})
 }

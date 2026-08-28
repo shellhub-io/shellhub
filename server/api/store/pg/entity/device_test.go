@@ -44,6 +44,8 @@ func TestDeviceFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *Device) {
+				t.Helper()
+
 				assert.Equal(t, "device-uid-1", result.ID)
 				assert.Equal(t, "tenant-id-1", result.NamespaceID)
 				assert.Equal(t, "accepted", result.Status)
@@ -73,6 +75,8 @@ func TestDeviceFromModel(t *testing.T) {
 				Status: "",
 			},
 			check: func(t *testing.T, result *Device) {
+				t.Helper()
+
 				assert.Equal(t, "pending", result.Status)
 			},
 		},
@@ -87,11 +91,13 @@ func TestDeviceFromModel(t *testing.T) {
 				DisconnectedAt: nil,
 			},
 			check: func(t *testing.T, result *Device) {
-				assert.Equal(t, "", result.MAC)
+				t.Helper()
+
+				assert.Empty(t, result.MAC)
 				assert.InDelta(t, 0.0, result.Longitude, 0.001)
 				assert.InDelta(t, 0.0, result.Latitude, 0.001)
-				assert.Equal(t, "", result.Identifier)
-				assert.Equal(t, "", result.PrettyName)
+				assert.Empty(t, result.Identifier)
+				assert.Empty(t, result.PrettyName)
 				assert.True(t, result.DisconnectedAt.IsZero())
 			},
 		},
@@ -108,6 +114,8 @@ func TestDeviceFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *Device) {
+				t.Helper()
+
 				require.Len(t, result.Tags, 2)
 				assert.Equal(t, "tag-1", result.Tags[0].ID)
 				assert.Equal(t, "prod", result.Tags[0].Name)
@@ -124,10 +132,12 @@ func TestDeviceFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *Device) {
+				t.Helper()
+
 				require.Len(t, result.Tags, 2)
 				assert.Equal(t, "tag-1", result.Tags[0].ID)
 				assert.Equal(t, "tag-2", result.Tags[1].ID)
-				assert.Equal(t, "", result.Tags[0].Name)
+				assert.Empty(t, result.Tags[0].Name)
 			},
 		},
 		{
@@ -137,6 +147,8 @@ func TestDeviceFromModel(t *testing.T) {
 				Status: models.DeviceStatusAccepted,
 			},
 			check: func(t *testing.T, result *Device) {
+				t.Helper()
+
 				assert.Empty(t, result.Tags)
 			},
 		},
@@ -190,6 +202,8 @@ func TestDeviceToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.Device) {
+				t.Helper()
+
 				assert.Equal(t, "device-uid-1", result.UID)
 				assert.Equal(t, "tenant-id-1", result.TenantID)
 				assert.Equal(t, models.DeviceStatusAccepted, result.Status)
@@ -230,7 +244,9 @@ func TestDeviceToModel(t *testing.T) {
 				Namespace: nil,
 			},
 			check: func(t *testing.T, result *models.Device) {
-				assert.Equal(t, "", result.Namespace)
+				t.Helper()
+
+				assert.Empty(t, result.Namespace)
 			},
 		},
 		{
@@ -241,6 +257,8 @@ func TestDeviceToModel(t *testing.T) {
 				DisconnectedAt: time.Time{},
 			},
 			check: func(t *testing.T, result *models.Device) {
+				t.Helper()
+
 				assert.Nil(t, result.DisconnectedAt)
 			},
 		},
@@ -252,6 +270,8 @@ func TestDeviceToModel(t *testing.T) {
 				DisconnectedAt: disconnectedAt,
 			},
 			check: func(t *testing.T, result *models.Device) {
+				t.Helper()
+
 				require.NotNil(t, result.DisconnectedAt)
 				assert.Equal(t, disconnectedAt, *result.DisconnectedAt)
 			},
@@ -264,6 +284,8 @@ func TestDeviceToModel(t *testing.T) {
 				Tags:   []*Tag{},
 			},
 			check: func(t *testing.T, result *models.Device) {
+				t.Helper()
+
 				assert.Empty(t, result.Tags)
 				assert.Nil(t, result.TagIDs)
 			},
@@ -276,6 +298,8 @@ func TestDeviceToModel(t *testing.T) {
 				Tags:   nil,
 			},
 			check: func(t *testing.T, result *models.Device) {
+				t.Helper()
+
 				assert.Empty(t, result.Tags)
 				assert.Nil(t, result.TagIDs)
 			},

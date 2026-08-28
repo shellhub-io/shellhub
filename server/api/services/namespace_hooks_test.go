@@ -7,6 +7,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFireNamespaceDelete(t *testing.T) {
@@ -41,7 +43,7 @@ func TestFireNamespaceDelete(t *testing.T) {
 			return nil
 		})
 
-		assert.NoError(t, fireNamespaceDelete(ctx, ns))
+		require.NoError(t, fireNamespaceDelete(ctx, ns))
 		assert.True(t, called)
 	})
 
@@ -60,7 +62,7 @@ func TestFireNamespaceDelete(t *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, fireNamespaceDelete(ctx, ns), hookErr)
+		require.ErrorIs(t, fireNamespaceDelete(ctx, ns), hookErr)
 		assert.False(t, secondCalled)
 	})
 
@@ -79,7 +81,7 @@ func TestFireNamespaceDelete(t *testing.T) {
 			return nil
 		})
 
-		assert.NoError(t, fireNamespaceDelete(ctx, ns))
+		require.NoError(t, fireNamespaceDelete(ctx, ns))
 		assert.Equal(t, []int{1, 2}, order)
 	})
 }

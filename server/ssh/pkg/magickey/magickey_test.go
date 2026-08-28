@@ -15,6 +15,8 @@ func TestGetReference(t *testing.T) {
 		{
 			name: "success when called twice returns singleton key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				key1 := GetReference()
 				key2 := GetReference()
 				assert.Same(t, key1, key2)
@@ -23,6 +25,8 @@ func TestGetReference(t *testing.T) {
 		{
 			name: "success when key is valid RSA 2048",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				key := GetReference()
 				assert.NotNil(t, key)
 				assert.Equal(t, 2048, key.N.BitLen())
@@ -33,6 +37,8 @@ func TestGetReference(t *testing.T) {
 		{
 			name: "success when key is usable for operations",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				key := GetReference()
 				assert.NotNil(t, key.Primes)
 				assert.Len(t, key.Primes, 2)
@@ -42,6 +48,8 @@ func TestGetReference(t *testing.T) {
 		{
 			name: "success when multiple calls return same key",
 			test: func(t *testing.T) {
+				t.Helper()
+
 				keys := make([]*rsa.PrivateKey, 10)
 				for i := range 10 {
 					keys[i] = GetReference()

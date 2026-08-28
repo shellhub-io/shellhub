@@ -14,7 +14,9 @@ func TestPgStore(t *testing.T) {
 	// Run each store interface test suite with its own isolated database
 	// This prevents data leakage between test suites and ensures clean state
 
-	runSubSuite(t, "UserStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "UserStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestUserList(t)
 		suite.TestUserResolve(t)
 		suite.TestUserCreate(t)
@@ -28,7 +30,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestUserConflictsRemoved(t)
 	})
 
-	runSubSuite(t, "NamespaceStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "NamespaceStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestNamespaceList(t)
 		suite.TestNamespaceResolve(t)
 		suite.TestNamespaceGetDeviceLimit(t)
@@ -44,7 +48,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestNamespaceDeleteMany(t)
 	})
 
-	runSubSuite(t, "DeviceStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "DeviceStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestDeviceList(t)
 		suite.TestDeviceResolve(t)
 		suite.TestDeviceCreate(t)
@@ -58,7 +64,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestDeviceDeleteMany(t)
 	})
 
-	runSubSuite(t, "SessionStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "SessionStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestSessionList(t)
 		suite.TestSessionResolve(t)
 		suite.TestSessionCreate(t)
@@ -74,7 +82,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestSessionCleanup(t)
 	})
 
-	runSubSuite(t, "TagStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "TagStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestTagCreate(t)
 		suite.TestTagConflicts(t)
 		suite.TestTagList(t)
@@ -85,7 +95,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestTagDelete(t)
 	})
 
-	runSubSuite(t, "APIKeyStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "APIKeyStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestAPIKeyCreate(t)
 		suite.TestAPIKeyConflicts(t)
 		suite.TestAPIKeyResolve(t)
@@ -95,13 +107,17 @@ func TestPgStore(t *testing.T) {
 		suite.TestAPIKeyDeleteAllByCreator(t)
 	})
 
-	runSubSuite(t, "InstallKeyStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "InstallKeyStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestInstallKeyModeRoundTrip(t)
 		suite.TestInstallKeyEventCreate(t)
 		suite.TestInstallKeyEventList(t)
 	})
 
-	runSubSuite(t, "PublicKeyStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "PublicKeyStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestPublicKeyResolve(t)
 		suite.TestPublicKeyList(t)
 		suite.TestPublicKeyCreate(t)
@@ -109,24 +125,32 @@ func TestPgStore(t *testing.T) {
 		suite.TestPublicKeyDelete(t)
 	})
 
-	runSubSuite(t, "StatsStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "StatsStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestGetStats(t)
 		suite.TestGetStatsOnlineBoundary(t)
 		suite.TestCountRegisteredDevices(t)
 	})
 
-	runSubSuite(t, "PrivateKeyStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "PrivateKeyStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestPrivateKeyCreate(t)
 		suite.TestPrivateKeyGet(t)
 	})
 
-	runSubSuite(t, "MemberStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "MemberStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestNamespaceCreateMembership(t)
 		suite.TestNamespaceUpdateMembership(t)
 		suite.TestNamespaceDeleteMembership(t)
 	})
 
-	runSubSuite(t, "MembershipInvitationStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "MembershipInvitationStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestMembershipInvitationCreate(t)
 		suite.TestMembershipInvitationResolve(t)
 		suite.TestMembershipInvitationResolveBySig(t)
@@ -137,26 +161,34 @@ func TestPgStore(t *testing.T) {
 		suite.TestNamespaceMembershipInvitationListWithStatusFilter(t)
 	})
 
-	runSubSuite(t, "UserInvitationStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "UserInvitationStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestUserInvitationsUpsert(t)
 		suite.TestUserInvitationGet(t)
 		suite.TestUserInvitationUpdate(t)
 		suite.TestUserInvitationUpdateDoesNotClobberInvitations(t)
 	})
 
-	runSubSuite(t, "SystemStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "SystemStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestSystemGetDefault(t)
 		suite.TestSystemGet(t)
 		suite.TestSystemSet(t)
 	})
 
-	runSubSuite(t, "TransactionStore", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "TransactionStore", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestWithTransaction(t)
 	})
 
 	// Cross-namespace isolation for every operation that takes a namespace scope. These are the
 	// tests that fail when a converted query stops applying its bound.
-	runSubSuite(t, "ScopeIsolation", func(suite *storetest.Suite, t *testing.T) {
+	runSubSuite(t, "ScopeIsolation", func(t *testing.T, suite *storetest.Suite) {
+		t.Helper()
+
 		suite.TestScopeIsolationDeviceResolve(t)
 		suite.TestScopeIsolationDeviceList(t)
 		suite.TestScopeIsolationDeviceConflicts(t)
@@ -194,7 +226,9 @@ func TestPgStore(t *testing.T) {
 
 // runSubSuite creates a fresh PostgreSQL database for each sub-suite
 // This ensures complete isolation between test suites
-func runSubSuite(t *testing.T, name string, testFunc func(*storetest.Suite, *testing.T)) {
+func runSubSuite(t *testing.T, name string, testFunc func(*testing.T, *storetest.Suite)) {
+	t.Helper()
+
 	t.Run(name, func(t *testing.T) {
 		ctx := context.Background()
 		provider, err := pgprovider.NewProvider(ctx)
@@ -204,6 +238,6 @@ func runSubSuite(t *testing.T, name string, testFunc func(*storetest.Suite, *tes
 		defer provider.Close(t)
 
 		suite := storetest.NewSuite(provider)
-		testFunc(suite, t)
+		testFunc(t, suite)
 	})
 }

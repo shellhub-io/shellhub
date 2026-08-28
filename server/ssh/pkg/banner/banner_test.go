@@ -8,7 +8,7 @@ import (
 )
 
 func TestMessageKindNone(t *testing.T) {
-	assert.Equal(t, "", Message(KindNone))
+	assert.Empty(t, Message(KindNone))
 }
 
 func TestMessageHasCRLF(t *testing.T) {
@@ -34,7 +34,7 @@ func TestMessageHasCRLF(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			msg := Message(tc.kind)
 			assert.NotEmpty(t, msg)
-			assert.True(t, strings.Contains(msg, "\r\n"), "message must contain CRLF line endings")
+			assert.Contains(t, msg, "\r\n", "message must contain CRLF line endings")
 		})
 	}
 }

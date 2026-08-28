@@ -249,11 +249,11 @@ func TestRolePreferences(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			for _, r := range tc.greater {
-				require.Equal(tt, false, tc.role.HasAuthority(r))
+				require.False(tt, tc.role.HasAuthority(r))
 			}
 
 			for _, r := range tc.less {
-				require.Equal(tt, true, tc.role.HasAuthority(r))
+				require.True(tt, tc.role.HasAuthority(r))
 			}
 		})
 	}

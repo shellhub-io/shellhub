@@ -7,6 +7,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFireDeviceMerge(t *testing.T) {
@@ -45,7 +47,7 @@ func TestFireDeviceMerge(t *testing.T) {
 			return nil
 		})
 
-		assert.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
+		require.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
 		assert.True(t, called)
 	})
 
@@ -64,7 +66,7 @@ func TestFireDeviceMerge(t *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, fireDeviceMerge(ctx, tenant, oldDev, newDev), hookErr)
+		require.ErrorIs(t, fireDeviceMerge(ctx, tenant, oldDev, newDev), hookErr)
 		assert.False(t, secondCalled)
 	})
 
@@ -83,7 +85,7 @@ func TestFireDeviceMerge(t *testing.T) {
 			return nil
 		})
 
-		assert.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
+		require.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
 		assert.Equal(t, []int{1, 2}, order)
 	})
 }

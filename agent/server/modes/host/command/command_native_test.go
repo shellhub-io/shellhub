@@ -11,6 +11,8 @@ import (
 
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 // Compile-time assertion: CheckCredentialSwitch must be defined under the !docker tag.
@@ -107,7 +109,7 @@ func TestCheckCredentialSwitch(t *testing.T) {
 
 		err := CheckCredentialSwitch()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, int64(0), calls.Load(), "readSetgroupsPolicyFn must never be called when euid!=0")
 	})
 
@@ -123,7 +125,7 @@ func TestCheckCredentialSwitch(t *testing.T) {
 
 		err := CheckCredentialSwitch()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, int64(0), calls.Load(), "readSetgroupsPolicyFn must never be called when euid!=0")
 	})
 
@@ -135,7 +137,7 @@ func TestCheckCredentialSwitch(t *testing.T) {
 
 		err := CheckCredentialSwitch()
 
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.ErrorContains(t, err, "setgroups denied in unprivileged user namespace")
 	})
 

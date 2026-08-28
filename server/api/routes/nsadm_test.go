@@ -21,6 +21,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateNamespace(t *testing.T) {
@@ -339,7 +340,7 @@ func TestEditNamespace(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.body)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPut, "/api/users/security/"+tc.headers["X-Tenant-ID"], strings.NewReader(string(jsonData)))
