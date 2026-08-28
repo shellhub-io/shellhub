@@ -75,7 +75,10 @@ func TestMain_smoke(t *testing.T) {
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		var err error
 
-		resp, err = client.Get(baseURL + "/internal/whatever")
+		req, reqErr := http.NewRequestWithContext(t.Context(), http.MethodGet, baseURL+"/internal/whatever", nil)
+		require.NoError(t, reqErr)
+
+		resp, err = client.Do(req)
 		if err == nil {
 			break
 		}

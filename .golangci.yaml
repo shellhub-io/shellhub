@@ -70,6 +70,8 @@ linters:
     # Error identity survives wrapping: errors.Is/As over == and type assertions.
     - errorlint
     - forcetypeassert
+    # I/O that a cancelled request should not outlive.
+    - noctx
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

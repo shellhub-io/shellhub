@@ -255,7 +255,7 @@ func TestCreateAPIKey(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPost, "/api/namespaces/api-key", strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/namespaces/api-key", strings.NewReader(string(data)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -539,7 +539,7 @@ func TestListAPIKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/namespaces/api-key?"+tc.query(), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/namespaces/api-key?"+tc.query(), nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -744,7 +744,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPatch, "/api/namespaces/api-key/"+tc.name, strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/namespaces/api-key/"+tc.name, strings.NewReader(string(data)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -835,7 +835,7 @@ func TestDeleteAPIKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/api-key/"+tc.name, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/namespaces/api-key/"+tc.name, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

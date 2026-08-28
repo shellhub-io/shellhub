@@ -100,7 +100,7 @@ func newSpyClient(t *testing.T) (*sentry.Client, *spyTransport) {
 // newEchoCtx returns an *echo.Context backed by an HTTP recorder for assertions.
 func newEchoCtx() (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	return e.NewContext(req, rec), rec

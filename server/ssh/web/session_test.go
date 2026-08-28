@@ -136,7 +136,7 @@ func TestMapBannerErrorEmptyMessage(t *testing.T) {
 func dialWithBanner(t *testing.T, bannerText string) error {
 	t.Helper()
 
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	l, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	srv := &gliderssh.Server{

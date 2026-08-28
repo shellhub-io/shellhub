@@ -173,7 +173,7 @@ func TestLoopbackProxyPolicy(t *testing.T) {
 }
 
 func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
-	raw, err := net.Listen("tcp", "127.0.0.1:0")
+	raw, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	proxy := newProxyListener(raw)
@@ -205,7 +205,7 @@ func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 		done <- err
 	}()
 
-	conn, err := net.Dial("tcp", proxy.Addr().String())
+	conn, err := new(net.Dialer).DialContext(t.Context(), "tcp", proxy.Addr().String())
 	require.NoError(t, err)
 
 	defer conn.Close() //nolint:errcheck

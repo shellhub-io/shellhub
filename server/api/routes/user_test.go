@@ -130,7 +130,7 @@ func TestUpdateUser(t *testing.T) {
 			data, err := json.Marshal(tc.body) //nolint:gosec // G117: test request serialization
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPatch, "/api/users", strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users", strings.NewReader(string(data)))
 			req.Header.Set("Content-Type", "application/json")
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
@@ -290,7 +290,7 @@ func TestUpdateUserPassword(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/users/%s/password", tc.uid), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, fmt.Sprintf("/api/users/%s/password", tc.uid), strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()

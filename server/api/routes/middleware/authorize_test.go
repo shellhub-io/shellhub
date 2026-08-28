@@ -58,7 +58,7 @@ func TestRequiresTenant(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 			if tc.header != "" {
 				req.Header.Set("X-Tenant-ID", tc.header)
 			}

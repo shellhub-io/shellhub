@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -121,7 +122,7 @@ func TestRouterRejectsUncredentialedRequests(t *testing.T) {
 				tc.mock(service)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/api/devices", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices", nil)
 			for key, value := range tc.headers {
 				req.Header.Set(key, value)
 			}
@@ -169,7 +170,7 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 		"X-Admin":      "true",
 	}
 
-	req := httptest.NewRequest(http.MethodGet, probe, nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, probe, nil)
 	for key, value := range forged {
 		req.Header.Set(key, value)
 	}

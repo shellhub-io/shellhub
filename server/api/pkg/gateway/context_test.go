@@ -33,7 +33,7 @@ func TestRole(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
@@ -78,7 +78,7 @@ func TestTenant(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -125,7 +125,7 @@ func TestUsername(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -172,7 +172,7 @@ func TestID(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -227,7 +227,7 @@ func TestGetID(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -282,7 +282,7 @@ func TestGetTennat(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -337,7 +337,7 @@ func TestGetUsername(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 

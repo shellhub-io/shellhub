@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -51,7 +52,7 @@ func benchServe(b *testing.B, target string, want int) {
 	router := benchRouter(b)
 
 	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, target, nil))
+	router.ServeHTTP(rec, httptest.NewRequestWithContext(context.Background(), http.MethodGet, target, nil))
 
 	if rec.Code != want {
 		b.Fatalf("setup request returned %d, want %d", rec.Code, want)
@@ -60,7 +61,7 @@ func benchServe(b *testing.B, target string, want int) {
 	b.ReportAllocs()
 
 	for b.Loop() {
-		router.ServeHTTP(&nullWriter{}, httptest.NewRequest(http.MethodGet, target, nil))
+		router.ServeHTTP(&nullWriter{}, httptest.NewRequestWithContext(context.Background(), http.MethodGet, target, nil))
 	}
 }
 
@@ -85,7 +86,7 @@ func BenchmarkRouterHealthcheckParallel(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			router.ServeHTTP(&nullWriter{}, httptest.NewRequest(http.MethodGet, target, nil))
+			router.ServeHTTP(&nullWriter{}, httptest.NewRequestWithContext(context.Background(), http.MethodGet, target, nil))
 		}
 	})
 }

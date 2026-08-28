@@ -21,7 +21,7 @@ import (
 // Note this covers the handshake specifically. A device that has gone away
 // entirely fails earlier, in the dialer, on its own deadlines.
 func TestConnectBoundsASilentAgent(t *testing.T) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	defer listener.Close() //nolint:errcheck
@@ -38,7 +38,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 		accepted <- conn
 	}()
 
-	peer, err := net.Dial("tcp", listener.Addr().String())
+	peer, err := new(net.Dialer).DialContext(t.Context(), "tcp", listener.Addr().String())
 	require.NoError(t, err)
 
 	defer peer.Close() //nolint:errcheck
@@ -78,7 +78,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 // with it unset the same silent agent holds the handshake open indefinitely,
 // which is what the code did before ConnectTimeout was wired up.
 func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	defer listener.Close() //nolint:errcheck
@@ -91,7 +91,7 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 		}
 	}()
 
-	peer, err := net.Dial("tcp", listener.Addr().String())
+	peer, err := new(net.Dialer).DialContext(t.Context(), "tcp", listener.Addr().String())
 	require.NoError(t, err)
 
 	defer peer.Close() //nolint:errcheck

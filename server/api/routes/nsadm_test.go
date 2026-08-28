@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -70,7 +71,7 @@ func TestCreateNamespace(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000000")
@@ -149,7 +150,7 @@ func TestGetNamespace(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/namespaces/"+tc.req, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/namespaces/"+tc.req, nil)
 
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
@@ -236,7 +237,7 @@ func TestDeleteNamespace(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/"+tc.req, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/namespaces/"+tc.req, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", tc.uid)
@@ -343,7 +344,7 @@ func TestEditNamespace(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, "/api/users/security/"+tc.headers["X-Tenant-ID"], strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/users/security/"+tc.headers["X-Tenant-ID"], strings.NewReader(string(jsonData)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -416,7 +417,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		t.Run(tc.description, func(tt *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/"+tc.tenantID+"/members", nil)
+			req := httptest.NewRequestWithContext(tt.Context(), http.MethodDelete, "/api/namespaces/"+tc.tenantID+"/members", nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -520,7 +521,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 				if route.body != "" {
 					body = strings.NewReader(route.body)
 				}
-				req := httptest.NewRequest(route.method, route.url, body)
+				req := httptest.NewRequestWithContext(t.Context(), route.method, route.url, body)
 				req.Header.Set("Content-Type", "application/json")
 				req.Header.Set("X-Role", authorizer.RoleOwner.String())
 				for k, v := range shape.headers {
@@ -543,7 +544,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
 	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
@@ -559,7 +560,7 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 
 	mock := mocks.NewMockService(t)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
 	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
@@ -727,7 +728,7 @@ func TestGetNamespaceList(t *testing.T) {
 				url += "?" + tc.query
 			}
 
-			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", "000000000000000000000000")
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")

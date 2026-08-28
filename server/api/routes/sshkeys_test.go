@@ -60,7 +60,7 @@ func TestGetPublicKeys(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sshkeys/public-keys", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			for k, v := range tc.headers {
@@ -138,7 +138,7 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			svcMock := mocks.NewMockService(t)
 
-			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys?filter="+tc.filter, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sshkeys/public-keys?filter="+tc.filter, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
@@ -250,7 +250,7 @@ func TestDeletePublicKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/sshkeys/public-keys/"+tc.fingerprint, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/sshkeys/public-keys/"+tc.fingerprint, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

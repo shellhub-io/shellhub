@@ -45,7 +45,10 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 	// execute the command in the host's context.
 	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, groups, u.HomeDir, command...)
 
-	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:gosec
+	// noctx: NewCmd has a docker and a native build-tag variant sharing one signature, called
+	// from linux and freebsd paths. The session context reaches the callers, not here, so
+	// threading it through is a change to the command API rather than a lint fix.
+	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:noctx,gosec
 	// TODO: There are other environment variables we could set like SSH_CONNECTION, SSH_TTY, SSH_ORIGINAL_COMMAND, etc.
 	// We need to check which ones are relevant and set them accordingly.
 	// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
@@ -136,5 +139,5 @@ func nsenterCommandWrapper(uid, gid uint32, groups []uint32, home string, comman
 
 // SFTPServerCommand creates the command used by agent to start the SFTP server used in a SFTP connection.
 func SFTPServerCommand() *exec.Cmd {
-	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeDocker)}...) //nolint:gosec
+	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeDocker)}...) //nolint:noctx,gosec
 }

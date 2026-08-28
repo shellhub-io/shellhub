@@ -40,7 +40,7 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 	}
 
 	pg := &Pg{driver: bun.NewDB(stdlib.OpenDBFromPool(pool), pgdialect.New(), bun.WithDiscardUnknownColumns()), options: &queryOptions{}}
-	if err := pg.driver.Ping(); err != nil {
+	if err := pg.driver.PingContext(ctx); err != nil {
 		return nil, err
 	}
 

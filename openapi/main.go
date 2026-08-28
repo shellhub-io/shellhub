@@ -25,7 +25,7 @@ func main() {
 
 	fmt.Printf("info: generating OpenAPI server from %s (edition: %s)\n", specPath, edition)
 
-	if err := exec.Command("redocly", "bundle", specPath, "-o", "static/openapi.json").Run(); err != nil { //nolint:gosec
+	if err := exec.Command("redocly", "bundle", specPath, "-o", "static/openapi.json").Run(); err != nil { //nolint:noctx,gosec
 		log.Fatalf("error: failed to bundle the openapi spec: %v", err)
 	}
 
@@ -35,7 +35,7 @@ func main() {
 	// must not stop the server: the full spec above is what the frontend codegen
 	// and the response validator depend on.
 	customerAPI := string(edition) + "-customer@v1"
-	if err := exec.Command("redocly", "bundle", customerAPI, "-o", "static/customer.json").Run(); err != nil { //nolint:gosec
+	if err := exec.Command("redocly", "bundle", customerAPI, "-o", "static/customer.json").Run(); err != nil { //nolint:noctx,gosec
 		log.Printf("warning: failed to bundle the customer OpenAPI preview (%s): %v", customerAPI, err)
 	}
 

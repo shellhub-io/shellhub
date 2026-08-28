@@ -101,7 +101,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 
 			e := newConnectionTestServer(t, serviceMock, tt.config)
 
-			req := httptest.NewRequest(http.MethodGet, HandleConnectionV1Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
 			req.Header.Set("X-Device-UID", testDeviceUID)
 			req.Header.Set("X-Request-ID", "request-id")
 
@@ -148,7 +148,7 @@ func TestHandleConnectionV1RetriesOnlyInfrastructureFailures(t *testing.T) {
 
 			e := newConnectionTestServer(t, serviceMock, &Config{RequireAcceptedTunnel: true}) //nolint:exhaustruct
 
-			req := httptest.NewRequest(http.MethodGet, HandleConnectionV1Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
 			req.Header.Set("X-Device-UID", testDeviceUID)
 			req.Header.Set("X-Request-ID", "request-id")
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
@@ -202,7 +202,7 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 			// is never reached.
 			e := newConnectionTestServer(t, nil, &Config{}) //nolint:exhaustruct
 
-			req := httptest.NewRequest(http.MethodGet, HandleConnectionV2Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV2Path, nil)
 			for name, value := range tt.headers {
 				req.Header.Set(name, value)
 			}

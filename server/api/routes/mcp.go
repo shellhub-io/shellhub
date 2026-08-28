@@ -92,7 +92,7 @@ func buildMCPServer(router http.Handler) *mcpserver.MCPServer {
 // is an in-binary client of the API, not a shortcut past it -- no network hop,
 // but the same authorization path. body may be nil.
 func mcpAPICall(ctx context.Context, router http.Handler, method, target string, body io.Reader) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, target, body)
+	req := httptest.NewRequestWithContext(context.Background(), method, target, body)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

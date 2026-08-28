@@ -114,7 +114,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 		logger.Trace("proxy handler connecting to the address")
 
-		in, err := net.Dial(ProxyHandlerNetwork, net.JoinHostPort(host, port))
+		in, err := new(net.Dialer).DialContext(ctx, ProxyHandlerNetwork, net.JoinHostPort(host, port))
 		if err != nil {
 			logger.WithError(err).Error("proxy handler failed to dial to the address")
 
@@ -312,7 +312,7 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 		// localhost:8080.
 		addr := net.JoinHostPort(host, port)
 
-		in, err := net.Dial(ProxyHandlerNetwork, addr)
+		in, err := new(net.Dialer).DialContext(c.Request().Context(), ProxyHandlerNetwork, addr)
 		if err != nil {
 			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
 		}
