@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -148,7 +149,7 @@ func namespaceList(service serviceFunc) *cobra.Command {
 			}
 
 			if !quiet && len(args) == 1 {
-				return fmt.Errorf("field argument requires -q")
+				return errors.New("field argument requires -q")
 			}
 
 			if !validFields[field] {
@@ -220,22 +221,22 @@ func namespaceInspect(service serviceFunc) *cobra.Command {
 
 			if tenantID != "" {
 				if _, err := uuid.Parse(tenantID); err != nil {
-					return fmt.Errorf("invalid tenant ID: must be a valid UUID")
+					return errors.New("invalid tenant ID: must be a valid UUID")
 				}
 			}
 
 			if tenantID != "" && len(args) > 0 {
-				return fmt.Errorf("cannot provide both a namespace name and --tenant-id")
+				return errors.New("cannot provide both a namespace name and --tenant-id")
 			}
 
 			if len(args) > 0 {
 				if _, err := uuid.Parse(args[0]); err == nil {
-					return fmt.Errorf("it looks like you provided a tenant ID; use the --tenant-id flag")
+					return errors.New("it looks like you provided a tenant ID; use the --tenant-id flag")
 				}
 			}
 
 			if tenantID == "" && len(args) == 0 {
-				return fmt.Errorf("please provide either a namespace name or --tenant-id")
+				return errors.New("please provide either a namespace name or --tenant-id")
 			}
 
 			resolver := services.NamespaceResolverName

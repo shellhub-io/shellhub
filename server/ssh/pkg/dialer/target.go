@@ -27,7 +27,7 @@ func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version Trans
 	case TransportVersion1:
 		log.Debug("preparing SSH open target for transport version 1")
 
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("/ssh/%s", t.SessionID), nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/ssh/"+t.SessionID, nil)
 		if err := req.Write(conn); err != nil {
 			log.Errorf("failed to write HTTP request: %v", err)
 
@@ -55,7 +55,7 @@ type SSHCloseTarget struct{ SessionID string }
 func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case TransportVersion1:
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("/ssh/close/%s", t.SessionID), nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/ssh/close/"+t.SessionID, nil)
 		if err := req.Write(conn); err != nil {
 			return nil, err
 		}

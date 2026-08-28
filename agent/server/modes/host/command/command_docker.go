@@ -3,7 +3,6 @@
 package command
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -77,7 +76,7 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 
 	setPrivCmd := []string{
 		"/bin/setpriv",
-		fmt.Sprintf("--groups=%s", strings.Join(gids, ",")),
+		"--groups=" + strings.Join(gids, ","),
 		"--ruid",
 		strconv.Itoa(int(uid)),
 		"--regid",
@@ -95,7 +94,7 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 		[]string{
 			"-S",
 			strconv.Itoa(int(uid)),
-			fmt.Sprintf("--wdns=%s", home),
+			"--wdns=" + home,
 		}...,
 	)
 
@@ -123,7 +122,7 @@ func nsenterCommandWrapper(uid, gid uint32, groups []uint32, home string, comman
 	present := map[string]string{}
 
 	for ns, flag := range namespaces {
-		if _, err := statFn(fmt.Sprintf("/proc/1/ns/%s", ns)); err != nil {
+		if _, err := statFn("/proc/1/ns/" + ns); err != nil {
 			continue
 		}
 

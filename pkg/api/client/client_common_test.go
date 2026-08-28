@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -162,7 +161,7 @@ func TestGetDevice(t *testing.T) {
 				responder, _ := httpmock.NewJsonResponder(200, models.Device{
 					UID: "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 				})
-				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", responder)
 			},
 			expected: Expected{
 				device: &models.Device{
@@ -184,7 +183,7 @@ func TestGetDevice(t *testing.T) {
 					Then(fail).
 					Then(fail).
 					Then(success)
-				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", responder)
 			},
 			expected: Expected{
 				device: &models.Device{
@@ -198,7 +197,7 @@ func TestGetDevice(t *testing.T) {
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(404, nil)
-				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", responder)
 			},
 			expected: Expected{
 				device: nil,
@@ -210,7 +209,7 @@ func TestGetDevice(t *testing.T) {
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(400, nil)
-				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", responder)
 			},
 			expected: Expected{
 				device: nil,
@@ -222,7 +221,7 @@ func TestGetDevice(t *testing.T) {
 			uid:         "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 			requiredMocks: func() {
 				responder, _ := httpmock.NewJsonResponder(418, nil)
-				httpmock.RegisterResponder("GET", fmt.Sprintf("/api/devices/%s", "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117"), responder)
+				httpmock.RegisterResponder("GET", "/api/devices/3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117", responder)
 			},
 			expected: Expected{
 				device: nil,

@@ -3,6 +3,7 @@ package openapi
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -68,7 +69,7 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	}
 
 	if config.SchemaPath == nil {
-		return nil, fmt.Errorf("OpenAPI schema path is not defined")
+		return nil, errors.New("OpenAPI schema path is not defined")
 	}
 
 	loader := &openapi3.Loader{

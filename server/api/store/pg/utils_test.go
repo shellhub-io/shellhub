@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -106,7 +105,7 @@ func TestFromSQLError(t *testing.T) {
 		},
 		{
 			name:  "generic unmapped error wraps with store.ErrInternal",
-			input: fmt.Errorf("some unexpected db error"),
+			input: errors.New("some unexpected db error"),
 			check: func(t *testing.T, result error) {
 				require.Error(t, result)
 				assert.True(t, errors.Is(result, store.ErrInternal), "expected result to wrap store.ErrInternal")

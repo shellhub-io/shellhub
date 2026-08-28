@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"os/user"
 	"path"
@@ -35,7 +35,7 @@ func GetSessionType(session gliderssh.Session) (Type, error) {
 
 	requestType, ok := session.Context().Value("request_type").(string)
 	if !ok {
-		return SessionTypeUnknown, fmt.Errorf("failed to get request type from session context")
+		return SessionTypeUnknown, errors.New("failed to get request type from session context")
 	}
 
 	switch {

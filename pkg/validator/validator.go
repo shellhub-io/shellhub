@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"reflect"
 	"regexp"
 
@@ -58,35 +57,35 @@ var Rules = []Rule{
 
 			return err == nil
 		},
-		Error: fmt.Errorf("the regexp is invalid"),
+		Error: errors.New("the regexp is invalid"),
 	},
 	{
 		Tag: NameTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^(.){1,64}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the name must be between 1 and 64 characters"),
+		Error: errors.New("the name must be between 1 and 64 characters"),
 	},
 	{
 		Tag: UserNameTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^([a-z0-9-_.@]){3,32}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the username must be between 3 and 32 characters, and can only contain letters, numbers, and the following characters: -_.@"),
+		Error: errors.New("the username must be between 3 and 32 characters, and can only contain letters, numbers, and the following characters: -_.@"),
 	},
 	{
 		Tag: UserPasswordTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^(.){5,32}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the password cannot be empty and must be between 5 and 32 characters"),
+		Error: errors.New("the password cannot be empty and must be between 5 and 32 characters"),
 	},
 	{
 		Tag: DeviceNameTag,
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^([a-zA-Z0-9_-]){1,64}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("the device name can only contain `_`, `-` and alpha numeric characters"),
+		Error: errors.New("the device name can only contain `_`, `-` and alpha numeric characters"),
 	},
 	// api-key_name reports whether a given string is a valid API key name. A valid
 	// name must be between 3 and 20 characters and contain only letters, digits, `-`
@@ -97,7 +96,7 @@ var Rules = []Rule{
 		Handler: func(field validator.FieldLevel) bool {
 			return regexp.MustCompile(`^[a-zA-Z0-9_-]{3,20}$`).MatchString(field.Field().String())
 		},
-		Error: fmt.Errorf("name must be between 3 and 20 characters and can only contain letters, numbers, `-` and `_`"),
+		Error: errors.New("name must be between 3 and 20 characters and can only contain letters, numbers, `-` and `_`"),
 	},
 	// api-key_expires-at reports whether a given int is in [ 30 60 90 365 -1 ].
 	{
@@ -111,7 +110,7 @@ var Rules = []Rule{
 
 			return expiresAt == -1 || expiresAt == 30 || expiresAt == 60 || expiresAt == 90 || expiresAt == 365
 		},
-		Error: fmt.Errorf("expires_at must be in [ -1 30 60 90 365 ]"),
+		Error: errors.New("expires_at must be in [ -1 30 60 90 365 ]"),
 	},
 	// member_role reports whether a given string is a valid role or not
 	{
@@ -119,7 +118,7 @@ var Rules = []Rule{
 		Handler: func(field validator.FieldLevel) bool {
 			return authorizer.RoleFromString(field.Field().String()) != authorizer.RoleInvalid
 		},
-		Error: fmt.Errorf("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
+		Error: errors.New("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
 	},
 	{
 		Tag: PrivateKeyPEMTag,
@@ -133,7 +132,7 @@ var Rules = []Rule{
 
 			return err == nil && key != nil
 		},
-		Error: fmt.Errorf("the private key is invalid"),
+		Error: errors.New("the private key is invalid"),
 	},
 	{
 		Tag: CertPEMTag,
@@ -147,7 +146,7 @@ var Rules = []Rule{
 
 			return err == nil && cert != nil
 		},
-		Error: fmt.Errorf("the cert is invalid"),
+		Error: errors.New("the cert is invalid"),
 	},
 }
 

@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -28,7 +26,7 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 
 	response, err := c.http.R().
 		SetResult(&device).
-		Get(fmt.Sprintf("/api/devices/%s", uid))
+		Get("/api/devices/" + uid)
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}

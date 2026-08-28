@@ -1,7 +1,6 @@
 package envs_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -147,20 +146,15 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 	tests := []struct {
 		description string
 		prefix      string
-		before      func()
-		after       func()
+		setup       func(t *testing.T)
 		expected    Expected
 	}{
 		{
 			description: "parse envs with prefix empty",
 			prefix:      "",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
-			},
-			after: func() {
-				os.Unsetenv("REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -173,15 +167,10 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix and an empty",
 			prefix:      "FOO_",
-			before: func() {
-				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				os.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -194,17 +183,11 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix",
 			prefix:      "BAR_",
-			before: func() {
-				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				os.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
-				os.Setenv("FOO_MONGO_URI", "mongodb://mongo:27017/foo")
-				os.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("BAR_REDIS_URI")
-				os.Unsetenv("FOO_MONGO_URI")
-				os.Unsetenv("BAR_MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
+				t.Setenv("FOO_MONGO_URI", "mongodb://mongo:27017/foo")
+				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -217,15 +200,10 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 		{
 			description: "parse envs with one prefix and default",
 			prefix:      "FOO_",
-			before: func() {
-				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				os.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
-				os.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("BAR_REDIS_URI")
-				os.Unsetenv("BAR_MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				t.Setenv("BAR_REDIS_URI", "redis://redis:6379/bar")
+				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/bar")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -239,13 +217,11 @@ func TestParseWithPrefix_with_default(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.before()
+			tt.setup(t)
 
 			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
-
-			tt.after()
 		})
 	}
 }
@@ -264,20 +240,15 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 	tests := []struct {
 		description string
 		prefix      string
-		before      func()
-		after       func()
+		setup       func(t *testing.T)
 		expected    Expected
 	}{
 		{
 			description: "parse envs with a prefix and no prefixed",
 			prefix:      "FOO_",
-			before: func() {
-				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -290,13 +261,9 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 		{
 			description: "parse envs with a prefix and no prefixed",
 			prefix:      "FOO_",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/empty")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/empty")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/empty")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -309,13 +276,9 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 		{
 			description: "fails to parse when two different prefixes",
 			prefix:      "FOO_",
-			before: func() {
-				os.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
-				os.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/empty")
-			},
-			after: func() {
-				os.Unsetenv("FOO_REDIS_URI")
-				os.Unsetenv("BAR_MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("FOO_REDIS_URI", "redis://redis:6379/foo")
+				t.Setenv("BAR_MONGO_URI", "mongodb://mongo:27017/empty")
 			},
 			expected: Expected{
 				Envs:  nil,
@@ -326,13 +289,11 @@ func TestParseWithPrefix_with_required(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.before()
+			tt.setup(t)
 
 			result, err := envs.ParseWithPrefix[Envs](tt.prefix)
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
-
-			tt.after()
 		})
 	}
 }
@@ -350,19 +311,14 @@ func TestParse_with_default(t *testing.T) {
 
 	tests := []struct {
 		description string
-		before      func()
-		after       func()
+		setup       func(t *testing.T)
 		expected    Expected
 	}{
 		{
 			description: "parse envs",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/test")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
-			},
-			after: func() {
-				os.Unsetenv("REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/test")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -374,11 +330,8 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with one set and one default",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/test")
-			},
-			after: func() {
-				os.Unsetenv("REDIS_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -390,8 +343,7 @@ func TestParse_with_default(t *testing.T) {
 		},
 		{
 			description: "parse envs with all default",
-			before:      func() {},
-			after:       func() {},
+			setup:       func(t *testing.T) {},
 			expected: Expected{
 				Envs: &Envs{
 					RedisURI: "redis://redis:6379/default",
@@ -404,13 +356,11 @@ func TestParse_with_default(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.before()
+			tt.setup(t)
 
 			result, err := envs.Parse[Envs]()
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
-
-			tt.after()
 		})
 	}
 }
@@ -428,19 +378,14 @@ func TestParse_with_required(t *testing.T) {
 
 	tests := []struct {
 		description string
-		before      func()
-		after       func()
+		setup       func(t *testing.T)
 		expected    Expected
 	}{
 		{
 			description: "parse envs",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/test")
-				os.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
-			},
-			after: func() {
-				os.Unsetenv("REDIS_URI")
-				os.Unsetenv("MONGO_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/test")
+				t.Setenv("MONGO_URI", "mongodb://mongo:27017/test")
 			},
 			expected: Expected{
 				Envs: &Envs{
@@ -452,11 +397,8 @@ func TestParse_with_required(t *testing.T) {
 		},
 		{
 			description: "fail to parse envs when one env is missing",
-			before: func() {
-				os.Setenv("REDIS_URI", "redis://redis:6379/test")
-			},
-			after: func() {
-				os.Unsetenv("REDIS_URI")
+			setup: func(t *testing.T) {
+				t.Setenv("REDIS_URI", "redis://redis:6379/test")
 			},
 			expected: Expected{
 				Error: envs.ErrParse,
@@ -464,9 +406,7 @@ func TestParse_with_required(t *testing.T) {
 		},
 		{
 			description: "fails to parse when all envs are missing",
-			before: func() {
-			},
-			after: func() {
+			setup: func(t *testing.T) {
 			},
 			expected: Expected{
 				Envs:  nil,
@@ -477,13 +417,11 @@ func TestParse_with_required(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			tt.before()
+			tt.setup(t)
 
 			result, err := envs.Parse[Envs]()
 			assert.Equal(t, tt.expected.Envs, result)
 			assert.ErrorIs(t, err, tt.expected.Error)
-
-			tt.after()
 		})
 	}
 }

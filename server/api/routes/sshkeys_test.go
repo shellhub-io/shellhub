@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -250,7 +249,7 @@ func TestDeletePublicKey(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/sshkeys/public-keys/%s", tc.fingerprint), nil)
+			req := httptest.NewRequest(http.MethodDelete, "/api/sshkeys/public-keys/"+tc.fingerprint, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

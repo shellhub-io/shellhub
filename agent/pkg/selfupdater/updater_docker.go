@@ -199,7 +199,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	config.Image = image
 
 	if parent {
-		config.Env = replaceOrAppendEnvValues(config.Env, []string{fmt.Sprintf("PARENT_CONTAINER=%s", container.info.ID)})
+		config.Env = replaceOrAppendEnvValues(config.Env, []string{"PARENT_CONTAINER=" + container.info.ID})
 	}
 
 	netConfig := &network.NetworkingConfig{EndpointsConfig: container.info.NetworkSettings.Networks}

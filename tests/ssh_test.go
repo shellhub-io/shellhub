@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -51,13 +52,13 @@ func NewAgentContainerWithIdentity(identity string) NewAgentContainerOption {
 
 func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption {
 	return func(envs map[string]string) {
-		envs["SHELLHUB_TRANSPORT_VERSION"] = fmt.Sprintf("%d", version)
+		envs["SHELLHUB_TRANSPORT_VERSION"] = strconv.Itoa(version)
 	}
 }
 
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
-		"SHELLHUB_SERVER_ADDRESS":     fmt.Sprintf("http://localhost:%s", port),
+		"SHELLHUB_SERVER_ADDRESS":     "http://localhost:" + port,
 		"SHELLHUB_TENANT_ID":          "00000000-0000-4000-0000-000000000000",
 		"SHELLHUB_PRIVATE_KEY":        "/tmp/shellhub.key",
 		"SHELLHUB_LOG_FORMAT":         "json",
@@ -109,7 +110,7 @@ func TestSSHIdentityMode(t *testing.T) {
 	_, device := startAcceptedAgent(t, ctx, compose)
 
 	sshid := fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name)
-	addr := fmt.Sprintf("localhost:%s", compose.Env("SHELLHUB_SSH_PORT"))
+	addr := "localhost:" + compose.Env("SHELLHUB_SSH_PORT")
 
 	t.Run("password authentication is not offered", func(t *testing.T) {
 		config := &ssh.ClientConfig{
@@ -197,7 +198,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					resp, err := environment.services.R(ctx).
 						SetResult(&model).
-						Get(fmt.Sprintf("/api/devices/%s", device.UID))
+						Get("/api/devices/" + device.UID)
 					assert.Equal(tt, 200, resp.StatusCode())
 					assert.NoError(tt, err)
 
@@ -224,7 +225,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					resp, err := environment.services.R(ctx).
 						SetResult(&model).
-						Get(fmt.Sprintf("/api/devices/%s", device.UID))
+						Get("/api/devices/" + device.UID)
 					assert.Equal(tt, 200, resp.StatusCode())
 					assert.NoError(tt, err)
 
@@ -248,7 +249,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -266,7 +267,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				_, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.Error(t, err)
 			},
 		},
@@ -289,7 +290,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -333,7 +334,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 
 				conn.Close()
@@ -356,7 +357,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				_, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				_, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.Error(t, err)
 			},
 		},
@@ -376,7 +377,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -413,7 +414,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -464,7 +465,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -496,7 +497,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -535,7 +536,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -568,7 +569,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -604,7 +605,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -643,7 +644,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -678,7 +679,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.EventuallyWithT(t, func(tt *assert.CollectT) {
 					var err error
 
-					conn, err = ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+					conn, err = ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
@@ -708,7 +709,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", env.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+env.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 
 				type Data struct {
@@ -778,7 +779,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 
 				sess, err := conn.NewSession()
@@ -805,7 +806,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -819,7 +820,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				_, err = rand.Read(randomData)
 				require.NoError(t, err)
 
-				tempFile, err := os.CreateTemp("", "large-file-test-*.bin")
+				tempFile, err := os.CreateTemp(t.TempDir(), "large-file-test-*.bin")
 				require.NoError(t, err)
 				defer os.Remove(tempFile.Name())
 
@@ -862,7 +863,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -894,7 +895,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -933,7 +934,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -979,7 +980,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1022,7 +1023,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1065,7 +1066,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1120,7 +1121,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				addr := fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT"))
+				addr := "localhost:" + environment.services.Env("SHELLHUB_SSH_PORT")
 
 				dialed, err := net.DialTimeout("tcp", addr, 30*time.Second)
 				require.NoError(t, err)
@@ -1181,7 +1182,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1216,7 +1217,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1312,7 +1313,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1339,7 +1340,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1387,7 +1388,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1420,7 +1421,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					go func(id int) {
 						defer wg.Done()
 
-						conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+						conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 						if err != nil {
 							errors <- fmt.Errorf("connection %d failed: %w", id, err)
 
@@ -1474,7 +1475,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 				}
 
-				conn1, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config1)
+				conn1, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config1)
 				require.NoError(t, err)
 				conn1.Close()
 
@@ -1485,14 +1486,14 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					},
 					HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 						if !bytes.Equal(key.Marshal(), learnedKey.Marshal()) {
-							return fmt.Errorf("host key mismatch")
+							return errors.New("host key mismatch")
 						}
 
 						return nil
 					},
 				}
 
-				conn2, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config2)
+				conn2, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config2)
 				require.NoError(t, err)
 				defer conn2.Close()
 			},
@@ -1509,7 +1510,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					Timeout:         10 * time.Second,
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1549,7 +1550,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1588,7 +1589,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1636,7 +1637,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 				}
 
-				conn, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%s", environment.services.Env("SHELLHUB_SSH_PORT")), config)
+				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 				defer conn.Close()
 
@@ -1770,7 +1771,7 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		resp, err := compose.R(ctx).
 			SetResult(&device).
-			Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
+			Get("/api/devices/" + devices[0].UID)
 		assert.Equal(tt, 200, resp.StatusCode())
 		assert.NoError(tt, err)
 
