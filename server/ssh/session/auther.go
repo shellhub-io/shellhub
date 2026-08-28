@@ -214,6 +214,8 @@ func (s *Session) awaitApproval(gctx gliderssh.Context) (string, error) {
 				return status.UserID, nil
 			case models.SSHApprovalRejected:
 				return "", ErrApprovalRejected
+			default:
+				// Still pending: fall through to the next poll.
 			}
 		}
 		// Still pending means the API's wait elapsed, and an error may be a

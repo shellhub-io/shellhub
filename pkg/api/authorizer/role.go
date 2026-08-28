@@ -100,6 +100,8 @@ func (r Role) Permissions() []Permission {
 		permissions = observerPermissions
 	case RoleService:
 		permissions = servicePermissions
+	default:
+		// RoleInvalid and anything added later keep the empty slice, as the doc says.
 	}
 
 	return permissions
