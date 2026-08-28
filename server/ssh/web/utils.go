@@ -65,7 +65,7 @@ func (c *Credentials) decryptPassword(key *rsa.PrivateKey) error {
 	return nil
 }
 
-func (c *Credentials) isPublicKey() bool { // nolint: unused
+func (c *Credentials) isPublicKey() bool {
 	return c.Fingerprint != ""
 }
 

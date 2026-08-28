@@ -68,7 +68,7 @@ func unresponsivePeer(t *testing.T) *recordingConn {
 
 	server, agent := net.Pipe()
 
-	go io.Copy(io.Discard, agent) // nolint:errcheck
+	go io.Copy(io.Discard, agent) //nolint:errcheck
 
 	t.Cleanup(func() {
 		_ = agent.Close()

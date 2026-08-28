@@ -345,7 +345,7 @@ func (s *Server) Start() error {
 	// address from inside the library until now, which is the only reason the scanners have
 	// started pointing at it.
 	// nosemgrep: go.lang.security.audit.net.bind_all.avoid-bind-to-all-interfaces
-	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress) //nolint:gosec
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress)
 	if err != nil {
 		return err
 	}
@@ -368,10 +368,10 @@ func (s *Server) Shutdown() {
 	s.worker.Shutdown()
 
 	if s.http != nil {
-		s.http.Close() // nolint: errcheck
+		s.http.Close() //nolint:errcheck
 	}
 
-	s.ssh.Close() // nolint: errcheck
+	s.ssh.Close() //nolint:errcheck
 
 	// Drained after the SSH listener closes, so no tunnel can submit a beat that
 	// the final batch would miss.

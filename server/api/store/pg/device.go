@@ -1,7 +1,7 @@
 package pg
 
 import (
-	"context" //nolint:gosec
+	"context"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -274,7 +274,7 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error
 
 	if tx, ok := db.(bun.Tx); ok {
 		return fn(tx)
-	} else { // nolint:revive
+	} else {
 		tx, err := pg.driver.BeginTx(ctx, nil)
 		if err != nil {
 			return 0, fromSQLError(err)

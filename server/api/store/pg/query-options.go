@@ -85,7 +85,7 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 
 		var filterErr error
 		wrapper.query = wrapper.query.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			currentOperator := "OR" //nolint:staticcheck
+			currentOperator := "OR"
 			firstCondition := true
 
 			for _, filter := range filters.Data {

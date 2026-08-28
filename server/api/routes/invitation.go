@@ -110,7 +110,7 @@ func (h *Handler) GetUserMembershipInvitationList(c *gateway.Context) error {
 	req.Paginator.Normalize()
 	req.Sorter.Normalize()
 
-	if err := req.Filters.Unmarshal(); err != nil { //nolint:staticcheck
+	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode user membership invitation list filter")
 
 		return c.NoContent(http.StatusBadRequest)
@@ -140,7 +140,7 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 	req.Paginator.Normalize()
 	req.Sorter.Normalize()
 
-	if err := req.Filters.Unmarshal(); err != nil { //nolint:staticcheck
+	if err := req.Filters.Unmarshal(); err != nil {
 		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode namespace membership invitation list filter")
 
 		return c.NoContent(http.StatusBadRequest)

@@ -16,7 +16,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.NoContent(http.StatusForbidden)
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx) //nolint:revive
+		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx)
 
 		id := gateway.IDFromContext(ctx)
 		tenant := gateway.TenantFromContext(ctx)

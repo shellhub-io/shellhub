@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	rootCmd := &cobra.Command{ // nolint: exhaustruct
+	rootCmd := &cobra.Command{ //nolint:exhaustruct
 		Use: "agent",
 		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
@@ -292,7 +292,7 @@ func main() {
 		},
 	})
 
-	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
+	rootCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
 		Use:   "info",
 		Short: "Show information about the agent",
 		Run: func(cmd *cobra.Command, _ []string) {
@@ -335,7 +335,7 @@ func main() {
 		},
 	})
 
-	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
+	rootCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
 		Use:   "login",
 		Short: "Accept this device from your browser",
 		Long: `Prints a URL that accepts this device into its namespace. Open the URL in any
@@ -421,7 +421,7 @@ waits until the device is accepted, rejected, or the code expires.`,
 
 	registerInstallerCommands(rootCmd)
 
-	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
+	rootCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
 		Use:   "sftp",
 		Short: "Starts the SFTP server",
 		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.

@@ -47,7 +47,7 @@ type installerConfig struct {
 }
 
 func registerInstallerCommands(rootCmd *cobra.Command) {
-	installCmd := &cobra.Command{ // nolint: exhaustruct
+	installCmd := &cobra.Command{ //nolint:exhaustruct
 		Use:          "install",
 		Short:        "Install ShellHub agent as a systemd service",
 		SilenceUsage: true,
@@ -106,7 +106,7 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 
 	rootCmd.AddCommand(installCmd)
 
-	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
+	rootCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
 		Use:   "uninstall",
 		Short: "Uninstall ShellHub agent systemd service",
 		RunE: func(_ *cobra.Command, _ []string) error {

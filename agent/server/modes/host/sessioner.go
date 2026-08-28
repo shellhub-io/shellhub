@@ -412,7 +412,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		code = cmd.ProcessState.ExitCode()
 	}
 
-	if err := session.Exit(code); err != nil { //nolint:errcheck
+	if err := session.Exit(code); err != nil {
 		log.Warn(err)
 	}
 

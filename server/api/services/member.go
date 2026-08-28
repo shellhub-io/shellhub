@@ -308,7 +308,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return err
 	}
 
-	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) // nolint: errcheck
+	s.AuthUncacheToken(ctx, namespace.TenantID, req.MemberID) //nolint:errcheck
 
 	return nil
 }
@@ -335,7 +335,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleForbidden()
 	}
 
-	if err := s.removeMember(ctx, namespace, passive); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, namespace, passive); err != nil {
 		return nil, err
 	}
 
@@ -366,7 +366,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrAuthForbidden()
 	}
 
-	if err := s.removeMember(ctx, ns, member); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, ns, member); err != nil {
 		return nil, err
 	}
 

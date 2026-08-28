@@ -138,7 +138,7 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 		return nil, ErrForbiddenPublicKey
 	}
 
-	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint: dogsled
+	pubKey, _, _, _, err := ssh.ParseAuthorizedKey(key.Data) //nolint:dogsled
 	if err != nil {
 		return nil, ErrDataPublicKey
 	}
@@ -219,7 +219,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		UserID: creds.UserID,
 	})
 
-	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
+	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint:exhaustruct
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
@@ -348,7 +348,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		}
 	}()
 
-	go redirToWs(stdout, conn) // nolint:errcheck
+	go redirToWs(stdout, conn) //nolint:errcheck
 	go io.Copy(conn, stderr)   //nolint:errcheck
 
 	if err := agent.Wait(); err != nil {

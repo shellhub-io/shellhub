@@ -392,7 +392,7 @@ func (pg *Pg) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int6
 
 	if tx, ok := db.(bun.Tx); ok {
 		return fn(tx)
-	} else { // nolint:revive
+	} else {
 		tx, err := pg.driver.BeginTx(ctx, nil)
 		if err != nil {
 			return 0, fromSQLError(err)

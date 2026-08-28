@@ -371,7 +371,7 @@ func parseUint32(value string) (uint32, error) {
 		return 0, err
 	}
 
-	return uint32(parsed), nil //nolint:gosec // ParseUint with the parameters specified guarantee the parsing of only 32 bits.
+	return uint32(parsed), nil // ParseUint with the parameters specified guarantee the parsing of only 32 bits.
 }
 
 func singleUser() *User {

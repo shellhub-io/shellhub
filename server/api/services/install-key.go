@@ -438,7 +438,7 @@ func (s *service) UpdateInstallKey(ctx context.Context, req *requests.UpdateInst
 		installKey.ExpiresAt = installKeyExpiry(req.ExpiresIn.Value)
 	}
 
-	if err := s.store.InstallKeyUpdate(ctx, installKey); err != nil { //nolint:revive
+	if err := s.store.InstallKeyUpdate(ctx, installKey); err != nil {
 		return err
 	}
 

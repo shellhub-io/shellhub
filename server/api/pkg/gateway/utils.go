@@ -13,7 +13,7 @@ func Handler(next func(*Context) error) echo.HandlerFunc {
 			return echo.ErrInternalServerError
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx) //nolint:revive
+		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx)
 
 		c.SetRequest(c.Request().WithContext(ctx))
 

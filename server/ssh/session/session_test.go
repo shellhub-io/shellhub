@@ -60,7 +60,7 @@ func (s *stubContext) Value(key any) any {
 
 // newTestSession builds a Session with only the fields Evaluate reads.
 func newTestSession(service services.Service) *Session {
-	tgt, _ := target.NewTarget("user@namespace.device") //nolint:errcheck
+	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
 		UID:     "test-uid",

@@ -51,7 +51,7 @@ func TestTenantFromContext(t *testing.T) {
 				ctx,
 			}
 
-			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew) // nolint:revive
+			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew)
 
 			tenant := TenantFromContext(ctxArg)
 
@@ -100,7 +100,7 @@ func TestUsernameFromContext(t *testing.T) {
 				ctx,
 			}
 
-			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew) // nolint:revive
+			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew)
 
 			user := UsernameFromContext(ctxArg)
 
@@ -149,7 +149,7 @@ func TestIDFromContext(t *testing.T) {
 				ctx,
 			}
 
-			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew) // nolint:revive
+			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew)
 
 			id := IDFromContext(ctxArg)
 

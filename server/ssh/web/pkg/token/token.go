@@ -52,7 +52,7 @@ func Parse(token string) (*Token, error) {
 		return nil, err
 	}
 
-	id := (*claims)["id"].(string) //nolint: forcetypeassert
+	id := (*claims)["id"].(string) //nolint:forcetypeassert
 
 	return &Token{ID: id, Data: token}, nil
 }

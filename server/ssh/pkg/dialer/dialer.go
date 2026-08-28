@@ -109,7 +109,7 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 // connection with that deadline cleared, ready for streaming. An agent that
 // accepts the stream but never answers fails here instead of parking the
 // caller's goroutine until whatever sits in front times out.
-func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { // nolint:ireturn
+func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { //nolint:ireturn
 	deadline := clock.Now().Add(HandshakeTimeout)
 	if caller, ok := ctx.Deadline(); ok && caller.Before(deadline) {
 		deadline = caller

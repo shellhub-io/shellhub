@@ -78,6 +78,8 @@ linters:
     # A switch over an enum with no default silently ignores a value added later.
     - exhaustive
     - gocritic
+    # A nolint that no longer suppresses anything, or is written so it never did.
+    - nolintlint
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

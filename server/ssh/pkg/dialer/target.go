@@ -22,7 +22,7 @@ type Target interface {
 // with the agent.
 type SSHOpenTarget struct{ SessionID string }
 
-func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		log.Debug("preparing SSH open target for transport version 1")
@@ -52,7 +52,7 @@ func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version Trans
 // SSHCloseTarget prepares a connection to request closing an existing SSH session.
 type SSHCloseTarget struct{ SessionID string }
 
-func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/ssh/close/"+t.SessionID, nil)
@@ -83,7 +83,7 @@ type HTTPProxyTarget struct {
 	Port      int
 }
 
-func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
+func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		handshakeReq, _ := http.NewRequestWithContext(ctx, http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
