@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math"
 	"math/rand/v2"
 	"net"
@@ -62,7 +61,7 @@ type client struct {
 	reverser reverser.Reverser
 }
 
-var ErrParseAddress = fmt.Errorf("could not parse the address to the required format")
+var ErrParseAddress = errors.New("could not parse the address to the required format")
 
 // NewClient creates a new ShellHub HTTP client.
 //

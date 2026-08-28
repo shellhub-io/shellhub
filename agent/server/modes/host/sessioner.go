@@ -442,7 +442,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 		return errors.New("failed to lookup user")
 	}
 
-	home := fmt.Sprintf("HOME=%s", looked.HomeDir)
+	home := "HOME=" + looked.HomeDir
 	gid := fmt.Sprintf("GID=%d", looked.GID)
 	uid := fmt.Sprintf("UID=%d", looked.UID)
 

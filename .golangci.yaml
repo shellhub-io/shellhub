@@ -56,6 +56,8 @@ linters:
     - iotamixing
     - unqueryvet
     # Naming and idiom the codebase already follows.
+    - perfsprint
+    - usetesting
     - errname
     - intrange
     - usestdlibvars

@@ -2,7 +2,6 @@ package store
 
 import (
 	stderrors "errors"
-	"fmt"
 
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
@@ -46,7 +45,7 @@ type DuplicateFieldError struct {
 }
 
 func (e DuplicateFieldError) Error() string {
-	return fmt.Sprintf("duplicate field: %s", e.Field)
+	return "duplicate field: " + e.Field
 }
 
 // DuplicatedField extracts the field name from a DuplicateFieldError wrapped inside err.

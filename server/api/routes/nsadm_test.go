@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -149,7 +148,7 @@ func TestGetNamespace(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
+			req := httptest.NewRequest(http.MethodGet, "/api/namespaces/"+tc.req, nil)
 
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
@@ -236,7 +235,7 @@ func TestDeleteNamespace(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/namespaces/%s", tc.req), nil)
+			req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/"+tc.req, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", tc.uid)
@@ -343,7 +342,7 @@ func TestEditNamespace(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/users/security/%s", tc.headers["X-Tenant-ID"]), strings.NewReader(string(jsonData)))
+			req := httptest.NewRequest(http.MethodPut, "/api/users/security/"+tc.headers["X-Tenant-ID"], strings.NewReader(string(jsonData)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

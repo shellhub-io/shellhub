@@ -168,12 +168,12 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 
 	var msg Message
 	if _, err := s.conn.ReadMessage(&msg); err != nil {
-		return nil, fmt.Errorf("invalid signature response")
+		return nil, errors.New("invalid signature response")
 	}
 
 	signed, ok := msg.Data.(string)
 	if !ok {
-		return nil, fmt.Errorf("data isn't a signed string")
+		return nil, errors.New("data isn't a signed string")
 	}
 
 	blob, err := base64.StdEncoding.DecodeString(signed)

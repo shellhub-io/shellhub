@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -101,7 +102,7 @@ func newUniqID() string {
 	buf := make([]byte, 16)
 	rand.Read(buf) // nolint:errcheck
 
-	return fmt.Sprintf("%x", buf)
+	return hex.EncodeToString(buf)
 }
 
 func (d *Dialer) register() {
@@ -258,7 +259,7 @@ func (d *Dialer) serve() error {
 			t.Stop()
 			if err := d.sendMessage(controlMsg{
 				Command:  "conn-ready",
-				ConnPath: d.pickupPath + fmt.Sprintf("&uuid=%s", uuid),
+				ConnPath: d.pickupPath + "&uuid=" + uuid,
 			}); err != nil {
 				d.logger.WithError(err).Debug("failed to send conn-ready message to device")
 

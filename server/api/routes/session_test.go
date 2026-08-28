@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -280,7 +279,7 @@ func TestGetSession(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks(tc.expected.expectedSession)
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/sessions/%s", tc.uid), nil)
+			req := httptest.NewRequest(http.MethodGet, "/api/sessions/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			if tc.tenant != "" {

@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -37,7 +36,7 @@ func (r *Reverser) Auth(ctx context.Context, token string, connPath string) erro
 	}
 
 	header := http.Header{
-		"Authorization": []string{fmt.Sprintf("Bearer %s", token)},
+		"Authorization": []string{"Bearer " + token},
 	}
 
 	conn, _, err := DialContext(ctx, uri, header)
