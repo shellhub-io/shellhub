@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { approveUserMutation, adminDeleteUserMutation } from "../client";
+import { approveUserMutation } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 // Approving clears the awaiting_approval flag; the account stays not-confirmed until the
@@ -8,15 +8,6 @@ export function useApproveAccountRequest() {
   const invalidate = useInvalidateByIds("getUsers", "getUser");
   return useMutation({
     ...approveUserMutation(),
-    onSuccess: invalidate,
-  });
-}
-
-// Rejecting deletes the provisioned account outright.
-export function useRejectAccountRequest() {
-  const invalidate = useInvalidateByIds("getUsers", "getUser");
-  return useMutation({
-    ...adminDeleteUserMutation(),
     onSuccess: invalidate,
   });
 }
