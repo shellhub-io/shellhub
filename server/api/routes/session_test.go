@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetSessionList(t *testing.T) {
@@ -87,7 +88,8 @@ func TestGetSessionList(t *testing.T) {
 						},
 					},
 				}
-				b, _ := json.Marshal(filters)
+				b, err := json.Marshal(filters)
+				require.NoError(t, err)
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
@@ -123,7 +125,8 @@ func TestGetSessionList(t *testing.T) {
 						},
 					},
 				}
-				b, _ := json.Marshal(filters)
+				b, err := json.Marshal(filters)
+				require.NoError(t, err)
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),

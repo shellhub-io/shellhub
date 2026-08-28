@@ -293,7 +293,13 @@ func (d *Dialer) sendMessage(m controlMsg) error {
 		return err
 	}
 
-	j, _ := json.Marshal(m)
+	j, err := json.Marshal(m)
+	if err != nil {
+		d.logger.WithError(err).Error("failed to encode the control message")
+
+		return err
+	}
+
 	j = append(j, '\n')
 
 	if _, err := d.conn.Write(j); err != nil {
@@ -419,7 +425,13 @@ func (ln *Listener) run() {
 }
 
 func (ln *Listener) sendMessage(m controlMsg) {
-	j, _ := json.Marshal(m)
+	j, err := json.Marshal(m)
+	if err != nil {
+		log.WithError(err).Error("failed to encode the control message")
+
+		return
+	}
+
 	j = append(j, '\n')
 	ln.writec <- j
 }

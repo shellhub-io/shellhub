@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMessageMinSize(t *testing.T) {
@@ -11,7 +13,8 @@ func TestMessageMinSize(t *testing.T) {
 		Kind: 0,
 		Data: "",
 	}
-	j, _ := json.Marshal(msg)
+	j, err := json.Marshal(msg)
+	require.NoError(t, err)
 
 	if len(j) != MessageMinSize {
 		t.Errorf("expected %d, got %d", MessageMinSize, len(j))
@@ -23,7 +26,10 @@ func ExampleMessage() {
 		Kind: 0,
 		Data: "",
 	}
-	j, _ := json.Marshal(msg)
+	j, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(string(j)) // Output: {"kind":0,"data":""}
 }
