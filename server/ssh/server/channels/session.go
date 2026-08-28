@@ -284,7 +284,11 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 					sess.Event(req.Type, req.Payload, seat)
 					go func() {
-						clientConn := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+						clientConn, ok := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
+						if !ok {
+							return
+						}
+
 						agentChannels := sess.OpenAgentForwards(AuthRequestOpenSSHChannel)
 
 						for {

@@ -1608,7 +1608,11 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 
 	var created *models.MembershipInvitation
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
-		Run(func(args mock.Arguments) { created = args.Get(1).(*models.MembershipInvitation) }).
+		Run(func(args mock.Arguments) {
+			invitation, ok := args.Get(1).(*models.MembershipInvitation)
+			require.True(t, ok)
+			created = invitation
+		}).
 		Return(nil).Once()
 
 	var got *models.MembershipInvitationNotification

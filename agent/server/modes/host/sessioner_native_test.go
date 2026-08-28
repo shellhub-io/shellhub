@@ -149,7 +149,9 @@ func TestHeredoc_StartFailure(t *testing.T) {
 	// Inject a fakeGosshConn so the serverConn context lookup inside Heredoc()
 	// succeeds (the kill-goroutine path requires a non-nil serverConn).
 	fakeConn := &gossh.ServerConn{Conn: &fakeGosshConn{}}
-	sess.ctx.(*testSSHContext).SetValue(gliderssh.ContextKeyConn, fakeConn)
+	testCtx, ok := sess.ctx.(*testSSHContext)
+	require.True(t, ok)
+	testCtx.SetValue(gliderssh.ContextKeyConn, fakeConn)
 
 	var retErr error
 
@@ -231,7 +233,9 @@ func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 	// Inject a fakeGosshConn so the serverConn context lookup succeeds and
 	// Exec() can proceed past that check to reach session.Exit().
 	fakeConn := &gossh.ServerConn{Conn: &fakeGosshConn{}}
-	sess.ctx.(*testSSHContext).SetValue(gliderssh.ContextKeyConn, fakeConn)
+	testCtx, ok := sess.ctx.(*testSSHContext)
+	require.True(t, ok)
+	testCtx.SetValue(gliderssh.ContextKeyConn, fakeConn)
 
 	var retErr error
 

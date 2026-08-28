@@ -159,7 +159,10 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 		return nil, errors.New("failed to load the incoming connection map")
 	}
 
-	connection := ch.(chan net.Conn)
+	connection, ok := ch.(chan net.Conn)
+	if !ok {
+		return nil, errors.New("incoming connection map holds an unexpected value")
+	}
 
 	select {
 	case c := <-connection:
@@ -182,16 +185,26 @@ func (d *Dialer) Dial(ctx context.Context) (net.Conn, error) {
 }
 
 func (d *Dialer) matchConn(c net.Conn) {
-	uuid := c.(*wsconnadapter.Adapter).UUID
+	adapter, ok := c.(*wsconnadapter.Adapter)
+	if !ok {
+		d.logger.Debug("connection is not a websocket adapter")
 
-	ch, ok := d.incomingConn.Load(uuid)
+		return
+	}
+
+	ch, ok := d.incomingConn.Load(adapter.UUID)
 	if !ok {
 		d.logger.Debug("failed to find the incoming connection channel")
 
 		return
 	}
 
-	connection := ch.(chan net.Conn)
+	connection, ok := ch.(chan net.Conn)
+	if !ok {
+		d.logger.Debug("incoming connection map holds an unexpected value")
+
+		return
+	}
 
 	select {
 	case connection <- c:
@@ -519,6 +532,11 @@ func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 		c := wsconnadapter.New(wsConn)
 		c.UUID = uuid
 
-		d.(*Dialer).matchConn(c)
+		dialer, ok := d.(*Dialer)
+		if !ok {
+			return
+		}
+
+		dialer.matchConn(c)
 	})
 }

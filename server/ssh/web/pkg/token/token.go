@@ -3,6 +3,7 @@ package token
 
 import (
 	"crypto/rsa"
+	"errors"
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -41,7 +42,12 @@ func Parse(token string) (*Token, error) {
 			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
 
-		return magickey.GetReference().Public().(*rsa.PublicKey), nil
+		public, ok := magickey.GetReference().Public().(*rsa.PublicKey)
+		if !ok {
+			return nil, errors.New("signing key is not RSA")
+		}
+
+		return public, nil
 	}); err != nil {
 		return nil, err
 	}

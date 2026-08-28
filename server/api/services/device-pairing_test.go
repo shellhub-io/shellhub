@@ -108,14 +108,18 @@ func TestCreateDevicePairing(t *testing.T) {
 						return strings.HasPrefix(key, "pairing_code_pubkey/")
 					}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*string) = "WXYZ2K7Q"
+						arg, ok := args.Get(2).(*string)
+						require.True(t, ok)
+						*arg = "WXYZ2K7Q"
 					}).
 					Return(nil).
 					Once()
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
 							PublicKey: "public-key",
 							Status:    models.DeviceStatusPending,
 						}
@@ -207,7 +211,9 @@ func TestGetDevicePairingStatus(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
 							PublicKey: "public-key",
 							Status:    models.DeviceStatusPending,
 						}
@@ -227,7 +233,9 @@ func TestGetDevicePairingStatus(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
 							PublicKey: "public-key",
 							Status:    models.DeviceStatusAccepted,
 							TenantID:  "tenant1",
@@ -272,7 +280,9 @@ func TestAcceptDevicePairing(t *testing.T) {
 		cacheMock.
 			On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 			Run(func(args mock.Arguments) {
-				*args.Get(2).(*devicePairing) = devicePairing{
+				arg, ok := args.Get(2).(*devicePairing)
+				require.True(t, ok)
+				*arg = devicePairing{
 					Hostname:  "device1",
 					Identity:  &models.DeviceIdentity{MAC: "00:00:00:00:00:01"},
 					PublicKey: "public-key",
@@ -519,7 +529,9 @@ func TestClaimDevicePairing(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{PublicKey: "someone"}
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{PublicKey: "someone"}
 					}).
 					Return(nil).
 					Once()
@@ -533,7 +545,9 @@ func TestClaimDevicePairing(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
 							PreauthTenantID: "tenant1",
 							PublicKey:       "public-key",
 							Status:          models.DeviceStatusAccepted,
@@ -552,7 +566,9 @@ func TestClaimDevicePairing(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{
 							PreauthTenantID: "tenant1",
 							PublicKey:       "another-device-key",
 						}
@@ -569,7 +585,9 @@ func TestClaimDevicePairing(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{PreauthTenantID: "tenant1"}
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{PreauthTenantID: "tenant1"}
 					}).
 					Return(nil).
 					Once()
@@ -587,7 +605,9 @@ func TestClaimDevicePairing(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{PreauthTenantID: "tenant1"}
+						arg, ok := args.Get(2).(*devicePairing)
+						require.True(t, ok)
+						*arg = devicePairing{PreauthTenantID: "tenant1"}
 					}).
 					Return(nil).
 					Once()

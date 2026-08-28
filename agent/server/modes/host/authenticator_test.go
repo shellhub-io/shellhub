@@ -17,6 +17,7 @@ import (
 	clientMocks "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -213,7 +214,9 @@ func TestPublicKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.requiredMocs(tt.authenticator.api.(*clientMocks.MockClient), osauthMock)
+			apiMock, isMock := tt.authenticator.api.(*clientMocks.MockClient)
+			require.True(t, isMock)
+			tt.requiredMocs(apiMock, osauthMock)
 
 			ok := tt.authenticator.PublicKey(tt.ctx, tt.user, tt.key)
 			assert.Equal(t, tt.expected, ok)

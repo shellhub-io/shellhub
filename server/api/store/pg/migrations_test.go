@@ -82,7 +82,10 @@ func TestMigration004Dedup(t *testing.T) {
 	st, err := pg.New(ctx, connStr, options.Migrate())
 	require.NoError(t, err, "pg.New with Migrate must succeed")
 
-	db := st.(*pg.Pg).Driver()
+	pgStore, ok := st.(*pg.Pg)
+	require.True(t, ok)
+
+	db := pgStore.Driver()
 
 	// ── Drop the unique index so we can insert conflicting names ─────────────────
 	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
@@ -246,7 +249,10 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 	st, err := pg.New(ctx, connStr, options.Migrate())
 	require.NoError(t, err)
 
-	db := st.(*pg.Pg).Driver()
+	pgStore, ok := st.(*pg.Pg)
+	require.True(t, ok)
+
+	db := pgStore.Driver()
 
 	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
 
@@ -344,7 +350,10 @@ func TestMigration004AtomicRollback(t *testing.T) {
 	st, err := pg.New(ctx, connStr, options.Migrate())
 	require.NoError(t, err, "pg.New with Migrate must succeed")
 
-	db := st.(*pg.Pg).Driver()
+	pgStore, ok := st.(*pg.Pg)
+	require.True(t, ok)
+
+	db := pgStore.Driver()
 
 	// Drop the unique index created by migration 004 so we can insert duplicates.
 	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)

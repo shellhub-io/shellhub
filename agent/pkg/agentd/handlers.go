@@ -379,7 +379,11 @@ func sshHandlerV1(ag *Agent) func(c *echo.Context) error {
 		}
 
 		id := c.Param("id")
-		httpConn := c.Request().Context().Value("http-conn").(net.Conn)
+		httpConn, ok := c.Request().Context().Value("http-conn").(net.Conn)
+		if !ok {
+			return c.String(http.StatusInternalServerError, "hijacked connection missing from the request context")
+		}
+
 		ag.server.Sessions.Store(id, httpConn)
 		ag.server.HandleConn(httpConn)
 

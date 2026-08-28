@@ -2,6 +2,7 @@ package pgprovider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,7 +49,13 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 	}
 
 	// Get direct access to Bun driver for fixture loading
-	pgStore := st.(*pg.Pg)
+	pgStore, ok := st.(*pg.Pg)
+	if !ok {
+		_ = srv.Down(ctx)
+
+		return nil, errors.New("store is not backed by postgres")
+	}
+
 	driver := pgStore.Driver()
 
 	_, file, _, _ := runtime.Caller(0)
@@ -148,7 +155,7 @@ func (p *Provider) processRecordForPostgres(record map[string]any) map[string]an
 				if _, ok := v[0].(string); ok {
 					strArray := make([]string, len(v))
 					for i, item := range v {
-						strArray[i] = item.(string)
+						strArray[i], _ = item.(string)
 					}
 					processed[key] = pq.Array(strArray)
 				} else {

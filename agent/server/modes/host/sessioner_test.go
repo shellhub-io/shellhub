@@ -137,7 +137,8 @@ func TestFakeSessionCompiles(t *testing.T) {
 		t.Fatal("expected ContextKeySessionID to be set in fakeSession.Context()")
 	}
 
-	if id.(string) != "test-session-id" {
+	sessionID, ok := id.(string)
+	if !ok || sessionID != "test-session-id" {
 		t.Fatalf("expected session ID %q, got %q", "test-session-id", id)
 	}
 }

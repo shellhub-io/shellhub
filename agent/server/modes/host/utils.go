@@ -30,9 +30,8 @@ func generateShellCmd(deviceName string, session gliderssh.Session, term string)
 		term = "xterm"
 	}
 
-	authSock := session.Context().Value("SSH_AUTH_SOCK")
-	if authSock != nil {
-		envs = append(envs, fmt.Sprintf("%s=%s", "SSH_AUTH_SOCK", authSock.(string)))
+	if authSock, ok := session.Context().Value("SSH_AUTH_SOCK").(string); ok {
+		envs = append(envs, fmt.Sprintf("%s=%s", "SSH_AUTH_SOCK", authSock))
 	}
 
 	cmd := command.NewCmd(user, shell, term, deviceName, envs, shell, "--login")

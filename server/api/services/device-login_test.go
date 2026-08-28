@@ -54,7 +54,9 @@ func TestCreateDeviceLoginCode(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "login_code_device/uid1", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*string) = "previouscode"
+						arg, ok := args.Get(2).(*string)
+						require.True(t, ok)
+						*arg = "previouscode"
 					}).
 					Return(nil).
 					Once()
@@ -138,7 +140,9 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 		cacheMock.
 			On("Get", mock.Anything, "login_code/WXYZ2K7Q", mock.Anything).
 			Run(func(args mock.Arguments) {
-				*args.Get(2).(*deviceLoginCode) = deviceLoginCode{UID: "uid1", TenantID: "tenant1"}
+				arg, ok := args.Get(2).(*deviceLoginCode)
+				require.True(t, ok)
+				*arg = deviceLoginCode{UID: "uid1", TenantID: "tenant1"}
 			}).
 			Return(nil).
 			Once()
@@ -266,7 +270,11 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 				cacheMock.
 					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
 					Run(func(args mock.Arguments) {
-						*args.Get(2).(*devicePairing) = devicePairing{
+						arg, ok := args.Get(2).(*devicePairing)
+						if !ok {
+							panic("mock argument 2 is not a *devicePairing")
+						}
+						*arg = devicePairing{
 							Identity:  &models.DeviceIdentity{MAC: "00:00:00:00:00:01"},
 							Info:      &models.DeviceInfo{ID: "ubuntu", PrettyName: "Ubuntu 24.04 LTS"},
 							PublicKey: "public-key",

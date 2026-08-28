@@ -69,6 +69,7 @@ linters:
     - intrange
     # Error identity survives wrapping: errors.Is/As over == and type assertions.
     - errorlint
+    - forcetypeassert
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper

@@ -32,7 +32,12 @@ func collectEvents(t *testing.T, err error) (*servicemocks.MockService, func() [
 			mu.Lock()
 			defer mu.Unlock()
 
-			written = append(written, args.Get(1).([]models.SessionEvent)...)
+			events, ok := args.Get(1).([]models.SessionEvent)
+			if !ok {
+				panic("mock argument 1 is not a []models.SessionEvent")
+			}
+
+			written = append(written, events...)
 		}).
 		Return(err).
 		Maybe()
@@ -154,7 +159,9 @@ func TestEventsWritesOutsideTheCallersContext(t *testing.T) {
 	service.
 		On("EventSession", mock.Anything, mock.Anything).
 		Run(func(args mock.Arguments) {
-			ctxErr <- args.Get(0).(context.Context).Err()
+			ctx, ok := args.Get(0).(context.Context)
+			require.True(t, ok)
+			ctxErr <- ctx.Err()
 		}).
 		Return(nil).
 		Once()

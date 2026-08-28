@@ -61,7 +61,8 @@ func TestConnReadMessage_input(t *testing.T) {
 			description: "success to read the message",
 			requiredMocks: func() {
 				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(21, nil).Run(func(args mock.Arguments) {
-					b := args.Get(0).([]byte)
+					b, ok := args.Get(0).([]byte)
+					require.True(t, ok)
 
 					buf, _ := json.Marshal(Message{
 						Kind: messageKindInput,
@@ -137,7 +138,8 @@ func TestConnReadMessage_resize(t *testing.T) {
 			description: "success to read the message",
 			requiredMocks: func() {
 				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(40, nil).Run(func(args mock.Arguments) {
-					b := args.Get(0).([]byte)
+					b, ok := args.Get(0).([]byte)
+					require.True(t, ok)
 
 					buf, _ := json.Marshal(Message{
 						Kind: messageKindResize,

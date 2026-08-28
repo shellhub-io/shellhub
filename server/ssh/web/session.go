@@ -317,7 +317,12 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 			switch message.Kind {
 			case messageKindInput:
-				buffer := message.Data.(string)
+				buffer, ok := message.Data.(string)
+				if !ok {
+					logger.Error("input message data is not a string")
+
+					return
+				}
 
 				if _, err := stdin.Write([]byte(buffer)); err != nil {
 					logger.WithError(err).Error("failed to write the message data on the SSH session")
@@ -325,7 +330,12 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 					return
 				}
 			case messageKindResize:
-				dim := message.Data.(Dimensions)
+				dim, ok := message.Data.(Dimensions)
+				if !ok {
+					logger.Error("resize message data is not a dimension")
+
+					return
+				}
 
 				if err := agent.WindowChange(int(dim.Rows), int(dim.Cols)); err != nil {
 					logger.WithError(err).Error("failed to change the size of window for terminal session")
