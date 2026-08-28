@@ -127,7 +127,11 @@ func TestSystemGet(t *testing.T) {
 
 		cacheMock.
 			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
-			Run(func(args mock.Arguments) { *args.Get(2).(*models.System) = *setupSystem }).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*models.System)
+				require.True(t, ok)
+				*arg = *setupSystem
+			}).
 			Return(nil).
 			Once()
 
@@ -175,7 +179,11 @@ func TestSystemGet(t *testing.T) {
 
 		cacheMock.
 			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
-			Run(func(args mock.Arguments) { *args.Get(2).(*models.System) = models.System{Setup: true} }).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*models.System)
+				require.True(t, ok)
+				*arg = models.System{Setup: true}
+			}).
 			Return(nil).
 			Once()
 		storeMock.On("SystemGet", mock.Anything).Return(setupSystem, nil).Once()

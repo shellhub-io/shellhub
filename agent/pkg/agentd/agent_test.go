@@ -69,7 +69,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				envs := new(Config)
 
 				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg := args.Get(1).(*Config)
+					cfg, ok := args.Get(1).(*Config)
+					require.True(t, ok)
 
 					cfg.ServerAddress = "http://localhost"
 					cfg.TenantID = ""
@@ -91,7 +92,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				envs := new(Config)
 
 				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg := args.Get(1).(*Config)
+					cfg, ok := args.Get(1).(*Config)
+					require.True(t, ok)
 
 					cfg.ServerAddress = ""
 					cfg.TenantID = ""
@@ -114,7 +116,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 				envs := new(Config)
 
 				envMock.On("Process", "SHELLHUB_", envs).Return(nil).Once().Run(func(args mock.Arguments) {
-					cfg := args.Get(1).(*Config)
+					cfg, ok := args.Get(1).(*Config)
+					require.True(t, ok)
 
 					cfg.ServerAddress = "http://localhost"
 					cfg.TenantID = "1c462afa-e4b6-41a5-ba54-7236a1770466"

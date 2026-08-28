@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,7 +26,12 @@ func toFields(keysAndValues []any) logrus.Fields {
 	fields := make(map[string]any)
 
 	for i := 0; i < len(keysAndValues); i += 2 {
-		fields[keysAndValues[i].(string)] = keysAndValues[i+1]
+		key, ok := keysAndValues[i].(string)
+		if !ok {
+			key = fmt.Sprint(keysAndValues[i])
+		}
+
+		fields[key] = keysAndValues[i+1]
 	}
 
 	return fields

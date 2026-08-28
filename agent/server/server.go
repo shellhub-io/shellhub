@@ -214,7 +214,10 @@ func (s *Server) SetContainerID(id string) {
 
 func (s *Server) CloseSession(id string) {
 	if session, ok := s.Sessions.Load(id); ok {
-		_ = session.(net.Conn).Close()
+		if conn, ok := session.(net.Conn); ok {
+			_ = conn.Close()
+		}
+
 		s.Sessions.Delete(id)
 	}
 }

@@ -531,7 +531,9 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 			mock.
 				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
 				Run(func(args gomock.Arguments) {
-					captured = args.Get(2).(*requests.DeviceList)
+					list, ok := args.Get(2).(*requests.DeviceList)
+					require.True(t, ok)
+					captured = list
 				}).
 				Return([]models.Device{}, 0, nil).
 				Once()

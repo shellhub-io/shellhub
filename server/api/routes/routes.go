@@ -104,7 +104,10 @@ func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 }
 
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
-	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
+	router, ok := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
+	if !ok {
+		return nil
+	}
 
 	handler := NewHandler(service, websocket.NewGorillaWebSocketUpgrader())
 	for _, opt := range opts {

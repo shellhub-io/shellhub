@@ -76,7 +76,8 @@ func TestManagerBindClosesTheConnectionItDisplaced(t *testing.T) {
 
 	stored, ok := m.Connections.Load(key)
 	require.True(t, ok)
-	displaced := stored.(*yamux.Session)
+	displaced, ok := stored.(*yamux.Session)
+	require.True(t, ok)
 
 	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
 
@@ -88,7 +89,10 @@ func TestManagerBindClosesTheConnectionItDisplaced(t *testing.T) {
 
 	stored, ok = m.Connections.Load(key)
 	require.True(t, ok)
-	assert.NotSame(t, displaced, stored.(*yamux.Session), "the live connection is the one that is dialed")
+
+	live, ok := stored.(*yamux.Session)
+	require.True(t, ok)
+	assert.NotSame(t, displaced, live, "the live connection is the one that is dialed")
 
 	select {
 	case key := <-offline:
@@ -109,7 +113,9 @@ func TestManagerReportsTheDeviceOfflineWhenItsLastConnectionGoes(t *testing.T) {
 
 	stored, ok := m.Connections.Load(key)
 	require.True(t, ok)
-	require.NoError(t, stored.(*yamux.Session).Close())
+	session, ok := stored.(*yamux.Session)
+	require.True(t, ok)
+	require.NoError(t, session.Close())
 
 	select {
 	case reported := <-offline:

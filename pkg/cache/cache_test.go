@@ -8,6 +8,7 @@ import (
 	cacheMock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGet(t *testing.T) {
@@ -45,7 +46,8 @@ func TestGet(t *testing.T) {
 				cache.On("Get", mock.Anything, "fail_when_not_found", mock.Anything).
 					Return(nil).
 					Run(func(args mock.Arguments) {
-						value := args.Get(2).(**Test)
+						value, ok := args.Get(2).(**Test)
+						require.True(t, ok)
 						(*value) = nil
 					}).
 					Once()
@@ -59,7 +61,8 @@ func TestGet(t *testing.T) {
 				cache.On("Get", mock.Anything, "success", mock.Anything).
 					Return(nil).
 					Run(func(args mock.Arguments) {
-						value := args.Get(2).(**Test)
+						value, ok := args.Get(2).(**Test)
+						require.True(t, ok)
 						(*value) = &Test{
 							Value: true,
 						}

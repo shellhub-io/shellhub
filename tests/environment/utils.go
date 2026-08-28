@@ -35,7 +35,10 @@ func GetFreePort(t *testing.T) string {
 
 	defer l.Close() //nolint:errcheck
 
-	port := strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
+	tcpAddr, ok := l.Addr().(*net.TCPAddr)
+	require.True(t, ok, "listener address is not TCP")
+
+	port := strconv.Itoa(tcpAddr.Port)
 	if slices.Contains(freePortController, port) {
 		return GetFreePort(t)
 	}
