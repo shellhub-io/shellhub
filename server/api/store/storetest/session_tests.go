@@ -298,7 +298,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Greater(t, count, 0)
+		assert.Positive(t, count)
 		assert.NotEmpty(t, sessions)
 		assert.Equal(t, 2, count)
 		assert.Len(t, sessions, 2)
@@ -334,7 +334,7 @@ func (s *Suite) TestSessionList(t *testing.T) {
 			}}),
 			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
 		require.NoError(t, err)
-		assert.Greater(t, count, 0)
+		assert.Positive(t, count)
 		assert.NotEmpty(t, sessions)
 		assert.Equal(t, 2, count)
 		assert.Len(t, sessions, 2)
@@ -353,7 +353,7 @@ func (s *Suite) TestSessionResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, "nonexistent")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, session)
 	})
 
@@ -535,7 +535,7 @@ func (s *Suite) TestActiveSessionResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		activeSession, err := st.ActiveSessionResolve(ctx, store.SessionUIDResolver, "nonexistent")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, activeSession)
 	})
 

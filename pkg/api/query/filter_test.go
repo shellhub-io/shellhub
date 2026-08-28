@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFilterUnmarshalJSON(t *testing.T) {
@@ -57,7 +58,7 @@ func TestFilterUnmarshalJSON(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			raw, err := base64.StdEncoding.DecodeString(tc.data)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tc.expected, tc.filter.UnmarshalJSON(raw))
 		})
 	}
@@ -197,16 +198,16 @@ func TestFilters_Unmarshal(t *testing.T) {
 			// and that the test case genuinely exercises the URL fallback path.
 			if tc.stdFails {
 				_, errStd := base64.RawStdEncoding.DecodeString(tc.raw)
-				assert.Error(t, errStd, "RawStdEncoding must not decode a RawURLEncoding-only string")
+				require.Error(t, errStd, "RawStdEncoding must not decode a RawURLEncoding-only string")
 			}
 
 			fs := &Filters{Raw: tc.raw}
 			err := fs.Unmarshal()
 
 			if tc.wantErr == nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			} else {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			}
 
 			if tc.wantFirstType != "" {

@@ -169,7 +169,7 @@ func TestEventsWritesOutsideTheCallersContext(t *testing.T) {
 	// cancellation straight through and the recording would be lost in silence.
 	select {
 	case err := <-ctxErr:
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	default:
 		t.Fatal("expected the batch to have been written")
 	}

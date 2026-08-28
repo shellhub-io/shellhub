@@ -23,7 +23,10 @@ func newTestPair(t *testing.T) (client *Adapter, server *Adapter) {
 	upgrader := websocket.Upgrader{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
-		require.NoError(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
+
 		serverReady <- New(conn)
 	}))
 	t.Cleanup(srv.Close)

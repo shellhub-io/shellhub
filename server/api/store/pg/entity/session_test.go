@@ -44,6 +44,8 @@ func TestSessionFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *Session) {
+				t.Helper()
+
 				assert.Equal(t, "session-uid-1", result.ID)
 				assert.Equal(t, "device-uid-1", result.DeviceID)
 				assert.Equal(t, "root", result.Username)
@@ -68,6 +70,8 @@ func TestSessionFromModel(t *testing.T) {
 				Type: "",
 			},
 			check: func(t *testing.T, result *Session) {
+				t.Helper()
+
 				assert.Equal(t, "shell", result.Type)
 				assert.InDelta(t, 0.0, result.Longitude, 0.001)
 				assert.InDelta(t, 0.0, result.Latitude, 0.001)
@@ -119,6 +123,8 @@ func TestSessionToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.Session) {
+				t.Helper()
+
 				assert.Equal(t, "session-uid-1", result.UID)
 				assert.Equal(t, models.UID("device-uid-1"), result.DeviceUID)
 				assert.Equal(t, "root", result.Username)
@@ -148,8 +154,10 @@ func TestSessionToModel(t *testing.T) {
 				Device:   nil,
 			},
 			check: func(t *testing.T, result *models.Session) {
+				t.Helper()
+
 				assert.Nil(t, result.Device)
-				assert.Equal(t, "", result.TenantID)
+				assert.Empty(t, result.TenantID)
 			},
 		},
 		{
@@ -160,6 +168,8 @@ func TestSessionToModel(t *testing.T) {
 				Type:     "shell",
 			},
 			check: func(t *testing.T, result *models.Session) {
+				t.Helper()
+
 				assert.Equal(t, "session-uid-3", result.UID)
 				assert.Equal(t, models.UID("device-uid-3"), result.DeviceUID)
 			},
@@ -194,6 +204,8 @@ func TestActiveSessionFromModel(t *testing.T) {
 				LastSeen: now,
 			},
 			check: func(t *testing.T, result *ActiveSession) {
+				t.Helper()
+
 				assert.Equal(t, "active-session-1", result.SessionID)
 				assert.Equal(t, now, result.SeenAt)
 				assert.Equal(t, now, result.CreatedAt)
@@ -205,6 +217,8 @@ func TestActiveSessionFromModel(t *testing.T) {
 				UID: "active-session-2",
 			},
 			check: func(t *testing.T, result *ActiveSession) {
+				t.Helper()
+
 				assert.Equal(t, "active-session-2", result.SessionID)
 				assert.True(t, result.SeenAt.IsZero())
 				assert.Equal(t, now, result.CreatedAt)
@@ -242,6 +256,8 @@ func TestActiveSessionToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.ActiveSession) {
+				t.Helper()
+
 				assert.Equal(t, models.UID("active-session-1"), result.UID)
 				assert.Equal(t, now, result.LastSeen)
 				assert.Equal(t, "ns-id-1", result.TenantID)
@@ -255,8 +271,10 @@ func TestActiveSessionToModel(t *testing.T) {
 				Session:   nil,
 			},
 			check: func(t *testing.T, result *models.ActiveSession) {
+				t.Helper()
+
 				assert.Equal(t, models.UID("active-session-2"), result.UID)
-				assert.Equal(t, "", result.TenantID)
+				assert.Empty(t, result.TenantID)
 			},
 		},
 		{
@@ -269,8 +287,10 @@ func TestActiveSessionToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.ActiveSession) {
+				t.Helper()
+
 				assert.Equal(t, models.UID("active-session-3"), result.UID)
-				assert.Equal(t, "", result.TenantID)
+				assert.Empty(t, result.TenantID)
 			},
 		},
 	}
@@ -301,11 +321,13 @@ func TestSessionEventFromModel(t *testing.T) {
 				Data:      map[string]any{"output": "hello"},
 			},
 			check: func(t *testing.T, result *SessionEvent) {
+				t.Helper()
+
 				assert.Equal(t, "session-1", result.SessionID)
 				assert.Equal(t, "pty-output", result.Type)
 				assert.Equal(t, now, result.CreatedAt)
 				assert.Equal(t, 0, result.Seat)
-				assert.Equal(t, `{"output":"hello"}`, result.Data)
+				assert.JSONEq(t, `{"output":"hello"}`, result.Data)
 			},
 		},
 		{
@@ -318,9 +340,11 @@ func TestSessionEventFromModel(t *testing.T) {
 				Data:      nil,
 			},
 			check: func(t *testing.T, result *SessionEvent) {
+				t.Helper()
+
 				assert.Equal(t, "session-2", result.SessionID)
 				assert.Equal(t, "shell", result.Type)
-				assert.Equal(t, "", result.Data)
+				assert.Empty(t, result.Data)
 				assert.Equal(t, 1, result.Seat)
 				assert.Equal(t, now, result.CreatedAt)
 			},
@@ -353,6 +377,8 @@ func TestSessionEventToModel(t *testing.T) {
 				Data:      `{"output":"hello"}`,
 			},
 			check: func(t *testing.T, result *models.SessionEvent) {
+				t.Helper()
+
 				assert.Equal(t, "session-1", result.Session)
 				assert.Equal(t, models.SessionEventTypePtyOutput, result.Type)
 				assert.Equal(t, now, result.Timestamp)
@@ -370,6 +396,8 @@ func TestSessionEventToModel(t *testing.T) {
 				Data:      "",
 			},
 			check: func(t *testing.T, result *models.SessionEvent) {
+				t.Helper()
+
 				assert.Nil(t, result.Data)
 			},
 		},
@@ -382,6 +410,8 @@ func TestSessionEventToModel(t *testing.T) {
 				Data:      "not-json{",
 			},
 			check: func(t *testing.T, result *models.SessionEvent) {
+				t.Helper()
+
 				assert.Nil(t, result.Data)
 			},
 		},

@@ -1,7 +1,6 @@
 package web
 
 import (
-	"errors"
 	"io"
 	"net"
 	"testing"
@@ -112,7 +111,7 @@ func TestBannerNewBannerErrorUnrecognizedSetsKindNone(t *testing.T) {
 
 	got := mapBannerError(e)
 
-	assert.True(t, errors.Is(got, ErrConnect), "expected ErrConnect for unrecognized banner, got %v", got)
+	assert.ErrorIs(t, got, ErrConnect, "expected ErrConnect for unrecognized banner, got %v", got)
 }
 
 // TestMapBannerErrorEmptyMessage verifies that mapBannerError returns ErrConnect
@@ -127,7 +126,7 @@ func TestMapBannerErrorEmptyMessage(t *testing.T) {
 
 	got := mapBannerError(e)
 
-	assert.True(t, errors.Is(got, ErrConnect), "expected ErrConnect for empty-message BannerError, got %v", got)
+	assert.ErrorIs(t, got, ErrConnect, "expected ErrConnect for empty-message BannerError, got %v", got)
 }
 
 // dialWithBanner starts a gliderssh server that sends the given banner, then
@@ -221,16 +220,16 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 				// Empty banner: BannerCallback returns nil, so the dial should
 				// succeed with no error and no *BannerError embedded.
 				require.NoError(t, dialErr, "expected dial to succeed when banner is empty")
-				assert.False(t, errors.As(dialErr, &e), "expected no BannerError for empty banner")
+				assert.NotErrorAs(t, dialErr, &e, "expected no BannerError for empty banner")
 
 				return
 			}
 
-			require.True(t, errors.As(dialErr, &e), "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
+			require.ErrorAs(t, dialErr, &e, "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
 
 			got := mapBannerError(e)
 
-			assert.True(t, errors.Is(got, tc.want), "expected %v, got %v", tc.want, got)
+			assert.ErrorIs(t, got, tc.want, "expected %v, got %v", tc.want, got)
 		})
 	}
 }
@@ -267,7 +266,7 @@ func TestBannerWireClassify(t *testing.T) {
 
 			var e *BannerError
 
-			require.True(t, errors.As(dialErr, &e), "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
+			require.ErrorAs(t, dialErr, &e, "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
 
 			assert.Equal(t, tc.kind, e.Kind(), "Kind extracted over the wire must match the banner sent by the server")
 		})

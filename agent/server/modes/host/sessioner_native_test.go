@@ -13,6 +13,7 @@ import (
 	osauthMocks "github.com/shellhub-io/shellhub/agent/pkg/osauth/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -74,7 +75,7 @@ func TestShell_DeniedCredentialSwitch(t *testing.T) {
 		retErr = s.Shell(sess)
 	}, "Shell() must not panic when credential switch is denied")
 
-	assert.NotNil(t, retErr, "Shell() must return a non-nil error when credential switch is denied")
+	require.Error(t, retErr, "Shell() must return a non-nil error when credential switch is denied")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
 }
@@ -108,7 +109,7 @@ func TestExec_DeniedCredentialSwitch(t *testing.T) {
 		retErr = s.Exec(sess)
 	}, "Exec() must not panic when credential switch is denied")
 
-	assert.NotNil(t, retErr, "Exec() must return a non-nil error when credential switch is denied")
+	require.Error(t, retErr, "Exec() must return a non-nil error when credential switch is denied")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
 }
@@ -156,7 +157,7 @@ func TestHeredoc_StartFailure(t *testing.T) {
 		retErr = s.Heredoc(sess)
 	}, "Heredoc() must not panic when cmd.Start() fails")
 
-	assert.NotNil(t, retErr, "Heredoc() must return a non-nil error when cmd.Start() fails")
+	require.Error(t, retErr, "Heredoc() must return a non-nil error when cmd.Start() fails")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with exit code 1")
 }
@@ -189,7 +190,7 @@ func TestHeredoc_DeniedCredentialSwitch(t *testing.T) {
 		retErr = s.Heredoc(sess)
 	}, "Heredoc() must not panic when credential switch is denied")
 
-	assert.NotNil(t, retErr, "Heredoc() must return a non-nil error when credential switch is denied")
+	require.Error(t, retErr, "Heredoc() must return a non-nil error when credential switch is denied")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
 }
@@ -238,7 +239,7 @@ func TestExec_NonPty_SucceedingCommand(t *testing.T) {
 		retErr = s.Exec(sess)
 	}, "Exec() must not panic for a succeeding non-PTY command")
 
-	assert.NoError(t, retErr, "Exec() must return nil for a succeeding command")
+	require.NoError(t, retErr, "Exec() must return nil for a succeeding command")
 	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called")
 	assert.Equal(t, int32(0), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 0 for /bin/true")
 }

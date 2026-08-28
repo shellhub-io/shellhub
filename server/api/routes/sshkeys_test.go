@@ -17,6 +17,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPublicKeys(t *testing.T) {
@@ -56,7 +57,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.paginator)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys", strings.NewReader(string(jsonData)))

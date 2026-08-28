@@ -120,7 +120,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 			c, _ := authenticatedRequest(echo.New(), bearer)
 
 			identity, err := NewAuthenticator(service).Resolve(c)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tc.expected, identity)
 
 			service.AssertExpectations(t)

@@ -26,7 +26,7 @@ func (s *Suite) TestPrivateKeyGet(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		privKey, err := st.PrivateKeyGet(ctx, "nonexistent")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, privKey)
 	})
 

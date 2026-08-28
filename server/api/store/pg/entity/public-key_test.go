@@ -38,6 +38,8 @@ func TestPublicKeyFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *PublicKey) {
+				t.Helper()
+
 				assert.Equal(t, "tenant-id-1", result.NamespaceID)
 				assert.Equal(t, "SHA256:abc123", result.Fingerprint)
 				assert.Equal(t, []byte("ssh-rsa AAAA..."), result.Data)
@@ -65,9 +67,11 @@ func TestPublicKeyFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *PublicKey) {
+				t.Helper()
+
 				require.Len(t, result.Tags, 2)
 				assert.Equal(t, "tag-1", result.Tags[0].ID)
-				assert.Equal(t, "", result.Tags[0].Name)
+				assert.Empty(t, result.Tags[0].Name)
 			},
 		},
 		{
@@ -82,6 +86,8 @@ func TestPublicKeyFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *PublicKey) {
+				t.Helper()
+
 				assert.Empty(t, result.Tags)
 			},
 		},
@@ -96,6 +102,8 @@ func TestPublicKeyFromModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *PublicKey) {
+				t.Helper()
+
 				assert.Equal(t, []byte{0x00, 0x01, 0x02}, result.Data)
 			},
 		},
@@ -132,12 +140,14 @@ func TestPublicKeyToModel(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, result *models.PublicKey) {
+				t.Helper()
+
 				assert.Equal(t, "tenant-id-1", result.TenantID)
 				assert.Equal(t, "SHA256:abc123", result.Fingerprint)
 				assert.Equal(t, []byte("ssh-rsa AAAA..."), result.Data)
 				assert.Equal(t, now, result.CreatedAt)
 				assert.Equal(t, "my-key", result.PublicKeyFields.Name)
-				assert.Equal(t, "", result.PublicKeyFields.Username)
+				assert.Empty(t, result.PublicKeyFields.Username)
 				assert.Equal(t, "*.example.com", result.Filter.Hostname)
 				require.Len(t, result.Filter.Tags, 2)
 				assert.Equal(t, "tag-1", result.Filter.Tags[0].ID)
@@ -155,6 +165,8 @@ func TestPublicKeyToModel(t *testing.T) {
 				Tags:           []*Tag{},
 			},
 			check: func(t *testing.T, result *models.PublicKey) {
+				t.Helper()
+
 				assert.Empty(t, result.Filter.Tags)
 				assert.Nil(t, result.Filter.TagIDs)
 				assert.Equal(t, "host", result.Filter.Hostname)

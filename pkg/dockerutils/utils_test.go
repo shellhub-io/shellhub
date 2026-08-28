@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestReadContainerID(t *testing.T) {
@@ -38,7 +40,7 @@ func TestReadContainerID(t *testing.T) {
 921 959 0:131 / /sys/devices/virtual/powercap ro,relatime - tmpfs tmpfs ro,inode64`: "7accf056f96dcfdeb486c705843147f979d3e0ce88f7375e145688e0d2890e33",
 	} {
 		id, err := parseContainerIDv2(strings.NewReader(in))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, out, id)
 	}
 }

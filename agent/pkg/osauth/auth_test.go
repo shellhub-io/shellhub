@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestVerifyPasswordHashPass(t *testing.T) {
@@ -124,8 +126,8 @@ func TestPasswdReader(t *testing.T) {
 	reader := strings.NewReader(passwd)
 
 	users, err := parsePasswdReader(reader)
-	assert.NoError(t, err)
-	assert.Equal(t, 8, len(users))
+	require.NoError(t, err)
+	assert.Len(t, users, 8)
 
 	tests := []struct {
 		name     string
@@ -308,7 +310,7 @@ func TestParseGroupLine(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.want.Name, got.Name)
 			assert.Equal(t, tt.want.Password, got.Password)
 			assert.Equal(t, tt.want.GID, got.GID)
@@ -338,8 +340,8 @@ func TestParseGroupReader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := strings.NewReader(tt.data)
 			m, err := parseGroupReader(reader)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.wantCount, len(m))
+			require.NoError(t, err)
+			assert.Len(t, m, tt.wantCount)
 
 			g, ok := m["wheel"]
 			assert.True(t, ok)
@@ -364,13 +366,13 @@ func TestListGroupsFromFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := strings.NewReader(groups)
 			got, err := ListGroupsFromFile(tt.username, reader)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			for _, want := range tt.wantFound {
 				assert.Contains(t, got, want)
 			}
 			if len(tt.wantFound) == 0 {
-				assert.Equal(t, 0, len(got))
+				assert.Empty(t, got)
 			}
 		})
 	}
@@ -396,7 +398,7 @@ func TestParseUint32(t *testing.T) {
 
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
 	}

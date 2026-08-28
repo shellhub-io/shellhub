@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetSystemInfo(t *testing.T) {
@@ -51,7 +52,7 @@ func TestGetSystemInfo(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.request)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))

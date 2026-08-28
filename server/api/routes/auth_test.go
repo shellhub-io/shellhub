@@ -114,7 +114,7 @@ func TestAuthDevice(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.requestBody)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/api/devices/auth", strings.NewReader(string(jsonData)))
@@ -318,7 +318,7 @@ func TestAuthLocalUser(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.req) //nolint:gosec // G117: test request serialization
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/api/auth/user", strings.NewReader(string(jsonData)))
@@ -507,7 +507,7 @@ func TestAuthPublicKey(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.requestBody)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/api/auth/ssh", strings.NewReader(string(jsonData)))

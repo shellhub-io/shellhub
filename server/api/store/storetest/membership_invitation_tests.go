@@ -38,7 +38,7 @@ func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 		}
 
 		err := st.MembershipInvitationCreate(ctx, invitation)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotEmpty(t, invitation.ID)
 	})
 }
@@ -54,7 +54,7 @@ func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 		userID := s.CreateUser(t)
 
 		invitation, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), userID)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, invitation)
 	})
 
@@ -142,7 +142,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		invitation, err := st.MembershipInvitationResolveBySig(ctx, "MISSINGSIG12")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, invitation)
 	})
 
@@ -195,7 +195,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
 
 		resolved, err := st.MembershipInvitationResolveBySig(ctx, "EXPIREDSIG12")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, resolved)
 	})
 
@@ -222,7 +222,7 @@ func (s *Suite) TestMembershipInvitationResolveBySig(t *testing.T) {
 		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
 
 		resolved, err := st.MembershipInvitationResolveBySig(ctx, "CANCELLEDSIG")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, resolved)
 	})
 }
@@ -313,10 +313,10 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
 
 		err := st.MembershipInvitationDelete(ctx, invitation)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		resolved, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, resolved)
 	})
 }
@@ -494,7 +494,7 @@ func (s *Suite) TestUserInvitationGet(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		invitation, err := st.UserInvitationGet(ctx, store.UserInvitationEmailResolver, "missing@test.com")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, invitation)
 	})
 

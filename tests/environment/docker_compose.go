@@ -10,6 +10,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	tcexec "github.com/testcontainers/testcontainers-go/exec"
 )
@@ -75,9 +76,7 @@ func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
 		append([]string{"/server", "admin"}, args...),
 		tcexec.Multiplexed(),
 	)
-	if !assert.NoError(dc.t, err) {
-		assert.FailNow(dc.t, err.Error())
-	}
+	require.NoError(dc.t, err)
 
 	if code != 0 {
 		body, _ := io.ReadAll(output)
@@ -91,6 +90,8 @@ func (dc *DockerCompose) runAdminCommand(ctx context.Context, args []string) {
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
+	t.Helper()
+
 	dc.runAdminCommand(t.Context(), []string{"user", "create", username, password, email})
 }
 
@@ -103,6 +104,8 @@ func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string)
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
 func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant, sshAccessMode string) {
+	t.Helper()
+
 	args := []string{"namespace", "create", name, owner, tenant}
 	if sshAccessMode != "" {
 		args = append(args, "--ssh-access-mode", sshAccessMode)
@@ -127,9 +130,7 @@ func (dc *DockerCompose) AuthUser(ctx context.Context, username, password string
 		SetResult(auth).
 		Post("/api/login")
 
-	if !assert.NoError(dc.t, err) {
-		assert.FailNow(dc.t, err.Error())
-	}
+	require.NoError(dc.t, err)
 
 	if !assert.Equal(dc.t, 200, res.StatusCode()) {
 		assert.FailNow(dc.t, "login fails")

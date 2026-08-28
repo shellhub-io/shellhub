@@ -10,7 +10,7 @@ import (
 
 func TestErrInternal(t *testing.T) {
 	t.Run("is non-nil", func(t *testing.T) {
-		assert.NotNil(t, ErrInternal)
+		assert.Error(t, ErrInternal)
 	})
 
 	t.Run("has correct layer", func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestDuplicatedField(t *testing.T) {
 		field, ok := DuplicatedField(ErrDuplicate)
 
 		assert.False(t, ok)
-		assert.Equal(t, "", field)
+		assert.Empty(t, field)
 	})
 
 	t.Run("empty-field DuplicateFieldError returns empty string and false", func(t *testing.T) {
@@ -55,6 +55,6 @@ func TestDuplicatedField(t *testing.T) {
 		field, ok := DuplicatedField(err)
 
 		assert.False(t, ok)
-		assert.Equal(t, "", field)
+		assert.Empty(t, field)
 	})
 }

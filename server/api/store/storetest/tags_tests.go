@@ -154,7 +154,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		require.NoError(t, err)
 
 		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagIDResolver, tagID)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, tag)
 	})
 
@@ -179,7 +179,7 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 		s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
 		tag, err := st.TagResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.TagNameResolver, "nonexistent")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, tag)
 	})
 

@@ -8,6 +8,8 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestListDevices(t *testing.T) {
@@ -126,7 +128,7 @@ func TestListDevices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			cli, err := NewClient("https://www.shellhub.io/")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			client, ok := cli.(*client)
 			assert.True(t, ok)
@@ -233,7 +235,7 @@ func TestGetDevice(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			cli, err := NewClient("https://www.shellhub.io/")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			client, ok := cli.(*client)
 			assert.True(t, ok)

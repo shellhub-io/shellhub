@@ -287,7 +287,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.updatePayloadMock)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/users/%s/password", tc.uid), strings.NewReader(string(jsonData)))

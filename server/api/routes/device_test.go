@@ -314,7 +314,7 @@ func TestRenameDevice(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.renamePayload)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPatch, "/api/devices/"+tc.renamePayload.UID, strings.NewReader(string(jsonData)))
@@ -627,7 +627,7 @@ func TestUpdateDevice(t *testing.T) {
 
 			jsonData, err := json.Marshal(tc.req)
 			if err != nil {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			req := httptest.NewRequest(http.MethodPut, "/api/devices/"+tc.req.UID, strings.NewReader(string(jsonData)))

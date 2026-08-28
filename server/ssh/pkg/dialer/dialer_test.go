@@ -89,6 +89,8 @@ func TestHandshakeFailsAndClosesTheStream(t *testing.T) {
 			target:      HTTPProxyTarget{RequestID: "request", Host: "localhost", Port: 8080},
 			version:     TransportVersion2,
 			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
 				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 				t.Cleanup(cancel)
 
@@ -100,6 +102,8 @@ func TestHandshakeFailsAndClosesTheStream(t *testing.T) {
 			target:      SSHOpenTarget{SessionID: "session"},
 			version:     TransportVersion2,
 			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
 				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 				t.Cleanup(cancel)
 
@@ -111,6 +115,8 @@ func TestHandshakeFailsAndClosesTheStream(t *testing.T) {
 			target:      HTTPProxyTarget{RequestID: "request", Host: "localhost", Port: 8080},
 			version:     TransportVersion2,
 			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
 				ctx, cancel := context.WithCancel(context.Background())
 				time.AfterFunc(100*time.Millisecond, cancel)
 				t.Cleanup(cancel)
@@ -140,7 +146,7 @@ func TestHandshakeFailsAndClosesTheStream(t *testing.T) {
 
 			select {
 			case err := <-done:
-				assert.Error(t, err)
+				require.Error(t, err)
 			case <-time.After(5 * time.Second):
 				t.Fatal("handshake blocked instead of failing")
 			}
@@ -206,7 +212,7 @@ func TestHandshakeHonorsTheEarlierDeadline(t *testing.T) {
 	callerDeadline, _ := ctx.Deadline()
 
 	_, err := handshake(ctx, conn, TransportVersion2, SSHOpenTarget{SessionID: "session"})
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	first, ok := conn.deadlineAt(0)
 	require.True(t, ok)

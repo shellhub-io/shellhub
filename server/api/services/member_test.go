@@ -1576,7 +1576,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 		MemberRole:    authorizer.RoleObserver,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	storeMock.AssertExpectations(t)
 }
 
@@ -1687,7 +1687,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 		MemberRole:    authorizer.RoleObserver,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, hookCalled)
 	storeMock.AssertExpectations(t)
 }

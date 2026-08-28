@@ -152,7 +152,7 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 		nonExistentID := "00000000-0000-0000-0000-000000000000"
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, nonExistentID)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, ns)
 	})
 
@@ -164,7 +164,7 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 		malformedID := "83176492-e6cl-43d7-922e-ee01c3693e26"
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, malformedID)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, ns)
 	})
 
@@ -172,7 +172,7 @@ func (s *Suite) TestNamespaceResolve(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceNameResolver, "non-existent-namespace")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, ns)
 	})
 }
@@ -204,7 +204,7 @@ func (s *Suite) TestNamespaceGetDeviceLimit(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		limit, err := st.NamespaceGetDeviceLimit(ctx, "00000000-0000-0000-0000-000000000000")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Zero(t, limit)
 	})
 
@@ -212,7 +212,7 @@ func (s *Suite) TestNamespaceGetDeviceLimit(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		limit, err := st.NamespaceGetDeviceLimit(ctx, "83176492-e6cl-43d7-922e-ee01c3693e26")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Zero(t, limit)
 	})
 }
@@ -241,7 +241,7 @@ func (s *Suite) TestNamespaceGetPreferred(t *testing.T) {
 		userID := s.CreateUser(t)
 
 		ns, err := st.NamespaceGetPreferred(ctx, userID)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, ns)
 	})
 }
@@ -610,7 +610,7 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -633,7 +633,7 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, pkFingerprint)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyIDResolver, apiKeyID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -741,7 +741,7 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 		assert.Equal(t, int64(2), deleted)
 
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant1)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant2)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
@@ -760,7 +760,7 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 
 		for _, tenantID := range tenantIDs {
 			_, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-			assert.ErrorIs(t, err, store.ErrNoDocuments)
+			require.ErrorIs(t, err, store.ErrNoDocuments)
 		}
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant3)

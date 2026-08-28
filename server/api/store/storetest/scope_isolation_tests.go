@@ -34,7 +34,7 @@ func (s *Suite) TestScopeIsolationDeviceResolve(t *testing.T) {
 	assert.Equal(t, string(uid), got.UID)
 
 	got, err = st.DeviceResolve(ctx, scope.MustBounded(other), store.DeviceUIDResolver, string(uid))
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -73,7 +73,7 @@ func (s *Suite) TestScopeIsolationSessionResolve(t *testing.T) {
 	assert.Equal(t, string(sessionUID), got.UID)
 
 	got, err = st.SessionResolve(ctx, scope.MustBounded(other), store.SessionUIDResolver, string(sessionUID))
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -91,7 +91,7 @@ func (s *Suite) TestScopeIsolationTagResolve(t *testing.T) {
 	assert.Equal(t, "production", got.Name)
 
 	got, err = st.TagResolve(ctx, scope.MustBounded(other), store.TagNameResolver, "production")
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -367,7 +367,7 @@ func (s *Suite) TestScopeIsolationMembershipInvitationResolve(t *testing.T) {
 	assert.Equal(t, owner, got.TenantID)
 
 	got, err = st.MembershipInvitationResolve(ctx, scope.MustBounded(other), userID)
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -459,11 +459,11 @@ func (s *Suite) TestScopeRejectsUnconstructedScope(t *testing.T) {
 	uid := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceName("dev"))
 
 	got, err := st.DeviceResolve(ctx, scope.Scope{}, store.DeviceUIDResolver, string(uid))
-	assert.ErrorIs(t, err, store.ErrInvalidScope)
+	require.ErrorIs(t, err, store.ErrInvalidScope)
 	assert.Nil(t, got)
 
 	devices, _, err := st.DeviceList(ctx, scope.Scope{}, store.DeviceAcceptableAsFalse)
-	assert.ErrorIs(t, err, store.ErrInvalidScope)
+	require.ErrorIs(t, err, store.ErrInvalidScope)
 	assert.Empty(t, devices)
 }
 
@@ -574,10 +574,10 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 	assert.Empty(t, members)
 
 	// Updating and deleting it from another namespace finds nothing to act on.
-	assert.ErrorIs(t,
+	require.ErrorIs(t,
 		st.NamespaceUpdateMembership(ctx, scope.MustBounded(other), &models.Member{ID: memberID, Role: authorizer.RoleAdministrator}),
 		store.ErrNoDocuments)
-	assert.ErrorIs(t,
+	require.ErrorIs(t,
 		st.NamespaceDeleteMembership(ctx, scope.MustBounded(other), &models.Member{ID: memberID}),
 		store.ErrNoDocuments)
 
@@ -689,7 +689,7 @@ func (s *Suite) TestScopeIsolationAPIKeyResolve(t *testing.T) {
 	assert.Equal(t, keyID, got.ID)
 
 	got, err = st.APIKeyResolve(ctx, scope.MustBounded(other), store.APIKeyIDResolver, keyID)
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -707,7 +707,7 @@ func (s *Suite) TestScopeIsolationPublicKeyResolve(t *testing.T) {
 	assert.Equal(t, fingerprint, got.Fingerprint)
 
 	got, err = st.PublicKeyResolve(ctx, scope.MustBounded(other), store.PublicKeyFingerprintResolver, fingerprint)
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -771,7 +771,7 @@ func (s *Suite) TestScopeIsolationAccessPolicyResolve(t *testing.T) {
 	assert.Equal(t, id, got.ID)
 
 	got, err = st.AccessPolicyResolve(ctx, scope.MustBounded(other), store.AccessPolicyIDResolver, id)
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }
 
@@ -832,6 +832,6 @@ func (s *Suite) TestScopeIsolationSSHIdentityResolve(t *testing.T) {
 	assert.Equal(t, fingerprint, got.Fingerprint)
 
 	got, err = st.SSHIdentityResolve(ctx, scope.MustBounded(other), store.SSHIdentityFingerprintResolver, fingerprint)
-	assert.ErrorIs(t, err, store.ErrNoDocuments)
+	require.ErrorIs(t, err, store.ErrNoDocuments)
 	assert.Nil(t, got)
 }

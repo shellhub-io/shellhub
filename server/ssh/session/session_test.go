@@ -158,7 +158,7 @@ func TestRecorded(t *testing.T) {
 
 			err = sess.Recorded(seat)
 
-			assert.ErrorIs(t, err, tt.expectedErr)
+			require.ErrorIs(t, err, tt.expectedErr)
 			assert.Equal(t, tt.expectSkipped, errors.Is(err, ErrRecordingSkipped))
 		})
 	}
@@ -305,13 +305,13 @@ func TestEvaluate(t *testing.T) {
 
 			err := sess.Evaluate(ctx)
 
-			assert.ErrorIs(t, err, tt.expectedErr)
+			require.ErrorIs(t, err, tt.expectedErr)
 
 			_, state := snap.retrieve()
 			if tt.expectStateEvaluated {
-				assert.EqualValues(t, StateEvaluated, state, "expected snapshot to advance to StateEvaluated on success")
+				assert.Equal(t, StateEvaluated, state, "expected snapshot to advance to StateEvaluated on success")
 			} else {
-				assert.EqualValues(t, StateCreated, state, "snapshot must remain StateCreated when Evaluate returns an error")
+				assert.Equal(t, StateCreated, state, "snapshot must remain StateCreated when Evaluate returns an error")
 			}
 		})
 	}

@@ -289,7 +289,7 @@ func TestAuthorize(t *testing.T) {
 
 		entry := hook.LastEntry()
 		assert.Equal(t, log.ErrorLevel, entry.Level)
-		assert.EqualError(t, entry.Data[log.ErrorKey].(error), "the store is unreachable")
+		require.EqualError(t, entry.Data[log.ErrorKey].(error), "the store is unreachable")
 		assert.NotContains(t, entry.Data, "reason")
 	})
 
