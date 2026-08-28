@@ -295,7 +295,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 	}
 
 	n.Settings.SessionRecord = sessionRecord
-	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
+	if err := s.store.NamespaceUpdate(ctx, n); err != nil {
 		return err
 	}
 
@@ -325,7 +325,7 @@ func (s *service) EditSSHAccessMode(ctx context.Context, sshAccessMode, tenantID
 	}
 
 	n.Settings.SSHAccessMode = sshAccessMode
-	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
+	if err := s.store.NamespaceUpdate(ctx, n); err != nil {
 		return err
 	}
 

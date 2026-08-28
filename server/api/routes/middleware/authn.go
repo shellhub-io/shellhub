@@ -161,7 +161,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			// is a credential and never goes to the log.
 			log.WithError(err).Warn("failed to resolve the API key")
 
-			return nil, nil //nolint:nilerr
+			return nil, nil
 		}
 
 		return &gateway.Identity{
@@ -209,7 +209,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 					WithFields(log.Fields{"user_id": claims.ID, "tenant_id": claims.TenantID}).
 					Warn("failed to resolve the token's role")
 
-				return nil, nil //nolint:nilerr
+				return nil, nil
 			}
 
 			claims.Role = authorizer.RoleFromString(role)
@@ -227,7 +227,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 				WithField("user_id", claims.ID).
 				Warn("failed to resolve the token's admin status")
 
-			return nil, nil //nolint:nilerr
+			return nil, nil
 		}
 
 		return &gateway.Identity{

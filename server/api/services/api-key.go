@@ -153,7 +153,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		apiKey.Role = req.Role
 	}
 
-	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil { //nolint:revive
+	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil {
 		return err
 	}
 
@@ -176,7 +176,7 @@ func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) 
 		}
 	}
 
-	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil { //nolint:revive
+	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil {
 		return err
 	}
 

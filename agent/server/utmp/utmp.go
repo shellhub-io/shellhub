@@ -39,7 +39,7 @@ const (
 )
 
 // UtmpStartSession This function updates the utmp and wtmp files at the start of a user session.
-func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
+func UtmpStartSession(line, user, remoteAddr string) Utmpx {
 	var u Utmpx
 
 	u.Type = UserProcess
@@ -94,7 +94,7 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
 }
 
 // UtmpEndSession this function updates the utmp and wtmp files at the end of a user session.
-func UtmpEndSession(u Utmpx) { //nolint:revive
+func UtmpEndSession(u Utmpx) {
 	u.Type = DeadProcess
 	u.User = [32]byte{}
 	u.Host = [256]byte{}
@@ -176,7 +176,7 @@ func updUtmp(u Utmpx, id string) {
 		}
 	}
 
-	if err := binary.Write(file, binary.LittleEndian, &u); err != nil { //nolint:staticcheck
+	if err := binary.Write(file, binary.LittleEndian, &u); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
 			"err":  err,
@@ -241,7 +241,7 @@ func updWtmp(u Utmpx) {
 		}
 	}
 
-	if err := binary.Write(file, binary.LittleEndian, &u); err != nil { //nolint:staticcheck
+	if err := binary.Write(file, binary.LittleEndian, &u); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
 			"err":  err,

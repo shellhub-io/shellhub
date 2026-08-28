@@ -331,7 +331,7 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
 		}
 
-		defer out.Close() // nolint:errcheck
+		defer out.Close() //nolint:errcheck
 
 		wg := new(sync.WaitGroup)
 		done := sync.OnceFunc(func() {

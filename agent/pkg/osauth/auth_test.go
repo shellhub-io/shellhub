@@ -46,19 +46,19 @@ func TestVerifyPasswordHash(t *testing.T) {
 	}{
 		{
 			name:     "sha512 correct",
-			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.", //nolint:gosec
+			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.",
 			password: "123",
 			want:     true,
 		},
 		{
 			name:     "sha512 incorrect",
-			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.", //nolint:gosec
+			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.",
 			password: "test",
 			want:     false,
 		},
 		{
 			name:     "md5 correct",
-			hash:     "$1$YW4a91HG$31CtH9bzW/oyJ1VOD.H/d/", //nolint:gosec
+			hash:     "$1$YW4a91HG$31CtH9bzW/oyJ1VOD.H/d/",
 			password: "test",
 			want:     true,
 		},
@@ -111,7 +111,7 @@ func TestVerifyPasswordHash_YescryptInvocation(t *testing.T) {
 	_ = VerifyPasswordHash(yesHash, "password")
 }
 
-// nolint:gosec
+//nolint:gosec
 const passwd = `root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
@@ -253,7 +253,6 @@ func TestParseIntString(t *testing.T) {
 	}
 }
 
-// nolint:gosec
 const groups = `root:x:0:root
 wheel:x:10:root,user1
 staff:x:50:user2

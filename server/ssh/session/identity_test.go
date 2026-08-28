@@ -25,7 +25,7 @@ import (
 )
 
 func newIdentitySession(service services.Service, mode string) *Session {
-	tgt, _ := target.NewTarget("user@namespace.device") //nolint:errcheck
+	tgt, _ := target.NewTarget("user@namespace.device")
 
 	return &Session{
 		UID:     "test-uid",

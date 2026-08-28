@@ -546,7 +546,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	// the connection instead.
 	config := &gossh.ClientConfig{
 		User:            s.Target.Username,
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // nolint: gosec
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
 		Timeout:         sshconf.ConnectTimeout,
 	}
 

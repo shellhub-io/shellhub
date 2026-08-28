@@ -278,7 +278,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 						continue
 					}
 
-					sess.Event(req.Type, dimensions, seat) //nolint:errcheck
+					sess.Event(req.Type, dimensions, seat)
 				case AuthRequestOpenSSHRequest:
 					gliderssh.SetAgentRequested(ctx)
 
@@ -350,7 +350,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 					// anything about the device's answer.
 					if ok || !req.WantReply {
 						sess.SetSeatPty(seat, true)
-						sess.Event(PtyRequestType, *ptyRequested, seat) //nolint:errcheck
+						sess.Event(PtyRequestType, *ptyRequested, seat)
 					} else {
 						logger.Warn("the device refused the pty; the session continues without one")
 					}

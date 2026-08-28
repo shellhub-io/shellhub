@@ -91,7 +91,8 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 	dial := func(t *testing.T, path string) (*http.Response, error) {
 		t.Helper()
 
-		conn, res, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+path, headers) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
+		// gorilla/websocket documents that the handshake response body need not be closed.
+		conn, res, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+path, headers)
 		if conn != nil {
 			conn.Close() //nolint:errcheck
 		}
@@ -106,14 +107,14 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 		web.WebsocketSSHBridgeRoute,
 	} {
 		t.Run("upgrade succeeds on "+path, func(t *testing.T) {
-			res, err := dial(t, path)
+			res, err := dial(t, path) //nolint:bodyclose // the handshake response body need not be closed.
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusSwitchingProtocols, res.StatusCode)
 		})
 	}
 
 	t.Run("an unskipped route still cannot upgrade", func(t *testing.T) {
-		_, err := dial(t, controlUpgradePath)
+		_, err := dial(t, controlUpgradePath) //nolint:bodyclose // the handshake response body need not be closed.
 		require.Error(t, err, "the validator did not initialize, so this test proves nothing")
 	})
 }

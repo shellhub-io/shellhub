@@ -427,7 +427,7 @@ func StorePreAuthConn(ctx gliderssh.Context, conn gossh.ServerPreAuthConn) {
 // no-op when the connection is absent (e.g. tests).
 func sendBanner(ctx gliderssh.Context, msg string) {
 	if conn, ok := ctx.Value(preAuthConnCtxKey{}).(gossh.ServerPreAuthConn); ok && conn != nil {
-		_ = conn.SendAuthBanner(msg) //nolint:errcheck
+		_ = conn.SendAuthBanner(msg)
 	}
 }
 

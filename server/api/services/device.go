@@ -222,7 +222,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		}
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil {
 		return err
 	}
 
@@ -245,7 +245,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 	}
 
 	device.Name = strings.ToLower(name)
-	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+	if err := s.store.DeviceUpdate(ctx, device); err != nil {
 		return err
 	}
 
@@ -440,7 +440,7 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 
 	device.Name = strings.ToLower(req.Name)
 
-	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+	if err := s.store.DeviceUpdate(ctx, device); err != nil {
 		return err
 	}
 

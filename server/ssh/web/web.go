@@ -81,7 +81,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				res.Header().Set("Content-Type", "application/json")
 				res.WriteHeader(status)
 
-				encoder.Encode(data) //nolint: errcheck,errchkjson
+				encoder.Encode(data) //nolint:errcheck
 			}
 
 			var request Credentials

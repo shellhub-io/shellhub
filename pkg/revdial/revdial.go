@@ -91,7 +91,7 @@ func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
 	}
 	d.pickupPath = connPath + join + dialerUniqParam + "=" + d.uniqID
 	d.register()
-	go d.serve() // nolint:errcheck
+	go d.serve() //nolint:errcheck
 
 	d.logger.Debug("new dialer connection")
 
@@ -100,7 +100,7 @@ func NewDialer(logger *log.Entry, c net.Conn, connPath string) *Dialer {
 
 func newUniqID() string {
 	buf := make([]byte, 16)
-	rand.Read(buf) // nolint:errcheck
+	rand.Read(buf)
 
 	return hex.EncodeToString(buf)
 }

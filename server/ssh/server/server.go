@@ -264,12 +264,12 @@ func NewServer(dialer *dialer.Dialer, service services.Service, handoff *webhand
 		ConnectTimeout:               opts.ConnectTimeout,
 	})
 
-	server := &Server{ // nolint: exhaustruct
+	server := &Server{ //nolint:exhaustruct
 		opts:   opts,
 		dialer: dialer,
 	}
 
-	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
+	server.sshd = &gliderssh.Server{ //nolint:exhaustruct
 		Addr: ":2222",
 		// Only the handshake is bounded by a deadline. An established connection
 		// is left to TCP keepalive, which reclaims a dead peer without punishing
@@ -362,7 +362,7 @@ func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.Channe
 var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
 
 func newProxyListener(lis net.Listener) *proxyproto.Listener {
-	return &proxyproto.Listener{ // nolint: exhaustruct
+	return &proxyproto.Listener{ //nolint:exhaustruct
 		Listener:   lis,
 		ConnPolicy: loopbackProxyPolicy,
 	}
