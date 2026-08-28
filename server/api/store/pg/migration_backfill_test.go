@@ -8,9 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/scope"
-
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"

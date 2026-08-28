@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
-
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"

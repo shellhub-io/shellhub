@@ -10,6 +10,11 @@ package main
 // A module that is needed but missing fails when the configuration is adapted,
 // which TestCaddyfileAdapts does for every shape the environment can take.
 import (
+	// The caddy-dns imports are the DNS providers that can answer the wildcard's
+	// DNS-01 challenge. Adding another is a line here.
+	_ "github.com/caddy-dns/acmedns"
+	_ "github.com/caddy-dns/cloudflare"
+	_ "github.com/caddy-dns/digitalocean"
 	_ "github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	_ "github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	_ "github.com/caddyserver/caddy/v2/modules/caddyhttp/encode"
@@ -27,10 +32,4 @@ import (
 	_ "github.com/caddyserver/caddy/v2/modules/filestorage"
 	_ "github.com/caddyserver/caddy/v2/modules/logging"
 	_ "github.com/caddyserver/caddy/v2/modules/metrics"
-
-	// The DNS providers that can answer the wildcard's DNS-01 challenge. Adding
-	// another is a line here.
-	_ "github.com/caddy-dns/acmedns"
-	_ "github.com/caddy-dns/cloudflare"
-	_ "github.com/caddy-dns/digitalocean"
 )

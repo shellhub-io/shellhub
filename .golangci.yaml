@@ -13,6 +13,14 @@ formatters:
   enable:
     - gofumpt
     - goimports
+    # goimports keeps whatever grouping it is handed, so an import added in its own
+    # block stays there and reads as a deliberate section. gci decides the grouping.
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
 
 linters:
   exclusions:
