@@ -7,7 +7,6 @@ import {
   act,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "./helpers/setup-dialog";
 import ConfirmDialog from "../ConfirmDialog";
 function renderDialog(
   open: boolean,

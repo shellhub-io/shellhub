@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
-import "./helpers/setup-dialog";
 import BaseDialog from "../BaseDialog";
 function renderDialog(
   open: boolean,
@@ -62,8 +61,9 @@ describe("BaseDialog", () => {
 
   describe("showModal / close lifecycle", () => {
     it("calls showModal() when open=true", () => {
+      const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, "showModal");
       renderDialog(true);
-      expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+      expect(showModalSpy).toHaveBeenCalled();
     });
 
     it("removes the dialog from the DOM when open transitions to false", () => {
