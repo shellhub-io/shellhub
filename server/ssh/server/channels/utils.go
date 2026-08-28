@@ -127,7 +127,7 @@ func pipe(sess Session, client gossh.Channel, agent gossh.Channel, seat int, don
 		go func() {
 			defer fromAgent.Done()
 
-			if _, err := io.Copy(multi, &deadReadGuard{r: agent}); err != nil && err != io.EOF {
+			if _, err := io.Copy(multi, &deadReadGuard{r: agent}); err != nil && !errors.Is(err, io.EOF) {
 				log.WithError(err).Error("failed on coping data from agent to client")
 
 				// Close both ends so the other copy goroutine unblocks and pipe can return.
@@ -139,7 +139,7 @@ func pipe(sess Session, client gossh.Channel, agent gossh.Channel, seat int, don
 		go func() {
 			defer fromAgent.Done()
 
-			if _, err := io.Copy(client.Stderr(), &deadReadGuard{r: agent.Stderr()}); err != nil && err != io.EOF {
+			if _, err := io.Copy(client.Stderr(), &deadReadGuard{r: agent.Stderr()}); err != nil && !errors.Is(err, io.EOF) {
 				log.WithError(err).Error("failed on coping stderr from agent to client")
 
 				_ = agent.Close()
@@ -158,7 +158,7 @@ func pipe(sess Session, client gossh.Channel, agent gossh.Channel, seat int, don
 			sess.CloseAgentWrite(seat) //nolint:errcheck
 		}()
 
-		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && !errors.Is(err, io.EOF) {
 			log.WithError(err).Error("failed on coping data from client to agent")
 
 			// Close both ends so the other copy goroutine unblocks and pipe can return.
@@ -186,7 +186,7 @@ func hose(logger *log.Entry, agent gossh.Channel, client gossh.Channel) {
 		defer wg.Done()
 		defer agent.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && !errors.Is(err, io.EOF) {
 			log.WithError(err).Error("failed on coping data from client to agent")
 
 			// Close the agent so the other copy goroutine unblocks.
@@ -200,7 +200,7 @@ func hose(logger *log.Entry, agent gossh.Channel, client gossh.Channel) {
 		defer wg.Done()
 		defer client.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && err != io.EOF {
+		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && !errors.Is(err, io.EOF) {
 			log.WithError(err).Error("failed on coping data from agent to client")
 
 			// Close the client so the other copy goroutine unblocks.

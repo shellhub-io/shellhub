@@ -494,7 +494,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 			"user": session.Context().User(),
 		}).Trace("copying input to session")
 
-		if _, err := io.Copy(input, session); err != nil && err != io.EOF {
+		if _, err := io.Copy(input, session); err != nil && !errors.Is(err, io.EOF) {
 			log.WithError(err).WithFields(log.Fields{
 				"user": session.Context().User(),
 			}).Error("Failed to copy stdin to command")

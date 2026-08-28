@@ -45,10 +45,10 @@ const (
 const constraintSystemsInstanceTenantIDFkey = "systems_instance_tenant_id_fkey"
 
 func fromSQLError(err error) error {
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		return nil
-	case sql.ErrNoRows, io.EOF:
+	case errors.Is(err, sql.ErrNoRows), errors.Is(err, io.EOF):
 		return store.ErrNoDocuments
 	default:
 		var pgErr *pgconn.PgError

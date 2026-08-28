@@ -137,7 +137,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 	req.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
 	returnedKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, req.Fingerprint)
-	if err != nil && err != store.ErrNoDocuments {
+	if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
 

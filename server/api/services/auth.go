@@ -296,7 +296,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 
 	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
 	if err != nil {
-		if err != store.ErrNoDocuments {
+		if !errors.Is(err, store.ErrNoDocuments) {
 			return nil, err
 		}
 

@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"errors"
 	"io"
 	"net"
 	"strconv"
@@ -108,7 +109,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	wg.Go(func() {
 		logger.Trace("copying data from client to agent")
 
-		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && err != io.EOF {
+		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && !errors.Is(err, io.EOF) {
 			logger.WithError(err).Error("failed to copy data from agent to client")
 
 			// Close both ends so the peer goroutine unblocks and wg.Wait can return.
@@ -122,7 +123,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	wg.Go(func() {
 		logger.Trace("copying data from agent to client")
 
-		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && err != io.EOF {
+		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && !errors.Is(err, io.EOF) {
 			logger.WithError(err).Error("failed to copy data from client to agent")
 
 			_ = agent.Close()

@@ -66,7 +66,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 			session.Exit(code) //nolint:errcheck
 		}()
 
-		if _, err := io.Copy(session, resp.Conn); err != nil && err != io.EOF {
+		if _, err := io.Copy(session, resp.Conn); err != nil && !errors.Is(err, io.EOF) {
 			fmt.Println(err)
 		}
 	})
@@ -74,7 +74,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	wg.Go(func() {
 		defer resp.Close()
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
+		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
 			fmt.Println(err)
 		}
 	})
@@ -119,11 +119,11 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		//
 		// [Docker]: https://pkg.go.dev/github.com/docker/docker/client#Client.ContainerAttach
 		if isPty {
-			if _, err := io.Copy(session, resp.Reader); err != nil && err != io.EOF {
+			if _, err := io.Copy(session, resp.Reader); err != nil && !errors.Is(err, io.EOF) {
 				fmt.Println(err)
 			}
 		} else {
-			if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && err != io.EOF {
+			if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
 				fmt.Println(err)
 			}
 		}
@@ -132,7 +132,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 	wg.Go(func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
+		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
 			fmt.Println(err)
 		}
 	})
@@ -174,7 +174,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 			session.Exit(code) //nolint:errcheck
 		}()
 
-		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && err != io.EOF {
+		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
 			fmt.Println(err)
 		}
 	})
@@ -182,7 +182,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	wg.Go(func() {
 		defer resp.CloseWrite() //nolint:errcheck
 
-		if _, err := io.Copy(resp.Conn, session); err != nil && err != io.EOF {
+		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
 			fmt.Println(err)
 		}
 	})

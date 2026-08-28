@@ -194,10 +194,12 @@ func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error
 	if err := v.Validate.Struct(structure); err != nil {
 		fields := make(map[string]any, 0)
 
-		errs := err.(validator.ValidationErrors)
-
-		for _, e := range errs {
-			fields[e.Field()] = e.Tag()
+		// A non-struct argument yields InvalidValidationError instead, which carries no fields.
+		var errs validator.ValidationErrors
+		if errors.As(err, &errs) {
+			for _, e := range errs {
+				fields[e.Field()] = e.Tag()
+			}
 		}
 
 		return false, fields, ErrStructureInvalid

@@ -145,7 +145,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			defer done()
 			defer wg.Done()
 
-			if _, err := io.Copy(in, rwc); err != nil && err != io.EOF {
+			if _, err := io.Copy(in, rwc); err != nil && !errors.Is(err, io.EOF) {
 				logger.WithError(err).Error("proxy handler copy from rwc to in failed")
 			}
 		}()
@@ -155,7 +155,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			defer done()
 			defer wg.Done()
 
-			if _, err := io.Copy(rwc, in); err != nil && err != io.EOF {
+			if _, err := io.Copy(rwc, in); err != nil && !errors.Is(err, io.EOF) {
 				logger.WithError(err).Error("proxy handler copy from in to rwc failed")
 			}
 		}()
