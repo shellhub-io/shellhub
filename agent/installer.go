@@ -193,7 +193,7 @@ func writeAgentEnvFile(cfg installerConfig) error {
 		fmt.Fprintf(&buf, "SHELLHUB_KEEPALIVE_INTERVAL=%d\n", cfg.KeepaliveInterval)
 	}
 
-	return os.WriteFile(agentEnvFile, buf.Bytes(), 0600)
+	return os.WriteFile(agentEnvFile, buf.Bytes(), 0o600)
 }
 
 func writeAgentServiceFile(binaryPath string) error {
@@ -207,7 +207,7 @@ func writeAgentServiceFile(binaryPath string) error {
 		return err
 	}
 
-	return os.WriteFile(agentServiceFile, buf.Bytes(), 0644)
+	return os.WriteFile(agentServiceFile, buf.Bytes(), 0o644)
 }
 
 func agentUninstall() error {
