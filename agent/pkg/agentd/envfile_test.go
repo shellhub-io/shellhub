@@ -46,6 +46,6 @@ func TestApplyEnvFileFallback(t *testing.T) {
 
 		assert.Equal(t, "from-env", os.Getenv("TEST_ENVFILE_EXISTING"))
 		assert.Equal(t, "from-file", os.Getenv("TEST_ENVFILE_MISSING"))
-		t.Cleanup(func() { os.Unsetenv("TEST_ENVFILE_MISSING") })
+		t.Cleanup(func() { _ = os.Unsetenv("TEST_ENVFILE_MISSING") })
 	})
 }

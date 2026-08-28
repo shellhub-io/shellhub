@@ -103,5 +103,5 @@ func NewSFTPServer(mode command.SFTPServerMode) {
 		fmt.Fprintln(os.Stderr, err)
 	}
 
-	server.Close()
+	_ = server.Close()
 }

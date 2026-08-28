@@ -29,9 +29,8 @@ linters:
       # npm ships Go sources inside ui/node_modules. CI never installs them for the
       # Go jobs, so only a local run sees the package — and lints a vendor's code.
       - "node_modules/"
-  disable:
-    - errcheck
   enable:
+    - errcheck
     - revive
     - govet
     - ineffassign

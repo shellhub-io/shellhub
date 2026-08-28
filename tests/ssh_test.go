@@ -159,7 +159,7 @@ func TestSSHIdentityMode(t *testing.T) {
 			assert.NoError(tt, err)
 		}, 30*time.Second, 1*time.Second)
 
-		conn.Close()
+		_ = conn.Close()
 	})
 }
 
@@ -261,7 +261,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -306,7 +306,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					assert.NoError(tt, err)
 				}, 30*time.Second, 1*time.Second)
 
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -351,7 +351,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
 
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -412,8 +412,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err = sess.Shell()
 				require.NoError(t, err)
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -447,7 +447,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 					assert.Equal(t, "test", string(output))
 
-					sess.Close()
+					_ = sess.Close()
 				}
 				{
 					sess, err := conn.NewSession()
@@ -463,10 +463,10 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					err = sess.Shell()
 					require.NoError(t, err)
 
-					sess.Close()
+					_ = sess.Close()
 				}
 
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -499,8 +499,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, "test", string(output))
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -537,8 +537,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				assert.Equal(t, 142, status.ExitStatus())
 				assert.Equal(t, "test", string(output))
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -574,8 +574,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, "test", string(output))
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -612,8 +612,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, 17, wrote)
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -653,8 +653,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				// NOTICE: This assertion brake if the Docker image used to build the Agent wasn't the Alpine.
 				assert.Contains(t, data, "Alpine")
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -691,7 +691,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 
 				sess.Close()
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -728,7 +728,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 
 				sess.Close()
-				conn.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -774,7 +774,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					require.Equal(t, 4, read)
 					require.Equal(t, "test", string(buffer[:4]))
 
-					conn.Close()
+					_ = conn.Close()
 				})
 
 				dest, err := strconv.Atoi(port)
@@ -800,8 +800,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				wg.Wait()
 
-				ch.Close()
-				conn.Close()
+				_ = ch.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -828,8 +828,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, "still alive", string(output))
 
-				sess.Close()
-				conn.Close()
+				_ = sess.Close()
+				_ = conn.Close()
 			},
 		},
 		{
@@ -848,11 +848,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				client, err := sftp.NewClient(conn)
 				require.NoError(t, err)
-				defer client.Close()
+				defer client.Close() //nolint:errcheck
 
 				// Create a large file (10MB)
 				fileSize := 10 * 1024 * 1024 // 10MB
@@ -862,19 +862,19 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				tempFile, err := os.CreateTemp(t.TempDir(), "large-file-test-*.bin")
 				require.NoError(t, err)
-				defer os.Remove(tempFile.Name())
+				defer os.Remove(tempFile.Name()) //nolint:errcheck
 
 				_, err = tempFile.Write(randomData)
 				require.NoError(t, err)
-				tempFile.Close()
+				_ = tempFile.Close()
 
 				localFile, err := os.Open(tempFile.Name())
 				require.NoError(t, err)
-				defer localFile.Close()
+				defer localFile.Close() //nolint:errcheck
 
 				remoteFile, err := client.Create("/tmp/large-file-test.bin")
 				require.NoError(t, err)
-				defer remoteFile.Close()
+				defer remoteFile.Close() //nolint:errcheck
 
 				written, err := io.Copy(remoteFile, localFile)
 				require.NoError(t, err)
@@ -882,7 +882,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				output, err := sess.Output("stat -c %s /tmp/large-file-test.bin")
 				require.NoError(t, err)
@@ -907,11 +907,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				output, err := sess.Output("yes X | tr -d '\n' | head -c 1048576")
 				require.NoError(t, err)
@@ -941,11 +941,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				var stdout, stderr bytes.Buffer
 
@@ -982,11 +982,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				var stdout, stderr bytes.Buffer
 
@@ -1030,11 +1030,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				stdin, err := sess.StdinPipe()
 				require.NoError(t, err)
@@ -1075,11 +1075,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				stdin, err := sess.StdinPipe()
 				require.NoError(t, err)
@@ -1120,11 +1120,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				stdin, err := sess.StdinPipe()
 				require.NoError(t, err)
@@ -1183,7 +1183,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				conn, chans, reqs, err := ssh.NewClientConn(dialed, addr, config)
 				require.NoError(t, err)
 
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				go func() {
 					for newChan := range chans {
@@ -1196,7 +1196,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				ch, chReqs, err := conn.OpenChannel("session", nil)
 				require.NoError(t, err)
 
-				defer ch.Close()
+				defer ch.Close() //nolint:errcheck
 
 				go ssh.DiscardRequests(chReqs)
 
@@ -1240,11 +1240,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				// LC_TEST matches the "LC_*" allowlist — it must reach the remote shell.
 				err = sess.Setenv("LC_TEST", "allowed")
@@ -1277,11 +1277,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				err = sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{
 					ssh.ECHO: 0,
@@ -1375,11 +1375,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				_, err = sess.Output("this-command-does-not-exist")
 				require.Error(t, err)
@@ -1404,11 +1404,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				specialChars := "!@#$%^&*()_+{}[]|;:,.<>/?`~"
 				output, err := sess.Output(fmt.Sprintf("echo -n '%s'", specialChars))
@@ -1419,7 +1419,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				unicodeChars := "こんにちは世界 ñáéíóú 你好世界"
 				sess2, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess2.Close()
+				defer sess2.Close() //nolint:errcheck
 
 				output, err = sess2.Output(fmt.Sprintf("echo -n '%s'", unicodeChars))
 				require.NoError(t, err)
@@ -1454,11 +1454,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				output, err := sess.Output("echo -n 'cipher test'")
 				require.NoError(t, err)
@@ -1493,7 +1493,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 							return
 						}
-						defer conn.Close()
+						defer conn.Close() //nolint:errcheck
 
 						sess, err := conn.NewSession()
 						if err != nil {
@@ -1501,7 +1501,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 							return
 						}
-						defer sess.Close()
+						defer sess.Close() //nolint:errcheck
 
 						expected := fmt.Sprintf("session-%d", id)
 						output, err := sess.Output(fmt.Sprintf("echo -n '%s'", expected))
@@ -1545,7 +1545,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn1, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config1)
 				require.NoError(t, err)
-				conn1.Close()
+				_ = conn1.Close()
 
 				config2 := &ssh.ClientConfig{
 					User: fmt.Sprintf("%s@%s.%s", ShellHubAgentUsername, ShellHubNamespaceName, device.Name),
@@ -1563,7 +1563,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn2, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config2)
 				require.NoError(t, err)
-				defer conn2.Close()
+				defer conn2.Close() //nolint:errcheck
 			},
 		},
 		{
@@ -1582,7 +1582,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				go func() {
 					ticker := time.NewTicker(2 * time.Second)
@@ -1602,7 +1602,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				output, err := sess.Output("echo -n 'alive after keepalive'")
 				require.NoError(t, err)
@@ -1624,11 +1624,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				err = sess.RequestSubsystem("sftp")
 				require.NoError(t, err)
@@ -1665,11 +1665,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				modes := ssh.TerminalModes{
 					ssh.ECHO:          0,     // Disable echo
@@ -1715,11 +1715,11 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				conn, err := ssh.Dial("tcp", "localhost:"+environment.services.Env("SHELLHUB_SSH_PORT"), config)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer conn.Close() //nolint:errcheck
 
 				sess, err := conn.NewSession()
 				require.NoError(t, err)
-				defer sess.Close()
+				defer sess.Close() //nolint:errcheck
 
 				err = sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{})
 				require.NoError(t, err)
@@ -1816,14 +1816,14 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 	agent, err := NewAgentContainer(ctx, compose.Env("SHELLHUB_HTTP_PORT"), opts...)
 	require.NoError(t, err)
 
-	agent.Stop(ctx, nil)
+	_ = agent.Stop(ctx, nil)
 
 	err = agent.Start(ctx)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		agent.Stop(context.Background(), nil)
-		agent.Terminate(context.Background())
+		_ = agent.Stop(context.Background(), nil)
+		_ = agent.Terminate(context.Background())
 	})
 
 	devices := []models.Device{}

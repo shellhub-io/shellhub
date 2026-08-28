@@ -53,7 +53,7 @@ func TestClient(t *testing.T) {
 
 	client, err := asynq.NewClient(redisConnStr)
 	require.NoError(t, err)
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	require.NoError(t, client.Submit(ctx, "queue:kind", []byte("task was called")))
 

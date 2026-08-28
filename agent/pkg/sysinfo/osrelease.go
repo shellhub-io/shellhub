@@ -43,7 +43,7 @@ func getValueFromOsRelease(key string) (string, error) {
 			return "", err
 		}
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	var value string
 	keyWithTrailingEqual := key + "="

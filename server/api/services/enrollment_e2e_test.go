@@ -48,7 +48,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 
 	provider, err := pgprovider.NewProvider(ctx)
 	require.NoError(t, err)
-	t.Cleanup(func() { provider.Close(t) })
+	t.Cleanup(func() { _ = provider.Close(t) })
 
 	st := provider.Store()
 

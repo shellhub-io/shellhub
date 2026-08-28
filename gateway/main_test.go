@@ -91,7 +91,7 @@ func TestMain_smoke(t *testing.T) {
 		time.Sleep(delay)
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }

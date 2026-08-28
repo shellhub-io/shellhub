@@ -74,7 +74,7 @@ func TestMongoDepsPruned(t *testing.T) {
 			if err != nil {
 				t.Fatalf("open %s: %v", path, err)
 			}
-			defer f.Close()
+			defer f.Close() //nolint:errcheck
 
 			scanner := bufio.NewScanner(f)
 			lineno := 0
@@ -99,7 +99,7 @@ func TestMongoDepsPruned(t *testing.T) {
 		if err != nil {
 			t.Fatalf("open go.mod: %v", err)
 		}
-		defer f.Close()
+		defer f.Close() //nolint:errcheck
 
 		found := false
 		scanner := bufio.NewScanner(f)

@@ -235,7 +235,7 @@ func runSubSuite(t *testing.T, name string, testFunc func(*testing.T, *storetest
 		if err != nil {
 			t.Fatalf("Failed to create PostgreSQL provider for %s: %v", name, err)
 		}
-		defer provider.Close(t)
+		defer provider.Close(t) //nolint:errcheck
 
 		suite := storetest.NewSuite(provider)
 		testFunc(t, suite)

@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const defaultEnvFilePath = "/etc/shellhub-agent.env"
@@ -43,7 +45,9 @@ func loadEnvFile(path string) map[string]string {
 func applyEnvFileFallback(path string) {
 	for key, value := range loadEnvFile(path) {
 		if _, set := os.LookupEnv(key); !set {
-			os.Setenv(key, value)
+			if err := os.Setenv(key, value); err != nil {
+				log.WithError(err).WithField("key", key).Warning("failed to apply env file fallback")
+			}
 		}
 	}
 }

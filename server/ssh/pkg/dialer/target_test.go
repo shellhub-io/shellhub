@@ -25,8 +25,8 @@ func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
 	client, agent := net.Pipe()
 
 	t.Cleanup(func() {
-		client.Close()
-		agent.Close()
+		_ = client.Close()
+		_ = agent.Close()
 	})
 
 	// Without a deadline a dropped greeting parks the read forever instead of

@@ -275,7 +275,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 			fmt.Println(err) //nolint:forbidigo
 		}
 
-		stdin.Close()
+		_ = stdin.Close()
 	}()
 
 	wg := &sync.WaitGroup{}
@@ -350,7 +350,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 				fmt.Println(err) //nolint:forbidigo
 			}
 
-			stdin.Close()
+			_ = stdin.Close()
 		}()
 
 		relayOutput(wg, session, stdout, stderr)
@@ -426,7 +426,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	log.WithFields(log.Fields{
 		"user": session.Context().User(),
 	}).Info("SFTP session started")
-	defer session.Close()
+	defer session.Close() //nolint:errcheck
 
 	newSFTPServerCommand := command.SFTPServerCommand
 	if s.sftpServerCommand != nil {
@@ -512,7 +512,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 			"user": session.Context().User(),
 		}).Trace("closing input to session ends")
 
-		input.Close()
+		_ = input.Close()
 	}()
 
 	go func() {

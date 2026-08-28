@@ -208,7 +208,7 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 	if err != nil {
 		return nil, err
 	}
-	defer rd.Close()
+	defer rd.Close() //nolint:errcheck
 
 	_, err = io.Copy(io.Discard, rd)
 	if err != nil {
