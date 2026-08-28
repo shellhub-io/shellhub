@@ -35,7 +35,7 @@ func newAgentConn(t *testing.T) *wsconnadapter.Adapter {
 	}))
 	t.Cleanup(srv.Close)
 
-	peer, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http"), nil)
+	peer, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http"), nil) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = peer.Close() })
 

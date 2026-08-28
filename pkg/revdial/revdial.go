@@ -440,7 +440,7 @@ func (ln *Listener) grabConn(path string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	wsConn, resp, err := ln.dial(ctx, path)
+	wsConn, resp, err := ln.dial(ctx, path) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 	if err != nil {
 		ln.sendMessage(controlMsg{Command: "pickup-failed", ConnPath: path, Err: err.Error()})
 

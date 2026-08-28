@@ -32,7 +32,7 @@ func newTestPair(t *testing.T) (client *Adapter, server *Adapter) {
 	t.Cleanup(srv.Close)
 
 	url := "ws" + strings.TrimPrefix(srv.URL, "http")
-	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 	require.NoError(t, err)
 
 	client = New(ws)

@@ -155,7 +155,7 @@ func TestEnrollmentWebhookClientSSRF(t *testing.T) {
 	t.Run("blocks a loopback webhook target by default", func(t *testing.T) {
 		defer withEnv("")()
 
-		//nolint:noctx // the SSRF guard rejects the dial before any request is sent
+		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
 		_, err := enrollmentWebhookClient().Get(srv.URL)
 		require.Error(t, err, "a webhook to loopback must be refused so it can't reach the host's own services")
 	})

@@ -91,7 +91,7 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 	dial := func(t *testing.T, path string) (*http.Response, error) {
 		t.Helper()
 
-		conn, res, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+path, headers)
+		conn, res, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+path, headers) //nolint:bodyclose // gorilla/websocket documents that the handshake response body need not be closed.
 		if conn != nil {
 			conn.Close() //nolint:errcheck
 		}
