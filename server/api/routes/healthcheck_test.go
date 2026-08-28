@@ -29,7 +29,7 @@ func TestEvaluateHealth(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, HealthCheckURL, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HealthCheckURL, nil)
 			rec := httptest.NewRecorder()
 			echoContext := e.NewContext(req, rec)
 

@@ -35,7 +35,7 @@ func TestTenantFromContext(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -84,7 +84,7 @@ func TestUsernameFromContext(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -133,7 +133,7 @@ func TestIDFromContext(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 

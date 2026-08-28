@@ -656,7 +656,8 @@ func openBrowser(url string) bool {
 		return false
 	}
 
-	cmd := exec.Command(xdgOpen, url) // #nosec G204 -- xdgOpen comes from LookPath and url is built from local config
+	// noctx: best-effort launch with its own timeout below; there is no caller context here.
+	cmd := exec.Command(xdgOpen, url) //nolint:noctx,gosec // #nosec G204 -- xdgOpen comes from LookPath and url is built from local config
 	if err := cmd.Start(); err != nil {
 		return false
 	}

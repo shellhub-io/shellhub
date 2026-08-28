@@ -58,7 +58,7 @@ func TestRealIPExtractor(t *testing.T) {
 			e := echo.New()
 			e.IPExtractor = RealIPExtractor()
 
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 			req.RemoteAddr = tc.remoteAddr
 
 			if tc.realIP != "" {

@@ -345,7 +345,7 @@ func (s *Server) Start() error {
 	// address from inside the library until now, which is the only reason the scanners have
 	// started pointing at it.
 	// nosemgrep: go.lang.security.audit.net.bind_all.avoid-bind-to-all-interfaces
-	listener, err := net.Listen("tcp", httpAddress) //nolint:gosec
+	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress) //nolint:gosec
 	if err != nil {
 		return err
 	}

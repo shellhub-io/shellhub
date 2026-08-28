@@ -47,7 +47,7 @@ func TestGetToken(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			req, _ := http.NewRequest("", test.uri, nil)
+			req, _ := http.NewRequestWithContext(t.Context(), "", test.uri, nil)
 
 			token, err := getToken(req)
 
@@ -154,7 +154,7 @@ func TestGetDimensions(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			req, _ := http.NewRequest("", test.uri, nil)
+			req, _ := http.NewRequestWithContext(t.Context(), "", test.uri, nil)
 
 			cols, rows, err := getDimensions(req)
 

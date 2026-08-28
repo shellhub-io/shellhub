@@ -143,7 +143,7 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.path, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path, nil)
 			ctx := e.NewContext(req, httptest.NewRecorder())
 
 			assert.Equal(t, tc.skip, openAPIValidationSkipper(ctx))

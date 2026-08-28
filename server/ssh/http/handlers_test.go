@@ -23,7 +23,7 @@ func TestHandleSSHCloseAuthorization(t *testing.T) {
 			e := echo.New()
 			e.Binder = handlers.NewBinder()
 
-			req := httptest.NewRequest(http.MethodPost, "/api/sessions/session-uid/close", strings.NewReader(`{"device":"device-uid"}`))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/sessions/session-uid/close", strings.NewReader(`{"device":"device-uid"}`))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			req.Header.Set("X-Role", role)
 			req.Header.Set("X-Tenant-ID", "tenant-id")

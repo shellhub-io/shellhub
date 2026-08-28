@@ -79,7 +79,7 @@ func TestRootAliasesReachCanonicalRoutes(t *testing.T) {
 				tc.mock(service)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, tc.target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 
@@ -97,7 +97,7 @@ func TestRootAliasesDoNotMatchAsSuffix(t *testing.T) {
 		t.Run(target, func(t *testing.T) {
 			router, _, _ := authenticatedRouter(t)
 
-			req := httptest.NewRequest(http.MethodGet, target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 

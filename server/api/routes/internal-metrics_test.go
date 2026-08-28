@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,7 +18,7 @@ func TestInternalMetricsNeedsNoCredential(t *testing.T) {
 	router, _, _ := authenticatedRouter(t)
 
 	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, InternalMetricsURL, nil))
+	router.ServeHTTP(rec, httptest.NewRequestWithContext(context.Background(), http.MethodGet, InternalMetricsURL, nil))
 
 	require.Equal(t, http.StatusOK, rec.Code)
 

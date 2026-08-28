@@ -170,7 +170,7 @@ func TestGetSessionList(t *testing.T) {
 
 			rawURL += "?" + urlVal.Encode()
 
-			req := httptest.NewRequest(http.MethodGet, rawURL, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, rawURL, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			for k, v := range tc.headers {
@@ -279,7 +279,7 @@ func TestGetSession(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks(tc.expected.expectedSession)
 
-			req := httptest.NewRequest(http.MethodGet, "/api/sessions/"+tc.uid, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sessions/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			if tc.tenant != "" {

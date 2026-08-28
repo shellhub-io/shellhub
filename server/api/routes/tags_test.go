@@ -107,7 +107,7 @@ func TestGetTags(t *testing.T) {
 				url += "?" + tc.query
 			}
 
-			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", "000000000000000000000000")
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
@@ -219,7 +219,7 @@ func TestDeleteTag(t *testing.T) {
 			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
-			req := httptest.NewRequest(http.MethodDelete, tc.url, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, tc.url, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -402,7 +402,7 @@ func TestCreateTag(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPost, tc.url, strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, tc.url, strings.NewReader(string(data)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -587,7 +587,7 @@ func TestUpdateTag(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPatch, tc.url, strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.url, strings.NewReader(string(data)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -714,7 +714,7 @@ func TestPushTagToDevice(t *testing.T) {
 			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
-			req := httptest.NewRequest(http.MethodPost, tc.url, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, tc.url, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -840,7 +840,7 @@ func TestPullTagFromDevice(t *testing.T) {
 			svcMock := mocks.NewMockService(t)
 			tc.requiredMocks(svcMock)
 
-			req := httptest.NewRequest(http.MethodDelete, tc.url, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, tc.url, nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

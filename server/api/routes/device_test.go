@@ -102,7 +102,7 @@ func TestGetDevice(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/devices/"+tc.uid, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			if tc.tenant != "" {
@@ -192,7 +192,7 @@ func TestResolveDevice(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/devices/resolve?hostname=%s&uid=%s", tc.hostname, tc.uid), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, fmt.Sprintf("/api/devices/resolve?hostname=%s&uid=%s", tc.hostname, tc.uid), nil)
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
@@ -250,7 +250,7 @@ func TestDeleteDevice(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodDelete, "/api/devices/"+tc.uid, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
@@ -317,7 +317,7 @@ func TestRenameDevice(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPatch, "/api/devices/"+tc.renamePayload.UID, strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/devices/"+tc.renamePayload.UID, strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", tc.tenant)
@@ -398,7 +398,7 @@ func TestGetDeviceList(t *testing.T) {
 			urlVal.Set("order_by", tc.req.Order)
 			urlVal.Set("status", string(tc.req.DeviceStatus))
 
-			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", tc.req.TenantID)
 
@@ -481,7 +481,7 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 			urlVal.Set("order_by", "asc")
 			urlVal.Set("filter", tc.filter)
 
-			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
@@ -554,7 +554,7 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 				urlVal.Set("connector", tc.connector)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
 
@@ -632,7 +632,7 @@ func TestUpdateDevice(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPut, "/api/devices/"+tc.req.UID, strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/devices/"+tc.req.UID, strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")

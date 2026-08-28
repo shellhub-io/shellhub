@@ -91,7 +91,7 @@ func TestUpdateInstallKey(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(http.MethodPatch, "/api/namespaces/install-key/ci", strings.NewReader(string(data)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/namespaces/install-key/ci", strings.NewReader(string(data)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}

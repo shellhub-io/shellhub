@@ -45,7 +45,7 @@ func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 }
 
 func authenticatedRequest(e *echo.Echo, bearer string) (*echo.Context, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("Authorization", "Bearer "+bearer)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

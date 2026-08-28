@@ -117,7 +117,7 @@ func TestAuthDevice(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/api/devices/auth", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/devices/auth", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
@@ -321,7 +321,7 @@ func TestAuthLocalUser(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/api/auth/user", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/auth/user", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
@@ -432,9 +432,9 @@ func TestCreateUserToken(t *testing.T) {
 
 			var req *http.Request
 			if tc.tenantID == "" {
-				req = httptest.NewRequest(http.MethodGet, "/api/auth/user", nil)
+				req = httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/auth/user", nil)
 			} else {
-				req = httptest.NewRequest(http.MethodGet, "/api/auth/token/"+tc.tenantID, nil)
+				req = httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/auth/token/"+tc.tenantID, nil)
 			}
 
 			for k, v := range tc.headers {
@@ -510,7 +510,7 @@ func TestAuthPublicKey(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/api/auth/ssh", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/auth/ssh", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 

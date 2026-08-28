@@ -1042,7 +1042,7 @@ func (s *Session) Finish() (err error) {
 		s.Events.Close() //nolint:errcheck
 
 		if s.agent.conn != nil {
-			request, _ := http.NewRequest(http.MethodDelete, "/ssh/close/"+s.UID, nil)
+			request, _ := http.NewRequestWithContext(context.Background(), http.MethodDelete, "/ssh/close/"+s.UID, nil)
 
 			if err = request.Write(s.agent.conn); err != nil {
 				log.WithError(err).

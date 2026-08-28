@@ -2,6 +2,7 @@ package routes
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -29,7 +30,7 @@ const mcpCallerTenant = "00000000-0000-4000-0000-000000000000"
 func mcpCall(t *testing.T, router http.Handler, tenant, role, body string) *httptest.ResponseRecorder {
 	t.Helper()
 
-	req := httptest.NewRequest(http.MethodPost, "/mcp", bytes.NewBufferString(body))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
 	// The stateless session manager only validates the format of the session
 	// ID, not its existence -- a well-formed value stands in for a client that

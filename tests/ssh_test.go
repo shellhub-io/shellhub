@@ -757,7 +757,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				port := environment.GetFreePort(t)
 
-				listener, err := net.Listen("tcp", ":"+port)
+				listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", ":"+port)
 				require.NoError(t, err)
 
 				wg := new(sync.WaitGroup)
@@ -1177,7 +1177,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				addr := "localhost:" + environment.services.Env("SHELLHUB_SSH_PORT")
 
-				dialed, err := net.DialTimeout("tcp", addr, 30*time.Second)
+				dialed, err := (&net.Dialer{Timeout: 30 * time.Second}).DialContext(t.Context(), "tcp", addr)
 				require.NoError(t, err)
 
 				conn, chans, reqs, err := ssh.NewClientConn(dialed, addr, config)

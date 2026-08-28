@@ -55,7 +55,7 @@ func TestGetSystemInfo(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			rec := httptest.NewRecorder()
@@ -123,7 +123,7 @@ func TestGetStats(t *testing.T) {
 		t.Run(tc.title, func(t *testing.T) {
 			tc.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/stats", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/stats", nil)
 
 			for key, value := range tc.headers {
 				req.Header.Set(key, value)

@@ -42,7 +42,7 @@ func TestRequestIDReachesTheHandler(t *testing.T) {
 			})
 			authn.AllowAnonymous(http.MethodGet, probe)
 
-			req := httptest.NewRequest(http.MethodGet, probe, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, probe, nil)
 			if tc.sent != "" {
 				req.Header.Set(echo.HeaderXRequestID, tc.sent)
 			}

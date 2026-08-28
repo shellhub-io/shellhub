@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,7 +27,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind json body",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 				return e.NewContext(req, httptest.NewRecorder())
@@ -37,7 +38,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind path parameters",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 				c := e.NewContext(req, httptest.NewRecorder())
 				c.SetPathValues(echo.PathValues{{Name: "name", Value: "plain"}})
 
@@ -52,7 +53,7 @@ func TestBinder(t *testing.T) {
 			description: "decodes URL-encoded path parameters",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
 				c := e.NewContext(req, httptest.NewRecorder())
 				c.SetPathValues(echo.PathValues{{Name: "name", Value: "%40%40%40%40%40%40"}})
 
@@ -64,7 +65,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind query parameters",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodGet, "/?name=test", nil)
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/?name=test", nil)
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
@@ -77,7 +78,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind query parameters with special characters",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodGet, "/?name=%40%40%40", nil)
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/?name=%40%40%40", nil)
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
@@ -90,7 +91,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind a body-less chunked request",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodPatch, "/", strings.NewReader(""))
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodPatch, "/", strings.NewReader(""))
 				req.ContentLength = -1
 				c := e.NewContext(req, httptest.NewRecorder())
 				c.SetPathValues(echo.PathValues{{Name: "name", Value: "test"}})
@@ -103,7 +104,7 @@ func TestBinder(t *testing.T) {
 			description: "succeeds to bind a chunked json body",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.ContentLength = -1
 				req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -115,7 +116,7 @@ func TestBinder(t *testing.T) {
 			description: "fails to bind a chunked body without a content type",
 			setup: func() *echo.Context {
 				e := echo.New()
-				req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
+				req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/", strings.NewReader(`{"name":"test"}`))
 				req.ContentLength = -1
 
 				return e.NewContext(req, httptest.NewRecorder())
