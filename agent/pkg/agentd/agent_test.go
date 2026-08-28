@@ -483,5 +483,5 @@ func TestConfigHasNamespaceCredential(t *testing.T) {
 func TestAgentAuthorizeRequiresANamespaceCredential(t *testing.T) {
 	agent := &Agent{config: &Config{}}
 
-	assert.Equal(t, ErrNewAgentWithConfigEmptyTenant, agent.Authorize())
+	assert.Equal(t, ErrAuthorizeNoNamespaceCredential, agent.Authorize())
 }

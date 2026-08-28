@@ -253,11 +253,12 @@ func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*A
 var (
 	ErrNewAgentWithConfigEmptyServerAddress   = errors.New("address is empty")
 	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
-	ErrNewAgentWithConfigEmptyTenant          = errors.New("tenant is empty")
 	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
 	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
 
 	ErrNewAgentWithConfigUnsupportedTransportVersion = errors.New("transport version is unsupported")
+
+	ErrAuthorizeNoNamespaceCredential = errors.New("no tenant or install key to enroll with")
 )
 
 // NewAgentWithConfig creates a new agent instance with all configurations.
@@ -349,7 +350,7 @@ func (a *Agent) Setup() error {
 // resolved to is adopted from the server's response.
 func (a *Agent) Authorize() error {
 	if !a.config.HasNamespaceCredential() {
-		return ErrNewAgentWithConfigEmptyTenant
+		return ErrAuthorizeNoNamespaceCredential
 	}
 
 	if err := a.authorize(); err != nil {
