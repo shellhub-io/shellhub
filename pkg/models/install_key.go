@@ -56,13 +56,13 @@ const (
 // instead of being silently skipped, while a per-second re-auth loop is still capped at 1/min.
 const EnrollmentReconcileInterval = 1 * time.Minute
 
-func clampOrDefault(value, def, max int) int {
+func clampOrDefault(value, def, limit int) int {
 	if value <= 0 {
 		return def
 	}
 
-	if value > max {
-		return max
+	if value > limit {
+		return limit
 	}
 
 	return value

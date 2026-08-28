@@ -43,9 +43,9 @@ func WithUserStatus(status models.UserStatus) UserOption {
 }
 
 // WithMaxNamespaces sets max namespaces
-func WithMaxNamespaces(max int) UserOption {
+func WithMaxNamespaces(n int) UserOption {
 	return func(u *models.User) {
-		u.MaxNamespaces = max
+		u.MaxNamespaces = n
 	}
 }
 
@@ -97,9 +97,9 @@ func WithOwner(ownerID string) NamespaceOption {
 }
 
 // WithMaxDevices sets max devices
-func WithMaxDevices(max int) NamespaceOption {
+func WithMaxDevices(n int) NamespaceOption {
 	return func(ns *models.Namespace) {
-		ns.MaxDevices = max
+		ns.MaxDevices = n
 	}
 }
 

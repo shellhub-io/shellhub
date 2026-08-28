@@ -81,7 +81,7 @@ func TestGetReference_Concurrency(t *testing.T) {
 
 func BenchmarkGetReference(b *testing.B) {
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = GetReference()
 	}
 }

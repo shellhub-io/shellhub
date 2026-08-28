@@ -264,7 +264,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, paire
 	// re-registration): a plain reconnect neither validates nor consumes it, so a revoked key never
 	// deauthorizes an already-enrolled device.
 	var installKey *models.InstallKey
-	installKeyID := ""
+	var installKeyID string
 
 	auth := models.DeviceAuth{
 		Hostname:  strings.ToLower(hostname),

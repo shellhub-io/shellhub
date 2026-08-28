@@ -295,8 +295,8 @@ func TestAuthPublicKey(t *testing.T) {
 		cd:8a:1b:73:03:47:15:3c:7c:2b:df:5d:b9:64:63:77*/
 
 	type Signature struct {
-		Username  string
-		Namespace string
+		Username  string `json:"Username"`
+		Namespace string `json:"Namespace"`
 	}
 
 	sig := &Signature{

@@ -14,7 +14,6 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/compose v0.44.0
 	golang.org/x/crypto v0.55.0
-	golang.org/x/exp v0.0.0-20260603202125-055de637280b
 )
 
 require (

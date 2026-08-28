@@ -430,7 +430,7 @@ func TestCreateUserToken(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.mocks()
 
-			req := new(http.Request)
+			var req *http.Request
 			if tc.tenantID == "" {
 				req = httptest.NewRequest(http.MethodGet, "/api/auth/user", nil)
 			} else {

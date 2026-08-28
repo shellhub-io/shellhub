@@ -17,7 +17,7 @@ var (
 	// Global validator instance
 	globalValidator *openapi.OpenAPIValidator
 	validatorOnce   sync.Once
-	validatorErr    error
+	errValidator    error
 )
 
 type capture struct {
@@ -137,15 +137,15 @@ func getOrCreateValidator(cfg OpenAPIValidatorConfig) *openapi.OpenAPIValidator 
 
 		ctx := context.Background()
 
-		globalValidator, validatorErr = openapi.NewOpenAPIValidator(ctx, validatorConfig)
-		if validatorErr != nil {
-			logger.WithError(validatorErr).Error("Failed to initialize OpenAPI validator")
+		globalValidator, errValidator = openapi.NewOpenAPIValidator(ctx, validatorConfig)
+		if errValidator != nil {
+			logger.WithError(errValidator).Error("Failed to initialize OpenAPI validator")
 
 			return
 		}
 	})
 
-	if validatorErr != nil {
+	if errValidator != nil {
 		return nil
 	}
 

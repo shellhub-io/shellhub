@@ -8,6 +8,8 @@ import (
 )
 
 func TestManagerSave(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		description string
 		id          string
