@@ -134,7 +134,10 @@ Before this work, `.golangci.yaml` blanket-excluded four gosec rules: G104, G301
 | G302 | File created with permissions > 0600 | `agent/server/utmp/utmp.go` (`OpenFile 0o644`) | Kept at `0o644` — utmp/wtmp files are conventionally world-readable per POSIX; tighter permissions break system accounting tools. Annotated |
 | G304 | File path from variable (potential traversal) | `agent/pkg/keygen/keygen.go` (`Create`, `ReadFile`), `agent/pkg/sysinfo/network.go` (`ReadFile`), `api/store/pg/` tests (`Open`, `ReadFile`) | keygen: path comes from a configured env var, not user input — annotated. sysinfo: path rooted under `/sys/class/net` (read-only kernel VFS) — annotated. agent: added `cleanKeyPath` guard rejecting raw `..` sequences before `generatePrivateKey`/`readPublicKey`. Tests: paths from `runtime.Caller`, not user input — annotated |
 
-The gateway module received its own `.golangci.yaml` (separate Go module, golangci-lint v2 does not inherit parent configs) with the same G104-only exclusion.
+The exclusion lives in the repository's single `.golangci.yaml`. `gateway` and the other
+submodules symlink to it, so there is one file to edit rather than one per module.
+golangci-lint resolves a single config instead of merging several, so a module that ever
+needs its own rules replaces the symlink with a real file and restates everything it keeps.
 
 ---
 
