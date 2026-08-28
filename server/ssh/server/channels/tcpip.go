@@ -86,7 +86,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 		return
 	}
 
-	defer agent.Close()
+	defer agent.Close() //nolint:errcheck
 
 	client, reqs, err := newChan.Accept()
 	if err != nil {
@@ -96,7 +96,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 		return
 	}
 
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	go gossh.DiscardRequests(reqs)
 

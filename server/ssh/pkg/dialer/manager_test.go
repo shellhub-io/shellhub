@@ -37,7 +37,7 @@ func newAgentConn(t *testing.T) *wsconnadapter.Adapter {
 
 	peer, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http"), nil)
 	require.NoError(t, err)
-	t.Cleanup(func() { peer.Close() })
+	t.Cleanup(func() { _ = peer.Close() })
 
 	return <-ready
 }
@@ -46,8 +46,8 @@ func TestManagerDialFailsWhenTheStreamCannotBeOpened(t *testing.T) {
 	server, agent := net.Pipe()
 
 	t.Cleanup(func() {
-		server.Close()
-		agent.Close()
+		_ = server.Close()
+		_ = agent.Close()
 	})
 
 	session, err := yamux.Client(server, nil)

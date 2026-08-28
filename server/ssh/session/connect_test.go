@@ -24,7 +24,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	defer listener.Close()
+	defer listener.Close() //nolint:errcheck
 
 	accepted := make(chan net.Conn, 1)
 
@@ -41,7 +41,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	peer, err := net.Dial("tcp", listener.Addr().String())
 	require.NoError(t, err)
 
-	defer peer.Close()
+	defer peer.Close() //nolint:errcheck
 
 	Configure(Config{ //nolint:exhaustruct
 		ConnectTimeout: 2 * time.Second,
@@ -70,7 +70,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 	}
 
 	if conn := <-accepted; conn != nil {
-		conn.Close()
+		_ = conn.Close()
 	}
 }
 
@@ -81,11 +81,11 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	defer listener.Close()
+	defer listener.Close() //nolint:errcheck
 
 	go func() {
 		if conn, err := listener.Accept(); err == nil {
-			defer conn.Close()
+			defer conn.Close() //nolint:errcheck
 
 			time.Sleep(10 * time.Second)
 		}
@@ -94,7 +94,7 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	peer, err := net.Dial("tcp", listener.Addr().String())
 	require.NoError(t, err)
 
-	defer peer.Close()
+	defer peer.Close() //nolint:errcheck
 
 	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
 

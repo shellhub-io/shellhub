@@ -12,7 +12,7 @@ func CurrentContainerID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer fMountInfo.Close()
+	defer fMountInfo.Close() //nolint:errcheck
 
 	return parseContainerIDv2(fMountInfo)
 }

@@ -185,7 +185,7 @@ func (a *Adapter) Write(b []byte) (int, error) {
 	}
 
 	bytesWritten, err := nextWriter.Write(b)
-	nextWriter.Close()
+	_ = nextWriter.Close()
 
 	a.Logger.WithError(err).
 		WithField("bytes", bytesWritten).

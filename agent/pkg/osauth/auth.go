@@ -38,7 +38,7 @@ func (b *backend) AuthUser(username, password string) bool {
 	if err != nil {
 		return false
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	return AuthUserFromShadow(username, password, file)
 }
@@ -48,7 +48,7 @@ func (b *backend) LookupUser(username string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	return LookupUserFromPasswd(username, file)
 }
@@ -65,7 +65,7 @@ func (b *backend) ListGroups(username string) ([]uint32, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer groupFile.Close()
+	defer groupFile.Close() //nolint:errcheck
 
 	secondaryGroups, err := ListGroupsFromFile(username, groupFile)
 	if err != nil {

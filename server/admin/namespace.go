@@ -163,7 +163,7 @@ func namespaceList(service serviceFunc) *cobra.Command {
 
 			if len(namespaces) == 0 {
 				if !quiet {
-					fmt.Fprintln(out, "No namespaces to list")
+					_, _ = fmt.Fprintln(out, "No namespaces to list")
 				}
 
 				return nil
@@ -177,19 +177,19 @@ func namespaceList(service serviceFunc) *cobra.Command {
 					} else {
 						v = ns.Name
 					}
-					fmt.Fprintln(out, v)
+					_, _ = fmt.Fprintln(out, v)
 				}
 
 				return nil
 			}
 
 			w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
-			fmt.Fprintln(w, "NAME\tTENANT ID\tTYPE")
+			_, _ = fmt.Fprintln(w, "NAME\tTENANT ID\tTYPE")
 
 			for _, ns := range namespaces {
-				fmt.Fprintf(w, "%s\t%s\t%s\n", ns.Name, ns.TenantID, ns.Type)
+				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", ns.Name, ns.TenantID, ns.Type)
 			}
-			w.Flush()
+			_ = w.Flush()
 
 			return nil
 		},
@@ -274,7 +274,7 @@ func namespaceInspect(service serviceFunc) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(out, `Namespace:
+			_, _ = fmt.Fprintf(out, `Namespace:
   Name         %s
   Type         %s
   Owner        %s
@@ -311,15 +311,15 @@ Members (%d):
 				if !ok {
 					return fmt.Errorf("member %s not found", m.ID)
 				}
-				fmt.Fprintf(w, "  %s\t%s\n", user.Email, m.Role)
+				_, _ = fmt.Fprintf(w, "  %s\t%s\n", user.Email, m.Role)
 			}
-			w.Flush()
+			_ = w.Flush()
 
-			fmt.Fprintln(out, "\nLimits:")
+			_, _ = fmt.Fprintln(out, "\nLimits:")
 			if ns.MaxDevices == -1 {
-				fmt.Fprintln(out, "  Max Devices  unlimited")
+				_, _ = fmt.Fprintln(out, "  Max Devices  unlimited")
 			} else {
-				fmt.Fprintf(out, "  Max Devices  %d\n", ns.MaxDevices)
+				_, _ = fmt.Fprintf(out, "  Max Devices  %d\n", ns.MaxDevices)
 			}
 
 			return nil

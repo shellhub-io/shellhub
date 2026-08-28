@@ -43,7 +43,7 @@ func newTestPair(t *testing.T) (client *Adapter, server *Adapter) {
 
 func TestConcurrentClose(t *testing.T) {
 	client, server := newTestPair(t)
-	defer server.Close()
+	defer server.Close() //nolint:errcheck
 
 	client.Ping()
 
@@ -55,7 +55,7 @@ func TestConcurrentClose(t *testing.T) {
 	for range goroutines {
 		go func() {
 			defer wg.Done()
-			client.Close()
+			_ = client.Close()
 		}()
 	}
 
@@ -64,7 +64,7 @@ func TestConcurrentClose(t *testing.T) {
 
 func TestCloseReturnsSameError(t *testing.T) {
 	client, server := newTestPair(t)
-	defer server.Close()
+	defer server.Close() //nolint:errcheck
 
 	err1 := client.Close()
 	err2 := client.Close()
@@ -76,8 +76,8 @@ func TestCloseReturnsSameError(t *testing.T) {
 
 func TestConcurrentPing(t *testing.T) {
 	client, server := newTestPair(t)
-	defer server.Close()
-	defer client.Close()
+	defer server.Close() //nolint:errcheck
+	defer client.Close() //nolint:errcheck
 
 	const goroutines = 50
 
@@ -104,7 +104,7 @@ func TestConcurrentPing(t *testing.T) {
 
 func TestCloseWithoutPing(t *testing.T) {
 	client, server := newTestPair(t)
-	defer server.Close()
+	defer server.Close() //nolint:errcheck
 
 	// Close without ever calling Ping — stopPingCh is nil.
 	err := client.Close()
@@ -124,7 +124,7 @@ func TestPingFailureClosesConnection(t *testing.T) {
 	client.Ping()
 
 	// Kill the peer so the next ping write fails with a closed/broken connection.
-	server.Close()
+	_ = server.Close()
 
 	// The ping loop must Close() the adapter on the write failure, which closes
 	// stopPingCh. A closed channel reads immediately, so this returns quickly;

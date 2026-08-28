@@ -116,7 +116,7 @@ func handshake(ctx context.Context, conn net.Conn, version TransportVersion, tar
 	}
 
 	if err := conn.SetDeadline(deadline); err != nil {
-		conn.Close()
+		_ = conn.Close()
 
 		return nil, err
 	}
@@ -127,13 +127,13 @@ func handshake(ctx context.Context, conn net.Conn, version TransportVersion, tar
 	// hence the OnceValue: the deferred call must not consume the verdict the
 	// return paths below read.
 	watchdogStopped := sync.OnceValue(context.AfterFunc(ctx, func() {
-		conn.Close()
+		_ = conn.Close()
 	}))
 	defer watchdogStopped()
 
 	prepared, err := target.prepare(ctx, conn, version)
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 
 		// The watchdog's Close surfaces as an I/O error, which reads like a
 		// broken agent. Report what actually happened.
@@ -145,13 +145,13 @@ func handshake(ctx context.Context, conn net.Conn, version TransportVersion, tar
 	}
 
 	if !watchdogStopped() {
-		prepared.Close()
+		_ = prepared.Close()
 
 		return nil, ctx.Err()
 	}
 
 	if err := prepared.SetDeadline(time.Time{}); err != nil {
-		prepared.Close()
+		_ = prepared.Close()
 
 		return nil, err
 	}

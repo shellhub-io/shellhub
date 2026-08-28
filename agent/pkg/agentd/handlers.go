@@ -121,7 +121,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			return ctx.Error(ErrFailedDialToAddressAndPort)
 		}
 
-		defer in.Close()
+		defer in.Close() //nolint:errcheck
 
 		logger.Trace("proxy handler dialed to the address")
 
@@ -134,8 +134,8 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 		wg := new(sync.WaitGroup)
 		done := sync.OnceFunc(func() {
-			defer in.Close()
-			defer rwc.Close()
+			defer in.Close()  //nolint:errcheck
+			defer rwc.Close() //nolint:errcheck
 
 			logger.Trace("close called on in and out connections")
 		})
@@ -172,7 +172,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		defer rwc.Close()
+		defer rwc.Close() //nolint:errcheck
 
 		headers, err := ctx.Headers()
 		if err != nil {
@@ -199,7 +199,7 @@ func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 func sshCloseHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		defer rwc.Close()
+		defer rwc.Close() //nolint:errcheck
 
 		headers, err := ctx.Headers()
 		if err != nil {
@@ -317,7 +317,7 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
 		}
 
-		defer in.Close()
+		defer in.Close() //nolint:errcheck
 
 		// NOTE: Inform to the connection that the dial was successfully.
 		if err := c.NoContent(http.StatusOK); err != nil {
@@ -335,8 +335,8 @@ func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {
 
 		wg := new(sync.WaitGroup)
 		done := sync.OnceFunc(func() {
-			defer in.Close()
-			defer out.Close()
+			defer in.Close()  //nolint:errcheck
+			defer out.Close() //nolint:errcheck
 
 			logger.Trace("close called on in and out connections")
 		})
@@ -383,7 +383,7 @@ func sshHandlerV1(ag *Agent) func(c *echo.Context) error {
 		ag.server.Sessions.Store(id, httpConn)
 		ag.server.HandleConn(httpConn)
 
-		conn.Close()
+		_ = conn.Close()
 
 		return nil
 	}

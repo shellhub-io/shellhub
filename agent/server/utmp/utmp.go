@@ -124,7 +124,7 @@ func updUtmp(u Utmpx, id string) {
 		return
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),
@@ -199,7 +199,7 @@ func updWtmp(u Utmpx) {
 		return
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	lk := unix.Flock_t{
 		Type: int16(unix.F_WRLCK),

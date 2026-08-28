@@ -151,15 +151,15 @@ func userList(service serviceFunc) *cobra.Command {
 			}
 
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-			fmt.Fprintln(w, "USERNAME\tEMAIL\tROLE")
+			_, _ = fmt.Fprintln(w, "USERNAME\tEMAIL\tROLE")
 			for _, u := range users {
 				role := "user"
 				if u.Admin {
 					role = "admin"
 				}
-				fmt.Fprintf(w, "%s\t%s\t%s\n", u.Username, u.Email, role)
+				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", u.Username, u.Email, role)
 			}
-			w.Flush()
+			_ = w.Flush()
 
 			return nil
 		},

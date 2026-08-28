@@ -52,7 +52,7 @@ func TestServer(t *testing.T) {
 	opt, err := asynqlib.ParseRedisURI(redisConnStr)
 	require.NoError(t, err)
 	asynqClient := asynqlib.NewClient(opt)
-	defer asynqClient.Close()
+	defer asynqClient.Close() //nolint:errcheck
 	_, err = asynqClient.Enqueue(asynqlib.NewTask("queue:task", []byte("task was called")), asynqlib.Queue("queue"))
 	require.NoError(t, err)
 

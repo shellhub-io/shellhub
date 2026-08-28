@@ -40,7 +40,7 @@ func GeneratePrivateKey(filename string) error {
 		return err
 	}
 
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	privateKey := &pem.Block{
 		Type:  "RSA PRIVATE KEY",

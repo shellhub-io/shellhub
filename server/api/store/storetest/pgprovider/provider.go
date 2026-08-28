@@ -35,14 +35,14 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 
 	connString, err := srv.ConnectionString(ctx)
 	if err != nil {
-		srv.Down(ctx)
+		_ = srv.Down(ctx)
 
 		return nil, err
 	}
 
 	st, err := pg.New(ctx, connString, options.Migrate())
 	if err != nil {
-		srv.Down(ctx)
+		_ = srv.Down(ctx)
 
 		return nil, err
 	}

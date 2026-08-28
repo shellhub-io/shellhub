@@ -71,7 +71,7 @@ func unresponsivePeer(t *testing.T) *recordingConn {
 	go io.Copy(io.Discard, agent) // nolint:errcheck
 
 	t.Cleanup(func() {
-		agent.Close()
+		_ = agent.Close()
 	})
 
 	return &recordingConn{Conn: server}

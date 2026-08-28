@@ -129,7 +129,7 @@ func (d *Dialer) close() {
 	d.logger.Debug("dialer connection closed")
 
 	d.unregister()
-	d.conn.Close()
+	_ = d.conn.Close()
 	d.donec <- struct{}{}
 	close(d.donec)
 }
@@ -202,10 +202,10 @@ func (d *Dialer) matchConn(c net.Conn) {
 // serve blocks and runs the control message loop, keeping the peer
 // alive and notifying the peer when new connections are available.
 func (d *Dialer) serve() error {
-	defer d.Close()
+	defer d.Close() //nolint:errcheck
 
 	go func() {
-		defer d.Close()
+		defer d.Close() //nolint:errcheck
 		defer d.logger.Debug("dialer serve done")
 
 		br := bufio.NewReader(d.conn)
@@ -336,7 +336,7 @@ type controlMsg struct {
 // then closes the listener.
 func (ln *Listener) run() {
 	done := func() {
-		ln.Close()
+		_ = ln.Close()
 	}
 
 	var onceDefer sync.Once
@@ -423,7 +423,7 @@ func (ln *Listener) grabConn(path string) {
 	}
 
 	failPickup := func(err error) {
-		wsConn.Close()
+		_ = wsConn.Close()
 		log.Printf("revdial.Listener: failed to pick up connection to %s: %v", path, err)
 		ln.sendMessage(controlMsg{Command: "pickup-failed", ConnPath: path, Err: err.Error()})
 	}
@@ -476,7 +476,7 @@ func (ln *Listener) Close() error {
 	if ln.closed {
 		return nil
 	}
-	go ln.sc.Close()
+	go func() { _ = ln.sc.Close() }()
 	ln.closed = true
 	close(ln.connc)
 	close(ln.donec)

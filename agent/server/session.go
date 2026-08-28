@@ -84,7 +84,7 @@ func (s *Server) sessionHandler(session gliderssh.Session) {
 			return
 		}
 
-		defer l.Close()
+		defer l.Close() //nolint:errcheck
 
 		authSock := l.Addr().String()
 

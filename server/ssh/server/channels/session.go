@@ -146,7 +146,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		return
 	}
 
-	defer agent.Close()
+	defer agent.Close() //nolint:errcheck
 
 	client, err := sess.NewClientChannel(newChan, seat)
 	if err != nil {
@@ -156,7 +156,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		return
 	}
 
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	var wg sync.WaitGroup
 
@@ -176,7 +176,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 			logger.Debug("agent waiting for data done to close client")
 
 			<-done
-			client.Close()
+			_ = client.Close()
 		}()
 
 		for {
@@ -302,7 +302,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 								return
 							}
 
-							defer agentChannel.Close()
+							defer agentChannel.Close() //nolint:errcheck
 							go gossh.DiscardRequests(agentReqs)
 
 							clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
@@ -312,7 +312,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 								return
 							}
 
-							defer clientChannel.Close()
+							defer clientChannel.Close() //nolint:errcheck
 							go gossh.DiscardRequests(clientReqs)
 
 							hose(logger, agentChannel, clientChannel)
