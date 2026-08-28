@@ -71,29 +71,30 @@ describe("SessionPlayer", () => {
   });
 
   describe("playback state", () => {
-    it("shows the duration and a pause affordance once playback starts", async () => {
-      renderPlayer();
-      await emit("playing");
+    beforeEach(() => { renderPlayer(); });
 
+    it("shows the duration and a pause affordance once playback starts", async () => {
+      await emit("playing");
       expect(screen.getByText("00:00 / 01:00")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     });
 
     it("advances the time readout as playback progresses", async () => {
-      renderPlayer();
       await emit("playing");
-
       currentTime = 5;
-
       expect(await screen.findByText("00:05 / 01:00")).toBeInTheDocument();
     });
 
     it("returns to a play affordance when playback ends", async () => {
-      renderPlayer();
       await emit("playing");
       await emit("ended");
-
       expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    });
+
+    it("shows the time formatted as HH:MM:SS when the duration is one hour or more", async () => {
+      duration = 3600;
+      await emit("playing");
+      expect(screen.getByText("00:00:00 / 01:00:00")).toBeInTheDocument();
     });
   });
 

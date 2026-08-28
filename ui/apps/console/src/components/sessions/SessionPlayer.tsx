@@ -6,13 +6,16 @@ import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 
 type Speed = 0.5 | 1 | 1.5 | 2;
 
-function formatTime(secs: number): string {
-  const m = Math.floor(secs / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = Math.floor(secs % 60)
-    .toString()
-    .padStart(2, "0");
+function padZero(num: number): string {
+  return num.toString().padStart(2, "0");
+}
+
+function formatTime(secs: number, showHours = false): string {
+  const h = padZero(Math.floor(secs / 3600));
+  const m = padZero(Math.floor(secs / 60) % 60);
+  const s = padZero(Math.floor(secs % 60));
+
+  if (showHours || h !== "00") return `${h}:${m}:${s}`;
   return `${m}:${s}`;
 }
 
@@ -267,7 +270,7 @@ export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
         </IconButton>
 
         <span className="text-xs font-mono tabular-nums text-text-secondary shrink-0">
-          {formatTime(currentTime)} / {formatTime(duration)}
+          {formatTime(currentTime, duration >= 3600)} / {formatTime(duration)}
         </span>
 
         <input
