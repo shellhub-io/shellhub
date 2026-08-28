@@ -3,7 +3,6 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ChatwootContext, type ChatwootHandle } from "@/hooks/useChatwoot";
 import SupportButton from "../SupportButton";
-import "@/components/common/__tests__/helpers/setup-dialog";
 
 function renderWithStatus(handle: ChatwootHandle) {
   return render(
