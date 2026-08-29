@@ -545,7 +545,10 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	// not the path taken here, so the handshake below is bounded by a deadline on
 	// the connection instead.
 	config := &gossh.ClientConfig{
-		User:            s.Target.Username,
+		User: s.Target.Username,
+		// The agent's host key is not known to the server, and this hop is inside the
+		// tunnel the agent already authenticated over, so there is nothing to pin.
+		// nosemgrep: go.lang.security.audit.crypto.insecure_ssh.avoid-ssh-insecure-ignore-host-key
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
 		Timeout:         sshconf.ConnectTimeout,
 	}
