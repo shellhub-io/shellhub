@@ -3,9 +3,7 @@ package storetest
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -27,7 +25,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 		errIntentional := errors.New("intentional error")
 		err := st.WithTransaction(ctx, func(txCtx context.Context) error {
 			device := &models.Device{
-				UID:       fmt.Sprintf("%064x", time.Now().UnixNano()),
+				UID:       uniqueHex(t, 64),
 				Name:      "tx-device",
 				TenantID:  tenantID,
 				Identity:  &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:f1"},
@@ -61,7 +59,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 
 		err := st.WithTransaction(ctx, func(txCtx context.Context) error {
 			device := &models.Device{
-				UID:       fmt.Sprintf("%064x", time.Now().UnixNano()),
+				UID:       uniqueHex(t, 64),
 				Name:      "tx-device",
 				TenantID:  tenantID,
 				Identity:  &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:f2"},

@@ -24,14 +24,6 @@ formatters:
 
 linters:
   exclusions:
-    rules:
-      # A test builds its own fixtures; routing those through clock.Now would send
-      # them to whatever clock mock the test installed, which is backwards. The
-      # rule is about production code being controllable from a test, not about
-      # the test controlling itself.
-      - path: (_test\.go|/storetest/)
-        linters: [forbidigo]
-        text: time\.Now
     paths:
       - "mocks/.*\\.go$"
       # npm ships Go sources inside ui/node_modules. CI never installs them for the

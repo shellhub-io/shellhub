@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gossh "golang.org/x/crypto/ssh"
@@ -56,14 +57,14 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 
 	done := make(chan error, 1)
 
-	start := time.Now()
+	start := time.Now() //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 
 	go func() { done <- sess.connect(newStubContext(), noAuth) }()
 
 	select {
 	case err := <-done:
 		require.Error(t, err, "a silent agent must not authenticate")
-		assert.WithinDuration(t, start.Add(2*time.Second), time.Now(), 3*time.Second,
+		assert.WithinDuration(t, start.Add(2*time.Second), clock.Now(), 3*time.Second,
 			"the handshake should give up at the configured timeout")
 	case <-time.After(30 * time.Second):
 		t.Fatal("the handshake against a silent agent never gave up")

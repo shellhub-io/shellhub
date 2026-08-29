@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMembershipFromModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name        string
@@ -65,7 +66,7 @@ func TestMembershipFromModel(t *testing.T) {
 }
 
 func TestMembershipToModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name     string

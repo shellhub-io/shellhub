@@ -43,7 +43,7 @@ func TestOpenStreamReturnsOnCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	start := time.Now()
+	start := time.Now() //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 	conn, err := openStream(ctx, session)
 
 	require.ErrorIs(t, err, context.Canceled)
@@ -58,7 +58,7 @@ func TestOpenStreamReturnsOnDeadline(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	start := time.Now()
+	start := time.Now() //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 	_, err := openStream(ctx, session)
 
 	require.ErrorIs(t, err, context.DeadlineExceeded)
