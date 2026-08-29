@@ -2,15 +2,15 @@ package entity
 
 import (
 	"testing"
-	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPublicKeyFromModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name  string
@@ -118,7 +118,7 @@ func TestPublicKeyFromModel(t *testing.T) {
 }
 
 func TestPublicKeyToModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name   string

@@ -697,7 +697,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 
 		modifiedCount, err := st.DeviceHeartbeat(ctx,
 			[]string{"nonexistent1", "nonexistent2"},
-			time.Now(),
+			clock.Now(),
 		)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), modifiedCount)
@@ -709,7 +709,7 @@ func (s *Suite) TestDeviceHeartbeat(t *testing.T) {
 		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
 
-		newTime := time.Now()
+		newTime := clock.Now()
 		modifiedCount, err := st.DeviceHeartbeat(ctx,
 			[]string{string(uid1), string(uid2)},
 			newTime,

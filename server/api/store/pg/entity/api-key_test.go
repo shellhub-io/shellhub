@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAPIKeyFromModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name     string
@@ -81,7 +82,7 @@ func TestAPIKeyFromModel(t *testing.T) {
 }
 
 func TestAPIKeyToModel(t *testing.T) {
-	now := time.Now()
+	now := clock.Now()
 
 	tests := []struct {
 		name     string
