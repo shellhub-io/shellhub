@@ -26,5 +26,5 @@ type realClock struct{}
 
 // This function is responsible for getting the current time.
 func (c *realClock) Now() time.Time {
-	return time.Now()
+	return time.Now() //nolint:forbidigo // this is the wall clock every other caller mocks
 }

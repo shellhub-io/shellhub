@@ -23,7 +23,7 @@ func main() {
 		specPath = "spec/community-openapi.yaml"
 	}
 
-	fmt.Printf("info: generating OpenAPI server from %s (edition: %s)\n", specPath, edition)
+	fmt.Printf("info: generating OpenAPI server from %s (edition: %s)\n", specPath, edition) //nolint:forbidigo // this is the generator's own progress output
 
 	if err := exec.Command("redocly", "bundle", specPath, "-o", "static/openapi.json").Run(); err != nil { //nolint:noctx,gosec
 		log.Fatalf("error: failed to bundle the openapi spec: %v", err)

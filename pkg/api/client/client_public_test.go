@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -309,7 +308,7 @@ func TestAuthPublicKey(t *testing.T) {
 	require.NoError(t, err)
 
 	sigString := string(sigBytes)
-	fmt.Println(sigString)
+	t.Log(sigString)
 
 	type Expected struct {
 		response *models.PublicKeyAuthResponse
