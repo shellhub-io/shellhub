@@ -96,7 +96,7 @@ const (
 
 func Log(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		start := time.Now()
+		start := time.Now() //nolint:forbidigo // a deadline or an elapsed-time measurement needs the wall clock
 
 		// NOTE: The next must be called to proceed to the next handler in the chain that should be the processing of
 		// the request itself.

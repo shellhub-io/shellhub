@@ -112,7 +112,7 @@ func (a *Adapter) Ping() chan bool {
 			for {
 				select {
 				case <-ticker.C:
-					if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil {
+					if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil { //nolint:forbidigo // a deadline or an elapsed-time measurement needs the wall clock
 						// A failed ping write is terminal (broken pipe / closed socket):
 						// close the adapter so teardown propagates to the consumer, and stop.
 						a.Logger.

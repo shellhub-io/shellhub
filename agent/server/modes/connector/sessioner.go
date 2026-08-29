@@ -2,7 +2,6 @@ package connector
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"sync"
 
@@ -11,6 +10,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	"github.com/shellhub-io/shellhub/agent/server/modes"
+	log "github.com/sirupsen/logrus"
 )
 
 var ErrUserNotFound = errors.New("user not found on context")
@@ -60,14 +60,14 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
-				fmt.Println(err)
+				log.WithError(err).Error("connector session I/O failed")
 			}
 
 			session.Exit(code) //nolint:errcheck
 		}()
 
 		if _, err := io.Copy(session, resp.Conn); err != nil && !errors.Is(err, io.EOF) {
-			fmt.Println(err)
+			log.WithError(err).Error("connector session I/O failed")
 		}
 	})
 
@@ -75,7 +75,7 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 		defer resp.Close()
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
-			fmt.Println(err)
+			log.WithError(err).Error("connector session I/O failed")
 		}
 	})
 
@@ -107,7 +107,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
-				fmt.Println(err)
+				log.WithError(err).Error("connector session I/O failed")
 			}
 
 			session.Exit(code) //nolint:errcheck
@@ -120,11 +120,11 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		// [Docker]: https://pkg.go.dev/github.com/docker/docker/client#Client.ContainerAttach
 		if isPty {
 			if _, err := io.Copy(session, resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-				fmt.Println(err)
+				log.WithError(err).Error("connector session I/O failed")
 			}
 		} else {
 			if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-				fmt.Println(err)
+				log.WithError(err).Error("connector session I/O failed")
 			}
 		}
 	})
@@ -133,7 +133,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		defer resp.CloseWrite() //nolint:errcheck
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
-			fmt.Println(err)
+			log.WithError(err).Error("connector session I/O failed")
 		}
 	})
 
@@ -168,14 +168,14 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		defer func() {
 			code, err := exitCodeExecFromContainer(s.docker, id)
 			if err != nil {
-				fmt.Println(err)
+				log.WithError(err).Error("connector session I/O failed")
 			}
 
 			session.Exit(code) //nolint:errcheck
 		}()
 
 		if _, err := stdcopy.StdCopy(session, session.Stderr(), resp.Reader); err != nil && !errors.Is(err, io.EOF) {
-			fmt.Println(err)
+			log.WithError(err).Error("connector session I/O failed")
 		}
 	})
 
@@ -183,7 +183,7 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 		defer resp.CloseWrite() //nolint:errcheck
 
 		if _, err := io.Copy(resp.Conn, session); err != nil && !errors.Is(err, io.EOF) {
-			fmt.Println(err)
+			log.WithError(err).Error("connector session I/O failed")
 		}
 	})
 

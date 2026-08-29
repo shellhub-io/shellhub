@@ -133,7 +133,7 @@ func (h *QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 	var isError bool
 	var msg bytes.Buffer
 
-	now := time.Now()
+	now := time.Now() //nolint:forbidigo // dur below is an elapsed-time measurement, which needs the wall clock
 	dur := now.Sub(event.StartTime)
 
 	switch {

@@ -24,6 +24,14 @@ formatters:
 
 linters:
   exclusions:
+    rules:
+      # A test builds its own fixtures; routing those through clock.Now would send
+      # them to whatever clock mock the test installed, which is backwards. The
+      # rule is about production code being controllable from a test, not about
+      # the test controlling itself.
+      - path: (_test\.go|/storetest/)
+        linters: [forbidigo]
+        text: time\.Now
     paths:
       - "mocks/.*\\.go$"
       # npm ships Go sources inside ui/node_modules. CI never installs them for the
@@ -80,6 +88,8 @@ linters:
     - gocritic
     # A nolint that no longer suppresses anything, or is written so it never did.
     - nolintlint
+    # Time that is compared must come from the mockable clock.
+    - forbidigo
     # Tests that fail for the reason they claim, and report the caller's line.
     - testifylint
     - thelper
@@ -89,6 +99,13 @@ linters:
     - tparallel
 
   settings:
+    forbidigo:
+      forbid:
+        # forbidigo's own defaults, restated because naming any pattern replaces them.
+        - pattern: ^(fmt\.Print(|f|ln)|print|println)$
+        - pattern: ^time\.Now$
+          msg: use clock.Now() so a test can control it. If this is an elapsed-time
+            measurement or a deadline, keep time.Now and add //nolint:forbidigo saying which.
     exhaustive:
       # A default case is the codebase's way of saying the rest are deliberately ignored.
       # Without this the linter demands every one of Stripe's 200-odd event types be listed.
