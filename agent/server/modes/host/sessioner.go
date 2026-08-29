@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -55,8 +56,13 @@ func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
 func ptyStartOptions(uid uint32) []gliderssh.PtyStartOption {
 	opts := []gliderssh.PtyStartOption{gliderssh.WithJobControl()}
 
-	if geteuidFn() == 0 {
-		opts = append(opts, gliderssh.WithOwner(int(uid))) //nolint:gosec // uid_t is 32-bit; os.Chown takes an int
+	// WithOwner takes an int because that is what os.Chown takes, but uid_t is
+	// unsigned 32-bit. On a 32-bit build (the agent ships for ARM) an id above
+	// MaxInt32 wraps negative, and os.Chown reads a negative id as "leave it
+	// alone", so the pty would silently stay owned by the agent. Such an id is
+	// not a real account, so skip the hand-over rather than pass a wrapped one.
+	if geteuidFn() == 0 && uid <= math.MaxInt32 {
+		opts = append(opts, gliderssh.WithOwner(int(uid)))
 	}
 
 	return opts

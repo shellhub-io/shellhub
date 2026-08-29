@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"sync/atomic"
 	"syscall"
@@ -181,4 +182,59 @@ func TestPtyFailureHint(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPtyStartOptionsBoundsTheOwnerID(t *testing.T) {
+	original := geteuidFn
+	t.Cleanup(func() { geteuidFn = original })
+
+	geteuidFn = func() int { return 0 }
+
+	cases := []struct {
+		description string
+		uid         uint32
+		wantOwner   bool
+	}{
+		{
+			description: "hands the pty over for an ordinary account",
+			uid:         1000,
+			wantOwner:   true,
+		},
+		{
+			description: "hands it over at the largest id an int can hold everywhere",
+			uid:         math.MaxInt32,
+			wantOwner:   true,
+		},
+		{
+			description: "skips the hand-over rather than wrap the id negative",
+			uid:         math.MaxInt32 + 1,
+			wantOwner:   false,
+		},
+		{
+			description: "skips (uid_t)-1, which is not an account",
+			uid:         math.MaxUint32,
+			wantOwner:   false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			// WithJobControl is always present, so an owner option makes it two.
+			opts := ptyStartOptions(tc.uid)
+			if tc.wantOwner {
+				assert.Len(t, opts, 2)
+			} else {
+				assert.Len(t, opts, 1)
+			}
+		})
+	}
+}
+
+func TestPtyStartOptionsSkipsTheHandOverWhenNotRoot(t *testing.T) {
+	original := geteuidFn
+	t.Cleanup(func() { geteuidFn = original })
+
+	geteuidFn = func() int { return 1000 }
+
+	assert.Len(t, ptyStartOptions(1000), 1)
 }
