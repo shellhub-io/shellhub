@@ -6,6 +6,7 @@ description: Authenticate members against your own identity provider.
 
 import EditionBanner from "../../../components/EditionBanner.astro";
 import Callout from "../../../components/Callout.astro";
+import Shot from '../../../components/Shot.astro';
 
 # Single Sign-On (SAML)
 
@@ -40,7 +41,7 @@ authorization one. Everything about who reaches which device stays in policies.
 
 SAML is configured from the Enterprise Admin Console rather than the ordinary namespace settings.
 
-![The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles](/img/auth/admin-authentication.png)
+<Shot id="admin-authentication" route="/admin/settings/authentication" edition="enterprise" alt="The Admin Console Authentication page with the Local Authentication and SAML Authentication toggles" />
 
 The page carries toggles for local authentication and SAML, so you can run both while migrating
 and switch local off when you are confident.

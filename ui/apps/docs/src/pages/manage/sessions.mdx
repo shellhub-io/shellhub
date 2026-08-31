@@ -4,12 +4,14 @@ title: Sessions
 description: See who connected to what, when, and from where.
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Sessions
 
 Every connection through ShellHub is a session, and every session is recorded in the list —
 whether or not the *contents* were recorded.
 
-![The Sessions page listing active and historical SSH sessions](/img/sessions/session-list.png)
+<Shot id="session-list" route="/sessions" of={{ role: "table" }} alt="The Sessions page listing active and historical SSH sessions" />
 
 ## What a session tells you
 
@@ -37,7 +39,7 @@ from one address, is the thing this list exists to show you.
 
 ## Session details
 
-![A session detail page showing the session flow timeline, details, device, and play recording button](/img/sessions/session-detail.png)
+<Shot id="session-detail" route="/sessions/:session" alt="A session detail page showing the session flow timeline, details, device, and play recording button" />
 
 Active sessions can be inspected while they run. A session with a recording has a play control —
 see [Session Recording](/manage/session-recording).

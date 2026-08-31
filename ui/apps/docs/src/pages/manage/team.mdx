@@ -5,12 +5,13 @@ description: Add people to a namespace and give them a role.
 ---
 
 import Callout from "../../components/Callout.astro";
+import Shot from '../../components/Shot.astro';
 
 # Members
 
 A namespace's members are the people who can sign in and see it. Manage them under **Team**.
 
-![The Team page showing the Members tab with members and their roles](/img/team/members.png)
+<Shot id="members" route="/team" of={{ role: "table" }} alt="The Team page showing the Members tab with members and their roles" />
 
 ## Adding someone
 
