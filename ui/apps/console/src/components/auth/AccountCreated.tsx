@@ -6,6 +6,9 @@ import { useSignUpStore } from "@/stores/signUpStore";
 import { Button } from "@shellhub/design-system/primitives";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * The screen after sign-up: what was sent, where, and how to have it sent again.
+ */
 export default function AccountCreated() {
   const navigate = useNavigate();
   const location = useLocation();

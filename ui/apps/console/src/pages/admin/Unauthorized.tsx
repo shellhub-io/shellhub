@@ -34,6 +34,10 @@ const highlights: EmptyStateFeature[] = [
   },
 ];
 
+/**
+ * Shown when a non-admin reaches an admin route. It offers to sign out, since the usual cause is
+ * being signed in as the wrong account.
+ */
 export default function AdminUnauthorized() {
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();

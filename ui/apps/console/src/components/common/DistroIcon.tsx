@@ -33,6 +33,10 @@ interface DistroIconProps {
   className?: string;
 }
 
+/**
+ * The mark for a Linux distribution, falling back to the generic penguin for one we have no icon
+ * for. Decorative, so it is aria-hidden — the distribution is named in text beside it.
+ */
 export default function DistroIcon({ id, className = "" }: DistroIconProps) {
   const icon = distroMap[id?.toLowerCase()] ?? "fl-tux";
   return <i className={cn(icon, className)} aria-hidden="true" />;

@@ -8,6 +8,10 @@ type Props = Omit<
   allowNegative?: boolean;
 };
 
+/**
+ * A text input that only accepts digits. Not type=number: that allows exponent notation and
+ * silently discards what it cannot parse, so the field would lie about what was typed.
+ */
 export default function NumericInput({
   onChange,
   allowNegative = false,

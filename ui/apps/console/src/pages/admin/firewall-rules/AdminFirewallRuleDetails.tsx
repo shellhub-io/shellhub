@@ -17,6 +17,9 @@ import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
 
+/**
+ * One firewall rule, seen from the admin area.
+ */
 export default function AdminFirewallRuleDetails() {
   const { id } = useParams<{ id: string }>();
   const { data: rule, isLoading, error } = useAdminFirewallRule(id ?? "");

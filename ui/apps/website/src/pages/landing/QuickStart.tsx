@@ -6,6 +6,9 @@ import { docsUrl } from "@/links";
 const SETUP_CMD =
   "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
 
+/**
+ * Landing section with the one-line install command.
+ */
 export function QuickStart() {
   return (
     <Section bordered={false}>

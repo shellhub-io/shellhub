@@ -11,14 +11,25 @@ function toArrayBuffer(arr: Uint8Array): ArrayBuffer {
 
 let sessionKey: CryptoKey | null = null;
 
+/**
+ * Holds the unwrapped vault key for the life of the tab. Module state rather than storage: the
+ * key must not survive a reload, or locking the vault would not lock anything.
+ */
 export function setSessionKey(key: CryptoKey): void {
   sessionKey = key;
 }
 
+/**
+ * The current vault key, or null when the vault is locked.
+ */
 export function getSessionKey(): CryptoKey | null {
   return sessionKey;
 }
 
+/**
+ * Drops the vault key. This is what locking is — every later read has to derive the key from the
+ * passphrase again.
+ */
 export function clearSessionKey(): void {
   sessionKey = null;
 }
@@ -46,6 +57,11 @@ function fromBase64(base64: string): Uint8Array {
   return bytes;
 }
 
+/**
+ * Derives the vault key from a passphrase with PBKDF2. iterations is a parameter rather than a
+ * constant because a vault records the count it was created with — raising the default must
+ * not lock existing vaults out.
+ */
 export async function deriveKey(
   password: string,
   salt: Uint8Array,
@@ -74,6 +90,10 @@ export async function deriveKey(
   );
 }
 
+/**
+ * Encrypts the vault body with AES-GCM under a fresh random IV, returned alongside the
+ * ciphertext. A new IV every time is required: reusing one under the same key breaks GCM.
+ */
 export async function encrypt(
   key: CryptoKey,
   plaintext: string,
@@ -93,6 +113,10 @@ export async function encrypt(
   };
 }
 
+/**
+ * Decrypts a vault body. Rejects if the key is wrong or the ciphertext was altered — GCM
+ * authenticates, so a failure here means tampering or a bad key, not corrupt output.
+ */
 export async function decrypt(
   key: CryptoKey,
   data: VaultData,
@@ -109,6 +133,11 @@ export async function decrypt(
   return new TextDecoder().decode(plaintext);
 }
 
+/**
+ * Creates a vault header for a new passphrase: a random salt, the iteration count, and a short
+ * verifier encrypted under the derived key. The verifier is what lets a passphrase be checked
+ * without the vault body, and is why an empty vault can still be unlocked.
+ */
 export async function createVaultMeta(
   password: string,
 ): Promise<{ meta: VaultMeta; derivedKey: CryptoKey }> {
@@ -134,6 +163,11 @@ export async function createVaultMeta(
   return { meta, derivedKey };
 }
 
+/**
+ * Checks a passphrase against a vault header and returns the derived key on success. Rejects on
+ * a wrong passphrase, which is the verifier failing to decrypt — the vault body is never
+ * touched, so this is safe to call on every unlock attempt.
+ */
 export async function verifyPassword(
   password: string,
   meta: VaultMeta,

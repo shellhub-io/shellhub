@@ -128,6 +128,10 @@ function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
+/**
+ * The connect panel for a device: how to reach it over SSH, and the web terminal. It is the one
+ * place a user copies an SSHID from, so the command shown has to be the one that works.
+ */
 export default function ConnectDrawer({
   open,
   onClose,

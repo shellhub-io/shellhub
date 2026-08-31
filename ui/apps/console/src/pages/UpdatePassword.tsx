@@ -12,6 +12,9 @@ import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
 import { FormPasswordField } from "@/components/common/fields/rhf";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * Sets a new password from a reset link. The token is in the query string and works once.
+ */
 export default function UpdatePassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

@@ -6,7 +6,14 @@ import {
 } from "@/utils/vault-backend-local";
 import { ServerVaultBackend } from "@/utils/vault-backend-server";
 
+/**
+ * Where a vault is kept: in this browser only, or synced through the server.
+ */
 export type VaultStorageMode = "local" | "server";
+/**
+ * Whose vault. Every stored key is scoped by user and tenant, so two accounts on one browser,
+ * or one account in two namespaces, never read each other's vault.
+ */
 export type VaultScope = { user: string; tenant: string };
 
 const VAULT_STORAGE_MODE_KEY = "shellhub-vault-storage";
@@ -40,6 +47,10 @@ export function getVaultStorageMode(scope?: VaultScope): VaultStorageMode {
   return localVaultExists(scope) ? "local" : "server";
 }
 
+/**
+ * Records the chosen storage mode for a scope. Only the preference is written here; moving the
+ * contents between backends is the caller's job.
+ */
 export function setVaultStorageMode(
   mode: VaultStorageMode,
   scope?: VaultScope,
@@ -60,10 +71,17 @@ export function isVaultSyncPromoDismissed(scope?: VaultScope): boolean {
   return localStorage.getItem(promoKey(scope)) === "true";
 }
 
+/**
+ * Remembers that the sync promotion was dismissed, so it is not offered again for this scope.
+ */
 export function dismissVaultSyncPromo(scope?: VaultScope): void {
   localStorage.setItem(promoKey(scope), "true");
 }
 
+/**
+ * The backend for a scope, according to its stored mode. Local is the default, so a scope that
+ * has never chosen keeps its vault in the browser.
+ */
 export function getVaultBackend(scope?: VaultScope): IVaultBackend {
   if (getVaultStorageMode(scope) === "server")
     return new ServerVaultBackend(scope);

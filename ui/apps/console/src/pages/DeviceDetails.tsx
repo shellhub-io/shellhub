@@ -40,6 +40,9 @@ import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 
+/**
+ * Everything about one device: identity, tags, sessions and the actions on it.
+ */
 export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();

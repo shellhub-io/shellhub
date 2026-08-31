@@ -36,6 +36,9 @@ function formatMaxNamespaces(value: number): string {
   return String(value);
 }
 
+/**
+ * One user, seen from the admin area: their namespaces, their status, and the actions on them.
+ */
 export default function UserDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

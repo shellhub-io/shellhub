@@ -1,5 +1,8 @@
 import { create } from "zustand";
 
+/**
+ * The console's colour scheme. Dark is the default, and the app chrome stays dark in either.
+ */
 export type AppTheme = "dark" | "light";
 
 const STORAGE_KEY = "appTheme";
@@ -20,6 +23,10 @@ interface ThemeState {
   toggleTheme: () => void;
 }
 
+/**
+ * The active theme. Setting it writes the class onto <html> as well as persisting the choice,
+ * because the design-system tokens resolve from that class rather than from React state.
+ */
 export const useThemeStore = create<ThemeState>((set, get) => ({
   theme: resolveInitialTheme(),
 

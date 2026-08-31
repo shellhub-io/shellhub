@@ -1,6 +1,10 @@
 import { WindowChrome } from "@shellhub/design-system/primitives";
 import { CopyButton } from "@shellhub/design-system/components";
 
+/**
+ * Props of CommandBlock. command is rendered verbatim after the prompt and is what the copy
+ * button puts on the clipboard, so it must be the line a reader can paste unchanged.
+ */
 export interface CommandBlockProps {
   command: string;
   className?: string;

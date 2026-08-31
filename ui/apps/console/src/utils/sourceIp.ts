@@ -1,7 +1,7 @@
-// Parsing + classification for the access-policy Source IP field. The backend normalizes a
-// bare IP to a /32 (or /128) host route; these helpers mirror that so the UI can show the
-// user what will be stored, flag an all-IPs entry, and reject nonsense before submit.
-
+/**
+ * The result of reading a Source IP field as it is typed. incomplete and invalid are kept apart
+ * on purpose: half an address is not an error to show yet, a malformed one is.
+ */
 export type SourceIpParse =
   | { status: "empty" }
   | { status: "incomplete"; note: string }
@@ -13,6 +13,10 @@ export type SourceIpParse =
       note?: string;
     };
 
+/**
+ * What an already-stored CIDR represents, for the chip shown beside it. The empty string is for
+ * a value that does not parse at all.
+ */
 export type SourceIpKind = "host" | "private" | "public" | "any" | "ipv6" | "";
 
 function ipv4Octets(s: string): number[] | null {
@@ -51,9 +55,15 @@ function addressCount(bits: number): string {
   return `${hosts} addresses`;
 }
 
-// parseSourceIp interprets a raw entry as the user types. A bare IP resolves to a host route
-// (/32 or /128); a full CIDR is classified; "0.0.0.0/0" is flagged as "any"; anything that
-// can't ever be an address is invalid, while still-being-typed input stays "incomplete".
+/**
+ * Reads a Source IP entry as the user types it.
+ *
+ * A bare address resolves to a host route — /32 or /128 — because that is what the backend
+ * stores for one; a full CIDR is classified; 0.0.0.0/0 is called out as "any", since matching
+ * every address is rarely what was meant. Input that cannot become an address is invalid,
+ * while input that is merely unfinished stays incomplete, so the field does not scold someone
+ * mid-keystroke.
+ */
 export function parseSourceIp(raw: string): SourceIpParse {
   const s = raw.trim();
   if (!s) return { status: "empty" };
@@ -123,7 +133,10 @@ export function parseSourceIp(raw: string): SourceIpParse {
   return { status: "invalid", note: "not a valid IP or CIDR" };
 }
 
-// sourceIpKind labels an already-stored CIDR for its chip badge.
+/**
+ * Labels a stored CIDR for its chip. Unlike parseSourceIp this assumes a settled value, so
+ * anything unparseable is the empty string rather than an error to explain.
+ */
 export function sourceIpKind(cidr: string): SourceIpKind {
   const m = cidr.match(/^(.+)\/(\d+)$/);
   if (!m) return "";

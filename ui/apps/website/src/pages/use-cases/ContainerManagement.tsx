@@ -467,7 +467,9 @@ function ArchitectureDiagram() {
   );
 }
 
-/* ═══════ Main Component ═══════ */
+/**
+ * Use-case page: reaching a shell inside containers on remote hosts.
+ */
 export default function ContainerManagement() {
   return (
     <SiteLayout>

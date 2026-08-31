@@ -3,14 +3,24 @@ import { IconBadge } from "@shellhub/design-system/primitives";
 import { GlowOrbs } from "@shellhub/design-system/components";
 import { cn } from "@shellhub/design-system/cn";
 
+/**
+ * The tone of an empty state: primary for nothing-here-yet, yellow for something-is-gated.
+ */
 export type EmptyStateAccent = "primary" | "yellow";
 
+/**
+ * One selling point listed under an empty state, for a feature the user has not set up yet.
+ */
 export interface EmptyStateFeature {
   icon: ReactNode;
   title: string;
   description: string;
 }
 
+/**
+ * Props of EmptyState. It owns the full-bleed background and the centred card, so a caller
+ * provides the words and not the layout.
+ */
 export interface EmptyStateProps {
   icon: ReactNode;
   overline: string;

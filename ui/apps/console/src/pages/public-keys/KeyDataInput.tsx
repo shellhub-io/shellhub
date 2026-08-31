@@ -9,6 +9,10 @@ type Props<T extends FieldValues> = {
   onFileName?: (name: string) => void;
 };
 
+/**
+ * The public key field, taking a pasted key or a file. Validation runs in the browser, so a
+ * malformed key is caught before it is sent.
+ */
 function KeyDataInput<T extends FieldValues>({
   name,
   control,

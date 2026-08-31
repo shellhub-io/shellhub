@@ -19,6 +19,9 @@ type Props<T extends FieldValues> = {
   error?: string;
 };
 
+/**
+ * A toggle bound to react-hook-form.
+ */
 export default function FormToggleField<T extends FieldValues>({
   name,
   control,

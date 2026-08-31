@@ -73,6 +73,10 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
   return { display: state.display, expired: state.expired };
 }
 
+/**
+ * The sign-in page. What it offers depends on the edition — SSO and sign-up exist only above
+ * community — and on where the user was going, which it returns them to afterwards.
+ */
 export default function Login() {
   const isCloudEdition = isCloud();
   const isEnterpriseOrCloudEdition = isEnterpriseOrCloud();

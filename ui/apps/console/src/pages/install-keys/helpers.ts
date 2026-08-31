@@ -23,6 +23,10 @@ export function installKeyDisplayName(key: InstallKey): string {
   return key.name;
 }
 
+/**
+ * How a device came to be enrolled. Legacy and pairing predate install keys, so neither has a
+ * key to name; only the third does.
+ */
 export type EnrollmentSource =
   { kind: "legacy" } | { kind: "pairing" } | { kind: "key"; name: string };
 
@@ -63,11 +67,28 @@ export function validateName(value: string): string {
   return "";
 }
 
+/**
+ * Shortest webhook timeout, in minutes.
+ */
 export const TIMEOUT_MIN = 1;
+/**
+ * Longest webhook timeout, in minutes. Beyond this an enrolment waiting on a webhook looks
+ * hung rather than pending.
+ */
 export const TIMEOUT_MAX = 15;
+/**
+ * Shortest approval window, in hours.
+ */
 export const WINDOW_MIN_H = 1;
+/**
+ * Longest approval window, in hours.
+ */
 export const WINDOW_MAX_H = 24;
 
+/**
+ * Whether a string is a usable webhook URL. Only http and https: the server will call it, so a
+ * scheme it cannot dial is rejected in the form rather than at enrolment time.
+ */
 export function isWebhookUrl(value: string): boolean {
   try {
     const parsed = new URL(value.trim());
@@ -123,6 +144,10 @@ function isInstallKeyExpired(key: InstallKey): boolean {
   );
 }
 
+/**
+ * The reasons an install key will not enrol anything. They are independent and can hold at once,
+ * so the UI can say all of them rather than only the first.
+ */
 export interface KeyBlockers {
   revoked: boolean;
   disabled: boolean;
@@ -150,8 +175,14 @@ export function getKeyBlockers(key: InstallKey): KeyBlockers {
   };
 }
 
+/**
+ * What kind of allowance a key has: one use, a set number, or no limit.
+ */
 export type UsageKind = "single" | "limited" | "unlimited";
 
+/**
+ * A key's allowance and how much of it is spent.
+ */
 export interface UsageInfo {
   kind: UsageKind;
   used: number;
@@ -180,11 +211,19 @@ export function getUsageInfo(key: InstallKey): UsageInfo {
   };
 }
 
+/**
+ * The expiry field of a create request. An empty or non-positive value means no expiry, which is
+ * sent by omitting the field rather than by sending a zero.
+ */
 export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
   const days = Number(expiresIn);
   return days > 0 ? { expires_in: days } : {};
 }
 
+/**
+ * The expiry field of an update request. Unlike create, clearing an expiry has to be said out
+ * loud: null means "remove it", where omitting the field would mean "leave it alone".
+ */
 export function keyExpiryUpdatePayload(expiresIn: string): {
   expires_in: number | null;
 } {
@@ -192,6 +231,10 @@ export function keyExpiryUpdatePayload(expiresIn: string): {
   return { expires_in: days > 0 ? days : null };
 }
 
+/**
+ * How long is left before an expiry, and whether it has already passed. Both are returned
+ * together because the caller needs the second to know how to render the first.
+ */
 export function getRemainingDays(expiresAt: string | null | undefined): {
   days: string;
   expired: boolean;
@@ -203,8 +246,14 @@ export function getRemainingDays(expiresAt: string | null | undefined): {
   return { days: String(remaining), expired: false };
 }
 
+/**
+ * How loudly an expiry should read, from a fact to a warning.
+ */
 export type ExpiryTone = "muted" | "normal" | "warning" | "danger";
 
+/**
+ * An expiry as it is shown: the phrase, and how loudly to say it.
+ */
 export interface ExpiryInfo {
   label: string;
   tone: ExpiryTone;

@@ -74,6 +74,9 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   );
 }
 
+/**
+ * The pricing FAQ.
+ */
 export function PricingFAQ() {
   return (
     <Section bordered={false} containerClassName="max-w-3xl">

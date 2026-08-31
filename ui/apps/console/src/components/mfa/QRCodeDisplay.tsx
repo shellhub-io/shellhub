@@ -6,6 +6,10 @@ interface QRCodeDisplayProps {
   size?: number;
 }
 
+/**
+ * Renders an MFA secret as a QR code on a canvas. Drawn in the browser, so the secret is never
+ * sent anywhere to be turned into an image.
+ */
 export function QRCodeDisplay({ data, size = 200 }: QRCodeDisplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

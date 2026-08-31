@@ -12,6 +12,10 @@ import RemoteSupport from "./pages/use-cases/RemoteSupport";
 import DevopsCiCd from "./pages/use-cases/DevopsCiCd";
 import ContainerManagement from "./pages/use-cases/ContainerManagement";
 
+/**
+ * Every route of the marketing site, as data rather than as an element tree, so the navigation
+ * and the tests can check a link against the routes that actually exist.
+ */
 export const routes: { path: string; element: React.ReactElement }[] = [
   { path: "/", element: <Landing /> },
   { path: "/getting-started", element: <GettingStarted /> },

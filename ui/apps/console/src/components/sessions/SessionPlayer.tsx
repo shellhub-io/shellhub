@@ -51,6 +51,10 @@ interface SessionPlayerProps {
   onClose?: () => void;
 }
 
+/**
+ * Replays a recorded session with asciinema. The recording is passed in already fetched, since
+ * it is large and only wanted once the player is opened.
+ */
 export default function SessionPlayer({ logs, onClose }: SessionPlayerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

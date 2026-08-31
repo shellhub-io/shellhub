@@ -9,6 +9,9 @@ import { paginatedQueryFn, type PaginatedResult } from "@/api/pagination";
 import { useAuthStore } from "@/stores/authStore";
 import { isSdkError } from "@/api/errors";
 
+/**
+ * A page of sessions across every namespace, for the admin list.
+ */
 export function useAdminSessions({ page = 1, perPage = 5 } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const options = { query: { page, per_page: perPage } } satisfies {

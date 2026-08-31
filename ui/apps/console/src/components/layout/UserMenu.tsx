@@ -15,6 +15,9 @@ import { useNamespaces } from "@/hooks/useNamespaces";
 import { useThemeStore } from "@/stores/themeStore";
 import { getInitials } from "@/utils/string";
 
+/**
+ * The account menu: who is signed in, the way to settings, and sign-out.
+ */
 export default function UserMenu() {
   const { user, name, email, logout } = useAuthStore();
   const navigate = useNavigate();

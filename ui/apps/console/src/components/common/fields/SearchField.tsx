@@ -13,6 +13,9 @@ interface SearchFieldProps {
   full?: boolean;
 }
 
+/**
+ * The search box above a list, with its clear button.
+ */
 export default function SearchField({
   value,
   onChange,

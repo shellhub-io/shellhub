@@ -41,6 +41,10 @@ const features = [
   },
 ];
 
+/**
+ * Enterprise section listing the security and authentication features — SSO, MFA, recording
+ * and audit logging.
+ */
 export function SecurityFeatures() {
   return (
     <Section bordered={false}>

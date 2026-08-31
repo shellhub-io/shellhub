@@ -2,6 +2,10 @@ import { ArrowMarker, Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
 import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
+/**
+ * Landing section drawing the agent-to-gateway architecture. The diagram is an inline SVG using
+ * the palette constants directly, because an SVG fill cannot resolve a Tailwind token.
+ */
 export function Architecture() {
   return (
     <Section background="surface" className="border-b border-border">

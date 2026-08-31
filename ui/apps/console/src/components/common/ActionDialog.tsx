@@ -26,6 +26,10 @@ function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+/**
+ * The confirmation for an accept, reject or remove. It takes the action rather than a flag, so
+ * the wording, the button and the danger all follow from one value and cannot disagree.
+ */
 export default function ActionDialog({
   action,
   onClose,

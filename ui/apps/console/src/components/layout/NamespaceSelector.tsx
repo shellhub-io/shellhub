@@ -25,6 +25,10 @@ interface NamespaceSelectorProps {
   isAdminContext?: boolean;
 }
 
+/**
+ * The namespace switcher. Switching re-issues the token and reloads, because everything cached
+ * belongs to the namespace being left.
+ */
 export default function NamespaceSelector({
   isAdminContext = false,
 }: NamespaceSelectorProps) {

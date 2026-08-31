@@ -43,6 +43,10 @@ const steps = [
   },
 ];
 
+/**
+ * The dashboard hero for a namespace with no devices yet: what to do first, and how. Distinct
+ * from EmptyState, which is the smaller card used inside a list.
+ */
 export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
   return (
     <div className="min-h-full relative overflow-hidden px-4 pb-12">

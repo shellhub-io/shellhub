@@ -31,6 +31,10 @@ type Props = InputProps & {
   variant?: "default" | "mono";
 };
 
+/**
+ * The console's text field: label, hint, error and input, wired together. Use it rather than a
+ * bare <input>, or the error will not be announced with the field.
+ */
 export default function InputField({
   id,
   label,

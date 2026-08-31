@@ -155,8 +155,9 @@ const workflowSteps = [
   },
 ];
 
-/* ─── Page ─────────────────────────────────────────────────────────── */
-
+/**
+ * Use-case page: supporting a customer device without a VPN into their network.
+ */
 export default function RemoteSupport() {
   return (
     <SiteLayout>

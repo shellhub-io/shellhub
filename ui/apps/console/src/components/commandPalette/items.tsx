@@ -22,8 +22,16 @@ import type { TerminalSession } from "@/stores/terminalStore";
 
 import type { JSX } from "react";
 
+/**
+ * The tone of a badge on a palette row — device status, mostly, where green is online and yellow
+ * is pending.
+ */
 export type BadgeVariant = "green" | "yellow" | "red" | "muted";
 
+/**
+ * One row of the command palette. onSelect is what Enter runs; a row with a drill-in opens
+ * another list instead of acting, which is how a device leads to its own actions.
+ */
 export interface CommandItem {
   id: string;
   label: string;
@@ -40,14 +48,28 @@ export interface CommandItem {
  *  or a polite success (e.g. a copy confirmation). */
 export type Feedback = { kind: "error" | "success"; text: string };
 
+/**
+ * The id of the palette listbox, referenced by the input's aria-controls so the two are wired
+ * together for a screen reader.
+ */
 export const LISTBOX_ID = "cmdk-listbox";
+/**
+ * The DOM id for a row, so the input can point aria-activedescendant at whichever is focused.
+ */
 export const optionId = (itemId: string) => `cmdk-opt-${itemId}`;
 
-/* Shown when a user without `device:connect` tries to connect or restore —
- * mirrors the Devices page, which gates the whole Connect button behind it. */
+/**
+ * Shown when a user without device:connect tries to connect or restore. It mirrors the Devices
+ * page, which gates the whole Connect button behind the same permission, so the palette and the
+ * page refuse for the same stated reason.
+ */
 export const NO_CONNECT_PERMISSION =
   "You don't have permission to connect to devices";
 
+/**
+ * The icons the palette draws, by name. Kept in one place so a row names an icon rather than
+ * importing one, and the palette stays visually consistent.
+ */
 export const icons = {
   search: <MagnifyingGlassIcon className="w-5 h-5" />,
   command: <ChevronRightIcon className="w-5 h-5" />,
@@ -67,6 +89,11 @@ export const icons = {
   vault: <LockClosedIcon className="w-4 h-4" />,
 };
 
+/**
+ * Whether a query matches, by substring first and then by subsequence — so "dvpr" finds
+ * "device-prod". Deliberately loose: the palette ranks after it, and a missed match is worse
+ * than a loose one.
+ */
 export function fuzzyMatch(query: string, text: string): boolean {
   const q = query.toLowerCase();
   const t = text.toLowerCase();
@@ -78,9 +105,12 @@ export function fuzzyMatch(query: string, text: string): boolean {
   return qi === q.length;
 }
 
-/* Default (connection-first) view: open terminal sessions lead (quick restore),
- * then recently-connected devices, then the full device list. Device and recent
- * rows both connect/restore and expose a drill-in (→) into the action menu. */
+/**
+ * The default, connection-first view. Open terminal sessions lead, so restoring one is the
+ * shortest path; then recently connected devices; then everything else. A device or recent row
+ * both connects and offers a drill-in to the action menu, which is why the two are one row rather
+ * than two.
+ */
 export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
   terminalSessions: TerminalSession[];
@@ -192,7 +222,10 @@ export function buildConnectionItems(deps: {
   return list;
 }
 
-/* Command mode (">" prefix): page navigation + account actions. */
+/**
+ * Command mode, entered with a ">" prefix: page navigation and account actions rather than
+ * devices.
+ */
 export function buildCommandItems(deps: {
   go: (path: string) => void;
   onLogout: () => void;
@@ -232,9 +265,12 @@ export function buildCommandItems(deps: {
   return list;
 }
 
-/* Drill-in view: actions for the focused device. The section header doubles
- * as the breadcrumb. Copy/View are ungated (like the Devices page); Connect
- * reuses connectOrRestore, which keeps the permission + offline guards. */
+/**
+ * The drill-in view: what can be done to the focused device. The section header doubles as the
+ * breadcrumb back out. Copy and View are ungated, as they are on the Devices page; Connect goes
+ * through connectOrRestore so it keeps the permission and offline guards rather than repeating
+ * them here.
+ */
 export function buildDeviceActionItems(deps: {
   drillDevice: NormalizedDevice | null;
   nsName: string;

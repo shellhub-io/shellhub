@@ -1,6 +1,9 @@
 import { Badge, DockerIcon } from "@shellhub/design-system/primitives";
 import { ServerStackIcon } from "@heroicons/react/24/outline";
 
+/**
+ * The platform badge on a device row, distinguishing a container from a host.
+ */
 export default function PlatformBadge({ platform }: { platform: string }) {
   if (platform === "docker") {
     return (

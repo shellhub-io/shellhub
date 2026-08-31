@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+/**
+ * Stands in for Drawer. It renders its children flat, with no portal, focus trap or animation,
+ * so a test can query them directly and does not wait on a transition.
+ */
 export function MockDrawer({
   open,
   onClose,
@@ -26,6 +30,9 @@ export function MockDrawer({
   );
 }
 
+/**
+ * Stands in for ConfirmDialog, with the confirm and cancel as plain buttons.
+ */
 export function MockConfirmDialog({
   open,
   onClose,
@@ -64,10 +71,18 @@ export function MockConfirmDialog({
   );
 }
 
+/**
+ * Stands in for CopyButton. It carries the text in its label rather than touching the clipboard,
+ * which jsdom does not provide.
+ */
 export function MockCopyButton({ text }: { text: string }) {
   return <button type="button" aria-label={`Copy ${text}`} />;
 }
 
+/**
+ * Stands in for BaseDialog, keeping the ARIA attributes so a test can still assert the dialog is
+ * labelled, without the focus trap that fights Testing Library.
+ */
 export function MockBaseDialog({
   open,
   onClose,

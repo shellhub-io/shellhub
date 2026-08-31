@@ -48,6 +48,10 @@ interface DeviceStatusChipProps {
   status: DeviceStatus;
 }
 
+/**
+ * The device status chip. An unrecognised status falls back to pending rather than rendering
+ * nothing, so a status added by a newer server still shows something.
+ */
 export default function DeviceStatusChip({ status }: DeviceStatusChipProps) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
   const { Icon, label, className } = config;

@@ -6,6 +6,10 @@ import {
 } from "@/hooks/useDeviceMutations";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
+/**
+ * Runs the confirmation dialog's chosen operation against a device, so the dialog does not have
+ * to know which mutation each operation maps to.
+ */
 export function useDeviceActionRunner() {
   const accept = useAcceptDevice();
   const reject = useRejectDevice();

@@ -9,6 +9,10 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Confirms removing a key from the vault. The vault holds the only copy, so this is the key
+ * itself being destroyed rather than a reference to it.
+ */
 export default function KeyDeleteDialog({ open, entry, onClose }: Props) {
   const removeKey = useVaultStore((s) => s.removeKey);
   const [error, setError] = useState<string | null>(null);

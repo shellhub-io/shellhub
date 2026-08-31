@@ -14,6 +14,10 @@ export const DEMO_DEVICE = {
   name: "raspberrypi-demo",
 } as const;
 
+/**
+ * Whether the wizard is being previewed with ?wizard=demo. Development builds only, so the query
+ * parameter does nothing in production and cannot be used to fake a first run.
+ */
 export function isWizardDemo(): boolean {
   if (!import.meta.env.DEV) return false;
   return new URLSearchParams(window.location.search).get("wizard") === "demo";

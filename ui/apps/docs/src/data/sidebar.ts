@@ -9,6 +9,10 @@ import {
   ServerStackIcon,
 } from "@heroicons/react/24/outline";
 
+/**
+ * One entry in the docs navigation. An item with no href is a group heading and carries its
+ * children in items; featured promotes it onto the section landing page.
+ */
 export interface SidebarItem {
   label: string;
   href?: string;
@@ -16,6 +20,10 @@ export interface SidebarItem {
   items?: SidebarItem[];
 }
 
+/**
+ * A top-level section of the docs navigation. description and icon are rendered on the section
+ * index, not in the sidebar itself.
+ */
 export interface SidebarSection {
   label: string;
   description: string;
@@ -23,15 +31,22 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
-// Pages intentionally not in the sidebar nav.
-//
-// Everything under the second block is the pre-rewrite tree. This app is a
-// throwaway spike comparing documentation structures, and the sandbox running
-// it cannot delete files, so the superseded pages stay on disk and are retired
-// from navigation here instead. Their content lives on, reorganized, under the
-// journey-shaped tree the sidebar actually exposes.
+/**
+ * Routes that exist but are deliberately absent from the navigation, so a link check can tell an
+ * unreachable page from an intentionally unlisted one.
+ *
+ * Everything under the second block is the pre-rewrite tree. This app is a throwaway spike
+ * comparing documentation structures, and the sandbox running it cannot delete files, so the
+ * superseded pages stay on disk and are retired from navigation here instead. Their content lives
+ * on, reorganized, under the journey-shaped tree the sidebar actually exposes.
+ */
 export const PAGES_NOT_IN_NAV: string[] = ["/"];
 
+/**
+ * Flattens a nested item tree to the entries that actually resolve to a page, dropping the group
+ * headings on the way down. Used wherever the tree has to be walked as a list — search, the
+ * previous/next links, the link check.
+ */
 export function flattenItems(
   items: SidebarItem[],
 ): { label: string; href: string; featured?: boolean }[] {
@@ -42,6 +57,11 @@ export function flattenItems(
   );
 }
 
+/**
+ * The docs navigation, in render order. This is the single source of it: the sidebar, the section
+ * index pages and the previous/next links are all derived from this array, so a page added here
+ * appears in all three and a page missing from it appears in none.
+ */
 export const sidebar: SidebarSection[] = [
   {
     label: "About ShellHub",

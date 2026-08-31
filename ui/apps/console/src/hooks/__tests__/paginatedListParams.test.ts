@@ -5,8 +5,6 @@ import {
   type ListParamDefaults,
 } from "../paginatedListParams";
 
-// ── Shared fixture ────────────────────────────────────────────────────────────
-
 const VALID_STATUSES = ["accepted", "pending", "rejected"] as const;
 const PER_PAGE_ALLOW = [10, 25, 50] as const;
 

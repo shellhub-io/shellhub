@@ -235,6 +235,10 @@ function EditorToolbar({ editor }: { editor: Editor }) {
   );
 }
 
+/**
+ * The rich-text editor for an announcement. editorRef exposes the instance so the page can
+ * insert and query without lifting the whole editor state.
+ */
 export default function AnnouncementEditor({
   content,
   onChange,

@@ -10,6 +10,9 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Accepts or rejects a pending container, refreshing the list and the container itself.
+ */
 export function useUpdateContainerStatus() {
   const invalidate = useInvalidateByIds("getContainers", "getContainer");
   return useMutation({
@@ -18,6 +21,9 @@ export function useUpdateContainerStatus() {
   });
 }
 
+/**
+ * Removes a container from the namespace.
+ */
 export function useRemoveContainer() {
   const invalidate = useInvalidateByIds("getContainers", "getContainer");
   return useMutation({
@@ -26,6 +32,9 @@ export function useRemoveContainer() {
   });
 }
 
+/**
+ * Renames a container.
+ */
 export function useRenameContainer() {
   const invalidate = useInvalidateByIds("getContainers", "getContainer");
   return useMutation({
@@ -34,6 +43,9 @@ export function useRenameContainer() {
   });
 }
 
+/**
+ * Tags a container. The tag list is refreshed too, because a tag may not have existed before.
+ */
 export function useAddContainerTag() {
   const invalidate = useInvalidateByIds(
     "getContainers",
@@ -59,6 +71,10 @@ export function useAddContainerTag() {
   });
 }
 
+/**
+ * Removes a tag from a container. The tag itself survives on anything else carrying it, so the
+ * tag list is not refreshed.
+ */
 export function useRemoveContainerTag() {
   const invalidate = useInvalidateByIds("getContainers", "getContainer");
   return useMutation({

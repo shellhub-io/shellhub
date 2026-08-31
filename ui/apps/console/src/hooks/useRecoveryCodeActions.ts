@@ -1,3 +1,7 @@
+/**
+ * Download and copy for a freshly generated set of recovery codes. They are shown once, so this
+ * is the only chance to save them and both routes have to work before the dialog closes.
+ */
 export function useRecoveryCodeActions() {
   const handleDownload = (codes: string[]): void => {
     const content = `ShellHub Recovery Codes\n\n${codes.join("\n")}\n\nKeep these codes in a safe place. Each code can only be used once.`;

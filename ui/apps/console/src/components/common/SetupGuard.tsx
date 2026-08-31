@@ -5,6 +5,10 @@ import { isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { Spinner } from "@shellhub/design-system/primitives";
 
+/**
+ * Holds the app until the instance has been set up, sending an unconfigured one to the setup
+ * wizard. Skipped on cloud, where the instance is set up before anyone reaches it.
+ */
 export default function SetupGuard() {
   const isCloudEdition = isCloud();
   const [loading, setLoading] = useState(!isCloudEdition);

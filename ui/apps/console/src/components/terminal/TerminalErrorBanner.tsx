@@ -9,6 +9,10 @@ interface TerminalErrorBannerProps {
   sessionId: string;
 }
 
+/**
+ * Explains why a terminal failed, and offers the way out — reconnecting where that can help,
+ * and the relevant page where it cannot.
+ */
 export default function TerminalErrorBanner({
   error,
   sessionId,

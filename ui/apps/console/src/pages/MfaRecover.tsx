@@ -11,6 +11,10 @@ import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
 import type { MfaRecoverFormValues } from "./setup/mfaRecoverResolver";
 
+/**
+ * Signing in with a recovery code, for someone without their authenticator. Each code works
+ * once, which the page says, because using one silently reduces what is left.
+ */
 export default function MfaRecover() {
   const {
     recoverWithCode,

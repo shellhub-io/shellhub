@@ -2,9 +2,20 @@ import { create } from "zustand";
 import { generateRandomUUID } from "@/utils/random-uuid";
 import { useRecentDevicesStore } from "./recentDevicesStore";
 
+/**
+ * How a terminal window is displayed. Minimized keeps the session alive — the connection is not
+ * torn down until the session is closed.
+ */
 export type TerminalWindowState = "docked" | "minimized" | "fullscreen";
+/**
+ * Where a terminal's connection stands.
+ */
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
+/**
+ * One open terminal. The credentials are held for the life of the session so a reconnect does
+ * not have to ask again; they are in memory only and go with the tab.
+ */
 export interface TerminalSession {
   id: string;
   deviceUid: string;
@@ -21,6 +32,9 @@ export interface TerminalSession {
   record?: boolean;
 }
 
+/**
+ * The device a closed terminal offers to reconnect to, which is all that outlives the session.
+ */
 export interface ReconnectTarget {
   deviceUid: string;
   deviceName: string;
@@ -55,6 +69,10 @@ function demoteOthers(
   });
 }
 
+/**
+ * The open terminals. Several may run at once, so this is a list rather than one session, and
+ * opening one also records the device as recently used.
+ */
 export const useTerminalStore = create<TerminalState>((set) => ({
   sessions: [],
   reconnectTarget: null,

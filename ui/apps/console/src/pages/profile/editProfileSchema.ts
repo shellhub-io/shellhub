@@ -6,6 +6,10 @@ import {
   validateRecoveryEmail,
 } from "./validate";
 
+/**
+ * The profile as it stands. The schema is built around it so a field can be validated only when
+ * it has actually changed.
+ */
 export interface CurrentProfileValues {
   name: string;
   username: string;
@@ -19,8 +23,15 @@ const editProfileFields = z.object({
   recoveryEmail: z.string(),
 });
 
+/**
+ * The edit-profile form's values, derived from the schema.
+ */
 export type EditProfileFormValues = z.infer<typeof editProfileFields>;
 
+/**
+ * Builds the edit-profile schema around the current values, so an unchanged field is not
+ * re-validated — a username that is already taken by this very account must not be rejected.
+ */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
     if (values.name !== current.name) {

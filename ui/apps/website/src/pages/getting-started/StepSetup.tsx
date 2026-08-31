@@ -11,6 +11,10 @@ interface StepSetupProps {
   onBack: () => void;
 }
 
+/**
+ * Second step of getting started: the one-line install, what it does, and where to go next.
+ * onBack returns to the choice rather than using browser history, which would leave the page.
+ */
 export function StepSetup({ onBack }: StepSetupProps) {
   return (
     <div className="max-w-xl mx-auto w-full">

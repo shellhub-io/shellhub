@@ -1,5 +1,9 @@
 import { ReactNode } from "react";
 
+/**
+ * A field's error message. It carries the id the input points at through aria-describedby, which
+ * is what makes the error read out with the field rather than in isolation.
+ */
 export default function FieldError({
   id,
   role,

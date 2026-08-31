@@ -14,6 +14,10 @@ interface ResetPasswordDialogProps {
   userId: string;
 }
 
+/**
+ * Resets a user's password as an admin. The user is not notified, so whoever does this has to
+ * tell them — the dialog says as much.
+ */
 export default function ResetPasswordDialog({
   open,
   onClose,

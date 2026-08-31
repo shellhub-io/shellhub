@@ -19,6 +19,9 @@ interface RecordingPaywallDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Explains that session recording needs a paid plan.
+ */
 export default function RecordingPaywallDialog({
   open,
   onClose,

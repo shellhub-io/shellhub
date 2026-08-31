@@ -24,6 +24,10 @@ import {
   Spinner,
 } from "@shellhub/design-system/primitives";
 
+/**
+ * The namespace name form. Validates as the user types against the same rules the server holds,
+ * so the requirements are visible before the request rather than after it.
+ */
 export function NamespaceCreateForm() {
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -103,6 +107,10 @@ function CopyBlock({ command }: { command: string }) {
   );
 }
 
+/**
+ * What community edition shows instead of the form: creating a namespace there is a server-side
+ * step, so this explains it and then switches into the namespace once it exists.
+ */
 export function CommunityInstructions() {
   const switchNs = useSwitchNamespace();
   const [ready, setReady] = useState(false);
@@ -183,7 +191,10 @@ export function CommunityInstructions() {
   );
 }
 
-/* ─── Main component ─── */
+/**
+ * The create-namespace screen, which is the form on the paid editions and the instructions on
+ * community — the two are different enough that neither is a variant of the other.
+ */
 export default function CreateNamespace() {
   const canCreate = isEnterpriseOrCloud();
 

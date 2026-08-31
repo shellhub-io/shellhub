@@ -19,6 +19,11 @@ const eyebrowColorClasses: Record<EyebrowColor, string> = {
   green: "text-accent-green",
 };
 
+/**
+ * Props of SectionHeader. title takes a node rather than a string so a word can be highlighted
+ * mid-heading; reveal animates it in on scroll, which should be off above the fold where the
+ * animation would play before the reader arrives.
+ */
 export interface SectionHeaderProps {
   title: ReactNode;
   eyebrow?: ReactNode;
@@ -32,6 +37,9 @@ export interface SectionHeaderProps {
   subtitleClassName?: string;
 }
 
+/**
+ * The eyebrow, heading and subtitle block that opens a section.
+ */
 export function SectionHeader({
   title,
   eyebrow,

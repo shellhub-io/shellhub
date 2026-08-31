@@ -11,6 +11,9 @@ import { useAuthStore } from "../stores/authStore";
 import { consumePendingDeviceCode } from "@/utils/navigation";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Edits the namespace's settings.
+ */
 export function useEditNamespace() {
   const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
@@ -19,6 +22,10 @@ export function useEditNamespace() {
   });
 }
 
+/**
+ * Sets how SSH access is granted in the namespace. It changes who can reach every device at
+ * once, so the namespace queries are refreshed with it.
+ */
 export function useSetSshAccessMode() {
   const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
@@ -27,6 +34,10 @@ export function useSetSshAccessMode() {
   });
 }
 
+/**
+ * Switches the active namespace, which re-issues the token and lands on redirectTo. Everything
+ * cached belongs to the previous namespace, so this is a navigation rather than a refetch.
+ */
 export function useSwitchNamespace() {
   return useMutation({
     mutationFn: async ({
@@ -50,6 +61,9 @@ export function useSwitchNamespace() {
   });
 }
 
+/**
+ * Creates a namespace and switches into it, so the user ends up inside what they just made.
+ */
 export function useCreateNamespace() {
   return useMutation({
     mutationFn: async (name: string) => {
@@ -74,6 +88,9 @@ export function useCreateNamespace() {
   });
 }
 
+/**
+ * Deletes a namespace along with everything in it. Irreversible.
+ */
 export function useDeleteNamespace() {
   return useMutation({
     mutationFn: async (tenantId: string) => {
@@ -87,6 +104,10 @@ export function useDeleteNamespace() {
   });
 }
 
+/**
+ * Leaves a namespace. Unlike deleting, the namespace survives — this only removes the caller,
+ * and an owner cannot be the one to go.
+ */
 export function useLeaveNamespace() {
   return useMutation({
     mutationFn: async (tenantId: string) => {

@@ -11,6 +11,10 @@ interface NamespaceNameFieldProps {
   error?: string | null;
 }
 
+/**
+ * The namespace name field, with the rules shown as a checklist that resolves as the user types
+ * — the constraints are unusual enough that discovering them by error is a poor experience.
+ */
 export default function NamespaceNameField({
   id,
   value,

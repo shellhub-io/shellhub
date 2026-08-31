@@ -15,6 +15,10 @@ import {
 } from "./setup/forgotPasswordResolver";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * Requests a password reset. It reports success whatever the outcome, because saying whether the
+ * address exists would let the form be used to enumerate accounts.
+ */
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);

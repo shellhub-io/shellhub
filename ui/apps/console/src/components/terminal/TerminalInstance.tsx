@@ -33,6 +33,10 @@ interface TerminalInstanceProps {
   visible: boolean;
 }
 
+/**
+ * One live terminal: the xterm instance, its WebSocket, and the recording. Kept mounted while
+ * hidden rather than unmounted, because unmounting would drop the connection.
+ */
 export default function TerminalInstance({
   session,
   visible,

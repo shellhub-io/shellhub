@@ -24,6 +24,10 @@ export type ApprovalPhase =
 /** What confirming does. The whole screen branches on this. */
 export type ApprovalKind = "identity" | "reauth";
 
+/**
+ * What is being approved: which device, as whom, and from where. The IP address is what a user
+ * checks the request against, so it is shown rather than merely logged.
+ */
 export interface ApprovalDetails {
   sshid: string;
   deviceName: string;
@@ -40,6 +44,11 @@ export interface ApprovalDetails {
 /** Fallback window when the server does not report one. */
 const APPROVAL_TTL_SECONDS = 90;
 
+/**
+ * Drives the SSH approval screen: fetches the pending request, counts its lifetime down, and
+ * carries the decision back. The request expires on the server, so the countdown reaching zero
+ * moves to the expired phase rather than leaving a button that would fail.
+ */
 export function useSSHApproval(code: string) {
   const [phase, setPhase] = useState<ApprovalPhase>("loading");
   const [details, setDetails] = useState<ApprovalDetails | null>(null);

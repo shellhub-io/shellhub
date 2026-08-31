@@ -12,6 +12,10 @@ interface UseTagsParams {
   perPage?: number;
 }
 
+/**
+ * The namespace's tags. Fetched a hundred at a time, since they are used to populate filters
+ * rather than to be paged through.
+ */
 export function useTags({ page = 1, perPage = 100 }: UseTagsParams = {}) {
   const options = { query: { page, per_page: perPage } } satisfies { query: GetTagsData["query"] };
 

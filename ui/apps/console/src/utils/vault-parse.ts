@@ -10,6 +10,11 @@ function safeParse(raw: string | null | undefined): unknown {
   }
 }
 
+/**
+ * Reads a stored vault header, returning null unless every field is present and the version is
+ * one this build understands. Strict on purpose: a header that is trusted and wrong derives a
+ * key that silently fails to decrypt anything.
+ */
 export function parseVaultMeta(
   raw: string | null | undefined,
 ): VaultMeta | null {
@@ -29,6 +34,9 @@ export function parseVaultMeta(
   return parsed as unknown as VaultMeta;
 }
 
+/**
+ * Reads a stored vault body, returning null unless both the IV and the ciphertext are present.
+ */
 export function parseVaultData(
   raw: string | null | undefined,
 ): VaultData | null {
@@ -42,6 +50,10 @@ export function parseVaultData(
   return parsed as unknown as VaultData;
 }
 
+/**
+ * Reads the stored vault settings, filling in defaults for anything missing or out of range.
+ * Unlike the header this never returns null: a broken setting must not stop the vault opening.
+ */
 export function parseVaultSettings(
   raw: string | null | undefined,
 ): VaultSettings {

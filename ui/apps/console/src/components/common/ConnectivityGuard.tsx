@@ -46,6 +46,11 @@ function ApiUnavailablePage() {
   );
 }
 
+/**
+ * Holds the app on a loading screen until the API has answered once. Everything below assumes it
+ * can reach the API, so this is what turns an unreachable backend into one explanation rather
+ * than a failure on every query at once.
+ */
 export default function ConnectivityGuard() {
   const { initialCheckDone, initialGatePassed, checkInitial } =
     useConnectivityStore();

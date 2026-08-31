@@ -12,6 +12,10 @@ function createTestQueryClient(): QueryClient {
   });
 }
 
+/**
+ * Builds the provider wrapper a component needs under test: a query client and a router. The
+ * client is fresh per call unless one is passed, so cache does not leak between cases.
+ */
 export function createTestWrapper(opts?: {
   queryClient?: QueryClient;
   initialEntries?: string[];
@@ -33,6 +37,9 @@ export function createTestWrapper(opts?: {
   };
 }
 
+/**
+ * Renders a hook inside that wrapper, for one that uses React Query.
+ */
 export function renderHookWithClient<Result>(
   hook: () => Result,
   opts?: Omit<RenderHookOptions<unknown>, "wrapper">,

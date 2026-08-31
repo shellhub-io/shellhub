@@ -3,6 +3,10 @@ import { ArrowMarker, Section, SectionHeader } from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 import { C, FONT_SANS, FONT_MONO } from "@shellhub/design-system/constants";
 
+/**
+ * Landing section summarising how a connection is made. The how-it-works page is the long form
+ * of the same story.
+ */
 export function HowItWorks() {
   return (
     <Section>

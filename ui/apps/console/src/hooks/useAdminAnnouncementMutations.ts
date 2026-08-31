@@ -6,6 +6,9 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Creates an announcement, refreshing the admin list on success.
+ */
 export function useAdminCreateAnnouncement() {
   const invalidate = useInvalidateByIds("listAnnouncementsAdmin");
   return useMutation({
@@ -14,6 +17,9 @@ export function useAdminCreateAnnouncement() {
   });
 }
 
+/**
+ * Updates an announcement, refreshing both the list and the single-announcement query.
+ */
 export function useAdminUpdateAnnouncement() {
   const invalidate = useInvalidateByIds(
     "listAnnouncementsAdmin",
@@ -25,6 +31,9 @@ export function useAdminUpdateAnnouncement() {
   });
 }
 
+/**
+ * Deletes an announcement, refreshing both the list and the single-announcement query.
+ */
 export function useAdminDeleteAnnouncement() {
   const invalidate = useInvalidateByIds(
     "listAnnouncementsAdmin",

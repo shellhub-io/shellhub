@@ -7,6 +7,10 @@ interface WizardStepCompleteProps {
   device: { uid: string; name: string } | null;
 }
 
+/**
+ * The wizard's last step, once a device has actually enrolled: what was connected, and where to
+ * go next.
+ */
 export default function WizardStepComplete({
   device,
 }: WizardStepCompleteProps) {

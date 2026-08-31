@@ -40,6 +40,9 @@ interface UseContainersParams {
   orderBy?: "asc" | "desc";
 }
 
+/**
+ * A page of the namespace's containers, filtered by status, search and tags.
+ */
 export function useContainers({
   page = 1,
   perPage = 10,

@@ -19,6 +19,9 @@ interface NamespaceUpsellDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Explains why another namespace needs a paid edition, shown instead of failing the create.
+ */
 export default function NamespaceUpsellDialog({
   open,
   onClose,

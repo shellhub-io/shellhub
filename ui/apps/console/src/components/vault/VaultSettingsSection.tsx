@@ -190,6 +190,10 @@ function AutoLockTimeoutSelect({
   );
 }
 
+/**
+ * The vault panel on the settings page: lock timing, where the vault is stored, and the reset.
+ * Resetting destroys the keys — the passphrase cannot be recovered — so it is guarded here.
+ */
 export default function VaultSettingsSection() {
   const status = useVaultStore((s) => s.status);
   const lock = useVaultStore((s) => s.lock);

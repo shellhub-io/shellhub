@@ -9,6 +9,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { useTags } from "@/hooks/useTags";
 
+/**
+ * The tag filter above a list. Selecting several narrows to devices carrying all of them, which
+ * is why removal is offered inline rather than by reopening the menu.
+ */
 function TagFilterDropdown({
   filterTags,
   onAdd,

@@ -19,6 +19,11 @@ import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
 import { isEnterprise } from "@/env";
 
+/**
+ * The shell of the signed-in app: bar, sidebar, routed page and the terminal taskbar. The
+ * terminal lives here rather than on a page, so a session survives navigating away from the
+ * device it belongs to.
+ */
 export default function AppLayout() {
   const { pathname } = useLocation();
   const { namespaces } = useNamespaces();

@@ -2,6 +2,9 @@ import { ShellHubCloudIcon } from "@shellhub/design-system/primitives";
 import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { ActionButton } from "@/components";
 
+/**
+ * Landing hero — full viewport height, so the first screen is the pitch and nothing else.
+ */
 export function Hero() {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-28 pb-20 relative overflow-hidden grid-bg">

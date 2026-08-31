@@ -1,6 +1,10 @@
 import { useState, useCallback, useRef } from "react";
 import { getUserTokenAdmin } from "../client";
 
+/**
+ * Signs an admin in as another user. Tracks the id in flight so a row can show its own spinner,
+ * and guards against a second click starting a second impersonation.
+ */
 export function useLoginAsUser() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);

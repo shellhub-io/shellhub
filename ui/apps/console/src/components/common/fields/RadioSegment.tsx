@@ -2,6 +2,10 @@ import { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { useRadioGroupContext } from "@/components/common/fields/radioGroupContext";
 
+/**
+ * One option of a RadioGroupField, drawn as a segment of a joined control. For a set of two or
+ * three that read as one switch.
+ */
 export default function RadioSegment<T extends string>({
   value,
   label,

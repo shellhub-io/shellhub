@@ -6,6 +6,9 @@ import { useSignUpStore } from "../stores/signUpStore";
 import { useResendEmail } from "../hooks/useResendEmail";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * The page telling a new account to check its mail, with the resend.
+ */
 export default function ConfirmAccount() {
   const [searchParams] = useSearchParams();
   const resetErrors = useSignUpStore((s) => s.resetResendError);

@@ -18,6 +18,9 @@ import {
   type AnnouncementFormValues,
 } from "./announcementSchema";
 
+/**
+ * Edits an existing announcement. Changes are live as soon as they are saved.
+ */
 export default function EditAnnouncement() {
   const { uuid } = useParams<{ uuid: string }>();
   const navigate = useNavigate();

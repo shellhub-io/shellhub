@@ -2,6 +2,10 @@ import { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { useRadioGroupContext } from "@/components/common/fields/radioGroupContext";
 
+/**
+ * One option of a RadioGroupField, drawn as a card. It reads the group from context, so it only
+ * works inside one.
+ */
 export default function RadioCard<T extends string>({
   value,
   icon,

@@ -18,6 +18,10 @@ interface MfaDisableDialogProps {
 
 type Mode = "totp" | "recovery" | "email-reset";
 
+/**
+ * Turns MFA off, after re-authenticating. It lowers the account's protection, so it asks for a
+ * current factor rather than accepting the existing session as proof.
+ */
 export default function MfaDisableDialog({
   open,
   onClose,

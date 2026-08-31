@@ -6,6 +6,10 @@ import {
   GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 
+/**
+ * Summarises the filter a rule or policy applies to, so a row says what it covers without being
+ * opened.
+ */
 export default function FilterBadge({
   filter,
 }: {

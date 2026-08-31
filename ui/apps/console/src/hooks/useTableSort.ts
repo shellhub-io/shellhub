@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+/**
+ * Which way a column sorts.
+ */
 export type SortOrder = "asc" | "desc";
 
 interface UseTableSortOptions<TField extends string> {
@@ -8,6 +11,10 @@ interface UseTableSortOptions<TField extends string> {
   onSortChange?: () => void;
 }
 
+/**
+ * Tracks a table's sort column and direction. onSortChange fires on a change so the caller can
+ * return to the first page — a sorted list re-paginated from where it was shows the wrong rows.
+ */
 export function useTableSort<TField extends string>({
   defaultField,
   defaultOrder = "desc",

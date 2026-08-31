@@ -8,6 +8,10 @@ interface ErrorEntry {
   links?: Array<{ label: string; to: string }>;
 }
 
+/**
+ * A terminal failure as the banner shows it. reconnect says whether retrying could help, which
+ * decides if the button is offered at all; hints and links are the ways out.
+ */
 export interface TerminalError {
   title: string;
   message: string;
@@ -108,7 +112,10 @@ const errorMap: Record<string, ErrorEntry> = {
   },
 };
 
-// Values match ssh/web/messages.go messageKind iota.
+/**
+ * The WebSocket frame kinds. The values match the messageKind iota in ssh/web/messages.go, so
+ * reordering them there without changing them here silently misroutes every frame.
+ */
 export const WS_KIND = {
   INPUT: 1,
   RESIZE: 2,
@@ -118,6 +125,9 @@ export const WS_KIND = {
   REAUTH: 6,
 } as const;
 
+/**
+ * The session could not be started at all. Worth retrying, since the cause is usually transient.
+ */
 export const HTTP_CONNECT_ERROR: TerminalError = {
   title: "Connection failed",
   message: "Could not start the session.",
@@ -128,6 +138,9 @@ export const HTTP_CONNECT_ERROR: TerminalError = {
   links: [],
 };
 
+/**
+ * The session ended cleanly. Not an error to retry — the shell exited.
+ */
 export const WS_CLOSE_ERROR: TerminalError = {
   title: "Disconnected",
   message: "The session has ended.",
@@ -136,6 +149,10 @@ export const WS_CLOSE_ERROR: TerminalError = {
   links: [],
 };
 
+/**
+ * The connection dropped. Reconnecting is not offered, because the device is the likely cause
+ * and an immediate retry would fail the same way.
+ */
 export const WS_NETWORK_ERROR: TerminalError = {
   title: "Connection error",
   message: "Could not reach the device.",
@@ -146,6 +163,10 @@ export const WS_NETWORK_ERROR: TerminalError = {
   links: [],
 };
 
+/**
+ * The device asked for a fresh re-authentication and the user dismissed it. Retrying is
+ * offered, since it will prompt again.
+ */
 export const WS_REAUTH_CANCELLED: TerminalError = {
   title: "Re-authentication needed",
   message: "This device requires a fresh re-authentication to connect.",
@@ -154,6 +175,11 @@ export const WS_REAUTH_CANCELLED: TerminalError = {
   links: [],
 };
 
+/**
+ * Reads a WebSocket frame as a protocol message, or null when it is not one. A frame that is
+ * not JSON is ordinary terminal output, not a failure, which is why this returns null rather
+ * than throwing.
+ */
 export function parseMessage(
   data: string,
 ): { kind: number; data: string } | null {
@@ -178,6 +204,11 @@ export function parseMessage(
   return null;
 }
 
+/**
+ * Turns a server error string into the banner's contents. Identity mode changes the advice —
+ * the same failure has a different remedy when access is granted by identity rather than by
+ * key — so it is a parameter rather than read here.
+ */
 export function resolveError(
   raw: string,
   deviceUid: string,

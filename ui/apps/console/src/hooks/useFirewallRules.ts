@@ -13,6 +13,9 @@ interface UseFirewallRulesParams {
   perPage?: number;
 }
 
+/**
+ * A page of the namespace's firewall rules, in priority order.
+ */
 export function useFirewallRules({
   page = 1,
   perPage = 10,

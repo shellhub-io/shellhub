@@ -1,12 +1,16 @@
 import { Buffer } from "buffer";
 
-// `btoa(JSON.stringify(value))` throws InvalidCharacterError for any character
-// above U+00FF (e.g. tag names, hostnames, usernames in non-Latin scripts),
-// so the request never leaves the browser. UTF-8-encode first, then convert
-// standard base64 to unpadded base64url so the result is safe in URL
-// query-strings and HTTP headers without percent-encoding.
-// Note: feross/buffer v5.7.1 (pinned in the lockfile) does not support
-// `.toString('base64url')`, so we post-process the standard base64 string.
+/**
+ * Serializes a value as unpadded base64url, for a filter carried in a query string or a header.
+ *
+ * btoa(JSON.stringify(value)) throws InvalidCharacterError on any character above U+00FF — a tag
+ * name, hostname or username in a non-Latin script — so the request would never leave the browser.
+ * The value is UTF-8 encoded first, then the standard base64 is rewritten as base64url so it
+ * survives a URL without percent-encoding.
+ *
+ * The rewrite is done by hand because feross/buffer 5.7.1, which the lockfile pins, has no
+ * toString("base64url").
+ */
 export function toBase64Json(value: unknown): string {
   return Buffer.from(JSON.stringify(value), "utf-8")
     .toString("base64")

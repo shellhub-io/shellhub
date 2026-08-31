@@ -37,6 +37,10 @@ const colorStyles: Record<
   },
 };
 
+/**
+ * A bordered card that glows in one palette colour, for the one item on a page meant to draw
+ * the eye. Remaining props are spread onto the div, so a caller can attach ids and handlers.
+ */
 export function HighlightCard({
   color,
   className,

@@ -89,6 +89,9 @@ function TagChips({ tags }: { tags: string[] }) {
   );
 }
 
+/**
+ * Every device on the instance, across namespaces.
+ */
 export default function AdminDevices() {
   const navigate = useNavigate();
 

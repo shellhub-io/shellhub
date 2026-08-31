@@ -25,6 +25,10 @@ interface UseAdminAccountRequestsParams {
   enabled?: boolean;
 }
 
+/**
+ * The accounts waiting for approval. Runs only for an admin, so a non-admin never issues the
+ * request that would be refused.
+ */
 export function useAdminAccountRequests({
   page = 1,
   perPage = 10,

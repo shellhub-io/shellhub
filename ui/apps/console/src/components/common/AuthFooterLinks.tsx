@@ -3,6 +3,9 @@ import { BookOpenIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { GithubIcon } from "@shellhub/design-system/primitives";
 import { Link } from "react-router-dom";
 
+/**
+ * The links beneath the sign-in and sign-up forms.
+ */
 export default function AuthFooterLinks() {
   return (
     <div

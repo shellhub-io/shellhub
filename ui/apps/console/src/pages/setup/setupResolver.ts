@@ -2,6 +2,9 @@ import type { FieldErrors, Resolver } from "react-hook-form";
 import { validateNamespaceName } from "@/utils/validation";
 import { validate, type FormErrors } from "./validate";
 
+/**
+ * The first-run setup form: the admin account and the first namespace.
+ */
 export interface SetupFormValues {
   name: string;
   username: string;
@@ -21,6 +24,10 @@ const VALIDATE_FIELDS: ValidateField[] = [
   "confirmPassword",
 ];
 
+/**
+ * Validates the setup form, including the namespace name — which is pre-filled from the username
+ * but is still the user's to change, so it is checked rather than trusted.
+ */
 export const setupResolver: Resolver<SetupFormValues> = (values) => {
   const formErrors = validate(values);
   const errors: FieldErrors<SetupFormValues> = {};

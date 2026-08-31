@@ -26,6 +26,10 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Adds or edits a key in the vault. Everything happens locally: the key is encrypted before it
+ * is stored, and the plaintext never leaves this component.
+ */
 export default function KeyDrawer({ open, editKey, onClose }: Props) {
   const addKey = useVaultStore((s) => s.addKey);
   const updateKey = useVaultStore((s) => s.updateKey);

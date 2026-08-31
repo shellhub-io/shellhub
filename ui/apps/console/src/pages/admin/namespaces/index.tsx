@@ -37,6 +37,9 @@ function getOwnerEmail(namespace: Namespace): string {
   return owner?.email || namespace.owner;
 }
 
+/**
+ * Every namespace on the instance.
+ */
 export default function AdminNamespaces() {
   const navigate = useNavigate();
   const { params, setPage, setSearch } =

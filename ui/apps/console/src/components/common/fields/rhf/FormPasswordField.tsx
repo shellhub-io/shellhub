@@ -13,6 +13,9 @@ type Props<T extends FieldValues> = PasswordFieldProps & {
   onValueChange?: (value: string) => void;
 };
 
+/**
+ * PasswordField bound to react-hook-form.
+ */
 export default function FormPasswordField<T extends FieldValues>({
   name,
   control,

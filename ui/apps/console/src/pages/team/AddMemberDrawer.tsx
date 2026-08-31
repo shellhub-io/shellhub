@@ -26,6 +26,10 @@ interface AddMemberDrawerProps {
   tenantId: string;
 }
 
+/**
+ * Invites someone to the namespace. On cloud the invitation is emailed; elsewhere there is no
+ * mail, so the link is shown to be passed on by hand.
+ */
 function AddMemberDrawer({ open, onClose, tenantId }: AddMemberDrawerProps) {
   const generateLink = useGenerateInvitationLink();
   const emailDelivery = isCloud();

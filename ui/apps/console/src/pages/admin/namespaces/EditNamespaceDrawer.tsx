@@ -26,6 +26,10 @@ interface EditNamespaceDrawerProps {
   namespace: Namespace | null;
 }
 
+/**
+ * Edits a namespace's limits and settings as an admin, including the ones its own owner cannot
+ * change.
+ */
 export default function EditNamespaceDrawer({
   open,
   onClose,

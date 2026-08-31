@@ -213,6 +213,10 @@ function SyncForm({
   );
 }
 
+/**
+ * Moves a vault between this browser and the server. direction names which way; the copy at the
+ * destination is replaced, so the dialog has to say which side wins before it runs.
+ */
 export default function VaultSyncDialog({ open, onClose, direction }: Props) {
   const instanceId = useId();
   const titleId = `vault-sync-title-${instanceId}`;

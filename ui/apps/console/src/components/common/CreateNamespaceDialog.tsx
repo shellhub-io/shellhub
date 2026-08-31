@@ -56,6 +56,9 @@ interface CreateNamespaceDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Creates a namespace without leaving the current page, then switches into it.
+ */
 export default function CreateNamespaceDialog({
   open,
   onClose,

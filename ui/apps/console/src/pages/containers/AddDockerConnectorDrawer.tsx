@@ -4,6 +4,9 @@ import Drawer from "@/components/common/Drawer";
 import CopyButton from "@/components/common/CopyButton";
 import { useAuthStore } from "@/stores/authStore";
 
+/**
+ * Explains how to attach a Docker host so its containers appear as devices.
+ */
 function AddDockerConnectorDrawer({
   open,
   onClose,

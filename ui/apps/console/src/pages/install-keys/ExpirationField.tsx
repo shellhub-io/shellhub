@@ -46,6 +46,10 @@ const CALENDAR_CLASSNAMES = {
   hidden: "invisible",
 };
 
+/**
+ * The expiry field, offering the usual intervals and a never. A key that does not expire is a
+ * standing credential, which is why never is a deliberate choice rather than the default.
+ */
 export default function ExpirationField({
   expiresIn,
   onExpiresInChange,

@@ -14,6 +14,9 @@ interface UseInstallKeysParams {
   orderBy?: "asc" | "desc";
 }
 
+/**
+ * A page of the namespace's install keys, newest first.
+ */
 export function useInstallKeys({
   page = 1,
   perPage = 10,

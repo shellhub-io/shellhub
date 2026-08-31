@@ -3,6 +3,10 @@ import { cn } from "@shellhub/design-system/cn";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useTerminalStore } from "@/stores/terminalStore";
 
+/**
+ * The strip of minimized terminals along the bottom. Offset by the sidebar so it does not sit
+ * under it.
+ */
 export default function TerminalTaskbar({
   sidebarOffset,
 }: {

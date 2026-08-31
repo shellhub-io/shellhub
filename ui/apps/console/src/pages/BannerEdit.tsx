@@ -125,8 +125,10 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
   );
 }
 
-/* --- Page --- */
-
+/**
+ * Edits the namespace's SSH login banner — the text shown to anyone connecting to any device in
+ * it, which is why editing is behind its own permission.
+ */
 export default function BannerEdit() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");

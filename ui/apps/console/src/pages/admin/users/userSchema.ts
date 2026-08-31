@@ -13,8 +13,16 @@ import {
   validateUsername,
 } from "@/utils/validation";
 
+/**
+ * Whether the user form is creating or editing. It changes what is required, not just what is
+ * sent.
+ */
 export type UserFormMode = "create" | "edit";
 
+/**
+ * The request body for a mode. Create and update are different shapes, so this ties the payload
+ * to the mode rather than leaving the caller to pick.
+ */
 export type UserFormPayload<M extends UserFormMode> = M extends "create"
   ? UserAdminCreateRequest
   : UserAdminUpdateRequest;
@@ -31,6 +39,9 @@ const userFields = z.object({
   maxNamespaces: z.string(),
 });
 
+/**
+ * The user form's values, derived from the schema.
+ */
 export type UserFormValues = z.infer<typeof userFields>;
 
 /**
@@ -90,6 +101,9 @@ function valuesFromUser(user: UserAdminResponse): UserFormValues {
   };
 }
 
+/**
+ * Fills the user form from an existing user, or with blanks when creating.
+ */
 export function buildUserDefaults(user?: UserAdminResponse | null): UserFormValues {
   return user ? valuesFromUser(user) : blankValues();
 }
@@ -110,6 +124,10 @@ function computeMaxNamespaces(
   return parseInt(values.maxNamespaces, 10);
 }
 
+/**
+ * Builds the request body for the given mode. On edit only the changed fields are sent, so an
+ * untouched password is omitted rather than sent as an empty string, which would clear it.
+ */
 export function buildUserPayload<M extends UserFormMode>(
   mode: M,
   values: UserFormValues,

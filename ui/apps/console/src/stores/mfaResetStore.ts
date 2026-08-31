@@ -22,6 +22,10 @@ const initialState = {
   error: null,
 };
 
+/**
+ * The MFA reset flow, which spans three screens and an emailed code. It is a store rather than
+ * route state because the user leaves the app for their mail and comes back.
+ */
 export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
   ...initialState,
 

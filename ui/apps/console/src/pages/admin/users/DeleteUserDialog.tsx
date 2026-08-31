@@ -9,6 +9,9 @@ interface DeleteUserDialogProps {
   onDeleted?: () => void;
 }
 
+/**
+ * Confirms deleting a user, naming them so the wrong row cannot be confirmed by habit.
+ */
 export default function DeleteUserDialog({
   open,
   onClose,

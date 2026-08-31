@@ -6,6 +6,10 @@ import {
   getValidateAccount,
 } from "../client";
 
+/**
+ * Where an email verification stands. failed-token is separate from failed because an expired
+ * or reused link is offered a resend, and a genuine failure is not.
+ */
 export type ValidationStatus = "idle" | "processing" | "success" | "failed" | "failed-token";
 
 interface SignUpPayload {
@@ -39,6 +43,10 @@ interface SignUpState {
   resetResendError: () => void;
 }
 
+/**
+ * The sign-up flow: the account request, the verification mail, and the resend. Field-level
+ * errors from the server are kept apart from the general one, so each lands on its own input.
+ */
 export const useSignUpStore = create<SignUpState>()((set) => ({
   signUpToken: null,
   signUpTenant: null,

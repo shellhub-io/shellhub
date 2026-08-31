@@ -1,5 +1,9 @@
 import { RefObject, useEffect } from "react";
 
+/**
+ * Calls handler on Escape while enabled. Given a containerRef the key only counts inside that
+ * element, which is how nested dialogs close the innermost one rather than all of them.
+ */
 export function useEscapeKey(
   handler: () => void,
   enabled = true,

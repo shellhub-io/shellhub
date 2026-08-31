@@ -9,6 +9,10 @@ interface TimelineCardProps {
   statusUpdatedAt: string;
 }
 
+/**
+ * When a thing was created, last seen and last changed, as one block. The three are shown
+ * together because it is the gaps between them that mean something.
+ */
 export default function TimelineCard({
   createdAt,
   lastSeen,

@@ -23,6 +23,10 @@ function getIsDesktopServer() {
   return true;
 }
 
+/**
+ * Drives the sidebar: expanded, pinned, and the mobile drawer. Desktop and mobile are the same
+ * state seen two ways, so the viewport is watched rather than the layout duplicated.
+ */
 export function useSidebarLayout() {
   const [expanded, setExpanded] = useState(false);
   const [pinned, setPinned] = useState(true);

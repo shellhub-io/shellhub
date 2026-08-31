@@ -13,6 +13,10 @@ import { normalizeDeviceTags } from "@/utils/deviceTags";
 
 export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
 
+/**
+ * Builds the device list filter the API expects: a search across name and hostname, and a tag
+ * match, combined so an empty search or an empty tag list simply drops out.
+ */
 export function buildFilter(search: string, tags: string[]): string {
   const filters: Record<string, unknown>[] = [];
   if (search) {
@@ -49,6 +53,9 @@ interface UseDevicesParams {
   orderBy?: "asc" | "desc";
 }
 
+/**
+ * A page of the namespace's devices, filtered by status, search and tags.
+ */
 export function useDevices({
   page = 1,
   perPage = 10,

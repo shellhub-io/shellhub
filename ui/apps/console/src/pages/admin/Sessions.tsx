@@ -23,6 +23,9 @@ type AdminSessionsParams = {
 
 const DEFAULTS: AdminSessionsParams = { page: 1 };
 
+/**
+ * Every session on the instance, across namespaces.
+ */
 export default function AdminSessions() {
   const { params, setPage } = usePaginatedListState<AdminSessionsParams>({
     defaults: DEFAULTS,

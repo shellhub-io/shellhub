@@ -15,6 +15,9 @@ import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import PageLoader from "@/components/common/PageLoader";
 
+/**
+ * The admin dashboard: instance-wide counts and recent sessions across every namespace.
+ */
 export default function AdminDashboard() {
   const {
     stats: statsData,

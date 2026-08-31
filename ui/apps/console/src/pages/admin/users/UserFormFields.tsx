@@ -22,6 +22,10 @@ interface UserFormFieldsProps {
   disableAdmin?: boolean;
 }
 
+/**
+ * The user fields shared by create and edit. mode is what changes the password field's meaning:
+ * required on create, and blank-means-unchanged on edit.
+ */
 export default function UserFormFields({
   control,
   mode,

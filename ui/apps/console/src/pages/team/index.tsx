@@ -8,8 +8,10 @@ import MembersTab from "./MembersTab";
 import ApiKeysTab from "./ApiKeysTab";
 import ServiceAccountsTab from "./ServiceAccountsTab";
 
-/* --- Page --- */
-
+/**
+ * The team page: members, API keys and service accounts. The service accounts tab is only shown
+ * to a role that may see them.
+ */
 export default function Team() {
   const [tab, setTab] = useState("members");
   const tenant = useAuthStore((s) => s.tenant);

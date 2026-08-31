@@ -166,6 +166,10 @@ function CellValue({ value }: { value: FeatureValue }) {
   );
 }
 
+/**
+ * The plan comparison table. It scrolls horizontally below its minimum width rather than
+ * reflowing, because a feature matrix read column by column is not a comparison.
+ */
 export function ComparisonTable() {
   return (
     <Section>

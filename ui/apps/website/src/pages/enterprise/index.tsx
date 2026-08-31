@@ -6,6 +6,10 @@ import { DeploymentOptions } from "./DeploymentOptions";
 import { SupportSection } from "./SupportSection";
 import { EnterpriseCTA } from "./EnterpriseCTA";
 
+/**
+ * The enterprise page. Section order is the argument it makes: what the panel does, how it is
+ * secured, where it runs, who supports it, then the call to action.
+ */
 export default function Enterprise() {
   return (
     <SiteLayout>

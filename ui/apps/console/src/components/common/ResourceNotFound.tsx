@@ -6,6 +6,10 @@ interface ResourceNotFoundProps {
   backTo: string;
 }
 
+/**
+ * The screen for a resource that is gone or was never there, with the way back. Used instead of
+ * a bare 404 so the user lands somewhere they can act.
+ */
 export default function ResourceNotFound({
   icon: Icon,
   resource,

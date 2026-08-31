@@ -40,6 +40,10 @@ function MenuItem({
   );
 }
 
+/**
+ * The install key overflow menu. Disabling is offered separately from deleting: a disabled key
+ * can be re-enabled, and a deleted one cannot.
+ */
 export default function InstallKeyActionsMenu({
   installKey,
   onEdit,

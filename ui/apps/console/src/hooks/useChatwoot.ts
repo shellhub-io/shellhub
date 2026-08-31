@@ -19,16 +19,31 @@ import {
   subscribeChatwootState,
 } from "@/hooks/chatwootRuntime";
 
+/**
+ * Why support chat is or is not available. The three unavailable reasons are kept apart because
+ * they call for different UI: nothing at all, a retry, or an upgrade.
+ */
 export type ChatwootStatus =
   "non-cloud" | "unavailable" | "no-subscription" | "loading" | "ready";
 
+/**
+ * What a consumer of the support widget gets: whether it can be opened, and how.
+ */
 export interface ChatwootHandle {
   status: ChatwootStatus;
   openWidget: () => void;
 }
 
+/**
+ * Carries the widget handle down the tree. The script may be loaded only once per page, so the
+ * provider owns it and everything else reads it from here.
+ */
 export const ChatwootContext = createContext<ChatwootHandle | null>(null);
 
+/**
+ * The widget handle from context. Throws outside a ChatwootProvider rather than returning null,
+ * so the mistake surfaces where it was made.
+ */
 export function useChatwootContext(): ChatwootHandle {
   const ctx = useContext(ChatwootContext);
   if (!ctx) {
@@ -39,6 +54,10 @@ export function useChatwootContext(): ChatwootHandle {
   return ctx;
 }
 
+/**
+ * Loads and manages the support widget. For the provider only — everything else should use
+ * useChatwootContext, since calling this twice would inject the script twice.
+ */
 export function useChatwoot(): ChatwootHandle {
   const config = getConfig();
 

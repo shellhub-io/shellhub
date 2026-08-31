@@ -6,6 +6,9 @@ import {
 } from "@shellhub/design-system/components";
 import { ActionButtonGroup } from "@/components";
 
+/**
+ * Hero of the enterprise page.
+ */
 export function HeroEnterprise() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden">

@@ -97,6 +97,9 @@ const sshFeatures = [
   },
 ];
 
+/**
+ * The integrations page, listing the platforms and tools ShellHub fits alongside.
+ */
 export default function Integrations() {
   return (
     <SiteLayout>

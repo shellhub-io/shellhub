@@ -2,6 +2,10 @@ import { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { useRadioGroupContext } from "@/components/common/fields/radioGroupContext";
 
+/**
+ * One option of a RadioGroupField, drawn as a pill. For a short set where the options are a word
+ * each.
+ */
 export default function RadioPill<T extends string>({
   value,
   label,

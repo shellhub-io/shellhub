@@ -6,6 +6,10 @@ import { cn } from "@shellhub/design-system/cn";
 
 const ICON_CLASS = "w-3.5 h-3.5 shrink-0";
 
+/**
+ * When an install key expires, as a phrase. A key with no expiry reads as "Never" rather than
+ * as a date.
+ */
 export default function ExpiryLabel({
   installKey,
   className,

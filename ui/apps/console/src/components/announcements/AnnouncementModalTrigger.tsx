@@ -23,6 +23,10 @@ function markSeen(announcement: Announcement): void {
   localStorage.setItem(STORAGE_KEY, computeHash(announcement));
 }
 
+/**
+ * Shows the latest announcement once per user, if announcements are on for the instance.
+ * Renders nothing when they are off, so nothing behind it fetches.
+ */
 export default function AnnouncementModalTrigger() {
   if (!getConfig().announcements) return null;
 

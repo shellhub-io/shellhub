@@ -1,5 +1,9 @@
 import { create } from "zustand";
 
+/**
+ * An xterm colour scheme. Background and foreground are required; the sixteen ANSI colours are
+ * optional and fall back to xterm's own, so a theme can set only what it means to change.
+ */
 export interface TerminalThemeColors {
   background: string;
   foreground: string;
@@ -24,6 +28,10 @@ export interface TerminalThemeColors {
   brightWhite?: string;
 }
 
+/**
+ * A named terminal colour scheme. preview holds the two colours the picker swatch needs, so the
+ * list can be drawn without applying a theme.
+ */
 export interface TerminalTheme {
   name: string;
   dark: boolean;
@@ -38,6 +46,10 @@ interface ThemeMetadata {
   preview: { background: string; foreground: string };
 }
 
+/**
+ * The fonts offered for the terminal. All monospaced, and ordered by preference — the first that
+ * the system has is what a new profile gets.
+ */
 export const TERMINAL_FONTS = [
   "IBM Plex Mono",
   "JetBrains Mono",
@@ -50,12 +62,28 @@ export const TERMINAL_FONTS = [
   "monospace",
 ] as const;
 
+/**
+ * One of the offered terminal fonts. Derived from the list, so the two cannot drift.
+ */
 export type TerminalFont = (typeof TERMINAL_FONTS)[number];
 
+/**
+ * Smallest terminal font size. Below this the glyphs stop being legible on a normal display.
+ */
 export const MIN_FONT_SIZE = 8;
+/**
+ * Largest terminal font size. Above this an 80-column terminal no longer fits the panel.
+ */
 export const MAX_FONT_SIZE = 24;
+/**
+ * The font size a new profile starts at.
+ */
 export const DEFAULT_FONT_SIZE = 14;
 
+/**
+ * Holds a font size inside the allowed range. Used on the stored value too, so a size written by
+ * an older build cannot put the terminal outside what the UI can render.
+ */
 export const clampFontSize = (size: number) =>
   Math.min(Math.max(size, MIN_FONT_SIZE), MAX_FONT_SIZE);
 
@@ -123,6 +151,11 @@ interface TerminalThemeState {
   setFontSize: (size: number) => void;
 }
 
+/**
+ * The terminal's appearance — theme, font and size — restored from localStorage at startup, so
+ * it survives a reload. Applies to every open terminal at once; it is a preference, not
+ * per-session state.
+ */
 export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
   const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
   const savedFont = localStorage.getItem(STORAGE_KEYS.fontFamily);

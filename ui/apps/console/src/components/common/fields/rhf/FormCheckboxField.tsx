@@ -13,6 +13,10 @@ type Props<T extends FieldValues> = CheckboxFieldProps & {
   onValueChange?: (value: boolean) => void;
 };
 
+/**
+ * CheckboxField bound to react-hook-form, so the value and its error come from the form rather
+ * than from the caller.
+ */
 export default function FormCheckboxField<T extends FieldValues>({
   name,
   control,

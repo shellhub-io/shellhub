@@ -8,6 +8,10 @@ import { useAuthStore } from "@/stores/authStore";
 
 const DeviceChooserDialog = lazy(() => import("./DeviceChooserDialog"));
 
+/**
+ * How many devices a free namespace may keep. Enforced by the server; this is what decides when
+ * the chooser is offered.
+ */
 export const FREE_TIER_DEVICE_LIMIT = 3;
 
 /**

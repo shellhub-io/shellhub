@@ -414,8 +414,10 @@ function LicenseUpload() {
   );
 }
 
-/* ─── Page ─── */
-
+/**
+ * The licence page: what the installed licence permits, when it expires, and the upload for a
+ * new one.
+ */
 export default function AdminLicense() {
   const { data, isLoading, isError } = useAdminLicense();
 

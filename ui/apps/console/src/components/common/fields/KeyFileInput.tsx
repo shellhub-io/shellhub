@@ -35,6 +35,10 @@ function formatBytes(bytes: number): string {
     : `${Math.round(bytes / 1024)} KB`;
 }
 
+/**
+ * A field that takes a key by paste or by file. The file is read in the browser and never
+ * uploaded, which is the point — a private key must not reach the server.
+ */
 export default function KeyFileInput({
   id,
   label,

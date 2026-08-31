@@ -88,6 +88,12 @@ const AdminAuthentication = lazy(
   () => import("./pages/admin/settings/Authentication"),
 );
 
+/**
+ * Every route of the console. The nesting is the access model, read outside in: connectivity,
+ * then setup, then authentication, then a namespace, then the layout. A page added inside a
+ * guard inherits it, which is why a new route belongs in the group that matches what it needs
+ * rather than at the top.
+ */
 export default function App() {
   return (
     <Suspense>

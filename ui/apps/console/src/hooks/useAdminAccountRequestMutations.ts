@@ -2,8 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { approveUserMutation } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
-// Approving clears the awaiting_approval flag; the account stays not-confirmed until the
-// person activates it, so an activation link can then be minted from the members list.
+/**
+ * Approves a pending account request. This clears awaiting_approval only — the account stays
+ * unconfirmed until the person activates it, which is what lets an activation link be minted
+ * for them afterwards from the members list.
+ */
 export function useApproveAccountRequest() {
   const invalidate = useInvalidateByIds("getUsers", "getUser");
   return useMutation({

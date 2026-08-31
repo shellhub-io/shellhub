@@ -15,6 +15,9 @@ interface CustomFieldsSectionProps {
   customFields: Record<string, string>;
 }
 
+/**
+ * The custom fields on a device: arbitrary key-value pairs the namespace keeps against it.
+ */
 export default function CustomFieldsSection({
   uid,
   customFields,

@@ -30,6 +30,10 @@ const SERVER_FIELD_MESSAGES: Record<string, string> = {
   password: "This password is invalid",
 };
 
+/**
+ * Self-registration, on cloud only. Field errors from the server are shown against the fields
+ * they name rather than as one message, since most of them are about a taken username.
+ */
 export default function SignUp() {
   const navigate = useNavigate();
   const signUp = useSignUpStore((s) => s.signUp);

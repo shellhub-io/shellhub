@@ -6,6 +6,10 @@ import { Spinner, IconButton } from "@shellhub/design-system/primitives";
 
 const GITHUB_ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new";
 
+/**
+ * Opens support chat, or explains why it is unavailable. On a plan without support it offers the
+ * upgrade rather than doing nothing.
+ */
 export default function SupportButton() {
   const { status, openWidget } = useChatwootContext();
   const [paywallOpen, setPaywallOpen] = useState(false);

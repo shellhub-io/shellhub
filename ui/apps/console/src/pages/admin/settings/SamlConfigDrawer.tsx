@@ -22,6 +22,9 @@ interface Props {
   existingConfig: SamlSettings | null | undefined;
 }
 
+/**
+ * Configures SAML, from either the provider's metadata URL or its fields entered by hand.
+ */
 export default function SamlConfigDrawer({
   open,
   onClose,

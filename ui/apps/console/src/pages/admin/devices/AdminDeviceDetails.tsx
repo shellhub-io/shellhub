@@ -19,6 +19,9 @@ import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import { Card } from "@shellhub/design-system/primitives";
 
+/**
+ * One device, seen from the admin area, including which namespace it belongs to.
+ */
 export default function AdminDeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const { data: device, isLoading, error } = useAdminDevice(uid ?? "");

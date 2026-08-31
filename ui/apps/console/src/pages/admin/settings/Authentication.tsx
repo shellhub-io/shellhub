@@ -23,6 +23,10 @@ import {
 
 type AuthSettings = GetAuthenticationSettingsResponse;
 
+/**
+ * The instance authentication settings: local sign-in and SAML. Turning local sign-in off with
+ * no working SSO would lock everyone out, so the page guards that rather than the API alone.
+ */
 export default function AdminAuthentication() {
   const [settings, setSettings] = useState<AuthSettings | null>(null);
   const [loading, setLoading] = useState(true);

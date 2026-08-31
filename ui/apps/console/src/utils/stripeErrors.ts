@@ -22,6 +22,11 @@ const STRIPE_ERROR_MESSAGES: Record<string, string> = {
     "Your card requires authentication. Please complete the verification and try again.",
 };
 
+/**
+ * The sentence to show for a Stripe decline code. Stripe's own message is written for a
+ * developer; these are written for the cardholder, and say what to do next. An unmapped code
+ * falls back to the caller's message, or to a generic one.
+ */
 export function stripeErrorMessage(code: string | undefined, fallback?: string): string {
   if (code && STRIPE_ERROR_MESSAGES[code]) return STRIPE_ERROR_MESSAGES[code];
   return fallback ?? "Unable to process your card. Please try again.";

@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 
+/**
+ * One crumb. An item with no to is the current page, and is rendered as text rather than a link.
+ */
 export interface BreadcrumbItem {
   label: ReactNode;
   to?: string;
@@ -14,6 +17,9 @@ interface BreadcrumbProps {
   className?: string;
 }
 
+/**
+ * The breadcrumb trail, as a labelled nav landmark so it can be skipped.
+ */
 export default function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
   return (
     <nav aria-label="Breadcrumb" className={cn("mb-5", className)}>

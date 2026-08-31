@@ -38,6 +38,10 @@ type Branch =
 type PostAction =
   { kind: "pending-approval" } | { kind: "joined"; token?: string };
 
+/**
+ * The page an invitation link lands on. It works signed out as well as in: an invitation may
+ * arrive before the account exists, so this leads to sign-up and back rather than refusing.
+ */
 export default function AcceptInvite() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

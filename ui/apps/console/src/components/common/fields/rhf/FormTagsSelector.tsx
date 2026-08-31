@@ -12,6 +12,9 @@ type Props<T extends FieldValues> = TagsSelectorProps & {
   control: Control<T>;
 };
 
+/**
+ * TagsSelector bound to react-hook-form.
+ */
 export default function FormTagsSelector<T extends FieldValues>({
   name,
   control,

@@ -18,6 +18,10 @@ const PADDING: Record<Padding, string> = {
   fill: "flex-1",
 };
 
+/**
+ * The loading state for a whole page. The label is hidden by default: a spinner beside text
+ * already saying "loading" is announced twice.
+ */
 export default function PageLoader({
   label,
   size,

@@ -20,6 +20,10 @@ type InstallKeyListParams = {
 
 const INSTALL_KEY_LIST_DEFAULTS: InstallKeyListParams = { page: 1 };
 
+/**
+ * The install keys list. Its URL state is prefixed, because the page carries a second paginated
+ * list — the key's enrolment history — and the two must not share query parameters.
+ */
 export default function InstallKeys() {
   const { params, setPage } = usePaginatedListState<InstallKeyListParams>({
     prefix: "installKey",

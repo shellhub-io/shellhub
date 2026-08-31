@@ -35,6 +35,9 @@ const DEFAULTS: FirewallRulesParams = {
   search: "",
 };
 
+/**
+ * The firewall rules list, in priority order — which is also the order they are evaluated in.
+ */
 export default function FirewallRules() {
   const { params, setPage, setSearch } =
     usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });

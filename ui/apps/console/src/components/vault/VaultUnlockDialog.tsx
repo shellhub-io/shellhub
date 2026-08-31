@@ -90,6 +90,10 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
   );
 }
 
+/**
+ * Asks for the vault passphrase. onReset is the way out for someone who has lost it, and it
+ * destroys the keys rather than recovering them.
+ */
 export default function VaultUnlockDialog({ open, onClose, onReset }: Props) {
   const instanceId = useId();
   const titleId = `vault-unlock-title-${instanceId}`;

@@ -6,6 +6,9 @@ import {
 import { ActionButton, Section } from "@/components";
 import { signupUrl } from "@/links";
 
+/**
+ * Closing call to action of the landing page.
+ */
 export function CTA() {
   return (
     <Section

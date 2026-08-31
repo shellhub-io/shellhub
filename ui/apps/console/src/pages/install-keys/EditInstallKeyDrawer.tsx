@@ -19,6 +19,9 @@ import ModeField, { type InstallKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
 import { parseAllowedMacs, validateModeConfig, validateName } from "./helpers";
 
+/**
+ * Edits an install key's name and limits. The key itself is not re-issued.
+ */
 function EditInstallKeyDrawer({
   installKey,
   onClose,

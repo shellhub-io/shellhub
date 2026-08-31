@@ -9,6 +9,10 @@ interface DeleteAnnouncementDialogProps {
   onDeleted?: () => void;
 }
 
+/**
+ * Confirms deleting an announcement. It is already visible to users, so this names it rather
+ * than asking a generic question.
+ */
 export default function DeleteAnnouncementDialog({
   open,
   onClose,

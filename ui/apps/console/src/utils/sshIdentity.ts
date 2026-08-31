@@ -34,6 +34,11 @@ export function serviceAccountLifecyclePayload(
   return { single_use: singleUse, ...keyExpiryPayload(expiresIn) };
 }
 
+/**
+ * The wording used for one kind of identity source. revokeConsequence is separate from
+ * description because revoking a browser key logs that browser out, and the confirm dialog has
+ * to say so before it happens.
+ */
 export interface IdentitySourceCopy {
   label: string;
   notable: boolean;
@@ -114,6 +119,10 @@ export function shortFingerprint(fingerprint: string): string {
   return body.length > 12 ? `${prefix}${body.slice(0, 12)}\u2026` : fingerprint;
 }
 
+/**
+ * How loudly an identity's state should read: dead is spent or expired, armed is a warning worth
+ * acting on, quiet is a fact about the key and nothing more.
+ */
 export type IdentityStatusTone = "dead" | "armed" | "quiet";
 
 /**
@@ -122,6 +131,10 @@ export type IdentityStatusTone = "dead" | "armed" | "quiet";
  */
 const EXPIRY_WARNING_DAYS = 14;
 
+/**
+ * How an identity ends: already consumed, already expired, single-use, expiring on a date, or
+ * never. value is the rendered phrase and title the tooltip carrying the exact timestamp.
+ */
 export interface IdentityEndOfLife {
   kind: "consumed" | "expired" | "single-use" | "expires" | "never";
   value: string;
@@ -174,6 +187,9 @@ export function sshIdentityEndOfLife(
   return { kind: "never", value: "never", tone: "quiet" };
 }
 
+/**
+ * The status chip for an identity — its label and how loudly to show it.
+ */
 export interface IdentityStatus {
   label: string;
   tone: IdentityStatusTone;

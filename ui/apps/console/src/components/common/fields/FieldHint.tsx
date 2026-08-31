@@ -1,5 +1,8 @@
 import { ReactNode } from "react";
 
+/**
+ * A field's hint, associated with the input the same way an error is.
+ */
 export default function FieldHint({
   id,
   children,

@@ -20,6 +20,10 @@ import type {
   Webendpoint,
 } from "@/client";
 
+/**
+ * Builds a signed-in user for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
     token: "jwt-token",
@@ -38,6 +42,10 @@ export function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   };
 }
 
+/**
+ * Builds a namespace for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockNamespace(overrides: Partial<Namespace> = {}): Namespace {
   return {
     name: "my-namespace",
@@ -68,6 +76,10 @@ export function mockNamespace(overrides: Partial<Namespace> = {}): Namespace {
   };
 }
 
+/**
+ * Builds a tag for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockTag(overrides: Partial<Tag> = {}): Tag {
   return {
     name: "tag",
@@ -78,6 +90,10 @@ export function mockTag(overrides: Partial<Tag> = {}): Tag {
   };
 }
 
+/**
+ * Builds an accepted device for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockDevice(overrides: Partial<Device> = {}): Device {
   return {
     uid: "device-uid-1",
@@ -102,6 +118,10 @@ export function mockDevice(overrides: Partial<Device> = {}): Device {
   };
 }
 
+/**
+ * Builds a closed session, with a device attached for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockSession(overrides: Partial<Session> = {}): Session {
   const device = mockDevice();
   return {
@@ -125,6 +145,10 @@ export function mockSession(overrides: Partial<Session> = {}): Session {
   };
 }
 
+/**
+ * Builds a firewall rule for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockFirewallRule(
   overrides: Partial<FirewallRulesResponse> = {},
 ): FirewallRulesResponse {
@@ -141,6 +165,10 @@ export function mockFirewallRule(
   };
 }
 
+/**
+ * Builds a public key for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockPublicKey(
   overrides: Partial<PublicKeyResponse> = {},
 ): PublicKeyResponse {
@@ -156,6 +184,10 @@ export function mockPublicKey(
   };
 }
 
+/**
+ * Builds an announcement as it appears in a list, without its body for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockAnnouncement(
   overrides: Partial<AnnouncementShort> = {},
 ): AnnouncementShort {
@@ -167,6 +199,10 @@ export function mockAnnouncement(
   };
 }
 
+/**
+ * Builds an announcement with its body for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockAnnouncementFull(
   overrides: Partial<Announcement> = {},
 ): Announcement {
@@ -179,6 +215,10 @@ export function mockAnnouncementFull(
   };
 }
 
+/**
+ * Builds the device status counts for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockStats(
   overrides: Partial<GetStatusDevicesResponse> = {},
 ): GetStatusDevicesResponse {
@@ -192,6 +232,10 @@ export function mockStats(
   };
 }
 
+/**
+ * Builds a container, which is a device with the container platform for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockContainer(overrides: Partial<Device> = {}): Device {
   return {
     uid: "container-uid-1",
@@ -216,6 +260,10 @@ export function mockContainer(overrides: Partial<Device> = {}): Device {
   };
 }
 
+/**
+ * Builds an access policy for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockAccessPolicy(
   overrides: Partial<AccessPolicy> = {},
 ): AccessPolicy {
@@ -234,6 +282,10 @@ export function mockAccessPolicy(
   };
 }
 
+/**
+ * Builds a web endpoint for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockWebEndpoint(
   overrides: Partial<Webendpoint> = {},
 ): Webendpoint {
@@ -252,6 +304,10 @@ export function mockWebEndpoint(
   };
 }
 
+/**
+ * Builds an active subscription for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockSubscription(
   overrides: Partial<Subscription> = {},
 ): Subscription {
@@ -265,6 +321,10 @@ export function mockSubscription(
   };
 }
 
+/**
+ * Builds a billing customer with a default card for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockCustomer(overrides: Partial<Customer> = {}): Customer {
   return {
     id: "cus-1",
@@ -275,6 +335,10 @@ export function mockCustomer(overrides: Partial<Customer> = {}): Customer {
   };
 }
 
+/**
+ * Builds an installed licence, unexpired for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockLicense(
   overrides: Partial<GetLicenseResponse> = {},
 ): GetLicenseResponse {
@@ -300,6 +364,10 @@ export function mockLicense(
   };
 }
 
+/**
+ * Builds a pending invitation for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockInvitation(
   overrides: Partial<MembershipInvitation> = {},
 ): MembershipInvitation {
@@ -317,6 +385,10 @@ export function mockInvitation(
   };
 }
 
+/**
+ * Builds a service account for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockServiceAccount(
   overrides: Partial<ServiceAccount> = {},
 ): ServiceAccount {
@@ -329,6 +401,10 @@ export function mockServiceAccount(
   };
 }
 
+/**
+ * Builds an enrolled SSH identity for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockSshIdentity(
   overrides: Partial<SshIdentity> = {},
 ): SshIdentity {
@@ -346,6 +422,10 @@ export function mockSshIdentity(
   };
 }
 
+/**
+ * Builds an install key with an allowance left for a test. Every field has a value, so a case names only what it is about
+ * and the rest stays out of the way.
+ */
 export function mockInstallKey(
   overrides: Partial<InstallKey> = {},
 ): InstallKey {

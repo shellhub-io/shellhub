@@ -23,6 +23,10 @@ interface BillingDialogProps {
   onSuccess?: () => void;
 }
 
+/**
+ * The subscribe flow, from card entry to confirmation. onSuccess fires after the subscription
+ * exists, so the caller can refresh what the namespace is now allowed to do.
+ */
 export default function BillingDialog({
   open,
   onClose,

@@ -179,6 +179,10 @@ function pickBadge(item: NavItem): ReactNode | undefined {
   return undefined;
 }
 
+/**
+ * The main navigation. Links the role cannot use are shown disabled rather than hidden, so the
+ * shape of the product does not change with permissions.
+ */
 export default function Sidebar({
   expanded,
   pinned,

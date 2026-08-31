@@ -11,6 +11,10 @@ import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import ServiceAccountLifecycleFields from "@/components/common/ServiceAccountLifecycleFields";
 import { serviceAccountLifecyclePayload } from "@/utils/sshIdentity";
 
+/**
+ * Creates a service account. It comes with an SSH identity, which is shown once and cannot be
+ * read again.
+ */
 function ServiceAccountDrawer({
   open,
   onClose,

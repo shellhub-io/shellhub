@@ -12,6 +12,10 @@ interface MfaRecoveryTimeoutModalProps {
   onDisable: () => Promise<void>;
 }
 
+/**
+ * Counts down the window in which an MFA reset can be completed, and says what happens when it
+ * closes — the request expires server-side, so the countdown is a fact rather than a nudge.
+ */
 export default function MfaRecoveryTimeoutModal({
   open,
   expiresAt,

@@ -19,6 +19,9 @@ interface EditUserDrawerProps {
   user: UserAdminResponse | null;
 }
 
+/**
+ * Edits a user as an admin, including the namespace limits the user cannot change themselves.
+ */
 export default function EditUserDrawer({
   open,
   onClose,

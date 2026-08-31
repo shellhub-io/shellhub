@@ -7,6 +7,11 @@ interface ArrowMarkerProps {
   refY?: number;
 }
 
+/**
+ * An SVG arrowhead, for referencing from a path's marker-end. It renders a <marker>, so it only
+ * has meaning inside an <svg> <defs>, and id is what a path points at — it must be unique in
+ * the document.
+ */
 export function ArrowMarker({
   id,
   fill,

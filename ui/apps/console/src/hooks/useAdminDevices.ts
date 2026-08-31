@@ -35,6 +35,9 @@ interface UseAdminDevicesParams {
   orderBy?: "asc" | "desc";
 }
 
+/**
+ * A page of devices across every namespace, for the admin device list.
+ */
 export function useAdminDevices({
   page = 1,
   perPage = 10,
@@ -79,6 +82,10 @@ export function useAdminDevices({
   };
 }
 
+/**
+ * One device by UID, for the admin detail view. Cached for five minutes and not retried on a
+ * 4xx, since a device that is missing or out of reach will not appear on a retry.
+ */
 export function useAdminDevice(uid: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

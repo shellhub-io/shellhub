@@ -21,6 +21,10 @@ interface MfaEnableDrawerProps {
 
 type Step = 1 | 2 | 3 | 4;
 
+/**
+ * Sets MFA up: the secret, the QR code, a verifying code, and the recovery codes. The recovery
+ * codes are shown once, at the end, and the flow must not be completable without passing them.
+ */
 export default function MfaEnableDrawer({
   open,
   onClose,

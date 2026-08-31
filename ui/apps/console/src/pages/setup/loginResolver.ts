@@ -1,11 +1,18 @@
 import type { FieldErrors, Resolver } from "react-hook-form";
 import { validateIdentifier } from "@/utils/validation";
 
+/**
+ * The sign-in form's fields.
+ */
 export interface LoginFormValues {
   username: string;
   password: string;
 }
 
+/**
+ * Validates the sign-in form. The identifier may be a username or an email, so it is checked
+ * against both rather than either.
+ */
 export const loginResolver: Resolver<LoginFormValues> = (values) => {
   const errors: FieldErrors<LoginFormValues> = {};
 

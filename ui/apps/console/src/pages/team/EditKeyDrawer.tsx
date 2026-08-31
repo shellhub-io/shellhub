@@ -12,6 +12,10 @@ import {
   type EditKeyFormValues,
 } from "./schemas";
 
+/**
+ * Edits an API key's name and role. The secret is not re-issued, so an edit cannot recover a key
+ * that was never saved.
+ */
 function EditKeyDrawer({
   open,
   onClose,

@@ -10,6 +10,10 @@ interface AnnouncementContentProps {
   content: string;
 }
 
+/**
+ * Renders announcement content read-only, through the same editor that writes it, so the preview
+ * cannot disagree with the published result.
+ */
 export default function AnnouncementContent({
   content,
 }: AnnouncementContentProps) {

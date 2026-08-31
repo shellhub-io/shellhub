@@ -12,6 +12,10 @@ interface InfoItemProps {
   children?: ReactNode;
 }
 
+/**
+ * A labelled value in a detail panel. mono is for anything a user may compare character by
+ * character, such as a hash or an address.
+ */
 export default function InfoItem({
   label,
   value,

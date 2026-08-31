@@ -53,6 +53,11 @@ function OsCell({ info }: { info?: NormalizedDevice["info"] }) {
   );
 }
 
+/**
+ * Asks which devices to keep when a namespace is over its free-tier limit. The devices not
+ * chosen lose their place, so this is a decision the user has to make rather than one that can
+ * be deferred.
+ */
 export default function DeviceChooserDialog({
   open,
   onClose,

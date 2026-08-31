@@ -8,6 +8,10 @@ import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * Starts an MFA reset for someone with neither their authenticator nor a recovery code. It goes
+ * by mail, so the account's address is the factor being relied on.
+ */
 export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
   const { requestMfaReset, loading, error } = useMfaResetStore();

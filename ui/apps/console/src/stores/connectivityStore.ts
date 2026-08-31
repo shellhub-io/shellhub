@@ -29,6 +29,10 @@ function startPolling() {
   setTimeout(() => void poll(), 5000);
 }
 
+/**
+ * Whether the API is reachable. Starts optimistic so the first paint is not an error, and the
+ * initial check is what the connectivity guard waits on before letting a route render.
+ */
 export const useConnectivityStore = create<ConnectivityState>()((set) => ({
   apiReachable: true,
   initialCheckDone: false,

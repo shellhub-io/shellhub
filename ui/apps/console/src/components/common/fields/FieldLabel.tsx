@@ -1,6 +1,10 @@
 import { ReactNode } from "react";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 
+/**
+ * A field label. hideLabel keeps it in the accessibility tree while hiding it visually, for a
+ * field whose purpose is already clear from context — a search box, a row of one.
+ */
 export default function FieldLabel({
   htmlFor,
   id,

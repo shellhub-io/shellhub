@@ -1,6 +1,9 @@
 import type { FieldErrors, Resolver } from "react-hook-form";
 import { validate, type FormErrors } from "./validate";
 
+/**
+ * The sign-up form's fields.
+ */
 export interface SignUpFormValues {
   name: string;
   username: string;
@@ -20,6 +23,9 @@ const VALIDATE_FIELDS: ValidateField[] = [
   "confirmPassword",
 ];
 
+/**
+ * Validates the sign-up form for react-hook-form.
+ */
 export const signUpResolver: Resolver<SignUpFormValues> = (values) => {
   const formErrors = validate(values);
   const errors: FieldErrors<SignUpFormValues> = {};

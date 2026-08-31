@@ -74,6 +74,11 @@ const initialState = {
   mfaRecoveryExpiry: null,
 };
 
+/**
+ * Who is signed in, and the transitions in and out of that state — sign-in, MFA, namespace
+ * switching, sign-out. Persisted, so a reload does not sign the user out; the token is the
+ * part that matters and everything else is derived from it.
+ */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({

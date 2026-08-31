@@ -9,6 +9,10 @@ interface DeleteNamespaceDialogProps {
   onDeleted?: () => void;
 }
 
+/**
+ * Confirms deleting a namespace. Everything in it goes too, so the dialog says so and names the
+ * namespace rather than asking a generic question.
+ */
 export default function DeleteNamespaceDialog({
   open,
   onClose,

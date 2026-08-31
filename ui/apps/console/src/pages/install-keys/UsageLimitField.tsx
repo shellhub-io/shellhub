@@ -16,6 +16,9 @@ function helperFor(value: number): string {
   return `Registers up to ${value} devices.`;
 }
 
+/**
+ * How many enrolments a key allows: once, a set number, or without limit.
+ */
 export default function UsageLimitField({
   value,
   onChange,

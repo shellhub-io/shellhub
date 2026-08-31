@@ -3,6 +3,10 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
 
+/**
+ * Enrols this browser as an SSH identity. The key is generated here and its private half never
+ * leaves the browser, which is what the dialog has to make clear before it is accepted.
+ */
 export default function BrowserEnrollDialog({
   open,
   defaultName,

@@ -55,6 +55,10 @@ export function ExpiredBadge() {
   );
 }
 
+/**
+ * The role badge. A role this build does not recognise renders as plain text rather than as an
+ * unstyled badge, so a role added by a newer server still reads.
+ */
 export function RoleBadge({ role }: { role: string }) {
   const color = ROLE_COLOR[role];
   if (color) {
@@ -67,6 +71,10 @@ export function RoleBadge({ role }: { role: string }) {
   return <span className={ROLE_NEUTRAL_STYLE}>{role}</span>;
 }
 
+/**
+ * The role picker. It offers the assignable roles only — ownership is transferred rather than
+ * assigned, so owner is not among them.
+ */
 export function RoleSelector({
   label = "Role",
   value,

@@ -11,6 +11,9 @@ import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * The last step of an MFA reset, reached from the emailed link.
+ */
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

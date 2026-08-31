@@ -19,6 +19,9 @@ import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 
+/**
+ * One announcement as published, with the ways to edit or delete it.
+ */
 export default function AnnouncementDetails() {
   const { uuid } = useParams<{ uuid: string }>();
   const navigate = useNavigate();

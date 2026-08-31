@@ -14,6 +14,9 @@ import {
   type AnnouncementFormValues,
 } from "./announcementSchema";
 
+/**
+ * Writes a new announcement. Publishing shows it to every user of the instance.
+ */
 export default function NewAnnouncement() {
   const navigate = useNavigate();
   const createAnnouncement = useAdminCreateAnnouncement();
