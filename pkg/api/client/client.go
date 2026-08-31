@@ -27,45 +27,42 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
-	// CreateDeviceLoginCode requests a short-lived code that deep-links this device into the
-	// console's accept page. It is authenticated with the device's token.
 	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
-	// GetDeviceAuthStatus reports the device's current status on the server. It is
-	// authenticated with the device's token.
 	GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error)
-	// CreateDevicePairing submits a tenant-less agent's identity and returns a
-	// short-lived pairing code. Unauthenticated; the code is the secret.
 	CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error)
-	// GetDevicePairingStatus polls the outcome of a pairing code. Unauthenticated.
 	GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error)
-	// NewReverseListener creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server
-	// using RevDial protocol.
 	NewReverseListenerV1(ctx context.Context, token string, path string) (net.Listener, error)
-	// NewReverseListenerV2 creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server
-	// using Yamux protocol.
 	NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error)
 }
 
+// Client is the agent's view of the ShellHub API: the routes an agent calls, plus the reverse
+// listener it serves SSH on. Build one with NewClient.
 type Client interface {
 	commonAPI
 	publicAPI
 }
 
 type client struct {
-	scheme string
-	host   string
-	port   int
-	http   *resty.Client
-	logger *log.Logger
-	// reverser is used to create a reverse listener to Agent from ShellHub's SSH server.
+	scheme   string
+	host     string
+	port     int
+	http     *resty.Client
+	logger   *log.Logger
 	reverser reverser.Reverser
 }
 
+// ErrParseAddress is returned by NewClient when the server address is not a URL carrying scheme,
+// host and port.
 var ErrParseAddress = errors.New("could not parse the address to the required format")
 
 // NewClient creates a new ShellHub HTTP client.
 //
 // Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
+//
+// The client retries indefinitely, backing off on the server's Retry-After when it sends one and on
+// a random delay when it does not, so an agent left running against a server that is down reconnects
+// on its own. Body-less requests go out with Content-Length: 0 rather than an empty chunked body,
+// which proxies and request binders handle far more predictably.
 func NewClient(address string, opts ...Opt) (Client, error) {
 	uri, err := url.ParseRequestURI(address)
 	if err != nil {
@@ -74,7 +71,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 	const RetryAfterHeader string = "Retry-After"
 
-	// MaxRetryWaitTime is the default value for wait time between retries.
 	const MaxRetryWaitTime time.Duration = 1 * time.Hour
 
 	randomWaitTimeSecs := func() time.Duration {
@@ -95,8 +91,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.http.SetRetryCount(math.MaxInt32)
 	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
 	client.http.SetBaseURL(uri.String())
-	// Keeps body-less requests on Content-Length: 0 instead of an empty chunked body, which
-	// proxies and request binders handle far more predictably.
 	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		var netErr net.Error
@@ -137,9 +131,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 				return randomWaitTimeSecs(), nil
 			}
 
-			// NOTE: The `Retry-After` supports delay in seconds and and a date time, but currently we will support only
-			// one of them.
-			// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After
 			retryAfterSeconds, err := strconv.Atoi(retryAfterHeader)
 			if err != nil {
 				return randomWaitTimeSecs(), err

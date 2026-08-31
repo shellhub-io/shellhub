@@ -14,6 +14,8 @@ type OptionalInt struct {
 	Value   *int
 }
 
+// UnmarshalJSON records that the key was present, which is the whole point of the type: it runs
+// only when the key appears, so an omitted key leaves the zero value and reads as "unchanged".
 func (o *OptionalInt) UnmarshalJSON(data []byte) error {
 	o.Present = true
 	if string(data) == "null" {
@@ -25,6 +27,8 @@ func (o *OptionalInt) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &o.Value)
 }
 
+// CreateInstallKey is the request to mint an install key. UserID and TenantID come from the
+// caller's headers rather than the body, so a key cannot be minted into another namespace.
 type CreateInstallKey struct {
 	UserID   string `header:"X-ID"`
 	TenantID string `header:"X-Tenant-ID"`
@@ -52,12 +56,17 @@ type CreateInstallKey struct {
 	Tags             []string `json:"tags" validate:"omitempty,dive,required"`
 }
 
+// ListInstallKey is the request to page through a namespace's install keys. It never returns key
+// material — see RevealInstallKey for that.
 type ListInstallKey struct {
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
 	query.Sorter
 }
 
+// UpdateInstallKey is a partial update: a nil field is left unchanged, which is why the nullable
+// ones are pointers and OptionalInt. The key is addressed by its current name in the path, so a
+// rename reads both names at once.
 type UpdateInstallKey struct {
 	UserID   string `header:"X-ID"`
 	TenantID string `header:"X-Tenant-ID"`
@@ -95,11 +104,14 @@ type UpdateInstallKey struct {
 	EphemeralTimeout *int  `json:"ephemeral_timeout" validate:"omitempty,min=1,max=10"`
 }
 
+// RevealInstallKey is the request to read back an install key's secret. It is the only route that
+// returns one, which is why it is separate from the listing.
 type RevealInstallKey struct {
 	TenantID string `header:"X-Tenant-ID"`
 	Name     string `param:"name" validate:"required"`
 }
 
+// ListInstallKeyEvents is the request to page through what one install key has enrolled.
 type ListInstallKeyEvents struct {
 	TenantID string `header:"X-Tenant-ID"`
 	// ID is the install key's digest. History is keyed by digest, not name: names are unique only per

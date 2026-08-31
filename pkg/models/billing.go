@@ -101,6 +101,8 @@ func (b *Billing) Clone() *Billing {
 	return &clone
 }
 
+// IsNil reports whether the receiver is nil, so a caller holding a *Billing can ask without a nil
+// check of its own. The other predicates here are nil-safe for the same reason.
 func (b *Billing) IsNil() bool {
 	return b == nil
 }
@@ -110,14 +112,20 @@ func (b *Billing) IsActive() bool {
 	return b.HasSubscription() && b.Subscription.Status.IsActive()
 }
 
+// HasCustomer reports whether the namespace is known to the payment provider. A namespace can have
+// a customer and no subscription — that is a namespace that once paid, or is about to.
 func (b *Billing) HasCustomer() bool {
 	return b != nil && b.CustomerID != ""
 }
 
+// HasSubscription reports whether a subscription is attached, saying nothing about whether it is
+// paid up. Use IsActive for that.
 func (b *Billing) HasSubscription() bool {
 	return b != nil && b.Subscription != nil
 }
 
+// SetCustomer records the payment provider's customer id. It panics on a nil receiver, unlike the
+// predicates above.
 func (b *Billing) SetCustomer(id string) {
 	b.CustomerID = id
 }

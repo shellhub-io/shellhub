@@ -38,16 +38,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The errors a dialer returns once it can no longer serve connections: closed for good, or with no
+// answer from the peer in time. Both are terminal for the dialer, and the caller reconnects.
 var (
 	ErrDialerClosed   = errors.New("revdial.Dialer closed")
 	ErrDialerTimedout = errors.New("revdial.Dialer timedout")
 )
 
-// dialerUniqParam is the parameter name of the GET URL form value
-// containing the Dialer's random unique ID.
 const dialerUniqParam = "revdial.dialer"
 
-// dialerKeepAliveTimeout represents the duration for the keepalive timeout
 const dialerKeepAliveTimeout = 35 * time.Second
 
 // The Dialer can create new connections.
@@ -212,8 +211,6 @@ func (d *Dialer) matchConn(c net.Conn) {
 	}
 }
 
-// serve blocks and runs the control message loop, keeping the peer
-// alive and notifying the peer when new connections are available.
 func (d *Dialer) serve() error {
 	defer d.Close() //nolint:errcheck
 
@@ -351,8 +348,6 @@ type controlMsg struct {
 	Err      string `json:"err,omitempty"`
 }
 
-// run reads control messages from the public server forever until the connection dies, which
-// then closes the listener.
 func (ln *Listener) run() {
 	done := func() {
 		_ = ln.Close()
@@ -399,8 +394,6 @@ func (ln *Listener) run() {
 			}
 			switch msg.Command {
 			case "keep-alive":
-				// Occasional no-op message from server to keep
-				// us alive through NAT timeouts.
 				closeTimer.Reset(dialerKeepAliveTimeout)
 			case "conn-ready":
 				go ln.grabConn(msg.ConnPath)

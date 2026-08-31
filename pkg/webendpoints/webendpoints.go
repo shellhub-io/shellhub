@@ -36,8 +36,6 @@ func Domain(preferred, fallback string) string {
 	return fallback
 }
 
-// address is the hex-encoded MD5 sum that models.WebEndpoint.GenerateAddress
-// produces, and the same shape the edge proxy's server_name matches.
 var address = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 // AddressFromHost is the inverse of Host: it takes the Host of an inbound
@@ -48,6 +46,10 @@ var address = regexp.MustCompile(`^[a-f0-9]{32}$`)
 // address resolves to gets the request proxied into their device, so a caller
 // must be able to tell "this is a web endpoint" apart from "this is the
 // console" without consulting the database first.
+//
+// The comparison is case-insensitive and tolerates a trailing dot: a Host may
+// arrive as a fully qualified name, with the root label spelled out, and still
+// be the same name.
 func AddressFromHost(host, domain string) (string, bool) {
 	if domain == "" {
 		return "", false
@@ -57,8 +59,6 @@ func AddressFromHost(host, domain string) (string, bool) {
 		host = hostname
 	}
 
-	// A Host may arrive as a fully qualified name, with the root label spelled
-	// out, and still be the same name.
 	host = strings.ToLower(strings.TrimSuffix(host, "."))
 
 	candidate, found := strings.CutSuffix(host, "."+strings.ToLower(domain))

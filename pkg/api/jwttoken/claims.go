@@ -12,34 +12,21 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
-// TODO:
-// 1. Rename [user|device]Claims.Kind JSON's tag to "kind". (BREAKING CHANGE)
-// 2. Rename this package to jwt.
-
 type (
-	// claimKind represents the type of claims used in JWT tokens.
 	claimKind string
 
-	// userClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v5.RegisteredClaims]
-	// into [github.com/shellhub-io/shellhub/pkg/api/authorizer.UserClaims] to convert it into
-	// [github.com/golang-jwt/jwt/v5.Claims] for use in an [encode] call.
 	userClaims struct {
 		Kind claimKind `json:"claims"`
 		authorizer.UserClaims
 		jwt.RegisteredClaims
 	}
 
-	// deviceClaims is an auxiliary type that embeds [github.com/golang-jwt/jwt/v5.RegisteredClaims]
-	// into [github.com/shellhub-io/shellhub/pkg/api/authorizer.DeviceClaims] to convert it into
-	// [github.com/golang-jwt/jwt/v5.Claims] for use in an [encode] call.
 	deviceClaims struct {
 		Kind claimKind `json:"claims"`
 		authorizer.DeviceClaims
 		jwt.RegisteredClaims
 	}
 
-	// enrollmentDecisionClaims is the auxiliary type used to sign a deferred enrollment-decision
-	// callback token.
 	enrollmentDecisionClaims struct {
 		Kind claimKind `json:"claims"`
 		EnrollmentDecisionClaims
@@ -62,7 +49,6 @@ const (
 	kindUnknownClaims            claimKind = "unknown"
 )
 
-// claimKindFromString converts a string to a claimKind.
 func claimKindFromString(str string) claimKind {
 	switch str {
 	case "user":

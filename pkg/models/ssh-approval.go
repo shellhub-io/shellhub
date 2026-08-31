@@ -20,9 +20,13 @@ const (
 type SSHApprovalState string
 
 const (
-	SSHApprovalPending   SSHApprovalState = "pending"
+	// SSHApprovalPending is an approval nobody has answered yet. A pending row past its ExpiresAt is
+	// no longer pending — it is unknown.
+	SSHApprovalPending SSHApprovalState = "pending"
+	// SSHApprovalConfirmed is an approval a member granted; the parked login proceeds.
 	SSHApprovalConfirmed SSHApprovalState = "confirmed"
-	SSHApprovalRejected  SSHApprovalState = "rejected"
+	// SSHApprovalRejected is an approval a member denied; the parked login is refused.
+	SSHApprovalRejected SSHApprovalState = "rejected"
 )
 
 // SSHApproval is a decision the SSH gateway parked while it holds a pure-OpenSSH

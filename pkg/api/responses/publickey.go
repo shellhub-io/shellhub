@@ -1,5 +1,7 @@
 package responses
 
+// PublicKeyFilter is the device selector as it is sent back to a client: either a hostname pattern
+// or a tag set, never both.
 type PublicKeyFilter struct {
 	Hostname string `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
 	// FIXME: add validation for tags when it has at least one item.

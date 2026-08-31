@@ -42,12 +42,18 @@ func (f PublicKeyFilter) Matches(device *Device) (bool, error) {
 	}
 }
 
+// PublicKeyFields is the editable part of a public key: who it logs in as and which devices it
+// reaches. The key material itself is not here, so an update can change the rule without touching
+// the key.
 type PublicKeyFields struct {
 	Name     string          `json:"name"`
 	Username string          `json:"username" validate:"regexp"`
 	Filter   PublicKeyFilter `json:"filter" validate:"required"`
 }
 
+// Validate checks the fields, including that Username and the filter's Hostname compile as regular
+// expressions — they are patterns, not literals, and an uncompilable one would silently match
+// nothing.
 func (p *PublicKeyFields) Validate() error {
 	v := validator.New()
 
@@ -60,6 +66,8 @@ func (p *PublicKeyFields) Validate() error {
 	return v.Struct(p)
 }
 
+// PublicKey is an SSH key registered in a namespace, and the ACL entry attached to it. Data is the
+// key in wire format; Fingerprint is what the SSH gateway looks it up by during authentication.
 type PublicKey struct {
 	Data        []byte    `json:"data"`
 	Fingerprint string    `json:"fingerprint"`
@@ -68,15 +76,20 @@ type PublicKey struct {
 	PublicKeyFields
 }
 
+// PublicKeyUpdate is what an edit may change: the rule, never the key material. Replacing a key
+// means deleting and re-adding it, so its fingerprint stays the identity.
 type PublicKeyUpdate struct {
 	PublicKeyFields
 }
 
+// PublicKeyAuthRequest is what the SSH gateway sends to have a key challenge signed on behalf of a
+// session.
 type PublicKeyAuthRequest struct {
 	Fingerprint string `json:"fingerprint"`
 	Data        string `json:"data"`
 }
 
+// PublicKeyAuthResponse carries the signature produced for a PublicKeyAuthRequest.
 type PublicKeyAuthResponse struct {
 	Signature string `json:"signature"`
 }

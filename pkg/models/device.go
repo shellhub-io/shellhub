@@ -4,17 +4,30 @@ import (
 	"time"
 )
 
+// DeviceStatus is where a device sits in the enrollment lifecycle. It decides whether the device
+// may open a tunnel and whether it counts against the namespace's device limit.
 type DeviceStatus string
 
 const (
+	// DeviceStatusAccepted is a device allowed to connect. Only accepted devices count against a
+	// namespace's device limit.
 	DeviceStatusAccepted DeviceStatus = "accepted"
-	DeviceStatusPending  DeviceStatus = "pending"
+	// DeviceStatusPending is a device that has authenticated but is waiting for a member to accept it.
+	DeviceStatusPending DeviceStatus = "pending"
+	// DeviceStatusRejected is a device a member turned away. It may re-authenticate, and stays
+	// rejected until someone changes that.
 	DeviceStatusRejected DeviceStatus = "rejected"
-	DeviceStatusRemoved  DeviceStatus = "removed"
-	DeviceStatusUnused   DeviceStatus = "unused"
-	DeviceStatusEmpty    DeviceStatus = ""
+	// DeviceStatusRemoved is a device deleted from the namespace. It frees its slot against the
+	// device limit immediately, and the row is kept so the same machine returning is recognised.
+	DeviceStatusRemoved DeviceStatus = "removed"
+	// DeviceStatusUnused is an accepted device that has never connected.
+	DeviceStatusUnused DeviceStatus = "unused"
+	// DeviceStatusEmpty is the zero value, which matches every status in a query rather than none.
+	DeviceStatusEmpty DeviceStatus = ""
 )
 
+// Device is an enrolled machine. Its UID is derived from the identity the agent presents, so two
+// agents presenting the same identity are the same device rather than two of them.
 type Device struct {
 	// UID is the unique identifier for a device.
 	UID string `json:"uid"`
@@ -68,12 +81,17 @@ type Device struct {
 	Taggable `json:",inline"`
 }
 
+// DeviceAuthRequest is what an agent sends to enroll or to re-authenticate. It repeats on every
+// agent restart, so handling it must be idempotent.
 type DeviceAuthRequest struct {
 	Info     *DeviceInfo `json:"info"`
 	Sessions []string    `json:"sessions,omitempty"`
 	*DeviceAuth
 }
 
+// DeviceAuth is the part of an authentication request the device's UID is hashed from. A field
+// tagged hash:"-" is deliberately outside that hash: changing it must not give the agent a new
+// identity.
 type DeviceAuth struct {
 	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,hostname_rfc1123" hash:"-"`
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
@@ -84,6 +102,8 @@ type DeviceAuth struct {
 	InstallKey string `json:"install_key,omitempty" hash:"-"`
 }
 
+// DeviceAuthResponse is what an agent receives on a successful authentication: the token it
+// authenticates with from then on, and the identity the server assigned it.
 type DeviceAuthResponse struct {
 	UID       string `json:"uid"`
 	Token     string `json:"token"`
@@ -190,10 +210,14 @@ type DevicePairingAccepted struct {
 	Namespace string `json:"namespace"`
 }
 
+// DeviceIdentity is the hardware identity an agent claims. It feeds the device's UID, so a
+// machine that keeps its MAC keeps its device across reinstalls.
 type DeviceIdentity struct {
 	MAC string `json:"mac"`
 }
 
+// DeviceInfo is what the agent reports about the operating system it runs on. It is descriptive
+// only: nothing authorizes on it, and the agent is free to change it between authentications.
 type DeviceInfo struct {
 	ID         string `json:"id"`
 	PrettyName string `json:"pretty_name"`
@@ -202,15 +226,21 @@ type DeviceInfo struct {
 	Platform   string `json:"platform"`
 }
 
+// DevicePosition is the device's geolocation, resolved from the address it connected from. It is
+// a guess from a GeoIP database, not something the device reports.
 type DevicePosition struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 }
 
+// DeviceTag is a single tag as it is validated, which is where the character restrictions live —
+// a tag ends up in an SSH address, so "/@&:" would make one ambiguous.
 type DeviceTag struct {
 	Tag string `validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
+// NewDeviceTag wraps a raw tag for validation. It does not validate on its own: pass the result to
+// the validator.
 func NewDeviceTag(tag string) DeviceTag {
 	return DeviceTag{
 		Tag: tag,

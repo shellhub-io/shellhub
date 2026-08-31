@@ -11,6 +11,8 @@ type client struct {
 	asynqClient *asynq.Client
 }
 
+// NewClient returns the submitting half of the worker: it enqueues payloads for a server elsewhere
+// to run, and never executes a handler itself.
 func NewClient(redisURI string) (worker.Client, error) {
 	opt, err := asynq.ParseRedisURI(redisURI)
 	if err != nil {

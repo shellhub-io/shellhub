@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 )
 
-// Filter is a helper struct to filter results from the database.
-// TODO: Gives a better explanation about the filter and how to use it.
+// Filter is one node of a query filter as it arrives from a client. It is a tagged union: Type
+// picks which shape Params holds, and UnmarshalJSON is what enforces the pairing — build one by
+// unmarshalling rather than by hand, or Params ends up a map instead of a params struct.
 type Filter struct {
 	// Type os the filter. Type can be "property" or "operator". When Type is "property", the Params field must is set
 	// to PropertyParams structure and when set "operator", the Params field must be set to OperatorParams structure.
@@ -14,6 +15,9 @@ type Filter struct {
 	Params any `json:"params,omitempty"`
 }
 
+// UnmarshalJSON decodes Params into the struct Type names. An unrecognized Type is not an error:
+// it leaves Params nil, so a filter the server does not understand narrows nothing rather than
+// failing the request.
 func (f *Filter) UnmarshalJSON(data []byte) error {
 	var params json.RawMessage
 
@@ -46,12 +50,15 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// PropertyParams compares one field against one value — the leaf of a filter tree.
 type PropertyParams struct {
 	Name     string `json:"name"`
 	Operator string `json:"operator"`
 	Value    any    `json:"value"`
 }
 
+// OperatorParams joins the filters around it ("and", "or"), so it is what makes a filter list a
+// tree rather than a conjunction.
 type OperatorParams struct {
 	Name string `json:"name"`
 }

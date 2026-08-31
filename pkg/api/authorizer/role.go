@@ -68,8 +68,6 @@ func (r Role) String() string {
 	}
 }
 
-// code converts the given role to its corresponding integer.
-// If the role is not a valid one, it returns 0.
 func (r Role) code() int {
 	switch r {
 	case RoleOwner:
@@ -101,7 +99,6 @@ func (r Role) Permissions() []Permission {
 	case RoleService:
 		permissions = servicePermissions
 	default:
-		// RoleInvalid and anything added later keep the empty slice, as the doc says.
 	}
 
 	return permissions

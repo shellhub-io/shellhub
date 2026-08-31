@@ -30,8 +30,12 @@ func (tp TaskPattern) Queue() string {
 	return strings.Split(string(tp), ":")[0]
 }
 
+// TaskHandler processes one message. Returning an error hands the message back to the queue for
+// retry, so a handler must be idempotent.
 type TaskHandler func(ctx context.Context, payload []byte) error
 
+// Task binds a handler to the pattern it listens on. Build one with NewTask rather than by hand,
+// so the pattern is validated before the worker starts.
 type Task struct {
 	// Pattern is a string to which the task can listen to message/events.
 	Pattern TaskPattern
@@ -39,4 +43,5 @@ type Task struct {
 	Handler TaskHandler
 }
 
+// TaskOption configures a task at registration.
 type TaskOption func(t *Task)

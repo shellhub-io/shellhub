@@ -32,6 +32,9 @@ func parseContainerIDv2(rd io.Reader) (string, error) {
 	return string(match[1]), nil
 }
 
+// IsRunningInDocker reports whether the process is inside a container, by the presence of
+// /.dockerenv. It is a hint the runtime provides, not a guarantee: a container built without that
+// file reads as a host.
 func IsRunningInDocker() bool {
 	_, err := os.Stat("/.dockerenv")
 

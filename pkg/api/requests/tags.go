@@ -2,11 +2,13 @@ package requests
 
 import "github.com/shellhub-io/shellhub/pkg/api/query"
 
+// CreateTag is the request to add a tag to a namespace's vocabulary, before anything carries it.
 type CreateTag struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	Name     string `json:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
+// PushTag is the request to attach an existing tag to one target.
 type PushTag struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	Name     string `param:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
@@ -16,6 +18,7 @@ type PushTag struct {
 	TargetID string `validate:"required"`
 }
 
+// PullTag is the request to detach a tag from one target. The tag itself survives.
 type PullTag struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	Name     string `param:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
@@ -25,6 +28,7 @@ type PullTag struct {
 	TargetID string `validate:"required"`
 }
 
+// ListTags is the request to page through a namespace's tags.
 type ListTags struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	query.Paginator
@@ -32,6 +36,8 @@ type ListTags struct {
 	query.Sorter
 }
 
+// UpdateTag is the request to rename a tag. Everything carrying it follows the rename, since
+// targets reference the tag by id.
 type UpdateTag struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	Name     string `param:"name" validate:"required"`
@@ -39,6 +45,8 @@ type UpdateTag struct {
 	NewName string `json:"name" validate:"omitempty,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
+// DeleteTag is the request to remove a tag from the namespace, detaching it from everything that
+// carries it.
 type DeleteTag struct {
 	TenantID string `param:"tenant" header:"X-Tenant-ID" validate:"required,uuid"`
 	Name     string `param:"name" validate:"required"`
