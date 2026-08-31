@@ -21,9 +21,15 @@ jobs:
         include:
           # race_args applies to `go test` only: a race-instrumented `go build`
           # would just be discarded, and the detector costs several minutes.
+          #
+          # -D revive is the doc-comment rule held back. Every module reads the same
+          # .golangci.yaml (the per-module ones are symlinks to it), so revive's
+          # `exported` cannot be scoped there; it is scoped here instead, and a module
+          # rejoins the rule by dropping its flag once its exported symbols carry a
+          # godoc. Remaining: server 605, agent 71.
           - project: server
             extra_args: ""
-            lint_args: ""
+            lint_args: "-D revive"
             race_args: "-race"
             test_timeout: "40m"
           - project: gateway
@@ -32,7 +38,7 @@ jobs:
             race_args: "-race"
           - project: agent
             extra_args: "-tags docker"
-            lint_args: "--build-tags docker"
+            lint_args: "--build-tags docker -D revive"
             race_args: "-race"
           - project: pkg
             extra_args: ""
@@ -45,7 +51,7 @@ jobs:
           # under test, on an already 45-minute job.
           - project: tests
             extra_args: ""
-            lint_args: ""
+            lint_args: "-D revive"
             database: postgres
             test_timeout: "45m"
 

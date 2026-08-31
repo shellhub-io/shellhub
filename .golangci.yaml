@@ -109,6 +109,16 @@ linters:
         - G104
     revive:
       severity: warning
+      rules:
+        # Godoc on an exported symbol is the one comment code-style.md asks a tool to check,
+        # and pkg/ is where it pays first: these packages are the surface server/, agent/ and
+        # cloud/ consume, by a caller who never opens the body. Only pkg/ and gateway/ run it
+        # today — qa.yml holds the rest back with -D revive until they are documented.
+        # disableStutteringCheck keeps the rule on the comment: a package-stuttering name is
+        # a rename, which is a different change with different reviewers.
+        - name: exported
+          arguments:
+            - disableStutteringCheck
     staticcheck:
       checks: ["all", "-SA1029", "-ST1020", "-ST1021", "-ST1022", "-ST1000", "-QF1008"]
     depguard:
