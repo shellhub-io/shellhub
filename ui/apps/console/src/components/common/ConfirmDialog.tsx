@@ -4,6 +4,7 @@ import { Button, type ButtonVariant } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
+import { ignoreFailure } from "@/utils/failure";
 
 interface ConfirmDialogProps {
   /** Controls open/close state. */
@@ -82,15 +83,11 @@ export default function ConfirmDialog({
     setConfirming(false);
   });
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     setConfirming(true);
-    try {
-      await onConfirm();
-    } catch {
-      // Errors are not surfaced here. Consumers manage their own error state
-    } finally {
-      setConfirming(false);
-    }
+    void Promise.resolve(onConfirm())
+      .catch(ignoreFailure)
+      .finally(() => setConfirming(false));
   };
 
   const buttonVariant = VARIANT_BUTTON[variant];

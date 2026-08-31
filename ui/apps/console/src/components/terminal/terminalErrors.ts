@@ -175,7 +175,7 @@ export function parseMessage(
       };
     }
   } catch {
-    // Not JSON — regular text frame
+    return null;
   }
   return null;
 }

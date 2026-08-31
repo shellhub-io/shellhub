@@ -353,11 +353,11 @@ export default function Settings() {
   const sshLegacyAllowed = settings?.ssh_legacy_allowed ?? false;
   const banner = settings?.connection_announcement ?? "";
 
-  const handleToggleRecord = async () => {
+  const handleToggleRecord = () => {
     if (!tenantId || togglingRecord) return;
     setTogglingRecord(true);
-    try {
-      await editNs.mutateAsync({
+    editNs.mutate(
+      {
         path: { tenant: tenantId },
         body: {
           settings: {
@@ -366,27 +366,21 @@ export default function Settings() {
             ssh_access_mode: sshAccessMode,
           },
         },
-      });
-    } catch {
-      /* state didn't change */
-    } finally {
-      setTogglingRecord(false);
-    }
+      },
+      { onSettled: () => setTogglingRecord(false) },
+    );
   };
 
-  const handleSetAccessMode = async (mode: "legacy" | "identity") => {
+  const handleSetAccessMode = (mode: "legacy" | "identity") => {
     if (!tenantId || switchingAccessMode || mode === sshAccessMode) return;
     setSwitchingAccessMode(true);
-    try {
-      await setSshAccessMode.mutateAsync({
+    setSshAccessMode.mutate(
+      {
         path: { tenant: tenantId },
         body: { ssh_access_mode: mode },
-      });
-    } catch {
-      /* state didn't change */
-    } finally {
-      setSwitchingAccessMode(false);
-    }
+      },
+      { onSettled: () => setSwitchingAccessMode(false) },
+    );
   };
 
   if (!ns) {
@@ -478,7 +472,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (sessionRecord) void handleToggleRecord();
+                    if (sessionRecord) handleToggleRecord();
                   }}
                   className={cn(
                     "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
@@ -492,7 +486,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!sessionRecord) void handleToggleRecord();
+                    if (!sessionRecord) handleToggleRecord();
                   }}
                   className={cn(
                     "h-full px-2.5 text-2xs font-medium rounded transition-all duration-150",
@@ -544,7 +538,7 @@ export default function Settings() {
               >
                 <button
                   type="button"
-                  onClick={() => void handleSetAccessMode("legacy")}
+                  onClick={() => handleSetAccessMode("legacy")}
                   className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
                     sshAccessMode === "legacy"
                       ? "bg-hover-strong text-text-secondary border border-border-light"
@@ -555,7 +549,7 @@ export default function Settings() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void handleSetAccessMode("identity")}
+                  onClick={() => handleSetAccessMode("identity")}
                   className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
                     sshAccessMode === "identity"
                       ? "bg-primary/15 text-primary border border-primary/25"

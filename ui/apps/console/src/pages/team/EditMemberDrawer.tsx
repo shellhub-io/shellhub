@@ -25,17 +25,15 @@ function EditMemberDrawer({
   const defaults = useMemo(() => buildMemberRoleDefaults(member), [member]);
   const form = useDrawerForm(open, editRoleSchema, defaults);
 
-  const onValid = async (values: EditRoleFormValues) => {
+  const onValid = (values: EditRoleFormValues) => {
     if (!member) return;
-    try {
-      await updateRole.mutateAsync({
+    updateRole.mutate(
+      {
         path: { tenant: tenantId, uid: member.id },
         body: { role: values.role },
-      });
-      onClose();
-    } catch {
-      /* Role changes are low-stakes; surface nothing and let the user retry. */
-    }
+      },
+      { onSuccess: onClose },
+    );
   };
 
   return (

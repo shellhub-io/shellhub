@@ -9,11 +9,16 @@ export function hasSeenWelcome(tenantId: string): boolean {
   }
 }
 
-/** Marks the welcome wizard as shown for this tenant. Idempotent. */
-export function markWelcomeSeen(tenantId: string): void {
+/**
+ * Marks the welcome wizard as shown for this tenant, reporting whether it stuck. Idempotent.
+ * Storage can be full or blocked, and the flag is not worth failing over — a caller that does
+ * not check simply risks showing the wizard again.
+ */
+export function markWelcomeSeen(tenantId: string): boolean {
   try {
     localStorage.setItem(storageKey(tenantId), "true");
+    return true;
   } catch {
-    // localStorage may be full or unavailable — fail silently
+    return false;
   }
 }

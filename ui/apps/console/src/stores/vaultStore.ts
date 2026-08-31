@@ -25,6 +25,7 @@ import type { IVaultBackend } from "@/utils/vault-backend";
 import * as activityTracker from "@/utils/vault-activity-tracker";
 import { useAuthStore } from "@/stores/authStore";
 import { generateRandomUUID } from "@/utils/random-uuid";
+import { nullOnFailure } from "@/utils/failure";
 
 function getScope() {
   const { user, tenant } = useAuthStore.getState();
@@ -134,15 +135,15 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
 
 export const useVaultStore = create<VaultState>((set, get) => {
   async function loadSettingsIntoState(): Promise<void> {
-    try {
-      const backend = getBackend();
-      const settings = await backend.loadSettings();
+    const settings = await Promise.resolve()
+      .then(() => getBackend().loadSettings())
+      .catch(nullOnFailure);
+
+    if (settings) {
       set({
         autoLockTimeoutMinutes: settings.autoLockTimeoutMinutes,
         lockOnHidden: settings.lockOnHidden,
       });
-    } catch {
-      // Exception-safe: ignore storage errors
     }
   }
 

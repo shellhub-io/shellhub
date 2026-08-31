@@ -51,14 +51,8 @@ export default function CustomFieldsSection({
     setAdding(false);
   };
 
-  const handleRemove = async (key: string) => {
-    try {
-      await deleteMutation.mutateAsync({
-        path: { uid, key },
-      });
-    } catch {
-      /* invalidation handles UI update */
-    }
+  const handleRemove = (key: string) => {
+    deleteMutation.mutate({ path: { uid, key } });
   };
 
   return (
@@ -82,7 +76,7 @@ export default function CustomFieldsSection({
                   <button
                     type="button"
                     onClick={() => {
-                      void handleRemove(key);
+                      handleRemove(key);
                       setConfirmKey(null);
                     }}
                     className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"

@@ -14,6 +14,9 @@ import {
   type ForgotPasswordFormValues,
 } from "./setup/forgotPasswordResolver";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { ignoreFailure } from "@/utils/failure";
+
+const silenceToPreventAccountEnumeration = ignoreFailure;
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
@@ -28,17 +31,14 @@ export default function ForgotPassword() {
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
-    try {
-      await recoverPassword({
-        body: { username: values.account },
-        throwOnError: true,
-      });
-    } catch {
-      // Silently ignore to prevent user enumeration.
-    } finally {
-      setLoading(false);
-      setSent(true);
-    }
+
+    await recoverPassword({
+      body: { username: values.account },
+      throwOnError: true,
+    }).catch(silenceToPreventAccountEnumeration);
+
+    setLoading(false);
+    setSent(true);
   };
 
   return (

@@ -23,6 +23,7 @@ import {
   GithubIcon,
   Spinner,
 } from "@shellhub/design-system/primitives";
+import { nullOnFailure } from "@/utils/failure";
 
 export function NamespaceCreateForm() {
   const [name, setName] = useState("");
@@ -113,17 +114,15 @@ export function CommunityInstructions() {
 
   useEffect(() => {
     const check = async () => {
-      try {
-        const { data } = await getNamespaces({
-          query: { page: 1, per_page: 1 },
-          throwOnError: true,
-        });
-        if (data.length > 0) {
-          setReady(true);
-          setTenantId(data[0].tenant_id);
-        }
-      } catch {
-        // ignore
+      const result = await getNamespaces({
+        query: { page: 1, per_page: 1 },
+        throwOnError: true,
+      }).catch(nullOnFailure);
+
+      const first = result?.data[0];
+      if (first) {
+        setReady(true);
+        setTenantId(first.tenant_id);
       }
     };
     const interval = setInterval(() => void check(), 5000);

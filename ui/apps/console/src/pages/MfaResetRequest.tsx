@@ -7,6 +7,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { succeeded } from "@/utils/failure";
 
 export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
@@ -32,11 +33,8 @@ export default function MfaResetRequest() {
   }
 
   const onSubmit = async () => {
-    try {
-      await requestMfaReset(identifier);
+    if (await succeeded(requestMfaReset(identifier))) {
       void navigate("/mfa-reset-verify");
-    } catch {
-      // Error is set in store
     }
   };
 

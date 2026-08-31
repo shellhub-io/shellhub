@@ -18,6 +18,7 @@ import {
   injectChatwootScript,
   subscribeChatwootState,
 } from "@/hooks/chatwootRuntime";
+import { attempt } from "@/utils/failure";
 
 export type ChatwootStatus =
   "non-cloud" | "unavailable" | "no-subscription" | "loading" | "ready";
@@ -101,16 +102,15 @@ export function useChatwoot(): ChatwootHandle {
     ].join("|");
     if (lastIdentityRef.current === key) return;
 
-    try {
+    const identified = attempt(() => {
       window.$chatwoot?.setUser(userId, {
         email: userEmail ?? undefined,
         name: userName ?? undefined,
         identifier_hash: identifier,
       });
-      lastIdentityRef.current = key;
-    } catch {
-      // Widget reset between effect setup and call — next change retries.
-    }
+    });
+
+    if (identified) lastIdentityRef.current = key;
   }, [widgetReady, userId, userEmail, userName, tenant, identifier]);
 
   useEffect(() => {
@@ -120,15 +120,13 @@ export function useChatwoot(): ChatwootHandle {
     const onMessage = () => {
       if (fired) return;
       fired = true;
-      try {
+      attempt(() => {
         window.$chatwoot?.setConversationCustomAttributes({
           namespace: namespaceName,
           tenant,
           domain: window.location.hostname,
         });
-      } catch {
-        // Ignore — Chatwoot may not expose the API in older builds.
-      }
+      });
     };
 
     window.addEventListener("chatwoot:on-message", onMessage);
@@ -137,11 +135,7 @@ export function useChatwoot(): ChatwootHandle {
 
   const openWidget = useCallback(() => {
     if (!widgetReady) return;
-    try {
-      window.$chatwoot?.toggle("open");
-    } catch {
-      // Widget not yet attached — no-op.
-    }
+    attempt(() => window.$chatwoot?.toggle("open"));
   }, [widgetReady]);
 
   let status: ChatwootStatus;

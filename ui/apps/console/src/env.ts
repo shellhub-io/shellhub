@@ -1,3 +1,5 @@
+import { nullOnFailure } from "@/utils/failure";
+
 export type Edition = "community" | "enterprise" | "cloud";
 
 export interface ClientConfig {
@@ -35,17 +37,13 @@ export async function loadConfig(): Promise<ClientConfig> {
   if (inflight) return inflight;
 
   inflight = (async () => {
-    try {
-      const res = await fetch("/config.json");
-      cached = {
-        ...defaultConfig,
-        ...((await res.json()) as Partial<ClientConfig>),
-      };
-    } catch {
-      // leave cached as defaultConfig so future calls can retry
-    } finally {
-      inflight = null;
-    }
+    const fetched = await fetch("/config.json")
+      .then((res) => res.json() as Promise<Partial<ClientConfig>>)
+      .catch(nullOnFailure);
+
+    cached = fetched ? { ...defaultConfig, ...fetched } : defaultConfig;
+    inflight = null;
+
     return cached;
   })();
 

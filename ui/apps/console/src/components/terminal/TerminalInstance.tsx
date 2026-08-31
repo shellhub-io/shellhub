@@ -27,6 +27,7 @@ import {
 } from "./terminalErrors";
 import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
+import { attempt } from "@/utils/failure";
 
 interface TerminalInstanceProps {
   session: TerminalSession;
@@ -137,11 +138,7 @@ export default function TerminalInstance({
       if (!containerRef.current) return;
       term.open(containerRef.current);
 
-      try {
-        term.loadAddon(new WebglAddon());
-      } catch {
-        // DOM renderer fallback
-      }
+      attempt(() => term.loadAddon(new WebglAddon()));
 
       fitAddon.fit();
       const { cols, rows } = term;
