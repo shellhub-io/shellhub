@@ -5,6 +5,7 @@ description: Write the rules that decide which identities reach which devices, a
 ---
 
 import Callout from "../../../components/Callout.astro";
+import Shot from '../../../components/Shot.astro';
 
 # Access Policies
 
@@ -15,6 +16,8 @@ until a policy grants access, nothing is reachable, and a namespace with no poli
 everything.
 
 Manage them under **Access Policies** in the console.
+
+<Shot id="access-policies" route="/access-policies" of={{ role: "table" }} alt="The Access Policies page listing policies with their effect, subject, and targets" />
 
 ## Anatomy
 
