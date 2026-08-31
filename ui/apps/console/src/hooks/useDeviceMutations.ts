@@ -13,6 +13,10 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Accepts a pending device. The counts change with it, so the stats query is refreshed as well
+ * as the lists.
+ */
 export function useAcceptDevice() {
   const invalidate = useInvalidateByIds(
     "getDevices",
@@ -26,6 +30,10 @@ export function useAcceptDevice() {
   });
 }
 
+/**
+ * Rejects a pending device. The device leaves the pending list but the accepted count is
+ * unchanged, so stats are not refreshed.
+ */
 export function useRejectDevice() {
   const invalidate = useInvalidateByIds(
     "getDevices",
@@ -38,6 +46,9 @@ export function useRejectDevice() {
   });
 }
 
+/**
+ * Removes a device from the namespace, refreshing the lists and the counts.
+ */
 export function useRemoveDevice() {
   const invalidate = useInvalidateByIds(
     "getDevices",
@@ -51,6 +62,9 @@ export function useRemoveDevice() {
   });
 }
 
+/**
+ * Renames a device.
+ */
 export function useRenameDevice() {
   const invalidate = useInvalidateByIds(
     "getDevices",
@@ -63,6 +77,9 @@ export function useRenameDevice() {
   });
 }
 
+/**
+ * Sets a custom field on a device.
+ */
 export function useSetDeviceCustomField() {
   const invalidate = useInvalidateByIds("getDevices", "getDevice");
   return useMutation({
@@ -71,6 +88,9 @@ export function useSetDeviceCustomField() {
   });
 }
 
+/**
+ * Deletes a custom field from a device.
+ */
 export function useDeleteDeviceCustomField() {
   const invalidate = useInvalidateByIds("getDevices", "getDevice");
   return useMutation({
@@ -79,6 +99,9 @@ export function useDeleteDeviceCustomField() {
   });
 }
 
+/**
+ * Tags a device. The tag list is refreshed too, because the tag may be new.
+ */
 export function useAddDeviceTag() {
   const invalidate = useInvalidateByIds(
     "getDevices",
@@ -102,6 +125,9 @@ export function useAddDeviceTag() {
   });
 }
 
+/**
+ * Removes a tag from a device. The tag survives on anything else carrying it.
+ */
 export function useRemoveDeviceTag() {
   const invalidate = useInvalidateByIds(
     "getDevices",

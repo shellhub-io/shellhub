@@ -23,6 +23,10 @@ const GRADIENT_TO: Record<GradientColor, string> = {
   "accent-blue": "to-accent-blue/[0.04]",
 };
 
+/**
+ * Props of CTABanner. gradient names two palette entries rather than carrying classes, because
+ * Tailwind only emits the utilities it can find spelled out in source.
+ */
 export interface CTABannerProps {
   eyebrow: string;
   title: string;
@@ -33,6 +37,10 @@ export interface CTABannerProps {
   gradient?: { from: GradientColor; to: GradientColor };
 }
 
+/**
+ * The closing call-to-action panel of a page: eyebrow, heading, subtitle and a pair of actions
+ * over a tinted gradient.
+ */
 export function CTABanner({
   eyebrow,
   title,

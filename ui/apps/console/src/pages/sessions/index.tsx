@@ -67,6 +67,9 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   );
 }
 
+/**
+ * The sessions list: who connected to what, when, and for how long.
+ */
 export default function Sessions() {
   const { params, setPage } = usePaginatedListState<SessionsParams>({
     defaults: DEFAULTS,

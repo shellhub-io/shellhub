@@ -315,8 +315,10 @@ function BannerPreview({
   );
 }
 
-/* ─── Page ─── */
-
+/**
+ * The namespace settings page: members, access, billing, the vault and the banner. One long page
+ * with anchored sections, so a link can land on the section it means.
+ */
 export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");

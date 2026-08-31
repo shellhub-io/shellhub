@@ -89,8 +89,6 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
   );
 }
 
-/* ── page ────────────────────────────────────────── */
-
 const SEARCH_DEBOUNCE_MS = 300;
 
 type PublicKeysParams = {
@@ -103,6 +101,9 @@ const DEFAULTS: PublicKeysParams = {
   search: "",
 };
 
+/**
+ * The public keys list: the keys that may authenticate to this namespace's devices.
+ */
 export default function PublicKeys() {
   const { params, setPage, setSearch } =
     usePaginatedListState<PublicKeysParams>({

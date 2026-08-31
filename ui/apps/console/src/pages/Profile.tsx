@@ -222,8 +222,10 @@ function DeleteAccountWarningDialog({
   );
 }
 
-/* ─── Edit Profile Drawer ─── */
-
+/**
+ * Edits the signed-in user's own name, username and email. Changing the email starts a
+ * re-confirmation, so the account keeps the old address until the new one is verified.
+ */
 export function EditProfileDrawer({
   open,
   onClose,
@@ -441,8 +443,9 @@ function ChangePasswordDrawer({
   );
 }
 
-/* ─── Page ─── */
-
+/**
+ * The user's own account page: profile, password, MFA and API keys.
+ */
 export default function Profile() {
   const {
     name,

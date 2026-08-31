@@ -19,6 +19,9 @@ const SIZE = {
   md: { bar: "h-11", btn: "w-10 text-lg" },
 } as const;
 
+/**
+ * A number field with increment and decrement buttons, clamped to its range.
+ */
 export default function StepperField({
   value,
   onChange,

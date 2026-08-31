@@ -47,8 +47,6 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
 
-/* ─── Constants ─── */
-
 const GO_ZERO_TIME = "0001-01-01T00:00:00Z";
 
 function neverExpires(expiresIn: string): boolean {
@@ -211,7 +209,6 @@ function DeviceSelector({
   );
 }
 
-/* ─── Timeout Selector ─── */
 const EXPIRATION_PRESETS = [
   { label: "1 min", value: 60 },
   { label: "5 min", value: 300 },
@@ -822,7 +819,6 @@ function EndpointCard({
   );
 }
 
-/* ─── Page ─── */
 const SEARCH_DEBOUNCE_MS = 300;
 
 type WebEndpointsParams = {
@@ -1052,6 +1048,10 @@ function WebEndpointsContent() {
   );
 }
 
+/**
+ * The web endpoints page: the addresses that publish a device's local service, and the forms to
+ * create and revoke them.
+ */
 export default function WebEndpoints() {
   return <WebEndpointsContent />;
 }

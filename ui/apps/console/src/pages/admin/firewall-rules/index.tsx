@@ -27,6 +27,9 @@ const DEFAULTS: AdminFirewallRulesParams = {
   search: "",
 };
 
+/**
+ * Every firewall rule on the instance, across namespaces.
+ */
 export default function AdminFirewallRules() {
   const navigate = useNavigate();
   const { params, setPage, setSearch } =

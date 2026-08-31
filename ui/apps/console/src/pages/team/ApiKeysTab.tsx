@@ -29,6 +29,10 @@ type ApiKeyListParams = {
 
 const API_KEY_LIST_DEFAULTS: ApiKeyListParams = { page: 1 };
 
+/**
+ * The API keys tab of the team page. Its URL state is prefixed, since the page carries more than
+ * one paginated list.
+ */
 function ApiKeysTab() {
   const { params, setPage } = usePaginatedListState<ApiKeyListParams>({
     prefix: "key",

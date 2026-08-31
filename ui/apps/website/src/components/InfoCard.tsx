@@ -2,6 +2,10 @@ import type { ComponentType, ReactNode, SVGProps } from "react";
 import { Card } from "@shellhub/design-system/primitives";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
+/**
+ * Props of InfoCard. layout chooses the marker: an icon tile, a horizontal row, or a plain dot
+ * when the card is one of a set and an icon each would be noise. delay staggers a grid of them.
+ */
 export interface InfoCardProps {
   color: string;
   title: string;
@@ -12,6 +16,9 @@ export interface InfoCardProps {
   children?: ReactNode;
 }
 
+/**
+ * A titled card with a marker, a description and optional extra content, revealed on scroll.
+ */
 export function InfoCard({
   color,
   title,

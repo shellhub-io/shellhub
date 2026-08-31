@@ -8,6 +8,9 @@ type SettingsRowProps = {
   children: React.ReactNode;
 };
 
+/**
+ * One setting: what it is, what it does, and the control that changes it.
+ */
 export default function SettingsRow({
   icon,
   title,

@@ -10,6 +10,10 @@ interface IdentityCardProps {
   registeredVia?: ReactNode;
 }
 
+/**
+ * The identifying facts about a device — UID, MAC, address — as a copyable block, since these
+ * are values people paste into a terminal rather than read.
+ */
 export default function IdentityCard({
   uid,
   mac,

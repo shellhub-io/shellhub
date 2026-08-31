@@ -221,10 +221,9 @@ function CodeLine({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
-
+/**
+ * Use-case page: ShellHub in a CI/CD pipeline.
+ */
 export default function DevopsCiCd() {
   return (
     <SiteLayout>

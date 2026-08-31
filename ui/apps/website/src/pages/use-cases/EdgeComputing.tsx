@@ -174,7 +174,9 @@ const scenarios = [
   },
 ];
 
-/* ═══════ Component ═══════ */
+/**
+ * Use-case page: managing edge deployments that have no inbound route.
+ */
 export default function EdgeComputing() {
   return (
     <SiteLayout>

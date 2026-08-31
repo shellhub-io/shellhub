@@ -93,6 +93,10 @@ function DesktopDropdown({ label, items }: DropdownGroupProps) {
   );
 }
 
+/**
+ * A collapsible group inside the mobile menu. onNavigate is called after a child link is taken,
+ * which is how the sheet closes — the router does not unmount it on a same-page navigation.
+ */
 export function MobileDropdown({
   label,
   items,
@@ -131,6 +135,10 @@ export function MobileDropdown({
   );
 }
 
+/**
+ * The desktop navigation. Hidden below the lg breakpoint, where SiteHeader shows the mobile
+ * menu instead; both render from the same navEntries, so a link is added in one place.
+ */
 export function Navbar() {
   return (
     <nav

@@ -4,6 +4,10 @@ interface AmbientBackgroundProps {
   variant?: "default" | "error";
 }
 
+/**
+ * The full-page background behind the unauthenticated screens. The error variant tints it red,
+ * so a failure reads before the text is.
+ */
 export default function AmbientBackground({
   variant = "default",
 }: AmbientBackgroundProps) {

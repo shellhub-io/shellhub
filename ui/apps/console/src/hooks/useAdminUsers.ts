@@ -27,6 +27,9 @@ interface UseAdminUsersParams {
   search?: string;
 }
 
+/**
+ * A page of users for the admin list.
+ */
 export function useAdminUsers({
   page = 1,
   perPage = 10,
@@ -57,6 +60,9 @@ export function useAdminUsers({
   };
 }
 
+/**
+ * One user by id, for the admin detail view.
+ */
 export function useAdminUser(id: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

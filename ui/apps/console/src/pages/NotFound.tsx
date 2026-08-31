@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
+/**
+ * The 404 page.
+ */
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

@@ -41,6 +41,9 @@ const TagIcon = <TagIconHero className="w-4 h-4" />;
 const GlobeIcon = <GlobeAltIcon className="w-4 h-4" />;
 const IpIcon = <ComputerDesktopIcon className="w-4 h-4" />;
 
+/**
+ * Creates or edits a firewall rule. Given editRule it edits that one, otherwise it creates.
+ */
 export default function RuleDrawer({
   open,
   editRule,

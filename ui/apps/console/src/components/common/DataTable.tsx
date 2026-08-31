@@ -12,6 +12,10 @@ import PageLoader from "@/components/common/PageLoader";
 const TH_CLASS =
   "px-4 py-3 text-left text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted whitespace-nowrap";
 
+/**
+ * One column: how to head it, and how to render a cell from a row. key is also what a sortable
+ * header reports, so it has to match the field the API sorts on.
+ */
 export interface Column<T> {
   key: string;
   header: string;
@@ -20,6 +24,10 @@ export interface Column<T> {
   render: (row: T) => ReactNode;
 }
 
+/**
+ * Props of DataTable. rowKey has to be stable across renders — React keys off it, and an index
+ * would remount every row when the list is sorted or paged.
+ */
 export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
@@ -100,6 +108,10 @@ function getAriaSort(
   return "none";
 }
 
+/**
+ * The console's table: header, rows, loading and empty states, and sortable columns. Every list
+ * page uses it, which is what keeps them consistent without each reimplementing a <table>.
+ */
 export default function DataTable<T>({
   columns,
   data,

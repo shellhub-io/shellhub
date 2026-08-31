@@ -6,6 +6,10 @@ interface Props {
   onPageChange: (page: number) => void;
 }
 
+/**
+ * The pager under a list. It shows the total as well as the page, because the count is the part
+ * that tells someone whether their filter did what they meant.
+ */
 export default function Pagination({
   page,
   totalPages,

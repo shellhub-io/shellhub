@@ -42,6 +42,10 @@ function Bar({
   );
 }
 
+/**
+ * How much of an install key's allowance is spent. An unlimited key shows a count rather than a
+ * bar, since there is nothing to fill.
+ */
 export default function UsageMeter({
   installKey,
   muted,

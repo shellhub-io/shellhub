@@ -4,6 +4,11 @@ import { Callout } from "@shellhub/design-system/primitives";
 
 const AUTO_DISMISS_MS = 6000;
 
+/**
+ * Says the vault locked itself, so a user who returns to find their keys gone knows why. Keyed
+ * on the store's lock nonce rather than on the status, so it appears only for an automatic
+ * lock and not for one the user asked for.
+ */
 export default function VaultAutoLockBanner() {
   const autoLockNonce = useVaultStore((s) => s.autoLockNonce);
 

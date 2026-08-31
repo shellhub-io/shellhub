@@ -8,6 +8,10 @@ import { FeatureGrid } from "./FeatureGrid";
 import { OpenSource } from "./OpenSource";
 import { CTA } from "./CTA";
 
+/**
+ * The landing page. Section order is deliberate: the pitch, then how to try it, then how it
+ * works, then why to trust it.
+ */
 export default function Landing() {
   return (
     <SiteLayout>

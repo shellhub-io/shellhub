@@ -2,6 +2,10 @@ import NoticeBanner from "@/components/common/NoticeBanner";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAdminStats } from "@/hooks/useAdminStats";
 
+/**
+ * Warns when the namespace is at or near its licensed device limit, before an enrolment starts
+ * failing rather than after.
+ */
 export default function DeviceLimitBanner() {
   const {
     data: license,

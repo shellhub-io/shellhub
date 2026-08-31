@@ -73,6 +73,10 @@ function FetchErrorPage({
   );
 }
 
+/**
+ * Holds a route until the user has a namespace, and offers to create or join one when they do
+ * not. Everything below assumes a tenant, so this is where that assumption is established.
+ */
 export default function NamespaceGuard() {
   useInitRole();
   const { namespaces, isLoading, error, refetch } = useNamespaces();

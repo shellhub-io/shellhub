@@ -71,6 +71,10 @@ const tiers = [
   },
 ];
 
+/**
+ * The three plan cards. Order and emphasis are the recommendation, so the middle tier is the
+ * highlighted one.
+ */
 export function TierCards() {
   return (
     <Section bordered={false} padding="md">

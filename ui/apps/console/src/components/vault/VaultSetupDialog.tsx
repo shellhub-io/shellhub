@@ -209,6 +209,10 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   );
 }
 
+/**
+ * Creates a vault. The passphrase entered here is the only way into it afterwards: it is never
+ * sent anywhere and cannot be reset, only discarded along with the keys.
+ */
 export default function VaultSetupDialog({ open, onClose }: Props) {
   const instanceId = useId();
   const titleId = `vault-setup-title-${instanceId}`;

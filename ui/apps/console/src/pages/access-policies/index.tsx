@@ -38,8 +38,6 @@ import SearchField from "@/components/common/fields/SearchField";
 import { formatRelative } from "@/utils/date";
 import AccessPolicyDrawer from "./AccessPolicyDrawer";
 
-/* ── cell chip ────────────────────────────────────── */
-
 const CHIP_TONE = {
   neutral: "bg-card text-text-secondary border border-border",
   primary: "bg-primary/10 text-primary",
@@ -210,8 +208,10 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
   );
 }
 
-/* ── page ─────────────────────────────────────────── */
-
+/**
+ * The access policies page: who may reach which devices, as what. This replaces the key ACL and
+ * firewall pages in namespaces using identity access mode.
+ */
 export default function AccessPolicies() {
   const { policies, isLoading } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();

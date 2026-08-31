@@ -8,6 +8,9 @@ import {
 } from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
+/**
+ * Enterprise section contrasting the managed and self-hosted deployment models.
+ */
 export function DeploymentOptions() {
   return (
     <Section>

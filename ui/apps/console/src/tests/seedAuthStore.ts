@@ -18,6 +18,10 @@ type AuthData = Pick<
   | "isAdmin"
 >;
 
+/**
+ * Puts a signed-in user in the auth store, so a test can start from an authenticated state
+ * without going through sign-in.
+ */
 export function seedAuthStore(overrides: Partial<AuthData> = {}) {
   const auth = mockUserAuth();
   useAuthStore.setState({

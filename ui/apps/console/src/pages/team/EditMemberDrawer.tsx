@@ -10,6 +10,10 @@ import {
   type EditRoleFormValues,
 } from "./schemas";
 
+/**
+ * Changes a member's role. Failures are not surfaced here — a role change is low-stakes and the
+ * list simply refetches — which is why the drawer closes either way.
+ */
 function EditMemberDrawer({
   open,
   onClose,

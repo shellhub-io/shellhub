@@ -3,6 +3,10 @@ import { getSessionAdminOptions } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 
+/**
+ * One session by UID, for the admin detail view. Cached for a minute only: a live session's
+ * state changes while it is being looked at.
+ */
 export function useAdminSessionDetail(uid: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

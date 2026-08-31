@@ -22,6 +22,10 @@ const WIDTH_MAP = {
   md: "max-w-md",
 };
 
+/**
+ * The side panel used for detail and edit flows. Like BaseDialog it traps focus and closes on
+ * Escape, but it does not cover the page, so the list behind stays readable.
+ */
 export default function Drawer({
   open,
   onClose,

@@ -1,9 +1,11 @@
 import { ed25519PublicKeyLine, sha256Fingerprint } from "./sshKeys";
 
-// A per-browser Ed25519 SSH identity. The private key is a non-extractable
-// CryptoKey persisted in IndexedDB (structured-cloned, never serialized), so it
-// signs the SSH challenge in-browser and can never leave it. The public half is
-// enrolled as an ssh_identity, making the web terminal a first-class identity.
+/**
+ * A per-browser Ed25519 SSH identity. The private key is a non-extractable CryptoKey persisted
+ * in IndexedDB (structured-cloned, never serialized), so it signs the SSH challenge in-browser
+ * and can never leave it. The public half is enrolled as an ssh_identity, which is what makes
+ * the web terminal a first-class identity rather than a shared credential.
+ */
 export interface BrowserKey {
   privateKey: CryptoKey;
   publicKeyLine: string;

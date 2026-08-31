@@ -38,6 +38,10 @@ function BoolField({
   );
 }
 
+/**
+ * One session, seen from the admin area, so it can be inspected without belonging to the
+ * namespace it ran in.
+ */
 export default function AdminSessionDetails() {
   const { uid = "" } = useParams<{ uid: string }>();
   const { session, isLoading, error } = useAdminSessionDetail(uid);

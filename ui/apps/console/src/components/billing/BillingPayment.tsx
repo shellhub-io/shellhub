@@ -82,6 +82,10 @@ interface BillingPaymentProps {
   onNoPaymentMethods: () => void;
 }
 
+/**
+ * The card entry step, wrapped in Stripe's Elements provider. The card details are rendered by
+ * Stripe in an iframe and never reach this app, which is what keeps it out of PCI scope.
+ */
 export default function BillingPayment(props: BillingPaymentProps) {
   return (
     <Elements stripe={getStripePromise()} options={ELEMENTS_OPTIONS}>

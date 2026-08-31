@@ -11,6 +11,10 @@ const TONE: Record<ChipTone, string> = {
   primary: "bg-primary/10 text-primary",
 };
 
+/**
+ * A small status chip: an icon, a word and a tone. Used for the several independent states an
+ * install key can be in at once.
+ */
 export default function StatusChip({
   icon: Icon,
   label,
@@ -36,6 +40,10 @@ export default function StatusChip({
   );
 }
 
+/**
+ * Marks a key created by an older mechanism that is no longer offered. It still works; it just
+ * cannot be made again.
+ */
 export function DeprecatedBadge() {
   return <StatusChip label="Deprecated" tone="yellow" />;
 }

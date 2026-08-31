@@ -30,6 +30,10 @@ import {
   type KeyFormValues,
 } from "./keySchema";
 
+/**
+ * Creates or edits a public key. On edit the key material itself is fixed — only its name and
+ * filters can change — because the fingerprint is what devices trust.
+ */
 export default function KeyDrawer({
   open,
   editKey,

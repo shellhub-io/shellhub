@@ -14,6 +14,10 @@ import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
 import { apiErrorMessage } from "@/api/errors";
 
+/**
+ * The five most recent sessions, for a dashboard. isAdmin switches it to the instance-wide list,
+ * which is the only difference between the two dashboards' tables.
+ */
 export default function RecentSessionsTable({ isAdmin = false }) {
   const sessionsHook = isAdmin ? useAdminSessions : useSessions;
   const { sessions, isLoading, error } = sessionsHook({ page: 1, perPage: 5 });

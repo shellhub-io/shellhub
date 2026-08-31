@@ -22,10 +22,13 @@ const SUGGESTIONS = [
   { value: "172.16.0.0/12", note: "private" },
 ];
 
-// SourceIpInput is the access-policy Source IP field. Unlike a plain chip input it parses each
-// entry live: a bare IP is normalized to a /32 host route, CIDRs are classified
-// (private/public/size), an all-IPs entry is flagged, and nonsense is rejected before it can be
-// added — so the user sees exactly what will be stored.
+/**
+ * The access-policy Source IP field. Unlike a plain chip input it reads each entry as it is
+ * typed: a bare address is normalized to a host route, a CIDR is classified by size and by
+ * whether it is private or public, an all-addresses entry is called out, and something that
+ * cannot be an address is refused before it can be added — so what is shown is what will be
+ * stored.
+ */
 export default function SourceIpInput({
   id,
   label,

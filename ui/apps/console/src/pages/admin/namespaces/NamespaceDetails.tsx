@@ -31,6 +31,9 @@ type Member = NonNullable<
   NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]
 >[number];
 
+/**
+ * One namespace, seen from the admin area: its members, its devices and its limits.
+ */
 export default function NamespaceDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

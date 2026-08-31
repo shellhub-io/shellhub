@@ -28,6 +28,9 @@ type AdminAnnouncementsParams = {
 
 const DEFAULTS: AdminAnnouncementsParams = { page: 1 };
 
+/**
+ * The announcements list, with the way to write a new one.
+ */
 export default function AdminAnnouncements() {
   const navigate = useNavigate();
   const { params, setPage } = usePaginatedListState<AdminAnnouncementsParams>({

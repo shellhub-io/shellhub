@@ -43,6 +43,9 @@ function scopeKey(scope?: VaultScope): string {
 export class ServerVaultBackend implements IVaultBackend {
   private readonly key: string;
 
+  /**
+   * Binds this backend to a scope, which is also the key its version counter is tracked under.
+   */
   constructor(scope?: VaultScope) {
     this.key = scopeKey(scope);
   }
@@ -65,11 +68,18 @@ export class ServerVaultBackend implements IVaultBackend {
     return data;
   }
 
+  /**
+   * Fetches the vault header from the server, or null when the account has no vault yet.
+   */
   async loadMeta(): Promise<VaultMeta | null> {
     const vault = await this.fetch();
     return parseVaultMeta(vault?.meta);
   }
 
+  /**
+   * Stores the vault header. Throws with a message fit to show the user, since a failure here
+   * means the vault they just created was not saved.
+   */
   async saveMeta(meta: VaultMeta): Promise<void> {
     const { data, error } = await saveVaultMeta({
       body: { meta: JSON.stringify(meta) },
@@ -79,11 +89,19 @@ export class ServerVaultBackend implements IVaultBackend {
     this.track(data);
   }
 
+  /**
+   * Fetches the encrypted vault body, or null when there is none.
+   */
   async loadData(): Promise<VaultData | null> {
     const vault = await this.fetch();
     return parseVaultData(vault?.data);
   }
 
+  /**
+   * Stores the encrypted vault body, guarded by the version last read. A 409 means another session
+   * wrote first: the local copy is refreshed and the caller is told to reload rather than
+   * overwrite, because a blind write would silently drop the other session's keys.
+   */
   async saveData(data: VaultData): Promise<void> {
     const res = await saveVaultData({
       body: { data: JSON.stringify(data), version: this.version },
@@ -99,6 +117,10 @@ export class ServerVaultBackend implements IVaultBackend {
     this.track(res.data);
   }
 
+  /**
+   * Deletes the vault on the server. A 404 counts as success — the vault is gone either way — and
+   * the version counter is dropped so a later write does not carry a stale one.
+   */
   async clear(): Promise<void> {
     const { error, response } = await deleteVault();
     if (error && response.status !== 404)
@@ -106,11 +128,18 @@ export class ServerVaultBackend implements IVaultBackend {
     versionRegistry.delete(this.key);
   }
 
+  /**
+   * Fetches the vault settings, falling back to defaults if the vault cannot be read. Settings are
+   * not secret, and failing here would block unlocking over a preference.
+   */
   async loadSettings(): Promise<VaultSettings> {
     const vault = await this.fetch().catch(() => null);
     return parseVaultSettings(vault?.settings);
   }
 
+  /**
+   * Stores the vault settings.
+   */
   async saveSettings(settings: VaultSettings): Promise<void> {
     const { data, error } = await saveVaultSettings({
       body: { settings: JSON.stringify(settings) },
@@ -120,10 +149,17 @@ export class ServerVaultBackend implements IVaultBackend {
     this.track(data);
   }
 
+  /**
+   * Reads the legacy unencrypted keys. They only ever existed in this browser, so even the server
+   * backend reads them locally.
+   */
   loadLegacyKeys(): Promise<LegacyPrivateKey[]> {
     return Promise.resolve(loadLegacyKeysFromStorage());
   }
 
+  /**
+   * Deletes the legacy unencrypted keys from this browser.
+   */
   clearLegacyKeys(): Promise<void> {
     clearLegacyKeysFromStorage();
     return Promise.resolve();

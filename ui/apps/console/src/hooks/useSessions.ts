@@ -12,6 +12,9 @@ interface UseSessionsParams {
   perPage?: number;
 }
 
+/**
+ * A page of the namespace's sessions, newest first.
+ */
 export function useSessions({ page = 1, perPage = 10 }: UseSessionsParams = {}) {
   const options = { query: { page, per_page: perPage } } satisfies { query: GetSessionsData["query"] };
 

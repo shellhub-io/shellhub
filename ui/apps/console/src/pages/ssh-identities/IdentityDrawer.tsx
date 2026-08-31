@@ -34,6 +34,10 @@ import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
 // person. Only offered to callers who can create service accounts; rename never shows it.
 type Target = "self" | "service-account";
 
+/**
+ * Enrols or renames an SSH identity. On edit only the name changes — the key is what the
+ * identity is.
+ */
 function IdentityDrawer({
   open,
   editIdentity,

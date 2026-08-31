@@ -27,6 +27,10 @@ interface WelcomeWizardProps {
 const PAIRING_CODE_LENGTH = 8;
 const TOTAL_STEPS = 2;
 
+/**
+ * The first-run wizard: connect a first device, then show what to do with it. onDismiss is
+ * distinct from onClose — dismissing means do not offer it again.
+ */
 export default function WelcomeWizard({
   open,
   onClose,

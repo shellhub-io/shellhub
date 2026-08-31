@@ -12,6 +12,10 @@ interface AdminAppBarProps {
   onMenuToggle?: () => void;
 }
 
+/**
+ * The top bar of the admin area. Distinct from the app's own bar: it carries no namespace
+ * switcher, because the admin area is instance-wide.
+ */
 export default function AdminAppBar({ onMenuToggle }: AdminAppBarProps) {
   const user = useAuthStore((s) => s.user);
   const email = useAuthStore((s) => s.email);

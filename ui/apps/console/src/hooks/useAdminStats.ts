@@ -5,6 +5,9 @@ import { isSdkError } from "../api/errors";
 
 export { getStatsQueryKey };
 
+/**
+ * Instance-wide counts for the admin dashboard.
+ */
 export function useAdminStats() {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

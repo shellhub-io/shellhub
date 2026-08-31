@@ -35,6 +35,9 @@ import { cn } from "@shellhub/design-system/cn";
 import { LABEL_BASE } from "@/utils/styles";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 
+/**
+ * Everything about one container: identity, tags, sessions and the actions on it.
+ */
 export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();

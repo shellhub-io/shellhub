@@ -9,6 +9,10 @@ type PasswordFieldProps = Omit<
   suppressPasswordManager?: boolean;
 };
 
+/**
+ * A password field with a reveal toggle. suppressPasswordManager is for a field that is not a
+ * credential — a passphrase for a key being imported — where an offer to save it is wrong.
+ */
 export default function PasswordField({
   suppressPasswordManager,
   autoComplete,

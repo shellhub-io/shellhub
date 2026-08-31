@@ -16,6 +16,10 @@ import CopyButton from "@/components/common/CopyButton";
 import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
 import { Card } from "@shellhub/design-system/primitives";
 
+/**
+ * The namespace dashboard: device counts, recent sessions, and the first-run wizard for a
+ * namespace with nothing in it yet.
+ */
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);

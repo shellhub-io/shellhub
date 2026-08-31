@@ -55,6 +55,10 @@ interface AnnouncementModalProps {
   announcement: Announcement;
 }
 
+/**
+ * Shows one announcement in full. The body is rendered from Markdown, so the source is trusted
+ * content written by an instance admin rather than by a user.
+ */
 export default function AnnouncementModal({
   open,
   onClose,

@@ -10,6 +10,10 @@ import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
 import RecordingSnackbar from "./RecordingSnackbar";
 
+/**
+ * Holds every open terminal window. It lives in the layout rather than on a page, so a session
+ * survives navigation.
+ */
 export default function TerminalManager({
   sidebarOffset,
 }: {

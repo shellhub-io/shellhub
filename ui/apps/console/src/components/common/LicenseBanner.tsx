@@ -2,6 +2,10 @@ import { useMemo } from "react";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import NoticeBanner from "@/components/common/NoticeBanner";
 
+/**
+ * Warns about the licence — missing, expiring, expired, or inside its grace period. Each state
+ * reads differently, because an instance in its grace period is still working.
+ */
 export default function LicenseBanner() {
   const { data, isLoading, isError, dataUpdatedAt } = useAdminLicense();
 

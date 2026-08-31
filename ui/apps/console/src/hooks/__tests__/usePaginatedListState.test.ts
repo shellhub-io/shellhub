@@ -6,8 +6,6 @@ import {
 } from "../usePaginatedListState";
 import { renderHookWithRouter } from "@/tests/renderHookWithRouter";
 
-// ── Shared fixture ────────────────────────────────────────────────────────────
-
 type TestParams = {
   page: number;
   search: string;
@@ -178,8 +176,6 @@ describe("usePaginatedListState — unrelated params are preserved", () => {
   });
 });
 
-// ── handleSort ────────────────────────────────────────────────────────────────
-
 type SortableParams = {
   page: number;
   search: string;
@@ -289,8 +285,6 @@ describe("usePaginatedListState — handleSort", () => {
   });
 });
 
-// ── scalar filters with allowlist validation ──────────────────────────────────
-
 type FilterParams = {
   page: number;
   search: string;
@@ -361,8 +355,6 @@ describe("usePaginatedListState — scalar filter with allowlist", () => {
     expect(result.current.searchString).not.toContain("status=");
   });
 });
-
-// ── array filters (repeated-key round-trip) ───────────────────────────────────
 
 type ArrayFilterParams = {
   page: number;
@@ -504,8 +496,6 @@ describe("usePaginatedListState — mapArrayFilter", () => {
     expect(result.current.params.tags).toEqual(["web", "prod"]);
   });
 });
-
-// ── prefix option ─────────────────────────────────────────────────────────────
 
 type PrefixedParams = {
   page: number;

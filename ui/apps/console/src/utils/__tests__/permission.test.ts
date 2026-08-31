@@ -6,8 +6,6 @@ import {
   type Action,
 } from "../permission";
 
-/* ─── Action sets by minimum required role ─── */
-
 const OBSERVER_ACTIONS: Action[] = [
   "device:connect",
   "device:details",

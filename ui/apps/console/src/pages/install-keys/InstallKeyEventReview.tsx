@@ -69,6 +69,10 @@ function resolveVerdict(event: InstallKeyEvent): ReviewVerdict | undefined {
   return undefined;
 }
 
+/**
+ * One enrolment made with an install key, with the accept or reject where the key's mode leaves
+ * the decision to a person.
+ */
 export default function InstallKeyEventReview({
   event,
   requestAction,

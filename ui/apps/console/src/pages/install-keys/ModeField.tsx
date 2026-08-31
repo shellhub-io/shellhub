@@ -13,10 +13,12 @@ import {
   isWebhookUrl,
 } from "./helpers";
 
+/**
+ * How an install key enrols a device: automatically, waiting for approval, by calling out to a
+ * webhook, or only for devices on an allowlist.
+ */
 export type InstallKeyMode = "automatic" | "manual" | "webhook" | "allowlist";
 
-// The selector's options are derived from the shared MODE_INFO so mode icon/label/description live in
-// one place (also used by the list's Enrollment cell).
 const OPTIONS = (
   ["automatic", "manual", "webhook", "allowlist"] as InstallKeyMode[]
 ).map((value) => ({ value, ...MODE_INFO[value] }));
@@ -159,6 +161,10 @@ function WebhookPanel({
   );
 }
 
+/**
+ * Picks an install key's enrolment mode. The options are built from the shared MODE_INFO, so the
+ * icon, label and description here are the same ones the list's Enrollment cell shows.
+ */
 export default function ModeField({
   idPrefix,
   mode,

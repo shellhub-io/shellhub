@@ -10,6 +10,10 @@ interface NamespaceLimitFieldsProps {
   idPrefix: string;
 }
 
+/**
+ * The namespace-limit fields, shared by the create and edit forms so the two cannot disagree
+ * about what a limit means. idPrefix keeps the ids unique when both are mounted.
+ */
 export default function NamespaceLimitFields({
   control,
   idPrefix,

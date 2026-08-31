@@ -35,6 +35,10 @@ function HeaderActions({ fullWidth = false }) {
   );
 }
 
+/**
+ * The site header: the desktop Navbar above lg, the mobile sheet below it. It gains its solid
+ * background past 50px of scroll, so it stays transparent over a hero and legible over content.
+ */
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

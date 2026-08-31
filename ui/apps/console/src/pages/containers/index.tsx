@@ -75,6 +75,9 @@ const DEFAULTS: ContainersParams = {
 
 type SortField = "name" | "last_seen";
 
+/**
+ * The containers list, filtered by status, search and tags.
+ */
 export default function Containers() {
   const {
     params,

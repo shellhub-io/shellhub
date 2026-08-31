@@ -2,6 +2,10 @@ import { z } from "zod";
 import { validatePrivateKey } from "@/utils/sshKeys";
 import type { VaultKeyEntry } from "@/types/vault";
 
+/**
+ * Validates a vault key form, including parsing the key itself — an unparseable key is rejected
+ * here rather than stored and found broken at connect time.
+ */
 export const vaultKeySchema = z
   .object({
     name: z.string(),
@@ -33,13 +37,23 @@ export const vaultKeySchema = z
     }
   });
 
+/**
+ * The vault key form's values, derived from the schema.
+ */
 export type VaultKeyFormValues = z.infer<typeof vaultKeySchema>;
 
+/**
+ * What is actually stored for a key. Narrower than the form: the passphrase is used to parse the
+ * key and then dropped, never written to the vault.
+ */
 export type VaultKeyPayload = Pick<
   VaultKeyEntry,
   "name" | "data" | "hasPassphrase" | "fingerprint" | "algorithm"
 >;
 
+/**
+ * Fills the vault key form from an existing entry, or with blanks for a new one.
+ */
 export function buildVaultKeyDefaults(
   entry: VaultKeyEntry | null,
 ): VaultKeyFormValues {
@@ -51,6 +65,10 @@ export function buildVaultKeyDefaults(
   };
 }
 
+/**
+ * Builds the stored entry from validated values plus the fingerprint and algorithm read out of
+ * the key, so both are derived from the key material rather than typed.
+ */
 export function buildVaultKeyPayload(
   values: VaultKeyFormValues,
   fingerprint: string,

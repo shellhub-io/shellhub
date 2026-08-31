@@ -24,6 +24,10 @@ function encodeAddressFilter(value: string): string {
   return toBase64Json(clauses);
 }
 
+/**
+ * A page of the namespace's web endpoints, optionally filtered by address. A blank filter is
+ * dropped rather than sent, so an empty search box does not narrow the list to nothing.
+ */
 export function useWebEndpoints({
   page = 1,
   perPage = 10,

@@ -1,5 +1,8 @@
 import { GlowOrbs, Reveal } from "@shellhub/design-system/components";
 
+/**
+ * Hero of the pricing page.
+ */
 export function HeroPricing() {
   return (
     <section className="relative pt-32 pb-16 overflow-hidden">

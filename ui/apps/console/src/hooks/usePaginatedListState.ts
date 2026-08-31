@@ -16,6 +16,11 @@ export interface SortFieldDef {
   initialOrder: "asc" | "desc";
 }
 
+/**
+ * How a list's URL state is shaped: the defaults, which also define the keys, the constraints
+ * applied to a value read from the URL, the sortable fields, and a prefix for a page carrying
+ * more than one list.
+ */
 export interface UsePaginatedListStateConfig<T extends Record<string, unknown>> {
   defaults: ListParamDefaults<T>;
   constraints?: ListParamConstraints<T>;
@@ -23,6 +28,10 @@ export interface UsePaginatedListStateConfig<T extends Record<string, unknown>> 
   prefix?: string;
 }
 
+/**
+ * The state of a paginated list and the ways to change it. Every setter writes the URL, so the
+ * list is shareable and survives a reload.
+ */
 export interface UsePaginatedListStateResult<T extends Record<string, unknown>> {
   params: T;
   searchString: string;

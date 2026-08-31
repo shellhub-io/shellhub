@@ -4,6 +4,10 @@ interface SessionTypeBadgeProps {
   types: string[];
 }
 
+/**
+ * The badge for what a session did — a file transfer, a single command, or an ordinary shell,
+ * which gets no badge.
+ */
 export default function SessionTypeBadge({ types }: SessionTypeBadgeProps) {
   if (types.includes("subsystem"))
     return <Badge color="cyan" shape="pill">sftp</Badge>;

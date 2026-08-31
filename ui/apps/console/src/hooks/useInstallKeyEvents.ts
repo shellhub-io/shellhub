@@ -13,6 +13,9 @@ interface UseInstallKeyEventsParams {
   perPage?: number;
 }
 
+/**
+ * A page of the enrolments made with an install key — what it was used for, and when.
+ */
 export function useInstallKeyEvents({
   id,
   page = 1,

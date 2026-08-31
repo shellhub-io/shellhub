@@ -13,6 +13,9 @@ type Props<T extends FieldValues> = InputFieldProps & {
   onValueChange?: (value: string) => void;
 };
 
+/**
+ * InputField bound to react-hook-form.
+ */
 export default function FormInputField<T extends FieldValues>({
   name,
   control,

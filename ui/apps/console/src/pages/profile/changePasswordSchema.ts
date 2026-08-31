@@ -24,4 +24,7 @@ export const changePasswordSchema = z
     }
   });
 
+/**
+ * The change-password form's values, derived from the schema.
+ */
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;

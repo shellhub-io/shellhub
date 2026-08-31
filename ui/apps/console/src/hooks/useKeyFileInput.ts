@@ -29,6 +29,11 @@ interface UseKeyFileInputReturn {
   setDragging: (v: boolean) => void;
 }
 
+/**
+ * Wires a file input for picking a key: reads the file as text, validates it, and reports the
+ * name. maxBytes stops a mis-picked file being read into memory — a private key is small, so
+ * anything large is the wrong file.
+ */
 export function useKeyFileInput({
   validate,
   onChange,

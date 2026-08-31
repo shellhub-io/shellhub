@@ -10,6 +10,10 @@ import { cn } from "@shellhub/design-system/cn";
 
 type MigrationStatus = "running" | "completed" | "failed" | "unknown";
 
+/**
+ * The account migration screen, served from its own entry point rather than the SPA, so it can
+ * run against an account the main app would refuse to load.
+ */
 export default function MigrationPage() {
   const [status, setStatus] = useState<MigrationStatus>("unknown");
 

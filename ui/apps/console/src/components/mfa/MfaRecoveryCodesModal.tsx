@@ -7,6 +7,10 @@ interface MfaRecoveryCodesModalProps {
   onClose: () => void;
 }
 
+/**
+ * Shows a freshly generated set of recovery codes. This is the only time they are readable, so
+ * the dialog offers to copy and download before it can be dismissed.
+ */
 export default function MfaRecoveryCodesModal({
   open,
   onClose,

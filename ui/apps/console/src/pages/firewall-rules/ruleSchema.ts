@@ -10,6 +10,10 @@ function isValidRegex(pattern: string): boolean {
   }
 }
 
+/**
+ * Validates the firewall rule form, including the parts that depend on each other: a rule
+ * filtered by hostname needs no tags, and one filtered by tags needs at least one.
+ */
 export const ruleSchema = z
   .object({
     priority: z.string(),
@@ -109,8 +113,15 @@ export const ruleSchema = z
     }
   });
 
+/**
+ * The rule form's values, derived from the schema.
+ */
 export type RuleFormValues = z.infer<typeof ruleSchema>;
 
+/**
+ * What a new rule starts as: allow, active, and matching everything, so an unfinished rule is
+ * visibly incomplete rather than quietly denying traffic.
+ */
 export const DEFAULT_VALUES: RuleFormValues = {
   priority: "",
   action: "allow",
@@ -124,6 +135,10 @@ export const DEFAULT_VALUES: RuleFormValues = {
   tags: [],
 };
 
+/**
+ * Turns validated form values into the request body, sending only the filter branch that was
+ * chosen — a hostname or a tag set, never both.
+ */
 export function buildRuleBody(values: RuleFormValues): FirewallRulesRequest {
   const filter: FirewallRulesRequest["filter"] =
     values.filterOption === "hostname"
@@ -144,6 +159,10 @@ export function buildRuleBody(values: RuleFormValues): FirewallRulesRequest {
   };
 }
 
+/**
+ * Fills the rule form from an existing rule. A hostname of ".*" is the API's way of saying
+ * "any", so it is shown as an empty field rather than as a pattern the user did not write.
+ */
 export function buildRuleDefaults(rule: FirewallRulesResponse): RuleFormValues {
   const hasTags = rule.filter.tags.length > 0;
   const hasHostname =

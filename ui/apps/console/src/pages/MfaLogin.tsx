@@ -9,6 +9,10 @@ import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * The second factor at sign-in. Holds the partial token from the first step and exchanges it for
+ * a full one, so a wrong code leaves the user still un-signed-in rather than signed out.
+ */
 export default function MfaLogin() {
   const otp = useOtpInput(6);
   const { loginWithMfa, loading, error, mfaToken } = useAuthStore();

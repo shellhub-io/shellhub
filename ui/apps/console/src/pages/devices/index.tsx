@@ -76,6 +76,10 @@ const DEFAULTS: DevicesParams = {
 
 type SortField = "name" | "last_seen";
 
+/**
+ * The devices list — the console's main page — filtered by status, search and tags, with the
+ * filter state held in the URL so a view can be shared.
+ */
 export default function Devices() {
   const {
     params,

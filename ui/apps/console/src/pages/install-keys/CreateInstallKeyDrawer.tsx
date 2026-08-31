@@ -21,6 +21,10 @@ import {
 } from "./helpers";
 import { LABEL } from "@/utils/styles";
 
+/**
+ * Creates an install key. onCreated receives the key itself, which is returned once and cannot
+ * be read again, so the caller has to show it before this closes.
+ */
 function CreateInstallKeyDrawer({
   open,
   onClose,

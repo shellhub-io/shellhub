@@ -7,6 +7,9 @@ import FieldLabel from "@/components/common/fields/FieldLabel";
 import FieldError from "@/components/common/fields/FieldError";
 import FieldHint from "@/components/common/fields/FieldHint";
 
+/**
+ * Picks tags from the namespace's existing ones, and creates a tag that does not exist yet.
+ */
 export default function TagsSelector({
   id,
   label,

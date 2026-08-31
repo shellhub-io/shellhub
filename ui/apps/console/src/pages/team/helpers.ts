@@ -1,3 +1,7 @@
+/**
+ * The API key lifetimes offered. There is no "never": a key without an expiry is a standing
+ * credential, and one has to be chosen deliberately.
+ */
 export const EXPIRY_OPTIONS = [
   { label: "30 days", value: 30 },
   { label: "60 days", value: 60 },
@@ -6,6 +10,10 @@ export const EXPIRY_OPTIONS = [
   { label: "Never", value: -1 },
 ] as const;
 
+/**
+ * The roles that can be assigned to an invitation, a member or an API key. Owner is absent
+ * because ownership is transferred rather than granted.
+ */
 export const ROLES = ["administrator", "operator", "observer"] as const;
 
 /** A role that can be assigned to an invitation, member, or API key.
@@ -21,6 +29,9 @@ export function isAssignableRole(role: unknown): role is AssignableRole {
   );
 }
 
+/**
+ * Whether a Unix expiry has passed. Zero or negative means no expiry, which is not expired.
+ */
 export function isExpired(expiresIn: number): boolean {
   if (expiresIn <= 0) return false;
   return Date.now() > expiresIn * 1000;

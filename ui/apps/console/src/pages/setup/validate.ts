@@ -2,10 +2,12 @@ import { NAMESPACE_NAME_MAX_LENGTH } from "@/utils/validation";
 
 const USERNAME_REGEX = /^[a-z0-9\-_.@]+$/;
 
-// suggestNamespace derives a namespace name from the username, so setup can pre-fill it
-// (readonly) and let the user override it. Lowercases, turns runs of invalid characters into a
-// single hyphen, trims leading/trailing hyphens, and caps at the namespace max length. The
-// result is validated by the shared validateNamespaceName (see setupResolver).
+/**
+ * Derives a namespace name from a username, so setup can pre-fill one. Lowercases, collapses
+ * runs of invalid characters into a single hyphen, trims hyphens from the ends and caps the
+ * length. A suggestion only — the field stays editable, and the result is validated by the
+ * shared validateNamespaceName like any other.
+ */
 export function suggestNamespace(username: string): string {
   return username
     .toLowerCase()
@@ -16,6 +18,9 @@ export function suggestNamespace(username: string): string {
     .replace(/-+$/, "");
 }
 
+/**
+ * The per-field errors of the account forms, keyed by field so each lands on its own input.
+ */
 export interface FormErrors {
   name?: string;
   username?: string;
@@ -24,6 +29,10 @@ export interface FormErrors {
   confirmPassword?: string;
 }
 
+/**
+ * Checks the account fields shared by setup, sign-up and invitation, so the three cannot come to
+ * disagree about what a valid username or password is.
+ */
 export function validate(fields: {
   name: string;
   username: string;

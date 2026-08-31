@@ -19,6 +19,9 @@ type Props<T extends FieldValues> = TextareaProps & {
   onValueChange?: (value: string) => void;
 };
 
+/**
+ * A multi-line field bound to react-hook-form.
+ */
 export default function FormTextareaField<T extends FieldValues>({
   id,
   label,

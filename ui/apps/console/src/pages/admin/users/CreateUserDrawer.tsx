@@ -17,6 +17,10 @@ interface CreateUserDrawerProps {
   onClose: () => void;
 }
 
+/**
+ * Creates a user as an admin. The account is created already confirmed, since an admin creating
+ * it is the confirmation.
+ */
 export default function CreateUserDrawer({
   open,
   onClose,

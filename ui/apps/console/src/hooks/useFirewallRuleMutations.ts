@@ -6,6 +6,9 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Creates a firewall rule, refreshing the list.
+ */
 export function useCreateFirewallRule() {
   const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({
@@ -14,6 +17,9 @@ export function useCreateFirewallRule() {
   });
 }
 
+/**
+ * Updates a firewall rule, refreshing the list.
+ */
 export function useUpdateFirewallRule() {
   const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({
@@ -22,6 +28,9 @@ export function useUpdateFirewallRule() {
   });
 }
 
+/**
+ * Deletes a firewall rule, refreshing the list.
+ */
 export function useDeleteFirewallRule() {
   const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({

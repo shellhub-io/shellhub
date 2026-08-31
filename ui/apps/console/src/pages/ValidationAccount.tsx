@@ -5,6 +5,10 @@ import { useSignUpStore } from "../stores/signUpStore";
 import { Spinner } from "@shellhub/design-system/primitives";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * Completes an email verification from its link. An expired or reused link is reported
+ * separately from a genuine failure, because only the first is worth offering a resend.
+ */
 export default function ValidationAccount() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

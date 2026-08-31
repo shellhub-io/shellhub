@@ -8,6 +8,9 @@ interface SessionPlayerDialogProps {
   logs: string;
 }
 
+/**
+ * Plays a recorded session in a dialog.
+ */
 export default function SessionPlayerDialog({
   open,
   onClose,

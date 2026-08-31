@@ -18,6 +18,10 @@ import { docsUrl, githubUrl } from "@/links";
 
 const ICON_SIZE = "size-4";
 
+/**
+ * One entry of a navigation dropdown. desc is shown beneath the label on desktop and dropped on
+ * mobile, where there is no room for it.
+ */
 export interface DropdownItem {
   label: string;
   href: string;
@@ -25,10 +29,18 @@ export interface DropdownItem {
   icon: React.ReactNode;
 }
 
+/**
+ * A navigation entry: either a link that goes straight somewhere, or a dropdown holding several.
+ * The kind tag is what both the desktop bar and the mobile sheet switch on.
+ */
 export type NavEntry =
   | { kind: "link"; label: string; href: string }
   | { kind: "dropdown"; label: string; items: DropdownItem[] };
 
+/**
+ * The site navigation, in order. Desktop and mobile both render from this, so an entry added
+ * here appears in both and cannot drift between them.
+ */
 export const navEntries: NavEntry[] = [
   {
     kind: "dropdown",

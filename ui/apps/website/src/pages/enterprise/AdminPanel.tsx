@@ -30,6 +30,9 @@ const capabilities = [
   },
 ];
 
+/**
+ * Enterprise section on the browser-based admin panel.
+ */
 export function AdminPanel() {
   return (
     <Section>

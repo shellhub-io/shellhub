@@ -243,6 +243,10 @@ function DurationStat({
   );
 }
 
+/**
+ * Everything about one session: who, from where, for how long, and the recording if there is
+ * one. An open session can be closed from here, which disconnects it.
+ */
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
   const { session, isLoading, error } = useSession(uid!);

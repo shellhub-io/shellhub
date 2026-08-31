@@ -23,6 +23,9 @@ interface StatCardButtonProps extends StatCardBaseProps {
 
 type StatCardProps = StatCardLinkProps | StatCardButtonProps;
 
+/**
+ * A dashboard figure with its label and a way through to the list behind it.
+ */
 export default function StatCard(props: StatCardProps) {
   const { icon, title, value, linkLabel, accent } = props;
 

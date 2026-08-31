@@ -7,6 +7,9 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Creates a user as an admin, refreshing the user list.
+ */
 export function useCreateUser() {
   const invalidate = useInvalidateByIds("getUsers");
   return useMutation({
@@ -15,6 +18,9 @@ export function useCreateUser() {
   });
 }
 
+/**
+ * Updates a user as an admin, refreshing the list and the user's own query.
+ */
 export function useUpdateUser() {
   const invalidate = useInvalidateByIds("getUsers", "getUser");
   return useMutation({
@@ -23,6 +29,9 @@ export function useUpdateUser() {
   });
 }
 
+/**
+ * Deletes a user as an admin, refreshing the list and the user's own query.
+ */
 export function useDeleteUser() {
   const invalidate = useInvalidateByIds("getUsers", "getUser");
   return useMutation({
@@ -31,6 +40,10 @@ export function useDeleteUser() {
   });
 }
 
+/**
+ * Resets a user's password as an admin. The user is not notified by this call, so whoever ran it
+ * has to tell them.
+ */
 export function useResetUserPassword() {
   const invalidate = useInvalidateByIds("getUsers", "getUser");
   return useMutation({

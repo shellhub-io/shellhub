@@ -41,7 +41,6 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 
-/* ─── Types ─── */
 type Method =
   | "auto"
   | "docker"
@@ -107,7 +106,6 @@ const MODE_OUTCOME: Record<string, string> = {
   allowlist: "accepted if its MAC is allowed",
 };
 
-/* ─── Constants ─── */
 const METHODS: MethodInfo[] = [
   {
     id: "auto",
@@ -183,7 +181,10 @@ const METHODS: MethodInfo[] = [
   },
 ];
 
-/* ─── Page ─── */
+/**
+ * How to add a device: the install command, the install key, and the alternatives. The command
+ * shown carries the namespace's own tenant, so it is copyable as-is.
+ */
 export default function AddDevice() {
   const { tenant } = useAuthStore();
   const [aud, setAud] = useState<Audience>("machine");

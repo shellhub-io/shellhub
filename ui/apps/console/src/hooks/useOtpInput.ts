@@ -1,5 +1,9 @@
 import { useState, useRef, KeyboardEvent } from "react";
 
+/**
+ * Drives a segmented code field: one character per box, focus following the caret, and a paste
+ * spread across the boxes. alphanumeric is for recovery codes, which are not digits.
+ */
 export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
   const [code, setCode] = useState<string[]>(Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);

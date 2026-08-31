@@ -13,6 +13,9 @@ interface PageHeaderProps {
   iconColor?: Palette;
 }
 
+/**
+ * The heading block every page opens with: icon, overline, title and actions.
+ */
 export default function PageHeader({
   icon,
   overline,

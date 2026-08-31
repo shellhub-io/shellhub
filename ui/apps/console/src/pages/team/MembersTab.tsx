@@ -89,6 +89,10 @@ function cancelErrorMessage(err: unknown): string {
   return "Failed to cancel the invitation. Please try again.";
 }
 
+/**
+ * The members tab: who is in the namespace, in what role, and the pending invitations alongside
+ * them.
+ */
 function MembersTab({ tenantId }: { tenantId: string }) {
   const { members: memberViews, isLoading: membersLoading } =
     useNamespaceMembers(tenantId);

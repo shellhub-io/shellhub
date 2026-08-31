@@ -15,6 +15,9 @@ interface TagsSectionProps {
   }) => Promise<unknown>;
 }
 
+/**
+ * The tags block on a detail page.
+ */
 export default function TagsSection({
   uid,
   tags,

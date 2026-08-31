@@ -23,6 +23,10 @@ import PageLoader from "@/components/common/PageLoader";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 
+/**
+ * Renames and deletes the namespace's tags. Both change every device carrying the tag, so the
+ * callbacks let the page refresh what it is showing.
+ */
 export default function ManageTagsDrawer({
   open,
   onClose,

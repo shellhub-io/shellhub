@@ -19,6 +19,10 @@ function RouterLink({
   );
 }
 
+/**
+ * Page shell for every marketing route — full-height background, base type, and overflow-x
+ * clipped so a decorative element that overhangs the viewport cannot scroll the page sideways.
+ */
 export function SiteLayout({
   children,
   className,

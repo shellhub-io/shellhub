@@ -10,6 +10,11 @@ function formatStars(count: number) {
   return `${(count / 1000).toFixed(1)}k`;
 }
 
+/**
+ * Landing section on the open-source project. The star count is fetched from the GitHub API at
+ * render; the request is unauthenticated and rate-limited per IP, so a failure is swallowed
+ * and the count simply stays hidden rather than breaking the section.
+ */
 export function OpenSource() {
   const [stars, setStars] = useState<number | null>(null);
 

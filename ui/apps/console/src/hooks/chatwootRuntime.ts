@@ -45,8 +45,11 @@ function detachReadyListener(): void {
   readyListener = null;
 }
 
-// ─── External-store API for useSyncExternalStore ─────────────────────────────
-
+/**
+ * Subscribes to changes in the widget's readiness, returning the unsubscribe. The store half of
+ * useSyncExternalStore: Chatwoot loads asynchronously and outside React, so its state cannot
+ * be React state.
+ */
 export function subscribeChatwootState(callback: () => void): () => void {
   listeners.add(callback);
   return () => {
@@ -54,14 +57,27 @@ export function subscribeChatwootState(callback: () => void): () => void {
   };
 }
 
+/**
+ * Whether the widget is loaded and callable. Read from the global the script installs, so it is
+ * correct even if the script loaded before React did.
+ */
 export function getWidgetReadySnapshot(): boolean {
   return typeof window !== "undefined" && !!window.$chatwoot;
 }
 
+/**
+ * Whether the widget failed to load. Distinct from not-ready: a failure is final, and the UI
+ * stops offering support rather than waiting.
+ */
 export function getBootstrapFailedSnapshot(): boolean {
   return bootstrapFailed;
 }
 
+/**
+ * The server snapshot for useSyncExternalStore. There is no widget outside the browser, so it is
+ * always false — a constant function rather than an inline literal, which would change identity
+ * on every render and loop.
+ */
 export function falseSnapshot(): boolean {
   return false;
 }

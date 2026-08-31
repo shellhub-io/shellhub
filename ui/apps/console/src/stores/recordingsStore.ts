@@ -31,6 +31,10 @@ interface RecordingsState {
   clearNotice: () => void;
 }
 
+/**
+ * The locally recorded sessions, listed from OPFS. Retention is applied here, so a recording
+ * older than the limit is dropped when the list is refreshed rather than on a timer.
+ */
 export const useRecordingsStore = create<RecordingsState>((set, get) => ({
   recordings: [],
   loading: false,

@@ -1269,6 +1269,9 @@ function FeaturesCTA() {
   );
 }
 
+/**
+ * The features page, one section per capability.
+ */
 export default function Features() {
   return (
     <SiteLayout>

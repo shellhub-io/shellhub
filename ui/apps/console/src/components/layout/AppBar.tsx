@@ -61,6 +61,11 @@ function crossfadeReducer(
   }
 }
 
+/**
+ * The top bar: namespace switcher, command palette, support and the user menu. It stays dark in
+ * light mode, pinned by the theme-dark class, which is deliberate — the chrome is the app's
+ * identity and does not flip with the content.
+ */
 export default function AppBar({ onMenuToggle }: AppBarProps) {
   const themeBg = useTerminalThemeStore((s) => s.theme.colors.background);
 

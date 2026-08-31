@@ -1,3 +1,7 @@
+/**
+ * A namespace role. The order in RoleLevel is what makes permissions comparable: every role
+ * holds everything the roles beneath it hold.
+ */
 export type Role = "observer" | "operator" | "administrator" | "owner";
 
 enum RoleLevel {
@@ -14,6 +18,10 @@ const roleLevels: Record<Role, RoleLevel> = {
   owner: RoleLevel.OWNER,
 };
 
+/**
+ * Narrows an arbitrary string — a stored value, an API field — to a Role. Anything unrecognised
+ * is not a role, which is what keeps a renamed or absent role from being treated as an owner.
+ */
 export const isValidRole = (role: string | null): role is Role =>
   role !== null && Object.prototype.hasOwnProperty.call(roleLevels, role);
 
@@ -93,8 +101,16 @@ const permissions = {
   "namespace:editBanner": RoleLevel.ADMINISTRATOR,
 } as const;
 
+/**
+ * Every action the UI gates on, taken from the permission table so a typo is a type error rather
+ * than a silent allow.
+ */
 export type Action = keyof typeof permissions;
 
+/**
+ * Whether a role may take an action. This decides what the UI offers, not what the API permits —
+ * the server checks again, and this only keeps a control from being shown that would fail.
+ */
 export function hasPermission(role: string | null, action: Action): boolean {
   if (!isValidRole(role)) return false;
   return roleLevels[role] >= permissions[action];

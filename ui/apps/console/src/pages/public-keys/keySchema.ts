@@ -3,6 +3,9 @@ import type { PublicKeyRequest, PublicKeyResponse } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import { validateName } from "@/utils/validation";
 
+/**
+ * Whether the key form is creating or editing, which decides if the key material is editable.
+ */
 export type KeyMode = "create" | "edit";
 
 const keyFields = z.object({
@@ -15,8 +18,15 @@ const keyFields = z.object({
   tags: z.array(z.string()),
 });
 
+/**
+ * The key form's values, derived from the schema.
+ */
 export type KeyFormValues = z.infer<typeof keyFields>;
 
+/**
+ * What a new key form starts as: no filter and every username, which is the widest setting and
+ * so is left for the user to narrow deliberately.
+ */
 export const DEFAULT_VALUES: KeyFormValues = {
   name: "",
   data: "",
@@ -27,6 +37,10 @@ export const DEFAULT_VALUES: KeyFormValues = {
   tags: [],
 };
 
+/**
+ * Builds the key schema for a mode. On edit the key material is not revalidated, since it cannot
+ * be changed.
+ */
 export function keySchema(mode: KeyMode) {
   return keyFields.superRefine((values, ctx) => {
     const nameError = validateName(values.name);
@@ -60,6 +74,10 @@ export function keySchema(mode: KeyMode) {
   });
 }
 
+/**
+ * Turns validated form values into the request body, sending only the filter branch that was
+ * chosen.
+ */
 export function buildKeyBody(values: KeyFormValues): PublicKeyRequest {
   const filter: PublicKeyRequest["filter"] =
     values.filterOption === "hostname"
@@ -77,6 +95,10 @@ export function buildKeyBody(values: KeyFormValues): PublicKeyRequest {
   };
 }
 
+/**
+ * Fills the key form from an existing key. The stored key material is base64, so it is decoded
+ * for display; a value that does not decode is shown as-is rather than blanked.
+ */
 export function buildKeyDefaults(key: PublicKeyResponse): KeyFormValues {
   const decodedData = (() => {
     try {

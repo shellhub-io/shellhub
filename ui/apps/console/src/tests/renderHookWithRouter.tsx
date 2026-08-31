@@ -6,6 +6,9 @@ interface RenderHookWithRouterOptions
   initialEntries?: string[];
 }
 
+/**
+ * Renders a hook inside a router, for one that reads or writes the URL.
+ */
 export function renderHookWithRouter<Result>(
   hook: () => Result,
   { initialEntries, ...rest }: RenderHookWithRouterOptions = {},

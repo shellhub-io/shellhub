@@ -9,11 +9,19 @@ import InstallKeyEventReview from "./InstallKeyEventReview";
 import KeyValueChip from "./KeyValueChip";
 import StatusChip from "./StatusChip";
 
+/**
+ * Asks for a decision on an enrolment. Narrowed to accept and reject: an enrolment event cannot
+ * be removed, only decided.
+ */
 export type RequestDeviceAction = (
   entity: EntityBase,
   operation: Extract<EntityOperation, "accept" | "reject">,
 ) => void;
 
+/**
+ * The columns of the enrolment history table. Built as a function rather than a constant because
+ * the action column has to close over the caller's handler.
+ */
 export function getInstallKeyEventColumns(
   requestAction: RequestDeviceAction,
 ): Column<InstallKeyEvent>[] {

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { GetAuthenticationSettingsResponse } from "@/client";
 
+/**
+ * The stored SAML configuration, taken from the generated response type so the form and the API
+ * cannot drift.
+ */
 export type SamlSettings = NonNullable<GetAuthenticationSettingsResponse>["saml"];
 
 function isValidUrl(s: string): boolean {
@@ -19,6 +23,11 @@ function isCertValid(s: string): boolean {
   );
 }
 
+/**
+ * Normalizes a pasted certificate: providers hand out PEM with varying line breaks and stray
+ * whitespace, and the server wants one consistent form. Input without the PEM markers is
+ * returned untouched, so a partial paste is reported by validation rather than mangled here.
+ */
 export function normalizeCert(raw: string): string {
   const begin = "-----BEGIN CERTIFICATE-----";
   const end = "-----END CERTIFICATE-----";
@@ -29,6 +38,10 @@ export function normalizeCert(raw: string): string {
   return `${begin}\n${body}\n${end}`;
 }
 
+/**
+ * Validates the SAML form. The metadata URL and the manual fields are alternatives, so exactly
+ * one branch is required and the other is left alone.
+ */
 export const samlSchema = z
   .object({
     useMetadataUrl: z.boolean(),
@@ -79,8 +92,14 @@ export const samlSchema = z
     }
   });
 
+/**
+ * The SAML form's values, derived from the schema.
+ */
 export type SamlFormValues = z.infer<typeof samlSchema>;
 
+/**
+ * Fills the SAML form from the stored configuration, or with blanks when there is none.
+ */
 export function buildSamlDefaults(
   existingConfig: SamlSettings | null | undefined,
 ): SamlFormValues {
@@ -111,6 +130,10 @@ export function buildSamlDefaults(
   };
 }
 
+/**
+ * Turns validated SAML form values into the request body, sending only the branch that was
+ * filled in — the metadata URL or the manual fields, never both.
+ */
 export function buildSamlBody(values: SamlFormValues) {
   if (values.useMetadataUrl) {
     return {

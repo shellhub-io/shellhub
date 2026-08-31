@@ -7,12 +7,17 @@ import {
   useState,
 } from "react";
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-
+/**
+ * How a copy failure is reported. The warning is raised at the app level rather than by each
+ * button, so the explanation appears once however many are on screen.
+ */
 export interface ClipboardContextValue {
   triggerWarning: () => void;
 }
 
+/**
+ * Carries the copy-failure reporter down the tree.
+ */
 export const ClipboardContext = createContext<ClipboardContextValue | null>(
   null,
 );

@@ -11,6 +11,9 @@ import {
 } from "@/components";
 import { Reveal, ShimmerCard } from "@shellhub/design-system/components";
 
+/**
+ * Enterprise section describing the support tiers.
+ */
 export function SupportSection() {
   return (
     <Section bordered={false}>

@@ -215,8 +215,10 @@ function NavGroupItem({
   );
 }
 
-// ---- AdminSidebar ----
-
+/**
+ * The admin navigation. Its links are instance-wide, so nothing here is filtered by namespace
+ * role — only by whether the user is an instance admin at all.
+ */
 export default function AdminSidebar({
   expanded,
   pinned,

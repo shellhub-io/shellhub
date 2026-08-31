@@ -20,6 +20,10 @@ interface UseNamespaceInvitationsParams {
   enabled?: boolean;
 }
 
+/**
+ * Resolves an invitation token to what it offers. Never retried and never stale: the token is
+ * single-use, so a retry would fail and a cached answer would be wrong.
+ */
 export function useResolveInvitation(invite: string) {
   const { data, isLoading, isError } = useQuery({
     ...resolveInvitationOptions({ query: { invite } }),
@@ -41,6 +45,9 @@ export function useResolveInvitation(invite: string) {
   return { resolved, isLoading, isError };
 }
 
+/**
+ * A page of a namespace's invitations, filtered by status.
+ */
 export function useNamespaceInvitations({
   tenantId,
   status = "pending",

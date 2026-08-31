@@ -10,13 +10,25 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Catches a render error below it and shows a recoverable screen rather than a blank page. React
+ * unmounts the whole tree on an uncaught error, so without this a fault in one panel takes the
+ * console with it.
+ */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
+  /**
+   * Moves the boundary into its error state. React calls this during the render phase, so it must
+   * stay pure — logging and reporting belong in componentDidCatch.
+   */
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
+  /**
+   * Renders the children, or the fallback once an error has been caught.
+   */
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;

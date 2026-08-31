@@ -21,6 +21,9 @@ interface TagsPopoverProps {
   editLabel?: string;
 }
 
+/**
+ * Adds and removes an entity's tags in place, from a row, without opening its detail page.
+ */
 export default function TagsPopover({
   uid,
   tags: entityTags,

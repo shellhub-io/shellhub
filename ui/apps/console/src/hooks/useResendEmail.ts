@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { useSignUpStore } from "../stores/signUpStore";
 
+/**
+ * How long before a verification mail can be sent again. Enforced by the server too; this is
+ * what makes the button say so rather than fail.
+ */
 export const RESEND_COOLDOWN_S = 60;
 
+/**
+ * Resends the verification mail, with the cooldown counted down for the button label.
+ */
 export function useResendEmail(username: string) {
   const resendEmail = useSignUpStore((s) => s.resendEmail);
   const resendLoading = useSignUpStore((s) => s.resendLoading);

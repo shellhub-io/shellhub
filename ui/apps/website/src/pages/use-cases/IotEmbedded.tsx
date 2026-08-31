@@ -136,8 +136,9 @@ const platforms = [
   { name: "Alpine", abbr: "Al" },
 ];
 
-/* ═══════ Component ═══════ */
-
+/**
+ * Use-case page: IoT and embedded fleets behind NAT.
+ */
 export default function IotEmbedded() {
   return (
     <SiteLayout>

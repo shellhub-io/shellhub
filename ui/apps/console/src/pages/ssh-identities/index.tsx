@@ -63,6 +63,10 @@ const EXPIRY_TONE: Record<IdentityStatusTone, string> = {
   quiet: "",
 };
 
+/**
+ * The SSH identities page: the keys that may authenticate, whose they are, and how each will
+ * end. Fetches every identity in the namespace, marking the caller's own.
+ */
 export default function SSHIdentities() {
   const userId = useAuthStore((s) => s.userId);
 

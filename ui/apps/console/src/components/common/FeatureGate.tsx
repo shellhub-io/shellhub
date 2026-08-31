@@ -16,6 +16,10 @@ interface FeatureGateProps {
   highlights?: EmptyStateFeature[];
 }
 
+/**
+ * Shows its children only where the edition has the feature, and an explanation where it does
+ * not. The server refuses either way; this is what turns a 403 into an offer.
+ */
 export default function FeatureGate({
   children,
   feature,

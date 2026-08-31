@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 
-// Lightweight post-session notice. Driven by the recordings store, so it shows
-// the same way regardless of how the session ended (X button, exit, or dropped
-// connection). Non-blocking, announces politely, and auto-dismisses.
+/**
+ * The notice shown after a session ends. Driven by the recordings store, so it appears the same
+ * way however the session ended — closed, exited, or dropped. Non-blocking, announced politely,
+ * and dismissed on its own.
+ */
 export default function RecordingSnackbar() {
   const notice = useRecordingsStore((s) => s.notice);
   const clearNotice = useRecordingsStore((s) => s.clearNotice);

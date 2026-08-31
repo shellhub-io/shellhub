@@ -14,6 +14,9 @@ interface UseApiKeysParams {
   orderBy?: "asc" | "desc";
 }
 
+/**
+ * A page of the namespace's API keys, newest first.
+ */
 export function useApiKeys({
   page = 1,
   perPage = 10,

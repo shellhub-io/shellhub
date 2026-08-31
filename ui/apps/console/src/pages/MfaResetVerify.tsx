@@ -7,6 +7,10 @@ import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
 
+/**
+ * Verifies the code from an MFA reset mail. The request expires, so this counts down rather than
+ * waiting indefinitely.
+ */
 export default function MfaResetVerify() {
   const {
     completeMfaReset,

@@ -5,6 +5,9 @@ import {
   getAnnouncementOptions,
 } from "@/client";
 
+/**
+ * The most recent announcement, or nothing when announcements are switched off for the instance.
+ */
 export function useLatestAnnouncement() {
   const enabled = getConfig().announcements;
 

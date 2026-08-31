@@ -9,12 +9,20 @@ const colorClasses: Record<Color, string> = {
   green: "text-accent-green",
 };
 
+/**
+ * Props of FeatureListItem. color tints the check mark alone; green marks a point as included,
+ * muted is the neutral default.
+ */
 export interface FeatureListItemProps {
   children: ReactNode;
   color?: Color;
   className?: string;
 }
 
+/**
+ * One check-marked line of a feature list. It renders an <li>, so it belongs inside a list.
+ * The mark is decorative — the meaning has to be in the text, not the tick.
+ */
 export function FeatureListItem({
   children,
   color = "muted",

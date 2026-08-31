@@ -94,10 +94,9 @@ const vpnLimitations = [
   { label: "Logging requires extra setup", has: false },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
-
+/**
+ * The how-it-works page: the connection model, end to end.
+ */
 export default function HowItWorks() {
   return (
     <SiteLayout>

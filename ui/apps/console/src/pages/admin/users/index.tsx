@@ -43,6 +43,9 @@ const DEFAULTS: AdminUsersParams = {
   search: "",
 };
 
+/**
+ * Every user on the instance.
+ */
 export default function AdminUsers() {
   const navigate = useNavigate();
   const { params, setPage, setSearch } =

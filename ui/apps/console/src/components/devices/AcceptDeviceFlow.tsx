@@ -57,6 +57,10 @@ type Branch =
 const LINK_CLASS =
   "text-xs text-text-muted hover:text-text-secondary transition-colors";
 
+/**
+ * Enrols a device from a code, either as a page or inside a dialog. initialCode is what an
+ * accept-device link arrives with, so the code does not have to be typed twice.
+ */
 export default function AcceptDeviceFlow({
   initialCode = "",
   inDialog = false,

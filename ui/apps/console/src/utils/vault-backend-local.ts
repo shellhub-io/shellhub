@@ -55,6 +55,11 @@ function settle(write: () => void): Promise<void> {
   }
 }
 
+/**
+ * Reads the keys written by the pre-vault UI, which stored private keys unencrypted. Returns an
+ * empty list on anything unparseable rather than throwing, since this runs on the migration
+ * path where failing would strand the user with keys they can no longer see.
+ */
 export function loadLegacyKeysFromStorage(): LegacyPrivateKey[] {
   let raw: unknown[];
   try {
@@ -76,17 +81,32 @@ export function loadLegacyKeysFromStorage(): LegacyPrivateKey[] {
   );
 }
 
+/**
+ * Deletes the legacy unencrypted keys. Called only after they have been migrated into the vault:
+ * this is the point where the plaintext copies stop existing.
+ */
 export function clearLegacyKeysFromStorage(): void {
   localStorage.removeItem(LEGACY_KEYS_KEY);
 }
 
+/**
+ * Keeps the vault in this browser's localStorage. Nothing leaves the machine, so the vault does
+ * not follow the user to another browser and is lost with the profile.
+ */
 export class LocalVaultBackend implements IVaultBackend {
   private readonly prefix: string | undefined;
 
+  /**
+   * Scopes every key this backend touches to a user and tenant. Without a scope it reads the
+   * unscoped keys, which is what the migration path needs.
+   */
   constructor(scope?: { user: string; tenant: string }) {
     this.prefix = scope ? `${scope.user}:${scope.tenant}` : undefined;
   }
 
+  /**
+   * Reads the vault header — salt and parameters — or null when no vault exists here.
+   */
   loadMeta(): Promise<VaultMeta | null> {
     return Promise.resolve(
       parseVaultMeta(
@@ -95,12 +115,19 @@ export class LocalVaultBackend implements IVaultBackend {
     );
   }
 
+  /**
+   * Writes the vault header. Rejects when storage refuses the write, which is how a full or
+   * blocked localStorage reaches the caller instead of silently losing the vault.
+   */
   saveMeta(meta: VaultMeta): Promise<void> {
     return settle(() =>
       safeSetItem(prefixKey(VAULT_META_KEY, this.prefix), JSON.stringify(meta)),
     );
   }
 
+  /**
+   * Reads the encrypted vault body, or null when there is none.
+   */
   loadData(): Promise<VaultData | null> {
     return Promise.resolve(
       parseVaultData(
@@ -109,12 +136,19 @@ export class LocalVaultBackend implements IVaultBackend {
     );
   }
 
+  /**
+   * Writes the encrypted vault body, rejecting if storage refuses.
+   */
   saveData(data: VaultData): Promise<void> {
     return settle(() =>
       safeSetItem(prefixKey(VAULT_DATA_KEY, this.prefix), JSON.stringify(data)),
     );
   }
 
+  /**
+   * Removes the vault entirely — header, body and settings. Irreversible: without the header the
+   * body could not be decrypted even if it were recovered.
+   */
   clear(): Promise<void> {
     localStorage.removeItem(prefixKey(VAULT_META_KEY, this.prefix));
     localStorage.removeItem(prefixKey(VAULT_DATA_KEY, this.prefix));
@@ -122,6 +156,9 @@ export class LocalVaultBackend implements IVaultBackend {
     return Promise.resolve();
   }
 
+  /**
+   * Reads the vault settings, falling back to defaults when none are stored.
+   */
   loadSettings(): Promise<VaultSettings> {
     return Promise.resolve(
       parseVaultSettings(
@@ -130,6 +167,9 @@ export class LocalVaultBackend implements IVaultBackend {
     );
   }
 
+  /**
+   * Writes the vault settings.
+   */
   saveSettings(settings: VaultSettings): Promise<void> {
     return settle(() =>
       safeSetItem(
@@ -139,10 +179,16 @@ export class LocalVaultBackend implements IVaultBackend {
     );
   }
 
+  /**
+   * Reads the legacy unencrypted keys. Not scoped: they predate scoping, so there is only one set.
+   */
   loadLegacyKeys(): Promise<LegacyPrivateKey[]> {
     return Promise.resolve(loadLegacyKeysFromStorage());
   }
 
+  /**
+   * Deletes the legacy unencrypted keys.
+   */
   clearLegacyKeys(): Promise<void> {
     clearLegacyKeysFromStorage();
     return Promise.resolve();

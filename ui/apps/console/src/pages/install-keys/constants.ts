@@ -8,6 +8,10 @@ import {
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
 
+/**
+ * What each enrolment mode is called and what it does, in one place, so the selector and the
+ * list's Enrollment cell describe a mode identically.
+ */
 export const MODE_INFO: Record<
   string,
   { label: string; icon: IconType; summary: string; description: string }
@@ -41,6 +45,10 @@ export const MODE_INFO: Record<
   },
 };
 
+/**
+ * The description for a mode, falling back to automatic for one this build does not know — a
+ * key made by a newer server still renders rather than showing a blank cell.
+ */
 export function modeInfo(mode: string) {
   return MODE_INFO[mode] ?? MODE_INFO.automatic;
 }

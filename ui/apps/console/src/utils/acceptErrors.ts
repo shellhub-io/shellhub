@@ -7,6 +7,13 @@ function fallback(entityType: EntityType): string {
   return `An error occurred while accepting the ${entityType}. Please try again.`;
 }
 
+/**
+ * Turns a failed accept into the sentence shown to the user. A 402 is the interesting case: on
+ * cloud it means the namespace is over its device limit, and the message asks for an upgrade
+ * or a subscription depending on hasSubscription and canSubscribe, because a member who cannot
+ * reach billing must not be told to go there. Anything the SDK did not raise falls back to a
+ * generic message naming entityType.
+ */
 export function getAcceptErrorMessage(
   err: unknown,
   hasSubscription: boolean,

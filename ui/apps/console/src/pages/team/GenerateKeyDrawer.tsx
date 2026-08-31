@@ -23,6 +23,10 @@ import {
 import { EXPIRY_OPTIONS } from "./helpers";
 import { LABEL } from "@/utils/styles";
 
+/**
+ * Creates an API key and shows it. This is the only time the secret is readable, so the drawer
+ * has to present it before it can be closed.
+ */
 function GenerateKeyDrawer({
   open,
   onClose,

@@ -14,6 +14,9 @@ import { Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
 import { docsUrl } from "@/links";
 
+/**
+ * Landing section listing the architectures and distributions the agent runs on.
+ */
 export function SupportedPlatforms() {
   return (
     <Section className="relative overflow-hidden" container={false}>

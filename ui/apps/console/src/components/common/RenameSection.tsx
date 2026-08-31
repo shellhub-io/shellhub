@@ -7,6 +7,10 @@ import {
 import { IconButton } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 
+/**
+ * Props of RenameSection. rename is passed in rather than chosen here, so the same section
+ * serves devices, containers and anything else with a name.
+ */
 export interface RenameSectionProps {
   uid: string;
   currentName: string;
@@ -18,6 +22,9 @@ export interface RenameSectionProps {
   canRename?: boolean;
 }
 
+/**
+ * The rename control on a detail page: the field, the validation and the save.
+ */
 export default function RenameSection({
   uid,
   currentName,

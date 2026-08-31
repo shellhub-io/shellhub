@@ -39,6 +39,10 @@ const VARIANT_BUTTON: Record<
   warning: "warning",
 };
 
+/**
+ * A yes/no confirmation. onConfirm may be async: the dialog stays open and busy until it
+ * settles, so a slow action cannot be triggered twice.
+ */
 export default function ConfirmDialog({
   open,
   onClose,

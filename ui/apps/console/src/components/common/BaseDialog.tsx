@@ -13,6 +13,10 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
   full: "",
 };
 
+/**
+ * Props of BaseDialog. canClose is what a step mid-flow uses to refuse dismissal — a dialog that
+ * has already charged a card must not be closeable by Escape.
+ */
 export interface BaseDialogProps {
   open: boolean;
 
@@ -37,6 +41,11 @@ export interface BaseDialogProps {
   children: ReactNode;
 }
 
+/**
+ * The dialog every other dialog is built on: the overlay, the focus trap, Escape, and the
+ * scroll lock. Anything that needs a modal should use this rather than a fixed div, or focus
+ * will escape to the page behind it.
+ */
 export default function BaseDialog({
   open,
   onClose,

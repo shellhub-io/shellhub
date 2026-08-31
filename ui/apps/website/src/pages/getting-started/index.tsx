@@ -7,6 +7,11 @@ import { StepSetup } from "./StepSetup";
 
 const steps = [{ label: "Get started" }, { label: "Setup" }];
 
+/**
+ * The getting-started page, a two-step wizard. The step lives in component state, not the URL,
+ * so a reload restarts at the choice; each change scrolls back to the top, since the second
+ * step is shorter than the first and would otherwise open part-scrolled.
+ */
 export default function GettingStarted() {
   const [currentStep, setCurrentStep] = useState(0);
 

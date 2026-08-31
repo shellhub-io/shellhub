@@ -53,6 +53,10 @@ const VAULT_FEATURES: EmptyStateFeature[] = [
   },
 ];
 
+/**
+ * The secure vault page: the private keys held in the browser, and the lock state guarding them.
+ * What is shown depends on whether the vault exists, is locked, or is open.
+ */
 export default function SecureVault() {
   const status = useVaultStore((s) => s.status);
   const keys = useVaultStore((s) => s.keys);

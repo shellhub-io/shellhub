@@ -6,6 +6,9 @@ import {
 } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
+/**
+ * Creates an access policy, refreshing the list on success.
+ */
 export function useCreateAccessPolicy() {
   const invalidate = useInvalidateByIds("listAccessPolicies");
   return useMutation({
@@ -14,6 +17,9 @@ export function useCreateAccessPolicy() {
   });
 }
 
+/**
+ * Updates an access policy, refreshing the list on success.
+ */
 export function useUpdateAccessPolicy() {
   const invalidate = useInvalidateByIds("listAccessPolicies");
   return useMutation({
@@ -22,6 +28,9 @@ export function useUpdateAccessPolicy() {
   });
 }
 
+/**
+ * Deletes an access policy, refreshing the list on success.
+ */
 export function useDeleteAccessPolicy() {
   const invalidate = useInvalidateByIds("listAccessPolicies");
   return useMutation({

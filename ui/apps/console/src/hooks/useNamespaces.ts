@@ -11,8 +11,16 @@ import {
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
 
+/**
+ * A namespace as the console uses it: the generated model plus the type the cloud API adds and
+ * the spec does not describe.
+ */
 export type Namespace = GeneratedNamespace & { type?: string };
 
+/**
+ * A member of a namespace. status tells an accepted member from an invitation not yet taken up;
+ * both appear in the same list, and only the first has an id that means anything.
+ */
 export interface NamespaceMember {
   id: string;
   role: NamespaceMemberRole;
@@ -23,6 +31,10 @@ export interface NamespaceMember {
   awaiting_approval?: boolean;
 }
 
+/**
+ * Every namespace the user belongs to. Fetched as one page of a hundred — the switcher shows
+ * them all, and nobody is in more.
+ */
 export function useNamespaces() {
   const result = useQuery({
     ...getNamespacesOptions({ query: { page: 1, per_page: 100 } }),
@@ -60,6 +72,9 @@ export function useInitRole() {
   }, [data, tenant]);
 }
 
+/**
+ * One namespace by tenant id. Idle until an id is given.
+ */
 export function useNamespace(tenantId: string) {
   const result = useQuery({
     ...getNamespaceOptions({ path: { tenant: tenantId } }),

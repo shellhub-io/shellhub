@@ -27,6 +27,9 @@ interface UseAdminNamespacesParams {
   search?: string;
 }
 
+/**
+ * A page of namespaces for the admin list. Admin-only, so it does not run for anyone else.
+ */
 export function useAdminNamespaces({
   page = 1,
   perPage = 10,
@@ -57,6 +60,9 @@ export function useAdminNamespaces({
   };
 }
 
+/**
+ * One namespace by tenant id, for the admin detail view.
+ */
 export function useAdminNamespace(tenantId: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

@@ -22,6 +22,10 @@ import { cn } from "@shellhub/design-system/cn";
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
 
+/**
+ * First-run setup for a fresh instance: create the first account, which becomes its admin. It
+ * signs that account straight in, since there is nobody yet to sign in as.
+ */
 export default function Setup() {
   const navigate = useNavigate();
   const config = getConfig();

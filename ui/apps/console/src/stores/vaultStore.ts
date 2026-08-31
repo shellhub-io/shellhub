@@ -35,10 +35,21 @@ function getBackend() {
   return getVaultBackend(getScope());
 }
 
+/**
+ * Which part of an existing key a new one collides with. Both means the same key under the same
+ * name, which is a re-add rather than a conflict to resolve.
+ */
 export type DuplicateField = "name" | "private_key" | "both";
 
+/**
+ * Raised when a key being added is already in the vault. It carries the colliding field so the
+ * form can mark the input at fault instead of showing a general error.
+ */
 export class DuplicateKeyError extends Error {
   field: DuplicateField;
+  /**
+   * Builds the error for a collision on field.
+   */
   constructor(field: DuplicateField) {
     super(`Duplicate key: ${field}`);
     this.field = field;
@@ -131,6 +142,11 @@ function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
   }));
 }
 
+/**
+ * The private-key vault: its lock state, its keys, and the operations that move between them.
+ * The decrypted keys live here and nowhere else, and are dropped when the vault locks, so a
+ * component must read them through this store rather than holding its own copy.
+ */
 export const useVaultStore = create<VaultState>((set, get) => {
   async function loadSettingsIntoState(): Promise<void> {
     try {

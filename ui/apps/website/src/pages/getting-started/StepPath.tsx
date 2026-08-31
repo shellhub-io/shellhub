@@ -23,6 +23,11 @@ interface StepPathProps {
   onSelectSelfHosted: () => void;
 }
 
+/**
+ * First step of getting started: choose the hosted service or self-hosting. Only the self-hosted
+ * card continues in-page — onSelectSelfHosted advances to the setup step, while the hosted card
+ * leaves for the console.
+ */
 export function StepPath({ onSelectSelfHosted }: StepPathProps) {
   return (
     <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">

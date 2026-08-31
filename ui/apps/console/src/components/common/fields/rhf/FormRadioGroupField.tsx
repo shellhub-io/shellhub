@@ -15,6 +15,9 @@ type Props<TFieldValues extends FieldValues, TOption extends string> = {
   | { label?: never; labelledBy: string }
 );
 
+/**
+ * RadioGroupField bound to react-hook-form.
+ */
 export default function FormRadioGroupField<
   TFieldValues extends FieldValues,
   TOption extends string,

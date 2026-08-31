@@ -1,5 +1,8 @@
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
+/**
+ * The confirmation shown once a subscription has been created.
+ */
 export default function BillingSuccessful() {
   return (
     <div className="flex flex-col items-center text-center py-6 animate-fade-in">

@@ -15,6 +15,10 @@ type Props<T extends string> = {
   | { label?: never; labelledBy: string }
 );
 
+/**
+ * A radio group with a label, rendered as a role=radiogroup so arrow keys move between options
+ * as they would in a native group.
+ */
 export default function RadioGroupField<T extends string>({
   id,
   label,

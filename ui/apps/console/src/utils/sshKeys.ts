@@ -2,11 +2,19 @@ import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
 import { Buffer } from "buffer";
 
+/**
+ * What reading a private key told us. An encrypted key is valid: it parses, it simply needs a
+ * passphrase before it can be used, and the form asks for one rather than rejecting the key.
+ */
 export type KeyValidationResult =
   | { valid: true; encrypted: false }
   | { valid: true; encrypted: true }
   | { valid: false; error: string };
 
+/**
+ * Parses a PEM private key to find out whether it is usable. Never throws — an encrypted key
+ * reports valid and encrypted, and anything else reports the parser's reason.
+ */
 export function validatePrivateKey(pem: string): KeyValidationResult {
   try {
     sshpk.parsePrivateKey(pem, "auto");
@@ -20,11 +28,19 @@ export function validatePrivateKey(pem: string): KeyValidationResult {
   }
 }
 
+/**
+ * The MD5 fingerprint of a private key, in the form the server stores. Throws if the key is
+ * encrypted and the passphrase is wrong or missing.
+ */
 export function getFingerprint(pem: string, passphrase?: string): string {
   const key = sshpk.parsePrivateKey(pem, "auto", { passphrase });
   return key.fingerprint("md5").toString();
 }
 
+/**
+ * The key's algorithm and strength as a display string ("RSA 4096", "ECDSA P-256"). Throws on a
+ * wrong or missing passphrase, as getFingerprint does.
+ */
 export function getAlgorithm(pem: string, passphrase?: string): string {
   const key = sshpk.parsePrivateKey(pem, "auto", { passphrase });
   switch (key.type) {
@@ -55,6 +71,11 @@ function generateRsaKeySignature(
   return key.sign(challenge, "base64");
 }
 
+/**
+ * Signs a login challenge with a private key. RSA is decrypted to PEM and signed through the
+ * separate RSA path, because the server verifies RSA signatures in a format sshpk does not
+ * produce directly.
+ */
 export function generateSignature(
   privateKey: string,
   challenge: Buffer,

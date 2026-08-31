@@ -32,6 +32,10 @@ const BENEFITS = [
   },
 ];
 
+/**
+ * Offers server-side sync to someone whose vault is local only. Dismissable for good, since it
+ * is an offer and not a requirement.
+ */
 export default function VaultSyncPromoDialog({ open, onClose, onSync }: Props) {
   const instanceId = useId();
   const titleId = `vault-sync-promo-title-${instanceId}`;

@@ -20,6 +20,10 @@ type Props = CheckboxProps & {
   error?: string;
 };
 
+/**
+ * A checkbox with its label, hint and error wired up by id, so the control and its description
+ * are associated for a screen reader.
+ */
 export default function CheckboxField({
   id,
   label,

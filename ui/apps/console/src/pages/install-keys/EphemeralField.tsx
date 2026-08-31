@@ -1,6 +1,9 @@
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import StepperField from "@/components/common/fields/StepperField";
 
+/**
+ * The ephemeral toggle: whether devices enrolled with this key are removed when they go offline.
+ */
 export default function EphemeralField({
   id,
   enabled,

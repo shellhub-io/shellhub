@@ -5,6 +5,9 @@ interface Props {
   onUnlock: () => void;
 }
 
+/**
+ * Shown in place of the keys while the vault is locked, with the way to unlock it.
+ */
 export default function VaultLockedBanner({ onUnlock }: Props) {
   return (
     <div className="flex items-center justify-between bg-accent-yellow/[0.06] border border-accent-yellow/20 rounded-lg px-4 py-3">

@@ -182,6 +182,10 @@ interface BillingSectionProps {
   sectionId: string;
 }
 
+/**
+ * The billing panel on the settings page: the plan, the payment methods, and the way into the
+ * provider's portal. sectionId lets a link land on it, since settings is one long page.
+ */
 export default function BillingSection({ sectionId }: BillingSectionProps) {
   const location = useLocation();
   const sectionRef = useRef<HTMLDivElement>(null);

@@ -12,6 +12,9 @@ type Props<T extends FieldValues> = NumericInputProps & {
   control: Control<T>;
 };
 
+/**
+ * NumericInput bound to react-hook-form.
+ */
 export default function FormNumericInput<T extends FieldValues>({
   name,
   control,

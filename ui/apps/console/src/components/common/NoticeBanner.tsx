@@ -1,6 +1,10 @@
 import { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 
+/**
+ * Props of NoticeBanner. visible is a prop rather than a mount condition so the banner can
+ * animate out instead of vanishing.
+ */
 export interface NoticeBannerProps {
   visible: boolean;
   severity: "error" | "warning";
@@ -33,6 +37,9 @@ const SEVERITY: Record<"error" | "warning", SeverityConfig> = {
   },
 };
 
+/**
+ * The page-level banner for something the user should know but need not act on now.
+ */
 export default function NoticeBanner({
   visible,
   severity,

@@ -5,6 +5,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 
+/**
+ * Where an account stands. awaiting_approval is not the same as unconfirmed: the person may
+ * have verified their address and still be waiting for an admin.
+ */
 export type UserStatus = "confirmed" | "not-confirmed" | "awaiting_approval";
 
 const STATUS_CONFIG: Record<
@@ -38,6 +42,10 @@ interface UserStatusChipProps {
   status: UserStatus;
 }
 
+/**
+ * The account status chip. An unrecognised status falls back to not-confirmed, which is the
+ * safer thing to show for a state this build does not know.
+ */
 export default function UserStatusChip({ status }: UserStatusChipProps) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG["not-confirmed"];
   const { Icon, label, className } = config;

@@ -13,6 +13,9 @@ const PER_PAGE = 15;
 const EMPTY_MESSAGE =
   "No registrations yet. Devices that register with this key will appear here.";
 
+/**
+ * What an install key has been used for, page by page.
+ */
 export default function InstallKeyEventsTable({ id }: { id: string }) {
   const [page, setPage] = useState(1);
   const refreshHistory = useInvalidateByIds("installKeyHistory");

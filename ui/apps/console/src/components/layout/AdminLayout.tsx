@@ -5,6 +5,9 @@ import { SidebarMobileDrawer } from "./SidebarShell";
 import SkipToContentLink from "./SkipToContentLink";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
+/**
+ * The shell of the admin area: its own bar and sidebar around the routed page.
+ */
 export default function AdminLayout() {
   const { pathname } = useLocation();
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } =

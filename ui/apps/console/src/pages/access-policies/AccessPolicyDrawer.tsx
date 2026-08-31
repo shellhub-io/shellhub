@@ -340,6 +340,10 @@ function Pill({
   );
 }
 
+/**
+ * Creates or edits an access policy. Given editPolicy it edits that one, otherwise it creates —
+ * the two are the same form because the fields are identical and would otherwise drift.
+ */
 function AccessPolicyDrawer({
   open,
   editPolicy,

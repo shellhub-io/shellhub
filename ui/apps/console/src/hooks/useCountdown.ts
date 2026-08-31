@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 
+/**
+ * Counts down to a timestamp, re-rendering each second, and reports when it passes. A null
+ * target stops the timer rather than counting from zero.
+ */
 export function useCountdown(targetTimestamp: number | null) {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isExpired, setIsExpired] = useState(false);

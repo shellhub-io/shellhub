@@ -15,6 +15,9 @@ interface UseAdminAnnouncementsParams {
   perPage?: number;
 }
 
+/**
+ * A page of announcements for the admin list. Admin-only, so it does not run for anyone else.
+ */
 export function useAdminAnnouncements({
   page = 1,
   perPage = 10,
@@ -47,6 +50,10 @@ export function useAdminAnnouncements({
   };
 }
 
+/**
+ * One announcement by UUID. Cached for five minutes and not retried on a 4xx, since a missing or
+ * forbidden announcement will not appear on a second attempt.
+ */
 export function useAdminAnnouncement(uuid: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 

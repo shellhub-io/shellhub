@@ -27,6 +27,10 @@ type DeviceChipProps = DeviceChipLinkProps | DeviceChipNoLinkProps;
 const BASE =
   "inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-border rounded-md text-xs font-mono font-medium text-text-secondary";
 
+/**
+ * A device as an inline chip: its name, its status dot and its OS mark. Used where a device is
+ * mentioned rather than listed — in a session row, an event, a palette result.
+ */
 export default function DeviceChip(props: DeviceChipProps) {
   const { name, online, osId } = props;
 

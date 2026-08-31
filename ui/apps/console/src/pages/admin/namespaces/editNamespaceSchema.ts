@@ -8,6 +8,9 @@ const editNamespaceFields = z.object({
   sessionRecord: z.boolean(),
 });
 
+/**
+ * The edit-namespace form's values, derived from the schema.
+ */
 export type EditNamespaceFormValues = z.infer<typeof editNamespaceFields>;
 
 const MAX_DEVICES_ERROR =
@@ -35,6 +38,10 @@ export function editNamespaceSchema(originalName: string) {
   });
 }
 
+/**
+ * Fills the form from a namespace, or with blanks when there is none yet. The device limit
+ * arrives as -1 for unlimited, which the form shows as an empty limit rather than as a number.
+ */
 export function buildEditNamespaceDefaults(
   namespace: Namespace | null,
 ): EditNamespaceFormValues {

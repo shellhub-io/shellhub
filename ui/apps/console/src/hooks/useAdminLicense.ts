@@ -12,6 +12,10 @@ export { getLicenseQueryKey };
 
 type LicenseData = GetLicenseResponse | null;
 
+/**
+ * The installed licence, or null when there is none. Not run on cloud, where licensing is the
+ * provider's concern and the endpoint does not exist.
+ */
 export function useAdminLicense() {
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const enabled = isAdmin && !isCloud();

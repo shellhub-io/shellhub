@@ -5,6 +5,9 @@ import EditInstallKeyDrawer from "./EditInstallKeyDrawer";
 import RevokeInstallKeyDialog from "./RevokeInstallKeyDialog";
 import { useToggleInstallKey } from "./useToggleInstallKey";
 
+/**
+ * The actions on an install key row, and the dialogs behind them.
+ */
 export default function InstallKeyActions({
   installKey,
 }: {

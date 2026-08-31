@@ -24,6 +24,10 @@ interface BillingIconProps {
   className?: string;
 }
 
+/**
+ * The card-network mark for a brand, falling back to a generic card when the brand is one we
+ * have no icon for — an unknown brand is still a usable card.
+ */
 export default function BillingIcon({
   brand,
   className = "w-6 h-6",

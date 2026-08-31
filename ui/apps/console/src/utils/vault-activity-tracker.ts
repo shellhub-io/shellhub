@@ -1,10 +1,7 @@
 /**
- * Framework-agnostic activity tracker module.
- *
- * Tracks user activity events to drive idle-lock and hidden-lock behaviour
- * for the vault. No React imports — safe to use outside the component tree.
+ * The DOM events counted as user activity. Chosen to cover pointer, keyboard, scroll and touch,
+ * so an idle timer does not fire under someone who is reading and scrolling.
  */
-
 export const ACTIVITY_EVENTS = [
   "mousemove",
   "mousedown",
@@ -13,8 +10,17 @@ export const ACTIVITY_EVENTS = [
   "touchstart",
 ] as const;
 
+/**
+ * How rarely the idle clock is reset. Without it every mousemove would write, and the tracker
+ * would cost more than the thing it guards.
+ */
 export const THROTTLE_MS = 1_000;
 
+/**
+ * How the tracker locks. lockOnHidden also locks when the tab is hidden, after hiddenGraceMs —
+ * the grace exists because switching windows briefly hides the tab, and locking on that would
+ * make the vault unusable.
+ */
 export interface TrackerOptions {
   idleTimeoutMs: number;
   lockOnHidden: boolean;

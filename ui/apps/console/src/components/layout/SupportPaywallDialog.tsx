@@ -8,6 +8,9 @@ interface SupportPaywallDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Explains that chat support needs a paid plan, and where to get one.
+ */
 export default function SupportPaywallDialog({
   open,
   onClose,

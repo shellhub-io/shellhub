@@ -1,5 +1,9 @@
 import { CTABanner } from "@/components";
 
+/**
+ * Closing call to action of the enterprise page. The primary action is a mailto rather than a
+ * route: there is no contact form, and sales is reached by mail.
+ */
 export function EnterpriseCTA() {
   return (
     <CTABanner

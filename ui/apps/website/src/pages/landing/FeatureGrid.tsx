@@ -9,6 +9,9 @@ import {
 import { Section, SectionHeader, InfoCard } from "@/components";
 import { C } from "@shellhub/design-system/constants";
 
+/**
+ * Landing section: the feature grid, three across.
+ */
 export function FeatureGrid() {
   return (
     <Section bordered={false}>

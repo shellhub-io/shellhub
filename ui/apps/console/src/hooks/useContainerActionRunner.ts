@@ -5,6 +5,10 @@ import {
 } from "@/hooks/useContainerMutations";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
+/**
+ * Runs the confirmation dialog's chosen operation against a container, so the dialog does not
+ * have to know which mutation each operation maps to.
+ */
 export function useContainerActionRunner() {
   const status = useUpdateContainerStatus();
   const remove = useRemoveContainer();

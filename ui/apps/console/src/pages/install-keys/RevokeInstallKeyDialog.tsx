@@ -5,6 +5,10 @@ import { type InstallKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
 
+/**
+ * Confirms revoking an install key. Revoking is final — unlike disabling, it cannot be undone —
+ * which is what the dialog has to make clear.
+ */
 export default function RevokeInstallKeyDialog({
   installKey,
   onRevoked,

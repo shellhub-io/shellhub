@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 
+/**
+ * The card the sign-in, sign-up and recovery forms sit in.
+ */
 export default function LoginLayoutCard({
   className,
   children,

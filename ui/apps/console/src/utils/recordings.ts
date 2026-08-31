@@ -4,6 +4,11 @@ import { generateRandomUUID } from "@/utils/random-uuid";
 /** OPFS subdirectory holding `<id>.cast` payloads and `<id>.json` sidecars. */
 const DIR = "session-recordings";
 
+/**
+ * The sidecar describing one locally recorded session: what it was, how long it ran, and the
+ * terminal size it needs to replay at. Stored beside the .cast file rather than inside it, so
+ * the list can be built without parsing every recording.
+ */
 export interface RecordingMeta {
   id: string;
   filename: string;
@@ -47,6 +52,11 @@ export function isRecordingSupported(): boolean {
 
 let userScope: string | null = null;
 
+/**
+ * Scopes the recording store to a user. Every path resolves under this, so recordings made by
+ * one account on a shared browser are not listed for another. Set it at sign-in; until it is
+ * set, any recording call throws rather than writing to a shared directory.
+ */
 export function setRecordingsScope(userId: string | null): void {
   userScope = userId;
 }
@@ -104,6 +114,10 @@ export class OpfsCastRecorder {
     private sessionUid?: string,
   ) {}
 
+  /**
+   * Opens a new recording in OPFS and returns the recorder. The file exists from this moment, so a
+   * recorder that is never finished has to be discarded or it leaves an orphan behind.
+   */
   static async create(
     deviceName: string,
     deviceUid: string,
@@ -125,10 +139,18 @@ export class OpfsCastRecorder {
     );
   }
 
+  /**
+   * Attaches the session UID once the server has assigned one. A recording starts before the
+   * session exists, so this is not known at create time.
+   */
   setSessionUid(uid: string): void {
     this.sessionUid = uid;
   }
 
+  /**
+   * Writes the asciicast header and starts the clock. Calling it again is a no-op: the header
+   * fixes the terminal size and the time origin, and rewriting it would invalidate the file.
+   */
   start(cols: number, rows: number): void {
     if (this.started) return;
     this.started = true;
@@ -138,6 +160,10 @@ export class OpfsCastRecorder {
     this.write(headerLine(cols, rows));
   }
 
+  /**
+   * Appends terminal output at the current offset. Ignored before start or after a failure, so a
+   * caller does not have to track whether recording is still viable.
+   */
   recordOutput(text: string): void {
     if (!this.started || this.failed) return;
     this.count += 1;
@@ -145,6 +171,9 @@ export class OpfsCastRecorder {
     this.write(outputLine(this.lastElapsed, text));
   }
 
+  /**
+   * Appends a resize event, so a replay reflows where the live terminal did.
+   */
   recordResize(cols: number, rows: number): void {
     if (!this.started || this.failed) return;
     this.count += 1;
@@ -152,10 +181,19 @@ export class OpfsCastRecorder {
     this.write(resizeLine(this.lastElapsed, cols, rows));
   }
 
+  /**
+   * How many events have been written. Zero means nothing happened in the session, which is what
+   * finish uses to decide the recording is not worth keeping.
+   */
   get eventCount(): number {
     return this.count;
   }
 
+  /**
+   * Closes the file and returns its metadata, or null if there is nothing worth keeping — a
+   * recording that captured no events is deleted rather than left as an empty entry in the list.
+   * A failure to close is also null, and the partial file is removed.
+   */
   async finish(): Promise<RecordingMeta | null> {
     try {
       await this.chain;
@@ -194,6 +232,11 @@ export class OpfsCastRecorder {
     return meta;
   }
 
+  /**
+   * Abandons the recording and deletes both files. For a session that ended in a way that makes
+   * the capture worthless — a failed connection, a user who cancelled — where finish would
+   * otherwise leave a truncated recording in the list.
+   */
   async discard(): Promise<void> {
     this.failed = true;
     try {

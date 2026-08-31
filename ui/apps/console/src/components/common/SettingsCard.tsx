@@ -7,6 +7,10 @@ type SettingsCardProps = {
   danger?: boolean;
 };
 
+/**
+ * A titled block on a settings page. danger marks the destructive group, which is visually set
+ * apart so an irreversible control is not one row away from an ordinary one.
+ */
 export default function SettingsCard({ title, children, danger }: SettingsCardProps) {
   return (
     <div

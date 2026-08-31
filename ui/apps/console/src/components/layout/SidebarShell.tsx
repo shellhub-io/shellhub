@@ -8,14 +8,23 @@ import {
   ShellHubLogo,
 } from "@shellhub/design-system/primitives";
 
-// ---- Shared nav style constants ----
-
+/**
+ * The classes every sidebar link shares, so an active, idle and disabled link differ only in
+ * colour and cannot drift apart in spacing or type.
+ */
 export const navBase =
   "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium";
 const navActive = "bg-primary/10 text-primary border border-primary/20";
 const navIdle =
   "text-text-secondary hover:text-text-primary hover:bg-hover-subtle border border-transparent";
+/**
+ * Added to a link the current role may not follow. It dims and blocks the pointer, but the link
+ * stays in place — see Sidebar.
+ */
 export const navDisabled = "text-text-muted/50 cursor-not-allowed";
+/**
+ * The icon size every sidebar link uses, so the labels line up whatever icon is beside them.
+ */
 export const navIcon = "w-[18px] h-[18px]";
 
 interface NavItemLinkProps {
@@ -26,6 +35,10 @@ interface NavItemLinkProps {
   badge?: ReactNode;
 }
 
+/**
+ * One navigation link. Collapsed, the label is hidden but stays in the accessibility tree, so a
+ * collapsed sidebar is still navigable by screen reader.
+ */
 export function NavItemLink({
   item,
   expanded,
@@ -75,6 +88,10 @@ interface SidebarMobileDrawerProps {
   children: ReactNode;
 }
 
+/**
+ * The sidebar as a drawer, for viewports too narrow to hold it open. Traps focus while open, so
+ * the page behind cannot be tabbed into.
+ */
 export function SidebarMobileDrawer({
   open,
   onClose,
@@ -128,6 +145,10 @@ interface SidebarShellProps {
   children: ReactNode;
 }
 
+/**
+ * The frame both sidebars are built in — width, pinning, and the drawer on small screens — so
+ * the app and admin navigations behave the same and differ only in their links.
+ */
 export default function SidebarShell({
   expanded,
   pinned,

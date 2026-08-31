@@ -11,6 +11,9 @@ import IdentityStatusChip from "@/components/common/IdentityStatusChip";
 import { formatDateShort } from "@/utils/date";
 import ServiceAccountDrawer from "./ServiceAccountDrawer";
 
+/**
+ * The service accounts tab: the non-human identities in the namespace.
+ */
 function ServiceAccountsTab() {
   const { serviceAccounts, isLoading } = useServiceAccounts();
   const deleteAccount = useDeleteServiceAccount();

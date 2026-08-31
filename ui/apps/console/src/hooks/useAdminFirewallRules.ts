@@ -16,6 +16,9 @@ interface UseAdminFirewallRulesParams {
   perPage?: number;
 }
 
+/**
+ * A page of firewall rules across every namespace, for the admin list.
+ */
 export function useAdminFirewallRules({
   page = 1,
   perPage = 10,
@@ -49,6 +52,10 @@ export function useAdminFirewallRules({
   };
 }
 
+/**
+ * One firewall rule by id, for the admin detail view. Cached for five minutes and not retried on
+ * a 4xx.
+ */
 export function useAdminFirewallRule(id: string) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 
