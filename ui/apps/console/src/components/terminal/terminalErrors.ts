@@ -16,8 +16,6 @@ export interface TerminalError {
   links: Array<{ label: string; to: string }>;
 }
 
-// Keys must match error strings from ssh/web/errors.go exactly.
-// If backend error messages change, update these keys accordingly.
 const errorMap: Record<string, ErrorEntry> = {
   "failed to authenticate to device": {
     message: "The username or password is incorrect.",
@@ -174,8 +172,8 @@ export function parseMessage(
         data: (msg as { data: string }).data,
       };
     }
+  // eslint-disable-next-line no-empty -- not JSON, so the frame is ordinary terminal output and not an error
   } catch {
-    // Not JSON — regular text frame
   }
   return null;
 }

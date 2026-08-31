@@ -7,8 +7,6 @@ interface IdentityCardProps {
   uid: string;
   mac: string;
   remoteAddr: string;
-  // Optional "Registered via" row: which install key the device registered with. Shown only where the
-  // caller provides it (the device details page); other callers omit it.
   registeredVia?: ReactNode;
 }
 

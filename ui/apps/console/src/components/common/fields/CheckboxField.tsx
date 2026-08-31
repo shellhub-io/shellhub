@@ -12,9 +12,7 @@ type CheckboxProps = Omit<
 type Props = CheckboxProps & {
   id: string;
   label: ReactNode;
-  /** Visually hide the label (kept for screen readers via `sr-only`). */
   hideLabel?: boolean;
-  /** Optional secondary text rendered below the label. */
   description?: ReactNode;
   checked: boolean;
   onChange: (checked: boolean) => void;

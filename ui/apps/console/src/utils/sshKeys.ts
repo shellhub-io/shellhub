@@ -87,10 +87,6 @@ export function generateSignature(
   return sig.toBuffer().toString("base64");
 }
 
-// ed25519Blob encodes an Ed25519 public key in the SSH wire format (RFC 8709):
-// a length-prefixed "ssh-ed25519" string followed by the length-prefixed 32-byte
-// key. It is the basis for both the authorized_keys line and the SHA256
-// fingerprint, so the browser key resolves to the same identity as OpenSSH would.
 function ed25519Blob(raw32: Uint8Array): Uint8Array {
   const type = new TextEncoder().encode("ssh-ed25519");
   const blob = new Uint8Array(4 + type.length + 4 + raw32.length);

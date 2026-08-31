@@ -32,10 +32,8 @@ const RECENT_LIMIT = 5;
 /** The view-model the palette shell and its presentational parts consume. */
 export interface CommandPaletteViewModel {
   open: boolean;
-  // Refs the JSX attaches; the hook reads `.current` only inside effects.
   inputRef: React.RefObject<HTMLInputElement | null>;
   listRef: React.RefObject<HTMLDivElement | null>;
-  // Derived view data (computed during render).
   query: string;
   drillDevice: NormalizedDevice | null;
   commandMode: boolean;
@@ -46,7 +44,6 @@ export interface CommandPaletteViewModel {
   activeItem: CommandItem | undefined;
   feedback: Feedback | null;
   shakeId: string | null;
-  // Handlers.
   onQueryChange: (value: string) => void;
   setActiveIndex: (index: number) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;

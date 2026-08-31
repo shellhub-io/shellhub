@@ -37,8 +37,8 @@ function restoreVisibility() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (document as any).visibilityState;
+    // eslint-disable-next-line no-empty -- the property is not configurable in every jsdom version
     } catch {
-      // ignore
     }
   }
 }

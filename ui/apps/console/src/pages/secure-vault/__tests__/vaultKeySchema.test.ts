@@ -24,7 +24,6 @@ function makeValues(
   };
 }
 
-/** First validation message per field. */
 function errorsFor(
   values: VaultKeyFormValues,
 ): Partial<Record<keyof VaultKeyFormValues, string>> {

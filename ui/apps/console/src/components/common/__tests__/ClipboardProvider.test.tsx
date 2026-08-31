@@ -10,8 +10,6 @@ import userEvent from "@testing-library/user-event";
 import { ClipboardProvider } from "../ClipboardProvider";
 import { useCopy } from "@/hooks/useCopy";
 
-// ─── clipboard setup ──────────────────────────────────────────────────────────
-
 const clipboardWriteText = vi.fn<() => Promise<void>>();
 
 beforeEach(() => {
@@ -26,8 +24,6 @@ afterEach(() => {
   delete (navigator as any).clipboard;
   vi.clearAllMocks();
 });
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function CopyConsumer({ text = "test-text" }: { text?: string }) {
   const { copy, copied } = useCopy();

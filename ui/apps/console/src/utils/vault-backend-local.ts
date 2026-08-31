@@ -46,9 +46,6 @@ function safeSetItem(key: string, value: string): void {
   }
 }
 
-// Runs a synchronous storage write and surfaces any throw as a rejected
-// promise, so the async IVaultBackend contract holds (a synchronous throw
-// would escape `await` and bypass `.catch`).
 function settle(write: () => void): Promise<void> {
   try {
     write();

@@ -31,8 +31,6 @@ import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
-/* ─── Status Alert ─── */
-
 const alertStyles: Record<
   "info" | "warning" | "error",
   {
@@ -90,8 +88,6 @@ function LicenseStatusAlert({
   );
 }
 
-/* ─── Detail Row ─── */
-
 function DetailRow({
   label,
   children,
@@ -106,8 +102,6 @@ function DetailRow({
     </div>
   );
 }
-
-/* ─── License Details ─── */
 
 function LicenseDetails({ license }: { license: GetLicenseResponse }) {
   const regionText = formatRegions(license.allowed_regions);
@@ -143,8 +137,6 @@ function LicenseDetails({ license }: { license: GetLicenseResponse }) {
   );
 }
 
-/* ─── License Owner ─── */
-
 function LicenseOwner({
   customer,
 }: {
@@ -171,8 +163,6 @@ function LicenseOwner({
     </section>
   );
 }
-
-/* ─── License Features ─── */
 
 function LicenseFeatures({
   features,
@@ -210,8 +200,6 @@ function LicenseFeatures({
     </section>
   );
 }
-
-/* ─── License Upload ─── */
 
 function LicenseUpload() {
   const upload = useUploadLicense();

@@ -6,23 +6,19 @@ import { cn } from "@shellhub/design-system/cn";
 export type EmptyStateAccent = "primary" | "yellow";
 
 export interface EmptyStateFeature {
-  /** Sized but uncolored heroicon, e.g. `<LinkIcon className="w-5 h-5" />`. */
   icon: ReactNode;
   title: string;
   description: string;
 }
 
 export interface EmptyStateProps {
-  /** Sized but uncolored heroicon, e.g. `<GlobeAltIcon className="w-8 h-8" />`. */
   icon: ReactNode;
   overline: string;
   title: string;
   description: string;
   accent?: EmptyStateAccent;
   features?: EmptyStateFeature[];
-  /** Small muted text rendered under the call-to-action. */
   footnote?: ReactNode;
-  /** Call-to-action slot — button(s), links, RestrictedAction, etc. */
   children?: ReactNode;
 }
 

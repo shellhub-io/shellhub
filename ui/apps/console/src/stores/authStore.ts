@@ -22,8 +22,6 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   username: string | null;
-  // How the user authenticates: "local" (username + password) or "saml" (SSO).
-  // SSO users have no local password/MFA — those live at the identity provider.
   origin: UserOrigin | null;
   recoveryEmail: string | null;
   tenant: string | null;

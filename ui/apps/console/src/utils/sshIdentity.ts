@@ -36,10 +36,8 @@ export function serviceAccountLifecyclePayload(
 
 export interface IdentitySourceCopy {
   label: string;
-  /** Whether this origin is worth drawing the eye to. */
   notable: boolean;
   description: string;
-  /** What revoking it actually does, which differs for a browser-held key. */
   revokeConsequence: string;
 }
 
@@ -125,13 +123,9 @@ export type IdentityStatusTone = "dead" | "armed" | "quiet";
 const EXPIRY_WARNING_DAYS = 14;
 
 export interface IdentityEndOfLife {
-  /** Which way this key ends, so callers phrase it without matching strings. */
   kind: "consumed" | "expired" | "single-use" | "expires" | "never";
-  /** The bare value for a column already headed "Expires": a date, or a word
-   *  when the ending is not a date at all. */
   value: string;
   tone: IdentityStatusTone;
-  /** The absolute instant, when the end of life is a date at all. */
   title?: string;
 }
 
@@ -183,7 +177,6 @@ export function sshIdentityEndOfLife(
 export interface IdentityStatus {
   label: string;
   tone: IdentityStatusTone;
-  /** Full date for a tooltip, when the status carries one. */
   title?: string;
 }
 

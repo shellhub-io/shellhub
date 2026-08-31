@@ -13,7 +13,7 @@ export function hasSeenWelcome(tenantId: string): boolean {
 export function markWelcomeSeen(tenantId: string): void {
   try {
     localStorage.setItem(storageKey(tenantId), "true");
+  // eslint-disable-next-line no-empty -- localStorage may be full or unavailable, and the flag is not worth failing over
   } catch {
-    // localStorage may be full or unavailable — fail silently
   }
 }

@@ -338,7 +338,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
       const suppressRejection = () => {
-        /* intentionally suppressed */
       };
       process.on("unhandledRejection", suppressRejection);
 

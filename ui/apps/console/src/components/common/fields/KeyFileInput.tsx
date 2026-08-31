@@ -26,7 +26,6 @@ interface KeyFileInputProps {
   disabledHint?: string;
   loadedLabel?: string;
   emptyLabel?: string;
-  /** Max accepted file size in bytes. Defaults to 512 KB. */
   maxBytes?: number;
 }
 

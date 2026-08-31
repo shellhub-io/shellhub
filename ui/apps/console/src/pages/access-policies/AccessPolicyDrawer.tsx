@@ -135,7 +135,6 @@ function LoginsInput({
   );
 }
 
-/* A field label above a control, with an optional one-line description. */
 function Label({ children, hint }: { children: ReactNode; hint?: string }) {
   if (!hint) {
     return <span className={LABEL}>{children}</span>;
@@ -151,8 +150,6 @@ function Label({ children, hint }: { children: ReactNode; hint?: string }) {
   );
 }
 
-/* Selector box that opens an inline dropdown below it, closing on outside click.
-   `trigger` renders the current selection as pills; `children` is the dropdown body. */
 function PickerBox({
   trigger,
   active,
@@ -191,7 +188,6 @@ function PickerBox({
   );
 }
 
-/* One selectable row inside a picker dropdown, with an optional inventory count. */
 function Row({
   icon,
   label,
@@ -326,7 +322,6 @@ function PeriodSelect({
   );
 }
 
-/* Small pill used inside a selector box trigger. */
 function Pill({
   icon,
   children,

@@ -14,24 +14,14 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
 };
 
 export interface BaseDialogProps {
-  /** Controls open/close. The component returns null when false. */
   open: boolean;
 
-  /** Called when the user requests closing (ESC or backdrop click).
-   *  The parent owns the `open` state and must set it to `false`. */
   onClose: () => void;
 
-  /** Optional predicate. When provided and returning `false`, ESC and
-   *  backdrop clicks are blocked. Used by WelcomeWizard's final step.
-   *  Returning `true` (or omitting this prop) allows closing. */
   canClose?: () => boolean;
 
-  /** When false, no control is focused on open (the dialog itself takes focus)
-   *  instead of the first focusable child. Defaults to true. */
   focusOnOpen?: boolean;
 
-  /** Panel max-width. Defaults to "sm" (max-w-sm = 384px).
-   *  Below the sm breakpoint all sizes go full-screen. */
   size?: DialogSize;
 
   "aria-labelledby"?: string;
@@ -40,16 +30,10 @@ export interface BaseDialogProps {
 
   "aria-label"?: string;
 
-  /** Additional classes appended to the dialog panel. Use sparingly —
-   *  for one-off overrides like max-height. */
   className?: string;
 
-  /** Ref forwarded to the underlying <dialog> element. When provided,
-   *  the consuming component shares the same ref used by BaseDialog's
-   *  internal hooks. If omitted, BaseDialog manages its own ref. */
   dialogRef?: RefObject<HTMLDialogElement | null>;
 
-  /** Dialog content. BaseDialog imposes no internal structure. */
   children: ReactNode;
 }
 

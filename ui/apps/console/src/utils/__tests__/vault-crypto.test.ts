@@ -11,8 +11,6 @@ import {
 } from "../vault-crypto";
 import type { VaultMeta, VaultData } from "@/types/vault";
 
-/** Generate a random 16-byte salt synchronously using the test environment's
- *  Web Crypto (provided by jsdom / @vitest/browser). */
 function randomSalt(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(16));
 }

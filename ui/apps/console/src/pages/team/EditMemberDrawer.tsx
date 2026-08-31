@@ -33,8 +33,8 @@ function EditMemberDrawer({
         body: { role: values.role },
       });
       onClose();
+    // eslint-disable-next-line no-empty -- a role change is low-stakes; surface nothing and let the user retry
     } catch {
-      /* Role changes are low-stakes; surface nothing and let the user retry. */
     }
   };
 

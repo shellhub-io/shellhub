@@ -4,8 +4,6 @@ import { cleanup } from "@testing-library/react";
 
 afterEach(cleanup);
 
-// jsdom does not implement IntersectionObserver; provide a no-op shim so
-// components that use it do not throw in tests.
 class IntersectionObserverShim {
   observe() {}
   unobserve() {}

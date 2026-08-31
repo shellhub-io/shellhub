@@ -93,7 +93,6 @@ export function NamespaceCreateForm() {
   );
 }
 
-/* ─── Community CLI instructions ─── */
 function CopyBlock({ command }: { command: string }) {
   return (
     <div className="relative bg-background border border-border rounded-lg p-3.5 pr-11 font-mono text-xs text-text-secondary leading-relaxed">
@@ -122,8 +121,8 @@ export function CommunityInstructions() {
           setReady(true);
           setTenantId(data[0].tenant_id);
         }
+      // eslint-disable-next-line no-empty -- the namespace list is optional here; without it the field stays empty
       } catch {
-        // ignore
       }
     };
     const interval = setInterval(() => void check(), 5000);

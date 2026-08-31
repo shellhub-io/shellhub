@@ -24,7 +24,6 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-/** Creates a mock SDK error matching the hey-api shape: the response body itself with .status patched on. */
 function createSdkError(status: number, body?: unknown) {
   const base = typeof body === "object" && body !== null ? body : {};
   return Object.assign(base, { status });

@@ -759,7 +759,6 @@ describe("vaultStore", () => {
 
       resolveEncrypt(makeVaultData());
       await promise.catch(() => {
-        /* may throw */
       });
 
       expect(useVaultStore.getState().keys).toEqual([]);
@@ -855,7 +854,6 @@ describe("vaultStore", () => {
 
       resolveEncrypt(makeVaultData());
       await promise.catch(() => {
-        /* may throw or not */
       });
 
       expect(useVaultStore.getState().keys).toEqual([]);
@@ -918,7 +916,6 @@ describe("vaultStore", () => {
 
       resolveEncrypt(makeVaultData());
       await promise.catch(() => {
-        /* may throw or not */
       });
 
       expect(useVaultStore.getState().keys).toEqual([]);

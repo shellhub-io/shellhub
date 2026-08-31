@@ -38,7 +38,6 @@ type IconButtonOwnProps<T extends ElementType> = {
   as?: T;
   variant?: IconButtonVariant;
   size?: IconButtonSize;
-  /** Shows a Spinner, disables interaction */
   loading?: boolean;
   className?: string;
   children?: ReactNode;

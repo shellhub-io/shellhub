@@ -19,9 +19,7 @@ type InputProps = Omit<
 type Props = InputProps & {
   id: string;
   label: ReactNode;
-  /** Ignored when `hideLabel` is true. */
   labelAdornment?: ReactNode;
-  /** Visually hide the label (kept for screen readers via `sr-only`). */
   hideLabel?: boolean;
   value: string;
   onChange: (v: string) => void;

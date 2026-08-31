@@ -33,8 +33,6 @@ const primaryAction: CTAAction = {
 };
 const secondaryAction: CTAAction = { label: "View Pricing", to: "/pricing" };
 
-/* ─── Pain-point cards ─────────────────────────────────────────────── */
-
 const painPoints = [
   {
     title: "No audit trail",
@@ -57,8 +55,6 @@ const painPoints = [
     color: C.cyan,
   },
 ];
-
-/* ─── Feature cards ────────────────────────────────────────────────── */
 
 const features = [
   {
@@ -99,8 +95,6 @@ const features = [
   },
 ];
 
-/* ─── Audit log mock data ──────────────────────────────────────────── */
-
 const auditRows = [
   {
     time: "14:32:08",
@@ -139,8 +133,6 @@ const auditRows = [
     color: C.yellow,
   },
 ];
-
-/* ─── Workflow steps ───────────────────────────────────────────────── */
 
 const workflowSteps = [
   {

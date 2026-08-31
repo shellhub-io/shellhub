@@ -10,7 +10,6 @@ type CheckboxFieldProps = Omit<
 type Props<T extends FieldValues> = CheckboxFieldProps & {
   name: Path<T>;
   control: Control<T>;
-  /** Called on every value change, in addition to RHF's internal onChange. */
   onValueChange?: (value: boolean) => void;
 };
 

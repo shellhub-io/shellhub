@@ -2,10 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useRef } from "react";
 import { useBackdropClose } from "../useBackdropClose";
-/**
- * Build a minimal HTMLDialogElement stand-in with a real event-target chain
- * so we can control `e.target` vs `dialogRef.current` precisely.
- */
 function makeDialog(): HTMLDialogElement {
   return document.createElement("dialog");
 }
@@ -16,10 +12,6 @@ function makeChild(dialog: HTMLDialogElement): HTMLDivElement {
   return child;
 }
 
-/**
- * Renders the hook with a ref that points to `dialog`.
- * Returns the handlers and the `onClose` spy.
- */
 function setup(
   dialog: HTMLDialogElement,
   options: { enabled?: () => boolean } = {},
@@ -34,10 +26,6 @@ function setup(
   return { handlers: result.current, onClose };
 }
 
-/**
- * Fire a synthetic mousedown then click sequence on `target`,
- * where the currentTarget (the dialog) is always `dialog`.
- */
 function fireSequence(
   handlers: {
     onMouseDown: React.MouseEventHandler<HTMLDialogElement>;

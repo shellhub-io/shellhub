@@ -20,16 +20,13 @@ function loadRetention(): number | null {
 interface RecordingsState {
   recordings: RecordingMeta[];
   loading: boolean;
-  /** Auto-delete recordings older than this many days; null = keep forever. */
   retentionDays: number | null;
-  /** A just-finished recording surfaced in the post-session snackbar. */
   notice: RecordingMeta | null;
   refresh: () => Promise<void>;
   remove: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
   setRetentionDays: (days: number | null) => void;
   download: (meta: RecordingMeta) => Promise<void>;
-  /** Called when a recording is finalized: refresh the list + raise a notice. */
   notify: (meta: RecordingMeta) => void;
   clearNotice: () => void;
 }

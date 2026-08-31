@@ -19,12 +19,7 @@ export interface NamespaceMember {
   email: string;
   added_at?: string;
   status?: "accepted" | "pending";
-  /** Underlying user account status. "not-confirmed" means the invitee hasn't
-   *  finished setting up their account yet. Distinct from the invitation
-   *  `status` above. */
   account_status?: "confirmed" | "not-confirmed";
-  /** Enterprise only: true while a namespace admin provisioned the account but
-   *  a system admin hasn't approved it. The account can't sign in until then. */
   awaiting_approval?: boolean;
 }
 

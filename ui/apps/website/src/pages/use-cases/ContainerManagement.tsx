@@ -62,7 +62,6 @@ const painPoints = [
   },
 ];
 
-/* ═══════ Key Features (2x2) ═══════ */
 const smallFeatures = [
   {
     icon: PlayCircleIcon,
@@ -90,7 +89,6 @@ const smallFeatures = [
   },
 ];
 
-/* ═══════ Permissions mockup rows ═══════ */
 const permRows = [
   {
     container: "api-server",
@@ -122,7 +120,6 @@ const permRows = [
   },
 ];
 
-/* ═══════ How-it-works steps ═══════ */
 const steps = [
   {
     num: "01",
@@ -144,7 +141,6 @@ const steps = [
   },
 ];
 
-/* ═══════ Architecture SVG ═══════ */
 function ArchitectureDiagram() {
   return (
     <svg

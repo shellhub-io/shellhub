@@ -6,47 +6,26 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
 
 interface ConfirmDialogProps {
-  /** Controls open/close state. */
   open: boolean;
 
-  /** Called when the dialog should close (ESC, backdrop, or Cancel button).
-   *  The parent owns the `open` state. */
   onClose: () => void;
 
-  /** Called when the user clicks the confirm button. If it returns a Promise,
-   *  the button shows a spinner until the promise settles. The dialog does NOT
-   *  auto-close on success — the caller decides. */
   onConfirm: () => Promise<void> | void;
 
-  /** Dialog title, rendered as an <h2>. */
   title: string;
 
-  /** Description below the title. Accepts ReactNode for inline formatting. */
   description: ReactNode;
 
-  /** Label for the confirm button. Default: "Confirm". */
   confirmLabel?: string;
 
-  /** Label for the cancel button. Default: "Cancel". */
   cancelLabel?: string;
 
-  /** Controls confirm button color scheme.
-   *  - "danger"   → bg-accent-red   (default)
-   *  - "primary"  → bg-primary
-   *  - "success"  → bg-accent-green
-   *  - "warning"  → bg-accent-yellow (dark text) */
   variant?: "primary" | "danger" | "success" | "warning";
 
-  /** Disables the confirm button externally (e.g. pending form validation). */
   confirmDisabled?: boolean;
 
-  /** Optional content rendered between the description and the button row.
-   *  Used by dialogs that embed extra form fields or warning messages. */
   children?: ReactNode;
 
-  /** Optional error banner rendered above the footer. Use this to surface
-   *  mutation failures inline — the dialog does NOT close on error, so the
-   *  user can retry or cancel. */
   errorMessage?: string | null;
 }
 
@@ -86,8 +65,8 @@ export default function ConfirmDialog({
     setConfirming(true);
     try {
       await onConfirm();
+    // eslint-disable-next-line no-empty -- the consumer of the dialog owns its own error state and surfaces it there
     } catch {
-      // Errors are not surfaced here. Consumers manage their own error state
     } finally {
       setConfirming(false);
     }

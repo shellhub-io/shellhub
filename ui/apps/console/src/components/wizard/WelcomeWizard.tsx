@@ -20,9 +20,7 @@ import { isWizardDemo, DEMO_DEVICE } from "./demo";
 
 interface WelcomeWizardProps {
   open: boolean;
-  /** Close for now: the wizard reappears next time (no accepted device yet). */
   onClose: () => void;
-  /** Dismiss for good: skip explicitly or finish, so it never shows again. */
   onDismiss: () => void;
 }
 

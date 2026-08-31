@@ -50,7 +50,6 @@ function renderAppBar() {
   );
 }
 
-// The left-content crossfade wrapper is the parent of whichever child is shown.
 function contentWrapper(): HTMLElement {
   const child =
     screen.queryByTestId("terminal-info") ??

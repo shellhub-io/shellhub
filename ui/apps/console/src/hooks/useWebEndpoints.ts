@@ -14,10 +14,6 @@ interface UseWebEndpointsParams {
   addressFilter?: string;
 }
 
-/**
- * Encodes a "contains" filter on the `address` property as the API expects:
- * a base64-encoded JSON array of filter clauses.
- */
 function encodeAddressFilter(value: string): string {
   const clauses = [
     {

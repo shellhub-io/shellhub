@@ -23,8 +23,6 @@ export type ListParamConstraints<T extends Record<string, unknown>> = {
     : readonly T[K][];
 };
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
-
 function parsePositiveInt(raw: string | null): number | null {
   if (raw === null) return null;
   const n = Number(raw);

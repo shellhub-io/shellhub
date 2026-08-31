@@ -13,7 +13,6 @@ interface UseKeyFileInputOptions {
   onChange: (text: string) => void;
   onFileName?: (name: string) => void;
   disabled?: boolean;
-  /** Max accepted file size in bytes. Defaults to 512 KB. */
   maxBytes?: number;
 }
 

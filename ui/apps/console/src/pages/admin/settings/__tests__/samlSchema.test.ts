@@ -4,7 +4,6 @@ import { samlSchema, type SamlFormValues } from "../samlSchema";
 const validCert = "-----BEGIN CERTIFICATE-----\nMIIBIjANBgkq\n-----END CERTIFICATE-----";
 const validUrl = "https://idp.example.com/sso";
 
-/** First validation message per field, mirroring the RHF resolver shape. */
 function resolve(
   overrides: Partial<SamlFormValues>,
 ): Partial<Record<keyof SamlFormValues, string>> {

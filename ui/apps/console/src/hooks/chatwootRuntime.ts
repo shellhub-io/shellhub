@@ -66,8 +66,6 @@ export function falseSnapshot(): boolean {
   return false;
 }
 
-// ─── Imperative actions ──────────────────────────────────────────────────────
-
 interface InjectArgs {
   websiteToken: string;
   baseUrl: string;
@@ -159,8 +157,8 @@ export function tearDownChatwoot(
   try {
     window.$chatwoot?.toggle("close");
     window.$chatwoot?.reset();
+  // eslint-disable-next-line no-empty -- the widget is mid-bootstrap, so there is nothing to close yet
   } catch {
-    // Widget mid-bootstrap — nothing to close.
   }
 
   document.getElementById(SCRIPT_ID)?.remove();

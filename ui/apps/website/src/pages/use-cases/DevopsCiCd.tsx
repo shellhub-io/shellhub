@@ -99,10 +99,6 @@ const features = [
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Ansible terminal lines                                             */
-/* ------------------------------------------------------------------ */
-
 const ansibleLines: {
   text: string;
   color?: string;
@@ -153,10 +149,6 @@ const ansibleLines: {
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Terraform HCL lines                                                */
-/* ------------------------------------------------------------------ */
-
 const terraformLines: { text: string; color?: string; dim?: boolean }[] = [
   { text: 'resource "aws_instance" "edge_fleet" {', color: C.primary },
   { text: "  count         = var.fleet_size", dim: true },
@@ -179,10 +171,6 @@ const terraformLines: { text: string; color?: string; dim?: boolean }[] = [
   { text: "  }", dim: true },
   { text: "}", color: C.primary },
 ];
-
-/* ------------------------------------------------------------------ */
-/*  CI / CD pipeline steps                                             */
-/* ------------------------------------------------------------------ */
 
 const pipelineSteps = [
   { label: "Build", status: "done" as const },
@@ -207,10 +195,6 @@ const pipelineDeployLines: { text: string; color?: string; dim?: boolean }[] = [
     color: C.green,
   },
 ];
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
 
 function CodeLine({
   text,

@@ -10,7 +10,6 @@ type PasswordFieldProps = Omit<
 type Props<T extends FieldValues> = PasswordFieldProps & {
   name: Path<T>;
   control: Control<T>;
-  /** Called on every value change, in addition to RHF's internal onChange. */
   onValueChange?: (value: string) => void;
 };
 

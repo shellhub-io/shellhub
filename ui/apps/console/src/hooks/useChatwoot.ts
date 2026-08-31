@@ -108,8 +108,8 @@ export function useChatwoot(): ChatwootHandle {
         identifier_hash: identifier,
       });
       lastIdentityRef.current = key;
+    // eslint-disable-next-line no-empty -- the widget was reset between effect setup and this call; the next change retries
     } catch {
-      // Widget reset between effect setup and call — next change retries.
     }
   }, [widgetReady, userId, userEmail, userName, tenant, identifier]);
 
@@ -126,8 +126,8 @@ export function useChatwoot(): ChatwootHandle {
           tenant,
           domain: window.location.hostname,
         });
+      // eslint-disable-next-line no-empty -- older Chatwoot builds do not expose this API
       } catch {
-        // Ignore — Chatwoot may not expose the API in older builds.
       }
     };
 
@@ -139,8 +139,8 @@ export function useChatwoot(): ChatwootHandle {
     if (!widgetReady) return;
     try {
       window.$chatwoot?.toggle("open");
+    // eslint-disable-next-line no-empty -- the widget is not attached yet, so opening it is a no-op
     } catch {
-      // Widget not yet attached — no-op.
     }
   }, [widgetReady]);
 

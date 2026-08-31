@@ -33,8 +33,8 @@ export default function ForgotPassword() {
         body: { username: values.account },
         throwOnError: true,
       });
+    // eslint-disable-next-line no-empty -- reporting the failure would tell an attacker whether the address exists
     } catch {
-      // Silently ignore to prevent user enumeration.
     } finally {
       setLoading(false);
       setSent(true);

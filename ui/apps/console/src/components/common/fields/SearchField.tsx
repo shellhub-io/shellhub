@@ -8,10 +8,8 @@ interface SearchFieldProps {
   onChange: (next: string) => void;
   placeholder: string;
   "aria-label": string;
-  /** Layout overrides only (margins, alignment). Don't override colors or sizes. */
   className?: string;
   id?: string;
-  /** Remove the max-width cap. Defaults to capping at `max-w-sm`. */
   full?: boolean;
 }
 

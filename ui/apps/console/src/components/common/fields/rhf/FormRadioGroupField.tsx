@@ -8,7 +8,6 @@ type Props<TFieldValues extends FieldValues, TOption extends string> = {
   id?: string;
   containerClassName?: string;
   error?: string;
-  /** Called on every selection change, in addition to RHF's internal onChange. */
   onValueChange?: (value: TOption) => void;
   children: ReactNode;
 } & (

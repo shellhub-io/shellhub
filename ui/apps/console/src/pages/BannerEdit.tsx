@@ -13,8 +13,6 @@ import PageLoader from "@/components/common/PageLoader";
 
 const MAX_LENGTH = 4096;
 
-/* --- Editor (mounts only after namespace is loaded) --- */
-
 function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
   const editNs = useEditNamespace();
   const navigate = useNavigate();

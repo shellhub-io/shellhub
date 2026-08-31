@@ -38,7 +38,6 @@ const primaryAction: CTAAction = {
 };
 const secondaryAction: CTAAction = { label: "View Pricing", to: "/pricing" };
 
-/* ─── Typed line helper ────────────────────────────────────────── */
 function Line({
   prompt = "$",
   cmd,
@@ -69,9 +68,6 @@ function Line({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  HERO                                                          */
-/* ═══════════════════════════════════════════════════════════════ */
 function Hero() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden">
@@ -110,9 +106,6 @@ function Hero() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  HEADLINE FEATURE: Native SSH Access                           */
-/* ═══════════════════════════════════════════════════════════════ */
 function NativeSSH() {
   return (
     <Section>
@@ -203,9 +196,6 @@ function NativeSSH() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  HEADLINE FEATURE: Session Recording                           */
-/* ═══════════════════════════════════════════════════════════════ */
 function SessionRecording() {
   return (
     <Section>
@@ -387,9 +377,6 @@ function SessionRecording() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  HEADLINE FEATURE: Web Terminal                                */
-/* ═══════════════════════════════════════════════════════════════ */
 function WebTerminal() {
   return (
     <Section>
@@ -573,9 +560,6 @@ function SecurityGrid() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  FILE TRANSFER                                                 */
-/* ═══════════════════════════════════════════════════════════════ */
 function FileTransfer() {
   return (
     <Section>
@@ -686,9 +670,6 @@ function FileTransfer() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  DOCKER CONTAINER ACCESS                                       */
-/* ═══════════════════════════════════════════════════════════════ */
 function DockerAccess() {
   return (
     <Section>
@@ -1067,9 +1048,6 @@ function DockerAccess() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/*  DEVICE ORGANIZATION                                           */
-/* ═══════════════════════════════════════════════════════════════ */
 function DeviceOrganization() {
   return (
     <Section>

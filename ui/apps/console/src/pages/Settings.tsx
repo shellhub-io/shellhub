@@ -50,8 +50,6 @@ import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 
-/* ─── Edit Name Drawer ─── */
-
 function EditNameDrawer({
   open,
   onClose,
@@ -118,8 +116,6 @@ function EditNameDrawer({
   );
 }
 
-/* ─── Delete Namespace Dialog ─── */
-
 function DeleteDialog({
   namespaceName,
   tenantId,
@@ -177,8 +173,6 @@ function DeleteDialog({
   );
 }
 
-/* ─── Leave Namespace Dialog ─── */
-
 function LeaveDialog({
   tenantId,
   onClose,
@@ -210,8 +204,6 @@ function LeaveDialog({
     </ConfirmDialog>
   );
 }
-
-/* ─── Banner Collapsible ─── */
 
 function BannerPreview({
   banner,
@@ -367,8 +359,8 @@ export default function Settings() {
           },
         },
       });
+    // eslint-disable-next-line no-empty -- the toggle failed, so the setting simply keeps the value it had
     } catch {
-      /* state didn't change */
     } finally {
       setTogglingRecord(false);
     }
@@ -382,8 +374,8 @@ export default function Settings() {
         path: { tenant: tenantId },
         body: { ssh_access_mode: mode },
       });
+    // eslint-disable-next-line no-empty -- the switch failed, so the access mode keeps the value it had
     } catch {
-      /* state didn't change */
     } finally {
       setSwitchingAccessMode(false);
     }

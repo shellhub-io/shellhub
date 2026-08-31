@@ -23,12 +23,6 @@ import {
 } from "./helpers";
 import ExpiryLabel from "./ExpiryLabel";
 
-/**
- * The Mode cell: the key's mode identity (icon tile + label). Its secondary line is the mode summary
- * for a live key, or — for the two key-level states that have no column of their own — "Revoked" or
- * "Disabled" with an icon and a contextual tone. Expired / limit-reached are chips in their own
- * columns instead. The tile dims when the key is inert.
- */
 function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
   const { revoked, disabled, inert } = getKeyBlockers(installKey);
 
@@ -75,11 +69,6 @@ function EnrollmentCell({ installKey }: { installKey: InstallKey }) {
   );
 }
 
-/**
- * Onboarding placeholder for the "Custom keys" section when the namespace has none yet. The built-in
- * keys always fill the table, so this replaces the old full-page hero: it lives inside the section it
- * belongs to, keeping the built-in rows (and their queues) reachable above it.
- */
 function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="px-4 py-6">
