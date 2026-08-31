@@ -43,25 +43,27 @@ export function buildMemberRoleDefaults(
   return { role: assignableRoleOr(member?.role, "operator") };
 }
 
+const keyNameField = z.string().superRefine((value, ctx) => {
+  if (value.length < 3) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Name must be at least 3 characters.",
+    });
+  } else if (value.length > 20) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Name must be at most 20 characters.",
+    });
+  } else if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Name can only contain letters, numbers, - and _.",
+    });
+  }
+});
+
 export const generateKeySchema = z.object({
-  name: z.string().superRefine((value, ctx) => {
-    if (value.length < 3) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Name must be at least 3 characters.",
-      });
-    } else if (value.length > 20) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Name must be at most 20 characters.",
-      });
-    } else if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Name can only contain letters, numbers, - and _.",
-      });
-    }
-  }),
+  name: keyNameField,
   role: roleField,
   // Kept as a string so it binds directly to the radio-pill group; converted
   // back to the numeric API value in buildGenerateKeyBody.
@@ -87,9 +89,7 @@ export function buildGenerateKeyBody(
 }
 
 export const editKeySchema = z.object({
-  name: z
-    .string()
-    .refine((v) => v.trim().length > 0, { message: "Name is required." }),
+  name: keyNameField,
   role: roleField,
 });
 
