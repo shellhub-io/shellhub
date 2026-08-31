@@ -1,7 +1,5 @@
 /**
- * Shape attached to errors by the fetch error interceptor in fetchInterceptors.ts.
- * The interceptor monkey-patches `.status` and `.headers` onto the parsed
- * response body before it is thrown by the SDK with `throwOnError: true`.
+ * Shape attached to errors thrown by the custom fetch mutator in customInstance.ts.
  *
  * `message` and `fields` come from the body the API sends. `message` is for API clients — the
  * console renders its own copy, keyed by status; see `apiErrorMessage`.
