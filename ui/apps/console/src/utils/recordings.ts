@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { generateRandomUUID } from "@/utils/random-uuid";
+import { ignoreFailure } from "./failure";
 
 /** OPFS subdirectory holding `<id>.cast` payloads and `<id>.json` sidecars. */
 const DIR = "session-recordings";
@@ -239,11 +240,7 @@ export class OpfsCastRecorder {
    */
   async discard(): Promise<void> {
     this.failed = true;
-    try {
-      await this.writable.abort();
-    // eslint-disable-next-line no-empty -- aborting a writable that is already closed is not a failure worth reporting
-    } catch {
-    }
+    await this.writable.abort().catch(ignoreFailure);
     await this.removeFiles();
   }
 
@@ -263,12 +260,24 @@ export class OpfsCastRecorder {
   }
 
   private async removeFiles(): Promise<void> {
-    try {
-      await this.dir.removeEntry(`${this.id}.cast`).catch(() => undefined);
-      await this.dir.removeEntry(`${this.id}.json`).catch(() => undefined);
-    // eslint-disable-next-line no-empty -- removing a file that is already gone is not a failure worth reporting
-    } catch {
-    }
+    await this.dir.removeEntry(`${this.id}.cast`).catch(ignoreFailure);
+    await this.dir.removeEntry(`${this.id}.json`).catch(ignoreFailure);
+  }
+}
+
+async function readRecordingMeta(
+  dir: FileSystemDirectoryHandle,
+  handle: FileSystemFileHandle,
+): Promise<RecordingMeta | null> {
+  try {
+    const metaFile = await handle.getFile();
+    const meta = JSON.parse(await metaFile.text()) as RecordingMeta;
+    const castHandle = await dir.getFileHandle(`${meta.id}.cast`);
+    meta.size = (await castHandle.getFile()).size;
+
+    return meta;
+  } catch {
+    return null;
   }
 }
 
@@ -284,15 +293,8 @@ export async function listRecordings(): Promise<RecordingMeta[]> {
   ).entries();
   for await (const [name, handle] of entries) {
     if (!name.endsWith(".json") || handle.kind !== "file") continue;
-    try {
-      const metaFile = await (handle as FileSystemFileHandle).getFile();
-      const meta = JSON.parse(await metaFile.text()) as RecordingMeta;
-      const castHandle = await dir.getFileHandle(`${meta.id}.cast`);
-      meta.size = (await castHandle.getFile()).size;
-      metas.push(meta);
-    // eslint-disable-next-line no-empty -- the sidecar is orphaned or corrupt, so the recording is skipped
-    } catch {
-    }
+    const meta = await readRecordingMeta(dir, handle as FileSystemFileHandle);
+    if (meta) metas.push(meta);
   }
   return metas.sort((a, b) => b.createdAt - a.createdAt);
 }

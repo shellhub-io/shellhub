@@ -14,6 +14,9 @@ import {
   type ForgotPasswordFormValues,
 } from "./setup/forgotPasswordResolver";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { ignoreFailure } from "@/utils/failure";
+
+const silenceToPreventAccountEnumeration = ignoreFailure;
 
 /**
  * Requests a password reset. It reports success whatever the outcome, because saying whether the
@@ -32,17 +35,14 @@ export default function ForgotPassword() {
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
-    try {
-      await recoverPassword({
-        body: { username: values.account },
-        throwOnError: true,
-      });
-    // eslint-disable-next-line no-empty -- reporting the failure would tell an attacker whether the address exists
-    } catch {
-    } finally {
-      setLoading(false);
-      setSent(true);
-    }
+
+    await recoverPassword({
+      body: { username: values.account },
+      throwOnError: true,
+    }).catch(silenceToPreventAccountEnumeration);
+
+    setLoading(false);
+    setSent(true);
   };
 
   return (

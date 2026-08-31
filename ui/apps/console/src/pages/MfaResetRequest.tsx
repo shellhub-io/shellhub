@@ -7,6 +7,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useMfaResetStore } from "../stores/mfaResetStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import LoginLayoutCard from "@/components/layout/LoginLayoutCard";
+import { succeeded } from "@/utils/failure";
 
 /**
  * Starts an MFA reset for someone with neither their authenticator nor a recovery code. It goes
@@ -36,11 +37,8 @@ export default function MfaResetRequest() {
   }
 
   const onSubmit = async () => {
-    try {
-      await requestMfaReset(identifier);
+    if (await succeeded(requestMfaReset(identifier))) {
       void navigate("/mfa-reset-verify");
-    // eslint-disable-next-line no-empty -- the store already holds the error the screen renders
-    } catch {
     }
   };
 

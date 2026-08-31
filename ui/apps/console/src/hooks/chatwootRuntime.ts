@@ -1,3 +1,4 @@
+import { attempt } from "@/utils/failure";
 /**
  * Module-level lifecycle for the Chatwoot SDK. Lives outside the React tree
  * so `authStore.logout()` can tear it down without going through a hook, and
@@ -170,12 +171,10 @@ export function tearDownChatwoot(
   clearWatchdog();
   detachReadyListener();
 
-  try {
+  attempt(() => {
     window.$chatwoot?.toggle("close");
     window.$chatwoot?.reset();
-  // eslint-disable-next-line no-empty -- the widget is mid-bootstrap, so there is nothing to close yet
-  } catch {
-  }
+  });
 
   document.getElementById(SCRIPT_ID)?.remove();
   document.querySelectorAll(SDK_DOM_SELECTORS).forEach((node) => node.remove());
