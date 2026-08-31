@@ -5,6 +5,7 @@ description: Bind SSH keys to a person or a service account, and revoke them in 
 ---
 
 import Callout from "../../../components/Callout.astro";
+import Shot from '../../../components/Shot.astro';
 
 # SSH Identities
 
@@ -16,6 +17,8 @@ and one principal can hold several keys — a laptop, a workstation, a CI runner
 namespace, a fingerprint maps to exactly one identity.
 
 Manage them under **SSH Identities** in the console.
+
+<Shot id="ssh-identities" route="/ssh-identities" of={{ role: "table" }} alt="The SSH Identities page listing each key, the principal it belongs to, and where it came from" />
 
 ## Where identities come from
 
