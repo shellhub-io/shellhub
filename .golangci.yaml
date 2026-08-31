@@ -109,6 +109,16 @@ linters:
         - G104
     revive:
       severity: warning
+      rules:
+        # A doc comment on an exported symbol is one of the two comments code-style.md
+        # leaves, and this is the rule that asks for it. Enabled for every module: the
+        # policy has the linter as its only source of doc comments, so a module the rule
+        # skips is a module with no documentation requirement at all.
+        # disableStutteringCheck keeps the rule on the comment: a package-stuttering name
+        # is a rename, which is a different change with different reviewers.
+        - name: exported
+          arguments:
+            - disableStutteringCheck
     staticcheck:
       checks: ["all", "-SA1029", "-ST1020", "-ST1021", "-ST1022", "-ST1000", "-QF1008"]
     depguard:
