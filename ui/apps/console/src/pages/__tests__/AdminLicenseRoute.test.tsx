@@ -8,11 +8,6 @@ import {
   useLocation,
 } from "react-router-dom";
 
-/* ------------------------------------------------------------------ */
-/* Mocks                                                               */
-/* ------------------------------------------------------------------ */
-// Stub AdminLicense — its real implementation pulls in many hooks/components
-// that are irrelevant to the routing behaviour under test.
 vi.mock("../admin/License", () => ({
   default: () => <div data-testid="admin-license-page">Admin License</div>,
 }));
@@ -21,10 +16,6 @@ import { getConfig, isCloud, defaultConfig } from "@/env";
 import AdminLicense from "../admin/License";
 
 const mockedGetConfig = vi.mocked(getConfig);
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
 
 /** Captures the current pathname so we can assert post-redirect location. */
 function LocationDisplay() {
@@ -52,16 +43,9 @@ function renderRoute() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Setup / teardown                                                    */
-/* ------------------------------------------------------------------ */
 beforeEach(() => {
   vi.clearAllMocks();
 });
-
-/* ================================================================== */
-/* Tests                                                               */
-/* ================================================================== */
 
 describe("AdminLicenseRoute — /admin/license element", () => {
   describe("Cloud Edition", () => {
@@ -72,9 +56,6 @@ describe("AdminLicenseRoute — /admin/license element", () => {
     it("redirects to /admin/dashboard in cloud mode", () => {
       renderRoute();
 
-      // The Navigate component should redirect the router to /admin/dashboard,
-      // which renders LocationDisplay. Asserting on its text content confirms
-      // that the redirect happened.
       expect(screen.getByTestId("pathname")).toHaveTextContent(
         "/admin/dashboard",
       );

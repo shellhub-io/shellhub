@@ -50,8 +50,6 @@ function renderLogin() {
   );
 }
 
-// With RHF onTouched mode, fields must be blurred before validation runs.
-// user.tab() after typing each field triggers the blur that enables the button.
 async function fillAndSubmit(
   username = "admin",
   password = "secret",
@@ -131,8 +129,6 @@ describe("Login", () => {
       );
     });
 
-    // RHF onTouched: blurring an invalid field surfaces a per-field error
-    // message inline. The old useState implementation never showed field errors.
     it("shows a field error on the username field after blur when empty", async () => {
       const user = userEvent.setup();
       renderLogin();
@@ -146,9 +142,6 @@ describe("Login", () => {
       );
     });
 
-    // With RHF onTouched, validation runs after blur. The button is disabled
-    // until both fields have been touched and are valid. Tab away from each
-    // field to trigger blur-time validation before asserting enabled state.
     it("disables the submit button when username or password is empty", async () => {
       const user = userEvent.setup();
       renderLogin();
@@ -235,7 +228,6 @@ describe("Login", () => {
         expect(screen.getByText(/authenticating/i)).toBeInTheDocument(),
       );
 
-      // DS Button sets aria-busy="true" on the button element when loading=true.
       expect(
         screen.getByRole("button", { name: /authenticating/i }),
       ).toHaveAttribute("aria-busy", "true");
@@ -328,8 +320,6 @@ describe("Login", () => {
   });
 
   describe("429 countdown", () => {
-    // Real timers: fake timers + user.click() deadlock (React scheduler uses setTimeout(0)).
-
     it("displays the remaining lockout time after the first interval tick", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
       sdk.login.mockRejectedValue(

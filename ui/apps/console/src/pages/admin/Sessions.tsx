@@ -181,8 +181,6 @@ export default function AdminSessions() {
         itemLabel="session"
         onPageChange={setPage}
         onRowClick={(s) => void navigate(`/admin/sessions/${s.uid}`)}
-        // border-l-2 on every row (transparent by default) keeps the row
-        // height stable when the red border appears on unauthenticated rows.
         rowClassName={(s) =>
           !s.authenticated
             ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"

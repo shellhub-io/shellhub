@@ -63,8 +63,6 @@ export default function CreateNamespaceDialog({
   const autoId = useId();
   const titleId = `create-ns-title-${autoId}`;
   const inputId = `create-ns-input-${autoId}`;
-  // Namespace creation is a premium (Cloud/Enterprise) feature. Community is single-namespace,
-  // so this dialog never renders there — the selector shows the upsell instead.
   const isPremium = isEnterpriseOrCloud();
 
   const [name, setName] = useState("");

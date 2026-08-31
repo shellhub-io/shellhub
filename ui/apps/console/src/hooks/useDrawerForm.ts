@@ -34,9 +34,6 @@ export function useDrawerForm<TSchema extends ZodType<FieldValues>>(
 ): UseFormReturn<TSchema["_output"]> {
   type TValues = TSchema["_output"];
 
-  // useForm reads `resolver` only at initialization; a ref-based wrapper
-  // ensures schema changes (e.g. editNamespaceSchema(newOriginalName)) are
-  // picked up by subsequent validations without remounting the form.
   const schemaRef = useRef(schema);
 
   useLayoutEffect(() => {
@@ -56,9 +53,6 @@ export function useDrawerForm<TSchema extends ZodType<FieldValues>>(
   });
 
   const { reset } = form;
-  // Seed from the initial `open` so a drawer mounted already-open keeps the
-  // defaults `useForm` was constructed with (and its computed `isValid`);
-  // only genuine closed → open transitions trigger a reset.
   const wasOpen = useRef(open);
 
   useLayoutEffect(() => {

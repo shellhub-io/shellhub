@@ -185,9 +185,6 @@ export const useVaultStore = create<VaultState>((set, get) => {
         const backend = getBackend();
         meta = await backend.loadMeta();
       } catch (err) {
-        // Keep the current status: with a server-backed vault a transient
-        // network error must not present the setup screen (which could lead
-        // to overwriting an existing vault).
         const msg =
           err instanceof Error ? err.message : "Failed to load the vault";
         set({ error: msg });
@@ -213,8 +210,6 @@ export const useVaultStore = create<VaultState>((set, get) => {
 
     initialize: async (masterPassword, mode) => {
       set({ loading: true, error: null });
-      // Persist the chosen storage location before picking the backend so the
-      // vault is created where the user asked (local or server).
       if (mode) {
         setVaultStorageMode(mode, getScope());
         set({ storageMode: mode });
@@ -239,7 +234,6 @@ export const useVaultStore = create<VaultState>((set, get) => {
         await loadSettingsIntoState();
         startTracker();
       } catch (err) {
-        // Rollback saved meta so the vault returns to "uninitialized"
         await backend.clear().catch(() => undefined);
         clearSessionKey();
         const msg =
@@ -313,10 +307,6 @@ export const useVaultStore = create<VaultState>((set, get) => {
       set({ status: "locked", keys: [], error: null });
     },
 
-    // addKey, updateKey, and removeKey intentionally throw raw errors to the caller
-    // rather than writing to the store's loading/error fields. Their callers (KeyDrawer,
-    // KeyDeleteDialog) manage their own local error UI. This keeps vault-wide loading/error
-    // state reserved for operations that affect the whole vault (initialize, unlock, changeMasterPassword).
     addKey: async (entry) => {
       const existing = get().keys;
       checkDuplicates(existing, entry);
@@ -383,13 +373,11 @@ export const useVaultStore = create<VaultState>((set, get) => {
         const { meta: newMeta, derivedKey: newKey } =
           await createVaultMeta(newPassword);
 
-        // CRITICAL: early return if vault locked while createVaultMeta was in flight
         if (get().status !== "unlocked") {
           set({ loading: false, error: "Vault locked during password change" });
           return;
         }
 
-        // Save current encrypted data and meta for rollback before re-encrypting.
         const oldData = await backend.loadData();
         const oldMeta = meta;
 

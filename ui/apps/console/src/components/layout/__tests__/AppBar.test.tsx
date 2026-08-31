@@ -5,7 +5,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AppBar from "../AppBar";
 import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 
-// Mock the leaf children so only AppBar's own crossfade logic is under test.
 vi.mock("../NamespaceSelector", () => ({
   default: () => <div data-testid="namespace-selector" />,
 }));
@@ -61,8 +60,6 @@ function contentWrapper(): HTMLElement {
 
 beforeEach(() => {
   useTerminalStore.setState({ sessions: [] });
-  // Run rAF callbacks synchronously so the post-fade "swapped → idle" settle
-  // completes within the triggering act().
   vi.spyOn(global, "requestAnimationFrame").mockImplementation(
     (cb: FrameRequestCallback) => {
       cb(0);
@@ -93,13 +90,10 @@ describe("AppBar", () => {
       });
     });
 
-    // Mode change triggers a render-phase state update → fade the old content out first.
-    // Content is still the namespace selector, now hidden (phase: fading-out).
     const wrapper = contentWrapper();
     expect(screen.getByTestId("namespace-selector")).toBeInTheDocument();
     expect(wrapper.className).toContain("opacity-0");
 
-    // Fade-out finished → swap to the terminal info and settle back to visible.
     act(() => {
       fireEvent.transitionEnd(wrapper);
     });
@@ -109,7 +103,6 @@ describe("AppBar", () => {
   });
 
   it("swaps same-mode sessions instantly without a fade (no flash)", () => {
-    // Session already active at mount → terminal mode, idle.
     useTerminalStore.setState({
       sessions: [makeSession({ id: "t1", deviceName: "device-1" })],
     });
@@ -122,7 +115,6 @@ describe("AppBar", () => {
       });
     });
 
-    // Instant swap: new session shown immediately, wrapper never leaves opacity-100.
     expect(screen.getByTestId("terminal-info")).toHaveTextContent("device-2");
     const wrapper = contentWrapper();
     expect(wrapper.className).toContain("opacity-100");
@@ -137,7 +129,6 @@ describe("AppBar", () => {
         sessions: [makeSession({ id: "t1", deviceName: "device-1" })],
       });
     });
-    // Now mid fade-out (pending = t1, nothing committed yet).
     expect(contentWrapper().className).toContain("opacity-0");
 
     act(() => {

@@ -42,10 +42,6 @@ export default function InstallKeyHistoryPage() {
   const location = useLocation();
   const state = location.state as { name?: string; key?: InstallKey } | null;
 
-  // Source the key from the list rather than router state alone: the summary must survive a refresh or
-  // a deep link (state is only set when arriving from the list) and stay live after a revoke/disable
-  // here (the mutation invalidates the list). Fall back to the router-state copy while the list loads.
-  // The list caps at 100 keys; past that a deep link shows "Install key not found"
   const { installKeys, isLoading } = useInstallKeys({ perPage: 100 });
   const key = installKeys.find((k) => k.id === id) ?? state?.key ?? null;
   const name = key ? installKeyDisplayName(key) : (state?.name ?? "");

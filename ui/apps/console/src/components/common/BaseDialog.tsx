@@ -34,15 +34,10 @@ export interface BaseDialogProps {
    *  Below the sm breakpoint all sizes go full-screen. */
   size?: DialogSize;
 
-  /** Wired to <dialog aria-labelledby>. The consuming component must
-   *  render an element with this id. */
   "aria-labelledby"?: string;
 
-  /** Wired to <dialog aria-describedby>. Optional. */
   "aria-describedby"?: string;
 
-  /** Wired to <dialog aria-label>. Use when a visible title element is
-   *  absent (e.g. WelcomeWizard). Mutually exclusive with aria-labelledby. */
   "aria-label"?: string;
 
   /** Additional classes appended to the dialog panel. Use sparingly —
@@ -72,13 +67,8 @@ export default function BaseDialog({
   children,
 }: BaseDialogProps) {
   const internalRef = useRef<HTMLDialogElement>(null);
-  // Use the externally provided ref if given, otherwise fall back to the
-  // internal one. Both point to the same <dialog> element so all hooks
-  // and the consumer share a single DOM node reference.
   const ref = externalRef ?? internalRef;
 
-  // Wrap the canClose prop in a stable callback so useBackdropClose's
-  // internal ref comparison stays consistent across renders.
   const canClose = useCallback(
     () => (canCloseProp ? canCloseProp() : true),
     [canCloseProp],
@@ -90,24 +80,14 @@ export default function BaseDialog({
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    // Guard each branch explicitly:
-    // - showModal() throws InvalidStateError if already open (Strict Mode double-mount).
-    // - close() should only fire when transitioning to closed.
     if (open && !dialog.open) dialog.showModal();
   }, [open, ref]);
 
-  // Handle ESC via the native cancel event fired by showModal() dialogs.
-  //
-  // Why not useEscapeKey?
-  // useEscapeKey attaches a global document keydown listener that fires
-  // regardless of dialog stacking order. The cancel event is scoped to the
-  // topmost dialog in the top layer, so stacking works correctly.
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
 
     const handleCancel = (e: Event) => {
-      // Prevent the browser from closing the dialog itself — React owns the state.
       e.preventDefault();
       if (!canClose()) return;
       onClose();
@@ -119,13 +99,6 @@ export default function BaseDialog({
 
   if (!open) return null;
 
-  // Panel classes. Notes:
-  // - No z-index needed. showModal() places the dialog in the browser's top
-  //   layer, which stacks above all other content regardless of z-index.
-  //   Multiple showModal() dialogs stack in document order (last = on top).
-  // - Below sm breakpoint: full-screen (w-full h-full), no border or radius.
-  // - At sm and above: auto-height, border, rounded corners, max-width per size.
-  // - "full" size omits the max-width class, staying full-screen at all sizes.
   const isFull = size === "full";
   const panelClasses = cn(
     "fixed inset-0 m-auto",

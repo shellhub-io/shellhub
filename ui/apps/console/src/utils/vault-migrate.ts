@@ -7,15 +7,6 @@ import {
 
 export { localVaultExists } from "@/utils/vault-backend-local";
 
-/**
- * Vault migration between local and server storage.
- *
- * The vault is an opaque encrypted blob, so moving it is a plain copy: no
- * master password and no decryption involved. Migration always preserves a
- * single source of truth — after copying, the origin is cleared and the
- * storage mode preference flips.
- */
-
 /** Whether a vault already exists on the server for the current user. */
 export async function serverVaultExists(scope?: VaultScope): Promise<boolean> {
   const server = new ServerVaultBackend(scope);
@@ -37,7 +28,6 @@ export async function migrateLocalToServer(scope?: VaultScope): Promise<void> {
   const data = await local.loadData();
   const settings = await local.loadSettings();
 
-  // Drop any existing server vault so the upload starts from version 1.
   await server.clear();
 
   await server.saveMeta(meta);

@@ -46,17 +46,12 @@ function renderWithProvider(text?: string) {
   );
 }
 
-// ─── useCopy ─────────────────────────────────────────────────────────────────
-
 describe("ClipboardProvider / useCopy", () => {
   describe("throws outside provider", () => {
     it("throws when used outside ClipboardProvider", () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
-      // React reports the thrown render error through jsdom's event dispatch
-      // path, which bypasses the console.error spy and prints a stack trace.
-      // Swallow that one error event so the CI log stays clean.
       const suppressError = (event: ErrorEvent) => event.preventDefault();
       window.addEventListener("error", suppressError);
 
@@ -68,8 +63,6 @@ describe("ClipboardProvider / useCopy", () => {
       consoleSpy.mockRestore();
     });
   });
-
-  // ─── secure context ────────────────────────────────────────────────────────
 
   describe("secure context", () => {
     beforeEach(() => {
@@ -120,8 +113,6 @@ describe("ClipboardProvider / useCopy", () => {
     });
   });
 
-  // ─── insecure context ──────────────────────────────────────────────────────
-
   describe("insecure context", () => {
     beforeEach(() => {
       Object.defineProperty(globalThis, "isSecureContext", {
@@ -162,8 +153,6 @@ describe("ClipboardProvider / useCopy", () => {
     });
   });
 
-  // ─── clipboard API error ──────────────────────────────────────────────────
-
   describe("clipboard API error", () => {
     beforeEach(() => {
       Object.defineProperty(globalThis, "isSecureContext", {
@@ -182,8 +171,6 @@ describe("ClipboardProvider / useCopy", () => {
       );
     });
   });
-
-  // ─── shared dialog (multiple consumers) ───────────────────────────────────
 
   describe("shared dialog across multiple consumers", () => {
     beforeEach(() => {

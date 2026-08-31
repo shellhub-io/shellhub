@@ -25,8 +25,6 @@ export default function UserMenu() {
 
   const [open, setOpen] = useState(false);
 
-  // SAML users have no username, so fall back to name/email — the account menu
-  // (its only way to log out) must always render in the authenticated layout.
   const display = user || name || email || "Account";
 
   if (!user && !name && !email) return null;

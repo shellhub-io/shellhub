@@ -20,9 +20,6 @@ export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      // buffer, crypto, stream are needed by node-rsa and sshpk for SSH key parsing/signing.
-      // Note: vault-crypto.ts uses browser-native crypto.subtle (Web Crypto API),
-      // which is NOT affected by this polyfill — it only intercepts import/require('crypto').
       include: ["buffer", "crypto", "stream"],
     }),
     healthcheck(),

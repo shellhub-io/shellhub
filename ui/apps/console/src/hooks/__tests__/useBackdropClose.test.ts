@@ -47,12 +47,10 @@ function fireSequence(
   mouseDownTarget: EventTarget,
   clickTarget: EventTarget,
 ) {
-  // Simulate mousedown with specified target
   handlers.onMouseDown({
     target: mouseDownTarget,
   } as unknown as React.MouseEvent<HTMLDialogElement>);
 
-  // Simulate click with specified target
   handlers.onClick({
     target: clickTarget,
   } as unknown as React.MouseEvent<HTMLDialogElement>);
@@ -76,7 +74,6 @@ describe("useBackdropClose", () => {
       const child = makeChild(dialog);
       const { handlers, onClose } = setup(dialog);
 
-      // mousedown on dialog (backdrop), click ends on child (content)
       fireSequence(handlers, dialog, dialog, child);
 
       expect(onClose).not.toHaveBeenCalled();
@@ -87,7 +84,6 @@ describe("useBackdropClose", () => {
       const child = makeChild(dialog);
       const { handlers, onClose } = setup(dialog);
 
-      // mousedown inside content, click ends on dialog — drag-from-inside scenario
       fireSequence(handlers, dialog, child, dialog);
 
       expect(onClose).not.toHaveBeenCalled();
@@ -139,11 +135,9 @@ describe("useBackdropClose", () => {
       const child = makeChild(dialog);
       const { handlers, onClose } = setup(dialog);
 
-      // First sequence: mousedown on child, click on dialog → no close (drag-from-inside)
       fireSequence(handlers, dialog, child, dialog);
       expect(onClose).not.toHaveBeenCalled();
 
-      // Second click on dialog alone (no new mousedown on dialog) → still no close
       handlers.onClick({
         target: dialog,
       } as unknown as React.MouseEvent<HTMLDialogElement>);
@@ -156,7 +150,6 @@ describe("useBackdropClose", () => {
       const child = makeChild(dialog);
       const { handlers, onClose } = setup(dialog);
 
-      // First sequence fails (mousedown on child)
       fireSequence(handlers, dialog, child, dialog);
       expect(onClose).not.toHaveBeenCalled();
 

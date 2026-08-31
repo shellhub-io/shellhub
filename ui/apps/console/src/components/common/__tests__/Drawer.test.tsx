@@ -61,9 +61,6 @@ describe("Drawer Escape key", () => {
       </>,
     );
 
-    // Wait for the drawer's focus trap to finish its one-time auto-focus before
-    // moving focus into the sibling dialog; otherwise its rAF steals focus back
-    // into the panel and Escape would close the drawer.
     await waitFor(() => expect(screen.getByLabelText("Close")).toHaveFocus());
 
     const inner = screen.getByText("Inside dialog");

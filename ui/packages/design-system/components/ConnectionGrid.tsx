@@ -1,3 +1,7 @@
+/**
+ * Animated backdrop of lines and nodes suggesting a mesh of connections. Decoration only:
+ * it is aria-hidden, so nothing a reader needs may be placed inside it.
+ */
 export function ConnectionGrid() {
   return (
     <div className="connection-grid" aria-hidden="true">

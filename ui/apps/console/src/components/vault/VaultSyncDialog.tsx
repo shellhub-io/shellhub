@@ -69,7 +69,6 @@ function SyncForm({
     setError(null);
     try {
       await action();
-      // Same vault, new home: lock so the next unlock reads from it.
       lock();
       await refreshStatus();
       onClose();

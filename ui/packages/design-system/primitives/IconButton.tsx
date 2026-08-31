@@ -2,7 +2,15 @@ import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
 import { Spinner } from "./Spinner";
 import { cn } from "./cn";
 
+/**
+ * Intent an IconButton carries. Except for filled these rest at the muted text colour and only
+ * take their accent on hover, so primary and danger here are quieter than the Button variants
+ * of the same name.
+ */
 export type IconButtonVariant = "ghost" | "primary" | "danger" | "filled";
+/**
+ * Hit area around the icon. lg is a fixed square, so a row of them lines up whatever they hold.
+ */
 export type IconButtonSize = "sm" | "md" | "lg";
 
 // Icon-button variants intentionally rest at text-text-muted and accent on hover,
@@ -39,6 +47,11 @@ type IconButtonOwnProps<T extends ElementType> = {
 type IconButtonProps<T extends ElementType = "button"> = IconButtonOwnProps<T> &
   Omit<ComponentPropsWithoutRef<T>, keyof IconButtonOwnProps<T>>;
 
+/**
+ * Square icon-only button. It carries no text, so the caller owes it an accessible label.
+ * As with Button, rendering it as something other than a button moves disabled and loading
+ * onto aria-disabled, which the DOM does not enforce.
+ */
 export function IconButton<T extends ElementType = "button">({
   as,
   variant = "ghost",
@@ -51,19 +64,14 @@ export function IconButton<T extends ElementType = "button">({
   const Component: ElementType = (as ?? "button");
   const isNativeButton = !as || as === "button";
 
-  // Strip `disabled` and `type` from rest before computing interaction props so
-  // they don't accidentally override loading-derived values when spread later.
   const {
     type: callerType,
     disabled: callerDisabled,
     ...restWithoutInteraction
   } = rest as Record<string, unknown> & { type?: unknown; disabled?: unknown };
 
-  // When loading, always treat the button as disabled regardless of the
-  // caller's `disabled` prop so the two can't fight each other.
   const isDisabled = loading || Boolean(callerDisabled);
 
-  // For non-button elements (e.g. <a>) we use aria-disabled instead of disabled
   const interactionProps = isNativeButton
     ? {
         type: (callerType as string | undefined) ?? "button",
@@ -74,7 +82,6 @@ export function IconButton<T extends ElementType = "button">({
         "aria-disabled": isDisabled ? ("true" as const) : undefined,
       };
 
-  // Remove `type` from rest for non-button elements so it isn't forwarded
   const { type: _type, ...restWithoutType } = restWithoutInteraction;
   const forwardedRest = isNativeButton
     ? restWithoutInteraction

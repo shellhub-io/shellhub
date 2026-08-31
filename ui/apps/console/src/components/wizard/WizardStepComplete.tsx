@@ -14,7 +14,6 @@ export default function WizardStepComplete({
   const { namespace: ns } = useNamespace(tenantId);
   const namespace = ns?.name;
 
-  // Pull the accepted device's details (OS) for the card.
   const { devices } = useDevices({ perPage: 10, enabled: !!device });
   const os =
     devices.find((d) => d.uid === device?.uid)?.info?.pretty_name ??

@@ -158,7 +158,6 @@ describe("resolveError", () => {
     it("includes a hint showing the username@namespace.device@host form", () => {
       const result = resolveError("invalid sshid format", "uid-2", false);
       const hintText = result.hints.join(" ");
-      // Must show the SSHID format pattern
       expect(hintText).toMatch(/@.*\./);
       expect(hintText).toMatch(/@.*@/);
     });

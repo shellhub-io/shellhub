@@ -46,8 +46,6 @@ export default function TerminalInstance({
   const resizeRegisteredRef = useRef(false);
   const recorderRef = useRef<OpfsCastRecorder | null>(null);
   const [error, setError] = useState<TerminalError | null>(null);
-  // Set when a policy demands a re-auth: the gateway holds the login open and
-  // sends the approval code, which this screen decides on. No reconnect.
   const [approvalCode, setApprovalCode] = useState<string | null>(null);
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
@@ -72,10 +70,6 @@ export default function TerminalInstance({
       fontSize: initSize,
     } = useTerminalThemeStore.getState();
 
-    // Finalize the recording exactly once (guarded by nulling the ref before
-    // any await). Runs on EVERY connection close — ws.onclose (exit / dropped)
-    // and unmount cleanup (the X button) converge here, so the result is the
-    // same regardless of how the session ended.
     async function finalizeRecording() {
       const recorder = recorderRef.current;
       if (!recorder) return;
@@ -121,9 +115,6 @@ export default function TerminalInstance({
       });
       termRef.current = term;
 
-      // Read the size off the store rather than the render-time binding: this
-      // handler is registered once and would otherwise always step from the
-      // size the terminal was created with.
       term.attachCustomKeyEventHandler((event) => {
         if (event.type !== "keydown") return true;
 
@@ -133,8 +124,6 @@ export default function TerminalInstance({
 
         setFontSize(next);
 
-        // Returning false only stops xterm forwarding the key to the shell;
-        // suppressing the browser's own zoom needs this.
         event.preventDefault();
 
         return false;
@@ -164,18 +153,10 @@ export default function TerminalInstance({
       wsRef.current = ws;
       resizeRegisteredRef.current = false;
 
-      // xterm.js decodes bytes itself, statefully across writes. The recorder
-      // needs text — asciicast v2 output events are JSON strings — so it gets
-      // its own streaming decoder, which holds a character split across frames
-      // until the bytes completing it arrive.
       const recordingDecoder = new TextDecoder("utf-8");
 
-      // Copy key material into local variables so the closure doesn't hold
-      // the original session object (which would keep keys reachable in memory).
       let keyMaterial: string | undefined = session.privateKey;
       let keyPassphrase: string | undefined = session.passphrase;
-      // The browser's non-extractable identity key (identity mode). Kept across
-      // reconnects since it cannot be exported, so it is never cleared.
       const browserKey = session.browserKey;
 
       const registerResizeHandler = () => {
@@ -196,7 +177,6 @@ export default function TerminalInstance({
         if (cancelled) return;
         updateStatus("connected");
 
-        // Opt-in recording, streamed to OPFS (no picker, no upload).
         if (session.record) {
           try {
             const recorder = await OpfsCastRecorder.create(
@@ -216,27 +196,17 @@ export default function TerminalInstance({
         }
       };
 
-      // The output path is synchronous by design: awaiting here decoded each
-      // frame in isolation, corrupting a character that spans frames, and let
-      // frame order follow promise resolution rather than arrival.
       ws.onmessage = (event) => {
         if (cancelled) return;
         if (typeof event.data !== "string") {
-          // Binary data = terminal output (password auth or post-signature)
           const bytes = new Uint8Array(event.data as ArrayBuffer);
           term.write(bytes);
-          // Decode unconditionally: the recorder is null until its async
-          // creation resolves, and feeding the decoder only while it exists
-          // would leave the stream state missing those bytes — so a character
-          // straddling that window would come out corrupted in the recording.
           const decoded = recordingDecoder.decode(bytes, { stream: true });
           recorderRef.current?.recordOutput(decoded);
           registerResizeHandler();
           return;
         }
 
-        // Control messages stay async (the signature case signs with WebCrypto),
-        // but the output path above must not await.
         void (async () => {
           const textData = String(event.data as unknown);
           const msg = parseMessage(textData);
@@ -252,8 +222,6 @@ export default function TerminalInstance({
               try {
                 let signature: string;
                 if (browserKey) {
-                  // Ed25519 sign returns the raw 64-byte blob — exactly what
-                  // ssh.Signature.Blob expects; no SSH wire wrapping.
                   const sig = await crypto.subtle.sign(
                     { name: "Ed25519" },
                     browserKey,
@@ -297,9 +265,6 @@ export default function TerminalInstance({
               break;
             }
             case WS_KIND.REAUTH: {
-              // A policy needs a fresh re-auth. The gateway is holding this login
-              // open, so the connection stays up: open the approval screen on the
-              // code it sent, and the terminal continues once the decision lands.
               setApprovalCode(msg.data);
               break;
             }
@@ -315,7 +280,6 @@ export default function TerminalInstance({
         if (!lastError) {
           setError(WS_CLOSE_ERROR);
         }
-        // Connection closed (exit or dropped) — finalize the recording.
         void finalizeRecording();
       };
 
@@ -347,10 +311,6 @@ export default function TerminalInstance({
 
     return () => {
       cancelled = true;
-      // Persist the recording only on a real close — i.e. the session is gone
-      // from the store. On a StrictMode remount (dev) or transient unmount the
-      // session still exists, so discard the throwaway recorder instead of
-      // emitting a spurious recording the moment the terminal opens.
       const stillOpen = useTerminalStore
         .getState()
         .sessions.some((s) => s.id === session.id);
@@ -407,7 +367,6 @@ export default function TerminalInstance({
     term.write("\x1b[?25l"); // CSI sequence to hide cursor
   }, [error]);
 
-  // Handle visibility changes (minimize/restore)
   useEffect(() => {
     if (!prevVisibleRef.current && visible && error === null) {
       requestAnimationFrame(() => {
@@ -443,8 +402,6 @@ export default function TerminalInstance({
           flow="confirm"
           code={approvalCode}
           onClose={() => {
-            // Closing without deciding abandons the login the gateway is holding;
-            // it releases on its own when the window lapses.
             setApprovalCode(null);
             setError(WS_REAUTH_CANCELLED);
           }}

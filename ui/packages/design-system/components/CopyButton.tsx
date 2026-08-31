@@ -9,6 +9,10 @@ const SIZE_CLASS: Record<"sm" | "md", string> = {
   md: "w-4 h-4",
 };
 
+/**
+ * Props of CopyButton. onError is called when the clipboard is unreachable — an insecure
+ * context, or a write the browser rejected — because the button reports nothing itself.
+ */
 export interface CopyButtonProps {
   text: string;
   size?: "sm" | "md";
@@ -17,6 +21,12 @@ export interface CopyButtonProps {
   onError?: () => void;
 }
 
+/**
+ * Copies text to the clipboard and confirms with a check mark for 1.5 seconds.
+ * Outside a secure context navigator.clipboard does not exist, so the write is not
+ * attempted at all and onError is called instead. The click is stopped from propagating,
+ * which is what lets the button sit inside a row that is itself clickable.
+ */
 export function CopyButton({
   text,
   size = "sm",

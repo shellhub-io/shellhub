@@ -98,8 +98,6 @@ function BillingPaymentInner({
   const elements = useElements();
   const { tenant: tenantId } = useAuthStore();
   const { namespace, refetch: refetchNamespace } = useNamespace(tenantId ?? "");
-  // /api/billing/customer returns 400 until the namespace has been bootstrapped
-  // with Stripe (POST /customer). Gate the query on that.
   const hasCustomer = !!namespace?.billing?.customer_id;
   const {
     customer,
@@ -121,11 +119,6 @@ function BillingPaymentInner({
 
   const bootstrapRef = useRef(false);
 
-  // Strictly sequential bootstrap, mirroring the Vue onMounted flow:
-  //   1. refresh namespace to get the current billing.customer_id (if any),
-  //   2. if missing, create the Stripe customer (backend writes customer_id),
-  //   3. refresh namespace again so `hasCustomer` flips and useCustomer fires.
-  // Calling /customer before the namespace has billing data yields HTTP 400.
   useEffect(() => {
     if (bootstrapRef.current) return;
     bootstrapRef.current = true;

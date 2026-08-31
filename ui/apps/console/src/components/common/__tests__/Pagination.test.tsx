@@ -32,8 +32,6 @@ describe("Pagination", () => {
   });
 
   it("renders null for an empty list (totalCount 0, totalPages 0)", () => {
-    // Empty lists defer to each page's own empty-state, so Pagination renders nothing
-    // rather than a lonely "0 items" beside it.
     const { container } = render(
       <Pagination page={1} totalPages={0} totalCount={0} onPageChange={() => {}} />,
     );
@@ -62,7 +60,6 @@ describe("Pagination", () => {
     );
     expect(screen.queryAllByRole("button")).toHaveLength(2);
     expect(screen.getByText("1 / 3")).toBeInTheDocument();
-    // No item-count label when totalCount is not provided; Page X of Y fallback renders instead
     expect(screen.queryByText(/item/i)).not.toBeInTheDocument();
     expect(screen.getByText("Page 1 of 3")).toBeInTheDocument();
   });
@@ -113,8 +110,6 @@ describe("Pagination", () => {
   });
 
   it("renders null when totalCount is 0 and totalPages is 1", () => {
-    // A single empty page has nothing to navigate and no positive count to show,
-    // so it defers to the page's own empty-state.
     const { container } = render(
       <Pagination page={1} totalPages={1} totalCount={0} onPageChange={() => {}} />,
     );

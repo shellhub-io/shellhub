@@ -44,8 +44,6 @@ export default function Setup() {
       defaultValues: {
         name: "",
         username: "",
-        // In development the namespace defaults to "dev" (and does not track the username) so the
-        // instance binds to the well-known dev tenant/fixtures.
         namespace: import.meta.env.DEV ? "dev" : "",
         email: "",
         password: "",
@@ -53,14 +51,11 @@ export default function Setup() {
       },
     });
 
-  // The namespace defaults to a slug of the username and stays in sync until the user opts to
-  // edit it (readonly + Edit button), so setup has a sensible name without an extra decision.
   const [namespaceEdited, setNamespaceEdited] = useState(false);
   const usernameValue = useWatch({ control, name: "username" });
   const namespaceValue = useWatch({ control, name: "namespace" });
 
   useEffect(() => {
-    // Skip the username-driven suggestion in development, where it stays fixed at "dev".
     if (!import.meta.env.DEV && !namespaceEdited) {
       setValue("namespace", suggestNamespace(usernameValue ?? ""), {
         shouldValidate: true,
@@ -106,8 +101,6 @@ export default function Setup() {
 
   useEffect(() => {
     if (success) {
-      // Setup already authenticated us (auto-login), so land directly on the app
-      // instead of bouncing through the login screen.
       const timer = setTimeout(
         () => void navigate("/", { replace: true }),
         3000,
@@ -143,10 +136,6 @@ export default function Setup() {
       return;
     }
 
-    // Setup is committed at this point. Try to enter the app directly with the session it
-    // issued; if the auto-login fails (or no token was issued), setup is still done — route to
-    // the login screen with a notice instead of surfacing a misleading "setup failed" error
-    // that a retry would only turn into a 409.
     try {
       if (!token) throw new Error("no session issued");
       await loginWithToken(token);
@@ -314,9 +303,6 @@ export default function Setup() {
                 variant="mono"
                 maxLength={30}
                 readOnly={!namespaceEdited}
-                // Suppress the error only while the field is pristine/empty. If a non-empty
-                // auto-suggestion is invalid (e.g. a username that slugs too short), let the
-                // error show so the user knows why submit is disabled and can hit Edit to fix it.
                 error={!namespaceEdited && !namespaceValue ? "" : undefined}
                 hint={
                   import.meta.env.DEV

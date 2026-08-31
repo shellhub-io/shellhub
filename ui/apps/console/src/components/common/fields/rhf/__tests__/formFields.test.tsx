@@ -156,7 +156,6 @@ describe.each(TEXT_CASES)("$name (RHF adapter contract)", ({ label, render: rend
 
     await user.type(screen.getByLabelText(label), "hi");
 
-    // RHF's controlled onChange fires per keystroke with the accumulated value.
     expect(onValueChange).toHaveBeenCalledTimes(2);
     expect(onValueChange).toHaveBeenNthCalledWith(1, "h");
     expect(onValueChange).toHaveBeenNthCalledWith(2, "hi");

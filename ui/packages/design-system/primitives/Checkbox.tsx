@@ -2,6 +2,10 @@ import type { InputHTMLAttributes } from "react";
 import { CheckIcon } from "@heroicons/react/16/solid";
 import { cn } from "./cn";
 
+/**
+ * Props of Checkbox. It is controlled: checked comes from the caller and onChange receives the
+ * next value rather than the event.
+ */
 export type CheckboxProps = {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -16,6 +20,10 @@ export type CheckboxProps = {
 const BOX_BASE =
   "flex items-center justify-center w-4 h-4 rounded border-2 transition-colors";
 
+/**
+ * Checkbox whose native input stays in the tree, sized to the box and transparent, so focus,
+ * keyboard toggling and form participation are the browser's rather than reimplemented.
+ */
 export function Checkbox({
   checked,
   onChange,

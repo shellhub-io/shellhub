@@ -13,8 +13,6 @@ interface AnnouncementContentProps {
 export default function AnnouncementContent({
   content,
 }: AnnouncementContentProps) {
-  // content is only used on initial mount. Parent should use a key prop
-  // (e.g. key={announcement.uuid}) to force re-mount on content changes.
   const editor = useEditor({
     extensions: [
       StarterKit,

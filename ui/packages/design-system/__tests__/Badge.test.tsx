@@ -41,7 +41,6 @@ describe("Badge", () => {
       expect(el.className).not.toContain("font-semibold");
       expect(el.className).not.toContain("uppercase");
       expect(el.className).not.toContain("tracking-compact");
-      // border is not part of rounded shape
       expect(el.className).not.toContain("border");
     });
   });
@@ -63,8 +62,6 @@ describe("Badge", () => {
     it("does NOT include rounded-chip classes (rounded without -full, font-medium)", () => {
       render(<Badge shape="pill" color="primary" data-testid="badge" />);
       const el = screen.getByTestId("badge");
-      // rounded-full is present; plain "rounded" class should NOT be present without -full suffix
-      // (we check rounded-full is present, and that "rounded " standalone is absent)
       expect(el.className).toContain("rounded-full");
       expect(el.className).not.toContain("font-medium");
     });

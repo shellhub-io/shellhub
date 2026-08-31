@@ -45,7 +45,6 @@ export default function SignUp() {
     resetSignUpErrors();
   }, [resetSignUpErrors]);
 
-  // acceptMarketing is optional and not part of the validated form values
   const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [accountCreated, setAccountCreated] = useState(false);
 
@@ -63,7 +62,6 @@ export default function SignUp() {
       },
     });
 
-  // Sync server-side field errors into RHF field state whenever the store changes
   useEffect(() => {
     for (const field of signUpServerFields) {
       const key = SERVER_FIELD_MAP[field];
@@ -76,7 +74,6 @@ export default function SignUp() {
   }, [signUpServerFields, setError]);
 
   const onSubmit = async (values: SignUpFormValues) => {
-    // Guard: still block if server field errors haven't been cleared yet
     if (signUpServerFields.length > 0) return;
 
     resetSignUpErrors();
@@ -89,7 +86,6 @@ export default function SignUp() {
       email_marketing: acceptMarketing,
     });
 
-    // signUp absorbed any errors into the store; bail out if errors were set
     const { signUpError: err, signUpServerFields: fields } =
       useSignUpStore.getState();
 

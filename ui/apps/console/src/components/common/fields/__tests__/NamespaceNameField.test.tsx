@@ -29,7 +29,6 @@ describe("NamespaceNameField", () => {
     const user = userEvent.setup();
     const { onChange } = renderField();
     await user.type(screen.getByLabelText("Namespace Name"), "Ab");
-    // userEvent.type fires one onChange per keystroke; both should be lowercased.
     expect(onChange).toHaveBeenCalledWith("a");
     expect(onChange).toHaveBeenCalledWith("b");
   });

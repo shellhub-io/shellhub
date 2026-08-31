@@ -1,6 +1,10 @@
 import type { SVGProps } from "react";
 import { type BrandVariant, brandFill } from "../brandColor";
 
+/**
+ * The ShellHub wordmark. Unlike the third-party marks it does not inherit currentColor: a brand
+ * mark renders in one of two fixed fills, chosen by variant.
+ */
 export function ShellHubLogo({
   variant = "primary",
   ...props

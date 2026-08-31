@@ -54,8 +54,6 @@ function IdentityDrawer({
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
-  // expiresIn is an EXPIRY_OPTIONS value in days ("-1" = never) and applies to
-  // any key; singleUse is service-account only.
   const [expiresIn, setExpiresIn] = useState("-1");
   const [singleUse, setSingleUse] = useState(false);
   const [submitting, setSubmitting] = useState(false);

@@ -195,7 +195,6 @@ vi.mock("@/components/common/fields/RadioSegment", () => ({
   }) => <div data-testid={`radio-segment-${value}`}>{label}</div>,
 }));
 
-// Mock heavy vault dialog/banner components to isolate page logic
 vi.mock("@/components/vault/VaultSetupDialog", () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
@@ -222,8 +221,6 @@ vi.mock("@/components/vault/VaultSettingsSection", () => ({
   default: () => <div data-testid="vault-settings-section" />,
 }));
 
-// KeyDrawer and KeyDeleteDialog are also rendered by the page.  Mock them so
-// we can assert they receive the right props without executing their internals.
 vi.mock("../KeyDrawer", () => ({
   default: ({
     open,
@@ -558,7 +555,6 @@ describe("SecureVault", () => {
 
       const dialog = screen.getByRole("dialog", { name: /delete key dialog/i });
       expect(dialog).toBeInTheDocument();
-      // The dialog mock renders the entry name inside the dialog
       expect(dialog).toHaveTextContent("Production Server");
     });
 
@@ -679,14 +675,12 @@ describe("SecureVault", () => {
       setupStore("unlocked", [], 0);
       const { rerender } = render(<SecureVault />);
 
-      // Simulate auto-lock: status becomes locked AND nonce bumps to 1
       act(() => {
         getState().status = "locked";
         getState().autoLockNonce = 1;
       });
       rerender(<SecureVault />);
 
-      // The unlock dialog must auto-open
       expect(
         screen.getByRole("dialog", { name: /unlock vault/i }),
       ).toBeInTheDocument();
@@ -696,13 +690,11 @@ describe("SecureVault", () => {
       setupStore("unlocked", [], 0);
       const { rerender } = render(<SecureVault />);
 
-      // Simulate manual lock: status becomes locked but nonce stays at 0
       act(() => {
         getState().status = "locked";
       });
       rerender(<SecureVault />);
 
-      // Locked screen is shown but unlock dialog must NOT auto-open
       expect(
         screen.getByRole("heading", { name: /your vault is locked/i }),
       ).toBeInTheDocument();
@@ -712,12 +704,9 @@ describe("SecureVault", () => {
     });
 
     it("does NOT auto-open unlock dialog for a stale nonce after remount", () => {
-      // First mount: nonce was already 1 (a past auto-lock event)
-      // Navigating away and back — fresh mount should NOT pop the dialog
       setupStore("locked", [], 1);
       render(<SecureVault />);
 
-      // Locked screen is shown but unlock dialog must NOT auto-open
       expect(
         screen.getByRole("heading", { name: /your vault is locked/i }),
       ).toBeInTheDocument();
@@ -735,7 +724,6 @@ describe("SecureVault", () => {
         getState().autoLockNonce = 1;
       });
 
-      // Must not throw (hook count must be identical in both renders)
       expect(() => rerender(<SecureVault />)).not.toThrow();
     });
   });
@@ -761,9 +749,6 @@ describe("SecureVault", () => {
     }
 
     function renderConnectDrawer() {
-      // ConnectDrawer calls useQueryClient (identity-mode reconciliation); these
-      // isolated tests aren't in identity mode, so no query actually runs — the
-      // provider only satisfies the hook. A `wrapper` persists across rerender().
       return render(
         <ConnectDrawer
           open
@@ -777,7 +762,6 @@ describe("SecureVault", () => {
     }
 
     it("shows locked UI and disables Connect when vault auto-locks while drawer is open", () => {
-      // Start with vault unlocked and a vault key available
       setupConnectStore("unlocked", [vaultKey]);
       const { rerender } = renderConnectDrawer();
 
@@ -794,8 +778,6 @@ describe("SecureVault", () => {
         />,
       );
 
-      // Locked banner should be visible when auth method is "key"
-      // Connect button must be disabled (canConnect is false: no username)
       const connectBtn = screen.getByRole("button", { name: /connect/i });
       expect(connectBtn).toBeDisabled();
     });
@@ -817,7 +799,6 @@ describe("SecureVault", () => {
         />,
       );
 
-      // Key source toggle (Vault/Manual) must NOT be present since vault has no keys
       expect(
         screen.queryByTestId("radio-segment-vault"),
       ).not.toBeInTheDocument();

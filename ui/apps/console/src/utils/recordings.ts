@@ -1,12 +1,6 @@
 import { format } from "date-fns";
 import { generateRandomUUID } from "@/utils/random-uuid";
 
-// Client-side web-terminal session recording (Community Edition). Captures the
-// terminal output to an asciinema v2 (.cast) file streamed into the browser's
-// OPFS (Origin Private File System) — no server storage, no folder picker,
-// bounded memory. Recordings are listed in an in-app manager and exported via a
-// normal browser download.
-
 /** OPFS subdirectory holding `<id>.cast` payloads and `<id>.json` sidecars. */
 const DIR = "session-recordings";
 
@@ -63,10 +57,6 @@ export function isRecordingSupported(): boolean {
   );
 }
 
-// OPFS is scoped per browser origin, not per authenticated user, so recordings
-// are namespaced under the signed-in user's id: a second user on the same
-// profile never sees or can replay another user's recordings, even within a
-// shared namespace. Set by authStore as the session changes.
 let userScope: string | null = null;
 
 export function setRecordingsScope(userId: string | null): void {
@@ -118,8 +108,6 @@ export class OpfsCastRecorder {
 
   private constructor(
     private readonly id: string,
-    // Captured at create() so finalize/cleanup survive a userScope change (e.g.
-    // logout nulls the scope before the unmount runs finish()).
     private readonly dir: FileSystemDirectoryHandle,
     private readonly writable: FileSystemWritableFileStream,
     private readonly deviceName: string,
@@ -149,7 +137,6 @@ export class OpfsCastRecorder {
     );
   }
 
-  /** Record the server session UID once the server reports it. */
   setSessionUid(uid: string): void {
     this.sessionUid = uid;
   }
@@ -181,7 +168,6 @@ export class OpfsCastRecorder {
     return this.count;
   }
 
-  /** Close the file and persist sidecar metadata. Returns null if empty. */
   async finish(): Promise<RecordingMeta | null> {
     try {
       await this.chain;
@@ -220,7 +206,6 @@ export class OpfsCastRecorder {
     return meta;
   }
 
-  /** Drop the file without keeping it (throwaway StrictMode remount, etc.). */
   async discard(): Promise<void> {
     this.failed = true;
     try {
@@ -261,7 +246,6 @@ export async function listRecordings(): Promise<RecordingMeta[]> {
   if (!isRecordingSupported() || !userScope) return [];
   const dir = await recordingsDir();
   const metas: RecordingMeta[] = [];
-  // `entries()` is an async iterator over [name, handle] pairs.
   const entries = (
     dir as unknown as {
       entries(): AsyncIterableIterator<[string, FileSystemHandle]>;

@@ -40,7 +40,6 @@ export default function MfaResetComplete() {
         throwOnError: true,
       });
 
-      // Successful reset = authenticated — populate all identity fields
       useAuthStore.setState({
         token: data.token,
         user: data.user,

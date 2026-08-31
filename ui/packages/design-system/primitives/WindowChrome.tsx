@@ -2,8 +2,17 @@ import type { ReactNode } from "react";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { cn } from "./cn";
 
+/**
+ * Which window the frame imitates: a terminal title bar, or a browser one with an address field.
+ */
 export type WindowChromeVariant = "terminal" | "browser";
+/**
+ * Size of the traffic-light dots, and with them the height of the title bar.
+ */
 export type WindowChromeSize = "sm" | "md";
+/**
+ * Colour of the optional fourth dot, which pulses to mark the frame as live.
+ */
 export type WindowChromeAccent =
   | "green"
   | "cyan"
@@ -11,6 +20,10 @@ export type WindowChromeAccent =
   | "red"
   | "yellow";
 
+/**
+ * Props of WindowChrome. path is the address shown by the browser variant; the terminal
+ * variant shows title alone.
+ */
 export interface WindowChromeProps {
   variant: WindowChromeVariant;
   size?: WindowChromeSize;
@@ -38,6 +51,10 @@ const ACCENT_BG: Record<WindowChromeAccent, string> = {
   yellow: "bg-accent-yellow",
 };
 
+/**
+ * Decorative window frame around a screenshot or a demo. It draws a title bar and nothing more:
+ * the dots do not close, minimise or resize anything.
+ */
 export function WindowChrome({
   variant,
   size = "md",

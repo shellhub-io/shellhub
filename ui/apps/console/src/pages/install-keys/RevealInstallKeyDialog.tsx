@@ -42,7 +42,6 @@ export default function RevealInstallKeyDialog({
   const fingerprint = installKey?.id ?? "";
 
   const [revealed, setRevealed] = useState(false);
-  // Fall back to the locked state whenever a different key is targeted.
   const [prevName, setPrevName] = useState(name);
   if (name !== prevName) {
     setPrevName(name);

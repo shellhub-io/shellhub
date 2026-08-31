@@ -167,8 +167,6 @@ export default function DataTable<T>({
             <tr
               className={cn(
                 "border-b border-border bg-surface/50",
-                // Only an embedded table with no surrounding border asks for a top rule; keying it off
-                // noWrapper would double the border on callers embedded inside an already-bordered card.
                 headerTopBorder && "border-t",
               )}
             >
@@ -233,8 +231,6 @@ export default function DataTable<T>({
                 const key = rowKey(row, index);
                 const isExpanded =
                   !!renderExpandedRow && expandedRowKey === key;
-                // Insert a section header before the first row of each section (when it changes from the
-                // previous row). `data` is assumed grouped so each section is contiguous.
                 const section = sectionOf?.(row);
                 const showSection =
                   section !== undefined &&

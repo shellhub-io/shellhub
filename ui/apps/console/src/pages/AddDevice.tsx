@@ -212,24 +212,17 @@ export default function AddDevice() {
 
   const origin = window.location.origin;
 
-  // Install keys that can enroll a fleet: skip the system/legacy key (it's the
-  // keyless default, not something you bake in) and anything unusable.
   const { installKeys } = useInstallKeys({ perPage: 50 });
   const usableKeys = installKeys.filter(
     (k) => !isSystemKey(k) && !k.revoked && !k.disabled,
   );
   const selectedKey =
     usableKeys.find((k) => k.name === selectedKeyName) ?? usableKeys[0];
-  // Reveal the plaintext only for the picked key, only in fleet mode — it rides
-  // in the copyable command, which is exactly what an install key is for.
   const { key: revealedKey } = useRevealInstallKey(
     aud === "fleet" ? (selectedKey?.name ?? null) : null,
     aud === "fleet",
   );
 
-  // "This machine" on a container method installs tenant-less: the agent mints
-  // its own pairing code and prints an accept URL, so the command line stays
-  // clean. Non-container methods take a tenant and land the device pending.
   const codeless = aud === "machine" && CODELESS_METHODS.includes(method);
 
   const buildCommand = () => {
@@ -249,7 +242,6 @@ export default function AddDevice() {
   };
 
   const command = buildCommand();
-  // Fleet needs a usable key before it can show a runnable command.
   const fleetBlocked = aud === "fleet" && !selectedKey;
 
   return (

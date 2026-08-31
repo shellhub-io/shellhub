@@ -93,7 +93,7 @@ jobs:
         run: npm run test -w ${{ matrix.workspace }}
 
       - name: Code linting [${{ matrix.app }}]
-        if: steps.filter.outputs[matrix.app] == 'true' && matrix.app != 'design-system'
+        if: steps.filter.outputs[matrix.app] == 'true'
         working-directory: ui
         run: npm run lint -w ${{ matrix.workspace }}
 

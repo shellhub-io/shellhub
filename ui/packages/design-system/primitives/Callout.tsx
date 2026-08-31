@@ -11,6 +11,11 @@ import {
 import { IconButton } from "./IconButton";
 import { cn } from "./cn";
 
+/**
+ * What the callout is for. The four semantic variants each fix their own icon, role and
+ * aria-live, so an error interrupts a screen reader and a success waits its turn; feature is
+ * presentational and announces nothing.
+ */
 export type CalloutVariant =
   "error" | "success" | "warning" | "info" | "feature";
 
@@ -61,6 +66,9 @@ const SEMANTIC: Record<SemanticVariant, SemanticConfig> = {
   },
 };
 
+/**
+ * Props of Callout.
+ */
 export interface CalloutProps {
   /** Visual and semantic variant. */
   variant: CalloutVariant;
@@ -78,6 +86,10 @@ export interface CalloutProps {
   className?: string;
 }
 
+/**
+ * Inline message about the screen it sits on. Dismissal is the parent's: onDismiss renders the
+ * close button but the callout does not hide itself.
+ */
 export function Callout({
   variant,
   children,

@@ -111,7 +111,6 @@ export function CommunityInstructions() {
 
   const addCmd = "./bin/cli member add <username> <namespace> <role>";
 
-  // Poll for namespace assignment every 5 seconds (without updating the store)
   useEffect(() => {
     const check = async () => {
       try {

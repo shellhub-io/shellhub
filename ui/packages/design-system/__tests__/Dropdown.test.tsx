@@ -178,8 +178,6 @@ describe("Dropdown", () => {
       await user.click(trigger);
       expect(screen.getByRole("menu")).toBeInTheDocument();
 
-      // Trigger gets aria-hidden when modal focus manager is active,
-      // so query the DOM element directly rather than by accessible role.
       await user.click(trigger);
       expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     });

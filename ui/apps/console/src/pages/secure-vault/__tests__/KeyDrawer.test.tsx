@@ -92,7 +92,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   setupStore();
 
-  // Default: key is valid, unencrypted
   vi.mocked(validatePrivateKey).mockReturnValue({
     valid: true,
     encrypted: false,
@@ -254,7 +253,6 @@ describe("KeyDrawer", () => {
       await fillKey(VALID_KEY);
       await fillName("My Key");
 
-      // Passphrase field visible but empty — submit must be disabled
       expect(screen.getByRole("button", { name: /add key/i })).toBeDisabled();
     });
 

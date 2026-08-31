@@ -92,7 +92,6 @@ describe("MfaRecoveryTimeoutModal", () => {
 
       const initialText = screen.getByText(/remaining/).textContent;
 
-      // Advance 1 second — wrap in act() to flush React state update
       act(() => {
         vi.advanceTimersByTime(1000);
       });
@@ -170,7 +169,6 @@ describe("MfaRecoveryTimeoutModal", () => {
     });
 
     it("calls onDisable when clicked", async () => {
-      // Real timers — await user.click() hangs with fake timers
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
@@ -192,7 +190,6 @@ describe("MfaRecoveryTimeoutModal", () => {
     });
 
     it("disables the button while disabling is in progress", async () => {
-      // Real timers — await user.click() hangs with fake timers
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
@@ -216,10 +213,8 @@ describe("MfaRecoveryTimeoutModal", () => {
         name: /disable mfa/i,
       });
 
-      // Don't await — onDisable is pending so handleDisable is suspended at the await
       const clickPromise = user.click(disableButton);
 
-      // Poll until setDisabling(true) triggers a re-render (real timers — waitFor polling works)
       await waitFor(() => expect(disableButton).toBeDisabled());
 
       resolveDisable();
@@ -229,7 +224,6 @@ describe("MfaRecoveryTimeoutModal", () => {
 
   describe("Close Behavior", () => {
     it("calls onClose when Close button is clicked", async () => {
-      // Real timers — await user.click() hangs with fake timers
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
@@ -242,7 +236,6 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // The dismiss button is labelled "Close" (not "Continue to dashboard")
       const closeButton = screen.getByRole("button", { name: /^close$/i });
       await user.click(closeButton);
 
@@ -261,10 +254,8 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // BaseDialog with canClose={() => false} intercepts the cancel event and blocks it
       const dialog = document.querySelector("dialog") as HTMLElement;
       fireEvent(dialog, new Event("cancel"));
-      // onClose should NOT be called — user must explicitly use the Close button
       expect(onClose).not.toHaveBeenCalled();
     });
   });
@@ -291,7 +282,6 @@ describe("MfaRecoveryTimeoutModal", () => {
 
       vi.useRealTimers();
 
-      // Expired state is shown — parent controls actual close via onClose prop
       expect(screen.getByText(/expired/i)).toBeInTheDocument();
     });
 
@@ -322,20 +312,16 @@ describe("MfaRecoveryTimeoutModal", () => {
       });
 
       const user = userEvent.setup({ delay: null });
-      // Fire click (onDisable is pending) — don't await so we can advance timers
       const clickPromise = user.click(disableButton);
 
-      // Flush initial state update (setDisabling(true))
       await act(async () => {
         await Promise.resolve();
       });
 
-      // Advance time past expiration while disabling is in progress
       act(() => {
         vi.advanceTimersByTime(2000);
       });
 
-      // onClose should not have been called autonomously (no auto-close logic in component)
       expect(onClose).not.toHaveBeenCalled();
 
       resolveDisable();
@@ -348,13 +334,9 @@ describe("MfaRecoveryTimeoutModal", () => {
 
   describe("Error Handling", () => {
     it("handles errors when disable fails", async () => {
-      // Real timers — await user.click() hangs with fake timers
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
-      // handleDisable in the component has only finally (no catch), so the
-      // rejected promise propagates as an unhandled rejection. Suppress it at
-      // the process level so Vitest doesn't treat it as a test failure.
       const suppressRejection = () => {
         /* intentionally suppressed */
       };
@@ -379,7 +361,6 @@ describe("MfaRecoveryTimeoutModal", () => {
       await user.click(disableButton);
 
       expect(onDisable).toHaveBeenCalled();
-      // Error bubbles out of handleDisable but onClose is not triggered
       expect(onClose).not.toHaveBeenCalled();
 
       process.off("unhandledRejection", suppressRejection);
@@ -431,7 +412,6 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      // Should still render but show expired state
       expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
     });
 

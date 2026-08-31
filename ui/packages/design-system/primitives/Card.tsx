@@ -8,6 +8,10 @@ type CardProps<T extends ElementType> = {
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">;
 
+/**
+ * Bordered surface that groups related content. hover adds the border lift used when the whole
+ * card is a link; leave it off for a static panel, where the movement reads as a false affordance.
+ */
 export function Card<T extends ElementType = "div">({
   as,
   hover,

@@ -102,11 +102,8 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       await getValidateAccount({ query: { email, token }, signal, throwOnError: true });
       set({ validationStatus: "success" });
     } catch (error: unknown) {
-      // Ignore aborted requests (AbortController cleanup in Strict Mode / unmount).
       if (signal?.aborted) return;
       const status = isSdkError(error) ? error.status : undefined;
-      // 400 = expired/invalid token, 401 = wrong token; both show "token" guidance.
-      // 404 = user not found (wrong email); falls through to generic "failed".
       set({ validationStatus: (status === 400 || status === 401) ? "failed-token" : "failed" });
     }
   },

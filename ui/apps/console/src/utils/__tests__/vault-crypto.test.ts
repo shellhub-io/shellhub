@@ -17,8 +17,6 @@ function randomSalt(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(16));
 }
 
-/** Build a minimal but valid VaultMeta by running the real creation path with
- *  a reduced iteration count so tests stay fast. */
 async function buildMeta(
   password: string,
   iterations = 1,
@@ -105,8 +103,6 @@ describe("session key management", () => {
   });
 });
 
-// deriveKey
-
 describe("deriveKey", () => {
   it("returns a CryptoKey", async () => {
     const key = await deriveKey("password", randomSalt(), 1);
@@ -130,8 +126,6 @@ describe("deriveKey", () => {
     const raw1 = await crypto.subtle.exportKey("raw", key1).catch(() => null);
     const raw2 = await crypto.subtle.exportKey("raw", key2).catch(() => null);
 
-    // Keys are non-extractable by design; verify they behave identically
-    // by encrypting with one and decrypting with the other.
     const plaintext = new TextEncoder().encode("test");
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
@@ -140,7 +134,6 @@ describe("deriveKey", () => {
 
     expect(new TextDecoder().decode(decrypted)).toBe("test");
 
-    // Raw export is always null for non-extractable keys — just confirm it fails gracefully
     expect(raw1).toBeNull();
     expect(raw2).toBeNull();
   });
@@ -175,13 +168,10 @@ describe("deriveKey", () => {
   });
 
   it("accepts a custom iteration count", async () => {
-    // Just verify it does not throw and returns a usable key
     const key = await deriveKey("password", randomSalt(), 500);
     expect(key.type).toBe("secret");
   });
 });
-
-// encrypt / decrypt round-trip
 
 describe("encrypt and decrypt", () => {
   async function makeKey(): Promise<CryptoKey> {
@@ -234,7 +224,6 @@ describe("encrypt and decrypt", () => {
     const { iv: iv1 } = await encrypt(key, "same text");
     const { iv: iv2 } = await encrypt(key, "same text");
 
-    // With 96-bit random IVs collisions are practically impossible
     expect(iv1).not.toBe(iv2);
   });
 
@@ -242,7 +231,6 @@ describe("encrypt and decrypt", () => {
     const key = await makeKey();
     const data = await encrypt(key, "secret");
 
-    // Flip the last character of the base64-encoded ciphertext
     const tampered: VaultData = {
       ...data,
       ciphertext: data.ciphertext.slice(0, -1) + (data.ciphertext.endsWith("A") ? "B" : "A"),
@@ -291,8 +279,6 @@ describe("encrypt and decrypt", () => {
   });
 });
 
-// createVaultMeta
-
 describe("createVaultMeta", () => {
   it("returns a meta object and a derived key", async () => {
     const { meta, derivedKey } = await createVaultMeta("my-password");
@@ -334,8 +320,6 @@ describe("createVaultMeta", () => {
   });
 });
 
-// verifyPassword
-
 describe("verifyPassword", () => {
   it("returns the derived key when password matches", async () => {
     const meta = await buildMeta("correct-password");
@@ -350,7 +334,6 @@ describe("verifyPassword", () => {
     const { meta, derivedKey: originalKey } = await createVaultMeta(password);
     const encrypted = await encrypt(originalKey, "stored value");
 
-    // Simulate unlocking after a page reload — re-derive the key from meta
     const unlockedKey = await verifyPassword(password, meta);
     const decrypted = await decrypt(unlockedKey, encrypted);
 
@@ -401,7 +384,6 @@ describe("verifyPassword", () => {
   });
 
   it("respects the iterations field stored in meta", async () => {
-    // Build meta with a non-default iteration count and verify it still works
     const meta = await buildMeta("pass", 2);
     expect(meta.iterations).toBe(2);
 

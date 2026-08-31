@@ -176,8 +176,6 @@ export default function ModeField({
   isEditing,
   panelKey,
 }: {
-  // Unique per drawer: Create and Edit are both mounted at once, so shared field ids would cross-wire
-  // their labels (a click in one drawer targeting the other's inert input).
   idPrefix: string;
   mode: InstallKeyMode;
   onModeChange: (mode: InstallKeyMode) => void;
@@ -194,8 +192,6 @@ export default function ModeField({
   isEditing?: boolean;
   panelKey?: string;
 }) {
-  // Roving-tabindex radiogroup: Tab lands on the selected option, then arrows move the selection (and
-  // focus) between the four, wrapping around — the keyboard behavior a radiogroup is expected to have.
   const radioRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const onRadioKeyDown = (event: KeyboardEvent, index: number) => {
     const forward = event.key === "ArrowDown" || event.key === "ArrowRight";

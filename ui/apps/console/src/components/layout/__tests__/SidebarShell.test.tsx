@@ -50,10 +50,7 @@ describe("SidebarShell", () => {
   it("names the logo link and hides both marks when expanded", () => {
     renderSidebarShell({ expanded: true });
 
-    // The link carries the accessible name; both marks stay in the DOM (opacity
-    // crossfade) but are aria-hidden, so "ShellHub" is announced exactly once.
     expect(screen.getByRole("link", { name: "ShellHub" })).toBeInTheDocument();
-    // The wordmark has role="img" — aria-hidden keeps it out of the a11y tree.
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(screen.getByTestId("sidebar-cloud-icon")).toHaveAttribute(
       "aria-hidden",
