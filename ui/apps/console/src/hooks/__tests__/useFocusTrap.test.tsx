@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef, useState } from "react";
 import { useFocusTrap } from "../useFocusTrap";
-// Helper component that exercises the hook
 function Trap({
   active,
   buttons = ["First", "Second", "Third"],
@@ -29,7 +28,6 @@ function Trap({
   );
 }
 
-// Component that toggles `active` to test deactivation / restore
 function ToggleTrap() {
   const [active, setActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

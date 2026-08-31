@@ -64,8 +64,6 @@ interface FormState {
   passphrase: string;
   keyError: string | null;
   recordSession: boolean;
-  // Why this browser cannot open the web terminal in identity mode, where the
-  // key IS the identity and there is nothing lesser to fall back to.
   keyUnavailable: string | null;
 }
 

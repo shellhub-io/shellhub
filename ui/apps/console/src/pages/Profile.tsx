@@ -46,8 +46,6 @@ import PageLoader from "@/components/common/PageLoader";
 import SettingsCard from "@/components/common/SettingsCard";
 import SettingsRow from "@/components/common/SettingsRow";
 
-/* ─── Delete Account Dialog (Cloud) ─── */
-
 function DeleteAccountDialog({
   open,
   onClose,
@@ -111,8 +109,6 @@ function DeleteAccountDialog({
     </ConfirmDialog>
   );
 }
-
-/* ─── Delete Account Warning Dialog (Community / Enterprise) ─── */
 
 function DeleteAccountWarningDialog({
   open,
@@ -361,8 +357,6 @@ export function EditProfileDrawer({
     </FormDrawer>
   );
 }
-
-/* ─── Change Password Drawer ─── */
 
 function ChangePasswordDrawer({
   open,

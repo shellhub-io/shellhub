@@ -18,9 +18,7 @@ interface UserFormFieldsProps {
   control: Control<UserFormValues>;
   mode: UserFormMode;
   idPrefix: string;
-  /** Edit only: false when the user is already confirmed (cannot un-confirm). */
   canChangeConfirmed?: boolean;
-  /** Edit only: true when editing your own admin user (cannot self-demote). */
   disableAdmin?: boolean;
 }
 

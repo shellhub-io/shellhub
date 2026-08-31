@@ -108,7 +108,7 @@ export default defineConfig([
   },
 
   {
-    files: ["packages/design-system/**/*.{ts,tsx}"],
+    files: ["apps/*/src/**/*.{ts,tsx}", "packages/*/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
     plugins: { jsdoc: jsdocPlugin },
     rules: {

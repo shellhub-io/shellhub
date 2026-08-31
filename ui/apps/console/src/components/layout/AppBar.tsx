@@ -30,8 +30,6 @@ type CrossfadeAction =
 const activeSessionOf = (sessions: TerminalSession[]): TerminalSession | null =>
   sessions.find((s) => s.state !== "minimized") ?? null;
 
-// Pure reducer for the left-content crossfade state machine — safe under
-// StrictMode double-invocation.
 function crossfadeReducer(
   state: CrossfadeState,
   action: CrossfadeAction,

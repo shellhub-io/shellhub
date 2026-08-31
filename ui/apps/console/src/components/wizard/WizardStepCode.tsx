@@ -7,8 +7,6 @@ import { useOtpInput } from "@/hooks/useOtpInput";
 const GROUP_SPLIT = 4;
 
 interface WizardStepCodeProps {
-  /** OTP state owned by the wizard, so the footer's Pair button can read the
-   *  value and completeness. */
   otp: ReturnType<typeof useOtpInput>;
   error?: string;
 }

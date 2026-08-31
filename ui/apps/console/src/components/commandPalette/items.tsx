@@ -32,13 +32,7 @@ export interface CommandItem {
   icon: React.ReactNode;
   badge?: { text: string; variant: BadgeVariant };
   onSelect: () => void;
-  /** When set, the row exposes a drill-in affordance (trailing chevron / "→")
-   *  that opens a secondary view instead of selecting. Device rows use it to
-   *  open their action menu. */
   onDrillIn?: () => void;
-  /** When true, the row is shown but inert (`aria-disabled`): it ignores
-   *  click/Enter and can't be selected. The drill-in Connect action uses it
-   *  when the device can neither connect nor restore. */
   disabled?: boolean;
 }
 

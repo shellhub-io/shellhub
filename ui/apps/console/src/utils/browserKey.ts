@@ -6,9 +6,7 @@ import { ed25519PublicKeyLine, sha256Fingerprint } from "./sshKeys";
 // enrolled as an ssh_identity, making the web terminal a first-class identity.
 export interface BrowserKey {
   privateKey: CryptoKey;
-  /** The enrolled public half, "ssh-ed25519 <base64>". */
   publicKeyLine: string;
-  /** SHA256 fingerprint, "SHA256:…", matching the gateway's identity resolution. */
   fingerprint: string;
 }
 
@@ -130,8 +128,6 @@ export async function persistBrowserKey(
   }
 }
 
-// Chromium's low-entropy UA client hints, available synchronously. Absent in
-// Firefox/Safari, where we parse the UA string instead.
 interface UADataBrand {
   brand: string;
   version: string;

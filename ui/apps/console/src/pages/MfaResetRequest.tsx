@@ -35,8 +35,8 @@ export default function MfaResetRequest() {
     try {
       await requestMfaReset(identifier);
       void navigate("/mfa-reset-verify");
+    // eslint-disable-next-line no-empty -- the store already holds the error the screen renders
     } catch {
-      // Error is set in store
     }
   };
 

@@ -4,19 +4,9 @@ import { cn } from "@shellhub/design-system/cn";
 type Padding = "none" | "sm" | "md" | "lg" | "fill";
 
 interface PageLoaderProps {
-  /** Announced to assistive tech. Also rendered as visible text when `showLabel` is true. */
   label: string;
-  /** Spinner size. Defaults to `"lg"` when the label is hidden, `"md"` when `showLabel` is true. */
   size?: SpinnerSize;
-  /** Render the label as visible text next to the spinner. Default `false`
-   *  (label is delivered only to screen readers via the Spinner's aria-label). */
   showLabel?: boolean;
-  /** Vertical breathing room inside the centered wrapper.
-   *  - `"none"` — no padding (use when the parent already controls spacing)
-   *  - `"sm"`   — `py-12` (drawers, popovers)
-   *  - `"md"`   — `py-24` (default, most detail pages)
-   *  - `"lg"`   — `py-32` (long-form settings pages)
-   *  - `"fill"` — `flex-1` (fills the remaining height of a flex parent) */
   padding?: Padding;
 }
 

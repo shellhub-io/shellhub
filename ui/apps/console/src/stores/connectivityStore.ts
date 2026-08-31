@@ -4,7 +4,6 @@ import { getInfo } from "../client";
 interface ConnectivityState {
   apiReachable: boolean;
   initialCheckDone: boolean;
-  /** Once true, the startup gate is open forever — banner handles the rest. */
   initialGatePassed: boolean;
   checkInitial: () => Promise<void>;
   markDown: () => void;

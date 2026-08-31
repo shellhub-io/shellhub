@@ -7,16 +7,6 @@ import FormInputField from "@/components/common/fields/rhf/FormInputField";
 import FormPasswordField from "@/components/common/fields/rhf/FormPasswordField";
 import FormCheckboxField from "@/components/common/fields/rhf/FormCheckboxField";
 
-// ---------------------------------------------------------------------------
-// Shared adapter contract — text-like fields (FormInputField, FormPasswordField)
-//
-// FormInputField and FormPasswordField are near-identical react-hook-form
-// adapters over a controlled text input. Rather than copy the same suite into
-// two files, we describe the contract once and run it against each wrapper. The
-// only thing that differs is which component renders the input, so each case
-// provides a `render` closure that keeps full generic typing (no casts).
-// ---------------------------------------------------------------------------
-
 interface TextFormValues extends FieldValues {
   value: string;
 }
@@ -59,7 +49,6 @@ const TEXT_CASES: { name: string; label: string; render: TextFieldRenderer }[] =
   },
 ];
 
-/** Wires a text field into a real RHF form so we can assert against real usage. */
 function TextForm({
   render: renderField,
   label,
@@ -78,7 +67,6 @@ function TextForm({
   return renderField({ control, label, onValueChange });
 }
 
-/** Same harness, but seeds a fieldState error (and optionally an override). */
 function TextFormWithFieldError({
   render: renderField,
   label,

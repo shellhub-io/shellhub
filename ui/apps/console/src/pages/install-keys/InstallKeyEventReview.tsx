@@ -58,7 +58,6 @@ function ActionLink({
   );
 }
 
-// decided_status is per-event (survives device removal); device_status is the live fallback for pre-stamping enrollments.
 function resolveVerdict(event: InstallKeyEvent): ReviewVerdict | undefined {
   const decided = event.decided_status;
   if (decided === "accepted" || decided === "rejected") return decided;

@@ -78,8 +78,6 @@ function Chip({
   );
 }
 
-/* ── subject cell ─────────────────────────────────── */
-
 function SubjectCell({
   policy,
   memberEmail,
@@ -134,8 +132,6 @@ function SubjectCell({
   );
 }
 
-/* ── devices cell ─────────────────────────────────── */
-
 function DevicesCell({ policy }: { policy: AccessPolicy }) {
   if (policy.filter.tags.length > 0) {
     const tags = policy.filter.tags;
@@ -173,8 +169,6 @@ function DevicesCell({ policy }: { policy: AccessPolicy }) {
   );
 }
 
-/* ── logins cell ──────────────────────────────────── */
-
 function LoginsCell({ policy }: { policy: AccessPolicy }) {
   const isAny = policy.logins.length === 1 && policy.logins[0] === "*";
   if (isAny) {
@@ -194,8 +188,6 @@ function LoginsCell({ policy }: { policy: AccessPolicy }) {
     </span>
   );
 }
-
-/* ── action cell ──────────────────────────────────── */
 
 function ActionCell({ policy }: { policy: AccessPolicy }) {
   if (policy.action === "deny") {

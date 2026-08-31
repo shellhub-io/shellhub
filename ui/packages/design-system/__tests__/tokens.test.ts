@@ -22,14 +22,6 @@ const preset = rawPreset as unknown as {
 
 const colors = preset.theme.extend.colors;
 
-/**
- * Semantic tokens (background, surface, text, ...) no longer hold literal
- * colors in the preset — they resolve through `rgb(var(--c-*) / <alpha>)` so
- * the UI can flip between dark and light (see css/base.css). Their canonical
- * dark values now live in the `:root` block of base.css as space-separated RGB
- * channels. Parse those and convert to hex so we can still check that the
- * hand-maintained C constants (used for SVG fills) don't drift from them.
- */
 const baseCss = readFileSync(
   fileURLToPath(new URL("../css/base.css", import.meta.url)),
   "utf8",
@@ -52,7 +44,6 @@ function darkToken(name: string): string {
   return rgbChannelsToHex(match[1]);
 }
 
-/** Preset-literal base colors: [C key, preset path description, preset value] */
 const presetColorMappings: Array<[keyof typeof C, string, string]> = [
   ["primary", "primary.DEFAULT", colors.primary.DEFAULT],
   ["cyan", "accent.cyan", colors.accent.cyan],
@@ -62,7 +53,6 @@ const presetColorMappings: Array<[keyof typeof C, string, string]> = [
   ["blue", "accent.blue", colors.accent.blue],
 ];
 
-/** CSS-var-driven base colors: [C key, css var name] (dark values from :root) */
 const cssVarColorMappings: Array<[keyof typeof C, string]> = [
   ["bg", "background"],
   ["surface", "surface"],

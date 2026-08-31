@@ -201,8 +201,6 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
   );
 }
 
-/* -- Theme Card -- */
-
 function ThemeCard({
   theme,
   selected,

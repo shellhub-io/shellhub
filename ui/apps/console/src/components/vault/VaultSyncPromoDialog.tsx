@@ -14,7 +14,6 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Called when the user chooses to sync; opens the sync flow. */
   onSync: () => void;
 }
 

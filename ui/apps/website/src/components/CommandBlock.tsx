@@ -2,7 +2,6 @@ import { WindowChrome } from "@shellhub/design-system/primitives";
 import { CopyButton } from "@shellhub/design-system/components";
 
 export interface CommandBlockProps {
-  /** The shell command to display and copy. */
   command: string;
   className?: string;
 }

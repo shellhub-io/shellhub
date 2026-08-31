@@ -20,8 +20,6 @@ vi.mock("@/utils/url", () => ({ isAllowedUrl: vi.fn(() => true) }));
 
 import AnnouncementModal from "../AnnouncementModal";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function makeAnnouncement(overrides: Partial<Announcement> = {}): Announcement {
   return {
     uuid: "ann-uuid-1",

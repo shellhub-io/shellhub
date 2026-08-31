@@ -21,7 +21,6 @@ import { modeInfo } from "./constants";
 import { installKeyDisplayName, isPairingKey } from "./helpers";
 import ExpiryLabel from "./ExpiryLabel";
 
-/** One labelled fact in the key summary strip. */
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">

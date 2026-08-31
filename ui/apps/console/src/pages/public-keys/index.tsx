@@ -29,8 +29,6 @@ import { Button, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { pageCount } from "@/utils/pagination";
 
-/* ── scope cell ──────────────────────────────────── */
-
 function ScopeCell({ pk }: { pk: PublicKey }) {
   const isAllUsers = pk.username === ".*" || !pk.username;
   const username = isAllUsers ? "All users" : pk.username;

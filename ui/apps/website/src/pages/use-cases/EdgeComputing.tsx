@@ -66,7 +66,6 @@ const painPoints = [
   },
 ];
 
-/* ═══════ Edge locations for network map ═══════ */
 const edgeLocations = [
   { label: "Retail Store", city: "NYC", x: 72, y: 28, color: C.primary },
   { label: "Warehouse", city: "Chicago", x: 25, y: 22, color: C.green },
@@ -75,7 +74,6 @@ const edgeLocations = [
   { label: "Branch Office", city: "Seattle", x: 15, y: 50, color: C.blue },
 ];
 
-/* ═══════ Scenario data ═══════ */
 const scenarios = [
   {
     color: C.primary,

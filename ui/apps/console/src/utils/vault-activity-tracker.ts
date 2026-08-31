@@ -16,13 +16,9 @@ export const ACTIVITY_EVENTS = [
 export const THROTTLE_MS = 1_000;
 
 export interface TrackerOptions {
-  /** Milliseconds of inactivity before onIdle fires. 0 = disabled. */
   idleTimeoutMs: number;
-  /** When true, start a hidden-grace timer whenever the document becomes hidden. */
   lockOnHidden: boolean;
-  /** Milliseconds to wait after the document becomes hidden before calling onIdle. */
   hiddenGraceMs: number;
-  /** Called when the idle or hidden-grace timer expires. */
   onIdle: () => void;
 }
 
@@ -57,13 +53,6 @@ function armIdleTimer(): void {
   idleTimer = setTimeout(fireIdle, currentOptions.idleTimeoutMs);
 }
 
-/**
- * Throttled activity handler.
- *
- * The initial stamp is 0, which means `Date.now() - 0 >= THROTTLE_MS` is true
- * immediately after start(), so the very first event always passes through and
- * re-arms the idle timer exactly once.
- */
 function onActivity(): void {
   const now = Date.now();
   if (now - lastResetStamp < THROTTLE_MS) return;

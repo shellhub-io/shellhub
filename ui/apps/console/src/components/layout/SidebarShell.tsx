@@ -18,8 +18,6 @@ const navIdle =
 export const navDisabled = "text-text-muted/50 cursor-not-allowed";
 export const navIcon = "w-[18px] h-[18px]";
 
-// ---- NavItemLink ----
-
 interface NavItemLinkProps {
   item: { to: string; label: string; icon: ReactNode };
   expanded: boolean;
@@ -70,8 +68,6 @@ export function NavItemLink({
   );
 }
 
-// ---- SidebarMobileDrawer ----
-
 interface SidebarMobileDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -118,8 +114,6 @@ export function SidebarMobileDrawer({
   );
 }
 
-// ---- SidebarShell ----
-
 interface SidebarShellProps {
   expanded: boolean;
   pinned: boolean;
@@ -130,7 +124,6 @@ interface SidebarShellProps {
   ariaLabel: string;
   footerLabel: string;
   logoHref: string;
-  /** Optional fixed band rendered between the logo and the scrollable nav. */
   headerSlot?: ReactNode;
   children: ReactNode;
 }

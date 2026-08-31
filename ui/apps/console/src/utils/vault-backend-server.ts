@@ -24,11 +24,6 @@ import {
 } from "@/utils/vault-parse";
 import type { VaultScope } from "@/utils/vault-backend-factory";
 
-// Last-seen vault version, keyed by scope. It lives at module scope (not on
-// the instance) because the store creates a fresh ServerVaultBackend per
-// operation; a per-instance counter would reset to 0 between saveMeta and the
-// following saveData, sending a stale version and tripping the server's
-// optimistic-concurrency check on every write.
 const versionRegistry = new Map<string, number>();
 
 function scopeKey(scope?: VaultScope): string {

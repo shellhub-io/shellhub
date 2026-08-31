@@ -7,7 +7,6 @@ import "@/api/fetchInterceptors";
 
 const GRACE_PERIOD_MS = 5000;
 
-/** Build a minimal JWT with the given expiry (unix seconds). */
 function makeJwt(exp: number): string {
   const header = btoa(JSON.stringify({ alg: "HS256" }));
   const payload = btoa(JSON.stringify({ exp }));
@@ -22,10 +21,6 @@ function pastExp() {
   return Math.floor(Date.now() / 1000) - 60;
 }
 
-/**
- * Stub the network boundary with a response, and return the fetch spy. The response carries the
- * request's URL, as a real fetch response does — the interceptor reads it to spot login requests.
- */
 function respondWith(status: number, headers: Record<string, string> = {}) {
   const fetchMock = vi.fn().mockImplementation((request: Request) => {
     const response = new Response(JSON.stringify({}), {
@@ -39,7 +34,6 @@ function respondWith(status: number, headers: Record<string, string> = {}) {
   return fetchMock;
 }
 
-/** Stub the network boundary with a transport failure (no response at all). */
 function failToConnect() {
   const fetchMock = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
   vi.stubGlobal("fetch", fetchMock);

@@ -56,8 +56,8 @@ export default function CustomFieldsSection({
       await deleteMutation.mutateAsync({
         path: { uid, key },
       });
+    // eslint-disable-next-line no-empty -- the query invalidation that follows is what updates the UI
     } catch {
-      /* invalidation handles UI update */
     }
   };
 

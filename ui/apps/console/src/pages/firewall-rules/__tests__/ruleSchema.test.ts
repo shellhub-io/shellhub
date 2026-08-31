@@ -7,8 +7,6 @@ import {
 } from "../ruleSchema";
 import type { FirewallRulesResponse } from "@/client";
 
-// ── Factories ─────────────────────────────────────────────────────────────────
-
 function makeValues(overrides: Partial<RuleFormValues> = {}): RuleFormValues {
   return {
     priority: "10",
@@ -25,7 +23,6 @@ function makeValues(overrides: Partial<RuleFormValues> = {}): RuleFormValues {
   };
 }
 
-/** First validation message per field, mirroring the RHF resolver shape. */
 function errorsFor(
   values: RuleFormValues,
 ): Partial<Record<keyof RuleFormValues, string>> {

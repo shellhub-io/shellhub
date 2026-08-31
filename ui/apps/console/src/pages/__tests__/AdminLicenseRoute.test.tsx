@@ -17,7 +17,6 @@ import AdminLicense from "../admin/License";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
-/** Captures the current pathname so we can assert post-redirect location. */
 function LocationDisplay() {
   const location = useLocation();
   return <div data-testid="pathname">{location.pathname}</div>;

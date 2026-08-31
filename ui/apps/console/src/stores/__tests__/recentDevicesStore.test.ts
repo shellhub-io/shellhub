@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-// recentDevicesStore reads the active tenant from authStore; stub it with a
-// mutable ref so each test can control which tenant is recording.
 const { tenantRef } = vi.hoisted(() => ({
   tenantRef: { current: null as string | null },
 }));

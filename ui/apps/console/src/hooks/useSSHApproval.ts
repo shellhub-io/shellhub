@@ -33,12 +33,7 @@ export interface ApprovalDetails {
   fingerprint: string;
   code: string;
   kind: ApprovalKind;
-  /**
-   * The policy's re-auth window in seconds, on a reauth approval. Zero means the
-   * policy asks every time.
-   */
   reauthPeriod: number;
-  /** Namespace the key lands in, which may differ from the one being browsed. */
   namespace: string;
 }
 

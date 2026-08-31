@@ -11,7 +11,6 @@ function makeOversizedFile(): File {
   return new File([blob], "big.pem", { type: "text/plain" });
 }
 
-/** Simulate the FileReader reading a File synchronously via readAsText mock. */
 function mockFileReader(content: string) {
   const originalFileReader = globalThis.FileReader;
 

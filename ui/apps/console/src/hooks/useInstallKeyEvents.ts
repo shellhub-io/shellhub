@@ -8,7 +8,6 @@ import {
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
 interface UseInstallKeyEventsParams {
-  /** The install key's id (digest). The query stays disabled while null. */
   id: string | null;
   page?: number;
   perPage?: number;

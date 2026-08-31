@@ -139,8 +139,8 @@ export default function TerminalInstance({
 
       try {
         term.loadAddon(new WebglAddon());
+      // eslint-disable-next-line no-empty -- no WebGL on this machine, so xterm falls back to the DOM renderer
       } catch {
-        // DOM renderer fallback
       }
 
       fitAddon.fit();

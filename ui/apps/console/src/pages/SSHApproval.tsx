@@ -364,7 +364,6 @@ function PendingRequest({
   );
 }
 
-/** How long the gateway will keep holding the login open. */
 function Countdown({
   secondsLeft,
   totalSeconds,
@@ -390,15 +389,6 @@ function Countdown({
   );
 }
 
-/**
- * The factor a re-auth demands, and the submit that releases the held login.
- * Which factor depends on how the account signs in: an SSO bounce for identity
- * provider users, an authenticator code for MFA, the account password otherwise.
- *
- * The same call proves the factor and releases the login, so the two cannot
- * drift apart — and the key must be the caller's own, which is what authorizes
- * the release.
- */
 function ReauthFactor({
   fingerprint,
   approvalCode,
@@ -581,15 +571,6 @@ function ReauthFactor({
   );
 }
 
-/**
- * Reports the namespace this request belongs to when it is not the one the
- * console is showing, along with a switch into it. The decision would succeed
- * either way (the API authorizes against the request's namespace, not the
- * session's), but the console would then be listing a different namespace's
- * identities, so the key would land somewhere the user cannot see. Namespace
- * names address devices in an SSHID, so they are unique and enough to find the
- * tenant among the memberships the user already has.
- */
 function useNamespaceMismatch(namespace: string) {
   const currentTenant = useAuthStore((s) => s.tenant);
   const { namespaces } = useNamespaces();
@@ -615,11 +596,6 @@ function useNamespaceMismatch(namespace: string) {
   };
 }
 
-/**
- * The key on top, the account below it, and an arrow between: the screen draws
- * the binding it is asking about. The account half carries the visual weight
- * because signing in as the wrong account is the mistake this screen prevents.
- */
 function BindingCard({
   details,
   elsewhere,
@@ -726,12 +702,6 @@ function BindingCard({
   );
 }
 
-/**
- * How long re-authenticating lasts. The stamp lands on the identity, not on this
- * login, so within the window other logins with the same key go straight
- * through. A policy with no period asks every time, and then there is nothing to
- * promise.
- */
 function reauthWindowSentence(periodSeconds: number) {
   if (periodSeconds <= 0) return "";
 

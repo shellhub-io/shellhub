@@ -40,30 +40,14 @@ export interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string | undefined;
 
-  /**
-   * Groups rows into labelled sections: a full-width header row is inserted before the first row of
-   * each section (i.e. whenever `sectionOf` changes from the previous row). `data` must already be
-   * ordered so each section's rows are contiguous. `sectionLabel` maps a section key to its heading.
-   */
   sectionOf?: (row: T) => string;
   sectionLabel?: (section: string) => string;
 
-  /**
-   * A full-width block appended after the last data row. For a grouped table whose trailing section
-   * is empty — e.g. user-created rows sitting under always-present built-in rows — pass an onboarding
-   * placeholder here; it stands in for the whole section (no section header, since the placeholder
-   * already names it). The caller gates this on the true, unpaginated count (page data alone can't
-   * tell "empty" from "on another page").
-   */
   trailingEmptyState?: ReactNode;
 
-  /** When a row's key matches, an extra full-width row is rendered below it with
-   * `renderExpandedRow`. Used for inline accordion panels. */
   expandedRowKey?: string | null;
   renderExpandedRow?: (row: T) => ReactNode;
 
-  /** Hide the column header row. For compact/embedded previews where the columns
-   * are self-evident and a header would read as a separate table. */
   hideHeader?: boolean;
 
   isLoading?: boolean;
@@ -71,17 +55,7 @@ export interface DataTableProps<T> {
   emptyState?: ReactNode;
   emptyMessage?: string;
 
-  /**
-   * When true, the default card wrapper (background, border, rounded corners)
-   * is not rendered. Use for embedded contexts where the parent already
-   * provides the chrome.
-   */
   noWrapper?: boolean;
-  /**
-   * When true, the header row gets a top rule so it reads as a boundary in an
-   * embedded context with no surrounding border. Keep it off (the default) when
-   * the parent already draws a border, or the two rules stack into a thick edge.
-   */
   headerTopBorder?: boolean;
 }
 

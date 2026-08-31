@@ -25,8 +25,6 @@ import SidebarShell, {
   navIcon,
 } from "./SidebarShell";
 
-// ---- Types ----
-
 interface NavItem {
   to: string;
   label: string;
@@ -44,8 +42,6 @@ type NavEntry = NavItem | NavGroup;
 function isNavGroup(entry: NavEntry): entry is NavGroup {
   return "children" in entry;
 }
-
-// ---- Nav definition ----
 
 const coreNavEntries: NavEntry[] = [
   {
@@ -136,8 +132,6 @@ function buildNavEntries(): NavEntry[] {
 
   return entries;
 }
-
-// ---- NavGroupItem (admin-only) ----
 
 function NavGroupItem({
   group,

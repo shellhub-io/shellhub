@@ -8,8 +8,6 @@ import type { SshIdentity } from "@/client";
 const TONE: Record<IdentityStatusTone, string> = {
   dead: "bg-text-muted/10 text-text-muted",
   armed: "bg-accent-yellow/10 text-accent-yellow",
-  // Deliberately not primary: that colour marks the key this browser holds, and
-  // a far-off expiry must not compete with it.
   quiet: "bg-text-muted/10 text-text-muted",
 };
 

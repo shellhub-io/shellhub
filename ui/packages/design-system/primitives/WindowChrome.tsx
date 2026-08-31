@@ -29,9 +29,7 @@ export interface WindowChromeProps {
   size?: WindowChromeSize;
   title?: string;
   path?: string;
-  /** Optional 4th animated pulse dot, by accent token */
   accent?: WindowChromeAccent;
-  /** Slot rendered on the right side of the title bar */
   titleBarSlot?: ReactNode;
   className?: string;
   bodyClassName?: string;

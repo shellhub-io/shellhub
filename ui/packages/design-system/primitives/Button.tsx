@@ -64,15 +64,10 @@ type ButtonOwnProps<T extends ElementType> = {
   as?: T;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Leading icon — replaced by Spinner when loading */
   icon?: ReactNode;
-  /** Trailing icon */
   iconRight?: ReactNode;
-  /** Adds a shadow/scale glow effect */
   glow?: boolean;
-  /** Shows a Spinner, disables interaction */
   loading?: boolean;
-  /** Stretch to fill the parent width */
   fullWidth?: boolean;
   className?: string;
   children?: ReactNode;

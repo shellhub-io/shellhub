@@ -16,7 +16,6 @@ type Props<T extends FieldValues> = TextareaProps & {
   name: Path<T>;
   control: Control<T>;
   error?: string;
-  /** Called on every value change, in addition to RHF's internal onChange. */
   onValueChange?: (value: string) => void;
 };
 

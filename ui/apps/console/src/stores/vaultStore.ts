@@ -53,7 +53,6 @@ interface VaultState {
   autoLockTimeoutMinutes: number;
   lockOnHidden: boolean;
   autoLockNonce: number;
-  /** Where the vault lives for the current user ("local" or "server"). */
   storageMode: VaultStorageMode;
 
   refreshStatus: () => Promise<void>;
@@ -141,8 +140,8 @@ export const useVaultStore = create<VaultState>((set, get) => {
         autoLockTimeoutMinutes: settings.autoLockTimeoutMinutes,
         lockOnHidden: settings.lockOnHidden,
       });
+    // eslint-disable-next-line no-empty -- persisting the settings is best-effort; storage may be full or blocked
     } catch {
-      // Exception-safe: ignore storage errors
     }
   }
 

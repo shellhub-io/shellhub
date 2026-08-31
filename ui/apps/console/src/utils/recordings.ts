@@ -5,28 +5,16 @@ import { generateRandomUUID } from "@/utils/random-uuid";
 const DIR = "session-recordings";
 
 export interface RecordingMeta {
-  /** OPFS basename (uuid). */
   id: string;
-  /** Friendly filename used for the browser download. */
   filename: string;
   deviceName: string;
-  /** Device UID — used to pair a local recording with its server session. */
   deviceUid: string;
-  /** SSH username the session connected with. */
   username: string;
-  /**
-   * Server session UID, when known. Lets a local recording dedupe exactly
-   * against its server-side counterpart. Absent until the server reports it.
-   */
   sessionUid?: string;
-  /** Initial terminal dimensions (asciicast header). */
   width: number;
   height: number;
-  /** Recording length in seconds. */
   durationSec: number;
-  /** Session start, epoch milliseconds. */
   createdAt: number;
-  /** Size of the .cast payload in bytes (filled when listing). */
   size: number;
 }
 
@@ -210,8 +198,8 @@ export class OpfsCastRecorder {
     this.failed = true;
     try {
       await this.writable.abort();
+    // eslint-disable-next-line no-empty -- aborting a writable that is already closed is not a failure worth reporting
     } catch {
-      // best-effort
     }
     await this.removeFiles();
   }
@@ -235,8 +223,8 @@ export class OpfsCastRecorder {
     try {
       await this.dir.removeEntry(`${this.id}.cast`).catch(() => undefined);
       await this.dir.removeEntry(`${this.id}.json`).catch(() => undefined);
+    // eslint-disable-next-line no-empty -- removing a file that is already gone is not a failure worth reporting
     } catch {
-      // best-effort
     }
   }
 }
@@ -259,8 +247,8 @@ export async function listRecordings(): Promise<RecordingMeta[]> {
       const castHandle = await dir.getFileHandle(`${meta.id}.cast`);
       meta.size = (await castHandle.getFile()).size;
       metas.push(meta);
+    // eslint-disable-next-line no-empty -- the sidecar is orphaned or corrupt, so the recording is skipped
     } catch {
-      // Skip orphaned/corrupt sidecars (e.g. .cast was removed).
     }
   }
   return metas.sort((a, b) => b.createdAt - a.createdAt);

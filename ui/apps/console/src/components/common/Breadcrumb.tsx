@@ -5,7 +5,6 @@ import { cn } from "@shellhub/design-system/cn";
 
 export interface BreadcrumbItem {
   label: ReactNode;
-  /** Linked when present, unless the item is the last in the list. */
   to?: string;
   title?: string;
 }

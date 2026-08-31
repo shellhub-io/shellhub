@@ -17,13 +17,8 @@ export const ClipboardContext = createContext<ClipboardContextValue | null>(
   null,
 );
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 interface UseCopyResult {
-  /** Call with the text to copy. Shows the warning dialog when clipboard access
-   *  is unavailable (insecure context or API error). */
   copy: (text: string) => void;
-  /** True for 1500 ms after a successful copy. Use for inline visual feedback. */
   copied: boolean;
 }
 

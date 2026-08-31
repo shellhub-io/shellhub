@@ -6,7 +6,6 @@ import {
 
 const ALL_CHANGED = { name: "\0", username: "\0", email: "\0" };
 
-/** First validation message per field. */
 function resolve(
   values: Partial<EditProfileFormValues>,
   current = ALL_CHANGED,

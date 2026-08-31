@@ -5,7 +5,6 @@ import type { Action } from "@/utils/permission";
 interface RestrictedActionProps {
   action: Action;
   children: ReactNode;
-  /** Custom tooltip message. Defaults to the standard permission denial message. */
   message?: string;
 }
 

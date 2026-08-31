@@ -13,7 +13,6 @@ export type SpinnerTone = "onPrimary" | "onSurface" | "subtle" | "onBackground";
 interface SpinnerProps {
   size?: SpinnerSize;
   tone?: SpinnerTone;
-  /** Layout overrides only (margins, block/inline-block). Don't override color or size. */
   className?: string;
   "aria-label"?: string;
 }

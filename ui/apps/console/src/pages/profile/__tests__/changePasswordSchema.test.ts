@@ -4,7 +4,6 @@ import {
   type ChangePasswordFormValues,
 } from "../changePasswordSchema";
 
-/** First validation message per field. */
 function resolve(
   values: Partial<ChangePasswordFormValues>,
 ): Partial<Record<keyof ChangePasswordFormValues, string>> {

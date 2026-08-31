@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSessionRecording } from "../useSessionRecording";
 
-// getSessionRecord with parseAs: "text" returns { data: string } at runtime,
-// but the generated type says { data: RecordedSessionResponse }. An untyped
-// vi.fn() avoids fighting that mismatch.
-
 const sdk = vi.hoisted(() =>
   mockSdkGen({
     getSessionRecord: vi.fn(),

@@ -6,15 +6,11 @@ import { useAuthStore } from "./authStore";
 export interface RecentDevice {
   uid: string;
   name: string;
-  /** ISO timestamp of the most recent connection — fed to `formatRelative`. */
   connectedAt: string;
 }
 
 interface RecentDevicesState {
-  /** MRU lists keyed by tenant. Array position is the MRU order (`record`
-   *  prepends); `connectedAt` is display-only, not the sort key. */
   byTenant: Record<string, RecentDevice[]>;
-  /** Record a connection to a device under the active tenant (no-op if none). */
   record: (uid: string, name: string) => void;
 }
 

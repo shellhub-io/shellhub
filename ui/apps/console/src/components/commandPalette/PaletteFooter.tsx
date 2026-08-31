@@ -1,6 +1,5 @@
 import type { NormalizedDevice } from "@/hooks/useDevices";
 
-/** A single footer keyboard hint: one or more keycaps plus a label. */
 function KeyHint({ keys, label }: { keys: string[]; label: string }) {
   return (
     <div className="flex items-center gap-1.5">

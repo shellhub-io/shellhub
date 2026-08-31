@@ -41,8 +41,8 @@ export async function loadConfig(): Promise<ClientConfig> {
         ...defaultConfig,
         ...((await res.json()) as Partial<ClientConfig>),
       };
+    // eslint-disable-next-line no-empty -- leaves the cache at defaultConfig so a later call can retry the fetch
     } catch {
-      // leave cached as defaultConfig so future calls can retry
     } finally {
       inflight = null;
     }

@@ -102,7 +102,6 @@ function isValidFQDN(domain: string): boolean {
 
 const MAX_CUSTOM_TTL = 9223372036;
 
-/* ─── Device Selector ─── */
 function DeviceSelector({
   selected,
   onChange,
@@ -319,7 +318,6 @@ function TimeoutSelector({
   );
 }
 
-/* ─── Endpoint Drawer ─── */
 function EndpointDrawer({
   open,
   onClose,
@@ -709,7 +707,6 @@ function EndpointDrawer({
   );
 }
 
-/* ─── Endpoint Card ─── */
 function EndpointCard({
   endpoint,
   onDelete,

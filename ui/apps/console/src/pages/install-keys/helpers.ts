@@ -128,7 +128,6 @@ export interface KeyBlockers {
   disabled: boolean;
   expired: boolean;
   overused: boolean;
-  /** Any blocker present: the key can no longer register devices. */
   inert: boolean;
 }
 
@@ -156,9 +155,7 @@ export type UsageKind = "single" | "limited" | "unlimited";
 export interface UsageInfo {
   kind: UsageKind;
   used: number;
-  /** The enrollment cap: 1 for single-use, N for limited, 0 for unlimited. */
   limit: number;
-  /** Fill fraction 0..1 for the meter; always 0 for unlimited (no cap to fill). */
   ratio: number;
   exhausted: boolean;
 }

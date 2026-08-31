@@ -43,18 +43,10 @@ export default function WelcomeWizardTrigger() {
 
 interface WelcomeWizardGateProps {
   tenant: string;
-  /** Device stats snapshot taken when the gate first mounts (page load). */
   initialStats: GetStatusDevicesResponse;
   refetch: () => void;
 }
 
-/**
- * Owns the open/dismiss state. The eligibility decision is frozen at mount via
- * a lazy useState initializer, so later stats changes never reopen the wizard.
- *
- * Refetches stats when closed so the Dashboard re-renders with up-to-date data
- * instead of lingering on the WelcomeScreen empty state.
- */
 function WelcomeWizardGate({
   tenant,
   initialStats,

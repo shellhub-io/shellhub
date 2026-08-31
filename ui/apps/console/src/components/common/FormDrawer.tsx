@@ -15,19 +15,15 @@ interface FormDrawerProps<T extends FieldValues> {
   onClose: () => void;
   title: string;
   submitLabel: string;
-  /** Label shown on the submit button while `isSubmitting`. */
   submittingLabel?: string;
   cancelLabel?: string;
   submitIcon?: ReactNode;
-  /** Disable submit until the form is dirty (edit-in-place forms). */
   requireDirty?: boolean;
-  /** Extra submit gate, ANDed with validity (e.g. "all fields filled"). */
   submitDisabled?: boolean;
   subtitle?: ReactNode;
   icon?: ReactNode;
   width?: "sm" | "md";
   bodyClassName?: string;
-  /** Extra footer content rendered before Cancel/Submit. */
   footerExtra?: ReactNode;
   children: ReactNode;
 }

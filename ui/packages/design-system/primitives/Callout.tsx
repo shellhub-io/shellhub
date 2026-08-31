@@ -70,19 +70,14 @@ const SEMANTIC: Record<SemanticVariant, SemanticConfig> = {
  * Props of Callout.
  */
 export interface CalloutProps {
-  /** Visual and semantic variant. */
   variant: CalloutVariant;
 
-  /** Callout body — plain string or rich JSX. */
   children: ReactNode;
 
-  /** When provided, renders a dismiss button. The parent owns visibility state. */
   onDismiss?: () => void;
 
-  /** CTA link, only meaningful for the `feature` variant. */
   action?: { href: string; label: string };
 
-  /** Layout overrides only — margins, display mode. Don't override color or typography. */
   className?: string;
 }
 

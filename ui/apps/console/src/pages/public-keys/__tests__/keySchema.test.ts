@@ -21,7 +21,6 @@ function makeValues(overrides: Partial<KeyFormValues> = {}): KeyFormValues {
   };
 }
 
-/** First validation message per field for the given mode. */
 function errorsFor(
   mode: KeyMode,
   values: KeyFormValues,
