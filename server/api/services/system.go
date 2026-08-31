@@ -26,23 +26,9 @@ type SystemService interface {
 	SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript) (string, error)
 }
 
-// systemCacheTTL backstops invalidation, bounding how long a write this cache never hears
-// about can be served stale.
 const systemCacheTTL = time.Minute
 
-// systemGet reads the instance's singleton system row through the cache. The UI polls it on
-// every page load, but it only changes at setup and when an administrator reconfigures
-// authentication.
-//
-// Nothing is cached until setup completes: the transition is what the UI polls for, and the
-// admin CLI performs it on the first user it creates without any cache to invalidate. After
-// that the only mutable field this endpoint exposes is the local-authentication flag.
-//
-// Cloud and Enterprise serve /info from their own service, which caches the same key on its
-// own side because it has the SAML config to fetch alongside this row.
 func (s *service) systemGet(ctx context.Context) (*models.System, error) {
-	// Guard the authentication chain rather than just the hit: callers dereference it, and a
-	// cache miss leaves the value zeroed.
 	cached := new(models.System)
 	if err := s.cache.Get(ctx, cache.SystemKey, cached); err == nil &&
 		cached.Setup && cached.Authentication != nil && cached.Authentication.Local != nil {
@@ -100,18 +86,11 @@ func (s *service) SystemDownloadInstallScript(_ context.Context, req *requests.S
 		return "", err
 	}
 
-	// Replace only the marker, not through text/template: the script contains
-	// other "{{...}}" sequences (Docker/Podman --format '{{.Names}}') that the
-	// template engine would resolve to "<no value>" and silently break.
 	overrides := buildInstallOverrides(req)
 
 	return strings.Replace(string(raw), "{{.Overrides}}", overrides, 1), nil
 }
 
-// buildInstallOverrides renders the shell block injected at the {{.Overrides}}
-// marker. The marker sits on a comment line, so the block starts with a newline
-// to break onto real assignment lines. Each value is a default ("${VAR:-...}")
-// so an explicit env the user passes still wins.
 func buildInstallOverrides(req *requests.SystemInstallScript) string {
 	scheme := req.Scheme
 	if scheme != "http" && scheme != "https" {
@@ -121,12 +100,6 @@ func buildInstallOverrides(req *requests.SystemInstallScript) string {
 	var b strings.Builder
 	b.WriteString("\n")
 
-	// The host may carry a port: the gateway forwards it separately in
-	// X-Forwarded-Port, but the direct-access fallback (c.Request().Host) keeps
-	// it inline. Split it out so it isn't lost, preferring the forwarded port.
-	// Values are reflected from the requester's own request and the script is
-	// served uncached (Cache-Control: no-store), so it only ever reaches that
-	// requester; no escaping is needed.
 	host, hostPort := req.Host, ""
 	if h, p, err := net.SplitHostPort(req.Host); err == nil {
 		host, hostPort = h, p
@@ -161,8 +134,6 @@ func buildInstallOverrides(req *requests.SystemInstallScript) string {
 	return b.String()
 }
 
-// isDefaultPort reports whether port is the default for the scheme, in which
-// case it should be omitted from the server address.
 func isDefaultPort(scheme, port string) bool {
 	return (scheme == "https" && port == "443") || (scheme == "http" && port == "80")
 }

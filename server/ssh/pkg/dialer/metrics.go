@@ -2,8 +2,6 @@ package dialer
 
 import "github.com/prometheus/client_golang/prometheus"
 
-// perProcess is appended to every help text below. Each server replica owns its
-// own [Manager], so nothing here is a fleet number on its own.
 const perProcess = "Counted per server process; sum() across replicas for a fleet total."
 
 var (

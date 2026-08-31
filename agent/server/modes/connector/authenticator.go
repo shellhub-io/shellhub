@@ -20,21 +20,14 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// NOTICE: Ensures the Authenticator interface is implemented.
 var _ modes.Authenticator = (*Authenticator)(nil)
 
 // Authenticator implements the Authenticator interface when the server is running in connector mode.
 type Authenticator struct {
-	// api is a client to communicate with the ShellHub's API.
-	api client.Client
-	// authData is the authentication data received from the API to authenticate the device.
-	authData *models.DeviceAuthResponse
-	// container is the device name.
-	//
-	// NOTICE: Uses a pointer for later assignment.
+	api       client.Client
+	authData  *models.DeviceAuthResponse
 	container *string
-	// docker is a client to communicate with the Docker's API.
-	docker dockerclient.APIClient
+	docker    dockerclient.APIClient
 }
 
 // NewAuthenticator creates a new instance of Authenticator for the connector mode.
@@ -47,7 +40,6 @@ func NewAuthenticator(api client.Client, docker dockerclient.APIClient, authData
 	}
 }
 
-// getPasswd return a [io.Reader] for the container's passwd file.
 func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string) (io.Reader, error) {
 	passwdTar, _, err := cli.CopyFromContainer(ctx, container, "/etc/passwd")
 	if err != nil {
@@ -62,7 +54,6 @@ func getPasswd(ctx context.Context, cli dockerclient.APIClient, container string
 	return passwd, nil
 }
 
-// getShadow return a [io.Reader] for the container's shadow file.
 func getShadow(ctx context.Context, cli dockerclient.APIClient, container string) (io.Reader, error) {
 	shadowTar, _, err := cli.CopyFromContainer(ctx, container, "/etc/shadow")
 	if err != nil {
@@ -111,7 +102,6 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 			},
 		).WithError(err).Error("user passwd is empty, so the authentication via password is blocked")
 
-		// NOTICE(r): when the user doesn't have password, we block the login.
 		return false
 	}
 
@@ -138,7 +128,6 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 		return false
 	}
 
-	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
 
 	log.WithFields(
@@ -275,7 +264,6 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 		return false
 	}
 
-	// NOTICE: set the osauth.User to the context to be obtained later on.
 	ctx.SetValue("user", user)
 
 	log.WithFields(

@@ -328,9 +328,6 @@ func main() {
 				}).Fatal("Failed to marshal agent information")
 			}
 
-			// NOTICE: this output was made to enable the agent's user to check and parse the agent's information with
-			// a know format without having to parse the log output.
-			// TODO: Should it have line break or not?
 			cmd.Println(string(data))
 		},
 	})
@@ -352,9 +349,6 @@ waits until the device is accepted, rejected, or the code expires.`,
 			cfg.Version = AgentVersion
 			cfg.Platform = AgentPlatform
 
-			// Without a tenant (no env, nothing persisted) the device does not
-			// exist yet; enroll it through a pairing where the user picks the
-			// namespace on the accept page.
 			if cfg.TenantID == "" {
 				pairingLogin(cmd, cfg)
 
@@ -386,8 +380,6 @@ waits until the device is accepted, rejected, or the code expires.`,
 				log.WithError(err).Fatal("Failed to create the device login code")
 			}
 
-			// NOTE: cobra's cmd.Print* writes to stderr; the install.sh wrapper
-			// merges stderr into its pipe (2>&1) to scan the output for the URL.
 			printPairingInstructions(cmd, cfg.ServerAddress, code.Code, code.ExpiresIn)
 
 			deadline := clock.Now().Add(time.Duration(code.ExpiresIn) * time.Second)
@@ -410,7 +402,6 @@ waits until the device is accepted, rejected, or the code expires.`,
 					cmd.PrintErrln("✗ Device was rejected.")
 					os.Exit(1)
 				default:
-					// Still pending: keep polling until the code expires.
 				}
 			}
 
@@ -437,21 +428,12 @@ It is initialized by the agent when a new SFTP session is created.`,
 		runtime.Version(),
 	))
 
-	// A failed command must exit non-zero: install.sh guards every agent call with
-	// `|| { ...; exit 1; }`, and a discarded error made a failed install report success.
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-// waitForPairing enrolls a tenant-less agent from the main process: it creates
-// ONE pairing code, logs the accept URL and polls until a user accepts. When
-// the code expires it does NOT create another one — a fleet of orphan agents
-// must not hammer the server forever — and from then on it only watches the
-// tenant file, which a concurrent `shellhub-agent login` writes on success.
 func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config) (string, error) {
-	// Scope SIGTERM handling to the pairing wait so the loops below can unwind
-	// cleanly (the root command runs with a non-cancellable context).
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -459,10 +441,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	pairing, err := ag.CreatePairing()
 	if err != nil {
-		// A pre-authorized PAIRING_CODE the server rejected (expired, already
-		// claimed, or invalid) must not crash-loop the agent: baked into the
-		// container env, a Fatal here would restart and re-reject forever. Drop
-		// the code and fall back to a normal pairing the user can accept.
 		if cfg.PairingCode != "" {
 			log.WithError(err).Warn("The pre-authorized pairing code was rejected; falling back to manual pairing")
 			ag.ClearPairingCode()
@@ -475,9 +453,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 		}
 	}
 
-	// Resume: the server already has this device accepted (e.g. it crashed
-	// after acceptance but before persisting the tenant). Learn the tenant now
-	// without a new pairing.
 	if pairing.Status == models.DeviceStatusAccepted && pairing.TenantID != "" {
 		if err := agentd.PersistTenant(tenantFile, pairing.TenantID); err != nil {
 			log.WithError(err).Warn("Failed to persist the tenant; the device will need to be paired again on restart")
@@ -502,8 +477,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 		case <-time.After(3 * time.Second):
 		}
 
-		// A concurrent `shellhub-agent login` may have been accepted with its
-		// own code; the tenant file reconciles both.
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			return tenant, nil
 		}
@@ -526,7 +499,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	log.Info("The pairing code expired. Run 'shellhub-agent login' to get a new one.")
 
-	// Passive phase: no more server traffic, only the local tenant file.
 	for {
 		select {
 		case <-ctx.Done():
@@ -540,9 +512,6 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	}
 }
 
-// pairingLogin enrolls a tenant-less agent interactively: prints the accept
-// URL, tries the browser, and waits until a user accepts the device into a
-// namespace of their choice.
 func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	ag, err := agentd.NewAgentWithConfig(cfg, new(agentd.HostMode))
 	if err != nil {
@@ -560,8 +529,6 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 
 	tenantFile := agentd.TenantFilePath(cfg.PrivateKey)
 
-	// Resume: the device is already accepted server-side; persist the tenant
-	// and exit so the agent connects on its next start.
 	if pairing.Status == models.DeviceStatusAccepted && pairing.TenantID != "" {
 		if err := agentd.PersistTenant(tenantFile, pairing.TenantID); err != nil {
 			log.WithError(err).Fatal("Device already accepted, but failed to persist the tenant")
@@ -578,8 +545,6 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	for clock.Now().Before(deadline) {
 		time.Sleep(3 * time.Second)
 
-		// The main process may have logged its own pairing URL at boot; if that
-		// one was accepted instead, the tenant file reconciles both.
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			cmd.Println("✓ Device accepted. The agent will connect automatically.")
 
@@ -608,9 +573,6 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	os.Exit(1)
 }
 
-// formatPairingCode groups a canonical pairing code for display (WXYZ2K7Q ->
-// WXYZ-2K7Q) so it is easier to read off one screen and type on another. The
-// canonical form (no hyphen) is what goes in URLs and to the server.
 func formatPairingCode(code string) string {
 	if len(code) != 8 {
 		return code
@@ -619,12 +581,6 @@ func formatPairingCode(code string) string {
 	return code[:4] + "-" + code[4:]
 }
 
-// printPairingInstructions prints the accept code and URL for the interactive
-// `login` command. It opens the browser best-effort, but always prints the
-// grouped code (to type into the console on another machine) and the direct URL
-// on its own line — the install.sh container wrapper scans that line for
-// "/accept-device?code=" to run xdg-open on the host, so it must not share the
-// line with other text.
 func printPairingInstructions(cmd *cobra.Command, serverAddress, code string, expiresInSeconds int) {
 	base := strings.TrimRight(serverAddress, "/")
 	url := fmt.Sprintf("%s/accept-device?code=%s", base, code)
@@ -649,16 +605,12 @@ func printPairingInstructions(cmd *cobra.Command, serverAddress, code string, ex
 	cmd.Printf("Waiting for acceptance... (code expires in %d minutes)\n", expiresInSeconds/60)
 }
 
-// openBrowser makes a best-effort attempt to open the URL in the user's
-// browser via xdg-open. It reports whether the browser was (probably)
-// opened; callers should always print the URL as a fallback.
 func openBrowser(url string) bool {
 	xdgOpen, err := exec.LookPath("xdg-open")
 	if err != nil {
 		return false
 	}
 
-	// noctx: best-effort launch with its own timeout below; there is no caller context here.
 	cmd := exec.Command(xdgOpen, url) //nolint:noctx,gosec // #nosec G204 -- xdgOpen comes from LookPath and url is built from local config
 	if err := cmd.Start(); err != nil {
 		return false
@@ -667,10 +619,6 @@ func openBrowser(url string) bool {
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 
-	// xdg-open normally exits right away after handing the URL to the browser;
-	// a non-zero exit (no display, no handler) means nothing was opened. If it
-	// is still running after the timeout, it likely became the browser process
-	// itself, so leave it alone and assume it worked.
 	select {
 	case err := <-done:
 		return err == nil

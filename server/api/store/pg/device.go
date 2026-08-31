@@ -33,10 +33,6 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *model
 		return []string{}, false, nil
 	}
 
-	// A name only conflicts with an accepted device; pending/rejected/removed don't hold a name.
-	// Namespace bounding comes from sc, so a name used in another namespace is not a conflict. Keep
-	// the predicates ANDed: chaining with WhereGroup(" OR ", ...) would let the name match satisfy
-	// the query on its own and silently disable the status filter.
 	devices := make([]entity.Device, 0)
 	query := db.NewSelect().
 		Model(&devices).
@@ -108,8 +104,6 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Device, 0)
-	// disconnected_at is NULL while online; the interval math keeps only ephemeral devices offline
-	// longer than their own timeout (in minutes).
 	err := db.NewSelect().
 		Model(&entities).
 		Where("ephemeral = TRUE").
@@ -334,7 +328,6 @@ func DeviceIsOnline(d *entity.Device, threshold time.Time) bool {
 	return d.DisconnectedAt.IsZero() && d.LastSeen.After(threshold)
 }
 
-// deviceExprOnline returns the SQL expression for the "online" field.
 func deviceExprOnline(threshold time.Time) (string, time.Time) {
 	return `CASE
 		WHEN "device"."disconnected_at" IS NULL AND "device"."last_seen" > ?
@@ -343,8 +336,6 @@ func deviceExprOnline(threshold time.Time) (string, time.Time) {
 		END AS "online"`, threshold
 }
 
-// deviceExprAcceptable returns the SQL expression for the "acceptable" field
-// based on the provided store.DeviceAcceptable mode.
 func deviceExprAcceptable(mode store.DeviceAcceptable) string {
 	switch mode {
 	case store.DeviceAcceptableFromRemoved:
@@ -358,7 +349,6 @@ func deviceExprAcceptable(mode store.DeviceAcceptable) string {
 	}
 }
 
-// deviceExprUnnestIDs returns a table expression for batch operations with IDs.
 func deviceExprUnnestIDs(ids []string) (string, any) {
 	return "(SELECT unnest(?::varchar[]) as id) as _data", pgdialect.Array(ids)
 }

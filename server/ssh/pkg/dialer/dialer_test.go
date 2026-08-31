@@ -12,9 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// recordingConn records the deadlines set on a connection and whether it was
-// closed, so tests can assert on the handshake's bookkeeping rather than on
-// timing alone.
 type recordingConn struct {
 	net.Conn
 
@@ -61,8 +58,6 @@ func (c *recordingConn) deadlineAt(i int) (time.Time, bool) {
 	return c.deadlines[i], true
 }
 
-// unresponsivePeer stands in for an agent that accepts the stream and reads the
-// handshake but never answers it.
 func unresponsivePeer(t *testing.T) *recordingConn {
 	t.Helper()
 

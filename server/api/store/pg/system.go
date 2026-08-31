@@ -37,7 +37,6 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 	db := pg.GetConnection(ctx)
 
-	// Get existing system (should be only one)
 	existingSystem := new(entity.System)
 	err := db.NewSelect().Model(existingSystem).Limit(1).Scan(ctx)
 

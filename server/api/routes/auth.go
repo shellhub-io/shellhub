@@ -29,10 +29,6 @@ func (h *Handler) AuthDevice(c *gateway.Context) error {
 		return err
 	}
 
-	// NOTE: The previous version of the Agent in Connector mode could send the container's name without converting
-	// the dot character to an underscore, which is not supported in ShellHub device naming. To prevent validation
-	// errors with this old version, we are implementing a server-side change to handle this conversion.
-	// TODO: This modification could be in the service layer.
 	if strings.Contains(req.Hostname, ".") {
 		req.Hostname = strings.ReplaceAll(req.Hostname, ".", "_")
 	}

@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	// Global validator instance
 	globalValidator *openapi.OpenAPIValidator
 	validatorOnce   sync.Once
 	errValidator    error
@@ -123,7 +122,6 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 	}
 }
 
-// getOrCreateValidator initializes or returns the global validator instance
 func getOrCreateValidator(cfg OpenAPIValidatorConfig) *openapi.OpenAPIValidator {
 	validatorOnce.Do(func() {
 		logger := logrus.WithField("component", "openapi_validator")

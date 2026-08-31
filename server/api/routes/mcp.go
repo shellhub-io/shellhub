@@ -24,13 +24,6 @@ const (
 	mcpKeyHeaders  mcpContextKey = "mcp_headers"
 )
 
-// mcpAuthHeaders are the headers the API gateway injects to identify an API-key
-// caller. They are captured from the incoming /mcp request and replayed on the
-// in-process API calls the tools make, so the same authentication and
-// authorization the gateway performed for the MCP request flows through to the
-// REST middleware (BlockAPIKey, RequiresPermission, RequiresTenant). MCP auth
-// is API-key-only, so the user-identity headers (X-ID, X-Admin, X-Username)
-// never apply and are intentionally omitted.
 var mcpAuthHeaders = []string{
 	"X-Tenant-ID",
 	"X-Role",
@@ -51,8 +44,6 @@ func SetupMCPRoutes(router *echo.Echo) {
 
 		ctx = context.WithValue(ctx, mcpKeyTenantID, tenantID)
 
-		// Capture the gateway-injected auth headers so tools can replay them
-		// on in-process API calls and inherit the REST middleware.
 		headers := http.Header{}
 		for _, key := range mcpAuthHeaders {
 			if value := r.Header.Get(key); value != "" {
@@ -84,13 +75,6 @@ func buildMCPServer(router http.Handler) *mcpserver.MCPServer {
 	return s
 }
 
-// --- helpers ---
-
-// mcpAPICall replays the caller's request against the API's own Echo router
-// in-process, so the full middleware chain (BlockAPIKey, RequiresPermission,
-// RequiresTenant) runs exactly as it would for a REST caller. The MCP server
-// is an in-binary client of the API, not a shortcut past it -- no network hop,
-// but the same authorization path. body may be nil.
 func mcpAPICall(ctx context.Context, router http.Handler, method, target string, body io.Reader) *httptest.ResponseRecorder {
 	req := httptest.NewRequestWithContext(context.Background(), method, target, body)
 	if body != nil {
@@ -111,9 +95,6 @@ func mcpAPICall(ctx context.Context, router http.Handler, method, target string,
 	return rec
 }
 
-// mcpAPIResult turns an in-process API response into a tool result: a 2xx
-// forwards the JSON body verbatim, anything else maps the status code to a
-// fixed message so internal store details never leak to MCP clients.
 func mcpAPIResult(rec *httptest.ResponseRecorder) *mcp.CallToolResult {
 	if rec.Code >= http.StatusOK && rec.Code < http.StatusMultipleChoices {
 		return mcp.NewToolResultText(rec.Body.String())
@@ -131,10 +112,6 @@ func mcpAPIResult(rec *httptest.ResponseRecorder) *mcp.CallToolResult {
 	}
 }
 
-// mcpAPIListResult wraps a paginated list response as {total, <key>: [...]},
-// reading the count from the X-Total-Count header the list handlers set and
-// forwarding the body array verbatim. Non-2xx responses fall back to the
-// shared error mapping.
 func mcpAPIListResult(rec *httptest.ResponseRecorder, key string) *mcp.CallToolResult {
 	if rec.Code < http.StatusOK || rec.Code >= http.StatusMultipleChoices {
 		return mcpAPIResult(rec)
@@ -148,9 +125,6 @@ func mcpAPIListResult(rec *httptest.ResponseRecorder, key string) *mcp.CallToolR
 	}))
 }
 
-// mcpAPIOK returns a fixed success message for write operations whose REST
-// response body isn't useful to forward. Non-2xx responses fall back to the
-// shared error mapping.
 func mcpAPIOK(rec *httptest.ResponseRecorder, msg string) *mcp.CallToolResult {
 	if rec.Code >= http.StatusOK && rec.Code < http.StatusMultipleChoices {
 		return mcp.NewToolResultText(msg)
@@ -190,8 +164,6 @@ func toJSON(v any) string {
 
 	return string(b)
 }
-
-// --- Device tools ---
 
 func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 	s.AddTool(
@@ -242,7 +214,6 @@ func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 			uid, _ := args["uid"].(string)
 			status, _ := args["status"].(string)
 
-			// The REST route expects the legacy short form in the path param.
 			pathStatus := map[string]string{"accepted": "accept", "rejected": "reject"}[status]
 			if pathStatus == "" {
 				return mcp.NewToolResultError("status must be 'accepted' or 'rejected'"), nil
@@ -300,8 +271,6 @@ func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 	)
 }
 
-// --- Session tools ---
-
 func addSessionTools(s *mcpserver.MCPServer, router http.Handler) {
 	s.AddTool(
 		mcp.NewTool("shellhub_list_sessions",
@@ -337,13 +306,7 @@ func addSessionTools(s *mcpserver.MCPServer, router http.Handler) {
 	)
 }
 
-// --- Namespace tools ---
-
 func addNamespaceTools(s *mcpserver.MCPServer, router http.Handler) {
-	// No "list namespaces" tool: an API key is scoped to one namespace, and
-	// listing namespaces is an account-level action the REST API blocks for
-	// API keys (BlockAPIKey on GetNamespaceList). get_namespace reads the
-	// caller's own namespace.
 	s.AddTool(
 		mcp.NewTool("shellhub_get_namespace",
 			mcp.WithDescription("Get details and settings of the caller's ShellHub namespace."),
@@ -356,8 +319,6 @@ func addNamespaceTools(s *mcpserver.MCPServer, router http.Handler) {
 				tenantID = tenantFromCtx(ctx)
 			}
 
-			// Cross-tenant access is rejected by RequiresTenant on the route;
-			// no manual guard needed here.
 			rec := mcpAPICall(ctx, router, http.MethodGet, "/api/namespaces/"+url.PathEscape(tenantID), nil)
 
 			return mcpAPIResult(rec), nil

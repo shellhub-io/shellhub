@@ -14,9 +14,6 @@ func TestStartsDataPipe(t *testing.T) {
 		expected    bool
 	}{
 		{
-			// Regression: a shell with no pty is the only request such a session
-			// sends, so leaving it out left heredocs with no data path and they
-			// hung until the client gave up.
 			description: "a shell starts the pipe, which is all a heredoc sends",
 			requestType: ShellRequestType,
 			expected:    true,

@@ -19,9 +19,6 @@ import (
 	"time"
 )
 
-// entryTTL bounds how long an unclaimed entry lives. It is a safety net for a
-// dial that never reaches the server, not a deadline for the handshake: the
-// entry is normally removed by Take.
 const entryTTL = 5 * time.Minute
 
 // Data is what the bridge knows and the SSH handshake cannot carry.

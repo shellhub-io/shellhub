@@ -43,8 +43,6 @@ func (h *Handler) GetDeviceAuthStatus(c *gateway.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	// The device token carries X-Tenant-ID alongside X-Device-UID, so the device's own status poll
-	// is bounded to the namespace it enrolled into.
 	sc, err := c.Scope()
 	if err != nil {
 		return err

@@ -98,8 +98,6 @@ func TestBuildInstallOverrides(t *testing.T) {
 		t.Run(tc.description, func(tt *testing.T) {
 			out := buildInstallOverrides(tc.req)
 
-			// The marker sits on a comment line, so the block must start with a
-			// newline to break onto real assignment lines.
 			assert.Equal(tt, "\n", out[:1])
 
 			for _, want := range tc.contains {
@@ -140,8 +138,6 @@ func TestSystemGet(t *testing.T) {
 		assert.Equal(t, setupSystem, system)
 	})
 
-	// A miss leaves the destination zeroed and reports no error, so the hit is only usable once
-	// the guard has confirmed the row is actually populated.
 	t.Run("reads through on a miss and caches the result", func(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		cacheMock := cachemock.NewMockCache(t)
@@ -155,9 +151,6 @@ func TestSystemGet(t *testing.T) {
 		assert.Equal(t, setupSystem, system)
 	})
 
-	// The setup flow polls this endpoint to learn setup completed, and the admin CLI flips the
-	// flag from a package with no access to this cache. Caching only after the transition is what
-	// keeps that from being served stale.
 	t.Run("does not cache before setup completes", func(t *testing.T) {
 		pending := &models.System{Setup: false, Authentication: setupSystem.Authentication}
 
@@ -172,7 +165,6 @@ func TestSystemGet(t *testing.T) {
 		assert.False(t, system.Setup)
 	})
 
-	// GetSystemInfo dereferences Authentication.Local, so a hit missing it must not be served.
 	t.Run("ignores a cached row with no authentication", func(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		cacheMock := cachemock.NewMockCache(t)

@@ -45,7 +45,6 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 		})
 		require.ErrorIs(t, err, errIntentional)
 
-		// Verify the device was NOT persisted (rolled back)
 		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted)
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)

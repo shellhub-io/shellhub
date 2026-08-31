@@ -52,7 +52,6 @@ type Services interface {
 	NamespaceDeviceCounts(ctx context.Context, tenantID string) (*models.Stats, error)
 }
 
-// service is an internal struct that implements the Services interface.
 type service struct {
 	store store.Store
 }

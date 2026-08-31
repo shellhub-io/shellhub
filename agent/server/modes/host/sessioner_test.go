@@ -16,16 +16,12 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// devNull is a no-op io.ReadWriter used as a stub for Stderr() in fakeSession.
 type devNull struct{}
 
 func (devNull) Read([]byte) (int, error) { return 0, io.EOF }
 
 func (devNull) Write(p []byte) (int, error) { return len(p), nil }
 
-// fakeSession is a hand-rolled test double that satisfies the gliderssh.Session
-// interface. It allows unit tests to inject controlled values without spinning
-// up a real SSH connection.
 type fakeSession struct {
 	user       string
 	environ    []string
@@ -38,7 +34,6 @@ type fakeSession struct {
 	command    []string
 	rawCommand string
 
-	// exitCalled tracks whether Exit() was called and with what code.
 	exitCalled int32 // atomic: 0 = not called, 1 = called
 	exitCode   int32 // atomic: last code passed to Exit()
 }
@@ -100,8 +95,6 @@ func (f *fakeSession) Signals(c chan<- gliderssh.Signal) {}
 
 func (f *fakeSession) Break(c chan<- bool) {}
 
-// newFakeSession constructs a fakeSession whose Context() returns a
-// testSSHContext with gliderssh.ContextKeySessionID already set.
 func newFakeSession(sessionID, user string) *fakeSession {
 	ctx := &testSSHContext{
 		Context:   context.Background(),
@@ -119,7 +112,6 @@ func newFakeSession(sessionID, user string) *fakeSession {
 	}
 }
 
-// Ensure gossh.Channel is satisfied (compile-time check via assignment).
 var _ gossh.Channel = (*fakeSession)(nil)
 
 // TestFakeSessionCompiles is a compile-time check that fakeSession fully
@@ -220,7 +212,6 @@ func TestPtyStartOptionsBoundsTheOwnerID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			// WithJobControl is always present, so an owner option makes it two.
 			opts := ptyStartOptions(tc.uid)
 			if tc.wantOwner {
 				assert.Len(t, opts, 2)

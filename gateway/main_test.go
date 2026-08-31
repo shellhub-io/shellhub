@@ -53,14 +53,6 @@ func TestMain_smoke(t *testing.T) {
 
 	t.Logf("gateway container listening at %s", baseURL)
 
-	// The one route the proxy answers by itself. Everything else proxies to an
-	// upstream that does not exist beside a lone container, so asking for it
-	// would assert on how a missing backend is reported rather than on whether
-	// this image boots and serves the configuration it generated.
-	//
-	// 404 is what distinguishes it: an unmatched path falls through to the
-	// catch-all and reaches for the console, which is not here, so a
-	// configuration that failed to render this block would answer 502.
 	client := http.Client{
 		Timeout: 5 * time.Second,
 		CheckRedirect: func(*http.Request, []*http.Request) error {

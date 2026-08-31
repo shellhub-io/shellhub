@@ -17,9 +17,6 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 		}
 	}
 
-	// Fallback for callers that don't pass an Echo gateway Context (e.g. the
-	// MCP transport, internal jobs). Setting the "tenant" string key on the
-	// context is enough to scope service-level queries by namespace.
 	if value, ok := ctx.Value("tenant").(string); ok && value != "" {
 		return &models.Tenant{ID: value}
 	}

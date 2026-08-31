@@ -567,11 +567,6 @@ func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
 			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
 			require.NotNil(t, captured)
 
-			// The connector/platform filter is appended after the user
-			// filters. The AND operator MUST come before the platform
-			// property so it applies to it; otherwise the platform
-			// condition gets OR'd with user filters, returning all
-			// devices regardless of the user's filter.
 			data := captured.Data
 			require.GreaterOrEqual(t, len(data), 3)
 

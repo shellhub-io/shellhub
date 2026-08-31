@@ -22,7 +22,6 @@ import (
 )
 
 func TestPublicKey(t *testing.T) {
-	// stringToRef is a helper function to convert a string to a pointer to a string.
 	stringToRef := func(s string) *string { return &s }
 
 	privKey, _ := rsa.GenerateKey(rand.Reader, 2048)

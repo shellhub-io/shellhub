@@ -10,10 +10,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// fingerprintFromPEM returns the SHA256 fingerprint (SHA256:…) of a PEM-encoded public key, or ""
-// when the key is absent or unparseable (e.g. events recorded before the key was captured). SHA256,
-// not the legacy MD5 colon-hex used elsewhere, so it reads distinctly from the device MAC shown
-// next to it in the history row.
 func fingerprintFromPEM(pemKey string) string {
 	if pemKey == "" {
 		return ""
@@ -24,8 +20,6 @@ func fingerprintFromPEM(pemKey string) string {
 		return ""
 	}
 
-	// The agent encodes its RSA key as PKCS#1 ("RSA PUBLIC KEY"); other key types arrive as PKIX
-	// ("PUBLIC KEY"). Parse both so the fingerprint is never empty for a key that is present.
 	var (
 		pub any
 		err error
@@ -107,15 +101,14 @@ func InstallKeyEventFromModel(model *models.InstallKeyEvent) *InstallKeyEvent {
 
 func InstallKeyEventToModel(entity *InstallKeyEvent) *models.InstallKeyEvent {
 	event := &models.InstallKeyEvent{
-		ID:           entity.ID,
-		InstallKeyID: entity.InstallKeyID,
-		TenantID:     entity.NamespaceID,
-		DeviceUID:    entity.DeviceUID,
-		Hostname:     entity.Hostname,
-		MAC:          entity.MAC,
-		SourceIP:     entity.SourceIP,
-		PublicKey:    entity.PublicKey,
-		// Fingerprint is derived from the stored key at read time, not persisted.
+		ID:             entity.ID,
+		InstallKeyID:   entity.InstallKeyID,
+		TenantID:       entity.NamespaceID,
+		DeviceUID:      entity.DeviceUID,
+		Hostname:       entity.Hostname,
+		MAC:            entity.MAC,
+		SourceIP:       entity.SourceIP,
+		PublicKey:      entity.PublicKey,
 		Fingerprint:    fingerprintFromPEM(entity.PublicKey),
 		Ephemeral:      entity.Ephemeral,
 		ReRegistration: entity.ReRegistration,

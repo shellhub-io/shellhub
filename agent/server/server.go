@@ -26,12 +26,6 @@ type Server struct {
 	ContainerID       string
 	keepAliveInterval uint32
 
-	// mode is the mode of the server, identifing where and how the SSH's server is running.
-	//
-	// For example, the [modes.HostMode] means that the SSH's server runs in the host machine, using the host
-	// `/etc/passwd`, `/etc/shadow`, redirecting the SSH's connection to the device sdin, stdout and stderr and etc.
-	//
-	// Check the [modes] package for more information.
 	mode     modes.Mode
 	Sessions sync.Map
 }
@@ -109,13 +103,6 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 		},
 	}
 
-	// Host mode only: in connector mode the pty lives inside the container, so
-	// allocating one here would leave an orphan and a second reader on the
-	// channel.
-	//
-	// Wrapped because the request loop swallows the error and carries on, and a
-	// refused pty downgrades a shell request to a heredoc — the session loses
-	// its terminal and nothing says why.
 	if _, ok := mode.(*host.Mode); ok {
 		server.sshd.PtyHandler = func(ctx gliderssh.Context, sess gliderssh.Session, pty gliderssh.Pty) (func() error, error) {
 			closer, err := gliderssh.AllocatePtyHandler(ctx, sess, pty)
@@ -140,7 +127,6 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 	return server
 }
 
-// startKeepAlive sends a keep alive message to the server every in keepAliveInterval seconds.
 func (s *Server) startKeepAliveLoop(session gliderssh.Session) {
 	interval := time.Duration(s.keepAliveInterval) * time.Second
 

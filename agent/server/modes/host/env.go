@@ -7,32 +7,14 @@ import (
 	"strings"
 )
 
-// localeFiles are the system wide files a locale may be configured in, in the order they are
-// consulted. The first file to define a variable wins, so a systemd locale.conf takes precedence
-// over the Debian defaults. Under the docker build tag these point into the mounted host root.
 var localeFiles = []string{
 	"/etc/locale.conf",
 	"/etc/default/locale",
 	"/etc/environment",
 }
 
-// defaultLocale is used when the host configures no character locale at all, which is the common
-// state on embedded targets. Without it those sessions run under the C locale, where tools writing
-// to a TTY escape every byte >= 0x80 instead of printing the character.
-//
-// C.UTF-8 needs no generated locale data, unlike a language specific locale that glibc would fall
-// back to C for when absent.
 const defaultLocale = "LANG=C.UTF-8"
 
-// sessionEnv builds the locale environment a session starts with.
-//
-// The agent assembles the session environment from scratch, so nothing of the host's own
-// configuration reaches the shell unless it is read here. A regular login gets it through
-// pam_env; a ShellHub session would otherwise run under the C locale even on a host that
-// configures a locale.
-//
-// The client's own variables come last: os/exec keeps the last value of a repeated key, so a
-// client forwarding LANG still overrides the host.
 func sessionEnv(clientEnv []string) []string {
 	envs := systemLocaleEnv()
 	if !hasCharacterLocale(envs) {
@@ -97,7 +79,6 @@ func parseLocaleLine(line string) (string, string, bool) {
 		return "", "", false
 	}
 
-	// pam_env accepts a quoted value, so /etc/environment may hold LANG="pt_BR.UTF-8".
 	value = strings.Trim(strings.TrimSpace(value), `"'`)
 	if value == "" || strings.ContainsRune(value, 0) {
 		return "", "", false
@@ -114,14 +95,6 @@ func hasCharacterLocale(envs []string) bool {
 	})
 }
 
-// acceptClientEnv filters the environment variables forwarded by an SSH client, keeping only those
-// that are safe to pass into a session. It mirrors the OpenSSH default AcceptEnv behaviour of
-// accepting LANG and any variable whose name starts with "LC_". All other variables — including
-// dangerous loader/shell overrides (LD_*, BASH_ENV, GODEBUG, PATH, HOME, USER, TERM,
-// SSH_AUTH_SOCK, ...) — are silently dropped.
-//
-// Entries that are malformed (no "=" separator), have an empty name, or contain a NUL byte are
-// also dropped. See advisory GHSA-22pj-m7g6-rh43.
 func acceptClientEnv(envs []string) []string {
 	if envs == nil {
 		return nil

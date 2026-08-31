@@ -24,9 +24,6 @@ import (
 func Run() {
 	loglevel.UseEnvs()
 
-	// Both the server and the admin commands reach envs.IsCloud/IsEnterprise,
-	// which panic on an unrecognized edition. Resolving here turns a typo into a
-	// clean startup failure instead of a panic deep in a request.
 	if _, err := envs.ResolveEdition(); err != nil {
 		log.WithError(err).Fatal("failed to resolve ShellHub edition")
 	}

@@ -95,9 +95,6 @@ func (s *Suite) TestTagList(t *testing.T) {
 		})
 	}
 
-	// This subtest used to pin the old default: a tag listing with no namespace option returned every
-	// namespace's tags. That default is gone — an unbounded listing is now a positive, written act,
-	// so the test asks for it explicitly rather than getting it by omission.
 	t.Run("succeeds spanning namespaces under an explicit unbounded scope", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -147,7 +144,6 @@ func (s *Suite) TestTagResolve(t *testing.T) {
 	t.Run("fails when tag not found by ID", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create and delete a tag to get a valid but non-existent ID
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("temp"), WithTagTenant(tenantID))
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
@@ -207,7 +203,6 @@ func (s *Suite) TestTagUpdate(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete a tag to get a valid but non-existent ID
 		tagID := s.CreateTag(t, WithTagName("temp"), WithTagTenant(tenantID))
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
@@ -253,7 +248,6 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 
-		// Create and delete a tag to get a valid but non-existent ID
 		tagID := s.CreateTag(t, WithTagName("temp"), WithTagTenant(tenantID))
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
@@ -268,7 +262,6 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
 
-		// Create and delete a device to get a valid but non-existent UID
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
@@ -322,7 +315,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 
-		// Create and delete a tag to get a valid but non-existent ID
 		tagID := s.CreateTag(t, WithTagName("temp"), WithTagTenant(tenantID))
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
@@ -337,7 +329,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		tenantID := s.CreateNamespace(t)
 		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
 
-		// Create and delete a device to get a valid but non-existent UID
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
@@ -375,7 +366,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fp2)
 		require.NoError(t, err)
 
-		// Pull from all targets (no targetIDs)
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetPublicKey)
 		require.NoError(t, err)
 	})
@@ -407,7 +397,6 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(device2))
 		require.NoError(t, err)
 
-		// Pull from all targets (no targetIDs provided)
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice)
 		require.NoError(t, err)
 	})
@@ -422,12 +411,10 @@ func (s *Suite) TestTagDelete(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete a tag to get a valid but non-existent ID
 		tagID := s.CreateTag(t, WithTagName("temp"), WithTagTenant(tenantID))
 		err := st.TagDelete(ctx, &models.Tag{ID: tagID, TenantID: tenantID})
 		require.NoError(t, err)
 
-		// Try to delete again (tag already deleted)
 		tag := &models.Tag{
 			ID:       tagID,
 			TenantID: tenantID,

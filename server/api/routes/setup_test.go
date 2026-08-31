@@ -90,7 +90,6 @@ func TestSetup(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
 
-			// Removed query parameters since signature is no longer checked
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/setup", strings.NewReader(test.body))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()

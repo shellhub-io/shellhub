@@ -13,23 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// geteuidFn is a seam for os.Geteuid used in setgroupsDenied and NewCmd.
-// Tests can replace it to simulate running as root or non-root.
 var geteuidFn = os.Geteuid
 
-// readSetgroupsPolicyFn is a seam for reading /proc/self/setgroups.
-// Tests can replace it to control the kernel policy value without filesystem access.
 var readSetgroupsPolicyFn = func() ([]byte, error) {
 	return os.ReadFile("/proc/self/setgroups")
 }
 
-// setgroupsDenied reports whether the kernel has denied setgroups(2) for this
-// process by checking /proc/self/setgroups.
-//
-// Return values:
-//   - true:  the policy file trims to "deny".
-//   - false: the file does not exist (kernel too old or not in a user-ns); silent.
-//   - false: any other read error; a warning is emitted via the logger.
 func setgroupsDenied() bool {
 	data, err := readSetgroupsPolicyFn()
 	if err != nil {
@@ -71,13 +60,7 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		groups = []uint32{}
 	}
 
-	// noctx: NewCmd has a docker and a native build-tag variant sharing one signature, called
-	// from linux and freebsd paths. The session context reaches the callers, not here, so
-	// threading it through is a change to the command API rather than a lint fix.
 	cmd := exec.Command(command[0], command[1:]...) //nolint:noctx,gosec
-	// TODO: There are other environment variables we could set like SSH_CONNECTION, SSH_TTY, SSH_ORIGINAL_COMMAND, etc.
-	// We need to check which ones are relevant and set them accordingly.
-	// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
@@ -85,11 +68,6 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		"USER=" + u.Username,
 		"LOGNAME=" + u.Username,
 		"SHELLHUB_HOST=" + host,
-		// NOTE: We need to set the SSH_CLIENT because some applications (like bash) check for it to enable some
-		// features or load some files (like .bashrc). Currently, we don't have this information, so we set a fake one.
-		// TODO: Set the real SSH_CLIENT value.
-		// Format: "<ip> <source-port> <destination-port>"
-		// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
 		"SSH_CLIENT=127.0.0.1 0 0",
 	}
 	cmd.Env = append(cmd.Env, envs...)

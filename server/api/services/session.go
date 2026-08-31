@@ -25,11 +25,6 @@ var SessionFilterFields = query.NewFieldConstraints(map[string][]string{
 	"closed":     {"bool"},
 	"active":     {"bool"},
 },
-	// Virtual bool-backed fields intercepted by ParseFilterProperty before any
-	// SQL column binding — safe to accept bool-convertible values with eq/ne.
-	// "active" is declared virtual here so that IsVirtualBoolField accurately
-	// reflects the store-layer intercept, even though "active" currently only
-	// allows "bool" (not eq/ne) and the distinction is not yet load-bearing.
 	"active",
 )
 
@@ -86,8 +81,6 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		return nil, err
 	}
 
-	// Reading back the row just written under a UID this call generated; there is no namespace to
-	// bound by until the store has resolved it from the device.
 	return s.store.SessionResolve(ctx, scope.NewUnbounded("reading back the session this call just created, by its generated UID"), store.SessionUIDResolver, uid)
 }
 
@@ -129,8 +122,6 @@ func (s *service) UpdateSession(ctx context.Context, uid models.UID, model model
 		session.Recorded = *model.Recorded
 	}
 
-	// We need to create an active session when authenticated to maintain compatibility with the old store implementation.
-	// In the future, we may refactor the store to remove the active_session pattern.
 	if session.Authenticated {
 		if err := s.store.ActiveSessionCreate(ctx, session); err != nil {
 			log.WithError(err).WithField("session_id", session.UID).Warn("failed to activate the session")

@@ -12,8 +12,6 @@ type ctxKey string
 
 const deviceLimitKey ctxKey = "namespace-device-limit"
 
-// namespaceDeviceLimit pairs the limit with the namespace it was read for, so a request
-// targeting a different namespace cannot be answered from it.
 type namespaceDeviceLimit struct {
 	tenantID string
 	limit    models.NamespaceDeviceLimit

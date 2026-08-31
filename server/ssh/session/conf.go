@@ -21,10 +21,6 @@ type Config struct {
 	ConnectTimeout time.Duration
 }
 
-// sshconf holds the settings installed by [Configure].
-//
-// It is never nil: a test that does not configure the package reads these
-// defaults rather than dereferencing nothing.
 var sshconf = &Config{
 	AllowPublickeyAccessBelow060: false,
 	Domain:                       "localhost",

@@ -401,17 +401,6 @@ func NewErrPublicKeyTagsEmpty(next error) error {
 
 // NewErrPublicKeyDataInvalid returns an error when the public key data is invalid.
 func NewErrPublicKeyDataInvalid(value []byte, next error) error {
-	// FIXME: literal assignment.
-	//
-	// The literal assignment of value to a map's key "Data" is required because the service doesn't have conscious about
-	// the models.PublicKey field when it validate the public key data. When validating other fields, the validation
-	// function return the field and value what is invalid, but in this case, the validation occur by the check of
-	// ssh.ParseAuthorizedKey result.
-	//
-	// To fix this, I believe that all extra validation could be set as structure methods, centralizing the structure
-	// value agreement.
-	//
-	// For now, there are a test to check if the models.PublicKey has the "Data" field.
 	return NewErrInvalid(ErrPublicKeyDataInvalid, map[string]any{"Data": value}, next)
 }
 
@@ -532,8 +521,6 @@ func NewErrDeviceStatusInvalid(status string, next error) error {
 
 // NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.
 func NewErrDeviceStatusAccepted(next error) error {
-	// This error is so tied to the device status, that it is not possible to use the NewErrInvalid function without this
-	// literal assignment.
 	return NewErrInvalid(ErrDeviceStatusAccepted, map[string]any{"status": "accepted"}, next)
 }
 

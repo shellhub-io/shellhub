@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubSession is a minimal implementation of gliderssh.Session for testing generateShellCmd.
 type stubSession struct {
 	user string
 	envs []string
@@ -71,10 +70,8 @@ func (s *stubSession) Signals(_ chan<- gliderssh.Signal) {}
 
 func (s *stubSession) Break(_ chan<- bool) {}
 
-// Ensure stubSession satisfies the gliderssh.Session interface at compile time.
 var _ gliderssh.Session = (*stubSession)(nil)
 
-// stubSSHContext is a minimal gliderssh.Context for testing.
 type stubSSHContext struct {
 	context.Context
 	*sync.Mutex
@@ -96,7 +93,6 @@ func (c *stubSSHContext) Permissions() *gliderssh.Permissions { return nil }
 
 func (c *stubSSHContext) SetValue(_, _ any) {}
 
-// Ensure stubSSHContext satisfies the gliderssh.Context interface at compile time.
 var _ gliderssh.Context = (*stubSSHContext)(nil)
 
 func newStubContext() gliderssh.Context {
@@ -168,7 +164,6 @@ func TestGenerateShellCmdFiltersClientEnv(t *testing.T) {
 	}
 }
 
-// containsEnvEntry reports whether the exact entry e appears in envs.
 func containsEnvEntry(envs []string, e string) bool {
 	return slices.Contains(envs, e)
 }
@@ -211,9 +206,6 @@ func TestGenerateShellCmdExcludesForbiddenVarsPresentInCmdEnv(t *testing.T) {
 
 		for _, e := range cmd.Env {
 			if strings.HasPrefix(e, name+"=") {
-				// HOME, USER, TERM are set by NewCmd itself from the user struct, so they
-				// can appear in cmd.Env — but must not carry the dangerous client-supplied value.
-				// All other dangerous vars must be absent entirely.
 				if name != "HOME" && name != "USER" && name != "TERM" {
 					t.Errorf("dangerous var %q from session.Environ() reached cmd.Env as %q", danger, e)
 				}

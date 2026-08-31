@@ -39,7 +39,6 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	m := NewManager()
 
 	m.DialerDoneCallback = func(key string) {
-		// TODO: Use `Key` struct when available to avoid string parsing on every call.
 		parts := strings.Split(key, ":")
 		if len(parts) != 2 {
 			log.Error("failed to parse key at close handler")
@@ -50,8 +49,6 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 		tenant := parts[0]
 		uid := parts[1]
 
-		// Not the connection's context: it is already gone by the time this runs,
-		// and cancelling the write would leave the device marked online.
 		if err := devices.OfflineDevice(context.Background(), models.UID(uid)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
@@ -63,7 +60,6 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	}
 
 	m.DialerKeepAliveCallback = func(key string) {
-		// TODO: Use `Key` struct when available to avoid string parsing on every call.
 		parts := strings.Split(key, ":")
 		if len(parts) != 2 {
 			log.Error("failed to parse key at keep alive handler")
@@ -105,10 +101,6 @@ func (t *Dialer) DialTo(ctx context.Context, tenant string, uid string, target T
 	return handshake(ctx, conn, version, target)
 }
 
-// handshake runs the target's bootstrap under a deadline and hands back a
-// connection with that deadline cleared, ready for streaming. An agent that
-// accepts the stream but never answers fails here instead of parking the
-// caller's goroutine until whatever sits in front times out.
 func handshake(ctx context.Context, conn net.Conn, version TransportVersion, target Target) (net.Conn, error) { //nolint:ireturn
 	deadline := clock.Now().Add(HandshakeTimeout)
 	if caller, ok := ctx.Deadline(); ok && caller.Before(deadline) {
@@ -121,11 +113,6 @@ func handshake(ctx context.Context, conn net.Conn, version TransportVersion, tar
 		return nil, err
 	}
 
-	// A deadline does not observe cancellation, so a caller that gives up
-	// mid-handshake would hold the stream until the deadline fires. Closing the
-	// connection is what unblocks the read. AfterFunc's stop answers only once,
-	// hence the OnceValue: the deferred call must not consume the verdict the
-	// return paths below read.
 	watchdogStopped := sync.OnceValue(context.AfterFunc(ctx, func() {
 		_ = conn.Close()
 	}))
@@ -135,8 +122,6 @@ func handshake(ctx context.Context, conn net.Conn, version TransportVersion, tar
 	if err != nil {
 		_ = conn.Close()
 
-		// The watchdog's Close surfaces as an I/O error, which reads like a
-		// broken agent. Report what actually happened.
 		if !watchdogStopped() {
 			return nil, ctx.Err()
 		}

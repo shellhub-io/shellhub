@@ -64,12 +64,6 @@ type (
 	connCtxKey     struct{}
 )
 
-// getSnapshot is responsible for managing the state of a session associated with
-// the provided context. It creates a new getSnapshot if one is not already associated.
-// A getSnapshot can be used to retrieve and modify the current state of a session, enabling
-// composition between steps and avoiding redundant operations.
-//
-// Utilize [save] to store the state of a session and [retrieve] to retrieve it.
 func getSnapshot(ctx gliderssh.Context) *snapshot {
 	if snap, ok := ctx.Value(snapshotCtxKey{}).(*snapshot); ok && snap != nil {
 		return snap
@@ -81,13 +75,11 @@ func getSnapshot(ctx gliderssh.Context) *snapshot {
 	return snap
 }
 
-// save stores the provided session and it's state.
 func (s *snapshot) save(session *Session, state State) {
 	s.session = session
 	s.state = state
 }
 
-// retrieve retrieves the current state and the associated session.
 func (s *snapshot) retrieve() (*Session, State) {
 	return s.session, s.state
 }
@@ -98,12 +90,6 @@ func ObtainSession(ctx gliderssh.Context) (*Session, State) {
 	return getSnapshot(ctx).retrieve()
 }
 
-// advance records that the session has reached state, so the handlers that run
-// later in the connection can see how far it got.
-//
-// It is unexported on purpose: only the steps that actually perform the work
-// may declare it done, and an exported form would let any caller forge a state
-// it never reached.
 func advance(ctx gliderssh.Context, session *Session, state State) {
 	getSnapshot(ctx).save(session, state)
 }

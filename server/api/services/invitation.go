@@ -58,8 +58,6 @@ func (s *service) ResolveInvitation(ctx context.Context, req *requests.ResolveIn
 
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, invitation.UserID)
 	if err != nil {
-		// No real account yet; the invitee still needs to register. Resolve the
-		// placeholder to surface their email and the "invited" status.
 		ui, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, invitation.UserID)
 		if err != nil {
 			return nil, NewErrUserNotFound(invitation.UserID, err)
@@ -122,8 +120,6 @@ func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.Gene
 		return "", err
 	}
 
-	// Direct membership added the account right away — no invitation, no link to hand over. The
-	// empty return signals the caller that the member was added, not invited.
 	if invitation == nil {
 		return "", nil
 	}
@@ -131,10 +127,6 @@ func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.Gene
 	return buildInviteURL(req.ForwardedProto, req.ForwardedHost, invitation.Sig), nil
 }
 
-// buildInviteURL reconstructs the accept-invite link from an invitation signature. The invite
-// code alone resolves the invitation (tenant, user, email, status) server-side, so the link
-// carries only it — no email or internal IDs in the URL. The scheme comes from the request's
-// X-Forwarded-Proto and defaults to https so the copyable link is valid on TLS deployments.
 func buildInviteURL(forwardedProto, forwardedHost, sig string) string {
 	scheme := forwardedProto
 	if scheme == "" {

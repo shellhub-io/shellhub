@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// keygen generates private and public keys required to startup a ShellHub instance.
 func keygen() error {
 	const PrivateKeyPermission uint = 0o600
 	const PublicKeyPermission uint = 0o644
@@ -80,9 +79,6 @@ func keygen() error {
 }
 
 func TestMain(m *testing.M) {
-	// INFO: Due to issue related on testcontainers-go, we are disabling Ryuk it as a temporary solution.
-	//
-	// https://github.com/testcontainers/testcontainers-go/issues/2445
 	_ = os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 	if err := keygen(); err != nil {

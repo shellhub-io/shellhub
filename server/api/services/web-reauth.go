@@ -24,10 +24,6 @@ func (s *service) WebReauthVerify(ctx context.Context, req *requests.WebReauthVe
 		return NewErrUserNotFound(req.UserID, err)
 	}
 
-	// Community factor: the account password. MFA is a cloud-only feature and is
-	// ignored here; the enterprise overlay swaps in TOTP when user.MFA.Enabled.
-	// A wrong factor is Forbidden (403), not Unauthorized (401): the session is
-	// still valid, so a 401 would trip the console's logout-on-401 interceptor.
 	if !user.Password.Compare(req.Password) {
 		return NewErrUserPasswordNotMatch(nil)
 	}
@@ -55,8 +51,6 @@ func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauth
 		return NewErrForbidden(ErrForbidden, nil)
 	}
 
-	// The stamp and the release share a transaction: a login must never be let
-	// through on a step-up whose freshness did not land, nor the reverse.
 	return st.WithTransaction(ctx, func(ctx context.Context) error {
 		if err := st.SSHIdentityTouchReauth(ctx, req.TenantID, req.Fingerprint); err != nil {
 			return err
@@ -70,9 +64,6 @@ func StampWebReauth(ctx context.Context, st store.Store, req *requests.WebReauth
 	})
 }
 
-// releaseSSHApproval confirms the held login the step-up was for, after checking
-// it is a re-auth for this very key. Without that check a factor proved for one
-// key could release a login waiting on another.
 func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebReauthVerify) error {
 	now := clock.Now()
 

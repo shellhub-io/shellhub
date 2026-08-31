@@ -19,8 +19,6 @@ import (
 // account and — if the code resolves — joins the namespace in the same step. Open self-registration
 // is a capability (cloud only); community and enterprise are invite-only.
 func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
-	// A valid invite code (Sig) is the only way to complete an invited account: it resolves the
-	// invitation server-side and the email comes from it, so the invitee can't retarget it.
 	if req.Sig != "" {
 		if membership, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil {
 			invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, membership.UserID)
@@ -30,10 +28,6 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 		}
 	}
 
-	// No valid code: only open self-registration (cloud) proceeds. Invite-only editions refuse
-	// here, which also stops someone who only knows an invited email from pre-consuming it.
-	// An empty Email also refuses: validation only requires Email when Sig is absent, so a
-	// present-but-unresolved Sig reaches here with a blank email that must not create an account.
 	if !openSignupAllowed() || req.Email == "" {
 		return nil, NewErrAuthForbidden()
 	}
@@ -45,7 +39,6 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 	return s.createNewUser(ctx, &req, forwardedHost, forwardedProto)
 }
 
-// createNewUser handles the creation of a new user who was not invited to register.
 func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
@@ -85,7 +78,6 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 
 	validUntil := clock.Now().Add(24 * time.Hour)
 
-	// Email delivery is an edition add-on (cloud) and non-fatal: the user can request a resend.
 	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
@@ -93,7 +85,6 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 	return nil, nil
 }
 
-// createInvitedUser handles the creation of a user who was previously invited through user_invitations.
 func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
 	if invitation.Status != models.UserInvitationStatusPending {
 		return nil, errors.New("invitation already accepted")
@@ -113,8 +104,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		EmailMarketing: req.EmailMarketing,
 		Password:       password,
 		UserData: models.UserData{
-			// The email is the invitation's, never the request's: the invitee proved
-			// ownership of it by following the link, and can't sign up as another email.
 			Email:    strings.ToLower(invitation.Email),
 			Username: strings.ToLower(req.Username),
 			Name:     req.Name,
@@ -125,10 +114,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		},
 	}
 
-	// Verify if the registration originates from the invitation link. If the signature resolves
-	// to this invitee, they proved ownership of the email (clicked the link) and we skip the
-	// email-verification round-trip. The resolved membership is finalized below so completing
-	// the account also joins the namespace (there is no separate accept step in this flow).
 	var membership *models.MembershipInvitation
 
 	if req.Sig != "" {
@@ -136,9 +121,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 			membership = m
 			user.Status = models.UserStatusConfirmed
 
-			// An account invited by a non-superadmin is inert until a system admin approves it —
-			// but only where that capability is on (enterprise). The login gate keys off
-			// AwaitingApproval; approveUser clears it. Community/cloud leave it false.
 			if nonAdminProvisioningAllowed() {
 				if invitedBy, err := s.store.UserResolve(ctx, store.UserIDResolver, membership.InvitedBy); err == nil && !invitedBy.Admin {
 					user.AwaitingApproval = true
@@ -147,8 +129,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		}
 	}
 
-	// UserCreate and UserInvitationUpdate are wrapped in a transaction so that a failure on
-	// UserInvitationUpdate rolls back the user insert.
 	var txErr error
 
 	if txErr = s.store.WithTransaction(ctx, func(ctx context.Context) error {
@@ -161,9 +141,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 			return err
 		}
 
-		// Completing the account through the link joins the namespace now. Login may still be
-		// gated by AwaitingApproval, but the membership is in place so approval alone unblocks
-		// them. admitMember consumes the invitation, atomic with the user + membership write.
 		if membership != nil {
 			member := &models.Member{ID: user.ID, AddedAt: clock.Now(), Role: membership.Role}
 			if err := s.admitMember(ctx, scope.MustBounded(membership.TenantID), member, membership); err != nil {
@@ -184,8 +161,6 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		return nil, NewErrUserCreate(txErr)
 	}
 
-	// An account awaiting approval is inert: minting a session token here would let the invitee
-	// slip past the login gate. Return no token so the UI lands on "waiting for approval".
 	if user.AwaitingApproval {
 		return nil, nil
 	}

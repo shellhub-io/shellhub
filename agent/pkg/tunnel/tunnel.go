@@ -43,7 +43,6 @@ func (t *TunnelV2) Handle(protocol string, handler HandlerFunc) {
 		log.WithField("protocol", protocol).Debug("handling connection")
 		defer log.WithField("protocol", protocol).Debug("handling connection closed")
 
-		// TODO: Should we receive a context from outside?
 		return handler(NewContext(context.TODO(), rwc), rwc)
 	})
 }
@@ -100,7 +99,6 @@ func NewTunnelV1() *TunnelV1 {
 		srv: &http.Server{ //nolint:gosec
 			Handler: e,
 			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-				// TODO: Create a constant for the key.
 				return context.WithValue(ctx, "http-conn", c)
 			},
 		},

@@ -27,8 +27,6 @@ const (
 	testUserID = "6f4c1b2a1e2f3a4b5c6d7e8f"
 )
 
-// userBearer signs a user JWT and returns it alongside the key the
-// authenticator must verify it with.
 func userBearer(t *testing.T) (string, *rsa.PrivateKey) {
 	t.Helper()
 
@@ -149,7 +147,6 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, ns.DeviceLimit(), forwarded)
 
-	// A request targeting a different namespace must not be answered from it.
 	_, ok = authctx.NamespaceDeviceLimit(c.Request().Context(), "00000000-0000-4000-0000-000000000009")
 	assert.False(t, ok)
 

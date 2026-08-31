@@ -9,9 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// userCommands creates and returns a Cobra command for user management.
-// It registers user-related subcommands and uses the provided service
-// to handle the underlying business logic.
 func userCommands(service serviceFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user",
@@ -42,7 +39,6 @@ The username must be unique, and the password must meet the system's security re
 ./bin/cli user create john_doe Secret123!- john.doe@test.com --admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.UserCreate{
-				// Normalize username and email to lowercase to avoid case-sensitive duplicates.
 				Username: strings.ToLower(args[0]),
 				Password: args[1],
 				Email:    strings.ToLower(args[2]),

@@ -38,8 +38,6 @@ type InstallKey struct {
 }
 
 func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
-	// allowed_macs and tags are NOT NULL: a nil slice would be written as SQL NULL and violate the
-	// constraint, so coerce each to an empty array here (the same shape the DEFAULT '{}' would give).
 	allowedMACs := model.AllowedMACs
 	if allowedMACs == nil {
 		allowedMACs = []string{}
@@ -50,9 +48,6 @@ func InstallKeyFromModel(model *models.InstallKey) *InstallKey {
 		tags = []string{}
 	}
 
-	// A zero-valued Type (any user-created key, which never sets it) persists as the explicit "user"
-	// discriminator, so the DB never stores an empty string that the partial unique index would treat
-	// as a system row.
 	keyType := model.Type
 	if keyType == "" {
 		keyType = models.InstallKeyTypeUser

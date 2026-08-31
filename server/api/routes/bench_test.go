@@ -11,8 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// nullWriter is a [http.ResponseWriter] that keeps the benchmarks measuring the router and its
-// middleware rather than httptest's recorder, which allocates a buffer per request.
 type nullWriter struct {
 	header http.Header
 }
@@ -32,8 +30,6 @@ func (w *nullWriter) WriteHeader(int) {}
 func benchRouter(b *testing.B) http.Handler {
 	b.Helper()
 
-	// The request-log middleware writes a line per request. Keep the formatting in the
-	// measurement — it is real per-request work — but not the terminal write behind it.
 	previous := logrus.StandardLogger().Out
 	logrus.SetOutput(io.Discard)
 	b.Cleanup(func() { logrus.SetOutput(previous) })
@@ -44,8 +40,6 @@ func benchRouter(b *testing.B) http.Handler {
 	return NewRouter(service)
 }
 
-// benchServe drives target through the router. It asserts the status once up front so a
-// benchmark cannot quietly measure a 404 it did not mean to.
 func benchServe(b *testing.B, target string, want int) {
 	b.Helper()
 

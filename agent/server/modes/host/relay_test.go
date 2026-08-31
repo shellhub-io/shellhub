@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// capturingSession records what each stream received, so a test can tell stdout
-// from stderr. The embedded fakeSession discards both.
 type capturingSession struct {
 	*fakeSession
 
@@ -89,7 +87,6 @@ func TestRelayOutputDrainsStderrWhileStdoutIsOpen(t *testing.T) {
 	wg := new(sync.WaitGroup)
 	relayOutput(wg, session, stdoutReader, stderrReader)
 
-	// Comfortably past the 64 KiB Linux pipe buffer.
 	payload := bytes.Repeat([]byte("e"), 256*1024)
 
 	written := make(chan error, 1)

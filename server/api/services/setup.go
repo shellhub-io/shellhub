@@ -56,17 +56,15 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	}
 
 	user := &models.User{
-		Origin:   models.UserOriginLocal,
-		UserData: data,
-		Password: password,
-		// NOTE: user's created from the setup screen doesn't need to be confirmed.
+		Origin:        models.UserOriginLocal,
+		UserData:      data,
+		Password:      password,
 		Status:        models.UserStatusConfirmed,
 		CreatedAt:     clock.Now(),
 		MaxNamespaces: -1,
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
-		// NOTE: The first user is always an admin.
 		Admin: true,
 	}
 
@@ -83,8 +81,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		return nil, err
 	}
 
-	// Namespace names route SSHIDs and are matched case-insensitively, so normalize to
-	// lowercase here just like the regular namespace-creation path does.
 	namespaceName := strings.ToLower(req.Namespace)
 
 	tenantID := uuid.Generate()
@@ -122,9 +118,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	}
 
 	system.Setup = true
-	// Bind the instance to the namespace just created. In Community this makes it the single
-	// namespace (NamespaceCreate refuses any further namespace once this is set). Enterprise/Cloud
-	// strip the binding in their store wrapper's SystemSet, so it stays empty there.
 	system.InstanceTenantID = namespace.TenantID
 	if err := s.store.SystemSet(ctx, system); err != nil {
 		return nil, err
@@ -134,11 +127,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		log.WithError(err).Warn("failed to evict the cached system row after setup")
 	}
 
-	// Issue an authenticated session for the admin we just created so the client can enter the
-	// instance without a second round-trip through the login screen. Setup is already committed
-	// at this point, so a token-minting failure must not turn a successful setup into an error
-	// (a retry would then hit ErrSetupForbidden); return without a token and let the client fall
-	// back to the login screen instead.
 	res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: insertedID, TenantID: namespace.TenantID})
 	if err != nil {
 		log.WithError(err).Warn("setup completed but failed to issue an auto-login token")

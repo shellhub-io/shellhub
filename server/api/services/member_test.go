@@ -158,17 +158,14 @@ func TestService_AddNamespaceMember(t *testing.T) {
 					Owner:    "000000000000000000000000",
 					Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
 				}
-				// Resolved once up front and once to return the refreshed namespace after commit.
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(ns, nil).
 					Twice()
-				// The transaction body runs so the invitation write is exercised.
 				storeMock.
 					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
-				// No account for this email yet: a placeholder user_invitation is upserted.
 				storeMock.
 					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
 					Return(nil, store.ErrNoDocuments).
@@ -322,16 +319,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrRoleForbidden(),
 		},
 		{
-			// The current-role guard catches any attempt by a lower-privileged actor to
-			// act on a higher-privileged passive member regardless of the requested new
-			// role. Here active=operator, passive=admin, MemberRole=observer: the new-role
-			// guard (active.Role.HasAuthority(req.MemberRole)) would pass because
-			// Operator.HasAuthority(Observer)==true, but the current-role guard
-			// (active.Role.HasAuthority(member.Role)) rejects it because
-			// Operator.HasAuthority(Administrator)==false. Setting MemberRole=observer
-			// (below the active operator) isolates the current-role guard from the
-			// new-role guard, so removing the current-role guard would turn this into a
-			// pass-through and break this test.
 			description: "[community|enterprise|cloud] BFLA: fails when operator tries to act on an admin (current-role guard)",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -433,11 +420,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			},
 			expected: nil,
 		},
-		// BFLA: the active member must have authority over the passive member's current
-		// role, not only over the requested new role. These cases cover that guard.
 		{
-			// An admin must not be able to modify an owner, even when the new role is
-			// below owner level — the passive member's current role must also be checked.
 			description: "[community|enterprise|cloud] BFLA: fails when admin tries to demote an owner",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -468,15 +451,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrRoleForbidden(),
 		},
 		{
-			// An admin acting on an equal-rank admin with a lower new role (demotion) is
-			// permitted. This case discriminates the current-role guard (line 128) from the
-			// new-role guard (line 132): the current-role guard checks
-			// Admin.HasAuthority(Admin)=true (passive's *current* role), while the new-role
-			// guard checks Admin.HasAuthority(Observer)=true (the requested *new* role). Both
-			// pass here. Removing the current-role guard would leave this as a pass-through,
-			// but the companion rejection test (operator-demotes-admin) would break, proving
-			// the guard's necessity. Together the two cases pin the >= semantics of the
-			// current-role check without conflating it with the new-role check.
 			description: "[community|enterprise|cloud] succeeds when admin demotes equal-rank admin",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -515,9 +489,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: nil,
 		},
 		{
-			// An owner must not be able to self-demote. The self-target guard (active.ID ==
-			// member.ID) runs before the BFLA current-role guard, so this now returns
-			// NewErrAuthForbidden() instead of NewErrRoleForbidden().
 			description: "[community|enterprise|cloud] BFLA: fails when owner tries to self-demote",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -544,13 +515,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrAuthForbidden(),
 		},
 		{
-			// A lower-privileged member sending an omitted/empty role against a
-			// higher-privileged passive member must be rejected. The current-role guard must
-			// run unconditionally (not only when req.MemberRole != RoleInvalid) to prevent a
-			// lower-privileged actor from performing a write (NamespaceUpdateMembership) and
-			// token-invalidation (AuthUncacheToken) against a member they have no authority
-			// over. Without this guard an admin could force-invalidate an owner's cached auth
-			// token via a no-op role update.
 			description: "[community|enterprise|cloud] BFLA: fails when admin targets owner with empty role",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -581,13 +545,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrRoleForbidden(),
 		},
 		{
-			// A member record with an empty/invalid role (legacy or corrupted data) must
-			// be repairable via the normal API path. HasAuthority treats RoleInvalid as the
-			// lowest rank (code 0), so any valid active role can act on the corrupted member.
-			// This prevents a permanent lock-out where the member could never be fixed or
-			// removed without direct DB intervention. Low-privileged actors cannot exploit
-			// this because they would still need to pass the new-role guard for the
-			// requested role, and they cannot assign RoleInvalid as a new role either.
 			description: "[community|enterprise|cloud] succeeds when owner repairs a member with an invalid/empty role",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -626,15 +583,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: nil,
 		},
 		{
-			// A lower-privileged actor must NOT be able to exploit a corrupted passive
-			// record to force-write or force-invalidate tokens. The current-role guard
-			// (HasAuthority(RoleInvalid)==true) passes for any valid role, but the
-			// new-role guard still rejects an admin trying to promote the invalid member
-			// to administrator (Admin.HasAuthority(Administrator)==true passes the
-			// new-role check). However, a lower actor (observer) cannot request a role
-			// above their own authority (Observer.HasAuthority(Observer)==true but
-			// Observer.HasAuthority(Administrator)==false). Test that operator cannot
-			// assign admin to a corrupted member, verifying new-role guard still applies.
 			description: "[community|enterprise|cloud] BFLA: fails when operator tries to promote invalid-role member to administrator",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -665,9 +613,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: NewErrRoleForbidden(),
 		},
 		{
-			// An administrator self-targeting this endpoint must be rejected. A
-			// self-demotion would strip NamespaceEditMember authority and lock the
-			// caller out permanently. To leave a namespace, use LeaveNamespace instead.
 			description: "[community|enterprise|cloud] BFLA: fails when a member targets themselves (self-demote)",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
@@ -694,8 +639,6 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				// NO NamespaceUpdateMembership call — guard returns early
-				// NO cacheMock.Delete call — guard returns early
 			},
 			expected: NewErrAuthForbidden(),
 		},
@@ -770,7 +713,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				queryOptionsMock := new(storemock.MockQueryOptions)
 				storeMock.On("Options").Return(queryOptionsMock).Once()
 				queryOptionsMock.On("WithMember", "000000000000000000000001").Return(nil).Once()
-				// The removed member has no remaining namespace, so the account is reclaimed.
 				storeMock.
 					On("NamespaceList", ctx, mock.Anything).
 					Return([]models.Namespace{}, 0, nil).
@@ -838,8 +780,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				queryOptionsMock := new(storemock.MockQueryOptions)
 				storeMock.On("Options").Return(queryOptionsMock).Once()
 				queryOptionsMock.On("WithMember", "000000000000000000000001").Return(nil).Once()
-				// The removed member is still in another namespace, so the guard preserves
-				// the account and UserDelete must never be called.
 				storeMock.
 					On("NamespaceList", ctx, mock.Anything).
 					Return([]models.Namespace{{TenantID: "00000000-0000-4000-0000-000000000001"}}, 1, nil).
@@ -1105,10 +1045,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 				err: nil,
 			},
 		},
-		// The absent-member check must be caught by FindMember in RemoveNamespaceMember,
-		// never by a store-layer sentinel inside removeMember. When NamespaceDeleteMembership
-		// unexpectedly returns a store error the error must propagate unchanged so callers
-		// can distinguish it from a not-found-namespace response.
 		{
 			description: "[community|enterprise|cloud] propagates unexpected store error from NamespaceDeleteMembership unchanged",
 			req: &requests.NamespaceRemoveMember{
@@ -1135,9 +1071,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						},
 					}, nil).
 					Once()
-				// Simulate an unexpected store error from NamespaceDeleteMembership (e.g.
-				// TOCTOU: member disappeared after the FindMember precheck). The service
-				// must propagate it unchanged — the default branch must not remap it.
 				storeMock.
 					On("NamespaceDeleteMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(store.ErrInternal).
@@ -1149,10 +1082,6 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			// A member record with a corrupted/legacy role (RoleInvalid) must not become
-			// permanently un-removable. HasAuthority treats RoleInvalid as the lowest rank
-			// so any valid active role can act on it. The owner must be able to remove the
-			// corrupted member to restore namespace integrity without DB intervention.
 			description: "[community|enterprise|cloud] succeeds when owner removes a member with an invalid/empty role",
 			req: &requests.NamespaceRemoveMember{
 				UserID:   "000000000000000000000000",
@@ -1388,10 +1317,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 				err: nil,
 			},
 		},
-		// The absent-member check is performed by FindMember (before removeMember is ever
-		// called). If NamespaceDeleteMembership unexpectedly returns a store error it must
-		// NOT be remapped to NewErrNamespaceMemberNotFound — that conversion was a dead
-		// branch that leaked store internals into the service layer.
 		{
 			description: "propagates unexpected store error from NamespaceDeleteMembership unchanged",
 			req: &requests.LeaveNamespace{
@@ -1489,9 +1414,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Return(nil).
 					Once()
 
-				// NOTE: This test is a replica of TestService_CreateUserToken because this method
-				// internally calls it to create another token. Since this functionality is already tested,
-				// we are duplicating the test here to prevent failures. The important tests are all in the lines above.
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
@@ -1530,8 +1452,6 @@ func TestService_LeaveNamespace(t *testing.T) {
 			tc.requiredMocks(ctx)
 
 			res, err := s.LeaveNamespace(ctx, tc.req)
-			// Since the resulting token is not crucial for the assertion and
-			// difficult to mock, it is safe to ignore this field.
 			if res != nil {
 				res.Token = "must ignore"
 			}

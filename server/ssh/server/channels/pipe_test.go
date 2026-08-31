@@ -17,8 +17,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// stream is one direction of a channel: writes are buffered, reads block until
-// there is something to read or the write side is closed.
 type stream struct {
 	mu     sync.Mutex
 	cond   *sync.Cond
@@ -77,8 +75,6 @@ func (s *stream) String() string {
 	return s.buf.String()
 }
 
-// duplex pairs the two halves of an io.ReadWriter that are independent in the
-// SSH protocol, as gossh.Channel.Stderr is.
 type duplex struct {
 	in  *stream
 	out *stream
@@ -87,9 +83,6 @@ type duplex struct {
 func (d duplex) Read(p []byte) (int, error)  { return d.in.Read(p) }
 func (d duplex) Write(p []byte) (int, error) { return d.out.Write(p) }
 
-// fakeChannel is a gossh.Channel with each direction of each stream separate, so
-// a test can feed the peer's output and inspect what was relayed, and can
-// observe when the write side is closed.
 type fakeChannel struct {
 	dataIn    *stream
 	dataOut   *stream
@@ -139,7 +132,6 @@ func (f *fakeChannel) closeWriteCalled() bool {
 
 func (*fakeChannel) SendRequest(_ string, _ bool, _ []byte) (bool, error) { return true, nil }
 
-// quiet marks the peer as having nothing left to send.
 func (f *fakeChannel) quiet() {
 	f.dataIn.close()
 	f.stderrIn.close()
@@ -148,15 +140,11 @@ func (f *fakeChannel) quiet() {
 func newPipeSession(t *testing.T) *fakeSession {
 	t.Helper()
 
-	// Recording is a separate concern from the data path; the community edition
-	// keeps the recorder out of the writer set.
 	envstest.SetEdition(t, envs.Community)
 
 	return new(fakeSession)
 }
 
-// captureLogs collects what pipe logs on the standard logger, at debug level so
-// entries below the default threshold are recorded too.
 func captureLogs(t *testing.T) *test.Hook {
 	t.Helper()
 
@@ -223,7 +211,6 @@ func TestPipeReportsExpectedRecordingSkips(t *testing.T) {
 			hook := captureLogs(t)
 
 			sess := newPipeSession(t)
-			// The recorder is only wired in on the editions that record.
 			envstest.SetEdition(t, envs.Enterprise)
 
 			sess.recordedErr = tt.recordedErr
@@ -308,7 +295,6 @@ func TestPipeClosesWriteAfterBothStreams(t *testing.T) {
 
 	finished := runPipe(t, sess, client, agent)
 
-	// stdout is already at EOF; the agent's stderr is not.
 	assert.Never(t, client.closeWriteCalled, 200*time.Millisecond, 20*time.Millisecond,
 		"client write side was closed while agent stderr was still open")
 

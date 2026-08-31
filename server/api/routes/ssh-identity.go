@@ -35,8 +35,6 @@ func (h *Handler) ListSSHIdentities(c *gateway.Context) error {
 		req.TenantID = c.Tenant().ID
 	}
 
-	// The namespace-wide view is restricted to owners/admins; a member without it
-	// only ever sees their own keys.
 	if req.All && !c.Role().HasPermission(authorizer.SSHIdentityManage) {
 		req.All = false
 	}

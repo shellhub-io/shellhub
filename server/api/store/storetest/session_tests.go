@@ -131,30 +131,16 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		assert.Len(t, sessions, 1)
 	})
 
-	// Seed shared across the four filter subtests below.
-	//
-	// Layout:
-	//   device1: sess_a (active, open), sess_b (closed, inactive – via ActiveSessionDelete)
-	//   device2: sess_c (active, open), sess_d (inactive, open – never had an active-sessions row)
-	//
-	// Resulting counts per filter:
-	//   device_uid = device1  → sess_a + sess_b = 2
-	//   closed = true         → sess_b            = 1
-	//   closed = false        → sess_a, sess_c, sess_d = 3
-	//   active = true         → sess_a, sess_c    = 2  (rows exist in active_sessions)
-	//   active = false        → sess_b, sess_d    = 2  (no active_sessions row)
 	t.Run("filters by device_uid eq", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: one active, one closed
 		sessA := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		require.NoError(t, st.ActiveSessionDelete(ctx, sessB)) // closes sessB
 
-		// device2: one active, one inactive-but-open
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
@@ -183,11 +169,9 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: two sessions
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 
-		// device2: two sessions
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
@@ -215,12 +199,10 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: one active/open, one closed
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
 
-		// device2: one active, one inactive-open
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
@@ -247,12 +229,10 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: one active/open, one closed
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
 
-		// device2: one active, one inactive-open
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
@@ -279,12 +259,10 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: one active/open, one closed (inactive after delete)
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
 
-		// device2: one active, one inactive-open
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
@@ -313,17 +291,13 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		device1 := s.CreateDevice(t)
 		device2 := s.CreateDevice(t)
 
-		// device1: one active/open, one closed (removed from active_sessions via ActiveSessionDelete)
 		s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		sessB := s.CreateSession(t, WithSessionDevice(device1), WithSessionActive(true))
 		require.NoError(t, st.ActiveSessionDelete(ctx, sessB))
 
-		// device2: one active, one inactive-open (never had an active_sessions row)
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(true))
 		s.CreateSession(t, WithSessionDevice(device2), WithSessionActive(false))
 
-		// The NOT EXISTS correlated subquery on active_sessions.session_id must
-		// match only sessions without an active_sessions row (sess_b and sess_d).
 		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
 			st.Options().Match(&query.Filters{Data: []query.Filter{
 				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{

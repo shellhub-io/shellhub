@@ -131,8 +131,6 @@ func TestExitLogLevel(t *testing.T) {
 func TestNewSSHServerBridge_CredentialsNotFound(t *testing.T) {
 	e := echo.New()
 
-	// The token is never found, so the request fails before either dependency is
-	// reached.
 	require.NoError(t, NewSSHServerBridge(e, nil, nil, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
 	server := httptest.NewServer(e)

@@ -145,8 +145,6 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestWithTransaction(t)
 	})
 
-	// Cross-namespace isolation for every operation that takes a namespace scope. These are the
-	// tests that fail when a converted query stops applying its bound.
 	t.Run("ScopeIsolation", func(t *testing.T) {
 		s.TestScopeIsolationDeviceResolve(t)
 		s.TestScopeIsolationDeviceList(t)

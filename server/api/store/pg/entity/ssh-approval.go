@@ -47,8 +47,6 @@ func SSHApprovalFromModel(model *models.SSHApproval) *SSHApproval {
 		ExpiresAt:    model.ExpiresAt,
 	}
 
-	// decided_by is a users FK, so an undecided approval must write NULL rather
-	// than the empty string.
 	if model.DecidedBy != "" {
 		approval.DecidedBy = &model.DecidedBy
 	}

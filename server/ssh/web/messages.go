@@ -3,23 +3,11 @@ package web
 type messageKind uint8
 
 const (
-	// messageKindInput is the identifier to a input message. This kind of message can be directly send to [web.Conn].
 	messageKindInput messageKind = iota + 1
-	// messageKindResize is the identifier to a resize request message. This kind of message contains the number of
-	// columns and rows what the terminal should have.
 	messageKindResize
-	// messageKindSignature is the identifier to a signature message. This kind of message contains the data to be
-	// signed by the user's private key.
 	messageKindSignature
-	// messageKindError is the identifier to output an erro rmessage. This kind of message contains data to be show
-	// in terminal for information propose.
 	messageKindError
-	// messageKindSession carries the server session UID to the web client, so a client-side recording can be tied
-	// to its session. This kind of message contains the session UID as a string.
 	messageKindSession
-	// messageKindReauth signals that a policy's require_reauth window lapsed: the browser must prove a factor
-	// before this login goes through. It is distinct from messageKindError because the login is not over — the
-	// gateway is holding it open on the other side. It carries the approval code the step-up screen opens on.
 	messageKindReauth
 )
 

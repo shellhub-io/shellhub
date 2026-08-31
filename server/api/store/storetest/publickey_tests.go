@@ -151,7 +151,6 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete a public key to get a valid but non-existent fingerprint
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("temp"), WithPublicKeyTenant(tenantID))
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
@@ -173,7 +172,6 @@ func (s *Suite) TestPublicKeyUpdate(t *testing.T) {
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenant1), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 
-		// Try to update it with tenant2 ID (should fail)
 		pubKey.TenantID = tenant2
 		pubKey.Name = "edited_name"
 		err = st.PublicKeyUpdate(ctx, pubKey)
@@ -211,7 +209,6 @@ func (s *Suite) TestPublicKeyDelete(t *testing.T) {
 
 		tenantID := s.CreateNamespace(t)
 
-		// Create and delete a public key to get a valid but non-existent fingerprint
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("temp"), WithPublicKeyTenant(tenantID))
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)

@@ -22,8 +22,6 @@ func TestInternalMetricsNeedsNoCredential(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	// The runtime collectors the default registry installs are most of what an
-	// incident asks for, and they arrive without us registering anything.
 	assert.Contains(t, rec.Body.String(), "go_goroutines")
 	assert.Contains(t, rec.Body.String(), "process_resident_memory_bytes")
 }

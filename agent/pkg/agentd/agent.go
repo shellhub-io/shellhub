@@ -164,26 +164,6 @@ func (c *Config) HasNamespaceCredential() bool {
 }
 
 func LoadConfigFromEnv() (*Config, map[string]any, error) {
-	// NOTE(r): When T, the generic parameter, is a structure with required tag, the fallback for an
-	// "unprefixed" parameter is used.
-	//
-	// For example,
-	//
-	// For the structure below, the parser will parse successfully when the variables exist with or without the
-	// prefixes since the "required" tag is set to true.
-	//
-	//  SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000 SERVER_ADDRESS=http://127.0.0.1
-	//  PRIVATE_KEY=/tmp/shellhub sudo -E ./agent
-	//
-	//  struct {
-	//    ServerAddress string `env:"SERVER_ADDRESS,required"`
-	//    PrivateKey string `env:"PRIVATE_KEY,required"`
-	//    TenantID string `env:"TENANT_ID,required`
-	//  }
-	//
-	//  This behavior is driven by the [envconfig] package. Check it out for more information.
-	//
-	// [envconfig]: https://github.com/sethvargo/go-envconfig
 	applyEnvFileFallback(defaultEnvFilePath)
 
 	cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
@@ -193,14 +173,12 @@ func LoadConfigFromEnv() (*Config, map[string]any, error) {
 		return nil, nil, err
 	}
 
-	// TODO: test the envinromental variables validation on integration tests.
 	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
 		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
 
 		return nil, fields, err
 	}
 
-	// Tenant resolution: environment > tenant persisted by a previous pairing.
 	if persisted, err := ReadPersistedTenant(TenantFilePath(cfg.PrivateKey)); err == nil && persisted != "" {
 		switch {
 		case cfg.TenantID == "":
@@ -225,14 +203,11 @@ type Agent struct {
 	cli        client.Client
 	serverInfo *models.Info
 	server     *server.Server
-	// TODO: Listening channel could be removed in favor of a better approach.
-	listening chan bool
-	closed    atomic.Bool
-	mode      Mode
-	// listener is the current connection to the server.
-	listener atomic.Pointer[net.Listener]
-	// logger is the agent's logger instance.
-	logger *log.Entry
+	listening  chan bool
+	closed     atomic.Bool
+	mode       Mode
+	listener   atomic.Pointer[net.Listener]
+	logger     *log.Entry
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -399,9 +374,6 @@ func cleanKeyPath(raw string) (string, error) {
 	return cleaned, nil
 }
 
-// generatePrivateKey generates a new private key if it doesn't exist on the filesystem.
-// It rejects PrivateKey paths that contain raw path-traversal sequences so that a
-// misconfigured PRIVATE_KEY value cannot write a key outside the intended directory.
 func (a *Agent) generatePrivateKey() error {
 	keyPath, err := cleanKeyPath(a.config.PrivateKey)
 	if err != nil {
@@ -417,10 +389,6 @@ func (a *Agent) generatePrivateKey() error {
 	return nil
 }
 
-// readPublicKey reads the RSA public key from the configured private-key file.
-// It rejects PrivateKey paths that contain raw path-traversal sequences so that
-// a misconfigured PRIVATE_KEY value cannot read a key from outside the intended
-// directory.
 func (a *Agent) readPublicKey() error {
 	keyPath, err := cleanKeyPath(a.config.PrivateKey)
 	if err != nil {
@@ -435,10 +403,6 @@ func (a *Agent) readPublicKey() error {
 	return err
 }
 
-// generateDeviceIdentity generates a device identity.
-//
-// The default value for Agent Identity is a network interface MAC address, but if the `SHELLHUB_PREFERRED_IDENTITY` is
-// defined and set on [Config] structure, the device identity is set to this value.
 func (a *Agent) generateDeviceIdentity() error {
 	if id := a.config.PreferredIdentity; id != "" {
 		a.Identity = &models.DeviceIdentity{
@@ -460,7 +424,6 @@ func (a *Agent) generateDeviceIdentity() error {
 	return nil
 }
 
-// loadDeviceInfo load some device informations like OS name, version, arch and platform.
 func (a *Agent) loadDeviceInfo() error {
 	info, err := a.mode.GetInfo()
 	if err != nil {
@@ -478,7 +441,6 @@ func (a *Agent) loadDeviceInfo() error {
 	return nil
 }
 
-// probeServerInfo gets information about the ShellHub server.
 func (a *Agent) probeServerInfo() error {
 	info, err := a.cli.GetInfo(a.config.Version)
 	a.serverInfo = info
@@ -488,10 +450,6 @@ func (a *Agent) probeServerInfo() error {
 
 var ErrNoIdentityAndHostname = errors.New("the device doesn't have a valid hostname and identity. Set PREFERRED_IDENTITY or PREFERRED_HOSTNAME to specify the device's name and identity")
 
-// buildDeviceAuth assembles the identity fields the agent presents to the
-// server. It is shared by authorize and the pairing request so the derivation
-// never drifts: the server materializes a paired device from these same
-// fields, and the UID hash must match the later device auth.
 func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 	auth := &models.DeviceAuth{
 		Hostname:   a.config.PreferredHostname,
@@ -501,12 +459,6 @@ func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 		InstallKey: a.config.InstallKey,
 	}
 
-	// NOTE: A MAC address can be empty when the network interface used to communicate with the external world isn't a
-	// physical one. In this case, we should be able to define a custom value for MAC's field using the
-	// [PREFERRED_IDENTITY] variable. If the hostname is also empty, [PREFERRED_HOSTNAME] could be defined to provide a
-	// fallback identifier for the device. This ensures that even if both the MAC address and hostname are missing, we
-	// have a way to identify the device uniquely. When it occurs, and no variable was defined, the agent should fail to
-	// initialize.
 	if auth.Hostname == "" && (auth.Identity == nil || auth.Identity.MAC == "") {
 		return nil, ErrNoIdentityAndHostname
 	}
@@ -514,7 +466,6 @@ func (a *Agent) buildDeviceAuth() (*models.DeviceAuth, error) {
 	return auth, nil
 }
 
-// authorize send auth request to the server with device information in order to register it in the namespace.
 func (a *Agent) authorize() error {
 	auth, err := a.buildDeviceAuth()
 	if err != nil {
@@ -620,8 +571,6 @@ func (a *Agent) Listen(ctx context.Context) error {
 }
 
 func (a *Agent) listenV1(ctx context.Context) error {
-	// NOTE: ListenV1 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
-	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV1()
 
 	tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
@@ -641,7 +590,6 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				return
 			}
 
-			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV1] function.
 			ShellHubConnectV1Path := "/ssh/connection"
 
 			a.logger.Debug("Using tunnel version 1")
@@ -678,8 +626,6 @@ func (a *Agent) listenV1(ctx context.Context) error {
 }
 
 func (a *Agent) listenV2(ctx context.Context) error {
-	// NOTE: ListenV2 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
-	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV2(a.cli)
 
 	tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
@@ -699,7 +645,6 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				return
 			}
 
-			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV2] function.
 			ShellHubConnectV2Path := "/agent/connection"
 
 			a.logger.Debug("Using tunnel version 2")
@@ -739,12 +684,6 @@ func (a *Agent) listenV2(ctx context.Context) error {
 // AgentPingDefaultInterval is the default time interval between ping on agent.
 const AgentPingDefaultInterval = 10 * time.Minute
 
-// ping sends an authorization request to the ShellHub server at each interval.
-// A random value between 10 and [config.MaxRetryConnectionTimeout] seconds is added to the interval
-// each time the ticker is executed.
-//
-// Ping only sends requests to the server if the agent is listening for connections. If the agent is not
-// listening, the ping process will be stopped. When the interval is 0, the default value is 10 minutes.
 func (a *Agent) ping(ctx context.Context, interval time.Duration) error {
 	a.listening = make(chan bool)
 

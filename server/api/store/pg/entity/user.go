@@ -44,19 +44,16 @@ func UserFromModel(model *models.User) *User {
 		authMethods[i] = method.String()
 	}
 
-	// Default to local if Origin is empty (for test cases)
 	origin := model.Origin.String()
 	if origin == "" {
 		origin = string(models.UserOriginLocal)
 	}
 
-	// Default to confirmed if Status is empty (for test cases)
 	status := model.Status.String()
 	if status == "" {
 		status = string(models.UserStatusConfirmed)
 	}
 
-	// Default to human when Type is empty; only the service-account flow sets service.
 	userType := model.Type.String()
 	if userType == "" {
 		userType = string(models.UserTypeHuman)

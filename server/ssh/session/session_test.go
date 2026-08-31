@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubContext is a minimal gliderssh.Context backed by a map for SetValue/Value
-// (the snapshot helpers used by Evaluate rely on those round-tripping).
 type stubContext struct {
 	context.Context
 	sync.Mutex
@@ -58,7 +56,6 @@ func (s *stubContext) Value(key any) any {
 	return s.values[key]
 }
 
-// newTestSession builds a Session with only the fields Evaluate reads.
 func newTestSession(service services.Service) *Session {
 	tgt, _ := target.NewTarget("user@namespace.device")
 
@@ -91,13 +88,11 @@ func TestRecorded(t *testing.T) {
 	errStoreDown := errors.New("store is down")
 
 	tests := []struct {
-		description string
-		record      bool
-		pty         bool
-		setupMock   func(m *servicemocks.MockService)
-		expectedErr error
-		// expectSkipped is whether the error means the session was never going to be
-		// recorded, which is what the caller reports below a warning.
+		description   string
+		record        bool
+		pty           bool
+		setupMock     func(m *servicemocks.MockService)
+		expectedErr   error
 		expectSkipped bool
 	}{
 		{
@@ -176,7 +171,6 @@ func TestEvaluate(t *testing.T) {
 			description: "cloud: firewall denies the connection",
 			edition:     envs.Cloud,
 			setupMock: func(m *servicemocks.MockService) {
-				// Firewall runs first; a denial stops before billing is consulted.
 				m.EXPECT().
 					EvaluateFirewall(mock.Anything, mock.Anything).
 					Return(services.ErrFirewallBlocked).
@@ -206,8 +200,6 @@ func TestEvaluate(t *testing.T) {
 					Return(nil).
 					Once()
 
-				// The tenant comes from the device the session already resolved, so
-				// billing is evaluated without a second device lookup.
 				m.EXPECT().
 					EvaluateBilling(mock.Anything, "tenant-id").
 					Return(nil).
@@ -283,7 +275,6 @@ func TestEvaluate(t *testing.T) {
 			description: "community: no firewall, billing, or license evaluation",
 			edition:     envs.Community,
 			setupMock: func(_ *servicemocks.MockService) {
-				// no gate is consulted in community mode.
 			},
 			expectedErr:          nil,
 			expectStateEvaluated: true,

@@ -19,9 +19,6 @@ type Identity struct {
 	Admin     bool
 }
 
-// identityHeaders enumerates every header that carries part of the caller's
-// identity. [Identity.WriteTo] clears all of them, so a header added here is
-// automatically covered against spoofing.
 var identityHeaders = []string{
 	"X-ID",
 	"X-Username",

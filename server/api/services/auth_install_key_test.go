@@ -129,8 +129,6 @@ func TestAuthDevice_InstallKey(t *testing.T) {
 					InstallKeyID:    "legacydigest",
 				}).Return(uid, nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenant), models.DeviceStatusPending, int64(1)).Return(nil).Once()
-				// The legacy key is manual, so the keyless device lands pending and the enrollment is
-				// recorded in the legacy key's append-only history.
 				storeMock.On("InstallKeyEventCreate", ctx, testifymock.Anything).Return(nil).Once()
 				cacheMock.On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "d", "namespace_name": "test"}, time.Second*30).Return(nil).Once()
 			},

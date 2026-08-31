@@ -43,7 +43,6 @@ func (b *backend) LookupUser(username string) (*User, error) {
 }
 
 func (b *backend) ListGroups(username string) ([]string, error) {
-	// Not implemented on FreeBSD
 	return nil, nil
 }
 

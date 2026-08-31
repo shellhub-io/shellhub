@@ -481,7 +481,6 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 		headers map[string]string
 	}{
 		{
-			// The advisory PoC: X-API-Key + X-Tenant-ID, no X-ID.
 			name: "api-key shape",
 			headers: map[string]string{
 				"X-API-Key":   "caller-api-key",
@@ -502,10 +501,6 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 			t.Run(route.description+" ("+shape.name+")", func(t *testing.T) {
 				mock := mocks.NewMockService(t)
 
-				// Seed the mock with a realistic victim namespace so the
-				// handler would have something to serialize on vulnerable
-				// code; the body-leak assertion below then catches any
-				// regression that bypasses the tenant guard.
 				victim := &models.Namespace{
 					Name:     "victim",
 					Owner:    victimOwner,
@@ -532,8 +527,6 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 				NewRouter(mock).ServeHTTP(rec, req)
 
 				assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
-				// Even if the status assertion regresses, no sensitive field
-				// from the victim namespace may leak into the response body.
 				assert.NotContains(t, rec.Body.String(), victimEmail)
 				assert.NotContains(t, rec.Body.String(), victimOwner)
 			})
@@ -572,8 +565,6 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-// encodeFilter serialises filters as the JSON array the API expects and
-// returns it base64-encoded, ready to be used as the "filter" query param.
 func encodeFilter(t *testing.T, filters []query.Filter) string {
 	t.Helper()
 
@@ -585,10 +576,6 @@ func encodeFilter(t *testing.T, filters []query.Filter) string {
 	return base64.StdEncoding.EncodeToString(raw)
 }
 
-// namespaceListHasFilterName returns a testify MatchedBy matcher that
-// verifies the first property filter in a *requests.NamespaceList carries the
-// given field name un-rewritten, ensuring the handler passes the API-level
-// field name to the service layer without translating it to a database column.
 func namespaceListHasFilterName(name string) any {
 	return gomock.MatchedBy(func(req *requests.NamespaceList) bool {
 		for _, f := range req.Filters.Data {
@@ -625,8 +612,6 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			// Unknown field not present in NamespaceFilterFields must yield 400
-			// before reaching the service layer.
 			description: "fails with unknown filter field",
 			query: "filter=" + encodeFilter(t, []query.Filter{
 				{
@@ -642,8 +627,6 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			// Operator "contains" is not allowed on the "type" field (enum), so
-			// the handler must return 400 without calling the service.
 			description: "fails with disallowed operator for type field",
 			query: "filter=" + encodeFilter(t, []query.Filter{
 				{
@@ -659,8 +642,6 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			// A valid name+contains filter must reach the service and return 200
-			// with the correct X-Total-Count header.
 			description: "succeeds with valid name+contains filter",
 			query: "filter=" + encodeFilter(t, []query.Filter{
 				{
@@ -682,9 +663,6 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedCount:  5,
 		},
 		{
-			// A valid type+eq filter must reach the service with the field name
-			// "type" un-rewritten (the store layer, not the handler, translates
-			// "type" → "scope").
 			description: "succeeds with valid type+eq filter and name reaches service un-rewritten",
 			query: "filter=" + encodeFilter(t, []query.Filter{
 				{

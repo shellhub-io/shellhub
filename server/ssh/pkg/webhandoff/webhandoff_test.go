@@ -19,8 +19,6 @@ func TestStore_carriesTheDataAcrossTheDial(t *testing.T) {
 			data:        webhandoff.Data{Device: "device-uid", IP: "192.168.0.10"},
 		},
 		{
-			// The address used to travel packed as "<device>:<ip>", which made IPv6
-			// a parsing problem. Typed fields make it one no longer.
 			description: "an ipv6 browser",
 			data:        webhandoff.Data{Device: "device-uid", IP: "2001:db8::1"},
 		},
@@ -55,8 +53,6 @@ func TestStore_takeIsSingleUse(t *testing.T) {
 	_, ok := store.Take("user@uuid")
 	require.True(t, ok)
 
-	// A second connection presenting the same username must find nothing: the
-	// handoff authorises exactly one dial.
 	_, ok = store.Take("user@uuid")
 	assert.False(t, ok)
 }

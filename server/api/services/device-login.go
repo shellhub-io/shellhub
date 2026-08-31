@@ -11,12 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// deviceLoginCodeTTL is how long a device login code remains valid. The code
-// only deep-links a pending device into the console's accept page, so a short
-// window is enough; the agent prints a new one on every `login` run.
 const deviceLoginCodeTTL = 10 * time.Minute
 
-// deviceLoginCode is the payload cached under `login_code/<code>`.
 type deviceLoginCode struct {
 	UID      string `json:"uid"`
 	TenantID string `json:"tenant_id"`
@@ -42,8 +38,6 @@ func (s *service) CreateDeviceLoginCode(ctx context.Context, uid, tenantID strin
 		return nil, err
 	}
 
-	// Invalidate the previous code issued to this device, if any, so issuing new
-	// codes never accumulates multiple valid ones.
 	var previous string
 	if err := s.cache.Get(ctx, "login_code_device/"+uid, &previous); err == nil && previous != "" {
 		if err := s.cache.Delete(ctx, "login_code/"+previous); err != nil {
@@ -69,12 +63,7 @@ func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code strin
 	}
 
 	data := new(deviceLoginCode)
-	// NOTE: A cache miss is not an error; it leaves data untouched.
 	if err := s.cache.Get(ctx, "login_code/"+code, data); err != nil || data.UID == "" {
-		// Not a device-bound code; it may be a pairing code from a tenant-less
-		// agent. The device does not exist yet, so there is no membership to
-		// check: any authenticated user may see the preview, but accepting is
-		// limited to namespaces where they hold the device accept permission.
 		pairing := new(devicePairing)
 		if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err == nil && pairing.PublicKey != "" {
 			return &models.DeviceLoginCodePreview{

@@ -23,7 +23,6 @@ func TestServer(t *testing.T) {
 
 	srv := asynq.NewServer(redisConnStr)
 
-	// Shutdown the server before terminating Redis to avoid connection refused spam.
 	t.Cleanup(func() {
 		srv.Shutdown()
 		require.NoError(t, redisContainer.Terminate(ctx))

@@ -20,8 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubContext is a minimal gliderssh.Context implementation for tests.
-// It only populates the fields the BannerHandler reads.
 type stubContext struct {
 	context.Context
 	sync.Mutex
@@ -48,12 +46,8 @@ func newStubCtx(user string) gliderssh.Context {
 	}
 }
 
-// validSSHID is a syntactically correct SSHID that passes target.NewTarget.
-// It is not connected to any real device, so only the stub deps are called.
 const validSSHID = "user@namespace.device"
 
-// stubDeps returns a bannerDeps whose three operations are all stubs that
-// succeed by default. Individual tests override the stub they want to fail.
 func stubDeps() bannerDeps {
 	return bannerDeps{
 		newSession: func(_ gliderssh.Context, _ *dialer.Dialer, _ services.Service, _ *webhandoff.Store) (*session.Session, error) {
@@ -68,8 +62,6 @@ func stubDeps() bannerDeps {
 	}
 }
 
-// bannerKind is the kind alone. Classify also reports the correlation code,
-// which only the approval banners carry and none of these cases produce.
 func bannerKind(message string) banner.Kind {
 	kind, _ := banner.Classify(message)
 
@@ -157,9 +149,6 @@ func TestLoopbackProxyPolicy(t *testing.T) {
 		{"ipv4 loopback", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4444, Zone: ""}, proxyproto.USE},
 		{"ipv6 loopback", &net.TCPAddr{IP: net.IPv6loopback, Port: 4444, Zone: ""}, proxyproto.USE},
 		{"public peer", &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}, proxyproto.REJECT},
-		// A published Docker port makes external clients appear to originate from
-		// the private bridge gateway, so a private (non-loopback) peer must still
-		// be rejected or the spoof re-opens.
 		{"docker bridge peer", &net.TCPAddr{IP: net.IPv4(172, 18, 0, 1), Port: 4444, Zone: ""}, proxyproto.REJECT},
 	}
 

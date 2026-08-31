@@ -67,8 +67,6 @@ func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, sc scope.Scope, mem
 		return store.ErrNoDocuments
 	}
 
-	// Clear the removed member's preferred namespace if it points at this one. Targeted Set, not a
-	// full-model update, since preferred_namespace_id is skipupdate.
 	if _, err := db.NewUpdate().
 		Model((*entity.User)(nil)).
 		Set("preferred_namespace_id = NULL").

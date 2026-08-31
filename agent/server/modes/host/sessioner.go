@@ -21,22 +21,12 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// NOTICE: Ensures the Sessioner interface is implemented.
 var _ modes.Sessioner = (*Sessioner)(nil)
 
-// geteuidFn is a package-level seam for os.Geteuid, so tests can drive the
-// non-root path without running as another user.
 var geteuidFn = os.Geteuid
 
-// checkCredentialSwitchFn is a package-level seam for command.CheckCredentialSwitch.
-// Tests may replace it to simulate a denied credential switch without touching the
-// real /proc/self/setgroups.
 var checkCredentialSwitchFn = command.CheckCredentialSwitch
 
-// refuseIfCredentialSwitchDenied calls checkCredentialSwitchFn and, when it
-// returns a non-nil error, logs the refusal, calls session.Exit(1), and returns
-// the error so the caller can immediately propagate it.  A nil return means the
-// session may proceed.
 func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
 	if err := checkCredentialSwitchFn(); err != nil {
 		log.WithError(err).Error("refusing session: credential switch impossible")
@@ -48,19 +38,9 @@ func refuseIfCredentialSwitchDenied(session gliderssh.Session) error {
 	return nil
 }
 
-// ptyStartOptions builds the options for starting a command on an allocated pty.
-//
-// The slave belongs to whoever runs the agent, so a command switched to another
-// user cannot write to its own terminal unless it is handed over; only root can
-// switch at all, which is the condition command.NewCmd already uses.
 func ptyStartOptions(uid uint32) []gliderssh.PtyStartOption {
 	opts := []gliderssh.PtyStartOption{gliderssh.WithJobControl()}
 
-	// WithOwner takes an int because that is what os.Chown takes, but uid_t is
-	// unsigned 32-bit. On a 32-bit build (the agent ships for ARM) an id above
-	// MaxInt32 wraps negative, and os.Chown reads a negative id as "leave it
-	// alone", so the pty would silently stay owned by the agent. Such an id is
-	// not a real account, so skip the hand-over rather than pass a wrapped one.
 	if geteuidFn() == 0 && uid <= math.MaxInt32 {
 		opts = append(opts, gliderssh.WithOwner(int(uid)))
 	}
@@ -80,13 +60,6 @@ func PtyFailureHint(err error) string {
 	return ""
 }
 
-// reapOnDisconnect kills cmd once the SSH connection is gone. It must be called
-// after a successful start, so the process is there to kill.
-//
-// Nothing else ends the command when a client vanishes. On a pty session the
-// terminal stays open because the server holds it until the handler returns,
-// and the handler is inside Wait; on the piped ones the command keeps its ends
-// of the pipes.
 func reapOnDisconnect(session gliderssh.Session, cmd *exec.Cmd) error {
 	serverConn, ok := session.Context().Value(gliderssh.ContextKeyConn).(*gossh.ServerConn)
 	if !ok {
@@ -103,14 +76,7 @@ func reapOnDisconnect(session gliderssh.Session, cmd *exec.Cmd) error {
 
 // Sessioner implements the Sessioner interface when the server is running in host mode.
 type Sessioner struct {
-	// deviceName is the device name.
-	//
-	// NOTICE: It's a pointer because when the server is created, we don't know the device name yet, that is set later.
-	deviceName *string
-	// sftpServerCommand builds the command used to start the SFTP server subprocess. When nil,
-	// [command.SFTPServerCommand] is used, which re-executes the current binary
-	// (/proc/self/exe) with the "sftp" subcommand. It can be overridden so the agent can run
-	// embedded in another binary, where /proc/self/exe is not the agent.
+	deviceName        *string
 	sftpServerCommand func() *exec.Cmd
 }
 
@@ -204,13 +170,6 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	return nil
 }
 
-// relayOutput copies a command's output back to the SSH session, keeping stdout
-// and stderr on their own streams, and adds both copies to wg.
-//
-// The two must be copied concurrently. io.MultiReader drains its readers in
-// sequence, so it never touches stderr until stdout reaches EOF: a command
-// writing more than the pipe buffer to stderr blocks in write(2), never exits,
-// and stdout never reaches EOF either.
 func relayOutput(wg *sync.WaitGroup, session gliderssh.Session, stdout, stderr io.Reader) {
 	wg.Add(2)
 
@@ -281,8 +240,6 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	wg := &sync.WaitGroup{}
 	relayOutput(wg, session, stdout, stderr)
 
-	// cmd.Wait closes the parent ends of the pipes, so the copies have to finish
-	// first or they lose whatever the command wrote last.
 	wg.Wait()
 
 	if err := cmd.Wait(); err != nil {
@@ -344,7 +301,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		stdin, _ := cmd.StdinPipe()
 		stderr, _ := cmd.StderrPipe()
 
-		// relay input from the SSH session to the command.
 		go func() {
 			if _, err := io.Copy(stdin, session); err != nil {
 				fmt.Println(err) //nolint:forbidigo
@@ -364,8 +320,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		"Raw command": session.RawCommand(),
 	}).Info("Command started")
 
-	// Pty.Start starts the command itself, so only the pipe branch reaches
-	// cmd.Start. Both must leave cmd.Process set before the reaper below.
 	if sIsPty {
 		if err := sPty.Start(cmd, ptyStartOptions(user.UID)...); err != nil {
 			entry := log.WithError(err)
@@ -384,9 +338,6 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return err
 	}
 
-	// Before the wait below, not after: that wait ends when the command closes
-	// its output, which a command that ignores a vanished client never does, so
-	// a reaper installed afterwards would never be installed at all.
 	if err := reapOnDisconnect(session, cmd); err != nil {
 		return err
 	}
@@ -435,10 +386,6 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 
 	cmd := newSFTPServerCommand()
 
-	// osauth, not os/user: the agent usually runs in a container with the host's
-	// filesystem mounted, and osauth is the one that reads the host's passwd.
-	// os/user reads the container's, where the account being logged into does
-	// not exist.
 	looked, err := osauth.LookupUser(session.User())
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{

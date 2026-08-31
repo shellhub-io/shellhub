@@ -159,26 +159,15 @@ func init() {
 	DefaultBackend = &backend{}
 }
 
-// This struct represents an entry from the `/etc/shadow` file.
 type shadowEntry struct {
-	// The login name of the account (same as in [PasswdEntry]).
-	Username string
-	// The hashed password of the account (same as in [PasswdEntry]).
-	Password string
-	// The number of days since January 1, 1970 (epoch) that the password was last changed.
+	Username    string
+	Password    string
 	Lastchanged int
-	// The minimum number of days required between password changes i.e. the number of days left before the user is
-	// allowed to change his/her password.
-	Minimum int
-	// The maximum number of days the password is valid (after that user is forced to change his/her password).
-	Maximum int
-	// The number of days before password is to expire that user is warned that his/her password must be changed.
-	Warn int
-	// The number of days after password expires that account is disabled.
-	Inactive int
-	// Days since Jan 1, 1970 that account is disabled i.e. an absolute date specifying when the login may no longer be
-	// used.
-	Expire int
+	Minimum     int
+	Maximum     int
+	Warn        int
+	Inactive    int
+	Expire      int
 }
 
 // AuthUser attempts to authenticate username and password from [DefaultPasswdFilename].
@@ -244,42 +233,30 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 
 // VerifyPasswordHash checks if the password match with the hash.
 func VerifyPasswordHash(hash, password string) bool {
-	// NOTE: If the password field is empty, the user can log in without a password. However, some applications that
-	// read the /etc/shadow file might block access if the password field is empty.
-	// https://man7.org/linux/man-pages/man5/shadow.5.html
 	if hash == "" {
 		if PermitEmptyPasswords() {
-			// NOTE: We allow login with empty password if the environment variable SHELLHUB_PERMIT_EMPTY_PASSWORDS is set to true.
 			logrus.Warn("User logged in with empty password")
 
 			return true
 		}
 
-		// NOTE: By default, we dont allow login with empty password.
 		logrus.Error("User cannot login with empty password")
 
 		return false
 	}
 
-	// NOTE: If the password field contains a string that is not a valid result of crypt(3), for instance ! or *, the
-	// user cannot use a UNIX password to log in. However, the user may log in the system by other means.
-	// https://man7.org/linux/man-pages/man5/shadow.5.html
 	if hash == "!" || hash == "*" {
 		logrus.Error("User cannot login with password")
 
 		return false
 	}
 
-	// NOTE: If the password field begins with an exclamation mark !, the password is locked. The remaining characters
-	// on the line represent the password field before the password was locked.
-	// https://man7.org/linux/man-pages/man5/shadow.5.html
 	if strings.HasPrefix(hash, "!") {
 		logrus.Error("Password is locked")
 
 		return false
 	}
 
-	// NOTE: If hash algorithm is yescrypt, we verify by ourselves, otherwise let's try crypt package.
 	if strings.HasPrefix(hash, "$y$") {
 		return yescrypt.Verify(password, hash)
 	}
@@ -365,7 +342,6 @@ func parseIntString(value string) int {
 }
 
 func parseUint32(value string) (uint32, error) {
-	// NOTE: [strconv.Atoi] uses the [strconv.ParseInt] under the hood to do the conversion.
 	parsed, err := strconv.ParseUint(value, 10, 32)
 	if err != nil {
 		return 0, err

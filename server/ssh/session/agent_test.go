@@ -10,7 +10,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// recordingChannel records which close the session chose.
 type recordingChannel struct {
 	closed      bool
 	closedWrite bool

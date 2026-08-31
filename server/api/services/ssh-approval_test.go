@@ -93,8 +93,6 @@ func TestGetSSHApprovalStatus(t *testing.T) {
 			expected: Expected{status: &models.SSHApprovalStatus{State: models.SSHApprovalPending}, err: nil},
 		},
 		{
-			// The whole point of the wait: the answer comes back on the decision, not
-			// on a poll boundary, so a still-pending read must not end the request.
 			description: "waits through a pending read and answers on the decision",
 			req:         &requests.SSHApprovalStatus{Code: "WXYZ2K7Q", Wait: true},
 			requiredMocks: func(storeMock *storemock.MockStore) {
@@ -282,8 +280,6 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 		},
 	}
 
-	// A reauth approval, so the only effect a decision can have is the identity's
-	// re-auth stamp — keeping these cases about who may decide.
 	pending := &models.SSHApproval{
 		SessionUID:  "session1",
 		TenantID:    "tenant1",
@@ -371,7 +367,6 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 					Once()
-				// Lost the race: the row is no longer pending, so no row is updated.
 				storeMock.
 					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", now).
 					Return(false, nil).
@@ -501,8 +496,6 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		})).
 		Return("id1", nil).
 		Once()
-	// The connection that created the identity is a real use, so last-used is
-	// stamped on it too, not just on the second connect.
 	storeMock.
 		On("SSHIdentityTouchLastUsed", mock.Anything, namespace.TenantID, "SHA256:abc").
 		Return(nil).

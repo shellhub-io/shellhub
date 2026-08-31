@@ -18,13 +18,8 @@ import (
 	xwebsocket "golang.org/x/net/websocket"
 )
 
-// controlUpgradePath is an upgrade route the skipper does not exempt, used to prove the
-// validator really is in the request path. See TestOpenAPIValidationAllowsWebSocketUpgrades.
 const controlUpgradePath = "/api/openapi-validation-control"
 
-// openAPITestSchema is the smallest document the validator accepts. Its contents are
-// irrelevant: the test only needs the validator to initialize, since that is what installs
-// the response wrapper.
 const openAPITestSchema = `{
   "openapi": "3.0.0",
   "info": {"title": "test", "version": "1.0.0"},
@@ -74,9 +69,6 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 		e.GET(path, upgrade)
 	}
 
-	// The web terminal bridge upgrades through x/net/websocket, which panics rather than
-	// erroring when the writer cannot hijack. Registering it as production does keeps that
-	// path covered too.
 	e.GET(web.WebsocketSSHBridgeRoute, echo.WrapHandler(xwebsocket.Handler(func(conn *xwebsocket.Conn) {
 		conn.Close() //nolint:errcheck
 	})))
@@ -84,14 +76,11 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 	srv := httptest.NewServer(e)
 	t.Cleanup(srv.Close)
 
-	// x/net/websocket's Handler rejects a handshake without an Origin, which a browser
-	// always sends. Unrelated to hijacking, but the bridge route never completes without it.
 	headers := http.Header{"Origin": []string{srv.URL}}
 
 	dial := func(t *testing.T, path string) (*http.Response, error) {
 		t.Helper()
 
-		// gorilla/websocket documents that the handshake response body need not be closed.
 		conn, res, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(srv.URL, "http")+path, headers)
 		if conn != nil {
 			conn.Close() //nolint:errcheck
@@ -130,11 +119,7 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 		{web.WebsocketSSHBridgeRoute, true},
 		{"/metrics", true},
 		{"/internal/auth", true},
-		// Always registered, and answers with an exposition format no OpenAPI
-		// schema describes.
 		{routes.InternalMetricsURL, true},
-		// Sits under the bridge route but answers with a JSON body, so prefix matching
-		// would wrongly exempt it.
 		{web.WebSessionRoute, false},
 		{"/api/devices", false},
 		{"/api/namespaces", false},

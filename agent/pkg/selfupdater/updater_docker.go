@@ -87,8 +87,6 @@ func (d *dockerUpdater) CompleteUpdate() error {
 	v, _ := semver.NewVersion(pv)
 	v0_4_0, _ := semver.NewVersion("v0.4.0")
 
-	// Append /dev to mount if old container version is less than v0.4.0
-	// since /dev from host is required inside container to mount a pseudo-tty
 	if v.LessThan(v0_4_0) {
 		parent.info.HostConfig.Mounts = []mount.Mount{
 			{
@@ -99,9 +97,6 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		}
 	}
 
-	// Append /var/run and /var/log to mount if old container
-	// version is less than v0.5.0 since utmp and wtmp are
-	// required inside container to record login sessions
 	v0_5_0, _ := semver.NewVersion("v0.5.0")
 	if v.LessThan(v0_5_0) {
 		parent.info.HostConfig.Mounts = []mount.Mount{
@@ -118,9 +113,6 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		}
 	}
 
-	// Append /etc/resolv.conf to mount if old container version
-	// is less than v0.7.3 since /etc/resolv.conf is required
-	// inside the container to update host networking after boot.
 	v0_7_3, _ := semver.NewVersion("v0.7.3")
 	if v.LessThan(v0_7_3) {
 		parent.info.HostConfig.Mounts = []mount.Mount{
@@ -228,7 +220,6 @@ func (d *dockerUpdater) updateContainer(container *dockerContainer, image, name 
 }
 
 func NewUpdater(version string) (Updater, error) {
-	// ensure we are running inside a docker container, otherwise returns a dummy updater implementation
 	if _, err := os.Stat("/.dockerenv"); os.IsNotExist(err) {
 		return &nativeUpdater{version}, nil
 	}
@@ -251,7 +242,6 @@ func replaceOrAppendEnvValues(defaults, overrides []string) []string {
 	}
 
 	for _, value := range overrides {
-		// Values w/o = means they want this env to be removed/unset.
 		before, _, ok := strings.Cut(value, "=")
 		if !ok {
 			if i, exists := cache[value]; exists {

@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// recordingConn reports whether the connection-state module closed it.
 type recordingConn struct {
 	net.Conn
 	closed atomic.Bool

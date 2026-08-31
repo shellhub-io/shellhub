@@ -25,10 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockClockNow swaps clock.DefaultBackend (and uuid.DefaultBackend) for mocks and restores them
-// after the test. Invitation/register methods stamp CreatedAt/AddedAt and check expiry via
-// clock.Now(); the token path mints a uuid. Isolating both keeps these tests from tripping over
-// global mock state left by other tests in the package.
 func mockClockNow(t *testing.T, now time.Time) {
 	t.Helper()
 
@@ -36,7 +32,6 @@ func mockClockNow(t *testing.T, now time.Time) {
 	prevClock := clock.DefaultBackend
 	t.Cleanup(func() { clock.DefaultBackend = prevClock })
 	clock.DefaultBackend = clockMock
-	// Maybe(): early-return failure paths never reach a clock.Now() call.
 	clockMock.On("Now").Return(now).Maybe()
 
 	uuidMock := uuidmock.NewMockUUID(t)
@@ -50,7 +45,6 @@ func TestService_ResolveInvitation(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	ctx := context.TODO()
 
-	// A freshly-minted code passes pairingcode.IsValid; the service normalizes before lookup.
 	code, err := pairingcode.New(pairingcode.InviteCodeLength)
 	require.NoError(t, err)
 	normalized := pairingcode.Normalize(code)

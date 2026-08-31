@@ -103,10 +103,6 @@ func TestVerifyPasswordHash(t *testing.T) {
 }
 
 func TestVerifyPasswordHash_YescryptInvocation(t *testing.T) {
-	// NOTE: This test only ensures the yescrypt branch executes without panicking.
-	// Avoid asserting true/false because yescrypt parameters may vary across
-	// environments and producing a deterministic yescrypt hash in tests is
-	// environment-dependent.
 	yesHash := "$y$e0801$w1Jl9GJH1j4h0w==$Wj2b7m2vWw2m3l1iQe8qvQ=="
 	_ = VerifyPasswordHash(yesHash, "password")
 }

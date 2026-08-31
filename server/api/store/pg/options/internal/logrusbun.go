@@ -115,7 +115,6 @@ func (h *QueryHook) BeforeQuery(ctx context.Context, event *bun.QueryEvent) cont
 	return ctx
 }
 
-// isQuiet reports whether the query outcome is one the non-verbose hook stays silent about.
 func isQuiet(err error) bool {
 	return err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone)
 }

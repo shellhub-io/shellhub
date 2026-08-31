@@ -13,21 +13,12 @@ import (
 )
 
 const (
-	// deviceHeartbeatFlushInterval is how long a batch accumulates before being
-	// written. The online threshold is two minutes, so a device is never at risk
-	// of appearing offline because its beat waited here.
 	deviceHeartbeatFlushInterval = 2 * time.Second
 
-	// deviceHeartbeatBatchSize flushes early once this many devices are pending,
-	// bounding the size of a single statement on large fleets.
 	deviceHeartbeatBatchSize = 1000
 
-	// deviceHeartbeatQueueSize is the submission buffer. A tunnel beats every 35
-	// seconds, so this absorbs a fleet several times larger than a flush window
-	// holds before Submit has to drop anything.
 	deviceHeartbeatQueueSize = 4096
 
-	// deviceHeartbeatWriteTimeout bounds a single bulk write.
 	deviceHeartbeatWriteTimeout = 30 * time.Second
 )
 
@@ -131,8 +122,6 @@ func (h *DeviceHeartbeater) run() {
 	}
 }
 
-// drain empties the queue without blocking, so a shutdown does not lose beats
-// that were submitted but not yet read by the loop.
 func (h *DeviceHeartbeater) drain(batch *deviceHeartbeatBatch) {
 	for {
 		select {
@@ -150,9 +139,6 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 		return
 	}
 
-	// The batcher owns this context: it is deliberately not derived from any
-	// session, because a device disconnecting must not cancel the write that
-	// carries the other devices in the same batch.
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
@@ -169,12 +155,8 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 		Debug("wrote the device heartbeat batch")
 }
 
-// deviceHeartbeatBatch accumulates the devices seen in a flush window.
 type deviceHeartbeatBatch struct {
-	uids map[string]struct{}
-	// oldest is the earliest beat in the window. The store takes a single
-	// timestamp for the whole batch, and using the earliest one keeps last_seen
-	// from claiming the device was seen later than it actually was.
+	uids   map[string]struct{}
 	oldest time.Time
 }
 
@@ -204,8 +186,6 @@ func (b *deviceHeartbeatBatch) take() ([]string, time.Time) {
 		uids = append(uids, uid)
 	}
 
-	// Sorted so the UPDATE always touches rows in the same order, which keeps
-	// concurrent batches from deadlocking each other.
 	slices.Sort(uids)
 
 	seenAt := b.oldest

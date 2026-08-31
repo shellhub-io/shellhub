@@ -20,16 +20,12 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// migration004Statements reads 004_namespaces_name_unique.tx.up.sql from disk
-// (relative to this file) and splits on "--bun:split", returning each non-empty
-// statement in order.
 func migration004Statements(t *testing.T) []string {
 	t.Helper()
 
 	_, file, _, ok := runtime.Caller(0)
 	require.True(t, ok, "runtime.Caller must succeed")
 
-	// This file lives at api/store/pg/migrations_test.go
 	path := filepath.Join(filepath.Dir(file), "migrations", "004_namespaces_name_unique.tx.up.sql")
 
 	raw, err := os.ReadFile(path) //nolint:gosec // path is constructed from runtime.Caller, not user input.
@@ -47,7 +43,6 @@ func migration004Statements(t *testing.T) []string {
 	return stmts
 }
 
-// execSQL runs a literal SQL string with no parameters.
 func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string) {
 	t.Helper()
 
@@ -65,7 +60,6 @@ func execSQL(t *testing.T, ctx context.Context, db *bun.DB, query string) {
 func TestMigration004Dedup(t *testing.T) {
 	ctx := context.Background()
 
-	// ── Spin up a real Postgres container ───────────────────────────────────────
 	srv := &dbtest.Server{}
 	require.NoError(t, srv.Up(ctx))
 
@@ -78,7 +72,6 @@ func TestMigration004Dedup(t *testing.T) {
 	connStr, err := srv.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// ── Apply all migrations (001-004) via pg.New so schema + index exist ───────
 	st, err := pg.New(ctx, connStr, options.Migrate())
 	require.NoError(t, err, "pg.New with Migrate must succeed")
 
@@ -87,10 +80,8 @@ func TestMigration004Dedup(t *testing.T) {
 
 	db := pgStore.Driver()
 
-	// ── Drop the unique index so we can insert conflicting names ─────────────────
 	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
 
-	// ── Insert FK-parent user (literal SQL, no bind params) ──────────────────────
 	const ownerID = "11111111-1111-4111-8111-111111111111"
 
 	execSQL(t, ctx, db, `
@@ -126,14 +117,12 @@ func TestMigration004Dedup(t *testing.T) {
 	insertNS(nsMixed, "MyApp", base.Add(2*time.Hour))
 	insertNS(nsControl, "otherapp", base.Add(3*time.Hour))
 
-	// ── Run the full 004 migration from disk ─────────────────────────────────────
 	stmts := migration004Statements(t)
 	for i, stmt := range stmts {
 		_, execErr := db.ExecContext(ctx, stmt)
 		require.NoError(t, execErr, "004 migration statement %d failed:\n%s", i, stmt)
 	}
 
-	// ── Read back all four rows ──────────────────────────────────────────────────
 	type nsRow struct {
 		ID   string `bun:"id"`
 		Name string `bun:"name"`
@@ -159,13 +148,11 @@ func TestMigration004Dedup(t *testing.T) {
 	assert.NotEqual(t, "myapp", byID[nsMiddle], "middle duplicate must be renamed")
 	assert.NotEqual(t, "MyApp", byID[nsMixed], "mixed-case duplicate must be renamed")
 
-	// 3. Renamed rows must not collide with the winner even case-insensitively.
 	assert.NotEqual(t, "myapp", strings.ToLower(byID[nsMiddle]),
 		"renamed middle must not collide with oldest under lower()")
 	assert.NotEqual(t, "myapp", strings.ToLower(byID[nsMixed]),
 		"renamed mixed-case must not collide with oldest under lower()")
 
-	// 4. Control namespace is untouched.
 	assert.Equal(t, "otherapp", byID[nsControl], "unrelated namespace must not be changed")
 
 	lowerSeen := make(map[string]string) // lower → id
@@ -178,13 +165,11 @@ func TestMigration004Dedup(t *testing.T) {
 		lowerSeen[lower] = id
 	}
 
-	// 6. No name exceeds 63 characters (RFC1123 label limit).
 	for id, name := range byID {
 		assert.LessOrEqual(t, len(name), 63,
 			"name too long after dedup: id=%s name=%q", id, name)
 	}
 
-	// 7. No name starts or ends with a hyphen.
 	for id, name := range byID {
 		assert.NotEqual(t, byte('-'), name[0],
 			"leading hyphen: id=%s name=%q", id, name)
@@ -192,7 +177,6 @@ func TestMigration004Dedup(t *testing.T) {
 			"trailing hyphen: id=%s name=%q", id, name)
 	}
 
-	// 8. The unique index now blocks a duplicate INSERT (SQLSTATE 23505).
 	t.Run("unique_index_enforced", func(t *testing.T) {
 		_, insertErr := db.ExecContext(ctx, `
 			INSERT INTO namespaces
@@ -205,7 +189,6 @@ func TestMigration004Dedup(t *testing.T) {
 			"error must be unique_violation (SQLSTATE 23505)")
 	})
 
-	// 9. Re-running the dedup UPDATE is idempotent — no name changes a second time.
 	t.Run("idempotency", func(t *testing.T) {
 		snapBefore := make(map[string]string)
 		maps.Copy(snapBefore, byID)
@@ -269,7 +252,6 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 	sameTime := time.Date(2024, 6, 1, 12, 0, 0, 0, time.UTC)
 	ts := sameTime.UTC().Format("2006-01-02 15:04:05Z")
 
-	// lex-smallest id wins the group and keeps its name.
 	const (
 		idSmall = "aaaaaaaa-0000-4000-8000-000000000000"
 		idLarge = "ffffffff-ffff-4fff-8fff-ffffffffffff"
@@ -301,7 +283,6 @@ func TestMigration004DedupTieBreak(t *testing.T) {
 		"renamed name must not collide case-insensitively")
 }
 
-// nsName fetches the name column for a single namespace row by id.
 func nsName(t *testing.T, ctx context.Context, db *bun.DB, id string) string {
 	t.Helper()
 
@@ -345,8 +326,6 @@ func TestMigration004AtomicRollback(t *testing.T) {
 	connStr, err := srv.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// Apply migrations 001-003 (schema) via pg.New with Migrate, then drop the
-	// unique index added by 004 so we can insert conflicting names for the test.
 	st, err := pg.New(ctx, connStr, options.Migrate())
 	require.NoError(t, err, "pg.New with Migrate must succeed")
 
@@ -355,7 +334,6 @@ func TestMigration004AtomicRollback(t *testing.T) {
 
 	db := pgStore.Driver()
 
-	// Drop the unique index created by migration 004 so we can insert duplicates.
 	execSQL(t, ctx, db, `DROP INDEX IF EXISTS namespaces_name_unique`)
 
 	const ownerID = "33333333-3333-4333-8333-333333333333"
@@ -370,12 +348,6 @@ func TestMigration004AtomicRollback(t *testing.T) {
 
 	base := time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
 
-	// loserID determines the rename target produced by step a:
-	//   lower("Rollapp") → "rollapp"
-	//   left("rollapp", 54) → "rollapp"
-	//   rtrim("rollapp", '-') → "rollapp"
-	//   left(replace("cccccccc-cccc-4ccc-8ccc-cccccccccccc", '-', ''), 8) → "cccccccc"
-	//   rename target → "rollapp-cccccccc"
 	const (
 		winnerID  = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 		loserID   = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
@@ -397,9 +369,6 @@ func TestMigration004AtomicRollback(t *testing.T) {
 		`, id, ts, ts, name, ownerID))
 	}
 
-	// winner and loser share lower(name)="rollapp" → step a renames loser to
-	// "rollapp-cccccccc". control row already has that name, so CREATE UNIQUE INDEX
-	// (step b) will see a collision and fail.
 	insertRollbackNS(winnerID, winnerName, base)
 	insertRollbackNS(loserID, loserName, base.Add(time.Hour))
 	insertRollbackNS(controlID, controlName, base.Add(2*time.Hour))
@@ -407,10 +376,6 @@ func TestMigration004AtomicRollback(t *testing.T) {
 	stmts := migration004Statements(t)
 	require.Len(t, stmts, 2, "004 migration must have exactly 2 statements (dedup + index)")
 
-	// ── Run both 004 statements inside a single explicit transaction ─────────────
-	// This mirrors bun's .tx. wrapping that the migration runner uses for .tx. files.
-	// If CREATE UNIQUE INDEX (step b) fails, the whole transaction is rolled back,
-	// undoing the UPDATE (step a) so no rows are renamed.
 	tx, err := db.BeginTx(ctx, nil)
 	require.NoError(t, err, "BEGIN must succeed")
 
@@ -430,15 +395,11 @@ func TestMigration004AtomicRollback(t *testing.T) {
 			t.Logf("warn: ROLLBACK failed: %v", rollbackErr)
 		}
 	} else {
-		// If somehow no error occurred, commit so the test can inspect the state;
-		// the assertions below will then fail (proving the test is misconfigured).
 		_ = tx.Commit()
 	}
 
-	// ── Assert: migration must fail (index creation conflicts with control row) ───
 	require.Error(t, stmtErr, "the 004 migration must fail when a rename target already exists")
 
-	// ── Assert: no rows were renamed (rollback preserved original names) ─────────
 	assert.Equal(t, winnerName, nsName(t, ctx, db, winnerID),
 		"winner row must be untouched after rollback")
 	assert.Equal(t, loserName, nsName(t, ctx, db, loserID),

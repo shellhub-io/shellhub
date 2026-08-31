@@ -43,7 +43,6 @@ func (h *Handler) GetPublicKeys(c *gateway.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	// TODO: normalize is not required when request is privileged
 	req.Paginator.Normalize()
 
 	list, count, err := h.service.ListPublicKeys(c.Ctx(), req)

@@ -127,7 +127,6 @@ func TestGetTags(t *testing.T) {
 }
 
 func TestDeleteTag(t *testing.T) {
-	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
 	cases := []struct {
 		description    string
 		url            string
@@ -242,7 +241,6 @@ func TestCreateTag(t *testing.T) {
 		insertedID string
 	}
 
-	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
 	cases := []struct {
 		description   string
 		url           string
@@ -429,7 +427,6 @@ func TestUpdateTag(t *testing.T) {
 		status int
 	}
 
-	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
 	cases := []struct {
 		description   string
 		url           string
@@ -608,7 +605,6 @@ func TestUpdateTag(t *testing.T) {
 func TestPushTagToDevice(t *testing.T) {
 	const deviceUID = "aabbccddee00112233445566778899aabbccddee"
 
-	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
 	cases := []struct {
 		description    string
 		url            string
@@ -734,7 +730,6 @@ func TestPushTagToDevice(t *testing.T) {
 func TestPullTagFromDevice(t *testing.T) {
 	const deviceUID = "aabbccddee00112233445566778899aabbccddee"
 
-	// Only observer lacks tag permissions; operator, administrator, and owner all hold them — do not test those as forbidden.
 	cases := []struct {
 		description    string
 		url            string

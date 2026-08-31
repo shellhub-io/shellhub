@@ -71,9 +71,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return nil, err
 	}
 
-	// Deny wins: a matching deny blocks access before any allow is considered,
-	// however specific the allow. It is fail-closed — a deny whose filter cannot
-	// be evaluated denies rather than silently opening access.
 	for _, policy := range policies {
 		if policy.Action != models.PolicyActionDeny {
 			continue
@@ -92,10 +89,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		}
 	}
 
-	// Take the strictest re-auth across all matching allows — required if any allow
-	// requires it, at the shortest window. The match order is unspecified, so
-	// returning on the first match would let a broad no-reauth grant shadow a
-	// narrower allow that adds re-auth.
 	allowed := false
 	requireReauth := false
 
@@ -135,9 +128,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 		return &models.Decision{Allowed: false, Reason: models.ReasonNoGrant, Login: login}, nil
 	}
 
-	// Re-auth is an interactive step, so it cannot apply to a service account: there
-	// is no human to complete it, and demanding it would hang the connection. A
-	// service account's freshness comes from its key's lifecycle instead.
 	if member.Type == models.UserTypeService {
 		requireReauth = false
 		reauthPeriod = nil
@@ -146,11 +136,6 @@ func (s *service) Authorize(ctx context.Context, tenantID, userID, deviceUID, lo
 	return &models.Decision{Allowed: true, RequireReauth: requireReauth, ReauthPeriod: reauthPeriod}, nil
 }
 
-// policyApplies reports whether the policy's subject, device filter, login, and
-// source IP all match the request. The bool is only meaningful when err is nil;
-// a non-nil error means a matcher could not be evaluated (a broken filter regexp,
-// or a malformed source CIDR / client IP), and the caller decides how to treat it
-// (deny fails closed, allow treats it as a non-match).
 func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string, role authorizer.Role, userType models.UserType, login, sourceIP string) (bool, error) {
 	if !subjectMatches(policy.Subject, userID, role, userType) {
 		return false, nil
@@ -168,10 +153,6 @@ func policyApplies(policy models.AccessPolicy, dev *models.Device, userID string
 	return sourceIPMatches(policy.SourceIP, sourceIP)
 }
 
-// normalizeSourceIPs canonicalizes source entries to CIDR form so a bare IP the
-// user typed (e.g. "203.0.113.5") is stored and matched as a host route
-// ("203.0.113.5/32", or /128 for IPv6). Entries already in CIDR form pass
-// through; anything unparseable is left as-is (the handler validates first).
 func normalizeSourceIPs(entries []string) []string {
 	out := make([]string, 0, len(entries))
 
@@ -193,9 +174,6 @@ func normalizeSourceIPs(entries []string) []string {
 	return out
 }
 
-// sourceIPMatches reports whether the client IP falls within any of the policy's
-// source CIDRs (OR). An empty list matches any IP. A malformed CIDR or an
-// unparseable client IP returns an error so the caller can fail closed on deny.
 func sourceIPMatches(cidrs []string, clientIP string) (bool, error) {
 	if len(cidrs) == 0 {
 		return true, nil
@@ -236,14 +214,9 @@ func (s *service) NamespaceHasAccessPolicies(ctx context.Context, tenantID strin
 	return count > 0, nil
 }
 
-// subjectMatches reports whether the policy subject applies to the given principal.
 func subjectMatches(subject models.PolicySubject, userID string, role authorizer.Role, userType models.UserType) bool {
 	switch subject.Type {
 	case models.PolicySubjectAllMembers:
-		// Only all-members needs the service carve-out: a role subject already excludes
-		// service accounts by exact equality, so an over-broad "*" allow is the one place a
-		// service account could be swept in by accident. Grant one on purpose via a
-		// role=service or user=<sa> subject.
 		return userType != models.UserTypeService
 	case models.PolicySubjectRole:
 		return subject.Value == role.String()
@@ -254,8 +227,6 @@ func subjectMatches(subject models.PolicySubject, userID string, role authorizer
 	}
 }
 
-// loginMatches reports whether the login is covered by the policy's login list:
-// an exact match, or a wildcard entry.
 func loginMatches(logins []string, login string) bool {
 	for _, l := range logins {
 		if l == "*" || l == login {
@@ -266,8 +237,6 @@ func loginMatches(logins []string, login string) bool {
 	return false
 }
 
-// defaultAction resolves a request's action, defaulting an omitted value to
-// allow so clients need not send it for the common grant case.
 func defaultAction(action string) models.PolicyAction {
 	if action == "" {
 		return models.PolicyActionAllow
@@ -276,9 +245,6 @@ func defaultAction(action string) models.PolicyAction {
 	return models.PolicyAction(action)
 }
 
-// normalizeReauthPeriod collapses a zero period to nil so "always" has a single
-// stored representation: both an omitted period and an explicit 0 mean re-auth
-// every session.
 func normalizeReauthPeriod(period *int) *int {
 	if period != nil && *period == 0 {
 		return nil
@@ -287,9 +253,6 @@ func normalizeReauthPeriod(period *int) *int {
 	return period
 }
 
-// stricterReauthPeriod returns the more demanding of two re-auth freshness windows.
-// A nil period means "every session" — the strictest — and always wins; between two
-// concrete windows the shorter one wins, since it forces re-auth more often.
 func stricterReauthPeriod(a, b *int) *int {
 	if a == nil || b == nil {
 		return nil
@@ -417,9 +380,6 @@ func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPo
 	return s.store.AccessPolicyDelete(ctx, &models.AccessPolicy{ID: req.ID, TenantID: req.TenantID})
 }
 
-// resolveAccessPolicyFilter translates the request's device selector into a
-// stored filter, resolving tag names to their ids (mirroring the public-key
-// create path).
 func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.PublicKeyFilter, error) {
 	filter := models.PublicKeyFilter{Hostname: reqFilter.Hostname}
 
@@ -454,9 +414,6 @@ func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope,
 	return filter, nil
 }
 
-// seedAccessPolicy creates the owner starter policy (see NewOwnerAccessPolicy)
-// when a namespace switches to identity access mode with no policies yet, so
-// default-deny does not lock the owner out.
 func (s *service) seedAccessPolicy(ctx context.Context, tenantID, ownerID string) error {
 	sc, err := BoundTo(tenantID)
 	if err != nil {

@@ -157,8 +157,6 @@ func (pg *Pg) SSHIdentityTouchReauth(ctx context.Context, tenantID, fingerprint 
 func (pg *Pg) SSHIdentityConsume(ctx context.Context, tenantID, fingerprint string) (bool, error) {
 	db := pg.GetConnection(ctx)
 
-	// Atomic burn: only the first caller flips consumed_at from NULL, so the
-	// affected-row count decides the race between concurrent single-use sessions.
 	res, err := db.NewUpdate().
 		Model((*entity.SSHIdentity)(nil)).
 		Set("consumed_at = ?", clock.Now()).

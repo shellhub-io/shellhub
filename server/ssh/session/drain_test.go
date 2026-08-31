@@ -11,8 +11,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// drained feeds the loop and asserts it keeps consuming until the channel is
-// closed, which is the only thing that may end it.
 func drained(t *testing.T, sess *Session, reqs chan *gossh.Request, send int) {
 	t.Helper()
 
@@ -57,7 +55,6 @@ func TestDrainAgentRequestsSurvivesKeepAliveFailure(t *testing.T) {
 
 	sess := newTestSession(serviceMock)
 
-	// More than x/crypto buffers, so a loop that stopped early would wedge.
 	drained(t, sess, make(chan *gossh.Request), 32)
 }
 

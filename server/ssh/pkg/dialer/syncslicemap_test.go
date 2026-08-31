@@ -399,7 +399,6 @@ func TestStats(t *testing.T) {
 			expected: Expected{keys: 1, values: 1},
 		},
 		{
-			// Delete drops every match, so the total must fall by more than one.
 			title: "subtracts every copy a single delete removes",
 			setup: func() *SyncSliceMap {
 				ssm := &SyncSliceMap{}

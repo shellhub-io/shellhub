@@ -208,25 +208,18 @@ func TestRolePreferences(t *testing.T) {
 		less        []authorizer.Role // HasAuthority returns true for these passives
 	}{
 		{
-			// RoleInvalid is never an authority over anything, including itself.
 			description: authorizer.RoleInvalid.String(),
 			role:        authorizer.RoleInvalid,
 			greater:     []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver, authorizer.RoleInvalid},
 			less:        []authorizer.Role{},
 		},
 		{
-			// Owner outranks all non-owner roles including RoleInvalid (corrupted records),
-			// but cannot act on another owner (passive==RoleOwner is always false).
-			// The self case (passive==RoleOwner) is in greater to pin that owners cannot
-			// be demoted — the ownership-integrity invariant.
 			description: authorizer.RoleOwner.String(),
 			role:        authorizer.RoleOwner,
 			greater:     []authorizer.Role{authorizer.RoleOwner},
 			less:        []authorizer.Role{authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver, authorizer.RoleInvalid},
 		},
 		{
-			// Administrator outranks Operator, Observer, and Invalid, but NOT Owner or
-			// another Administrator (equal-rank is permitted, same-rank authority is true).
 			description: authorizer.RoleAdministrator.String(),
 			role:        authorizer.RoleAdministrator,
 			greater:     []authorizer.Role{authorizer.RoleOwner},

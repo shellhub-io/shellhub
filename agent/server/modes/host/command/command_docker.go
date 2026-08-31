@@ -11,12 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
-// statFn is a seam for os.Stat used when probing /proc/1/ns/* entries.
-// It can be replaced in tests to avoid filesystem access.
 var statFn = os.Stat
 
-// nsenterArgs builds the nsenter flag slice from the present namespace map.
-// Docker always shares the host time namespace, so -T is never passed.
 func nsenterArgs(present map[string]string) []string {
 	args := []string{}
 
@@ -39,19 +35,9 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		groups = []uint32{}
 	}
 
-	// NOTE: Wrap the command with nsenter and setpriv to run it inside the
-	// host's namespaces with the correct user and groups. This is necessary
-	// because the agent is running inside a Docker container and we want to
-	// execute the command in the host's context.
 	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, groups, u.HomeDir, command...)
 
-	// noctx: NewCmd has a docker and a native build-tag variant sharing one signature, called
-	// from linux and freebsd paths. The session context reaches the callers, not here, so
-	// threading it through is a change to the command API rather than a lint fix.
 	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:noctx,gosec
-	// TODO: There are other environment variables we could set like SSH_CONNECTION, SSH_TTY, SSH_ORIGINAL_COMMAND, etc.
-	// We need to check which ones are relevant and set them accordingly.
-	// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
@@ -59,11 +45,6 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		"USER=" + u.Username,
 		"LOGNAME=" + u.Username,
 		"SHELLHUB_HOST=" + host,
-		// NOTE: We need to set the SSH_CLIENT because some applications (like bash) check for it to enable some
-		// features or load some files (like .bashrc). Currently, we don't have this information, so we set a fake one.
-		// TODO: Set the real SSH_CLIENT value.
-		// Format: "<ip> <source-port> <destination-port>"
-		// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
 		"SSH_CLIENT=127.0.0.1 0 0",
 	}
 	cmd.Env = append(cmd.Env, envs...)
@@ -104,10 +85,6 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 	return append(setPrivCmd, nsenterCmd...)
 }
 
-// nsenterCommandWrapper builds the full nsenter+setpriv command slice.
-// It probes /proc/1/ns/* for each namespace using statFn, then delegates
-// flag assembly to nsenterArgs. The time namespace is never joined because
-// Docker always shares the host time namespace.
 func nsenterCommandWrapper(uid, gid uint32, groups []uint32, home string, command ...string) ([]string, error) {
 	if _, err := statFn("/usr/bin/nsenter"); err != nil && !os.IsNotExist(err) {
 		return nil, err

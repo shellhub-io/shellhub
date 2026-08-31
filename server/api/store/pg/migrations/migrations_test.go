@@ -27,8 +27,6 @@ func TestNoDuplicateMigrationVersions(t *testing.T) {
 	}
 }
 
-// nonTransactionalStatements are statements PostgreSQL refuses to run inside a transaction
-// block.
 var nonTransactionalStatements = []string{
 	"VACUUM",
 	"ALTER SYSTEM",
@@ -75,9 +73,6 @@ func TestNonTransactionalMigrations(t *testing.T) {
 	}
 }
 
-// stripSQLComments removes "--" line comments so the scan below reads statements rather than
-// the prose around them. It does not attempt to honour string literals, which no migration
-// needs it to.
 func stripSQLComments(chunk string) string {
 	lines := strings.Split(chunk, "\n")
 	kept := make([]string, 0, len(lines))
@@ -93,13 +88,6 @@ func stripSQLComments(chunk string) string {
 	return strings.Join(kept, "\n")
 }
 
-// findNonTransactionalStatement returns the offending keyword, or "" when the statement can run
-// inside a transaction.
-//
-// Every keyword above opens a statement, so the match is anchored to the start of one rather
-// than searched for anywhere in the chunk. Unanchored, "VACUUM" is also a substring of the
-// autovacuum_* storage parameters, which would condemn an ALTER TABLE ... SET that is
-// transactional in every respect.
 func findNonTransactionalStatement(chunk string) string {
 	for statement := range strings.SplitSeq(chunk, ";") {
 		normalized := strings.Join(strings.Fields(strings.ToUpper(statement)), " ")
