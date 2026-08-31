@@ -17,7 +17,8 @@ func init() {
 	DefaultBackend = &goUUID{}
 }
 
-// Is responsible for calling method Generate of the defaultBackend.
+// Generate returns a new UUID v4 from the package's backend. Use it rather than the uuid package
+// directly, so a test can make identifiers deterministic.
 func Generate() string {
 	return DefaultBackend.Generate()
 }
@@ -29,6 +30,8 @@ func (g *goUUID) Generate() string {
 	return uuid.NewString()
 }
 
+// Parse reads a UUID from its string form. It does not go through the backend: parsing has no
+// behaviour worth substituting in a test.
 func Parse(s string) (uuid.UUID, error) {
 	return uuid.Parse(s)
 }

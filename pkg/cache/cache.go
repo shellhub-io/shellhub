@@ -6,8 +6,12 @@ import (
 	"time"
 )
 
+// ErrGetNotFound is returned when a key is absent. A miss is an error here rather than a zero
+// value, so a caller cannot mistake "nothing cached" for "cached nothing".
 var ErrGetNotFound = errors.New("failed to find the value on the cache")
 
+// Get reads a key and decodes it into T, saving the caller a variable to pass by address. It
+// returns ErrGetNotFound when the key is absent.
 func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
 	var t *T
 
@@ -22,6 +26,8 @@ func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
 	return t, nil
 }
 
+// Cache is the key/value store the services cache in. Implementations must be safe for concurrent
+// use; NewNullCache is the no-op one, which is what an instance without Redis runs.
 type Cache interface {
 	Get(ctx context.Context, key string, value any) error
 	Set(ctx context.Context, key string, value any, ttl time.Duration) error

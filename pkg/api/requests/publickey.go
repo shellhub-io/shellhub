@@ -7,6 +7,7 @@ type FingerprintParam struct {
 	Fingerprint string `param:"fingerprint" validate:"required"`
 }
 
+// ListPublicKeys is the request to page through the namespace's registered SSH keys.
 type ListPublicKeys struct {
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
@@ -19,6 +20,9 @@ type PublicKeyGet struct {
 	TenantParam
 }
 
+// PublicKeyFilter is the device selector attached to a key: either a hostname pattern or a tag
+// set, never both. It mirrors models.PublicKeyFilter, kept apart so the wire shape can change
+// without moving the stored one.
 type PublicKeyFilter struct {
 	Hostname string   `json:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
 	Tags     []string `json:"tags,omitempty" validate:"required_without=Hostname"`

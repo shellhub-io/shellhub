@@ -65,6 +65,9 @@ type NamespaceEdit struct {
 	} `json:"settings"`
 }
 
+// NamespaceAddMember is the request to invite an email into a namespace with a role. The forwarded
+// headers build the invitation link's host, so it points at the address the inviter reached the
+// console on.
 type NamespaceAddMember struct {
 	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
@@ -74,6 +77,8 @@ type NamespaceAddMember struct {
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
 }
 
+// NamespaceUpdateMember is the request to change a member's role. UserID is the caller, MemberID
+// the member being changed — a caller cannot grant a role above their own.
 type NamespaceUpdateMember struct {
 	UserID     string          `header:"X-ID" validate:"required"`
 	TenantID   string          `param:"tenant" validate:"required,uuid"`
@@ -81,12 +86,17 @@ type NamespaceUpdateMember struct {
 	MemberRole authorizer.Role `json:"role" validate:"omitempty,member_role"`
 }
 
+// NamespaceRemoveMember is the request to remove someone else from a namespace. A member removing
+// themselves is LeaveNamespace instead.
 type NamespaceRemoveMember struct {
 	UserID   string `header:"X-ID" validate:"required"`
 	TenantID string `param:"tenant" validate:"required,uuid"`
 	MemberID string `param:"uid" validate:"required"`
 }
 
+// LeaveNamespace is the request to give up one's own membership. It carries both the namespace
+// being left and the one the caller is authenticated to, because leaving the namespace you are
+// currently in has to invalidate the token you are holding.
 type LeaveNamespace struct {
 	UserID string `header:"X-ID" validate:"required"`
 	// TenantID represents the namespace that the user intends to leave.

@@ -46,6 +46,8 @@ type publicAPI interface {
 	NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error)
 }
 
+// Client is the agent's view of the ShellHub API: the routes an agent calls, plus the reverse
+// listener it serves SSH on. Build one with NewClient.
 type Client interface {
 	commonAPI
 	publicAPI
@@ -61,11 +63,18 @@ type client struct {
 	reverser reverser.Reverser
 }
 
+// ErrParseAddress is returned by NewClient when the server address is not a URL carrying scheme,
+// host and port.
 var ErrParseAddress = errors.New("could not parse the address to the required format")
 
 // NewClient creates a new ShellHub HTTP client.
 //
 // Server address must contain the scheme, the host and the port. For instance: `https://cloud.shellhub.io:443/`.
+//
+// The client retries indefinitely, backing off on the server's Retry-After when it sends one and on
+// a random delay when it does not, so an agent left running against a server that is down reconnects
+// on its own. Body-less requests go out with Content-Length: 0 rather than an empty chunked body,
+// which proxies and request binders handle far more predictably.
 func NewClient(address string, opts ...Opt) (Client, error) {
 	uri, err := url.ParseRequestURI(address)
 	if err != nil {
@@ -95,8 +104,6 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.http.SetRetryCount(math.MaxInt32)
 	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
 	client.http.SetBaseURL(uri.String())
-	// Keeps body-less requests on Content-Length: 0 instead of an empty chunked body, which
-	// proxies and request binders handle far more predictably.
 	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		var netErr net.Error

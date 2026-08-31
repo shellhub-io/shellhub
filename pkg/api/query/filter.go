@@ -8,11 +8,18 @@ import (
 )
 
 var (
-	ErrFilterInvalid         = errors.New("filter is invalid")
+	// ErrFilterInvalid is returned when a filter is not base64url-encoded JSON of the expected shape.
+	ErrFilterInvalid = errors.New("filter is invalid")
+	// ErrFilterPropertyInvalid is returned when a property node names a field the store does not
+	// allow filtering on.
 	ErrFilterPropertyInvalid = errors.New("filter property is not valid")
+	// ErrFilterOperatorInvalid is returned when a node names an operator the store does not support.
 	ErrFilterOperatorInvalid = errors.New("filter operator is not valid")
-	ErrFilterTooLarge        = errors.New("filter exceeds the maximum size")
-	ErrSorterFieldInvalid    = errors.New("sort field is not valid")
+	// ErrFilterTooLarge is returned when the encoded filter is longer than the cap, which bounds the
+	// work a single query can ask for.
+	ErrFilterTooLarge = errors.New("filter exceeds the maximum size")
+	// ErrSorterFieldInvalid is returned when a sort names a field the store does not allow sorting on.
+	ErrSorterFieldInvalid = errors.New("sort field is not valid")
 )
 
 // Filters represents a set of filters that can be applied to queries.
@@ -33,13 +40,14 @@ func NewFilters() *Filters {
 // Unmarshal decodes and unmarshals the raw filters, populating the Data attribute.
 // It rejects payloads larger than [MaxFilterRawBytes] before decode to keep
 // a hostile caller from allocating large buffers at JSON decode time.
+//
+// Both base64 alphabets are accepted, standard and URL-safe, with padding stripped first so either
+// can be tried with its unpadded decoder.
 func (fs *Filters) Unmarshal() error {
 	if len(fs.Raw) > MaxFilterRawBytes {
 		return ErrFilterTooLarge
 	}
 
-	// Strip any trailing '=' padding once so both standard and URL-safe encodings
-	// can be tried with their respective Raw (unpadded) decoders.
 	unpadded := strings.TrimRight(fs.Raw, "=")
 
 	raw, err := base64.RawStdEncoding.DecodeString(unpadded)
@@ -59,11 +67,15 @@ func (fs *Filters) Unmarshal() error {
 	return nil
 }
 
+// Filter is one node of a query filter: a tagged union whose Type picks the shape of Params.
+// Unmarshal one rather than building it by hand, or Params holds a map instead of a params struct.
 type Filter struct {
 	Type   string `json:"type,omitempty"`
 	Params any    `json:"params,omitempty"`
 }
 
+// UnmarshalJSON decodes Params into the struct named by Type. An unrecognized Type leaves Params
+// nil rather than failing, so a filter the server does not know narrows nothing.
 func (f *Filter) UnmarshalJSON(data []byte) error {
 	var params json.RawMessage
 

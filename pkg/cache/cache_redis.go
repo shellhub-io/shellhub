@@ -22,6 +22,8 @@ type redisCache struct {
 
 var _ Cache = &redisCache{}
 
+// NewRedisCache connects to Redis and returns a cache backed by it. It fails rather than falling
+// back: a misconfigured URI should surface at startup, not as silent cache misses forever.
 func NewRedisCache(uri string, pool int) (Cache, error) {
 	opt, err := redis.ParseURL(uri)
 	if err != nil {
@@ -86,8 +88,8 @@ func (c *redisCache) HasAccountLockout(ctx context.Context, source, id string) (
 		return 0, 0, nil
 	}
 
-	lockoutSTR := "0"
-	if err := c.Get(ctx, "account-lockout="+source+":"+id, &lockoutSTR); err != nil {
+	lockoutDeadline := "0"
+	if err := c.Get(ctx, "account-lockout="+source+":"+id, &lockoutDeadline); err != nil {
 		return 0, 0, err
 	}
 
@@ -96,7 +98,7 @@ func (c *redisCache) HasAccountLockout(ctx context.Context, source, id string) (
 		return 0, 0, err
 	}
 
-	lockout, _ := strconv.ParseInt(lockoutSTR, 10, 0)
+	lockout, _ := strconv.ParseInt(lockoutDeadline, 10, 0)
 	attempt, _ := strconv.Atoi(attemptSTR)
 
 	return lockout, attempt, nil
@@ -127,14 +129,13 @@ func (c *redisCache) StoreLoginAttempt(ctx context.Context, source, id string) (
 		return 0, attempt, nil
 	}
 
-	// We save 'lockoutTTL' as an absolute lockoutStr to help with time handling
 	lockoutTTL := time.Duration(tmp) * time.Minute
-	lockoutSTR := strconv.FormatInt(now.Add(lockoutTTL).Unix(), 10)
-	if err := c.Set(ctx, "account-lockout="+source+":"+id, lockoutSTR, lockoutTTL); err != nil {
+	lockoutDeadline := strconv.FormatInt(now.Add(lockoutTTL).Unix(), 10)
+	if err := c.Set(ctx, "account-lockout="+source+":"+id, lockoutDeadline, lockoutTTL); err != nil {
 		return 0, attempt, err
 	}
 
-	lockout, _ := strconv.ParseInt(lockoutSTR, 10, 0)
+	lockout, _ := strconv.ParseInt(lockoutDeadline, 10, 0)
 
 	return lockout, attempt, nil
 }

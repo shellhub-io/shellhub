@@ -11,8 +11,8 @@ func UseEnvs() {
 	SetLogLevel()
 }
 
-// TODO: "set" on the name doesn't make sense, as it isn't receiving nothing to set. In my view, "use" could be a better
-// naming, as it will "use" the environmental variable.
+// SetLogLevel applies the level named by the environment: trace in development, and otherwise
+// whatever SHELLHUB_LOG_LEVEL asks for, falling back to info.
 func SetLogLevel() {
 	if envs.DefaultBackend.Get("SHELLHUB_ENV") == "development" {
 		logrus.SetLevel(logrus.TraceLevel)

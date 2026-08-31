@@ -6,6 +6,8 @@ import (
 	"github.com/adhocore/gronx"
 )
 
+// CronSpec is a cron expression in the five-field form. Validate before use: an invalid spec would
+// otherwise register a job that never fires.
 type CronSpec string
 
 func (cs CronSpec) String() string {
@@ -28,8 +30,12 @@ func (cs CronSpec) MustValidate() {
 	}
 }
 
+// CronHandler runs one scheduled execution. It takes no payload — a cron job's only input is the
+// fact that it is time.
 type CronHandler func(ctx context.Context) error
 
+// Cronjob binds a handler to a schedule. Unique is what stops a long run from overlapping the next
+// tick, which matters for jobs that sweep shared state.
 type Cronjob struct {
 	// Identifier is a UUID for the cron job, used internally to register the task with the
 	// scheduler.
@@ -42,4 +48,5 @@ type Cronjob struct {
 	Unique bool
 }
 
+// CronjobOption configures a cron job at registration.
 type CronjobOption func(c *Cronjob)

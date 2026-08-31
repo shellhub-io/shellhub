@@ -12,10 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
-// TODO:
-// 1. Rename [user|device]Claims.Kind JSON's tag to "kind". (BREAKING CHANGE)
-// 2. Rename this package to jwt.
-
 type (
 	// claimKind represents the type of claims used in JWT tokens.
 	claimKind string

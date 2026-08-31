@@ -9,6 +9,8 @@ type nullCache struct{}
 
 var _ Cache = &nullCache{}
 
+// NewNullCache returns a cache that stores nothing and reports every read as a miss. It is what an
+// instance without Redis runs, so a missing cache degrades to recomputing rather than to failing.
 func NewNullCache() Cache {
 	return &nullCache{}
 }

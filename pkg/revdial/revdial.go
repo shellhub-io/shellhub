@@ -38,6 +38,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// The errors a dialer returns once it can no longer serve connections: closed for good, or with no
+// answer from the peer in time. Both are terminal for the dialer, and the caller reconnects.
 var (
 	ErrDialerClosed   = errors.New("revdial.Dialer closed")
 	ErrDialerTimedout = errors.New("revdial.Dialer timedout")
@@ -352,7 +354,8 @@ type controlMsg struct {
 }
 
 // run reads control messages from the public server forever until the connection dies, which
-// then closes the listener.
+// then closes the listener. The server's periodic keep-alive is one of those messages and carries
+// nothing: receiving it is the point, since it holds the connection open through NAT timeouts.
 func (ln *Listener) run() {
 	done := func() {
 		_ = ln.Close()
@@ -399,8 +402,6 @@ func (ln *Listener) run() {
 			}
 			switch msg.Command {
 			case "keep-alive":
-				// Occasional no-op message from server to keep
-				// us alive through NAT timeouts.
 				closeTimer.Reset(dialerKeepAliveTimeout)
 			case "conn-ready":
 				go ln.grabConn(msg.ConnPath)

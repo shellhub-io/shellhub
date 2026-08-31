@@ -23,6 +23,8 @@ type Taggable struct {
 	Tags []Tag `json:"tags"`
 }
 
+// Tag is a named label owned by a namespace. Devices reference it by ID, so renaming a tag keeps
+// every device that carries it.
 type Tag struct {
 	ID        string    `json:"-"`
 	TenantID  string    `json:"tenant_id"`
@@ -31,6 +33,8 @@ type Tag struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// TagConflicts names the fields that must be unique within a namespace, and is how a store reports
+// which one collided.
 type TagConflicts struct {
 	Name string
 }

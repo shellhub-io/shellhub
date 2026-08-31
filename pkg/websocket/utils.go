@@ -8,6 +8,8 @@ func IsErrorCloseNormal(err error) bool {
 	return websocket.IsCloseError(err, websocket.CloseNormalClosure)
 }
 
+// IsUnexpectedCloseError reports whether the peer went away without a close handshake — a dropped
+// connection rather than one that ended. It is the error worth logging; a normal close is not.
 func IsUnexpectedCloseError(err error) bool {
 	return websocket.IsUnexpectedCloseError(err)
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
 
+// Reverser dials the SSH server over a websocket and serves the reverse tunnel the server reaches
+// the agent back through. It is the websocket implementation of reverser.Reverser.
 type Reverser struct {
 	conn *websocket.Conn
 	// host is the ShellHub's server address.
@@ -22,6 +24,7 @@ type Reverser struct {
 
 var _ reverser.Reverser = new(Reverser)
 
+// NewReverser returns a Reverser pointed at a server address. Nothing is dialed until Auth.
 func NewReverser(host string) *Reverser {
 	return &Reverser{
 		host: host,

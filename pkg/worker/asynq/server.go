@@ -8,6 +8,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/worker"
 )
 
+// ServerOption configures the worker server during NewServer. An option that returns an error
+// aborts construction.
 type ServerOption func(s *server) error
 
 // UniquenessTimeout defines the maximum duration, in hours, for which a unique job remains locked
@@ -33,6 +35,8 @@ type server struct {
 	cronjobs []worker.Cronjob
 }
 
+// NewServer builds a worker server backed by asynq. Tasks and cron jobs are registered on the
+// returned server; nothing runs until Start.
 func NewServer(redisURI string, opts ...ServerOption) worker.Server {
 	s := &server{
 		redisURI: redisURI,

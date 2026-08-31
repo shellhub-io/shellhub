@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 )
 
+// The errors validation returns, distinguishing a whole struct that failed from a single value.
+// Both wrap the underlying library's error, so the failing field is still reachable.
 var (
 	ErrStructureInvalid = errors.New("invalid structure")
 	ErrVarInvalid       = errors.New("invalid var")
@@ -39,7 +41,8 @@ const (
 	DeviceNameTag = "device_name"
 	// PrivateKeyPEMTag contains the rule to validate a private key.
 	PrivateKeyPEMTag = "privateKeyPEM"
-	CertPEMTag       = "certPEM"
+	// CertPEMTag contains the rule to validate a certificate.
+	CertPEMTag = "certPEM"
 	// APIKeyNameTag contains the rule to validate an API key's name.
 	APIKeyNameTag = "api-key_name"
 	// APIKeyExpiresAtTag contains the rule to validate an API key's expiration value.

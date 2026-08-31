@@ -17,7 +17,8 @@ func init() {
 	DefaultBackend = &realClock{}
 }
 
-// Is responsible for calling method Now of the defaultBackend.
+// Now returns the current time from the package's backend. Use it rather than time.Now everywhere
+// but a deadline or an elapsed-time measurement, so a test can control what "now" means.
 func Now() time.Time {
 	return DefaultBackend.Now()
 }

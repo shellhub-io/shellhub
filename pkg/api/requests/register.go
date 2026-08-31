@@ -1,5 +1,8 @@
 package requests
 
+// RegisterUser is the request to create an account, serving both open sign-up and the invite flow.
+// Which one it is follows from Sig: with an invitation code the email comes from the invitation
+// rather than the body, so the invitee cannot point it somewhere else.
 type RegisterUser struct {
 	Name     string `json:"name" validate:"required,name"`
 	Username string `json:"username" validate:"required,username"`

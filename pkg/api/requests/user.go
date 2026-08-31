@@ -3,6 +3,8 @@ package requests
 
 import "github.com/shellhub-io/shellhub/pkg/models"
 
+// UserParam is a user id taken from the path, embedded by the requests that address a user that
+// way rather than through the authenticated caller's headers.
 type UserParam struct {
 	ID string `param:"id" validate:"required"`
 }

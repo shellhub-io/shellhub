@@ -12,6 +12,7 @@ type SessionIDParam struct {
 	UID string `param:"uid" validate:"required"`
 }
 
+// ListSessions is the request to page through a namespace's sessions, live and finished alike.
 type ListSessions struct {
 	TenantID string `header:"X-Tenant-ID"`
 	query.Paginator
@@ -48,11 +49,13 @@ type SessionFinish struct {
 	SessionIDParam
 }
 
-// SessionFinish is the structure to represent the request data for keep alive session endpoint.
+// SessionKeepAlive is the request an active session sends to stay marked live. Missing them is
+// what eventually marks a session inactive.
 type SessionKeepAlive struct {
 	SessionIDParam
 }
 
+// SessionUpdate is a partial update to a live session: a nil field is left alone.
 type SessionUpdate struct {
 	SessionIDParam
 	Recorded      *bool   `json:"recorded"`
@@ -60,6 +63,8 @@ type SessionUpdate struct {
 	Type          *string `json:"type"`
 }
 
+// SessionEvent is one recorded event within a session. Data's shape follows Type, and Seat says
+// which of a multiplexed session's terminals it came from.
 type SessionEvent struct {
 	Type      string    `json:"type" validate:"required"`
 	Timestamp time.Time `json:"timestamp" validate:"required"`
@@ -67,6 +72,8 @@ type SessionEvent struct {
 	Seat      int       `json:"seat" validate:"min=0"`
 }
 
+// SessionSeat addresses one terminal within a session, which is how a single SSH connection can
+// carry more than one.
 type SessionSeat struct {
 	SessionIDParam
 	ID int `json:"id"`

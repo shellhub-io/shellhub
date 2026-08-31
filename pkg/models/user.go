@@ -7,6 +7,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
+// UserStatus is where a user sits in the sign-up flow. It gates authentication, so a user who is
+// not confirmed cannot sign in even with the right password.
 type UserStatus string
 
 const (
@@ -23,6 +25,8 @@ func (s UserStatus) String() string {
 	return string(s)
 }
 
+// UserOrigin records how the account came into existence, which decides who owns the password:
+// a SAML user has none here, and authenticates against the IdP instead.
 type UserOrigin string
 
 const (
@@ -38,6 +42,8 @@ func (o UserOrigin) String() string {
 	return string(o)
 }
 
+// UserType separates a person from a service account. It is not the membership role — the role
+// says what a principal may do in a namespace, the type says what kind of principal it is.
 type UserType string
 
 const (
@@ -56,13 +62,15 @@ func (t UserType) String() string {
 	return string(t)
 }
 
+// UserAuthMethod is a way a user may authenticate. A user can hold several at once, so this is a
+// set rather than a mode.
 type UserAuthMethod string
 
 const (
 	// UserAuthMethodLocal indicates that the user can authenticate using an email and password.
 	UserAuthMethodLocal UserAuthMethod = "local"
 
-	// UserAuthMethodManual indicates that the user can authenticate using a third-party SAML application.
+	// UserAuthMethodSAML indicates that the user can authenticate using a third-party SAML application.
 	UserAuthMethodSAML UserAuthMethod = "saml"
 )
 
@@ -70,6 +78,8 @@ func (a UserAuthMethod) String() string {
 	return string(a)
 }
 
+// User is an account on the instance. It exists independently of any namespace: membership is
+// what ties a user to one, so a user with no memberships is valid and simply sees nothing.
 type User struct {
 	ID string `json:"id,omitempty"`
 	// Type distinguishes a human user from a service account. It defaults to
@@ -104,6 +114,8 @@ type User struct {
 	AwaitingApproval bool `json:"awaiting_approval"`
 }
 
+// UserData is the identifying half of a user, split out because these are the fields the API lets
+// a user change and the fields uniqueness is enforced on.
 type UserData struct {
 	Name     string `json:"name" validate:"required,name"`
 	Username string `json:"username" validate:"required,username"`
@@ -125,6 +137,8 @@ type UserMFA struct {
 	RecoveryCodes []string `json:"-"`
 }
 
+// UserPreferences is per-user state that changes how the console behaves for them, and carries no
+// authorization weight: nothing here decides what the user may do.
 type UserPreferences struct {
 	// PreferredNamespace represents the namespace the user most recently authenticated with.
 	PreferredNamespace string `json:"-"`
@@ -133,6 +147,9 @@ type UserPreferences struct {
 	AuthMethods []UserAuthMethod `json:"auth_methods"`
 }
 
+// UserPassword holds a password in both forms. Plain is populated on the way in from a request and
+// never persisted or serialized; Hash is what the store keeps. Build one with HashUserPassword
+// rather than setting Hash yourself.
 type UserPassword struct {
 	// Plain contains the plain text password.
 	Plain string `json:"password" validate:"required,password"`
@@ -174,6 +191,9 @@ func (i *UserAuthIdentifier) IsEmail() bool {
 	return true
 }
 
+// UserAuthResponse is what a successful login returns: the token the client authenticates with
+// from then on, plus enough of the user and their current namespace for the console to render
+// without a second round trip.
 type UserAuthResponse struct {
 	Token         string           `json:"token"`
 	User          string           `json:"user"`
@@ -190,16 +210,17 @@ type UserAuthResponse struct {
 	Admin         bool             `json:"admin"`
 }
 
-// NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
-// however, it is also utilized by migrations. For this reason, we must maintain the struct
-// here ensure everything continues to function as expected.
-// TODO: Remove this struct when it is no longer needed for migrations.
+// UserTokenRecover is a password-recovery token. Recovery is a cloud feature and the type lives
+// there too; this copy exists because migrations reference it, so it cannot move until they no
+// longer do.
 type UserTokenRecover struct {
 	Token     string    `json:"uid"`
 	User      string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// UserInfo is the namespaces a user can reach, split by whether they own them. A namespace appears
+// in exactly one of the two lists.
 type UserInfo struct {
 	// OwnedNamespaces are the namespaces where the user is the owner.
 	OwnedNamespaces []Namespace

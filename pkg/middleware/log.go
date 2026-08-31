@@ -94,16 +94,19 @@ const (
 	HeaderTenantID = "X-Tenant-ID"
 )
 
+// Log is the echo middleware that logs one line per request, with the user and tenant taken from
+// the headers named above. It measures with the wall clock deliberately: this is elapsed time, not
+// a timestamp a test needs to control.
+//
+// It runs the error handler itself rather than returning the error, so the status that handler
+// writes is already on the response by the time the line is built, and it unwraps echo's
+// [http.ResponseWriter] to read that status and the byte count back out.
 func Log(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		start := time.Now() //nolint:forbidigo // a deadline or an elapsed-time measurement needs the wall clock
 
-		// NOTE: The next must be called to proceed to the next handler in the chain that should be the processing of
-		// the request itself.
 		err := next(c)
 		if err != nil {
-			// Run the error handler here rather than returning the error, so the status it
-			// writes is already on the response by the time we read it below.
 			c.Echo().HTTPErrorHandler(c, err)
 		}
 
@@ -114,8 +117,6 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			bytesIn = "0"
 		}
 
-		// Echo hands out the bare [http.ResponseWriter], so the status and the byte count have
-		// to be unwrapped back out of it.
 		status, bytesOut := 0, int64(0)
 		if response, unwrapErr := echo.UnwrapResponse(c.Response()); unwrapErr == nil {
 			status, bytesOut = response.Status, response.Size

@@ -114,6 +114,11 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 // references a (field, operator) pair not in constraints, carries a
 // non-primitive Value, or exceeds the configured size limits. Operator
 // filters (and/or) are left to the store to parse.
+//
+// Equality on a virtual bool-backed field (see [FieldConstraints.IsVirtualBoolField]) accepts
+// anything bool-convertible, because ParseFilterProperty intercepts those before any column is
+// bound. Every other field must be compared against a string, or Postgres answers a type mismatch
+// with a 500.
 func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 	if filters == nil {
 		return nil
@@ -146,11 +151,6 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 		}
 
 		if prop.Operator == "eq" || prop.Operator == "ne" {
-			// Virtual bool-backed fields (see IsVirtualBoolField) are intercepted by
-			// ParseFilterProperty before any SQL column binding, so they accept any
-			// bool-convertible value (bool, float64, parseable string).
-			// Regular text-column fields must receive a string to prevent a
-			// Postgres type-mismatch 500.
 			if constraints.IsVirtualBoolField(prop.Name) {
 				if !isBoolConvertible(prop.Value) {
 					return ErrFilterPropertyInvalid

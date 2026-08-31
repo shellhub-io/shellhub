@@ -1,7 +1,12 @@
 package authorizer
 
+// Permission is one action a role may or may not perform. The values are iota-assigned and carry
+// no meaning outside the process: they are never persisted or sent on the wire, so the list can be
+// reordered.
 type Permission int
 
+// The actions a role can be granted. Grouped by resource, and deliberately finer-grained than the
+// routes: one route may require several, and a role is the set it holds.
 const (
 	DeviceAccept Permission = iota
 	DeviceReject

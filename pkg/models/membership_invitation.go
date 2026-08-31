@@ -7,15 +7,27 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 )
 
+// MembershipInvitationStatus is where an invitation sits. Expiry is not one of the values: an
+// expired invitation stays pending, and IsExpired answers separately.
 type MembershipInvitationStatus string
 
 const (
-	MembershipInvitationStatusPending   MembershipInvitationStatus = "pending"
-	MembershipInvitationStatusAccepted  MembershipInvitationStatus = "accepted"
-	MembershipInvitationStatusRejected  MembershipInvitationStatus = "rejected"
+	// MembershipInvitationStatusPending is an invitation nobody has answered. It is also the status
+	// of an expired invitation, so check IsExpired before treating one as open.
+	MembershipInvitationStatusPending MembershipInvitationStatus = "pending"
+	// MembershipInvitationStatusAccepted is an invitation the invitee took, which is what created
+	// their membership.
+	MembershipInvitationStatusAccepted MembershipInvitationStatus = "accepted"
+	// MembershipInvitationStatusRejected is an invitation the invitee declined.
+	MembershipInvitationStatusRejected MembershipInvitationStatus = "rejected"
+	// MembershipInvitationStatusCancelled is an invitation the namespace withdrew before it was
+	// answered.
 	MembershipInvitationStatusCancelled MembershipInvitationStatus = "cancelled"
 )
 
+// MembershipInvitation is a pending offer of membership in a namespace. It becomes a Member only
+// when accepted; until then it grants nothing. Sig is what makes the invitation link usable, so it
+// is never serialized.
 type MembershipInvitation struct {
 	ID              string                     `json:"-"`
 	TenantID        string                     `json:"-"`
@@ -38,10 +50,14 @@ type MembershipInvitation struct {
 	UserEmail string `json:"-"`
 }
 
+// IsExpired reports whether the invitation is past its deadline. An invitation with no ExpiresAt
+// never expires.
 func (m MembershipInvitation) IsExpired() bool {
 	return m.ExpiresAt != nil && m.ExpiresAt.Before(clock.Now())
 }
 
+// IsPending reports whether the invitation is unanswered, which is not the same as usable — an
+// expired invitation is still pending.
 func (m MembershipInvitation) IsPending() bool {
 	return m.Status == MembershipInvitationStatusPending
 }
