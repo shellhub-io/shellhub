@@ -4,6 +4,8 @@ title: Container Access
 description: Reach containers running on a device as if each one were its own device.
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Container Access
 
 The Connector exposes containers running on a host as ShellHub devices in their own right. Each
@@ -21,7 +23,7 @@ not the machine underneath it.
 
 From the console's **Containers** page, register the Docker host:
 
-![ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command](/img/containers/add-docker-host.png)
+<Shot id="add-docker-host" route="/containers" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Docker Host" } }]} alt="ShellHub Containers page with the Registering a Docker Host drawer open, showing the one-line Connector install command" />
 
 That gives you a one-line command to run on the host. The Connector then watches the Docker daemon
 and registers containers as they appear.

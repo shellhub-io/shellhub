@@ -5,13 +5,14 @@ description: The workspace that holds your devices, members, policies and settin
 ---
 
 import EditionBanner from "../../components/EditionBanner.astro";
+import Shot from '../../components/Shot.astro';
 
 # Namespaces
 
 A namespace is the boundary everything lives inside: devices, members, identities, policies,
 tags, settings. Two namespaces share nothing.
 
-![Namespace Settings page](/img/settings/namespace-settings.png)
+<Shot id="namespace-settings" route="/settings" alt="Namespace Settings page" />
 
 ## Name and Tenant ID
 
@@ -28,7 +29,7 @@ $ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 The **Tenant ID** is an immutable UUID generated when the namespace is created. It is what devices,
 API keys and sessions actually reference.
 
-![Namespace Settings page showing the Tenant ID being copied](/img/settings/namespace-copy-tenant-id.gif)
+![Namespace Settings page showing the Tenant ID being copied](/img/manual/namespace-copy-tenant-id.gif)
 
 Renaming a namespace changes every SSHID for it. Anything with a stored SSHID — an SSH config
 alias, an Ansible inventory, a script — breaks. The tenant ID does not change, so agent
@@ -36,7 +37,7 @@ configuration is unaffected.
 
 ## Creating one
 
-![Switching namespaces](/img/settings/namespace-create.gif)
+![Switching namespaces](/img/manual/namespace-create.gif)
 
 <EditionBanner>
 Creating a namespace is on **Cloud** and **Enterprise**. Community is single-namespace: the one
@@ -52,7 +53,7 @@ overhead of a second workspace.
 
 ## Switching
 
-![Switching namespaces](/img/settings/namespace-switch.gif)
+![Switching namespaces](/img/manual/namespace-switch.gif)
 
 Membership is per namespace, and so is your role — you can be an administrator in one and an
 observer in another.
@@ -68,7 +69,7 @@ A namespace born in identity mode can never leave it. See
 
 ## Deleting
 
-![Deleting namespaces](/img/settings/namespace-delete.gif)
+![Deleting namespaces](/img/manual/namespace-delete.gif)
 
 Deleting takes the devices, identities, policies and history with it. Only the owner can do it —
 an administrator cannot.

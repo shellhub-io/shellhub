@@ -5,6 +5,7 @@ description: Publish an HTTP service running on a device at a public URL.
 ---
 
 import EditionBanner from "../../components/EditionBanner.astro";
+import Shot from '../../components/Shot.astro';
 
 # Web Endpoints
 
@@ -31,7 +32,7 @@ difference, and it is the reason to choose one over the other.
 From the console's **Web Endpoints** page, pick the device and the port the service is listening
 on. You get back a URL.
 
-![The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining](/img/web-endpoints/web-endpoints.png)
+<Shot id="web-endpoints" route="/web-endpoints" of={{ role: "list", name: "Web endpoints" }} edition="enterprise" alt="The Web Endpoints page listing active endpoints with their public URLs, targets, and time remaining" />
 
 The endpoint carries an expiry, shown in the list as time remaining.
 

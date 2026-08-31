@@ -4,6 +4,8 @@ title: Connecting to a Device
 description: Open a terminal from the browser or from your own SSH client.
 ---
 
+import Shot from '../components/Shot.astro';
+
 # Connecting to a Device
 
 Two ways in. The browser needs nothing installed; a native client works with no plugin.
@@ -12,7 +14,7 @@ Two ways in. The browser needs nothing installed; a native client works with no 
 
 Open the device in the console and click the terminal button.
 
-![Device connecting](/img/devices/device-connect.gif)
+![Device connecting](/img/manual/device-connect.gif)
 
 The web terminal runs over a WebSocket to the server and out through the agent's existing
 connection. Nothing is installed and nothing is configured.
@@ -45,7 +47,7 @@ $ ssh root@mycompany.raspberrypi@cloud.shellhub.io
 
 The device details page shows the whole string with a copy button.
 
-![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+<Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
 
 Because the SSHID is just an SSH username, everything that speaks SSH works: OpenSSH, PuTTY,
 `scp`, `sftp`, Ansible. See [SSH Client Configuration](/connect/ssh-clients) for making it less

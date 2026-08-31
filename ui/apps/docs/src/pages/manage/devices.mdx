@@ -4,11 +4,13 @@ title: Managing Devices
 description: The device list, what the statuses mean, and how devices are identified.
 ---
 
+import Shot from '../../components/Shot.astro';
+
 # Managing Devices
 
 Every machine running an agent appears under **Devices**.
 
-![ShellHub Devices page listing accepted devices](/img/devices/device-list.png)
+<Shot id="device-list" route="/devices" of={{ role: "table" }} before={[{ click: { role: "button", name: "Sort by Hostname" } }]} alt="ShellHub Devices page listing accepted devices" />
 
 ## Statuses
 
@@ -67,7 +69,7 @@ convention is something you can write rules against. See
 Opening a device shows its SSHID with a copy button, plus what the agent reports about it — OS,
 architecture, agent version, when it was last seen.
 
-![Device details page showing the SSHID with a copy button](/img/devices/device-details.png)
+<Shot id="device-details" route="/devices/:device" alt="Device details page showing the SSHID with a copy button" />
 
 The agent version is the first thing to check when something behaves oddly on one device and not
 another.
