@@ -1,3 +1,5 @@
+import { nullOnFailure } from "@/utils/failure";
+
 /**
  * Which edition the server is running. It decides what the UI offers — billing, SSO and web
  * endpoints exist only above community.
@@ -48,17 +50,13 @@ export async function loadConfig(): Promise<ClientConfig> {
   if (inflight) return inflight;
 
   inflight = (async () => {
-    try {
-      const res = await fetch("/config.json");
-      cached = {
-        ...defaultConfig,
-        ...((await res.json()) as Partial<ClientConfig>),
-      };
-    // eslint-disable-next-line no-empty -- leaves the cache at defaultConfig so a later call can retry the fetch
-    } catch {
-    } finally {
-      inflight = null;
-    }
+    const fetched = await fetch("/config.json")
+      .then((res) => res.json() as Promise<Partial<ClientConfig>>)
+      .catch(nullOnFailure);
+
+    cached = fetched ? { ...defaultConfig, ...fetched } : defaultConfig;
+    inflight = null;
+
     return cached;
   })();
 

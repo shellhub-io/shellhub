@@ -4,6 +4,7 @@ import { Button, type ButtonVariant } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
+import { ignoreFailure } from "@/utils/failure";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -65,15 +66,11 @@ export default function ConfirmDialog({
     setConfirming(false);
   });
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     setConfirming(true);
-    try {
-      await onConfirm();
-    // eslint-disable-next-line no-empty -- the consumer of the dialog owns its own error state and surfaces it there
-    } catch {
-    } finally {
-      setConfirming(false);
-    }
+    void Promise.resolve(onConfirm())
+      .catch(ignoreFailure)
+      .finally(() => setConfirming(false));
   };
 
   const buttonVariant = VARIANT_BUTTON[variant];

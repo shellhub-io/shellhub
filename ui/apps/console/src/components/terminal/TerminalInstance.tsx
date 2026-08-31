@@ -27,6 +27,7 @@ import {
 } from "./terminalErrors";
 import SSHApproval from "@/pages/SSHApproval";
 import { cn } from "@shellhub/design-system/cn";
+import { attempt } from "@/utils/failure";
 
 interface TerminalInstanceProps {
   session: TerminalSession;
@@ -141,11 +142,7 @@ export default function TerminalInstance({
       if (!containerRef.current) return;
       term.open(containerRef.current);
 
-      try {
-        term.loadAddon(new WebglAddon());
-      // eslint-disable-next-line no-empty -- no WebGL on this machine, so xterm falls back to the DOM renderer
-      } catch {
-      }
+      attempt(() => term.loadAddon(new WebglAddon()));
 
       fitAddon.fit();
       const { cols, rows } = term;

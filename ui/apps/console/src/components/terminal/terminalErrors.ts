@@ -198,8 +198,8 @@ export function parseMessage(
         data: (msg as { data: string }).data,
       };
     }
-  // eslint-disable-next-line no-empty -- not JSON, so the frame is ordinary terminal output and not an error
   } catch {
+    return null;
   }
   return null;
 }

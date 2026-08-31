@@ -18,6 +18,7 @@ import {
   injectChatwootScript,
   subscribeChatwootState,
 } from "@/hooks/chatwootRuntime";
+import { attempt } from "@/utils/failure";
 
 /**
  * Why support chat is or is not available. The three unavailable reasons are kept apart because
@@ -120,16 +121,15 @@ export function useChatwoot(): ChatwootHandle {
     ].join("|");
     if (lastIdentityRef.current === key) return;
 
-    try {
+    const identified = attempt(() => {
       window.$chatwoot?.setUser(userId, {
         email: userEmail ?? undefined,
         name: userName ?? undefined,
         identifier_hash: identifier,
       });
-      lastIdentityRef.current = key;
-    // eslint-disable-next-line no-empty -- the widget was reset between effect setup and this call; the next change retries
-    } catch {
-    }
+    });
+
+    if (identified) lastIdentityRef.current = key;
   }, [widgetReady, userId, userEmail, userName, tenant, identifier]);
 
   useEffect(() => {
@@ -139,15 +139,13 @@ export function useChatwoot(): ChatwootHandle {
     const onMessage = () => {
       if (fired) return;
       fired = true;
-      try {
+      attempt(() => {
         window.$chatwoot?.setConversationCustomAttributes({
           namespace: namespaceName,
           tenant,
           domain: window.location.hostname,
         });
-      // eslint-disable-next-line no-empty -- older Chatwoot builds do not expose this API
-      } catch {
-      }
+      });
     };
 
     window.addEventListener("chatwoot:on-message", onMessage);
@@ -156,11 +154,7 @@ export function useChatwoot(): ChatwootHandle {
 
   const openWidget = useCallback(() => {
     if (!widgetReady) return;
-    try {
-      window.$chatwoot?.toggle("open");
-    // eslint-disable-next-line no-empty -- the widget is not attached yet, so opening it is a no-op
-    } catch {
-    }
+    attempt(() => window.$chatwoot?.toggle("open"));
   }, [widgetReady]);
 
   let status: ChatwootStatus;
